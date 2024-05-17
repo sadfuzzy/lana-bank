@@ -101,9 +101,7 @@ pub struct NewJob {
 
 impl NewJob {
     pub fn builder() -> NewJobBuilder {
-        let mut builder = NewJobBuilder::default();
-        builder.id(JobId::new());
-        builder
+        NewJobBuilder::default()
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<JobEvent> {

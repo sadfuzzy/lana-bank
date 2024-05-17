@@ -6,6 +6,7 @@ use crate::{entity::*, primitives::*};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum FixedTermLoanEvent {
     Initialized { id: FixedTermLoanId },
+    LedgerAccountCreated { ledger_account_id: LedgerAccountId },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -33,9 +34,10 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
         let mut builder = FixedTermLoanBuilder::default();
         for event in events.iter() {
             match event {
-                FixedTermLoanEvent::Initialized { id, .. } => {
+                FixedTermLoanEvent::Initialized { id } => {
                     builder = builder.id(*id);
                 }
+                FixedTermLoanEvent::LedgerAccountCreated { .. } => {}
             }
         }
         builder._events(events).build()

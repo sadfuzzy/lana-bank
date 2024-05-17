@@ -1,31 +1,48 @@
 mod entity;
 pub mod error;
+mod job;
 mod repo;
 
 use sqlx::PgPool;
 
-use crate::{entity::EntityUpdate, job::Jobs, ledger::Ledger, primitives::*};
+use crate::{
+    entity::EntityUpdate,
+    job::{JobRegistry, Jobs},
+    ledger::Ledger,
+    primitives::*,
+};
 
 pub use entity::*;
 use error::*;
+use job::*;
 use repo::*;
 
 #[derive(Clone)]
 pub struct FixedTermLoans {
     repo: FixedTermLoanRepo,
-    ledger: Ledger,
-    jobs: Jobs,
+    _ledger: Ledger,
+    jobs: Option<Jobs>,
     pool: PgPool,
 }
 
 impl FixedTermLoans {
-    pub fn new(pool: &PgPool, ledger: Ledger, jobs: Jobs) -> Self {
+    pub fn new(pool: &PgPool, registry: &mut JobRegistry, ledger: Ledger) -> Self {
+        let repo = FixedTermLoanRepo::new(&pool);
+        registry.add_initializer(FixedTermLoanJobInitializer::new(&ledger, repo.clone()));
         Self {
-            repo: FixedTermLoanRepo::new(&pool),
-            ledger,
-            jobs,
+            repo,
+            _ledger: ledger,
+            jobs: None,
             pool: pool.clone(),
         }
+    }
+
+    pub fn set_jobs(&mut self, jobs: &Jobs) {
+        self.jobs = Some(jobs.clone());
+    }
+
+    fn jobs(&self) -> &Jobs {
+        self.jobs.as_ref().expect("Jobs not set")
     }
 
     pub async fn create_loan(&self) -> Result<FixedTermLoan, FixedTermLoanError> {
@@ -36,6 +53,13 @@ impl FixedTermLoans {
             .expect("Could not build FixedTermLoan");
         let mut tx = self.pool.begin().await?;
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
+        self.jobs()
+            .create_and_spawn_job::<FixedTermLoanJobInitializer, _>(
+                loan.id,
+                format!("fixed_term_loan:{}", loan.id),
+                FixedTermLoanJobConfig {},
+            )
+            .await?;
         Ok(loan)
     }
 

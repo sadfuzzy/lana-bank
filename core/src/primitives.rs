@@ -7,3 +7,8 @@ impl From<FixedTermLoanId> for LedgerAccountId {
         LedgerAccountId::from(id.0)
     }
 }
+impl From<FixedTermLoanId> for JobId {
+    fn from(id: FixedTermLoanId) -> Self {
+        JobId::from(id.0)
+    }
+}

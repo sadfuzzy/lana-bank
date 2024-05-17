@@ -21,10 +21,12 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        let registry = JobRegistry::new();
-        let jobs = Jobs::new(&pool, config.job_execution, registry);
+        let mut registry = JobRegistry::new();
         let ledger = Ledger::new();
-        let fixed_term_loans = FixedTermLoans::new(&pool, ledger, jobs.clone());
+        let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, ledger);
+        let mut jobs = Jobs::new(&pool, config.job_execution, registry);
+        fixed_term_loans.set_jobs(&jobs);
+        jobs.start_poll().await?;
         Ok(Self {
             _pool: pool,
             _jobs: jobs,

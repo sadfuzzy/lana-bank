@@ -11,6 +11,8 @@ pub mod error;
 use sqlx::PgPool;
 use tracing::instrument;
 
+use crate::primitives::JobId;
+
 pub use config::*;
 pub use current::*;
 pub use entity::*;
@@ -42,13 +44,13 @@ impl Jobs {
     #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
     pub async fn create_and_spawn_job<I: JobInitializer, C: serde::Serialize>(
         &self,
+        id: impl Into<JobId> + std::fmt::Debug,
         name: String,
-        description: Option<String>,
         config: C,
     ) -> Result<Job, JobError> {
         let new_job = NewJob::builder()
+            .id(id.into())
             .name(name)
-            .description(description)
             .config(config)?
             .job_type(<I as JobInitializer>::job_type())
             .build()
@@ -58,5 +60,9 @@ impl Jobs {
         self.executor.spawn_job::<I>(&mut tx, &job).await?;
         tx.commit().await?;
         Ok(job)
+    }
+
+    pub async fn start_poll(&mut self) -> Result<(), JobError> {
+        self.executor.start_poll().await
     }
 }
