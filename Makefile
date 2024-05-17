@@ -42,6 +42,9 @@ e2e: clean-deps start-deps build
 sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > core/schema.graphql
 
+bump-cala-schema:
+	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
+
 test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
 

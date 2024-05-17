@@ -100,4 +100,19 @@ pub mod http {
         });
         tracing::Span::current().set_parent(ctx)
     }
+
+    pub fn inject_trace() -> http::HeaderMap {
+        use opentelemetry::propagation::TextMapPropagator;
+        use opentelemetry_http::HeaderInjector;
+        use opentelemetry_sdk::propagation::TraceContextPropagator;
+        use tracing_opentelemetry::OpenTelemetrySpanExt;
+
+        let mut header_map = http::HeaderMap::new();
+        let mut header_wrapper = HeaderInjector(&mut header_map);
+        let propagator = TraceContextPropagator::new();
+        let context = tracing::Span::current().context();
+        propagator.inject_context(&context, &mut header_wrapper);
+
+        header_map
+    }
 }

@@ -13,7 +13,9 @@ async-trait = { workspace = true }
 axum = { workspace = true }
 axum-extra = { workspace = true }
 chrono = { workspace = true }
+reqwest = { workspace = true }
 derive_builder = { workspace = true }
+graphql_client = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 clap = { workspace = true }
