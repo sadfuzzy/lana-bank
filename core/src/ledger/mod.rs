@@ -16,6 +16,8 @@ impl Ledger {
         &self,
         id: impl Into<LedgerAccountId>,
     ) -> Result<LedgerAccountId, LedgerError> {
+        // ACTUALLY CALL CALA
+        // SEE galoy client in stablesats for inspiration of the code structure
         Ok(id.into())
     }
 }
