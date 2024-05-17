@@ -1,3 +1,5 @@
+mod fixed_term_loan;
+mod primitives;
 mod schema;
 
 use async_graphql::*;
@@ -6,9 +8,7 @@ pub use schema::*;
 
 use crate::app::LavaApp;
 
-pub fn schema(
-    app: Option<LavaApp>,
-) -> Schema<Query, Mutation, EmptySubscription> {
+pub fn schema(app: Option<LavaApp>) -> Schema<Query, Mutation, EmptySubscription> {
     let schema = Schema::build(Query, Mutation, EmptySubscription);
     if let Some(app) = app {
         schema.data(app).finish()
@@ -16,4 +16,3 @@ pub fn schema(
         schema.finish()
     }
 }
-

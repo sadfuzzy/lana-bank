@@ -1,11 +1,28 @@
+type FixedTermLoan {
+	loanId: UUID!
+}
+
+input FixedTermLoanCreateInput {
+	reference: String!
+}
+
+type FixedTermLoanCreatePayload {
+	loan: FixedTermLoan!
+}
+
+
+
+
 type Mutation {
-	createLala: String!
+	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 }
 
 type Query {
 	hello: String!
 }
 
+
+scalar UUID
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

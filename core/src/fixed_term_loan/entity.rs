@@ -21,6 +21,7 @@ impl EntityEvent for FixedTermLoanEvent {
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct FixedTermLoan {
+    pub id: FixedTermLoanId,
     pub(super) _events: EntityEvents<FixedTermLoanEvent>,
 }
 
@@ -32,7 +33,14 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
     type Error = EntityError;
 
     fn try_from(events: EntityEvents<FixedTermLoanEvent>) -> Result<Self, Self::Error> {
-        let builder = FixedTermLoanBuilder::default();
+        let mut builder = FixedTermLoanBuilder::default();
+        for event in events.iter() {
+            match event {
+                FixedTermLoanEvent::Initialized { id, .. } => {
+                    builder = builder.id(*id);
+                }
+            }
+        }
         builder._events(events).build()
     }
 }

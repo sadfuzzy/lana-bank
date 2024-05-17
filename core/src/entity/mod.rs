@@ -4,8 +4,8 @@ mod id;
 
 pub use error::*;
 pub use event::*;
-pub use id::*;
 
+#[allow(dead_code)]
 pub(crate) struct EntityUpdate<T> {
     pub entity: T,
     pub n_new_events: usize,
