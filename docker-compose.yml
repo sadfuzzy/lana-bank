@@ -3,11 +3,11 @@ services:
   integration-deps:
     image: busybox
     depends_on:
-    - server-pg
-    - examples-pg
+    - core-pg
+    - cala-pg
     - otel-agent
-  server-pg:
-    image: postgres:14.1
+  core-pg:
+    image: postgres:15.5
     ports:
     - "5432:5432"
     environment:
@@ -19,8 +19,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  examples-pg:
-    image: postgres:14.1
+  cala-pg:
+    image: postgres:15.5
     ports:
     - "5433:5432"
     environment:
@@ -32,6 +32,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  cala:
+    image: us.gcr.io/galoy-org/cala:edge
   otel-agent:
     ports:
       - "4317:4317" # OpenTelemetry receiver

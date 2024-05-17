@@ -13,6 +13,5 @@ target/
 
 -
 .e2e-logs
-.rust-example-logs
-.cala
+.lava
 .env

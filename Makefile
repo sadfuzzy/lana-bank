@@ -8,13 +8,12 @@ start-deps:
 	docker compose up -d integration-deps
 
 setup-db:
-	cd cala-ledger && cargo sqlx migrate run
-	cd cala-server && cargo sqlx migrate run --ignore-missing
+	cd core && cargo sqlx migrate run
 
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
-	cargo run --bin cala-server -- --config ./bats/cala.yml
+	cargo run --bin lava-core -- --config ./bats/lava.yml
 
 rust-example:
 	cargo run --bin cala-ledger-example-rust
