@@ -18,7 +18,7 @@ type Mutation {
 }
 
 type Query {
-	hello: String!
+	loan(id: UUID!): FixedTermLoan!
 }
 
 

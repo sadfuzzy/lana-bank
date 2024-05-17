@@ -34,4 +34,11 @@ impl FixedTermLoans {
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
         Ok(loan)
     }
+
+    pub async fn find_by_id(
+        &self,
+        id: FixedTermLoanId,
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
+        self.repo.find_by_id(id).await
+    }
 }

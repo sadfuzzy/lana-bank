@@ -1,14 +1,19 @@
 use async_graphql::*;
 
-use super::fixed_term_loan::*;
-use crate::app::LavaApp;
+use super::{fixed_term_loan::*, primitives::UUID};
+use crate::{app::LavaApp, primitives::FixedTermLoanId};
 
 pub struct Query;
 
 #[Object]
 impl Query {
-    async fn hello(&self) -> String {
-        "world".to_string()
+    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<FixedTermLoan> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .find_by_id(FixedTermLoanId::from(id))
+            .await?;
+        Ok(FixedTermLoan::from(loan))
     }
 }
 
