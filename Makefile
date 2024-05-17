@@ -27,7 +27,7 @@ re-run-nodejs-example: clean-deps start-deps
 	cd examples/nodejs && yarn run start
 
 check-code: sdl
-	git diff --exit-code cala-server/schema.graphql
+	git diff --exit-code core/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -40,7 +40,7 @@ e2e: clean-deps start-deps build
 	bats -t bats
 
 sdl:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > cala-server/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_sdl > core/schema.graphql
 
 test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked

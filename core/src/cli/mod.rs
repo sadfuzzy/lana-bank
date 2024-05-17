@@ -54,8 +54,8 @@ async fn run_cmd(
     lava_tracing::init_tracer(config.tracing)?;
     store_server_pid(lava_home, std::process::id())?;
     let pool = db::init_pool(&config.db).await?;
-    // let app = crate::app::lavaApp::run(pool, config.app, ledger, registry).await?;
-    // crate::server::run::<M>(config.server, app).await?;
+    let app = crate::app::LavaApp::run(pool).await?;
+    crate::server::run(config.server, app).await?;
     Ok(())
 }
 
