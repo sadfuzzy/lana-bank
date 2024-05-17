@@ -30,4 +30,17 @@ impl Mutation {
         let loan = app.fixed_term_loans().create_loan().await?;
         Ok(FixedTermLoanCreatePayload::from(loan))
     }
+
+    pub async fn fixed_term_loan_declare_collateralized(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanDeclareCollateralizedInput,
+    ) -> async_graphql::Result<FixedTermLoanDeclareCollateralizedPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .declare_collateralized(FixedTermLoanId::from(input.loan_id))
+            .await?;
+        Ok(FixedTermLoanDeclareCollateralizedPayload::from(loan))
+    }
 }

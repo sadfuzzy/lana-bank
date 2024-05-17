@@ -64,6 +64,16 @@ impl FixedTermLoans {
         Ok(loan)
     }
 
+    pub async fn declare_collateralized(
+        &self,
+        id: FixedTermLoanId,
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
+        let mut loan = self.repo.find_by_id(id).await?;
+        loan.declare_collateralized()?;
+        self.repo.persist(&mut loan).await?;
+        Ok(loan)
+    }
+
     pub async fn find_by_id(
         &self,
         id: FixedTermLoanId,

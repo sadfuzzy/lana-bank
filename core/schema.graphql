@@ -10,11 +10,20 @@ type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
 }
 
+input FixedTermLoanDeclareCollateralizedInput {
+	loanId: UUID!
+}
+
+type FixedTermLoanDeclareCollateralizedPayload {
+	loan: FixedTermLoan!
+}
+
 
 
 
 type Mutation {
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
+	fixedTermLoanDeclareCollateralized(input: FixedTermLoanDeclareCollateralizedInput!): FixedTermLoanDeclareCollateralizedPayload!
 }
 
 type Query {
