@@ -2,7 +2,7 @@ mod error;
 
 use sqlx::PgPool;
 
-use crate::fixed_term_loan::FixedTermLoans;
+use crate::{fixed_term_loan::FixedTermLoans, ledger::Ledger};
 
 use error::ApplicationError;
 
@@ -21,7 +21,8 @@ impl LavaApp {
         // let mut job_executor =
         //     JobExecutor::new(&pool, config.job_execution.clone(), registry, &jobs);
         // job_executor.start_poll().await?;
-        let fixed_term_loans = FixedTermLoans::new(pool.clone());
+        let ledger = Ledger::new();
+        let fixed_term_loans = FixedTermLoans::new(pool.clone(), ledger);
         Ok(Self {
             _pool: pool,
             fixed_term_loans,
