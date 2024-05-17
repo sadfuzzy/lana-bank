@@ -1,3 +1,4 @@
+crate::entity_id! { JobId }
 crate::entity_id! { LedgerAccountId }
 crate::entity_id! { FixedTermLoanId }
 
