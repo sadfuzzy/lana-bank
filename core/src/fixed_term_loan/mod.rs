@@ -4,7 +4,7 @@ mod repo;
 
 use sqlx::PgPool;
 
-use crate::{entity::EntityUpdate, ledger::Ledger, primitives::*};
+use crate::{entity::EntityUpdate, job::Jobs, ledger::Ledger, primitives::*};
 
 pub use entity::*;
 use error::*;
@@ -14,24 +14,24 @@ use repo::*;
 pub struct FixedTermLoans {
     repo: FixedTermLoanRepo,
     ledger: Ledger,
+    jobs: Jobs,
     pool: PgPool,
 }
 
 impl FixedTermLoans {
-    pub fn new(pool: PgPool, ledger: Ledger) -> Self {
+    pub fn new(pool: &PgPool, ledger: Ledger, jobs: Jobs) -> Self {
         Self {
             repo: FixedTermLoanRepo::new(&pool),
             ledger,
-            pool,
+            jobs,
+            pool: pool.clone(),
         }
     }
 
     pub async fn create_loan(&self) -> Result<FixedTermLoan, FixedTermLoanError> {
         let loan_id = FixedTermLoanId::new();
-        let ledger_account_id = self.ledger.create_account_for_loan(loan_id).await?;
         let new_loan = NewFixedTermLoan::builder()
             .id(loan_id)
-            .ledger_account_id(ledger_account_id)
             .build()
             .expect("Could not build FixedTermLoan");
         let mut tx = self.pool.begin().await?;

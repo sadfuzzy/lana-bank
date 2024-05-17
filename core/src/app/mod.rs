@@ -1,30 +1,33 @@
+mod config;
 mod error;
 
 use sqlx::PgPool;
 
-use crate::{fixed_term_loan::FixedTermLoans, ledger::Ledger};
+use crate::{
+    fixed_term_loan::FixedTermLoans,
+    job::{JobRegistry, Jobs},
+    ledger::Ledger,
+};
 
+pub use config::*;
 use error::ApplicationError;
 
 #[derive(Clone)]
 pub struct LavaApp {
     _pool: PgPool,
+    _jobs: Jobs,
     fixed_term_loans: FixedTermLoans,
 }
 
 impl LavaApp {
-    pub async fn run(
-        pool: PgPool,
-        // config: AppConfig,
-    ) -> Result<Self, ApplicationError> {
-        // let jobs = Jobs::new(&pool);
-        // let mut job_executor =
-        //     JobExecutor::new(&pool, config.job_execution.clone(), registry, &jobs);
-        // job_executor.start_poll().await?;
+    pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+        let registry = JobRegistry::new();
+        let jobs = Jobs::new(&pool, config.job_execution, registry);
         let ledger = Ledger::new();
-        let fixed_term_loans = FixedTermLoans::new(pool.clone(), ledger);
+        let fixed_term_loans = FixedTermLoans::new(&pool, ledger, jobs.clone());
         Ok(Self {
             _pool: pool,
+            _jobs: jobs,
             fixed_term_loans,
         })
     }

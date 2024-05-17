@@ -47,14 +47,11 @@ pub async fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn run_cmd(
-    lava_home: &str,
-    config: Config,
-) -> anyhow::Result<()> {
+async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     lava_tracing::init_tracer(config.tracing)?;
     store_server_pid(lava_home, std::process::id())?;
     let pool = db::init_pool(&config.db).await?;
-    let app = crate::app::LavaApp::run(pool).await?;
+    let app = crate::app::LavaApp::run(pool, config.app).await?;
     crate::server::run(config.server, app).await?;
     Ok(())
 }

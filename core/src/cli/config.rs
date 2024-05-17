@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use super::db::*;
-use crate::{server::ServerConfig};
+use crate::{app::AppConfig, server::ServerConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
@@ -13,8 +13,8 @@ pub struct Config {
     pub db: DbConfig,
     #[serde(default)]
     pub server: ServerConfig,
-    // #[serde(default)]
-    // pub app: AppConfig,
+    #[serde(default)]
+    pub app: AppConfig,
     #[serde(default)]
     pub tracing: TracingConfig,
 }

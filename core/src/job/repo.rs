@@ -4,11 +4,11 @@ use super::{entity::*, error::*};
 use crate::{entity::*, primitives::JobId};
 
 #[derive(Debug, Clone)]
-pub struct Jobs {
+pub(super) struct JobRepo {
     pool: PgPool,
 }
 
-impl Jobs {
+impl JobRepo {
     pub fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
