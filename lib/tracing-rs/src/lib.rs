@@ -8,7 +8,9 @@ use opentelemetry_sdk::{
     resource::{EnvResourceDetector, OsResourceDetector, ProcessResourceDetector},
     trace, Resource,
 };
-use opentelemetry_semantic_conventions::resource::{SERVICE_INSTANCE_ID,SERVICE_NAME, SERVICE_NAMESPACE};
+use opentelemetry_semantic_conventions::resource::{
+    SERVICE_INSTANCE_ID, SERVICE_NAME, SERVICE_NAMESPACE,
+};
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -110,39 +112,3 @@ pub mod http {
         tracing::Span::current().set_parent(ctx)
     }
 }
-
-#[cfg(feature = "grpc")]
-pub mod grpc {
-    use opentelemetry::propagation::{Extractor, TextMapPropagator};
-    use opentelemetry_sdk::propagation::TraceContextPropagator;
-    use tracing_opentelemetry::OpenTelemetrySpanExt;
-
-    pub fn extract_tracing<T>(request: &tonic::Request<T>) {
-        let propagator = TraceContextPropagator::new();
-        let parent_cx = propagator.extract(&RequestContextExtractor(request));
-        tracing::Span::current().set_parent(parent_cx)
-    }
-
-    struct RequestContextExtractor<'a, T>(&'a tonic::Request<T>);
-
-    impl<'a, T> Extractor for RequestContextExtractor<'a, T> {
-        fn get(&self, key: &str) -> Option<&str> {
-            self.0.metadata().get(key).and_then(|s| s.to_str().ok())
-        }
-
-        fn keys(&self) -> Vec<&str> {
-            self.0
-                .metadata()
-                .keys()
-                .filter_map(|k| {
-                    if let tonic::metadata::KeyRef::Ascii(key) = k {
-                        Some(key.as_str())
-                    } else {
-                        None
-                    }
-                })
-                .collect()
-        }
-    }
-}
-
