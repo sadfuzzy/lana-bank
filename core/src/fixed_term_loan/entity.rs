@@ -16,7 +16,7 @@ pub enum FixedTermLoanEvent {
         ledger_account_id: LedgerAccountId,
         state: FixedTermLoanState,
     },
-    Collateralized {
+    CollateralizationAdded {
         state: FixedTermLoanState,
     },
 }
@@ -61,9 +61,10 @@ impl FixedTermLoan {
                 self.state,
             ));
         }
-        self.events.push(FixedTermLoanEvent::Collateralized {
-            state: FixedTermLoanState::Collateralized,
-        });
+        self.events
+            .push(FixedTermLoanEvent::CollateralizationAdded {
+                state: FixedTermLoanState::Collateralized,
+            });
         Ok(())
     }
 }
@@ -85,7 +86,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 FixedTermLoanEvent::LedgerAccountCreated { state, .. } => {
                     builder = builder.state(*state);
                 }
-                FixedTermLoanEvent::Collateralized { state } => {
+                FixedTermLoanEvent::CollateralizationAdded { state } => {
                     builder = builder.state(*state);
                 }
             }

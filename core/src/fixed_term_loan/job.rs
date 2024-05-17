@@ -57,6 +57,9 @@ impl JobRunner for FixedTermLoanJobRunner {
                 loan.set_ledger_account_id(loan_id)?;
                 self.repo.persist(&mut loan).await?;
             }
+            FixedTermLoanState::Collateralized => {
+                // update USD allocation
+            }
             _ => (),
         }
         Ok(())
