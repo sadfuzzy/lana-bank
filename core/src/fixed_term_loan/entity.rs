@@ -3,10 +3,19 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
+use super::{error::*, state::*};
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum FixedTermLoanEvent {
-    Initialized { id: FixedTermLoanId },
-    LedgerAccountCreated { ledger_account_id: LedgerAccountId },
+    Initialized {
+        id: FixedTermLoanId,
+        state: FixedTermLoanState,
+    },
+    LedgerAccountCreated {
+        ledger_account_id: LedgerAccountId,
+        state: FixedTermLoanState,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -20,7 +29,27 @@ impl EntityEvent for FixedTermLoanEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct FixedTermLoan {
     pub id: FixedTermLoanId,
-    pub(super) _events: EntityEvents<FixedTermLoanEvent>,
+    pub state: FixedTermLoanState,
+    pub(super) events: EntityEvents<FixedTermLoanEvent>,
+}
+
+impl FixedTermLoan {
+    pub fn set_ledger_account_id(
+        &mut self,
+        ledger_account_id: LedgerAccountId,
+    ) -> Result<(), FixedTermLoanError> {
+        if self.state != FixedTermLoanState::Initializing {
+            return Err(FixedTermLoanError::BadState(
+                FixedTermLoanState::Initializing,
+                self.state,
+            ));
+        }
+        self.events.push(FixedTermLoanEvent::LedgerAccountCreated {
+            ledger_account_id,
+            state: FixedTermLoanState::PendingFunding,
+        });
+        Ok(())
+    }
 }
 
 impl Entity for FixedTermLoan {
@@ -34,13 +63,15 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
         let mut builder = FixedTermLoanBuilder::default();
         for event in events.iter() {
             match event {
-                FixedTermLoanEvent::Initialized { id } => {
-                    builder = builder.id(*id);
+                FixedTermLoanEvent::Initialized { id, state } => {
+                    builder = builder.id(*id).state(*state);
                 }
-                FixedTermLoanEvent::LedgerAccountCreated { .. } => {}
+                FixedTermLoanEvent::LedgerAccountCreated { state, .. } => {
+                    builder = builder.state(*state);
+                }
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 
@@ -56,6 +87,12 @@ impl NewFixedTermLoan {
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<FixedTermLoanEvent> {
-        EntityEvents::init(self.id, [FixedTermLoanEvent::Initialized { id: self.id }])
+        EntityEvents::init(
+            self.id,
+            [FixedTermLoanEvent::Initialized {
+                id: self.id,
+                state: FixedTermLoanState::Initializing,
+            }],
+        )
     }
 }

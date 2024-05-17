@@ -55,4 +55,20 @@ impl FixedTermLoanRepo {
         let res = EntityEvents::load_first::<FixedTermLoan>(rows)?;
         Ok(res)
     }
+
+    pub async fn persist(&self, loan: &mut FixedTermLoan) -> Result<(), FixedTermLoanError> {
+        let mut tx = self.pool.begin().await?;
+        self.persist_in_tx(&mut tx, loan).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        settings: &mut FixedTermLoan,
+    ) -> Result<(), FixedTermLoanError> {
+        settings.events.persist(tx).await?;
+        Ok(())
+    }
 }

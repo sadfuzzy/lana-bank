@@ -1,11 +1,13 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::repo::*;
-use crate::{job::*, ledger::*};
+use super::{repo::*, state::*};
+use crate::{job::*, ledger::*, primitives::FixedTermLoanId};
 
-#[derive(Clone, Default, Serialize, Deserialize)]
-pub struct FixedTermLoanJobConfig {}
+#[derive(Clone, Serialize, Deserialize)]
+pub struct FixedTermLoanJobConfig {
+    pub loan_id: FixedTermLoanId,
+}
 
 pub struct FixedTermLoanJobInitializer {
     ledger: Ledger,
@@ -32,22 +34,31 @@ impl JobInitializer for FixedTermLoanJobInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(FixedTermLoanJobRunner {
-            _config: job.config()?,
-            _repo: self.repo.clone(),
-            _ledger: self.ledger.clone(),
+            config: job.config()?,
+            repo: self.repo.clone(),
+            ledger: self.ledger.clone(),
         }))
     }
 }
 
 pub struct FixedTermLoanJobRunner {
-    _config: FixedTermLoanJobConfig,
-    _repo: FixedTermLoanRepo,
-    _ledger: Ledger,
+    config: FixedTermLoanJobConfig,
+    repo: FixedTermLoanRepo,
+    ledger: Ledger,
 }
 
 #[async_trait]
 impl JobRunner for FixedTermLoanJobRunner {
     async fn run(&self, _current_job: CurrentJob) -> Result<(), Box<dyn std::error::Error>> {
+        let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        match loan.state {
+            FixedTermLoanState::Initializing => {
+                let loan_id = self.ledger.create_account_for_loan(loan.id).await?;
+                loan.set_ledger_account_id(loan_id)?;
+                self.repo.persist(&mut loan).await?;
+            }
+            _ => (),
+        }
         Ok(())
     }
 }

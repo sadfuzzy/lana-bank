@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod job;
 mod repo;
+mod state;
 
 use sqlx::PgPool;
 
@@ -57,7 +58,7 @@ impl FixedTermLoans {
             .create_and_spawn_job::<FixedTermLoanJobInitializer, _>(
                 loan.id,
                 format!("fixed_term_loan:{}", loan.id),
-                FixedTermLoanJobConfig {},
+                FixedTermLoanJobConfig { loan_id: loan.id },
             )
             .await?;
         Ok(loan)
