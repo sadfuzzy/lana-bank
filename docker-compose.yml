@@ -4,7 +4,7 @@ services:
     image: busybox
     depends_on:
     - core-pg
-    - cala-pg
+    - cala
     - otel-agent
   core-pg:
     image: postgres:15.5
@@ -34,12 +34,14 @@ services:
       retries: 5
   cala:
     image: us.gcr.io/galoy-org/cala:edge
+    ports:
+      - "2252:2252"
     volumes:
       - ./dev/cala.yml:/cala.yml
     environment:
       - PG_CON=postgresql://user:password@cala-pg:5432/pg
       - CALA_CONFIG=/cala.yml
-      - OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-agent:4317,
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
     depends_on:
       - cala-pg
       - otel-agent
