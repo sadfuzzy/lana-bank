@@ -34,6 +34,15 @@ services:
       retries: 5
   cala:
     image: us.gcr.io/galoy-org/cala:edge
+    volumes:
+      - ./dev/cala.yml:/cala.yml
+    environment:
+      - PG_CON=postgresql://user:password@cala-pg:5432/pg
+      - CALA_CONFIG=/cala.yml
+      - OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-agent:4317,
+    depends_on:
+      - cala-pg
+      - otel-agent
   otel-agent:
     ports:
       - "4317:4317" # OpenTelemetry receiver
