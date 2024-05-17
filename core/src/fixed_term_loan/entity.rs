@@ -7,7 +7,7 @@ use crate::{entity::*, primitives::*};
 pub enum FixedTermLoanEvent {
     Initialized {
         id: FixedTermLoanId,
-        loan_account_id: LedgerAccountId,
+        ledger_account_id: LedgerAccountId,
     },
 }
 
@@ -34,5 +34,28 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
     fn try_from(events: EntityEvents<FixedTermLoanEvent>) -> Result<Self, Self::Error> {
         let builder = FixedTermLoanBuilder::default();
         builder._events(events).build()
+    }
+}
+
+#[derive(Debug, Builder)]
+pub struct NewFixedTermLoan {
+    #[builder(setter(into))]
+    pub(super) id: FixedTermLoanId,
+    pub(super) ledger_account_id: LedgerAccountId,
+}
+
+impl NewFixedTermLoan {
+    pub fn builder() -> NewFixedTermLoanBuilder {
+        NewFixedTermLoanBuilder::default()
+    }
+
+    pub(super) fn initial_events(self) -> EntityEvents<FixedTermLoanEvent> {
+        EntityEvents::init(
+            self.id,
+            [FixedTermLoanEvent::Initialized {
+                id: self.id,
+                ledger_account_id: self.ledger_account_id,
+            }],
+        )
     }
 }

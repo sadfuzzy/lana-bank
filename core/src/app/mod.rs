@@ -13,7 +13,7 @@ pub struct LavaApp {
 }
 
 impl LavaApp {
-    pub(crate) async fn run(
+    pub async fn run(
         pool: PgPool,
         // config: AppConfig,
     ) -> Result<Self, ApplicationError> {
@@ -26,5 +26,9 @@ impl LavaApp {
             _pool: pool,
             fixed_term_loans,
         })
+    }
+
+    pub fn fixed_term_loans(&self) -> &FixedTermLoans {
+        &self.fixed_term_loans
     }
 }
