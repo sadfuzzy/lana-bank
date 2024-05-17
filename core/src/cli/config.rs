@@ -35,6 +35,7 @@ impl Config {
         config.db.pg_con = db_con;
         if let Some(server_id) = server_id {
             // config.app.job_execution.server_id = server_id;
+            config.tracing.service_instance_id = server_id;
         }
 
         Ok(config)

@@ -4,7 +4,7 @@ version = "0.1.0-dev"
 edition = "2021"
 
 [dependencies]
-lava-tracing = { path = "../lib/tracing-rs" }
+lava-tracing = { path = "../lib/tracing-rs", features = ["http", "grpc"] }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
