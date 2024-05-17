@@ -25,7 +25,7 @@ use repo::*;
 
 #[derive(Clone)]
 pub struct Jobs {
-    pool: PgPool,
+    _pool: PgPool,
     repo: JobRepo,
     executor: JobExecutor,
 }
@@ -35,7 +35,7 @@ impl Jobs {
         let repo = JobRepo::new(&pool);
         let executor = JobExecutor::new(&pool, config, registry, &repo);
         Self {
-            pool: pool.clone(),
+            _pool: pool.clone(),
             repo,
             executor,
         }
@@ -44,6 +44,7 @@ impl Jobs {
     #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
     pub async fn create_and_spawn_job<I: JobInitializer, C: serde::Serialize>(
         &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
         name: String,
         config: C,
@@ -55,10 +56,8 @@ impl Jobs {
             .job_type(<I as JobInitializer>::job_type())
             .build()
             .expect("Could not build job");
-        let mut tx = self.pool.begin().await?;
-        let job = self.repo.create_in_tx(&mut tx, new_job).await?;
-        self.executor.spawn_job::<I>(&mut tx, &job).await?;
-        tx.commit().await?;
+        let job = self.repo.create_in_tx(tx, new_job).await?;
+        self.executor.spawn_job::<I>(tx, &job).await?;
         Ok(job)
     }
 

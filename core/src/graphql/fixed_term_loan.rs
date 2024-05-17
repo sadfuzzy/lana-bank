@@ -9,7 +9,7 @@ pub struct FixedTermLoan {
 
 #[derive(InputObject)]
 pub struct FixedTermLoanCreateInput {
-    reference: String,
+    bitfinex_user_name: String,
 }
 
 #[derive(SimpleObject)]

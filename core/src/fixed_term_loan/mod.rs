@@ -56,11 +56,13 @@ impl FixedTermLoans {
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
         self.jobs()
             .create_and_spawn_job::<FixedTermLoanJobInitializer, _>(
+                &mut tx,
                 loan.id,
                 format!("fixed_term_loan:{}", loan.id),
                 FixedTermLoanJobConfig { loan_id: loan.id },
             )
             .await?;
+        tx.commit().await?;
         Ok(loan)
     }
 

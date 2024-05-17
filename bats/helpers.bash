@@ -1,23 +1,22 @@
 REPO_ROOT=$(git rev-parse --show-toplevel)
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 
-GQL_ENDPOINT="http://localhost:2252/graphql"
+GQL_ENDPOINT="http://localhost:5252/graphql"
 
-CALA_HOME="${CALA_HOME:-.cala}"
-SERVER_PID_FILE="${CALA_HOME}/server-pid"
-EXAMPLE_PID_FILE="${CALA_HOME}/rust-example-pid"
+LAVG_HOME="${LAVG_HOME:-.cala}"
+SERVER_PID_FILE="${LAVG_HOME}/server-pid"
 
 reset_pg() {
-  docker exec "${COMPOSE_PROJECT_NAME}-server-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-server-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-  docker exec "${COMPOSE_PROJECT_NAME}-examples-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-examples-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
+  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
+  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
+  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
+  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
 }
 
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/cala-server --config ${REPO_ROOT}/bats/cala.yml"
+  server_location="${REPO_ROOT}/target/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
   if [[ ! -z ${CARGO_TARGET_DIR} ]] ; then
-    server_location="${CARGO_TARGET_DIR}/debug/cala-server --config ${REPO_ROOT}/bats/cala.yml"
+    server_location="${CARGO_TARGET_DIR}/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
   fi
 
   bash -c ${server_location} $@
@@ -26,9 +25,9 @@ server_cmd() {
 start_server() {
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
-    server_process_and_status=$(ps a | grep 'target/debug/cala-server' | grep -v grep; echo ${PIPESTATUS[2]})
+    server_process_and_status=$(ps a | grep 'target/debug/lava-core' | grep -v grep; echo ${PIPESTATUS[2]})
   elif [ -n "$ZSH_VERSION" ]; then
-    server_process_and_status=$(ps a | grep 'target/debug/cala-server' | grep -v grep; echo ${pipestatus[3]})
+    server_process_and_status=$(ps a | grep 'target/debug/lava-core' | grep -v grep; echo ${pipestatus[3]})
   else
     echo "Unsupported shell."
     exit 1
