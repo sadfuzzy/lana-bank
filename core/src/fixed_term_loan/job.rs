@@ -53,7 +53,7 @@ impl JobRunner for FixedTermLoanJobRunner {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         match loan.state {
             FixedTermLoanState::Initializing => {
-                let loan_id = self.ledger.create_account_for_loan(loan.id).await?;
+                let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
                 loan.set_ledger_account_id(loan_id)?;
                 self.repo.persist(&mut loan).await?;
             }

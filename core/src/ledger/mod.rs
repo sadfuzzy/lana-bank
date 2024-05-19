@@ -21,11 +21,18 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
-    pub async fn create_account_for_loan(
+    pub async fn create_accounts_for_loan(
         &self,
         id: impl Into<LedgerAccountId>,
     ) -> Result<LedgerAccountId, LedgerError> {
-        Ok(id.into())
+        let id = id.into();
+        Self::assert_account_exists(
+            &self.cala,
+            &format!("lava:loan-{}", id),
+            &format!("lava:loan-{}", id),
+            &format!("lava:loan-{}", id),
+        )
+        .await
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
