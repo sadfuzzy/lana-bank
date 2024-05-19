@@ -12,3 +12,8 @@ impl From<FixedTermLoanId> for JobId {
         JobId::from(id.0)
     }
 }
+
+pub enum DebitOrCredit {
+    Debit,
+    Credit,
+}

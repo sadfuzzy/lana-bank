@@ -15,5 +15,5 @@ impl Default for LedgerConfig {
 }
 
 fn default_cala_url() -> String {
-    "http://localhost:2252".to_string()
+    "http://localhost:2252/graphql".to_string()
 }

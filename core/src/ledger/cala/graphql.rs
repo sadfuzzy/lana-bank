@@ -1,9 +1,7 @@
 #![allow(clippy::enum_variant_names)]
 #![allow(clippy::derive_partial_eq_without_eq)]
 
-use chrono::{DateTime, Utc};
 use graphql_client::GraphQLQuery;
-use serde::Deserialize;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -12,3 +10,14 @@ use serde::Deserialize;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct AccountByExternalId;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/mutations/account-create.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AccountCreate;
+
+type UUID = uuid::Uuid;
+type JSON = serde_json::Value;

@@ -1,6 +1,6 @@
 query AccountByExternalId($externalId: String!) {
   accountByExternalId(externalId: $externalId) {
-    id
+    accountId
     name
   }
 }
