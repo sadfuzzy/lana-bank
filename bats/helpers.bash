@@ -3,7 +3,7 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 
 GQL_ENDPOINT="http://localhost:5252/graphql"
 
-LAVG_HOME="${LAVG_HOME:-.cala}"
+LAVG_HOME="${LAVG_HOME:-.lava}"
 SERVER_PID_FILE="${LAVG_HOME}/server-pid"
 
 reset_pg() {
@@ -14,9 +14,9 @@ reset_pg() {
 }
 
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
+  server_location="${REPO_ROOT}/target/debug/lava-core --config ${REPO_ROOT}/bats/lava.yml"
   if [[ ! -z ${CARGO_TARGET_DIR} ]] ; then
-    server_location="${CARGO_TARGET_DIR}/debug/lava-core --config ${REPO_ROOT}/bats/cala.yml"
+    server_location="${CARGO_TARGET_DIR}/debug/lava-core --config ${REPO_ROOT}/bats/lava.yml"
   fi
 
   bash -c ${server_location} $@
