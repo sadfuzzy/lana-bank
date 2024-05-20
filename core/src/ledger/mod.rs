@@ -67,10 +67,9 @@ impl Ledger {
             Err(e) => e,
         };
 
-        Ok(cala
-            .find_account_by_external_id(external_id.to_owned())
+        cala.find_account_by_external_id(external_id.to_owned())
             .await
             .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)?)
+            .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
     }
 }

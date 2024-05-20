@@ -32,8 +32,8 @@ pub struct Jobs {
 
 impl Jobs {
     pub fn new(pool: &PgPool, config: JobExecutorConfig, registry: JobRegistry) -> Self {
-        let repo = JobRepo::new(&pool);
-        let executor = JobExecutor::new(&pool, config, registry, &repo);
+        let repo = JobRepo::new(pool);
+        let executor = JobExecutor::new(pool, config, registry, &repo);
         Self {
             _pool: pool.clone(),
             repo,

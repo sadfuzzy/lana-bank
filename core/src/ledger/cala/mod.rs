@@ -46,10 +46,10 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<AccountCreate, _>(&self.client, &self.url, variables)
                 .await?;
-        Ok(response
+        response
             .data
             .map(|d| LedgerAccountId::from(d.account_create.account.account_id))
-            .ok_or(CalaError::MissingDataField)?)
+            .ok_or(CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
