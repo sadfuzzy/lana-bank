@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::{fixed_term_loan::*, primitives::UUID};
+use super::{fixed_term_loan::*, primitives::UUID, user::*};
 use crate::{app::LavaApp, primitives::FixedTermLoanId};
 
 pub struct Query;
@@ -25,6 +25,16 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn user_create(
+        &self,
+        ctx: &Context<'_>,
+        input: UserCreateInput,
+    ) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app.users().create_user(input.bitfinex_username).await?;
+        Ok(User::from(user))
+    }
+
     pub async fn fixed_term_loan_create(
         &self,
         ctx: &Context<'_>,

@@ -1,5 +1,6 @@
-crate::entity_id! { JobId }
+crate::entity_id! { UserId }
 crate::entity_id! { FixedTermLoanId }
+crate::entity_id! { JobId }
 
 impl From<FixedTermLoanId> for LedgerAccountId {
     fn from(id: FixedTermLoanId) -> Self {
