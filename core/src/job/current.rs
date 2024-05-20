@@ -7,7 +7,7 @@ use crate::primitives::JobId;
 pub struct CurrentJob {
     id: JobId,
     pool: PgPool,
-    state_json: Option<serde_json::Value>,
+    payload_json: Option<serde_json::Value>,
 }
 
 impl CurrentJob {
@@ -15,36 +15,37 @@ impl CurrentJob {
         Self {
             id,
             pool,
-            state_json: state,
+            payload_json: state,
         }
     }
 
     pub fn state<T: DeserializeOwned>(&self) -> Result<Option<T>, serde_json::Error> {
-        if let Some(state) = self.state_json.as_ref() {
+        if let Some(state) = self.payload_json.as_ref() {
             serde_json::from_value(state.clone()).map(Some)
         } else {
             Ok(None)
         }
     }
 
-    pub async fn update_state<T: Serialize>(
+    pub async fn update_payload<T: Serialize>(
         &mut self,
         tx: &mut Transaction<'_, Postgres>,
-        state: T,
+        payload: T,
     ) -> Result<(), JobError> {
-        let state_json = serde_json::to_value(state).map_err(JobError::CouldNotSerializeState)?;
+        let payload_json =
+            serde_json::to_value(payload).map_err(JobError::CouldNotSerializeState)?;
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state_json = $1
+          SET payload_json = $1
           WHERE id = $2
         "#,
-            state_json,
+            payload_json,
             self.id as JobId
         )
         .execute(&mut **tx)
         .await?;
-        self.state_json = Some(state_json);
+        self.payload_json = Some(payload_json);
         Ok(())
     }
 

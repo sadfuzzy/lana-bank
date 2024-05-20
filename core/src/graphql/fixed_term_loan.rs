@@ -1,10 +1,12 @@
 use async_graphql::*;
 
 use super::primitives::*;
+use crate::fixed_term_loan::FixedTermLoanState;
 
 #[derive(SimpleObject)]
 pub struct FixedTermLoan {
     pub loan_id: UUID,
+    pub state: FixedTermLoanState,
 }
 
 #[derive(InputObject)]
@@ -31,6 +33,7 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         FixedTermLoan {
             loan_id: UUID::from(loan.id),
+            state: loan.state,
         }
     }
 }

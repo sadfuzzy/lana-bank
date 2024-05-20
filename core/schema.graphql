@@ -1,5 +1,6 @@
 type FixedTermLoan {
 	loanId: UUID!
+	state: FixedTermLoanState!
 }
 
 input FixedTermLoanCreateInput {
@@ -18,6 +19,12 @@ type FixedTermLoanDeclareCollateralizedPayload {
 	loan: FixedTermLoan!
 }
 
+enum FixedTermLoanState {
+	INITIALIZING
+	PENDING_COLLATERALIZATION
+	COLLATERALIZED
+}
+
 
 
 
@@ -27,7 +34,7 @@ type Mutation {
 }
 
 type Query {
-	loan(id: UUID!): FixedTermLoan!
+	loan(id: UUID!): FixedTermLoan
 }
 
 

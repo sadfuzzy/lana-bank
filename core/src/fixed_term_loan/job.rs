@@ -49,19 +49,23 @@ pub struct FixedTermLoanJobRunner {
 
 #[async_trait]
 impl JobRunner for FixedTermLoanJobRunner {
-    async fn run(&self, _current_job: CurrentJob) -> Result<(), Box<dyn std::error::Error>> {
+    async fn run(
+        &self,
+        _current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         match loan.state {
             FixedTermLoanState::Initializing => {
                 let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
                 loan.set_ledger_account_id(loan_id)?;
                 self.repo.persist(&mut loan).await?;
+                return Ok(JobCompletion::Pause);
             }
             FixedTermLoanState::Collateralized => {
                 // update USD allocation
             }
             _ => (),
         }
-        Ok(())
+        Ok(JobCompletion::Complete)
     }
 }

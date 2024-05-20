@@ -13,7 +13,16 @@ pub trait JobInitializer: Send + Sync + 'static {
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>>;
 }
 
+pub enum JobCompletion {
+    Complete,
+    CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
+    Pause,
+}
+
 #[async_trait]
 pub trait JobRunner: Send + Sync + 'static {
-    async fn run(&self, current_job: CurrentJob) -> Result<(), Box<dyn std::error::Error>>;
+    async fn run(
+        &self,
+        current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>>;
 }

@@ -7,7 +7,7 @@ mod state;
 use sqlx::PgPool;
 
 use crate::{
-    entity::EntityUpdate,
+    entity::{EntityError, EntityUpdate},
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     primitives::*,
@@ -17,6 +17,7 @@ pub use entity::*;
 use error::*;
 use job::*;
 use repo::*;
+pub use state::*;
 
 #[derive(Clone)]
 pub struct FixedTermLoans {
@@ -79,7 +80,11 @@ impl FixedTermLoans {
     pub async fn find_by_id(
         &self,
         id: FixedTermLoanId,
-    ) -> Result<FixedTermLoan, FixedTermLoanError> {
-        self.repo.find_by_id(id).await
+    ) -> Result<Option<FixedTermLoan>, FixedTermLoanError> {
+        match self.repo.find_by_id(id).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(FixedTermLoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 }

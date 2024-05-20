@@ -7,13 +7,17 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<FixedTermLoan> {
+    async fn loan(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<FixedTermLoan>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
             .fixed_term_loans()
             .find_by_id(FixedTermLoanId::from(id))
             .await?;
-        Ok(FixedTermLoan::from(loan))
+        Ok(loan.map(FixedTermLoan::from))
     }
 }
 

@@ -27,10 +27,13 @@ CREATE TABLE job_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TYPE JobExecutionState AS ENUM ('pending', 'running', 'paused');
+
 CREATE TABLE job_executions (
   id UUID REFERENCES jobs(id) NOT NULL UNIQUE,
   executing_server_id VARCHAR,
-  state_json JSONB,
+  state JobExecutionState NOT NULL DEFAULT 'pending',
+  payload_json JSONB,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

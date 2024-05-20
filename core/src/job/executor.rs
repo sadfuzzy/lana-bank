@@ -145,7 +145,7 @@ impl JobExecutor {
                   executing_server_id = $1
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
-              RETURNING je.id AS "id!: JobId", je.state_json
+              RETURNING je.id AS "id!: JobId", je.payload_json
               "#,
             server_id,
             poll_limit as i32,
@@ -157,7 +157,7 @@ impl JobExecutor {
         if !rows.is_empty() {
             for row in rows {
                 let job = jobs.find_by_id(row.id).await?;
-                let _ = Self::start_job(pool, registry, running_jobs, job, row.state_json).await;
+                let _ = Self::start_job(pool, registry, running_jobs, job, row.payload_json).await;
             }
         }
         Ok(())
