@@ -4,10 +4,10 @@ use thiserror::Error;
 pub enum CalaError {
     #[error("CalaError - Reqwest: {0}")]
     Reqwest(#[from] reqwest::Error),
-    #[error("CalaError - MissingResponseData: {0}")]
-    MissingResponseData(String),
     #[error("CalaError - UnkownGqlError: {0}")]
     UnkownGqlError(String),
+    #[error("CalaError - MissingDataField")]
+    MissingDataField,
 }
 
 impl From<Vec<graphql_client::Error>> for CalaError {

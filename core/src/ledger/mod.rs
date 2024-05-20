@@ -52,7 +52,7 @@ impl Ledger {
         code: &str,
         external_id: &str,
     ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(id) = cala
+        if let Ok(Some(id)) = cala
             .find_account_by_external_id(external_id.to_owned())
             .await
         {
@@ -70,6 +70,7 @@ impl Ledger {
         Ok(cala
             .find_account_by_external_id(external_id.to_owned())
             .await
-            .map_err(|_| err)?)
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)?)
     }
 }

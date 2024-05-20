@@ -8,7 +8,6 @@ setup_file() {
 
 teardown_file() {
   stop_server
-  stop_rust_example
 }
 
 @test "fixed-term-loan: can create a loan" {

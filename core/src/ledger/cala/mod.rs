@@ -43,31 +43,29 @@ impl CalaClient {
                 metadata: None,
             },
         };
-        let _response =
+        let response =
             Self::traced_gql_request::<AccountCreate, _>(&self.client, &self.url, variables)
                 .await?;
-        Ok(account_id)
+        Ok(response
+            .data
+            .map(|d| LedgerAccountId::from(d.account_create.account.account_id))
+            .ok_or(CalaError::MissingDataField)?)
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     pub async fn find_account_by_external_id(
         &self,
         external_id: String,
-    ) -> Result<LedgerAccountId, CalaError> {
+    ) -> Result<Option<LedgerAccountId>, CalaError> {
         let variables = account_by_external_id::Variables { external_id };
         let response =
             Self::traced_gql_request::<AccountByExternalId, _>(&self.client, &self.url, variables)
                 .await?;
 
-        Ok(LedgerAccountId::from(
-            response
-                .data
-                .ok_or_else(|| {
-                    CalaError::MissingResponseData("Empty `data` in response data".to_string())
-                })?
-                .account_by_external_id
-                .account_id,
-        ))
+        Ok(response
+            .data
+            .and_then(|d| d.account_by_external_id)
+            .map(|d| LedgerAccountId::from(d.account_id)))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
