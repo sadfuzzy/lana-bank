@@ -29,12 +29,13 @@ impl Config {
         path: impl AsRef<Path>,
         EnvOverride { db_con, server_id }: EnvOverride,
     ) -> anyhow::Result<Self> {
-        let config_file = std::fs::read_to_string(path).context("Couldn't read config file")?;
+        let config_file = std::fs::read_to_string(&path)
+            .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
         let mut config: Config =
             serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
         config.db.pg_con = db_con;
         if let Some(server_id) = server_id {
-            // config.app.job_execution.server_id = server_id;
+            config.app.job_execution.server_id = server_id.clone();
             config.tracing.service_instance_id = server_id;
         }
 
