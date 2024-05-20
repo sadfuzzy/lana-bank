@@ -9,6 +9,7 @@ pub enum UserEvent {
     Initialized {
         id: UserId,
         bitfinex_username: String,
+        ledger_account_id: LedgerAccountId,
     },
 }
 
@@ -41,6 +42,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 UserEvent::Initialized {
                     id,
                     bitfinex_username,
+                    ..
                 } => {
                     builder = builder.id(*id).bitfinex_username(bitfinex_username.clone());
                 }
@@ -56,6 +58,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) bitfinex_username: String,
+    pub(super) ledger_account_id: LedgerAccountId,
 }
 
 impl NewUser {
@@ -69,6 +72,7 @@ impl NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 bitfinex_username: self.bitfinex_username,
+                ledger_account_id: self.ledger_account_id,
             }],
         )
     }

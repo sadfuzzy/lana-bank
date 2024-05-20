@@ -25,7 +25,7 @@ impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
-        let mut users = Users::new(&pool, &ledger);
+        let users = Users::new(&pool, &ledger);
         let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);
