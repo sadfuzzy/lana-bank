@@ -62,6 +62,14 @@ impl Job {
     pub(super) fn complete(&mut self) {
         self.events.push(JobEvent::Completed);
     }
+
+    pub(super) fn pause(&mut self) {
+        self.events.push(JobEvent::Paused);
+    }
+
+    pub(super) fn resume(&mut self) {
+        self.events.push(JobEvent::Resumed);
+    }
 }
 
 impl Entity for Job {

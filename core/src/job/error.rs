@@ -22,6 +22,8 @@ pub enum JobError {
     NoInitializerPresent,
     #[error("JobError - JobExecutionError: {0}")]
     JobExecutionError(String),
+    #[error("JobError - CouldNotResumeJob")]
+    CouldNotResumeJob,
 }
 
 impl From<Box<dyn std::error::Error>> for JobError {

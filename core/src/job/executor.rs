@@ -60,6 +60,27 @@ impl JobExecutor {
         Ok(())
     }
 
+    pub async fn resume_job(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+        id: JobId,
+    ) -> Result<(), JobError> {
+        let result = sqlx::query!(
+            r#"
+          UPDATE job_executions
+          SET state = 'running'
+          WHERE id = $1
+        "#,
+            id as JobId,
+        )
+        .execute(&mut **tx)
+        .await?;
+        if result.rows_affected() != 1 {
+            return Err(JobError::CouldNotResumeJob);
+        }
+        Ok(())
+    }
+
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
         let pool = self.pool.clone();
         let server_id = self.config.server_id.clone();
@@ -137,11 +158,12 @@ impl JobExecutor {
                   SELECT id
                   FROM job_executions
                   WHERE reschedule_after < NOW()
+                  AND state = 'pending'
                   LIMIT $2
                   FOR UPDATE
               )
               UPDATE job_executions AS je
-              SET reschedule_after = NOW() + $3::interval,
+              SET state = 'running', reschedule_after = NOW() + $3::interval,
                   executing_server_id = $1
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
@@ -223,11 +245,12 @@ impl JobExecutor {
                 Self::complete_job(tx, id, repo).await?;
             }
             JobCompletion::Pause => {
-                // if let Ok(tx) = pool.begin().await {
-                //     let _ = Self::complete_job(tx, id, repo);
-                // }
+                let tx = pool.begin().await?;
+                Self::pause_job(tx, id, repo).await?;
             }
-            _ => {}
+            JobCompletion::PauseWithTx(tx) => {
+                Self::pause_job(tx, id, repo).await?;
+            }
         }
         Ok(())
     }
@@ -247,6 +270,28 @@ impl JobExecutor {
         .execute(&mut *tx)
         .await?;
         job.complete();
+        repo.persist(&mut tx, job).await?;
+        tx.commit().await?;
+        Ok(())
+    }
+
+    async fn pause_job(
+        mut tx: Transaction<'_, Postgres>,
+        id: JobId,
+        repo: JobRepo,
+    ) -> Result<(), JobError> {
+        let mut job = repo.find_by_id(id).await?;
+        sqlx::query!(
+            r#"
+          UPDATE job_executions
+          SET state = 'paused'
+          WHERE id = $1
+        "#,
+            id as JobId
+        )
+        .execute(&mut *tx)
+        .await?;
+        job.pause();
         repo.persist(&mut tx, job).await?;
         tx.commit().await?;
         Ok(())
