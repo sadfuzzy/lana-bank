@@ -9,10 +9,7 @@ use crate::{app::LavaApp, graphql};
 
 pub use config::*;
 
-pub async fn run(
-    config: ServerConfig,
-    app: LavaApp,
-) -> anyhow::Result<()> {
+pub async fn run(config: ServerConfig, app: LavaApp) -> anyhow::Result<()> {
     let schema = graphql::schema(Some(app.clone()));
 
     let app = Router::new()
@@ -45,4 +42,3 @@ async fn playground() -> impl axum::response::IntoResponse {
         async_graphql::http::GraphQLPlaygroundConfig::new("/graphql"),
     ))
 }
-

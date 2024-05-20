@@ -17,4 +17,3 @@ impl Default for ServerConfig {
 fn default_port() -> u16 {
     5252
 }
-

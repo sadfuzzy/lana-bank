@@ -46,3 +46,5 @@ pub struct LavaJournalCreate;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
+type Decimal = rust_decimal::Decimal;
+type CurrencyCode = cala_types::primitives::Currency;

@@ -1,7 +1,10 @@
+mod account;
 mod cala;
 mod config;
 mod constants;
 pub mod error;
+
+use uuid::Uuid;
 
 use crate::primitives::{LedgerAccountId, Money};
 
@@ -24,7 +27,7 @@ impl Ledger {
 
     pub async fn create_accounts_for_loan(
         &self,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<Uuid>,
     ) -> Result<LedgerAccountId, LedgerError> {
         let id = id.into();
         Self::assert_account_exists(
@@ -36,29 +39,28 @@ impl Ledger {
         .await
     }
 
-    pub async fn fetch_account_balance(
+    pub async fn fetch_btc_account_balance(
         &self,
-        id: impl Into<LedgerAccountId>,
+        id: impl Into<Uuid>,
     ) -> Result<Money, LedgerError> {
-        unimplemented!()
-        // let id = id.into();
-        // let variables = account_balance::Variables {
-        //     account_id: id.into(),
-        // };
-        // let response = CalaClient::traced_gql_request::<AccountBalance, _>(
-        //     &self.cala.client,
-        //     &self.cala.url,
-        //     variables,
-        // )
-        // .await?;
-        // response
-        //     .data
-        //     .map(|d| d.account_balance.balance)
-        //     .ok_or(LedgerError::MissingDataField)
+        let account = self
+            .cala
+            .find_account_by_external_id(format!("lava:loan-{}", id.into()))
+            .await?;
+        Ok(account
+            .and_then(|a| a.settled_btc_balance)
+            .unwrap_or_else(|| Money {
+                amount: rust_decimal::Decimal::ZERO,
+                currency: "BTC".parse().unwrap(),
+            }))
     }
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
-        if let Ok(_) = cala.find_journal_by_id(constants::LAVA_JOURNAL_ID).await {
+        if cala
+            .find_journal_by_id(constants::LAVA_JOURNAL_ID)
+            .await
+            .is_ok()
+        {
             return Ok(());
         }
 
@@ -90,11 +92,11 @@ impl Ledger {
         code: &str,
         external_id: &str,
     ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(Some(id)) = cala
+        if let Ok(Some(account)) = cala
             .find_account_by_external_id(external_id.to_owned())
             .await
         {
-            return Ok(id);
+            return Ok(account.id);
         }
 
         let err = match cala
@@ -109,5 +111,6 @@ impl Ledger {
             .await
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
+            .map(|a| a.id)
     }
 }

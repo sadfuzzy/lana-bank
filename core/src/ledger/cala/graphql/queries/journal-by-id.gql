@@ -1,5 +1,5 @@
 query JournalById($journalId: UUID!) {
-  journal(journalId: $journal_id) {
+  journal(journalId: $journalId) {
     journalId
   }
 }

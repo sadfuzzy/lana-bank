@@ -1,6 +1,11 @@
+scalar CurrencyCode
+
+scalar Decimal
+
 type FixedTermLoan {
 	loanId: UUID!
 	state: FixedTermLoanState!
+	balance: Money!
 }
 
 input FixedTermLoanCreateInput {
@@ -27,6 +32,11 @@ enum FixedTermLoanState {
 
 
 
+
+type Money {
+	units: Decimal!
+	currency: CurrencyCode!
+}
 
 type Mutation {
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!

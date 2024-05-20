@@ -14,10 +14,11 @@ pub struct FixedTermLoan {
 impl FixedTermLoan {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<Money> {
         let app = ctx.data_unchecked::<LavaApp>();
-        app.fixed_term_loans()
+        let money = app
+            .fixed_term_loans()
             .balance_for_loan(FixedTermLoanId::from(&self.loan_id))
             .await?;
-        unimplemented!()
+        Ok(Money::from(money))
     }
 }
 

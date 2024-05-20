@@ -5,6 +5,7 @@ mod repo;
 mod state;
 
 use sqlx::PgPool;
+use tracing::instrument;
 
 use crate::{
     entity::{EntityError, EntityUpdate},
@@ -22,7 +23,7 @@ pub use state::*;
 #[derive(Clone)]
 pub struct FixedTermLoans {
     repo: FixedTermLoanRepo,
-    _ledger: Ledger,
+    ledger: Ledger,
     jobs: Option<Jobs>,
     pool: PgPool,
 }
@@ -33,7 +34,7 @@ impl FixedTermLoans {
         registry.add_initializer(FixedTermLoanJobInitializer::new(&ledger, repo.clone()));
         Self {
             repo,
-            _ledger: ledger,
+            ledger,
             jobs: None,
             pool: pool.clone(),
         }
@@ -47,6 +48,7 @@ impl FixedTermLoans {
         self.jobs.as_ref().expect("Jobs not set")
     }
 
+    #[instrument(name = "lava.fixed_term_loans.create_loan", skip(self), err)]
     pub async fn create_loan(&self) -> Result<FixedTermLoan, FixedTermLoanError> {
         let loan_id = FixedTermLoanId::new();
         let new_loan = NewFixedTermLoan::builder()
@@ -91,9 +93,9 @@ impl FixedTermLoans {
     pub async fn balance_for_loan(
         &self,
         loan_id: FixedTermLoanId,
-    ) -> Result<(), FixedTermLoanError> {
+    ) -> Result<Money, FixedTermLoanError> {
         let loan = self.repo.find_by_id(loan_id).await?;
-        // loan.balance()
-        Ok(())
+        let balance = self.ledger.fetch_btc_account_balance(loan.id).await?;
+        Ok(balance)
     }
 }

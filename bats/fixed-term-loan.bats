@@ -2,13 +2,13 @@
 
 load "helpers"
 
-setup_file() {
-  start_server
-}
+# setup_file() {
+#   start_server
+# }
 
-teardown_file() {
-  stop_server
-}
+# teardown_file() {
+#   stop_server
+# }
 
 @test "fixed-term-loan: can create a loan" {
 
@@ -23,4 +23,7 @@ teardown_file() {
   exec_graphql 'fixed-term-loan-create' "$variables"
   id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
   [[ "$id" != null ]] || exit 1;
+
+  balance=$(graphql_output '.data.fixedTermLoanCreate.loan.balance.units')
+  [[ "$balance" == "0" ]] || exit 1;
 }

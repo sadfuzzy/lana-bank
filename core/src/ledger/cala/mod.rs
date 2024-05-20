@@ -1,11 +1,12 @@
 pub mod error;
-mod graphql;
+pub(super) mod graphql;
 
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
+use super::account::LedgerAccount;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -25,9 +26,7 @@ impl CalaClient {
 
     #[instrument(name = "lava.ledger.cala.find_journal_by_id", skip(self), err)]
     pub async fn find_journal_by_id(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = journal_by_id::Variables {
-            journal_id: Uuid::from(id),
-        };
+        let variables = journal_by_id::Variables { journal_id: id };
         let response =
             Self::traced_gql_request::<JournalById, _>(&self.client, &self.url, variables).await?;
         response
@@ -39,7 +38,7 @@ impl CalaClient {
 
     #[instrument(name = "lava.ledger.cala.create_lava_journal", skip(self), err)]
     pub async fn create_lava_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = lava_journal_create::Variables { id: Uuid::from(id) };
+        let variables = lava_journal_create::Variables { id };
         let response =
             Self::traced_gql_request::<LavaJournalCreate, _>(&self.client, &self.url, variables)
                 .await?;
@@ -82,8 +81,11 @@ impl CalaClient {
     pub async fn find_account_by_external_id(
         &self,
         external_id: String,
-    ) -> Result<Option<LedgerAccountId>, CalaError> {
-        let variables = account_by_external_id::Variables { external_id };
+    ) -> Result<Option<LedgerAccount>, CalaError> {
+        let variables = account_by_external_id::Variables {
+            external_id,
+            journal_id: super::constants::LAVA_JOURNAL_ID,
+        };
         let response =
             Self::traced_gql_request::<AccountByExternalId, _>(&self.client, &self.url, variables)
                 .await?;
@@ -91,7 +93,7 @@ impl CalaClient {
         Ok(response
             .data
             .and_then(|d| d.account_by_external_id)
-            .map(|d| LedgerAccountId::from(d.account_id)))
+            .map(LedgerAccount::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
