@@ -1,12 +1,14 @@
 pub mod error;
 pub(super) mod graphql;
 
+use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
 use super::account::LedgerAccount;
+use super::tx_templates::{DepositTxTemplate, WithdrawalTxTemplate};
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -112,6 +114,44 @@ impl CalaClient {
             .data
             .and_then(|d| d.account_by_external_id)
             .map(LedgerAccount::from))
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_standard_tx_templates",
+        skip(self),
+        err
+    )]
+    pub async fn create_standard_tx_templates(
+        &self,
+        deposit_template_id: TxTemplateId,
+        deposit_template_code: String,
+        withdrawal_template_id: TxTemplateId,
+        withdrawal_template_code: String,
+    ) -> Result<Option<(DepositTxTemplate, WithdrawalTxTemplate)>, CalaError> {
+        let variables = lava_standard_tx_templates_create::Variables {
+            deposit_template_id: Uuid::from(deposit_template_id),
+            deposit_template_code,
+            withdrawal_template_id: Uuid::from(withdrawal_template_id),
+            withdrawal_template_code,
+            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID.to_string()),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ACCOUNT_ID.to_string()),
+        };
+        let response = Self::traced_gql_request::<LavaStandardTxTemplatesCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response
+            .data
+            .and_then(|d| Some((d.deposit_template, d.withdrawal_template)))
+            .map(|(deposit_template, withdrawal_template)| {
+                (
+                    DepositTxTemplate::from(deposit_template),
+                    WithdrawalTxTemplate::from(withdrawal_template),
+                )
+            }))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

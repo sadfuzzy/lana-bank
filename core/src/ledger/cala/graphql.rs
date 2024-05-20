@@ -52,7 +52,16 @@ pub struct JournalById;
 )]
 pub struct LavaJournalCreate;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/lava-standard-tx-templates-create.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct LavaStandardTxTemplatesCreate;
+
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
 type Decimal = rust_decimal::Decimal;
 type CurrencyCode = cala_types::primitives::Currency;
+type Expression = String;
