@@ -1,5 +1,4 @@
 crate::entity_id! { JobId }
-crate::entity_id! { LedgerAccountId }
 crate::entity_id! { FixedTermLoanId }
 
 impl From<FixedTermLoanId> for LedgerAccountId {
@@ -18,7 +17,9 @@ pub enum DebitOrCredit {
     Credit,
 }
 
-pub use cala_types::primitives::Currency;
+pub use cala_types::primitives::{
+    AccountId as LedgerAccountId, Currency, JournalId as LedgerJournalId,
+};
 
 pub struct Money {
     pub amount: rust_decimal::Decimal,

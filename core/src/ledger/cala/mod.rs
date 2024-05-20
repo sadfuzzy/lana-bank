@@ -6,7 +6,7 @@ use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::LedgerAccountId;
+use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
 use graphql::*;
@@ -21,6 +21,32 @@ impl CalaClient {
     pub fn new(url: String) -> Self {
         let client = ReqwestClient::new();
         CalaClient { client, url }
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_journal_by_id", skip(self), err)]
+    pub async fn find_journal_by_id(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
+        let variables = journal_by_id::Variables {
+            journal_id: Uuid::from(id),
+        };
+        let response =
+            Self::traced_gql_request::<JournalById, _>(&self.client, &self.url, variables).await?;
+        response
+            .data
+            .and_then(|d| d.journal)
+            .map(|d| LedgerJournalId::from(d.journal_id))
+            .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_lava_journal", skip(self), err)]
+    pub async fn create_lava_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
+        let variables = lava_journal_create::Variables { id: Uuid::from(id) };
+        let response =
+            Self::traced_gql_request::<LavaJournalCreate, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| LedgerJournalId::from(d.journal_create.journal.journal_id))
+            .ok_or(CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]

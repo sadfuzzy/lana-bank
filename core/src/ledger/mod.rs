@@ -17,6 +17,7 @@ pub struct Ledger {
 impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
+        Self::initialize_journal(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -54,6 +55,22 @@ impl Ledger {
         //     .data
         //     .map(|d| d.account_balance.balance)
         //     .ok_or(LedgerError::MissingDataField)
+    }
+
+    async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
+        if let Ok(_) = cala.find_journal_by_id(constants::LAVA_JOURNAL_ID).await {
+            return Ok(());
+        }
+
+        let err = match cala.create_lava_journal(constants::LAVA_JOURNAL_ID).await {
+            Ok(_) => return Ok(()),
+            Err(e) => e,
+        };
+
+        cala.find_journal_by_id(constants::LAVA_JOURNAL_ID)
+            .await
+            .map_err(|_| err)?;
+        Ok(())
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {

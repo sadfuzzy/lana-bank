@@ -6,4 +6,6 @@ pub enum LedgerError {
     Cala(#[from] super::cala::error::CalaError),
     #[error("LedgerError - CouldNotAssertAccountExits")]
     CouldNotAssertAccountExits,
+    #[error("LedgerError - CouldNotInitializeJournal")]
+    CouldNotInitializeJournal,
 }

@@ -4,4 +4,3 @@ query AccountByExternalId($externalId: String!) {
     name
   }
 }
-

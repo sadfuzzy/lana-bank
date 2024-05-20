@@ -589,9 +589,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b13b12465ccec1123a5bbbb5cbe8588f64cc51fb4d5af90bfd8c597c4dcc20d"
+checksum = "e5cfefb431524941e2f46daa3ed77af113e539595e46d119cc1498ede5eb11d1"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -604,9 +604,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4690001359a8d3ff1d6855b0eaf0191bca3884957bca2b737d021abe1080c07"
+checksum = "1753799b81fcdc5045294fc818ebc5c8659b655ce2c33acb47f369a9dab144ba"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -614,9 +614,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "709b6074c60648e58c3d9556ce9875b0d2c04105a37d5422b0450111f688b807"
+checksum = "71a2b86c7650f9b4cd280f03f540ccbb79a9c0e0315ca123ef7ea09b8bd01ba6"
 dependencies = [
  "cala-cel-interpreter",
  "chrono",
