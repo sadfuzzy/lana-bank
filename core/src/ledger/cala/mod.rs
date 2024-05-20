@@ -133,8 +133,11 @@ impl CalaClient {
             deposit_template_code,
             withdrawal_template_id: Uuid::from(withdrawal_template_id),
             withdrawal_template_code,
-            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID.to_string()),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ACCOUNT_ID.to_string()),
+            journal_id: format!(
+                "uuid(\"{}\")",
+                super::constants::LAVA_JOURNAL_ID.to_string()
+            ),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID.to_string()),
         };
         let response = Self::traced_gql_request::<LavaStandardTxTemplatesCreate, _>(
             &self.client,

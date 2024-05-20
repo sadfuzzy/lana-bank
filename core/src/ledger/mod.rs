@@ -5,6 +5,7 @@ mod constants;
 pub mod error;
 mod tx_templates;
 
+use cala_types::primitives::TxTemplateId;
 use uuid::Uuid;
 
 use crate::primitives::LedgerAccountId;
@@ -24,6 +25,7 @@ impl Ledger {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
+        Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
 
@@ -121,5 +123,36 @@ impl Ledger {
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
             .map(|a| a.id)
+    }
+
+    async fn create_standard_tx_templates(
+        cala: &CalaClient,
+        deposit_template_code: &str,
+        withdrawal_template_code: &str,
+    ) -> Result<(TxTemplateId, TxTemplateId), LedgerError> {
+        let deposit_template_id = TxTemplateId::new();
+        let withdrawal_template_id = TxTemplateId::new();
+
+        cala.create_standard_tx_templates(
+            deposit_template_id,
+            deposit_template_code.to_owned(),
+            withdrawal_template_id,
+            withdrawal_template_code.to_owned(),
+        )
+        .await?
+        .map(|(deposit_template, withdrawal)| {
+            (deposit_template.tx_template_id, withdrawal.tx_template_id)
+        })
+        .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
+    }
+
+    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::create_standard_tx_templates(
+            cala,
+            constants::LAVA_DEPOSIT_TX_TEMPLATE_CODE,
+            constants::LAVA_WITHDRAWAL_TX_TEMPLATE_CODE,
+        )
+        .await?;
+        Ok(())
     }
 }
