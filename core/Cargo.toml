@@ -27,3 +27,5 @@ serde_with = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
+rust_decimal = { workspace = true }
+cala-types = { workspace = true }

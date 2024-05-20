@@ -87,4 +87,13 @@ impl FixedTermLoans {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn balance_for_loan(
+        &self,
+        loan_id: FixedTermLoanId,
+    ) -> Result<(), FixedTermLoanError> {
+        let loan = self.repo.find_by_id(loan_id).await?;
+        // loan.balance()
+        Ok(())
+    }
 }

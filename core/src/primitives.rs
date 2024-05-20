@@ -17,3 +17,10 @@ pub enum DebitOrCredit {
     Debit,
     Credit,
 }
+
+pub use cala_types::primitives::Currency;
+
+pub struct Money {
+    pub amount: rust_decimal::Decimal,
+    pub currency: Currency,
+}

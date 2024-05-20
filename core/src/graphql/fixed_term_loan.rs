@@ -1,12 +1,24 @@
 use async_graphql::*;
 
-use super::primitives::*;
-use crate::fixed_term_loan::FixedTermLoanState;
+use super::{money::*, primitives::*};
+use crate::{app::LavaApp, fixed_term_loan::FixedTermLoanState, primitives::FixedTermLoanId};
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct FixedTermLoan {
     pub loan_id: UUID,
     pub state: FixedTermLoanState,
+}
+
+#[ComplexObject]
+impl FixedTermLoan {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<Money> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        app.fixed_term_loans()
+            .balance_for_loan(FixedTermLoanId::from(&self.loan_id))
+            .await?;
+        unimplemented!()
+    }
 }
 
 #[derive(InputObject)]

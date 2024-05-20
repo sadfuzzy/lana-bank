@@ -3,7 +3,7 @@ mod config;
 mod constants;
 pub mod error;
 
-use crate::primitives::LedgerAccountId;
+use crate::primitives::{LedgerAccountId, Money};
 
 use cala::*;
 pub use config::*;
@@ -33,6 +33,27 @@ impl Ledger {
             &format!("lava:loan-{}", id),
         )
         .await
+    }
+
+    pub async fn fetch_account_balance(
+        &self,
+        id: impl Into<LedgerAccountId>,
+    ) -> Result<Money, LedgerError> {
+        unimplemented!()
+        // let id = id.into();
+        // let variables = account_balance::Variables {
+        //     account_id: id.into(),
+        // };
+        // let response = CalaClient::traced_gql_request::<AccountBalance, _>(
+        //     &self.cala.client,
+        //     &self.cala.url,
+        //     variables,
+        // )
+        // .await?;
+        // response
+        //     .data
+        //     .map(|d| d.account_balance.balance)
+        //     .ok_or(LedgerError::MissingDataField)
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
