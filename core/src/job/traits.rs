@@ -17,6 +17,7 @@ pub enum JobCompletion {
     Complete,
     CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
     Pause,
+    PauseWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
 }
 
 #[async_trait]

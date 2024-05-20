@@ -33,6 +33,15 @@ impl JobRepo {
         Ok(job)
     }
 
+    pub async fn persist(
+        &self,
+        tx: &mut Transaction<'_, Postgres>,
+        mut job: Job,
+    ) -> Result<(), JobError> {
+        job.events.persist(tx).await?;
+        Ok(())
+    }
+
     pub async fn find_by_id(&self, id: JobId) -> Result<Job, JobError> {
         let rows = sqlx::query_as!(
             GenericEvent,

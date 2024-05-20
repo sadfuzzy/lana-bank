@@ -157,7 +157,15 @@ impl JobExecutor {
         if !rows.is_empty() {
             for row in rows {
                 let job = jobs.find_by_id(row.id).await?;
-                let _ = Self::start_job(pool, registry, running_jobs, job, row.payload_json).await;
+                let _ = Self::start_job(
+                    pool,
+                    registry,
+                    running_jobs,
+                    job,
+                    row.payload_json,
+                    jobs.clone(),
+                )
+                .await;
             }
         }
         Ok(())
@@ -173,21 +181,74 @@ impl JobExecutor {
         registry: &Arc<JobRegistry>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
-        job_state: Option<serde_json::Value>,
+        job_payload: Option<serde_json::Value>,
+        repo: JobRepo,
     ) -> Result<(), JobError> {
         let id = job.id;
         let runner = registry.init_job(&job)?;
         let all_jobs = Arc::clone(running_jobs);
         let pool = pool.clone();
         let handle = tokio::spawn(async move {
-            let current_job = CurrentJob::new(id, pool, job_state);
-            let _ = runner.run(current_job).await;
+            {
+                let _ = Self::execute_job(id, pool, job_payload, runner, repo).await;
+            }
             all_jobs.write().await.remove(&id);
         });
         running_jobs
             .write()
             .await
             .insert(id, JobHandle(Some(handle)));
+        Ok(())
+    }
+
+    async fn execute_job(
+        id: JobId,
+        pool: PgPool,
+        payload: Option<serde_json::Value>,
+        runner: Box<dyn JobRunner>,
+        repo: JobRepo,
+    ) -> Result<(), JobError> {
+        let current_job_pool = pool.clone();
+        let current_job = CurrentJob::new(id, current_job_pool, payload);
+        match runner
+            .run(current_job)
+            .await
+            .map_err(|e| JobError::JobExecutionError(e.to_string()))?
+        {
+            JobCompletion::Complete => {
+                let tx = pool.begin().await?;
+                Self::complete_job(tx, id, repo).await?;
+            }
+            JobCompletion::CompleteWithTx(tx) => {
+                Self::complete_job(tx, id, repo).await?;
+            }
+            JobCompletion::Pause => {
+                // if let Ok(tx) = pool.begin().await {
+                //     let _ = Self::complete_job(tx, id, repo);
+                // }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+    async fn complete_job(
+        mut tx: Transaction<'_, Postgres>,
+        id: JobId,
+        repo: JobRepo,
+    ) -> Result<(), JobError> {
+        let mut job = repo.find_by_id(id).await?;
+        sqlx::query!(
+            r#"
+          DELETE FROM job_executions
+          WHERE id = $1
+        "#,
+            id as JobId
+        )
+        .execute(&mut *tx)
+        .await?;
+        job.complete();
+        repo.persist(&mut tx, job).await?;
+        tx.commit().await?;
         Ok(())
     }
 }
