@@ -1,5 +1,5 @@
-query JournalById($journalId: UUID!) {
-  journal(journalId: $journalId) {
+query JournalById($id: UUID!) {
+  journal(id: $id) {
     journalId
   }
 }
