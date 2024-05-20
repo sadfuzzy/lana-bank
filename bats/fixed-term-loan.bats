@@ -2,13 +2,13 @@
 
 load "helpers"
 
-# setup_file() {
-#   start_server
-# }
+setup_file() {
+  start_server
+}
 
-# teardown_file() {
-#   stop_server
-# }
+teardown_file() {
+  stop_server
+}
 
 @test "fixed-term-loan: can create a loan" {
 

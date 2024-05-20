@@ -39,6 +39,7 @@ type Money {
 }
 
 type Mutation {
+	userCreate(input: UserCreateInput!): User!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanDeclareCollateralized(input: FixedTermLoanDeclareCollateralizedInput!): FixedTermLoanDeclareCollateralizedPayload!
 }
@@ -49,6 +50,15 @@ type Query {
 
 
 scalar UUID
+
+type User {
+	userId: UUID!
+	bitfinexUsername: String!
+}
+
+input UserCreateInput {
+	bitfinexUsername: String!
+}
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

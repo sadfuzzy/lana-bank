@@ -2,6 +2,7 @@ mod fixed_term_loan;
 mod money;
 mod primitives;
 mod schema;
+mod user;
 
 use async_graphql::*;
 

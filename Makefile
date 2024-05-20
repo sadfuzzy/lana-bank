@@ -22,10 +22,6 @@ update-lib-in-nodejs-example:
 	cd cala-nodejs && SQLX_OFFLINE=true yarn build
 	cd examples/nodejs && rm -rf ./node_modules && yarn install
 
-re-run-nodejs-example: clean-deps start-deps
-	sleep 2
-	cd examples/nodejs && yarn run start
-
 check-code: sdl
 	git diff --exit-code core/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
@@ -45,7 +41,9 @@ sdl:
 bump-cala-schema:
 	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
 
-test-in-ci: start-deps setup-db
+test-in-ci: start-deps
+	sleep 3
+	cd core && cargo sqlx migrate run
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:

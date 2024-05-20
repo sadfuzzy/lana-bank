@@ -25,6 +25,19 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
+    pub async fn create_account_for_user(
+        &self,
+        bitfinex_username: &str,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            &self.cala,
+            &format!("USERS.DEPOSIT.{}", bitfinex_username),
+            &format!("USERS.DEPOSIT.{}", bitfinex_username),
+            &format!("lava:usr:bfx-{}", bitfinex_username),
+        )
+        .await
+    }
+
     pub async fn create_accounts_for_loan(
         &self,
         id: impl Into<Uuid>,
