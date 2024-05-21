@@ -41,6 +41,11 @@ sdl:
 bump-cala-schema:
 	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
 
+bump-cala-docker-image:
+	docker pull us.gcr.io/galoy-org/cala:edge
+
+bump-cala: bump-cala-docker-image bump-cala-schema
+
 test-in-ci: start-deps
 	sleep 3
 	cd core && cargo sqlx migrate run
