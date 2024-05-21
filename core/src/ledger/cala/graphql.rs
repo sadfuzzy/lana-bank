@@ -55,7 +55,7 @@ pub struct LavaJournalCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/lava-standard-tx-templates-create.gql",
+    query_path = "src/ledger/cala/graphql/transactions/deposit.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct LavaDepositTxTemplateCreate;
@@ -63,7 +63,7 @@ pub struct LavaDepositTxTemplateCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/tx-templates/lava-standard-tx-templates-create.gql",
+    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct LavaWithdrawalTxTemplateCreate;
