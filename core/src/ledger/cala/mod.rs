@@ -116,11 +116,7 @@ impl CalaClient {
             .map(LedgerAccount::from))
     }
 
-    #[instrument(
-        name = "lava.ledger.cala.create_deposit_tx_template",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]
     pub async fn create_deposit_tx_template(
         &self,
         template_id: TxTemplateId,
@@ -165,10 +161,7 @@ impl CalaClient {
                 "uuid(\"{}\")",
                 super::constants::LAVA_JOURNAL_ID.to_string()
             ),
-            asset_account_id: format!(
-                "uuid(\"{}\")",
-                super::constants::LAVA_ASSETS_ID.to_string()
-            ),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID.to_string()),
         };
         let response = Self::traced_gql_request::<LavaWithdrawalTxTemplateCreate, _>(
             &self.client,

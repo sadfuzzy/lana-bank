@@ -48,6 +48,7 @@ mutation LavaWithdrawalTxTemplateCreate(
   ) {
     txTemplate{
       txTemplateId
+      version
     }
   }
 }
