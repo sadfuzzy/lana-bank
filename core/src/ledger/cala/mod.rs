@@ -26,7 +26,7 @@ impl CalaClient {
 
     #[instrument(name = "lava.ledger.cala.find_journal_by_id", skip(self), err)]
     pub async fn find_journal_by_id(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = journal_by_id::Variables { journal_id: id };
+        let variables = journal_by_id::Variables { id };
         let response =
             Self::traced_gql_request::<JournalById, _>(&self.client, &self.url, variables).await?;
         response
