@@ -3,6 +3,12 @@ mutation userCreate($input: UserCreateInput!) {
     user {
       userId
       bitfinexUsername
+      depositAccount {
+        balance {
+          units
+          currency
+        }
+      }
     }
   }
 }

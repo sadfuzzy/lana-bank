@@ -17,11 +17,16 @@ teardown_file() {
       --arg username "$username" \
     '{
       input: {
-        bitfinexUserName: "$username",
+        bitfinexUsername: $username,
       }
     }'
   )
   exec_graphql 'user-create' "$variables"
-  username=$(graphql_output '.data.userCreate.user.bitfinexUsername')
-  [[ "$id" != null ]] || exit 1;
+  user=$(graphql_output '.data.userCreate.user.bitfinexUsername')
+  echo $(graphql_output)
+  echo $user
+  [[ "$user" == "$username" ]] || exit 1;
+
+  currency=$(graphql_output '.data.userCreate.user.depositAccount.balance.currency')
+  [[ "$currency" == "BTC" ]] || exit 1;
 }
