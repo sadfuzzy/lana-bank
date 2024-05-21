@@ -29,10 +29,10 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
         input: UserCreateInput,
-    ) -> async_graphql::Result<User> {
+    ) -> async_graphql::Result<UserCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let user = app.users().create_user(input.bitfinex_username).await?;
-        Ok(User::from(user))
+        Ok(UserCreatePayload::from(user))
     }
 
     pub async fn fixed_term_loan_create(

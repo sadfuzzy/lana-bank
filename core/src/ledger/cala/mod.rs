@@ -77,6 +77,24 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
+    #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
+    pub async fn find_account_by_id(
+        &self,
+        id: impl Into<Uuid>,
+    ) -> Result<Option<LedgerAccount>, CalaError> {
+        let variables = account_by_id::Variables {
+            id: id.into(),
+            journal_id: super::constants::LAVA_JOURNAL_ID,
+        };
+        let response =
+            Self::traced_gql_request::<AccountById, _>(&self.client, &self.url, variables).await?;
+
+        Ok(response
+            .data
+            .and_then(|d| d.account)
+            .map(LedgerAccount::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
     pub async fn find_account_by_external_id(
         &self,

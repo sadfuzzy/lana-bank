@@ -15,6 +15,14 @@ pub struct AccountByExternalId;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/queries/account-by-id.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AccountById;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/mutations/account-create.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

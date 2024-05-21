@@ -6,8 +6,9 @@ pub mod error;
 
 use uuid::Uuid;
 
-use crate::primitives::{LedgerAccountId, Money};
+use crate::primitives::LedgerAccountId;
 
+pub use account::*;
 use cala::*;
 pub use config::*;
 use error::*;
@@ -23,6 +24,16 @@ impl Ledger {
         Self::initialize_journal(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
         Ok(Ledger { cala })
+    }
+
+    pub async fn get_account_by_id(
+        &self,
+        id: LedgerAccountId,
+    ) -> Result<LedgerAccount, LedgerError> {
+        self.cala
+            .find_account_by_id(id)
+            .await?
+            .ok_or(LedgerError::AccountNotFound)
     }
 
     pub async fn create_account_for_user(
@@ -50,22 +61,6 @@ impl Ledger {
             &format!("lava:loan-{}", id),
         )
         .await
-    }
-
-    pub async fn fetch_btc_account_balance(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Money, LedgerError> {
-        let account = self
-            .cala
-            .find_account_by_external_id(format!("lava:loan-{}", id.into()))
-            .await?;
-        Ok(account
-            .and_then(|a| a.settled_btc_balance)
-            .unwrap_or_else(|| Money {
-                amount: rust_decimal::Decimal::ZERO,
-                currency: "BTC".parse().unwrap(),
-            }))
     }
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
