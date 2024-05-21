@@ -58,7 +58,15 @@ pub struct LavaJournalCreate;
     query_path = "src/ledger/cala/graphql/transactions/lava-standard-tx-templates-create.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct LavaStandardTxTemplatesCreate;
+pub struct LavaDepositTxTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/tx-templates/lava-standard-tx-templates-create.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct LavaWithdrawalTxTemplateCreate;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;

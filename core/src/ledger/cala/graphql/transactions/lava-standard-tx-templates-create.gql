@@ -1,15 +1,13 @@
-mutation LavaStandardTxTemplatesCreate(
-    $depositTemplateId: UUID!,
-    $depositTemplateCode: String!,
-    $withdrawalTemplateId: UUID!,
-    $withdrawalTemplateCode: String!,
+mutation LavaDepositTxTemplateCreate(
+    $templateId: UUID!,
+    $templateCode: String!,
     $journalId: Expression!,
     $assetAccountId: Expression!
 ) {
-  depositTemplate: txTemplateCreate(
+  txTemplateCreate(
     input: {
-      txTemplateId: $depositTemplateId
-      code: $depositTemplateCode
+      txTemplateId: $templateId
+      code: $templateCode
       description: "An ACH credit into a customer account."
       params: [
         { name: "account", type: UUID, description: "Deposit account ID." }
@@ -52,11 +50,18 @@ mutation LavaStandardTxTemplatesCreate(
       txTemplateId
     }
   }
+}
 
-  withdrawalTemplate: txTemplateCreate(
+mutation LavaWithdrawalTxTemplateCreate(
+    $templateId: UUID!,
+    $templateCode: String!,
+    $journalId: Expression!,
+    $assetAccountId: Expression!
+) {
+  txTemplateCreate(
     input: {
-      txTemplateId: $withdrawalTemplateId
-      code: $withdrawalTemplateCode
+      txTemplateId: $templateId
+      code: $templateCode
       description: "An ACH debit into a customer account."
       params: [
         { name: "account", type: UUID, description: "Withdraw account ID." }
