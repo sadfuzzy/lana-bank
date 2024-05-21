@@ -19,6 +19,7 @@ pub struct LavaApp {
     _jobs: Jobs,
     fixed_term_loans: FixedTermLoans,
     users: Users,
+    ledger: Ledger,
 }
 
 impl LavaApp {
@@ -26,7 +27,7 @@ impl LavaApp {
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
         let users = Users::new(&pool, &ledger);
-        let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, ledger);
+        let mut fixed_term_loans = FixedTermLoans::new(&pool, &mut registry, &ledger);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         fixed_term_loans.set_jobs(&jobs);
         jobs.start_poll().await?;
@@ -35,6 +36,7 @@ impl LavaApp {
             _jobs: jobs,
             users,
             fixed_term_loans,
+            ledger,
         })
     }
 
@@ -44,5 +46,9 @@ impl LavaApp {
 
     pub fn users(&self) -> &Users {
         &self.users
+    }
+
+    pub fn ledger(&self) -> &Ledger {
+        &self.ledger
     }
 }

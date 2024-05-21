@@ -25,6 +25,7 @@ impl EntityEvent for UserEvent {
 pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
+    pub ledger_account_id: LedgerAccountId,
     pub(super) _events: EntityEvents<UserEvent>,
 }
 
@@ -42,9 +43,12 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 UserEvent::Initialized {
                     id,
                     bitfinex_username,
-                    ..
+                    ledger_account_id,
                 } => {
-                    builder = builder.id(*id).bitfinex_username(bitfinex_username.clone());
+                    builder = builder
+                        .id(*id)
+                        .bitfinex_username(bitfinex_username.clone())
+                        .ledger_account_id(*ledger_account_id);
                 }
             }
         }

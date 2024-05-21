@@ -23,18 +23,18 @@ pub use state::*;
 #[derive(Clone)]
 pub struct FixedTermLoans {
     repo: FixedTermLoanRepo,
-    ledger: Ledger,
+    _ledger: Ledger,
     jobs: Option<Jobs>,
     pool: PgPool,
 }
 
 impl FixedTermLoans {
-    pub fn new(pool: &PgPool, registry: &mut JobRegistry, ledger: Ledger) -> Self {
+    pub fn new(pool: &PgPool, registry: &mut JobRegistry, ledger: &Ledger) -> Self {
         let repo = FixedTermLoanRepo::new(pool);
         registry.add_initializer(FixedTermLoanJobInitializer::new(&ledger, repo.clone()));
         Self {
             repo,
-            ledger,
+            _ledger: ledger.clone(),
             jobs: None,
             pool: pool.clone(),
         }
@@ -88,14 +88,5 @@ impl FixedTermLoans {
             Err(FixedTermLoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),
         }
-    }
-
-    pub async fn balance_for_loan(
-        &self,
-        loan_id: FixedTermLoanId,
-    ) -> Result<Money, FixedTermLoanError> {
-        let loan = self.repo.find_by_id(loan_id).await?;
-        let balance = self.ledger.fetch_btc_account_balance(loan.id).await?;
-        Ok(balance)
     }
 }

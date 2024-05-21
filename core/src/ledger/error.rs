@@ -8,4 +8,6 @@ pub enum LedgerError {
     CouldNotAssertAccountExits,
     #[error("LedgerError - CouldNotInitializeJournal")]
     CouldNotInitializeJournal,
+    #[error("LedgerError - AccountNotFound")]
+    AccountNotFound,
 }
