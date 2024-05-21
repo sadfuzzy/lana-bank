@@ -3,7 +3,7 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
-mod tx_templates;
+mod transactions;
 
 use cala_types::primitives::TxTemplateId;
 use uuid::Uuid;

@@ -8,7 +8,7 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use super::account::LedgerAccount;
-use super::tx_templates::{DepositTxTemplate, WithdrawalTxTemplate};
+use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
