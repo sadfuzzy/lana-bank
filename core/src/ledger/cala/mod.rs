@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use super::account::LedgerAccount;
 use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
+use super::tx_template::TxTemplate;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -114,6 +115,22 @@ impl CalaClient {
             .data
             .and_then(|d| d.account_by_external_id)
             .map(LedgerAccount::from))
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
+    pub async fn find_tx_template_by_code(
+        &self,
+        code: String,
+    ) -> Result<Option<TxTemplate>, CalaError> {
+        let variables = tx_template_by_code::Variables { code };
+        let response =
+            Self::traced_gql_request::<TxTemplateByCode, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response
+            .data
+            .and_then(|d| d.tx_template_by_code)
+            .map(TxTemplate::from))
     }
 
     #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]

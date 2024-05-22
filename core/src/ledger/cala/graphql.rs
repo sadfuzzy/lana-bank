@@ -68,6 +68,14 @@ pub struct LavaDepositTxTemplateCreate;
 )]
 pub struct LavaWithdrawalTxTemplateCreate;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/find-tx-template.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct TxTemplateByCode;
+
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
 type Decimal = rust_decimal::Decimal;
