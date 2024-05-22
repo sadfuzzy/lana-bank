@@ -6,6 +6,8 @@ pub enum LedgerError {
     Cala(#[from] super::cala::error::CalaError),
     #[error("LedgerError - CouldNotAssertAccountExits")]
     CouldNotAssertAccountExits,
+    #[error("LedgerError - CouldNotAssertTxTemplateExists")]
+    CouldNotAssertTxTemplateExists,
     #[error("LedgerError - CouldNotInitializeJournal")]
     CouldNotInitializeJournal,
     #[error("LedgerError - AccountNotFound")]
