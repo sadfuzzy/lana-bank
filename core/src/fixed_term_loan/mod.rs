@@ -31,7 +31,7 @@ pub struct FixedTermLoans {
 impl FixedTermLoans {
     pub fn new(pool: &PgPool, registry: &mut JobRegistry, ledger: &Ledger) -> Self {
         let repo = FixedTermLoanRepo::new(pool);
-        registry.add_initializer(FixedTermLoanJobInitializer::new(&ledger, repo.clone()));
+        registry.add_initializer(FixedTermLoanJobInitializer::new(ledger, repo.clone()));
         Self {
             repo,
             _ledger: ledger.clone(),
