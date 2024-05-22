@@ -8,11 +8,11 @@ pub struct DepositTxTemplate {
     pub version: Result<u32, TryFromIntError>,
 }
 
-impl From<lava_deposit_tx_template_create::LavaDepositTxTemplateCreateTxTemplateCreate>
+impl From<topup_user_unallocated_collateral_template_create::TopupUserUnallocatedCollateralTemplateCreateTxTemplateCreate>
     for DepositTxTemplate
 {
     fn from(
-        tx_template_create: lava_deposit_tx_template_create::LavaDepositTxTemplateCreateTxTemplateCreate,
+        tx_template_create: topup_user_unallocated_collateral_template_create::TopupUserUnallocatedCollateralTemplateCreateTxTemplateCreate,
     ) -> Self {
         DepositTxTemplate {
             tx_template_id: LedgerTxTemplateId::from(tx_template_create.tx_template.tx_template_id),

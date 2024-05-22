@@ -1,14 +1,14 @@
-mutation LavaDepositTxTemplateCreate(
-    $templateId: UUID!,
-    $templateCode: String!,
-    $journalId: Expression!,
-    $assetAccountId: Expression!
+mutation TopupUserUnallocatedCollateralTemplateCreate(
+  $templateId: UUID!
+  $templateCode: String!
+  $journalId: Expression!
+  $assetAccountId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: $templateCode
-      description: "An ACH credit into a customer account."
+      description: "An transfer from credit into a customer account."
       params: [
         { name: "account", type: UUID, description: "Deposit account ID." }
         {
@@ -22,10 +22,7 @@ mutation LavaDepositTxTemplateCreate(
           description: "Effective date for transaction."
         }
       ]
-      txInput: {
-        journalId: $journalId
-        effective: "params.effective"
-      }
+      txInput: { journalId: $journalId, effective: "params.effective" }
       entries: [
         {
           accountId: $assetAccountId
@@ -46,7 +43,7 @@ mutation LavaDepositTxTemplateCreate(
       ]
     }
   ) {
-    txTemplate{
+    txTemplate {
       txTemplateId
       version
     }

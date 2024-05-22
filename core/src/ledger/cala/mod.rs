@@ -138,13 +138,13 @@ impl CalaClient {
         template_id: TxTemplateId,
         template_code: String,
     ) -> Result<Option<DepositTxTemplate>, CalaError> {
-        let variables = lava_deposit_tx_template_create::Variables {
+        let variables = topup_user_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             template_code,
             journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
             asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
         };
-        let response = Self::traced_gql_request::<LavaDepositTxTemplateCreate, _>(
+        let response = Self::traced_gql_request::<TopupUserUnallocatedCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,

@@ -55,10 +55,10 @@ pub struct LavaJournalCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/deposit.gql",
+    query_path = "src/ledger/cala/graphql/transactions/topup-user-unallocated-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct LavaDepositTxTemplateCreate;
+pub struct TopupUserUnallocatedCollateralTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
