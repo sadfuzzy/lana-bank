@@ -27,6 +27,6 @@ teardown_file() {
   echo $user
   [[ "$user" == "$username" ]] || exit 1;
 
-  currency=$(graphql_output '.data.userCreate.user.depositAccount.balance.currency')
-  [[ "$currency" == "BTC" ]] || exit 1;
+  sats=$(graphql_output '.data.userCreate.user.unallocatedCollateral.btcBalance')
+  [[ "$sats" == "0" ]] || exit 1;
 }
