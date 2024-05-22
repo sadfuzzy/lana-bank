@@ -2,7 +2,11 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{entity::*, ledger::*, primitives::UserId};
+use crate::{
+    entity::*,
+    ledger::*,
+    primitives::{Satoshis, UserId},
+};
 
 pub use entity::*;
 use error::UserError;
@@ -40,5 +44,13 @@ impl Users {
 
         let EntityUpdate { entity: user, .. } = self.repo.create(new_user).await?;
         Ok(user)
+    }
+
+    pub async fn topup_unallocated_collateral_for_user(
+        &self,
+        _user_id: UserId,
+        _amount: Satoshis,
+    ) -> Result<User, UserError> {
+        unimplemented!()
     }
 }

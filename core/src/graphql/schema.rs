@@ -1,7 +1,10 @@
 use async_graphql::*;
 
 use super::{fixed_term_loan::*, primitives::UUID, user::*};
-use crate::{app::LavaApp, primitives::FixedTermLoanId};
+use crate::{
+    app::LavaApp,
+    primitives::{FixedTermLoanId, UserId},
+};
 
 pub struct Query;
 
@@ -60,9 +63,14 @@ impl Mutation {
 
     pub async fn user_topup_collateral(
         &self,
-        _ctx: &Context<'_>,
-        _input: UserTopupCollateralInput,
+        ctx: &Context<'_>,
+        input: UserTopupCollateralInput,
     ) -> async_graphql::Result<UserTopupCollateralPayload> {
-        unimplemented!()
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(UserTopupCollateralPayload::from(
+            app.users()
+                .topup_unallocated_collateral_for_user(UserId::from(input.user_id), input.amount)
+                .await?,
+        ))
     }
 }
