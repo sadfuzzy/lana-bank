@@ -40,14 +40,14 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
-    pub async fn create_account_for_user(
+    pub async fn create_unallocated_collateral_account_for_user(
         &self,
         bitfinex_username: &str,
     ) -> Result<LedgerAccountId, LedgerError> {
         Self::assert_account_exists(
             &self.cala,
-            &format!("USERS.DEPOSIT.{}", bitfinex_username),
-            &format!("USERS.DEPOSIT.{}", bitfinex_username),
+            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
+            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("lava:usr:bfx-{}", bitfinex_username),
         )
         .await
@@ -125,72 +125,38 @@ impl Ledger {
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
     }
 
-    async fn assert_deposit_tx_template_exists(
+    async fn assert_topup_unallocated_collateral_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<TxTemplateId, LedgerError> {
-        if let Ok(Some(tx_template)) = cala
-            .find_tx_template_by_code(template_code.to_owned())
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
             .await
         {
-            return Ok(tx_template.tx_template_id);
+            return Ok(id);
         }
 
         let template_id = TxTemplateId::new();
         let err = match cala
-            .create_deposit_tx_template(template_id, template_code.to_owned())
+            .create_topup_unallocated_collateral_tx_template(template_id, template_code.to_owned())
             .await
         {
-            Ok(tx_template) => match tx_template {
-                Some(tx_template) => return Ok(tx_template.tx_template_id),
-                None => cala::error::CalaError::CouldNotFindTxTemplate,
-            },
+            Ok(id) => {
+                return Ok(id);
+            }
             Err(e) => e,
         };
 
-        cala.create_deposit_tx_template(template_id, template_code.to_owned())
+        Ok(cala
+            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
             .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertTxTemplateExists)
-            .map(|tx_template| tx_template.tx_template_id)
-    }
-
-    async fn assert_withdrawal_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<TxTemplateId, LedgerError> {
-        if let Ok(Some(tx_template)) = cala
-            .find_tx_template_by_code(template_code.to_owned())
-            .await
-        {
-            return Ok(tx_template.tx_template_id);
-        }
-
-        let template_id = TxTemplateId::new();
-        let err = match cala
-            .create_withdrawal_tx_template(template_id, template_code.to_owned())
-            .await
-        {
-            Ok(tx_template) => match tx_template {
-                Some(tx_template) => return Ok(tx_template.tx_template_id),
-                None => cala::error::CalaError::CouldNotFindTxTemplate,
-            },
-            Err(e) => e,
-        };
-
-        cala.create_withdrawal_tx_template(template_id, template_code.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertTxTemplateExists)
-            .map(|tx_template| tx_template.tx_template_id)
+            .map_err(|_| err)?)
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_deposit_tx_template_exists(cala, constants::LAVA_DEPOSIT_TX_TEMPLATE_CODE)
-            .await?;
-        Self::assert_withdrawal_tx_template_exists(
+        Self::assert_topup_unallocated_collateral_tx_template_exists(
             cala,
-            constants::LAVA_WITHDRAWAL_TX_TEMPLATE_CODE,
+            constants::TOPUP_USER_UNALLOCATED_COLLATERAL_CODE,
         )
         .await?;
         Ok(())

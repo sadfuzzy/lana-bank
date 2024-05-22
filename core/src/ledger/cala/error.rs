@@ -8,8 +8,6 @@ pub enum CalaError {
     UnknownGqlError(String),
     #[error("CalaError - MissingDataField")]
     MissingDataField,
-    #[error("CalaError - CouldNotFindTxTemplate")]
-    CouldNotFindTxTemplate,
 }
 
 impl From<Vec<graphql_client::Error>> for CalaError {

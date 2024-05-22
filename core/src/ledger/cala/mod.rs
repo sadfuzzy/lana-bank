@@ -117,27 +117,30 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
-    pub async fn find_tx_template_by_code(
+    pub async fn find_tx_template_by_code<
+        T: From<tx_template_by_code::TxTemplateByCodeTxTemplateByCode>,
+    >(
         &self,
         code: String,
-    ) -> Result<Option<TxTemplate>, CalaError> {
+    ) -> Result<T, CalaError> {
         let variables = tx_template_by_code::Variables { code };
         let response =
             Self::traced_gql_request::<TxTemplateByCode, _>(&self.client, &self.url, variables)
                 .await?;
 
-        Ok(response
+        response
             .data
             .and_then(|d| d.tx_template_by_code)
-            .map(TxTemplate::from))
+            .map(T::from)
+            .ok_or_else(|| CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]
-    pub async fn create_deposit_tx_template(
+    pub async fn create_topup_unallocated_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
         template_code: String,
-    ) -> Result<Option<DepositTxTemplate>, CalaError> {
+    ) -> Result<TxTemplateId, CalaError> {
         let variables = topup_user_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             template_code,
@@ -151,10 +154,11 @@ impl CalaClient {
         )
         .await?;
 
-        Ok(response
+        response
             .data
-            .map(|d| d.tx_template_create)
-            .map(DepositTxTemplate::from))
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
     }
 
     #[instrument(

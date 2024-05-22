@@ -29,7 +29,7 @@ impl Users {
         let id = UserId::new();
         let ledger_account_id = self
             .ledger
-            .create_account_for_user(&bitfinex_username)
+            .create_unallocated_collateral_account_for_user(&bitfinex_username)
             .await?;
         let new_user = NewUser::builder()
             .id(id)
