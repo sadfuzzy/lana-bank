@@ -15,18 +15,21 @@ pub struct User {
     user_id: UUID,
     bitfinex_username: String,
     #[graphql(skip)]
-    ledger_account_id: LedgerAccountId,
+    unallocated_collateral_ledger_account_id: LedgerAccountId,
 }
 
 #[ComplexObject]
 impl User {
-    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+    async fn unallocated_collateral(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<UnallocatedCollateral> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account = app
             .ledger()
-            .get_account_by_id(self.ledger_account_id)
+            .get_account_by_id(self.unallocated_collateral_ledger_account_id)
             .await?;
-        Ok(DepositAccount::from(account))
+        Ok(UnallocatedCollateral::from(account))
     }
 }
 
@@ -35,7 +38,7 @@ impl From<crate::user::User> for User {
         User {
             user_id: UUID::from(user.id),
             bitfinex_username: user.bitfinex_username,
-            ledger_account_id: user.ledger_account_id,
+            unallocated_collateral_ledger_account_id: user.unallocated_collateral_ledger_account_id,
         }
     }
 }

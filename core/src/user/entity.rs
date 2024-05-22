@@ -9,7 +9,7 @@ pub enum UserEvent {
     Initialized {
         id: UserId,
         bitfinex_username: String,
-        ledger_account_id: LedgerAccountId,
+        unallocated_collateral_ledger_account_id: LedgerAccountId,
     },
 }
 
@@ -25,7 +25,7 @@ impl EntityEvent for UserEvent {
 pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
-    pub ledger_account_id: LedgerAccountId,
+    pub unallocated_collateral_ledger_account_id: LedgerAccountId,
     pub(super) _events: EntityEvents<UserEvent>,
 }
 
@@ -43,12 +43,14 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 UserEvent::Initialized {
                     id,
                     bitfinex_username,
-                    ledger_account_id,
+                    unallocated_collateral_ledger_account_id,
                 } => {
                     builder = builder
                         .id(*id)
                         .bitfinex_username(bitfinex_username.clone())
-                        .ledger_account_id(*ledger_account_id);
+                        .unallocated_collateral_ledger_account_id(
+                            *unallocated_collateral_ledger_account_id,
+                        );
                 }
             }
         }
@@ -62,7 +64,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) bitfinex_username: String,
-    pub(super) ledger_account_id: LedgerAccountId,
+    pub(super) unallocated_collateral_ledger_account_id: LedgerAccountId,
 }
 
 impl NewUser {
@@ -76,7 +78,8 @@ impl NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 bitfinex_username: self.bitfinex_username,
-                ledger_account_id: self.ledger_account_id,
+                unallocated_collateral_ledger_account_id: self
+                    .unallocated_collateral_ledger_account_id,
             }],
         )
     }

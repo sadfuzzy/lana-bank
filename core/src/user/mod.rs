@@ -34,7 +34,7 @@ impl Users {
         let new_user = NewUser::builder()
             .id(id)
             .bitfinex_username(bitfinex_username)
-            .ledger_account_id(ledger_account_id)
+            .unallocated_collateral_ledger_account_id(ledger_account_id)
             .build()
             .expect("Could not build User");
 

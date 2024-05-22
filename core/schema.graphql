@@ -2,10 +2,6 @@ scalar CurrencyCode
 
 scalar Decimal
 
-type DepositAccount {
-	balance: Money!
-}
-
 type FixedTermLoan {
 	loanId: UUID!
 	state: FixedTermLoanState!
@@ -54,10 +50,14 @@ type Query {
 
 scalar UUID
 
+type UnallocatedCollateral {
+	balance: Money!
+}
+
 type User {
 	userId: UUID!
 	bitfinexUsername: String!
-	depositAccount: DepositAccount!
+	unallocatedCollateral: UnallocatedCollateral!
 }
 
 input UserCreateInput {
