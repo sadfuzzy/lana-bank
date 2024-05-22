@@ -2,8 +2,6 @@ use async_graphql::*;
 
 use crate::{ledger, primitives::Satoshis};
 
-use super::primitives::UUID;
-
 #[derive(SimpleObject)]
 pub(super) struct UnallocatedCollateral {
     btc_balance: Satoshis,

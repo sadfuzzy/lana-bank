@@ -2,7 +2,6 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
-mod transactions;
 mod tx_template;
 mod unallocated_collateral;
 
@@ -138,7 +137,7 @@ impl Ledger {
 
         let template_id = TxTemplateId::new();
         let err = match cala
-            .create_topup_unallocated_collateral_tx_template(template_id, template_code.to_owned())
+            .create_topup_unallocated_collateral_tx_template(template_id)
             .await
         {
             Ok(id) => {
@@ -156,7 +155,7 @@ impl Ledger {
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_topup_unallocated_collateral_tx_template_exists(
             cala,
-            constants::TOPUP_USER_UNALLOCATED_COLLATERAL_CODE,
+            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
         )
         .await?;
         Ok(())

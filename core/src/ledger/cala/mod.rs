@@ -8,8 +8,6 @@ use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
-use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
-use super::tx_template::TxTemplate;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -139,15 +137,13 @@ impl CalaClient {
     pub async fn create_topup_unallocated_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
-        template_code: String,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = topup_user_unallocated_collateral_template_create::Variables {
+        let variables = topup_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
-            template_code,
             journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
             asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
         };
-        let response = Self::traced_gql_request::<TopupUserUnallocatedCollateralTemplateCreate, _>(
+        let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -159,35 +155,6 @@ impl CalaClient {
             .map(|d| d.tx_template_create.tx_template.tx_template_id)
             .map(TxTemplateId::from)
             .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_withdrawal_tx_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_withdrawal_tx_template(
-        &self,
-        template_id: TxTemplateId,
-        template_code: String,
-    ) -> Result<Option<WithdrawalTxTemplate>, CalaError> {
-        let variables = lava_withdrawal_tx_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            template_code,
-            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
-        };
-        let response = Self::traced_gql_request::<LavaWithdrawalTxTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        Ok(response
-            .data
-            .map(|d| d.tx_template_create)
-            .map(WithdrawalTxTemplate::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

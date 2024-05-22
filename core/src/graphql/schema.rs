@@ -60,8 +60,8 @@ impl Mutation {
 
     pub async fn user_topup_collateral(
         &self,
-        ctx: &Context<'_>,
-        input: UserTopupCollateralInput,
+        _ctx: &Context<'_>,
+        _input: UserTopupCollateralInput,
     ) -> async_graphql::Result<UserTopupCollateralPayload> {
         unimplemented!()
     }

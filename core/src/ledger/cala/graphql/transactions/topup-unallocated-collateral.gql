@@ -1,25 +1,28 @@
-mutation TopupUserUnallocatedCollateralTemplateCreate(
+mutation TopupUnallocatedCollateralTemplateCreate(
   $templateId: UUID!
-  $templateCode: String!
   $journalId: Expression!
   $assetAccountId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: $templateCode
-      description: "An transfer from credit into a customer account."
+      code: "TOPUP_UNALLOCATED_COLLATERAL"
+      description: "A transfer of BTC being pledged as collateral into the users unallocated collateral account."
       params: [
-        { name: "account", type: UUID, description: "Deposit account ID." }
+        { name: "account",
+          type: UUID,
+          description: "Unallocated Collateral account ID."
+        }
         {
           name: "amount"
           type: DECIMAL
-          description: "Amount with decimal, e.g. `1.23`."
+          description: "Amount of BTC being pledged."
         }
         {
           name: "effective"
           type: DATE
           description: "Effective date for transaction."
+          default: "date()"
         }
       ]
       txInput: { journalId: $journalId, effective: "params.effective" }
@@ -27,16 +30,16 @@ mutation TopupUserUnallocatedCollateralTemplateCreate(
         {
           accountId: $assetAccountId
           units: "params.amount"
-          currency: "'USD'"
-          entryType: "'ACH_DR'"
+          currency: "'BTC'"
+          entryType: "'TOPUP_UNALLOCATED_COLLATERAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
           accountId: "params.account"
           units: "params.amount"
-          currency: "'USD'"
-          entryType: "'ACH_CR'"
+          currency: "'BTC'"
+          entryType: "'TOPUP_UNALLOCATED_COLLATERAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -45,6 +48,7 @@ mutation TopupUserUnallocatedCollateralTemplateCreate(
   ) {
     txTemplate {
       txTemplateId
+      code
       version
     }
   }
