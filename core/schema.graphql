@@ -32,6 +32,7 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanDeclareCollateralized(input: FixedTermLoanDeclareCollateralizedInput!): FixedTermLoanDeclareCollateralizedPayload!
+	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 }
 
 type Query {
@@ -58,6 +59,15 @@ input UserCreateInput {
 }
 
 type UserCreatePayload {
+	user: User!
+}
+
+input UserTopupCollateralInput {
+	userId: UUID!
+	amount: Satoshis!
+}
+
+type UserTopupCollateralPayload {
 	user: User!
 }
 

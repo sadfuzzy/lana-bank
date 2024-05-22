@@ -57,4 +57,12 @@ impl Mutation {
             .await?;
         Ok(FixedTermLoanDeclareCollateralizedPayload::from(loan))
     }
+
+    pub async fn user_topup_collateral(
+        &self,
+        ctx: &Context<'_>,
+        input: UserTopupCollateralInput,
+    ) -> async_graphql::Result<UserTopupCollateralPayload> {
+        unimplemented!()
+    }
 }
