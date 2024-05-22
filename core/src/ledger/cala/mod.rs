@@ -1,12 +1,15 @@
 pub mod error;
 pub(super) mod graphql;
 
+use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
 use super::account::LedgerAccount;
+use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
+use super::tx_template::TxTemplate;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -112,6 +115,76 @@ impl CalaClient {
             .data
             .and_then(|d| d.account_by_external_id)
             .map(LedgerAccount::from))
+    }
+
+    #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
+    pub async fn find_tx_template_by_code(
+        &self,
+        code: String,
+    ) -> Result<Option<TxTemplate>, CalaError> {
+        let variables = tx_template_by_code::Variables { code };
+        let response =
+            Self::traced_gql_request::<TxTemplateByCode, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response
+            .data
+            .and_then(|d| d.tx_template_by_code)
+            .map(TxTemplate::from))
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]
+    pub async fn create_deposit_tx_template(
+        &self,
+        template_id: TxTemplateId,
+        template_code: String,
+    ) -> Result<Option<DepositTxTemplate>, CalaError> {
+        let variables = lava_deposit_tx_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            template_code,
+            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
+        };
+        let response = Self::traced_gql_request::<LavaDepositTxTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response
+            .data
+            .map(|d| d.tx_template_create)
+            .map(DepositTxTemplate::from))
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_withdrawal_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_withdrawal_tx_template(
+        &self,
+        template_id: TxTemplateId,
+        template_code: String,
+    ) -> Result<Option<WithdrawalTxTemplate>, CalaError> {
+        let variables = lava_withdrawal_tx_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            template_code,
+            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
+        };
+        let response = Self::traced_gql_request::<LavaWithdrawalTxTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        Ok(response
+            .data
+            .map(|d| d.tx_template_create)
+            .map(WithdrawalTxTemplate::from))
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

@@ -1,0 +1,54 @@
+mutation LavaDepositTxTemplateCreate(
+    $templateId: UUID!,
+    $templateCode: String!,
+    $journalId: Expression!,
+    $assetAccountId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: $templateCode
+      description: "An ACH credit into a customer account."
+      params: [
+        { name: "account", type: UUID, description: "Deposit account ID." }
+        {
+          name: "amount"
+          type: DECIMAL
+          description: "Amount with decimal, e.g. `1.23`."
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+        }
+      ]
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+      }
+      entries: [
+        {
+          accountId: $assetAccountId
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'ACH_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.account"
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'ACH_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate{
+      txTemplateId
+      version
+    }
+  }
+}

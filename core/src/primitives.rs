@@ -21,6 +21,7 @@ pub enum DebitOrCredit {
 
 pub use cala_types::primitives::{
     AccountId as LedgerAccountId, Currency, JournalId as LedgerJournalId,
+    TxTemplateId as LedgerTxTemplateId,
 };
 
 pub struct Money {

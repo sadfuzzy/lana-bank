@@ -3,7 +3,10 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
+mod transactions;
+mod tx_template;
 
+use cala_types::primitives::TxTemplateId;
 use uuid::Uuid;
 
 use crate::primitives::LedgerAccountId;
@@ -23,6 +26,7 @@ impl Ledger {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_journal(&cala).await?;
         Self::initialize_global_accounts(&cala).await?;
+        Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
 
@@ -120,5 +124,76 @@ impl Ledger {
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
             .map(|a| a.id)
+    }
+
+    async fn assert_deposit_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<TxTemplateId, LedgerError> {
+        if let Ok(Some(tx_template)) = cala
+            .find_tx_template_by_code(template_code.to_owned())
+            .await
+        {
+            return Ok(tx_template.tx_template_id);
+        }
+
+        let template_id = TxTemplateId::new();
+        let err = match cala
+            .create_deposit_tx_template(template_id, template_code.to_owned())
+            .await
+        {
+            Ok(tx_template) => match tx_template {
+                Some(tx_template) => return Ok(tx_template.tx_template_id),
+                None => cala::error::CalaError::CouldNotFindTxTemplate,
+            },
+            Err(e) => e,
+        };
+
+        cala.create_deposit_tx_template(template_id, template_code.to_owned())
+            .await
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertTxTemplateExists)
+            .map(|tx_template| tx_template.tx_template_id)
+    }
+
+    async fn assert_withdrawal_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<TxTemplateId, LedgerError> {
+        if let Ok(Some(tx_template)) = cala
+            .find_tx_template_by_code(template_code.to_owned())
+            .await
+        {
+            return Ok(tx_template.tx_template_id);
+        }
+
+        let template_id = TxTemplateId::new();
+        let err = match cala
+            .create_withdrawal_tx_template(template_id, template_code.to_owned())
+            .await
+        {
+            Ok(tx_template) => match tx_template {
+                Some(tx_template) => return Ok(tx_template.tx_template_id),
+                None => cala::error::CalaError::CouldNotFindTxTemplate,
+            },
+            Err(e) => e,
+        };
+
+        cala.create_withdrawal_tx_template(template_id, template_code.to_owned())
+            .await
+            .map_err(|_| err)?
+            .ok_or_else(|| LedgerError::CouldNotAssertTxTemplateExists)
+            .map(|tx_template| tx_template.tx_template_id)
+    }
+
+    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::assert_deposit_tx_template_exists(cala, constants::LAVA_DEPOSIT_TX_TEMPLATE_CODE)
+            .await?;
+        Self::assert_withdrawal_tx_template_exists(
+            cala,
+            constants::LAVA_WITHDRAWAL_TX_TEMPLATE_CODE,
+        )
+        .await?;
+        Ok(())
     }
 }
