@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{app::LavaApp, primitives::LedgerAccountId};
 
-use super::{account::*, primitives::UUID};
+use super::{primitives::UUID, unallocated_collateral::*};
 
 #[derive(InputObject)]
 pub struct UserCreateInput {
@@ -27,7 +27,7 @@ impl User {
         let app = ctx.data_unchecked::<LavaApp>();
         let account = app
             .ledger()
-            .get_account_by_id(self.unallocated_collateral_ledger_account_id)
+            .get_unallocated_collateral(self.unallocated_collateral_ledger_account_id)
             .await?;
         Ok(UnallocatedCollateral::from(account))
     }

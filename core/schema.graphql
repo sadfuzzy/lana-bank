@@ -1,7 +1,3 @@
-scalar CurrencyCode
-
-scalar Decimal
-
 type FixedTermLoan {
 	loanId: UUID!
 	state: FixedTermLoanState!
@@ -32,11 +28,6 @@ enum FixedTermLoanState {
 
 
 
-type Money {
-	units: Decimal!
-	currency: CurrencyCode!
-}
-
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
@@ -47,11 +38,13 @@ type Query {
 	loan(id: UUID!): FixedTermLoan
 }
 
+scalar Satoshis
+
 
 scalar UUID
 
 type UnallocatedCollateral {
-	balance: Money!
+	btcBalance: Satoshis!
 }
 
 type User {

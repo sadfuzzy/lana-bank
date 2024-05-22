@@ -1,20 +1,20 @@
-mod account;
 mod cala;
 mod config;
 mod constants;
 pub mod error;
 mod transactions;
 mod tx_template;
+mod unallocated_collateral;
 
 use cala_types::primitives::TxTemplateId;
 use uuid::Uuid;
 
 use crate::primitives::LedgerAccountId;
 
-pub use account::*;
 use cala::*;
 pub use config::*;
 use error::*;
+pub use unallocated_collateral::*;
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -30,10 +30,10 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
-    pub async fn get_account_by_id(
+    pub async fn get_unallocated_collateral(
         &self,
         id: LedgerAccountId,
-    ) -> Result<LedgerAccount, LedgerError> {
+    ) -> Result<UnallocatedCollateral, LedgerError> {
         self.cala
             .find_account_by_id(id)
             .await?
@@ -104,11 +104,11 @@ impl Ledger {
         code: &str,
         external_id: &str,
     ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(Some(account)) = cala
+        if let Ok(Some(id)) = cala
             .find_account_by_external_id(external_id.to_owned())
             .await
         {
-            return Ok(account.id);
+            return Ok(id);
         }
 
         let err = match cala
@@ -123,7 +123,6 @@ impl Ledger {
             .await
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
-            .map(|a| a.id)
     }
 
     async fn assert_deposit_tx_template_exists(

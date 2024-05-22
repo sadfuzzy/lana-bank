@@ -1,3 +1,4 @@
+mod convert;
 pub mod error;
 pub(super) mod graphql;
 
@@ -7,7 +8,6 @@ use reqwest::{Client as ReqwestClient, Method};
 use tracing::instrument;
 use uuid::Uuid;
 
-use super::account::LedgerAccount;
 use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
 use super::tx_template::TxTemplate;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
@@ -81,10 +81,10 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
-    pub async fn find_account_by_id(
+    pub async fn find_account_by_id<T: From<account_by_id::AccountByIdAccount>>(
         &self,
         id: impl Into<Uuid>,
-    ) -> Result<Option<LedgerAccount>, CalaError> {
+    ) -> Result<Option<T>, CalaError> {
         let variables = account_by_id::Variables {
             id: id.into(),
             journal_id: super::constants::LAVA_JOURNAL_ID,
@@ -92,17 +92,16 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<AccountById, _>(&self.client, &self.url, variables).await?;
 
-        Ok(response
-            .data
-            .and_then(|d| d.account)
-            .map(LedgerAccount::from))
+        Ok(response.data.and_then(|d| d.account).map(T::from))
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
-    pub async fn find_account_by_external_id(
+    pub async fn find_account_by_external_id<
+        T: From<account_by_external_id::AccountByExternalIdAccountByExternalId>,
+    >(
         &self,
         external_id: String,
-    ) -> Result<Option<LedgerAccount>, CalaError> {
+    ) -> Result<Option<T>, CalaError> {
         let variables = account_by_external_id::Variables {
             external_id,
             journal_id: super::constants::LAVA_JOURNAL_ID,
@@ -114,7 +113,7 @@ impl CalaClient {
         Ok(response
             .data
             .and_then(|d| d.account_by_external_id)
-            .map(LedgerAccount::from))
+            .map(T::from))
     }
 
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]

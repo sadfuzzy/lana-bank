@@ -1674,6 +1674,7 @@ dependencies = [
  "lava-tracing",
  "reqwest",
  "rust_decimal",
+ "rust_decimal_macros",
  "serde",
  "serde_json",
  "serde_with",

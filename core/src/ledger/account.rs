@@ -1,11 +1,10 @@
-use crate::primitives::{LedgerAccountId, Money};
+use crate::primitives::{LedgerAccountId, Satoshis};
 
 use super::cala::graphql::*;
 
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
-    pub settled_usd_balance: Money,
-    pub settled_btc_balance: Money,
+    pub settled_btc_balance: Satoshis,
 }
 
 impl From<account_by_external_id::AccountByExternalIdAccountByExternalId> for LedgerAccount {

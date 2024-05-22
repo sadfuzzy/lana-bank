@@ -1,7 +1,7 @@
-mod account;
 mod fixed_term_loan;
 mod primitives;
 mod schema;
+mod unallocated_collateral;
 mod user;
 
 use async_graphql::*;
