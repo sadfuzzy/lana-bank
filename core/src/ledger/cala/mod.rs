@@ -142,11 +142,8 @@ impl CalaClient {
         let variables = lava_deposit_tx_template_create::Variables {
             template_id: Uuid::from(template_id),
             template_code,
-            journal_id: format!(
-                "uuid(\"{}\")",
-                super::constants::LAVA_JOURNAL_ID.to_string()
-            ),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID.to_string()),
+            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<LavaDepositTxTemplateCreate, _>(
             &self.client,
@@ -157,7 +154,7 @@ impl CalaClient {
 
         Ok(response
             .data
-            .and_then(|d| Some(d.tx_template_create))
+            .map(|d| d.tx_template_create)
             .map(DepositTxTemplate::from))
     }
 
@@ -174,11 +171,8 @@ impl CalaClient {
         let variables = lava_withdrawal_tx_template_create::Variables {
             template_id: Uuid::from(template_id),
             template_code,
-            journal_id: format!(
-                "uuid(\"{}\")",
-                super::constants::LAVA_JOURNAL_ID.to_string()
-            ),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID.to_string()),
+            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<LavaWithdrawalTxTemplateCreate, _>(
             &self.client,
@@ -189,7 +183,7 @@ impl CalaClient {
 
         Ok(response
             .data
-            .and_then(|d| Some(d.tx_template_create))
+            .map(|d| d.tx_template_create)
             .map(WithdrawalTxTemplate::from))
     }
 
