@@ -38,19 +38,6 @@ impl Mutation {
         Ok(UserCreatePayload::from(user))
     }
 
-    pub async fn fixed_term_loan_create(
-        &self,
-        ctx: &Context<'_>,
-        input: FixedTermLoanCreateInput,
-    ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app
-            .fixed_term_loans()
-            .create_loan_for_user(input.user_id)
-            .await?;
-        Ok(FixedTermLoanCreatePayload::from(loan))
-    }
-
     pub async fn user_topup_collateral(
         &self,
         ctx: &Context<'_>,
@@ -66,5 +53,31 @@ impl Mutation {
                 )
                 .await?,
         ))
+    }
+
+    pub async fn fixed_term_loan_create(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanCreateInput,
+    ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .create_loan_for_user(input.user_id)
+            .await?;
+        Ok(FixedTermLoanCreatePayload::from(loan))
+    }
+
+    pub async fn fixed_term_loan_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanApproveInput,
+    ) -> async_graphql::Result<FixedTermLoanApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .approve_loan(input.loan_id, input.collateral)
+            .await?;
+        Ok(FixedTermLoanApprovePayload::from(loan))
     }
 }

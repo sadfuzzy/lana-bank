@@ -1,0 +1,7 @@
+mutation approveLoan($input: FixedTermLoanApproveInput!) {
+fixedTermLoanApprove(input: $input) {
+    loan {
+      loanId
+    }
+  }
+}

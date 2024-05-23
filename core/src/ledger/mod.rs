@@ -6,10 +6,11 @@ pub mod fixed_term_loan;
 mod tx_template;
 mod unallocated_collateral;
 
-use cala_types::primitives::TxTemplateId;
 use tracing::instrument;
 
-use crate::primitives::{LedgerAccountId, Satoshis};
+use crate::primitives::{
+    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis,
+};
 
 use cala::*;
 pub use config::*;
@@ -61,6 +62,26 @@ impl Ledger {
         .await
     }
 
+    #[instrument(
+        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn create_accounts_for_loan(
+        &self,
+        loan_id: FixedTermLoanId,
+        account_ids: FixedTermLoanAccountIds,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            &self.cala,
+            account_ids.collateral_account_id,
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+        )
+        .await
+    }
+
     pub async fn topup_collateral_for_user(
         &self,
         id: LedgerAccountId,
@@ -70,6 +91,26 @@ impl Ledger {
         Ok(self
             .cala
             .execute_topup_unallocated_collateral_tx(id, amount.to_btc(), reference)
+            .await?)
+    }
+
+    pub async fn approve_loan(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        unallocated_collateral_id: LedgerAccountId,
+        collateral: Satoshis,
+        external_id: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_approve_loan_tx(
+                tx_id,
+                loan_account_ids,
+                unallocated_collateral_id,
+                collateral.to_btc(),
+                external_id,
+            )
             .await?)
     }
 
@@ -138,18 +179,28 @@ impl Ledger {
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
     }
 
+    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::assert_topup_unallocated_collateral_tx_template_exists(
+            cala,
+            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
+        )
+        .await?;
+        Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Ok(())
+    }
+
     async fn assert_topup_unallocated_collateral_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
-    ) -> Result<TxTemplateId, LedgerError> {
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
         if let Ok(id) = cala
-            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
         {
             return Ok(id);
         }
 
-        let template_id = TxTemplateId::new();
+        let template_id = LedgerTxTemplateId::new();
         let err = match cala
             .create_topup_unallocated_collateral_tx_template(template_id)
             .await
@@ -161,17 +212,33 @@ impl Ledger {
         };
 
         Ok(cala
-            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
             .map_err(|_| err)?)
     }
 
-    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_topup_unallocated_collateral_tx_template_exists(
-            cala,
-            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
-        )
-        .await?;
-        Ok(())
+    async fn assert_approve_loan_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
     }
 }

@@ -9,7 +9,9 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::{LedgerAccountId, LedgerJournalId};
+use crate::primitives::{LedgerAccountId, LedgerJournalId, LedgerTxId};
+
+use super::fixed_term_loan::FixedTermLoanAccountIds;
 
 use error::*;
 use graphql::*;
@@ -134,7 +136,11 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]
+    #[instrument(
+        name = "lava.ledger.cala.create_topup_unallocated_collateral_tx_template",
+        skip(self),
+        err
+    )]
     pub async fn create_topup_unallocated_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
@@ -145,6 +151,29 @@ impl CalaClient {
             asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_approve_loantemplate", skip(self), err)]
+    pub async fn create_approve_loan_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = approve_loan_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -177,6 +206,36 @@ impl CalaClient {
             external_id,
         };
         let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]
+    pub async fn execute_approve_loan_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        unallocated_collateral_id: LedgerAccountId,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_approve_loan_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            unallocated_collateral_account: unallocated_collateral_id.into(),
+            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
             &self.client,
             &self.url,
             variables,

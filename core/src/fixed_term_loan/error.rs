@@ -8,6 +8,10 @@ pub enum FixedTermLoanError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("FixedTermLoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("FixedTermLoanError - UserError: {0}")]
+    UserError(#[from] crate::user::error::UserError),
     #[error("FixedTermLoanError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("FixedTermLoanError - AlreadyApproved")]
+    AlreadyApproved,
 }

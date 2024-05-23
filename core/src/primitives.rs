@@ -27,7 +27,7 @@ pub enum DebitOrCredit {
 
 pub use cala_types::primitives::{
     AccountId as LedgerAccountId, Currency, JournalId as LedgerJournalId,
-    TxTemplateId as LedgerTxTemplateId,
+    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);

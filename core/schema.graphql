@@ -3,6 +3,15 @@ type FixedTermLoan {
 	userId: UUID!
 }
 
+input FixedTermLoanApproveInput {
+	loanId: UUID!
+	collateral: Satoshis!
+}
+
+type FixedTermLoanApprovePayload {
+	loan: FixedTermLoan!
+}
+
 input FixedTermLoanCreateInput {
 	userId: UUID!
 }
@@ -16,8 +25,9 @@ type FixedTermLoanCreatePayload {
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
-	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
+	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
+	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 }
 
 type Query {
