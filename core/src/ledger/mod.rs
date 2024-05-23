@@ -88,19 +88,19 @@ impl Ledger {
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
         if cala
-            .find_journal_by_id(constants::LAVA_JOURNAL_ID)
+            .find_journal_by_id(constants::CORE_JOURNAL_ID)
             .await
             .is_ok()
         {
             return Ok(());
         }
 
-        let err = match cala.create_core_journal(constants::LAVA_JOURNAL_ID).await {
+        let err = match cala.create_core_journal(constants::CORE_JOURNAL_ID).await {
             Ok(_) => return Ok(()),
             Err(e) => e,
         };
 
-        cala.find_journal_by_id(constants::LAVA_JOURNAL_ID)
+        cala.find_journal_by_id(constants::CORE_JOURNAL_ID)
             .await
             .map_err(|_| err)?;
         Ok(())

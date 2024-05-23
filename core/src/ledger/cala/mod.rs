@@ -86,7 +86,7 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = account_by_id::Variables {
             id: id.into(),
-            journal_id: super::constants::LAVA_JOURNAL_ID,
+            journal_id: super::constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<AccountById, _>(&self.client, &self.url, variables).await?;
@@ -103,7 +103,7 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = account_by_external_id::Variables {
             external_id,
-            journal_id: super::constants::LAVA_JOURNAL_ID,
+            journal_id: super::constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<AccountByExternalId, _>(&self.client, &self.url, variables)
@@ -141,7 +141,7 @@ impl CalaClient {
     ) -> Result<TxTemplateId, CalaError> {
         let variables = topup_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
