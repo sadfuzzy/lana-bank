@@ -5,11 +5,10 @@ pub(super) mod graphql;
 use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
+use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use super::transactions::{deposit::DepositTxTemplate, withdrawal::WithdrawalTxTemplate};
-use super::tx_template::TxTemplate;
 use crate::primitives::{LedgerAccountId, LedgerJournalId};
 
 use error::*;
@@ -54,11 +53,11 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
+        account_id: LedgerAccountId,
         name: String,
         code: String,
         external_id: String,
     ) -> Result<LedgerAccountId, CalaError> {
-        let account_id = LedgerAccountId::new();
         let variables = account_create::Variables {
             input: account_create::AccountCreateInput {
                 account_id: Uuid::from(account_id),
@@ -117,73 +116,76 @@ impl CalaClient {
     }
 
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
-    pub async fn find_tx_template_by_code(
+    pub async fn find_tx_template_by_code<
+        T: From<tx_template_by_code::TxTemplateByCodeTxTemplateByCode>,
+    >(
         &self,
         code: String,
-    ) -> Result<Option<TxTemplate>, CalaError> {
+    ) -> Result<T, CalaError> {
         let variables = tx_template_by_code::Variables { code };
         let response =
             Self::traced_gql_request::<TxTemplateByCode, _>(&self.client, &self.url, variables)
                 .await?;
 
-        Ok(response
+        response
             .data
             .and_then(|d| d.tx_template_by_code)
-            .map(TxTemplate::from))
+            .map(T::from)
+            .ok_or_else(|| CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.create_deposit_tx_template", skip(self), err)]
-    pub async fn create_deposit_tx_template(
+    pub async fn create_topup_unallocated_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
-        template_code: String,
-    ) -> Result<Option<DepositTxTemplate>, CalaError> {
-        let variables = lava_deposit_tx_template_create::Variables {
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = topup_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
-            template_code,
             journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
-        let response = Self::traced_gql_request::<LavaDepositTxTemplateCreate, _>(
+        let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
         )
         .await?;
 
-        Ok(response
+        response
             .data
-            .map(|d| d.tx_template_create)
-            .map(DepositTxTemplate::from))
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_withdrawal_tx_template",
+        name = "lava.ledger.cala.execute_topup_unallocated_collateral_tx",
         skip(self),
         err
     )]
-    pub async fn create_withdrawal_tx_template(
+    pub async fn execute_topup_unallocated_collateral_tx(
         &self,
-        template_id: TxTemplateId,
-        template_code: String,
-    ) -> Result<Option<WithdrawalTxTemplate>, CalaError> {
-        let variables = lava_withdrawal_tx_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            template_code,
-            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
+        account_id: LedgerAccountId,
+        amount: Decimal,
+    ) -> Result<(), CalaError> {
+        let transaction_id = uuid::Uuid::new_v4();
+        let variables = post_topup_unallocated_collateral_transaction::Variables {
+            transaction_id,
+            account_id: Uuid::from(account_id),
+            amount,
         };
-        let response = Self::traced_gql_request::<LavaWithdrawalTxTemplateCreate, _>(
+        let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
             &self.client,
             &self.url,
             variables,
         )
         .await?;
 
-        Ok(response
+        response
             .data
-            .map(|d| d.tx_template_create)
-            .map(WithdrawalTxTemplate::from))
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

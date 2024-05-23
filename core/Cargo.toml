@@ -3,6 +3,10 @@ name = "lava-core"
 version = "0.1.0-dev"
 edition = "2021"
 
+[features]
+
+fail-on-warnings = []
+
 [dependencies]
 lava-tracing = { path = "../lib/tracing-rs", features = ["http"] }
 

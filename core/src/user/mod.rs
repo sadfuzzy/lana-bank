@@ -2,7 +2,11 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{entity::*, ledger::*, primitives::UserId};
+use crate::{
+    entity::*,
+    ledger::*,
+    primitives::{Satoshis, UserId},
+};
 
 pub use entity::*;
 use error::UserError;
@@ -29,7 +33,7 @@ impl Users {
         let id = UserId::new();
         let ledger_account_id = self
             .ledger
-            .create_account_for_user(&bitfinex_username)
+            .create_unallocated_collateral_account_for_user(&bitfinex_username)
             .await?;
         let new_user = NewUser::builder()
             .id(id)
@@ -39,6 +43,18 @@ impl Users {
             .expect("Could not build User");
 
         let EntityUpdate { entity: user, .. } = self.repo.create(new_user).await?;
+        Ok(user)
+    }
+
+    pub async fn topup_unallocated_collateral_for_user(
+        &self,
+        user_id: UserId,
+        amount: Satoshis,
+    ) -> Result<User, UserError> {
+        let user = self.repo.find(user_id).await?;
+        self.ledger
+            .topup_collateral_for_user(user.unallocated_collateral_ledger_account_id, amount)
+            .await?;
         Ok(user)
     }
 }

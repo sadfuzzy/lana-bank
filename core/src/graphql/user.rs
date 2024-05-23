@@ -1,6 +1,9 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, primitives::LedgerAccountId};
+use crate::{
+    app::LavaApp,
+    primitives::{LedgerAccountId, Satoshis},
+};
 
 use super::{primitives::UUID, unallocated_collateral::*};
 
@@ -48,7 +51,26 @@ pub struct UserCreatePayload {
     user: User,
 }
 
+#[derive(InputObject)]
+pub struct UserTopupCollateralInput {
+    pub user_id: UUID,
+    pub amount: Satoshis,
+}
+
+#[derive(SimpleObject)]
+pub struct UserTopupCollateralPayload {
+    pub user: User,
+}
+
 impl From<crate::user::User> for UserCreatePayload {
+    fn from(user: crate::user::User) -> Self {
+        Self {
+            user: User::from(user),
+        }
+    }
+}
+
+impl From<crate::user::User> for UserTopupCollateralPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),

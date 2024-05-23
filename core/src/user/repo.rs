@@ -32,4 +32,24 @@ impl UserRepo {
             n_new_events,
         })
     }
+
+    pub async fn find(&self, user_id: UserId) -> Result<User, UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e
+            ON a.id = e.id
+            WHERE a.id = $1"#,
+            user_id as UserId
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        match EntityEvents::load_first(rows) {
+            Ok(user) => Ok(user),
+            Err(EntityError::NoEntityEventsPresent) => Err(UserError::CouldNotFindById(user_id)),
+            Err(e) => Err(e.into()),
+        }
+    }
 }

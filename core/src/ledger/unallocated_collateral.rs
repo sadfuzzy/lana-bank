@@ -14,8 +14,8 @@ impl From<account_by_external_id::AccountByExternalIdAccountByExternalId>
         UnallocatedCollateral {
             id: LedgerAccountId::from(account.account_id),
             settled_btc_balance: account
-                .usd_balance
-                .map(|b| Satoshis::from(b.settled.normal_balance.units))
+                .btc_balance
+                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Satoshis::ZERO),
         }
     }
@@ -26,8 +26,8 @@ impl From<account_by_id::AccountByIdAccount> for UnallocatedCollateral {
         UnallocatedCollateral {
             id: LedgerAccountId::from(account.account_id),
             settled_btc_balance: account
-                .usd_balance
-                .map(|b| Satoshis::from(b.settled.normal_balance.units))
+                .btc_balance
+                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Satoshis::ZERO),
         }
     }
