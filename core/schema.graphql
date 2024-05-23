@@ -65,6 +65,7 @@ type UserCreatePayload {
 input UserTopupCollateralInput {
 	userId: UUID!
 	amount: Satoshis!
+	reference: String!
 }
 
 type UserTopupCollateralPayload {

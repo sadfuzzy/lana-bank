@@ -50,10 +50,15 @@ impl Users {
         &self,
         user_id: UserId,
         amount: Satoshis,
+        reference: String,
     ) -> Result<User, UserError> {
         let user = self.repo.find(user_id).await?;
         self.ledger
-            .topup_collateral_for_user(user.unallocated_collateral_ledger_account_id, amount)
+            .topup_collateral_for_user(
+                user.unallocated_collateral_ledger_account_id,
+                amount,
+                reference,
+            )
             .await?;
         Ok(user)
     }

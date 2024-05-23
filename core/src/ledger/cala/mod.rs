@@ -167,12 +167,14 @@ impl CalaClient {
         &self,
         account_id: LedgerAccountId,
         amount: Decimal,
+        external_id: String,
     ) -> Result<(), CalaError> {
         let transaction_id = uuid::Uuid::new_v4();
         let variables = post_topup_unallocated_collateral_transaction::Variables {
             transaction_id,
             account_id: Uuid::from(account_id),
             amount,
+            external_id,
         };
         let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
             &self.client,

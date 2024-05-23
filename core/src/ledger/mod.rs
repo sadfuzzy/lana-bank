@@ -64,10 +64,11 @@ impl Ledger {
         &self,
         id: LedgerAccountId,
         amount: Satoshis,
+        reference: String,
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_topup_unallocated_collateral_tx(id, amount.to_btc())
+            .execute_topup_unallocated_collateral_tx(id, amount.to_btc(), reference)
             .await?)
     }
 
