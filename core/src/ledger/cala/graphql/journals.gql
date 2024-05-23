@@ -1,4 +1,10 @@
-mutation LavaJournalCreate($id: UUID!) {
+query JournalById($id: UUID!) {
+  journal(id: $id) {
+    journalId
+  }
+}
+
+mutation CoreJournalCreate($id: UUID!) {
   journalCreate(input: {
     journalId: $id
     name: "Lava Journal"

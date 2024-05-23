@@ -24,8 +24,13 @@ mutation TopupUnallocatedCollateralTemplateCreate(
           description: "Effective date for transaction."
           default: "date()"
         }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
       ]
-      txInput: { journalId: $journalId, effective: "params.effective" }
+      txInput: { journalId: $journalId, effective: "params.effective", externalId: "params.externalId" }
       entries: [
         {
           accountId: $assetAccountId
@@ -58,6 +63,7 @@ mutation PostTopupUnallocatedCollateralTransaction(
   $transactionId: UUID!
   $accountId: UUID!
   $amount: Decimal!
+  $externalId: String!
 ) {
   postTransaction(
     input: {
@@ -66,6 +72,7 @@ mutation PostTopupUnallocatedCollateralTransaction(
       params: {
         account: $accountId
         amount: $amount
+        externalId: $externalId
       }
     }
   ) {

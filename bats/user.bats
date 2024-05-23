@@ -53,6 +53,7 @@ teardown_file() {
       input: {
         userId: $userId,
         amount: 100000,
+        reference: ("txn_reference-" + $userId)
       }
     }'
   )

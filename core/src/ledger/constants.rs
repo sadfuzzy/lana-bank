@@ -1,7 +1,7 @@
 use uuid::{uuid, Uuid};
 
 // Journal
-pub(super) const LAVA_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
+pub(super) const CORE_JOURNAL_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
 // Accounts
 pub(super) const CORE_ASSETS_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000002");

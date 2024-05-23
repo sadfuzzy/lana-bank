@@ -55,6 +55,7 @@ pub struct UserCreatePayload {
 pub struct UserTopupCollateralInput {
     pub user_id: UUID,
     pub amount: Satoshis,
+    pub reference: String,
 }
 
 #[derive(SimpleObject)]

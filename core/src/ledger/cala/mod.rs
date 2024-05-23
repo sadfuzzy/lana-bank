@@ -38,11 +38,11 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.create_lava_journal", skip(self), err)]
-    pub async fn create_lava_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = lava_journal_create::Variables { id };
+    #[instrument(name = "lava.ledger.cala.create_core_journal", skip(self), err)]
+    pub async fn create_core_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
+        let variables = core_journal_create::Variables { id };
         let response =
-            Self::traced_gql_request::<LavaJournalCreate, _>(&self.client, &self.url, variables)
+            Self::traced_gql_request::<CoreJournalCreate, _>(&self.client, &self.url, variables)
                 .await?;
         response
             .data
@@ -86,7 +86,7 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = account_by_id::Variables {
             id: id.into(),
-            journal_id: super::constants::LAVA_JOURNAL_ID,
+            journal_id: super::constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<AccountById, _>(&self.client, &self.url, variables).await?;
@@ -103,7 +103,7 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = account_by_external_id::Variables {
             external_id,
-            journal_id: super::constants::LAVA_JOURNAL_ID,
+            journal_id: super::constants::CORE_JOURNAL_ID,
         };
         let response =
             Self::traced_gql_request::<AccountByExternalId, _>(&self.client, &self.url, variables)
@@ -141,7 +141,7 @@ impl CalaClient {
     ) -> Result<TxTemplateId, CalaError> {
         let variables = topup_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
@@ -167,12 +167,14 @@ impl CalaClient {
         &self,
         account_id: LedgerAccountId,
         amount: Decimal,
+        external_id: String,
     ) -> Result<(), CalaError> {
         let transaction_id = uuid::Uuid::new_v4();
         let variables = post_topup_unallocated_collateral_transaction::Variables {
             transaction_id,
             account_id: Uuid::from(account_id),
             amount,
+            external_id,
         };
         let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
             &self.client,

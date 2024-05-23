@@ -59,7 +59,11 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         Ok(UserTopupCollateralPayload::from(
             app.users()
-                .topup_unallocated_collateral_for_user(UserId::from(input.user_id), input.amount)
+                .topup_unallocated_collateral_for_user(
+                    UserId::from(input.user_id),
+                    input.amount,
+                    input.reference,
+                )
                 .await?,
         ))
     }
