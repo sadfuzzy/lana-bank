@@ -2,25 +2,39 @@
 
 load "helpers"
 
-setup_file() {
-  start_server
-}
+# setup_file() {
+#   start_server
+# }
 
-teardown_file() {
-  stop_server
-}
+# teardown_file() {
+#   stop_server
+# }
 
 @test "fixed-term-loan: can create a loan" {
+  username=$(random_uuid)
+  variables=$(
+    jq -n \
+      --arg username "$username" \
+    '{
+      input: {
+        bitfinexUsername: $username,
+      }
+    }'
+  )
+  exec_graphql 'user-create' "$variables"
+  user_id=$(graphql_output '.data.userCreate.user.userId')
 
   variables=$(
     jq -n \
+    --arg userId "$user_id" \
     '{
       input: {
-        bitfinexUserName: "bitfinexUserName",
+        userId: $userId,
       }
     }'
   )
   exec_graphql 'fixed-term-loan-create' "$variables"
   id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
+  echo $(graphql_output)
   [[ "$id" != null ]] || exit 1;
 }

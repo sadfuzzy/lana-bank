@@ -2,18 +2,19 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
+pub mod fixed_term_loan;
 mod tx_template;
 mod unallocated_collateral;
 
 use cala_types::primitives::TxTemplateId;
 use tracing::instrument;
-use uuid::Uuid;
 
 use crate::primitives::{LedgerAccountId, Satoshis};
 
 use cala::*;
 pub use config::*;
 use error::*;
+pub use fixed_term_loan::*;
 pub use unallocated_collateral::*;
 
 #[derive(Clone)]
@@ -69,21 +70,6 @@ impl Ledger {
             .cala
             .execute_topup_unallocated_collateral_tx(id, amount.to_btc())
             .await?)
-    }
-
-    pub async fn create_accounts_for_loan(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        let id = id.into();
-        Self::assert_account_exists(
-            &self.cala,
-            LedgerAccountId::new(),
-            &format!("lava:loan-{}", id),
-            &format!("lava:loan-{}", id),
-            &format!("lava:loan-{}", id),
-        )
-        .await
     }
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {

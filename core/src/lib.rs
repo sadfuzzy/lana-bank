@@ -8,7 +8,6 @@ pub mod fixed_term_loan;
 pub mod graphql;
 pub mod job;
 pub mod ledger;
-pub mod line_of_credit;
 pub mod primitives;
 pub mod server;
 pub mod user;

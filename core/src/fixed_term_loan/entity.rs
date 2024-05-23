@@ -1,24 +1,17 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*};
-
-use super::{error::*, state::*};
+use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum FixedTermLoanEvent {
     Initialized {
         id: FixedTermLoanId,
-        state: FixedTermLoanState,
+        user_id: UserId,
+        account_ids: FixedTermLoanAccountIds,
     },
-    LedgerAccountCreated {
-        ledger_account_id: LedgerAccountId,
-        state: FixedTermLoanState,
-    },
-    CollateralizationAdded {
-        state: FixedTermLoanState,
-    },
+    CollateralizationAdded {},
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -32,41 +25,9 @@ impl EntityEvent for FixedTermLoanEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct FixedTermLoan {
     pub id: FixedTermLoanId,
-    pub state: FixedTermLoanState,
-    pub(super) events: EntityEvents<FixedTermLoanEvent>,
-}
-
-impl FixedTermLoan {
-    pub fn set_ledger_account_id(
-        &mut self,
-        ledger_account_id: LedgerAccountId,
-    ) -> Result<(), FixedTermLoanError> {
-        if self.state != FixedTermLoanState::Initializing {
-            return Err(FixedTermLoanError::BadState(
-                FixedTermLoanState::Initializing,
-                self.state,
-            ));
-        }
-        self.events.push(FixedTermLoanEvent::LedgerAccountCreated {
-            ledger_account_id,
-            state: FixedTermLoanState::PendingCollateralization,
-        });
-        Ok(())
-    }
-
-    pub fn declare_collateralized(&mut self) -> Result<(), FixedTermLoanError> {
-        if self.state != FixedTermLoanState::Collateralized {
-            return Err(FixedTermLoanError::BadState(
-                FixedTermLoanState::Collateralized,
-                self.state,
-            ));
-        }
-        self.events
-            .push(FixedTermLoanEvent::CollateralizationAdded {
-                state: FixedTermLoanState::Collateralized,
-            });
-        Ok(())
-    }
+    pub user_id: UserId,
+    pub account_ids: FixedTermLoanAccountIds,
+    pub(super) _events: EntityEvents<FixedTermLoanEvent>,
 }
 
 impl Entity for FixedTermLoan {
@@ -80,18 +41,20 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
         let mut builder = FixedTermLoanBuilder::default();
         for event in events.iter() {
             match event {
-                FixedTermLoanEvent::Initialized { id, state } => {
-                    builder = builder.id(*id).state(*state);
+                FixedTermLoanEvent::Initialized {
+                    id,
+                    user_id,
+                    account_ids,
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .user_id(*user_id)
+                        .account_ids(account_ids.clone());
                 }
-                FixedTermLoanEvent::LedgerAccountCreated { state, .. } => {
-                    builder = builder.state(*state);
-                }
-                FixedTermLoanEvent::CollateralizationAdded { state } => {
-                    builder = builder.state(*state);
-                }
+                FixedTermLoanEvent::CollateralizationAdded { .. } => {}
             }
         }
-        builder.events(events).build()
+        builder._events(events).build()
     }
 }
 
@@ -99,6 +62,10 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
 pub struct NewFixedTermLoan {
     #[builder(setter(into))]
     pub(super) id: FixedTermLoanId,
+    #[builder(setter(into))]
+    pub(super) user_id: UserId,
+    #[builder(setter(into))]
+    pub(super) account_ids: FixedTermLoanAccountIds,
 }
 
 impl NewFixedTermLoan {
@@ -111,7 +78,8 @@ impl NewFixedTermLoan {
             self.id,
             [FixedTermLoanEvent::Initialized {
                 id: self.id,
-                state: FixedTermLoanState::Initializing,
+                user_id: self.user_id,
+                account_ids: self.account_ids,
             }],
         )
     }

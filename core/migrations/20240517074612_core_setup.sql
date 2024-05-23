@@ -13,23 +13,9 @@ CREATE TABLE user_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE line_of_credit_contracts (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id) NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE line_of_credit_contract_events (
-  id UUID NOT NULL REFERENCES line_of_credit_contracts(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE fixed_term_loans (
   id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

@@ -1,8 +1,7 @@
 mod entity;
 pub mod error;
-mod job;
+// mod job;
 mod repo;
-mod state;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -10,15 +9,13 @@ use tracing::instrument;
 use crate::{
     entity::{EntityError, EntityUpdate},
     job::{JobRegistry, Jobs},
-    ledger::Ledger,
+    ledger::{FixedTermLoanAccountIds, Ledger},
     primitives::*,
 };
 
 pub use entity::*;
 use error::*;
-use job::*;
 use repo::*;
-pub use state::*;
 
 #[derive(Clone)]
 pub struct FixedTermLoans {
@@ -29,9 +26,8 @@ pub struct FixedTermLoans {
 }
 
 impl FixedTermLoans {
-    pub fn new(pool: &PgPool, registry: &mut JobRegistry, ledger: &Ledger) -> Self {
+    pub fn new(pool: &PgPool, _registry: &mut JobRegistry, ledger: &Ledger) -> Self {
         let repo = FixedTermLoanRepo::new(pool);
-        registry.add_initializer(FixedTermLoanJobInitializer::new(ledger, repo.clone()));
         Self {
             repo,
             _ledger: ledger.clone(),
@@ -44,38 +40,21 @@ impl FixedTermLoans {
         self.jobs = Some(jobs.clone());
     }
 
-    fn jobs(&self) -> &Jobs {
-        self.jobs.as_ref().expect("Jobs not set")
-    }
-
-    #[instrument(name = "lava.fixed_term_loans.create_loan", skip(self), err)]
-    pub async fn create_loan(&self) -> Result<FixedTermLoan, FixedTermLoanError> {
+    #[instrument(name = "lava.fixed_term_loans.create_loan_for_user", skip(self), err)]
+    pub async fn create_loan_for_user(
+        &self,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
+        let mut tx = self.pool.begin().await?;
         let loan_id = FixedTermLoanId::new();
         let new_loan = NewFixedTermLoan::builder()
             .id(loan_id)
+            .user_id(user_id)
+            .account_ids(FixedTermLoanAccountIds::new())
             .build()
             .expect("Could not build FixedTermLoan");
-        let mut tx = self.pool.begin().await?;
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
-        self.jobs()
-            .create_and_spawn_job::<FixedTermLoanJobInitializer, _>(
-                &mut tx,
-                loan.id,
-                format!("fixed_term_loan:{}", loan.id),
-                FixedTermLoanJobConfig { loan_id: loan.id },
-            )
-            .await?;
         tx.commit().await?;
-        Ok(loan)
-    }
-
-    pub async fn declare_collateralized(
-        &self,
-        id: FixedTermLoanId,
-    ) -> Result<FixedTermLoan, FixedTermLoanError> {
-        let mut loan = self.repo.find_by_id(id).await?;
-        loan.declare_collateralized()?;
-        self.repo.persist(&mut loan).await?;
         Ok(loan)
     }
 

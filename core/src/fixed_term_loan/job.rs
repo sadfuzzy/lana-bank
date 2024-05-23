@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::{repo::*, state::*};
+use super::repo::*;
 use crate::{job::*, ledger::*, primitives::FixedTermLoanId};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -53,19 +53,20 @@ impl JobRunner for FixedTermLoanJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
-        match loan.state {
-            FixedTermLoanState::Initializing => {
-                let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
-                loan.set_ledger_account_id(loan_id)?;
-                self.repo.persist(&mut loan).await?;
-                return Ok(JobCompletion::Pause);
-            }
-            FixedTermLoanState::Collateralized => {
-                // update USD allocation
-            }
-            _ => (),
-        }
         Ok(JobCompletion::Complete)
+        // let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        // match loan.state {
+        //     FixedTermLoanState::Initializing => {
+        //         let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
+        //         loan.set_ledger_account_id(loan_id)?;
+        //         self.repo.persist(&mut loan).await?;
+        //         return Ok(JobCompletion::Pause);
+        //     }
+        //     FixedTermLoanState::Collateralized => {
+        //         // update USD allocation
+        //     }
+        //     _ => (),
+        // }
+        // Ok(JobCompletion::Complete)
     }
 }
