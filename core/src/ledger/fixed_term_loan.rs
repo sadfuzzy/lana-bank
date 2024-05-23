@@ -7,6 +7,7 @@ pub struct FixedTermLoanAccountIds {
 }
 
 impl FixedTermLoanAccountIds {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             collateral_account_id: LedgerAccountId::new(),
