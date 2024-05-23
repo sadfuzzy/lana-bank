@@ -2,7 +2,7 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	docker compose down
+	docker compose down -t 1
 
 start-deps:
 	docker compose up -d integration-deps

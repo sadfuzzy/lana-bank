@@ -47,6 +47,14 @@ pub struct CoreJournalCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/find-tx-template.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct TxTemplateByCode;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/topup-unallocated-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
@@ -71,10 +79,18 @@ pub struct CoreWithdrawalTxTemplateCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/find-tx-template.gql",
+    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct TxTemplateByCode;
+pub struct ApproveLoanTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostApproveLoanTransaction;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;

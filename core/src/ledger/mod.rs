@@ -5,17 +5,20 @@ pub mod error;
 pub mod fixed_term_loan;
 mod tx_template;
 mod unallocated_collateral;
+pub mod user;
 
-use cala_types::primitives::TxTemplateId;
 use tracing::instrument;
 
-use crate::primitives::{LedgerAccountId, Satoshis};
+use crate::primitives::{
+    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+};
 
 use cala::*;
 pub use config::*;
 use error::*;
-pub use fixed_term_loan::*;
+use fixed_term_loan::*;
 pub use unallocated_collateral::*;
+use user::*;
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -47,18 +50,64 @@ impl Ledger {
         skip(self),
         err
     )]
-    pub async fn create_unallocated_collateral_account_for_user(
+    pub async fn create_accounts_for_user(
         &self,
         bitfinex_username: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
+    ) -> Result<UserLedgerAccountIds, LedgerError> {
+        let account_ids = UserLedgerAccountIds::new();
         Self::assert_account_exists(
             &self.cala,
-            LedgerAccountId::new(),
+            account_ids.unallocated_collateral_id,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("lava:usr:bfx-{}", bitfinex_username),
+            &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
         )
-        .await
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            account_ids.checking_id,
+            &format!("USERS.CHECKING.{}", bitfinex_username),
+            &format!("USERS.CHECKING.{}", bitfinex_username),
+            &format!("usr:bfx-{}:checking", bitfinex_username),
+        )
+        .await?;
+
+        Ok(account_ids)
+    }
+
+    #[instrument(
+        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn create_accounts_for_loan(
+        &self,
+        loan_id: FixedTermLoanId,
+        FixedTermLoanAccountIds {
+            collateral_account_id,
+            principal_account_id,
+        }: FixedTermLoanAccountIds,
+    ) -> Result<(), LedgerError> {
+        Self::assert_account_exists(
+            &self.cala,
+            collateral_account_id,
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+        )
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            principal_account_id,
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+        )
+        .await?;
+
+        Ok(())
     }
 
     pub async fn topup_collateral_for_user(
@@ -70,6 +119,28 @@ impl Ledger {
         Ok(self
             .cala
             .execute_topup_unallocated_collateral_tx(id, amount.to_btc(), reference)
+            .await?)
+    }
+
+    pub async fn approve_loan(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        collateral: Satoshis,
+        principal: UsdCents,
+        external_id: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_approve_loan_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                collateral.to_btc(),
+                principal.to_usd(),
+                external_id,
+            )
             .await?)
     }
 
@@ -138,18 +209,28 @@ impl Ledger {
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
     }
 
+    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
+        Self::assert_topup_unallocated_collateral_tx_template_exists(
+            cala,
+            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
+        )
+        .await?;
+        Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+        Ok(())
+    }
+
     async fn assert_topup_unallocated_collateral_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
-    ) -> Result<TxTemplateId, LedgerError> {
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
         if let Ok(id) = cala
-            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
         {
             return Ok(id);
         }
 
-        let template_id = TxTemplateId::new();
+        let template_id = LedgerTxTemplateId::new();
         let err = match cala
             .create_topup_unallocated_collateral_tx_template(template_id)
             .await
@@ -161,17 +242,33 @@ impl Ledger {
         };
 
         Ok(cala
-            .find_tx_template_by_code::<TxTemplateId>(template_code.to_owned())
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
             .await
             .map_err(|_| err)?)
     }
 
-    async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_topup_unallocated_collateral_tx_template_exists(
-            cala,
-            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
-        )
-        .await?;
-        Ok(())
+    async fn assert_approve_loan_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
     }
 }

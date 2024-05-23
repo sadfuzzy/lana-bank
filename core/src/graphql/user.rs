@@ -41,7 +41,7 @@ impl From<crate::user::User> for User {
         User {
             user_id: UUID::from(user.id),
             bitfinex_username: user.bitfinex_username,
-            unallocated_collateral_ledger_account_id: user.unallocated_collateral_ledger_account_id,
+            unallocated_collateral_ledger_account_id: user.account_ids.unallocated_collateral_id,
         }
     }
 }

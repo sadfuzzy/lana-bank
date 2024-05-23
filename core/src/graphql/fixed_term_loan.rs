@@ -18,6 +18,18 @@ pub struct FixedTermLoanCreatePayload {
     loan: FixedTermLoan,
 }
 
+#[derive(InputObject)]
+pub struct FixedTermLoanApproveInput {
+    pub loan_id: UUID,
+    pub collateral: Satoshis,
+    pub principal: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct FixedTermLoanApprovePayload {
+    loan: FixedTermLoan,
+}
+
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         FixedTermLoan {
@@ -29,7 +41,15 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
 
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
-        FixedTermLoanCreatePayload {
+        Self {
+            loan: FixedTermLoan::from(loan),
+        }
+    }
+}
+
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload {
+    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
+        Self {
             loan: FixedTermLoan::from(loan),
         }
     }

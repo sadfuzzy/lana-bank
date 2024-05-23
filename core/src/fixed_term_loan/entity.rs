@@ -1,6 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use super::error::*;
 use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,7 +12,10 @@ pub enum FixedTermLoanEvent {
         user_id: UserId,
         account_ids: FixedTermLoanAccountIds,
     },
-    CollateralizationAdded {},
+    Approved {
+        tx_id: LedgerTxId,
+        collateral: Satoshis,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -27,7 +31,25 @@ pub struct FixedTermLoan {
     pub id: FixedTermLoanId,
     pub user_id: UserId,
     pub account_ids: FixedTermLoanAccountIds,
-    pub(super) _events: EntityEvents<FixedTermLoanEvent>,
+    pub(super) events: EntityEvents<FixedTermLoanEvent>,
+}
+
+impl FixedTermLoan {
+    pub fn approve(
+        &mut self,
+        tx_id: LedgerTxId,
+        collateral: Satoshis,
+    ) -> Result<(), FixedTermLoanError> {
+        for event in self.events.iter() {
+            if let FixedTermLoanEvent::Approved { .. } = event {
+                return Err(FixedTermLoanError::AlreadyApproved);
+            }
+        }
+
+        self.events
+            .push(FixedTermLoanEvent::Approved { tx_id, collateral });
+        Ok(())
+    }
 }
 
 impl Entity for FixedTermLoan {
@@ -46,15 +68,12 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                     user_id,
                     account_ids,
                 } => {
-                    builder = builder
-                        .id(*id)
-                        .user_id(*user_id)
-                        .account_ids(account_ids.clone());
+                    builder = builder.id(*id).user_id(*user_id).account_ids(*account_ids);
                 }
-                FixedTermLoanEvent::CollateralizationAdded { .. } => {}
+                FixedTermLoanEvent::Approved { .. } => {}
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 

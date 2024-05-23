@@ -10,7 +10,7 @@ use crate::{
 
 pub use entity::*;
 use error::UserError;
-use repo::UserRepo;
+pub use repo::UserRepo;
 
 #[derive(Clone)]
 pub struct Users {
@@ -29,16 +29,20 @@ impl Users {
         }
     }
 
+    pub fn repo(&self) -> &UserRepo {
+        &self.repo
+    }
+
     pub async fn create_user(&self, bitfinex_username: String) -> Result<User, UserError> {
         let id = UserId::new();
-        let ledger_account_id = self
+        let ledger_account_ids = self
             .ledger
-            .create_unallocated_collateral_account_for_user(&bitfinex_username)
+            .create_accounts_for_user(&bitfinex_username)
             .await?;
         let new_user = NewUser::builder()
             .id(id)
             .bitfinex_username(bitfinex_username)
-            .unallocated_collateral_ledger_account_id(ledger_account_id)
+            .account_ids(ledger_account_ids)
             .build()
             .expect("Could not build User");
 
@@ -52,10 +56,10 @@ impl Users {
         amount: Satoshis,
         reference: String,
     ) -> Result<User, UserError> {
-        let user = self.repo.find(user_id).await?;
+        let user = self.repo.find_by_id(user_id).await?;
         self.ledger
             .topup_collateral_for_user(
-                user.unallocated_collateral_ledger_account_id,
+                user.account_ids.unallocated_collateral_id,
                 amount,
                 reference,
             )

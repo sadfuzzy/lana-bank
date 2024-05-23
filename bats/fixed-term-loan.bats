@@ -2,15 +2,15 @@
 
 load "helpers"
 
-# setup_file() {
-#   start_server
-# }
+setup_file() {
+  start_server
+}
 
-# teardown_file() {
-#   stop_server
-# }
+teardown_file() {
+  stop_server
+}
 
-@test "fixed-term-loan: can create a loan" {
+@test "fixed-term-loan: loan lifecycle" {
   username=$(random_uuid)
   variables=$(
     jq -n \
@@ -35,6 +35,21 @@ load "helpers"
   )
   exec_graphql 'fixed-term-loan-create' "$variables"
   id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
-  echo $(graphql_output)
   [[ "$id" != null ]] || exit 1;
+
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 100000,
+        principal: 200000,
+      }
+    }'
+  )
+  exec_graphql 'approve-loan' "$variables"
+  loan_id=$(graphql_output '.data.fixedTermLoanApprove.loan.loanId')
+  echo $(graphql_output)
+  [[ "$id" == "$loan_id" ]] || exit 1;
 }

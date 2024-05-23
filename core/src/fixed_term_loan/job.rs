@@ -54,7 +54,7 @@ impl JobRunner for FixedTermLoanJobRunner {
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         Ok(JobCompletion::Complete)
-        // let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
+        let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         // match loan.state {
         //     FixedTermLoanState::Initializing => {
         //         let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
@@ -67,6 +67,6 @@ impl JobRunner for FixedTermLoanJobRunner {
         //     }
         //     _ => (),
         // }
-        // Ok(JobCompletion::Complete)
+        Ok(JobCompletion::Complete)
     }
 }

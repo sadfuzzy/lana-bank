@@ -4,16 +4,16 @@ use super::{entity::*, error::*};
 use crate::{entity::*, primitives::*};
 
 #[derive(Clone)]
-pub(super) struct UserRepo {
+pub struct UserRepo {
     pool: PgPool,
 }
 
 impl UserRepo {
-    pub fn new(pool: &PgPool) -> Self {
+    pub(super) fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
 
-    pub async fn create(&self, new_user: NewUser) -> Result<EntityUpdate<User>, UserError> {
+    pub(super) async fn create(&self, new_user: NewUser) -> Result<EntityUpdate<User>, UserError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query!(
             r#"INSERT INTO users (id, bitfinex_username)
@@ -33,7 +33,7 @@ impl UserRepo {
         })
     }
 
-    pub async fn find(&self, user_id: UserId) -> Result<User, UserError> {
+    pub async fn find_by_id(&self, user_id: UserId) -> Result<User, UserError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT a.id, e.sequence, e.event,
