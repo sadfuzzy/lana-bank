@@ -48,9 +48,13 @@ impl Users {
 
     pub async fn topup_unallocated_collateral_for_user(
         &self,
-        _user_id: UserId,
-        _amount: Satoshis,
+        user_id: UserId,
+        amount: Satoshis,
     ) -> Result<User, UserError> {
-        unimplemented!()
+        let user = self.repo.find(user_id).await?;
+        self.ledger
+            .topup_collateral_for_user(user.unallocated_collateral_ledger_account_id, amount)
+            .await?;
+        Ok(user)
     }
 }

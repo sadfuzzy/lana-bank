@@ -53,3 +53,25 @@ mutation TopupUnallocatedCollateralTemplateCreate(
     }
   }
 }
+
+mutation PostTopupUnallocatedCollateralTransaction(
+  $transactionId: UUID!
+  $accountId: UUID!
+  $amount: Decimal!
+) {
+  postTransaction(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "TOPUP_UNALLOCATED_COLLATERAL"
+      params: {
+        account: $accountId
+        amount: $amount
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+    }
+  }
+}

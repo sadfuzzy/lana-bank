@@ -8,7 +8,7 @@ mod unallocated_collateral;
 use cala_types::primitives::TxTemplateId;
 use uuid::Uuid;
 
-use crate::primitives::LedgerAccountId;
+use crate::primitives::{LedgerAccountId, Satoshis};
 
 use cala::*;
 pub use config::*;
@@ -50,6 +50,17 @@ impl Ledger {
             &format!("lava:usr:bfx-{}", bitfinex_username),
         )
         .await
+    }
+
+    pub async fn topup_collateral_for_user(
+        &self,
+        id: LedgerAccountId,
+        amount: Satoshis,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_topup_unallocated_collateral_tx(id, amount.to_btc())
+            .await?)
     }
 
     pub async fn create_accounts_for_loan(

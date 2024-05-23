@@ -5,6 +5,7 @@ pub(super) mod graphql;
 use cala_types::primitives::TxTemplateId;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
+use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
@@ -155,6 +156,36 @@ impl CalaClient {
             .map(|d| d.tx_template_create.tx_template.tx_template_id)
             .map(TxTemplateId::from)
             .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_topup_unallocated_collateral_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_topup_unallocated_collateral_tx(
+        &self,
+        account_id: LedgerAccountId,
+        amount: Decimal,
+    ) -> Result<(), CalaError> {
+        let transaction_id = uuid::Uuid::new_v4();
+        let variables = post_topup_unallocated_collateral_transaction::Variables {
+            transaction_id,
+            account_id: Uuid::from(account_id),
+            amount,
+        };
+        let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
