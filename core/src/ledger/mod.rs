@@ -6,6 +6,7 @@ mod tx_template;
 mod unallocated_collateral;
 
 use cala_types::primitives::TxTemplateId;
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{LedgerAccountId, Satoshis};
@@ -29,6 +30,7 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
+    #[instrument(name = "lava.ledger.get_unallocated_collateral", skip(self), err)]
     pub async fn get_unallocated_collateral(
         &self,
         id: LedgerAccountId,
@@ -39,6 +41,11 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
+    #[instrument(
+        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        skip(self),
+        err
+    )]
     pub async fn create_unallocated_collateral_account_for_user(
         &self,
         bitfinex_username: &str,
