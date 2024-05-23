@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO line_of_credit_contracts (id, user_id)\n            VALUES ($1, $2)",
+  "query": "INSERT INTO fixed_term_loans (id, user_id)\n            VALUES ($1, $2)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "08345ea495a83f2833ac2d2e5ae434a2fd5e8682b29bba07016a56dfed33257a"
+  "hash": "9573b671270cb4a84d78d9064a901cd0a75c77b9020e0bbc404f693f6889fe79"
 }
