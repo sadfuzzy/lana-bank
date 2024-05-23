@@ -2,6 +2,7 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
+pub mod fixed_term_loan;
 mod tx_template;
 mod unallocated_collateral;
 

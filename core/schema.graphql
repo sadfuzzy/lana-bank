@@ -1,6 +1,5 @@
 type FixedTermLoan {
 	loanId: UUID!
-	state: FixedTermLoanState!
 }
 
 input FixedTermLoanCreateInput {
@@ -11,27 +10,12 @@ type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
 }
 
-input FixedTermLoanDeclareCollateralizedInput {
-	loanId: UUID!
-}
-
-type FixedTermLoanDeclareCollateralizedPayload {
-	loan: FixedTermLoan!
-}
-
-enum FixedTermLoanState {
-	INITIALIZING
-	PENDING_COLLATERALIZATION
-	COLLATERALIZED
-}
-
 
 
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
-	fixedTermLoanDeclareCollateralized(input: FixedTermLoanDeclareCollateralizedInput!): FixedTermLoanDeclareCollateralizedPayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 }
 
