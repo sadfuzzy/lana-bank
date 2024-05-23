@@ -38,11 +38,11 @@ impl CalaClient {
             .ok_or(CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.create_lava_journal", skip(self), err)]
-    pub async fn create_lava_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
-        let variables = lava_journal_create::Variables { id };
+    #[instrument(name = "lava.ledger.cala.create_core_journal", skip(self), err)]
+    pub async fn create_core_journal(&self, id: Uuid) -> Result<LedgerJournalId, CalaError> {
+        let variables = core_journal_create::Variables { id };
         let response =
-            Self::traced_gql_request::<LavaJournalCreate, _>(&self.client, &self.url, variables)
+            Self::traced_gql_request::<CoreJournalCreate, _>(&self.client, &self.url, variables)
                 .await?;
         response
             .data

@@ -39,10 +39,10 @@ pub struct JournalById;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/mutations/lava-journal-create.gql",
+    query_path = "src/ledger/cala/graphql/journals.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct LavaJournalCreate;
+pub struct CoreJournalCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -66,7 +66,7 @@ pub struct PostTopupUnallocatedCollateralTransaction;
     query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct LavaWithdrawalTxTemplateCreate;
+pub struct CoreWithdrawalTxTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(

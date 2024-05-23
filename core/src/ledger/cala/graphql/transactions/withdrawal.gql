@@ -1,4 +1,4 @@
-mutation LavaWithdrawalTxTemplateCreate(
+mutation CoreWithdrawalTxTemplateCreate(
     $templateId: UUID!,
     $templateCode: String!,
     $journalId: Expression!,

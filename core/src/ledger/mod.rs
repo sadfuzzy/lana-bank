@@ -95,7 +95,7 @@ impl Ledger {
             return Ok(());
         }
 
-        let err = match cala.create_lava_journal(constants::LAVA_JOURNAL_ID).await {
+        let err = match cala.create_core_journal(constants::LAVA_JOURNAL_ID).await {
             Ok(_) => return Ok(()),
             Err(e) => e,
         };

@@ -3,3 +3,15 @@ query JournalById($id: UUID!) {
     journalId
   }
 }
+
+mutation CoreJournalCreate($id: UUID!) {
+  journalCreate(input: {
+    journalId: $id
+    name: "Lava Journal"
+    description: "Journal for Lava"
+  }) {
+    journal {
+      journalId
+    }
+  }
+}
