@@ -41,10 +41,13 @@ impl Mutation {
     pub async fn fixed_term_loan_create(
         &self,
         ctx: &Context<'_>,
-        _input: FixedTermLoanCreateInput,
+        input: FixedTermLoanCreateInput,
     ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.fixed_term_loans().create_loan().await?;
+        let loan = app
+            .fixed_term_loans()
+            .create_loan_for_user(input.user_id)
+            .await?;
         Ok(FixedTermLoanCreatePayload::from(loan))
     }
 

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UUID(uuid::Uuid);
 scalar!(UUID);

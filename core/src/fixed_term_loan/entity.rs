@@ -8,6 +8,7 @@ use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primiti
 pub enum FixedTermLoanEvent {
     Initialized {
         id: FixedTermLoanId,
+        user_id: UserId,
         account_ids: FixedTermLoanAccountIds,
     },
     CollateralizationAdded {},
@@ -24,6 +25,7 @@ impl EntityEvent for FixedTermLoanEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct FixedTermLoan {
     pub id: FixedTermLoanId,
+    pub user_id: UserId,
     pub account_ids: FixedTermLoanAccountIds,
     pub(super) _events: EntityEvents<FixedTermLoanEvent>,
 }
@@ -39,8 +41,15 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
         let mut builder = FixedTermLoanBuilder::default();
         for event in events.iter() {
             match event {
-                FixedTermLoanEvent::Initialized { id, account_ids } => {
-                    builder = builder.id(*id).account_ids(account_ids.clone());
+                FixedTermLoanEvent::Initialized {
+                    id,
+                    user_id,
+                    account_ids,
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .user_id(*user_id)
+                        .account_ids(account_ids.clone());
                 }
                 FixedTermLoanEvent::CollateralizationAdded { .. } => {}
             }
@@ -53,6 +62,9 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
 pub struct NewFixedTermLoan {
     #[builder(setter(into))]
     pub(super) id: FixedTermLoanId,
+    #[builder(setter(into))]
+    pub(super) user_id: UserId,
+    #[builder(setter(into))]
     pub(super) account_ids: FixedTermLoanAccountIds,
 }
 
@@ -66,6 +78,7 @@ impl NewFixedTermLoan {
             self.id,
             [FixedTermLoanEvent::Initialized {
                 id: self.id,
+                user_id: self.user_id,
                 account_ids: self.account_ids,
             }],
         )

@@ -9,12 +9,12 @@ pub struct FixedTermLoan {
 
 #[derive(InputObject)]
 pub struct FixedTermLoanCreateInput {
-    bitfinex_user_name: String,
+    pub user_id: UUID,
 }
 
 #[derive(SimpleObject)]
 pub struct FixedTermLoanCreatePayload {
-    pub loan: FixedTermLoan,
+    loan: FixedTermLoan,
 }
 
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {

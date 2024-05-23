@@ -9,7 +9,7 @@ use tracing::instrument;
 use crate::{
     entity::{EntityError, EntityUpdate},
     job::{JobRegistry, Jobs},
-    ledger::Ledger,
+    ledger::{FixedTermLoanAccountIds, Ledger},
     primitives::*,
 };
 
@@ -40,14 +40,19 @@ impl FixedTermLoans {
         self.jobs = Some(jobs.clone());
     }
 
-    #[instrument(name = "lava.fixed_term_loans.create_loan", skip(self), err)]
-    pub async fn create_loan(&self) -> Result<FixedTermLoan, FixedTermLoanError> {
+    #[instrument(name = "lava.fixed_term_loans.create_loan_for_user", skip(self), err)]
+    pub async fn create_loan_for_user(
+        &self,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
+        let mut tx = self.pool.begin().await?;
         let loan_id = FixedTermLoanId::new();
         let new_loan = NewFixedTermLoan::builder()
             .id(loan_id)
+            .user_id(user_id)
+            .account_ids(FixedTermLoanAccountIds::new())
             .build()
             .expect("Could not build FixedTermLoan");
-        let mut tx = self.pool.begin().await?;
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
         tx.commit().await?;
         Ok(loan)
