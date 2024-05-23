@@ -53,11 +53,11 @@ impl CalaClient {
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
+        account_id: LedgerAccountId,
         name: String,
         code: String,
         external_id: String,
     ) -> Result<LedgerAccountId, CalaError> {
-        let account_id = LedgerAccountId::new();
         let variables = account_create::Variables {
             input: account_create::AccountCreateInput {
                 account_id: Uuid::from(account_id),
@@ -142,7 +142,7 @@ impl CalaClient {
         let variables = topup_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::LAVA_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::LAVA_ASSETS_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
         let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
             &self.client,

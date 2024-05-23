@@ -45,6 +45,7 @@ impl Ledger {
     ) -> Result<LedgerAccountId, LedgerError> {
         Self::assert_account_exists(
             &self.cala,
+            LedgerAccountId::new(),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("lava:usr:bfx-{}", bitfinex_username),
@@ -70,6 +71,7 @@ impl Ledger {
         let id = id.into();
         Self::assert_account_exists(
             &self.cala,
+            LedgerAccountId::new(),
             &format!("lava:loan-{}", id),
             &format!("lava:loan-{}", id),
             &format!("lava:loan-{}", id),
@@ -100,9 +102,10 @@ impl Ledger {
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_account_exists(
             cala,
-            constants::LOAN_OMINBUS_EXTERNAL_ID,
-            constants::LOAN_OMINBUS_EXTERNAL_ID,
-            constants::LOAN_OMINBUS_EXTERNAL_ID,
+            constants::CORE_ASSETS_ID.into(),
+            constants::CORE_ASSETS_NAME,
+            constants::CORE_ASSETS_CODE,
+            &constants::CORE_ASSETS_ID.to_string(),
         )
         .await?;
         Ok(())
@@ -110,6 +113,7 @@ impl Ledger {
 
     async fn assert_account_exists(
         cala: &CalaClient,
+        account_id: LedgerAccountId,
         name: &str,
         code: &str,
         external_id: &str,
@@ -122,7 +126,12 @@ impl Ledger {
         }
 
         let err = match cala
-            .create_account(name.to_owned(), code.to_owned(), external_id.to_owned())
+            .create_account(
+                account_id,
+                name.to_owned(),
+                code.to_owned(),
+                external_id.to_owned(),
+            )
             .await
         {
             Ok(id) => return Ok(id),
