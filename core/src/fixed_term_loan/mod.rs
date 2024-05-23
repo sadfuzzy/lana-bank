@@ -9,7 +9,7 @@ use tracing::instrument;
 use crate::{
     entity::{EntityError, EntityUpdate},
     job::{JobRegistry, Jobs},
-    ledger::{FixedTermLoanAccountIds, Ledger},
+    ledger::{fixed_term_loan::FixedTermLoanAccountIds, Ledger},
     primitives::*,
     user::UserRepo,
 };
@@ -71,6 +71,7 @@ impl FixedTermLoans {
         &self,
         loan_id: impl Into<FixedTermLoanId> + std::fmt::Debug,
         collateral: Satoshis,
+        principal: UsdCents,
     ) -> Result<FixedTermLoan, FixedTermLoanError> {
         let mut loan = self.repo.find_by_id(loan_id.into()).await?;
         let user = self.users.find_by_id(loan.user_id).await?;
@@ -85,8 +86,9 @@ impl FixedTermLoans {
             .approve_loan(
                 tx_id,
                 loan.account_ids,
-                user.unallocated_collateral_ledger_account_id,
+                user.account_ids,
                 collateral,
+                principal,
                 format!("{}-approval", loan.id),
             )
             .await?;

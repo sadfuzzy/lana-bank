@@ -6,6 +6,7 @@ type FixedTermLoan {
 input FixedTermLoanApproveInput {
 	loanId: UUID!
 	collateral: Satoshis!
+	principal: UsdCents!
 }
 
 type FixedTermLoanApprovePayload {
@@ -42,6 +43,8 @@ scalar UUID
 type UnallocatedCollateral {
 	btcBalance: Satoshis!
 }
+
+scalar UsdCents
 
 type User {
 	userId: UUID!

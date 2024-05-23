@@ -5,18 +5,20 @@ pub mod error;
 pub mod fixed_term_loan;
 mod tx_template;
 mod unallocated_collateral;
+pub mod user;
 
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis,
+    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
 };
 
 use cala::*;
 pub use config::*;
 use error::*;
-pub use fixed_term_loan::*;
+use fixed_term_loan::*;
 pub use unallocated_collateral::*;
+use user::*;
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -48,18 +50,30 @@ impl Ledger {
         skip(self),
         err
     )]
-    pub async fn create_unallocated_collateral_account_for_user(
+    pub async fn create_accounts_for_user(
         &self,
         bitfinex_username: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
+    ) -> Result<UserLedgerAccountIds, LedgerError> {
+        let account_ids = UserLedgerAccountIds::new();
         Self::assert_account_exists(
             &self.cala,
-            LedgerAccountId::new(),
+            account_ids.unallocated_collateral_id,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("lava:usr:bfx-{}", bitfinex_username),
+            &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
         )
-        .await
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            account_ids.checking_id,
+            &format!("USERS.CHECKING.{}", bitfinex_username),
+            &format!("USERS.CHECKING.{}", bitfinex_username),
+            &format!("usr:bfx-{}:checking", bitfinex_username),
+        )
+        .await?;
+
+        Ok(account_ids)
     }
 
     #[instrument(
@@ -70,16 +84,30 @@ impl Ledger {
     pub async fn create_accounts_for_loan(
         &self,
         loan_id: FixedTermLoanId,
-        account_ids: FixedTermLoanAccountIds,
-    ) -> Result<LedgerAccountId, LedgerError> {
+        FixedTermLoanAccountIds {
+            collateral_account_id,
+            principal_account_id,
+        }: FixedTermLoanAccountIds,
+    ) -> Result<(), LedgerError> {
         Self::assert_account_exists(
             &self.cala,
-            account_ids.collateral_account_id,
+            collateral_account_id,
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
         )
-        .await
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            principal_account_id,
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+        )
+        .await?;
+
+        Ok(())
     }
 
     pub async fn topup_collateral_for_user(
@@ -98,8 +126,9 @@ impl Ledger {
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
-        unallocated_collateral_id: LedgerAccountId,
+        user_account_ids: UserLedgerAccountIds,
         collateral: Satoshis,
+        principal: UsdCents,
         external_id: String,
     ) -> Result<(), LedgerError> {
         Ok(self
@@ -107,8 +136,9 @@ impl Ledger {
             .execute_approve_loan_tx(
                 tx_id,
                 loan_account_ids,
-                unallocated_collateral_id,
+                user_account_ids,
                 collateral.to_btc(),
+                principal.to_usd(),
                 external_id,
             )
             .await?)

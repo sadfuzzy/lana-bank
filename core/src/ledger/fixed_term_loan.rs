@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct FixedTermLoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
+    pub principal_account_id: LedgerAccountId,
 }
 
 impl FixedTermLoanAccountIds {
@@ -11,6 +12,7 @@ impl FixedTermLoanAccountIds {
     pub fn new() -> Self {
         Self {
             collateral_account_id: LedgerAccountId::new(),
+            principal_account_id: LedgerAccountId::new(),
         }
     }
 }

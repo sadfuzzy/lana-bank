@@ -57,3 +57,6 @@ impl From<crate::primitives::Currency> for CurrencyCode {
 
 pub use crate::primitives::Satoshis;
 scalar!(Satoshis);
+
+pub use crate::primitives::UsdCents;
+scalar!(UsdCents);

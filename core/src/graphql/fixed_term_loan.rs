@@ -22,6 +22,7 @@ pub struct FixedTermLoanCreatePayload {
 pub struct FixedTermLoanApproveInput {
     pub loan_id: UUID,
     pub collateral: Satoshis,
+    pub principal: UsdCents,
 }
 
 #[derive(SimpleObject)]

@@ -76,7 +76,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
             .fixed_term_loans()
-            .approve_loan(input.loan_id, input.collateral)
+            .approve_loan(input.loan_id, input.collateral, input.principal)
             .await?;
         Ok(FixedTermLoanApprovePayload::from(loan))
     }

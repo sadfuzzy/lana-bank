@@ -10,16 +10,31 @@ mutation ApproveLoanTemplateCreate(
       params: [
         { name: "unallocatedCollateralAccount",
           type: UUID,
-          description: "Unallocated Collateral account ID."
+          description: "User Unallocated Collateral account ID."
         }
         { name: "loanCollateralAccount",
           type: UUID,
           description: "Loan Collateral account ID."
         }
         {
+          name: "loanPrincipalAccount",
+          type: UUID,
+          description: "Loan Principal account ID."
+        }
+        {
+          name: "checkingAccount",
+          type: UUID,
+          description: "User Checking account ID."
+        }
+        {
           name: "collateralAmount"
           type: DECIMAL
           description: "Amount of BTC being put into the loan."
+        }
+        {
+          name: "principalAmount"
+          type: DECIMAL
+          description: "Amount of USD being issued for the loan."
         }
         {
           name: "externalId"
@@ -51,6 +66,22 @@ mutation ApproveLoanTemplateCreate(
           direction: "CREDIT"
           layer: "SETTLED"
         }
+        {
+          accountId: "params.loanPrincipalAccount"
+          units: "params.principalAmount"
+          currency: "'USD'"
+          entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.checkingAccount"
+          units: "params.principalAmount"
+          currency: "'USD'"
+          entryType: "'APPROVE_LOAN_PRINCIPAL_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
       ]
     }
   ) {
@@ -66,7 +97,10 @@ mutation PostApproveLoanTransaction(
   $transactionId: UUID!
   $unallocatedCollateralAccount: UUID!
   $loanCollateralAccount: UUID!
+  $loanPrincipalAccount: UUID!
+  $checkingAccount: UUID!
   $collateralAmount: Decimal!
+  $principalAmount: Decimal!
   $externalId: String!
 ) {
   postTransaction(
@@ -76,7 +110,10 @@ mutation PostApproveLoanTransaction(
       params: {
         unallocatedCollateralAccount: $unallocatedCollateralAccount
         loanCollateralAccount: $loanCollateralAccount
+        loanPrincipalAccount: $loanPrincipalAccount
+        checkingAccount: $checkingAccount
         collateralAmount: $collateralAmount
+        principalAmount: $principalAmount
         externalId: $externalId
       }
     }

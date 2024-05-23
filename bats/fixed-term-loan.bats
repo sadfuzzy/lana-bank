@@ -2,13 +2,13 @@
 
 load "helpers"
 
-# setup_file() {
-#   start_server
-# }
+setup_file() {
+  start_server
+}
 
-# teardown_file() {
-#   stop_server
-# }
+teardown_file() {
+  stop_server
+}
 
 @test "fixed-term-loan: loan lifecycle" {
   username=$(random_uuid)
@@ -44,6 +44,7 @@ load "helpers"
       input: {
         loanId: $loanId,
         collateral: 100000,
+        principal: 200000,
       }
     }'
   )

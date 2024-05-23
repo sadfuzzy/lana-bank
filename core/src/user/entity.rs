@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*};
+use crate::{entity::*, ledger::user::UserLedgerAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -9,7 +9,7 @@ pub enum UserEvent {
     Initialized {
         id: UserId,
         bitfinex_username: String,
-        unallocated_collateral_ledger_account_id: LedgerAccountId,
+        account_ids: UserLedgerAccountIds,
     },
 }
 
@@ -25,7 +25,7 @@ impl EntityEvent for UserEvent {
 pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
-    pub unallocated_collateral_ledger_account_id: LedgerAccountId,
+    pub account_ids: UserLedgerAccountIds,
     pub(super) _events: EntityEvents<UserEvent>,
 }
 
@@ -43,14 +43,12 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 UserEvent::Initialized {
                     id,
                     bitfinex_username,
-                    unallocated_collateral_ledger_account_id,
+                    account_ids,
                 } => {
                     builder = builder
                         .id(*id)
                         .bitfinex_username(bitfinex_username.clone())
-                        .unallocated_collateral_ledger_account_id(
-                            *unallocated_collateral_ledger_account_id,
-                        );
+                        .account_ids(*account_ids);
                 }
             }
         }
@@ -64,7 +62,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) bitfinex_username: String,
-    pub(super) unallocated_collateral_ledger_account_id: LedgerAccountId,
+    pub(super) account_ids: UserLedgerAccountIds,
 }
 
 impl NewUser {
@@ -78,8 +76,7 @@ impl NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 bitfinex_username: self.bitfinex_username,
-                unallocated_collateral_ledger_account_id: self
-                    .unallocated_collateral_ledger_account_id,
+                account_ids: self.account_ids,
             }],
         )
     }
