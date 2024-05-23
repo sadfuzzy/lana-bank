@@ -1,9 +1,10 @@
 type FixedTermLoan {
 	loanId: UUID!
+	userId: UUID!
 }
 
 input FixedTermLoanCreateInput {
-	bitfinexUserName: String!
+	userId: UUID!
 }
 
 type FixedTermLoanCreatePayload {
