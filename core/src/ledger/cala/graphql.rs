@@ -100,6 +100,22 @@ pub struct ApproveLoanTemplateCreate;
 )]
 pub struct PostApproveLoanTransaction;
 
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/incur-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct IncurInterestTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/incur-interest.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostIncurInterestTransaction;
+
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
 type Decimal = rust_decimal::Decimal;

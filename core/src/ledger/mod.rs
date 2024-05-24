@@ -74,40 +74,6 @@ impl Ledger {
         Ok(account_ids)
     }
 
-    #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
-        skip(self),
-        err
-    )]
-    pub async fn create_accounts_for_loan(
-        &self,
-        loan_id: FixedTermLoanId,
-        FixedTermLoanAccountIds {
-            collateral_account_id,
-            principal_account_id,
-        }: FixedTermLoanAccountIds,
-    ) -> Result<(), LedgerError> {
-        Self::assert_account_exists(
-            &self.cala,
-            collateral_account_id,
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_account_exists(
-            &self.cala,
-            principal_account_id,
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-        )
-        .await?;
-
-        Ok(())
-    }
-
     pub async fn topup_collateral_for_user(
         &self,
         id: LedgerAccountId,
@@ -140,6 +106,73 @@ impl Ledger {
                 external_id,
             )
             .await?)
+    }
+
+    pub async fn record_interest(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        tx_ref: String,
+        amount: UsdCents,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_interest_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
+            .await?)
+    }
+
+    #[instrument(
+        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn create_accounts_for_loan(
+        &self,
+        loan_id: FixedTermLoanId,
+        FixedTermLoanAccountIds {
+            collateral_account_id,
+            principal_account_id,
+            interest_account_id,
+            interest_income_account_id,
+        }: FixedTermLoanAccountIds,
+    ) -> Result<(), LedgerError> {
+        Self::assert_account_exists(
+            &self.cala,
+            collateral_account_id,
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+            &format!("LOAN.COLLATERAL.{}", loan_id),
+        )
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            principal_account_id,
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+            &format!("LOAN.PRINCIPAL.{}", loan_id),
+        )
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            interest_account_id,
+            &format!("LOAN.INTEREST.{}", loan_id),
+            &format!("LOAN.INTEREST.{}", loan_id),
+            &format!("LOAN.INTEREST.{}", loan_id),
+        )
+        .await?;
+
+        Self::assert_account_exists(
+            &self.cala,
+            interest_income_account_id,
+            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
+            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
+            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
+        )
+        .await?;
+
+        Ok(())
     }
 
     async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
@@ -213,7 +246,12 @@ impl Ledger {
             constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
         )
         .await?;
+
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
+
+        Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
+            .await?;
+
         Ok(())
     }
 
@@ -258,6 +296,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_approve_loan_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_incur_interest_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_incur_interest_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }
