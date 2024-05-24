@@ -2,6 +2,20 @@ mutation fixedTermLoanCreate($input: FixedTermLoanCreateInput!) {
   fixedTermLoanCreate(input: $input) {
     loan {
       loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        principal {
+          usdBalance
+        }
+        totalInterestIncurred {
+          usdBalance
+        }
+        unpaidInterestIncurred {
+          usdBalance
+        }
+      }
     }
   }
 }

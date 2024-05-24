@@ -1,7 +1,21 @@
 mutation approveLoan($input: FixedTermLoanApproveInput!) {
-fixedTermLoanApprove(input: $input) {
+  fixedTermLoanApprove(input: $input) {
     loan {
       loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        principal {
+          usdBalance
+        }
+        totalInterestIncurred {
+          usdBalance
+        }
+        unpaidInterestIncurred {
+          usdBalance
+        }
+      }
     }
   }
 }
