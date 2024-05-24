@@ -9,7 +9,8 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+    FixedTermLoanId, LedgerAccountId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId,
+    Satoshis, UsdCents,
 };
 
 use cala::*;
@@ -56,6 +57,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             account_ids.unallocated_collateral_id,
+            LedgerDebitOrCredit::Credit,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
@@ -65,6 +67,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             account_ids.checking_id,
+            LedgerDebitOrCredit::Credit,
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("usr:bfx-{}:checking", bitfinex_username),
@@ -139,6 +142,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             collateral_account_id,
+            LedgerDebitOrCredit::Credit,
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
@@ -148,6 +152,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             principal_account_id,
+            LedgerDebitOrCredit::Credit,
             &format!("LOAN.PRINCIPAL.{}", loan_id),
             &format!("LOAN.PRINCIPAL.{}", loan_id),
             &format!("LOAN.PRINCIPAL.{}", loan_id),
@@ -157,6 +162,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             interest_account_id,
+            LedgerDebitOrCredit::Credit,
             &format!("LOAN.INTEREST.{}", loan_id),
             &format!("LOAN.INTEREST.{}", loan_id),
             &format!("LOAN.INTEREST.{}", loan_id),
@@ -166,6 +172,7 @@ impl Ledger {
         Self::assert_account_exists(
             &self.cala,
             interest_income_account_id,
+            LedgerDebitOrCredit::Credit,
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
@@ -199,6 +206,7 @@ impl Ledger {
         Self::assert_account_exists(
             cala,
             constants::CORE_ASSETS_ID.into(),
+            LedgerDebitOrCredit::Credit,
             constants::CORE_ASSETS_NAME,
             constants::CORE_ASSETS_CODE,
             &constants::CORE_ASSETS_ID.to_string(),
@@ -210,6 +218,7 @@ impl Ledger {
     async fn assert_account_exists(
         cala: &CalaClient,
         account_id: LedgerAccountId,
+        normal_balance_type: LedgerDebitOrCredit,
         name: &str,
         code: &str,
         external_id: &str,
@@ -224,6 +233,7 @@ impl Ledger {
         let err = match cala
             .create_account(
                 account_id,
+                normal_balance_type,
                 name.to_owned(),
                 code.to_owned(),
                 external_id.to_owned(),

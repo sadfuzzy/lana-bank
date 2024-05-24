@@ -9,7 +9,7 @@ use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
 
-use crate::primitives::{LedgerAccountId, LedgerJournalId, LedgerTxId};
+use crate::primitives::{LedgerAccountId, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId};
 
 use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
 
@@ -56,6 +56,7 @@ impl CalaClient {
     pub async fn create_account(
         &self,
         account_id: LedgerAccountId,
+        normal_balance_type: LedgerDebitOrCredit,
         name: String,
         code: String,
         external_id: String,
@@ -64,7 +65,10 @@ impl CalaClient {
             input: account_create::AccountCreateInput {
                 account_id: Uuid::from(account_id),
                 external_id: Some(external_id),
-                normal_balance_type: account_create::DebitOrCredit::CREDIT,
+                normal_balance_type: match normal_balance_type {
+                    LedgerDebitOrCredit::Credit => account_create::DebitOrCredit::CREDIT,
+                    LedgerDebitOrCredit::Debit => account_create::DebitOrCredit::DEBIT,
+                },
                 status: account_create::Status::ACTIVE,
                 name,
                 code,
