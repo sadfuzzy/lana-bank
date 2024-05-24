@@ -15,7 +15,7 @@ impl FixedTermLoanRepo {
 
     pub async fn create_in_tx(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
+        db: &mut Transaction<'_, Postgres>,
         new_loan: NewFixedTermLoan,
     ) -> Result<EntityUpdate<FixedTermLoan>, FixedTermLoanError> {
         sqlx::query!(
@@ -24,10 +24,10 @@ impl FixedTermLoanRepo {
             new_loan.id as FixedTermLoanId,
             new_loan.user_id as UserId,
         )
-        .execute(&mut **tx)
+        .execute(&mut **db)
         .await?;
         let mut events = new_loan.initial_events();
-        let n_new_events = events.persist(tx).await?;
+        let n_new_events = events.persist(db).await?;
         let loan = FixedTermLoan::try_from(events)?;
         Ok(EntityUpdate {
             entity: loan,
@@ -58,10 +58,10 @@ impl FixedTermLoanRepo {
 
     pub async fn persist_in_tx(
         &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         settings: &mut FixedTermLoan,
     ) -> Result<(), FixedTermLoanError> {
-        settings.events.persist(tx).await?;
+        settings.events.persist(db).await?;
         Ok(())
     }
 }

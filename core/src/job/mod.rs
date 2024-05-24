@@ -45,7 +45,7 @@ impl Jobs {
     #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
     pub async fn create_and_spawn_job<I: JobInitializer, C: serde::Serialize>(
         &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
         name: String,
         config: C,
@@ -57,15 +57,15 @@ impl Jobs {
             .job_type(<I as JobInitializer>::job_type())
             .build()
             .expect("Could not build job");
-        let job = self.repo.create_in_tx(tx, new_job).await?;
-        self.executor.spawn_job::<I>(tx, &job, None).await?;
+        let job = self.repo.create_in_tx(db, new_job).await?;
+        self.executor.spawn_job::<I>(db, &job, None).await?;
         Ok(job)
     }
 
     #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
     pub async fn create_and_spawn_job_at<I: JobInitializer, C: serde::Serialize>(
         &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
         name: String,
         config: C,
@@ -78,9 +78,9 @@ impl Jobs {
             .job_type(<I as JobInitializer>::job_type())
             .build()
             .expect("Could not build job");
-        let job = self.repo.create_in_tx(tx, new_job).await?;
+        let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor
-            .spawn_job::<I>(tx, &job, Some(schedule_at))
+            .spawn_job::<I>(db, &job, Some(schedule_at))
             .await?;
         Ok(job)
     }

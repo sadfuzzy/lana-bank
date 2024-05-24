@@ -15,7 +15,7 @@ impl JobRepo {
 
     pub async fn create_in_tx(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
+        db: &mut Transaction<'_, Postgres>,
         new_job: NewJob,
     ) -> Result<Job, JobError> {
         let id = new_job.id;
@@ -25,20 +25,20 @@ impl JobRepo {
             id as JobId,
             new_job.name,
         )
-        .execute(&mut **tx)
+        .execute(&mut **db)
         .await?;
         let mut events = new_job.initial_events();
-        events.persist(tx).await?;
+        events.persist(db).await?;
         let job = Job::try_from(events)?;
         Ok(job)
     }
 
     pub async fn persist(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
+        db: &mut Transaction<'_, Postgres>,
         mut job: Job,
     ) -> Result<(), JobError> {
-        job.events.persist(tx).await?;
+        job.events.persist(db).await?;
         Ok(())
     }
 

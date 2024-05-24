@@ -56,7 +56,7 @@ where
 
     pub async fn persist(
         &mut self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<usize, sqlx::Error> {
         let uuid: uuid::Uuid = self.entity_id.into();
 
@@ -89,7 +89,7 @@ where
         query_builder.push("RETURNING recorded_at");
         let query = query_builder.build();
 
-        let rows = query.fetch_all(&mut **tx).await?;
+        let rows = query.fetch_all(&mut **db).await?;
 
         let recorded_at: chrono::DateTime<chrono::Utc> = rows
             .last()
@@ -107,7 +107,7 @@ where
     }
 
     pub async fn batch_persist(
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         entities: impl IntoIterator<Item = Self>,
     ) -> Result<(), sqlx::Error> {
         let mut query_builder = sqlx::QueryBuilder::new(format!(
@@ -140,7 +140,7 @@ where
         );
 
         let query = query_builder.build();
-        query.execute(&mut **tx).await?;
+        query.execute(&mut **db).await?;
 
         Ok(())
     }
