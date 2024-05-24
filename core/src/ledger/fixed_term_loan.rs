@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 pub struct FixedTermLoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
     pub principal_account_id: LedgerAccountId,
+    pub interest_account_id: LedgerAccountId,
+    pub interest_income_account_id: LedgerAccountId,
 }
 
 impl FixedTermLoanAccountIds {
@@ -13,6 +15,8 @@ impl FixedTermLoanAccountIds {
         Self {
             collateral_account_id: LedgerAccountId::new(),
             principal_account_id: LedgerAccountId::new(),
+            interest_account_id: LedgerAccountId::new(),
+            interest_income_account_id: LedgerAccountId::new(),
         }
     }
 }
