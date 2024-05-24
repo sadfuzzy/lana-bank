@@ -9,12 +9,12 @@ pub struct FixedTermLoanJobConfig {
     pub loan_id: FixedTermLoanId,
 }
 
-pub struct FixedTermLoanJobInitializer {
+pub struct FixedTermLoanInterestJobInitializer {
     ledger: Ledger,
     repo: FixedTermLoanRepo,
 }
 
-impl FixedTermLoanJobInitializer {
+impl FixedTermLoanInterestJobInitializer {
     pub fn new(ledger: &Ledger, repo: FixedTermLoanRepo) -> Self {
         Self {
             ledger: ledger.clone(),
@@ -23,17 +23,17 @@ impl FixedTermLoanJobInitializer {
     }
 }
 
-const FIXED_TERM_LOAN_JOB: JobType = JobType::new("FixedTermLoanJob");
-impl JobInitializer for FixedTermLoanJobInitializer {
+const FIXED_TERM_LOAN_INTEREST_JOB: JobType = JobType::new("fixed-term-loan-interest");
+impl JobInitializer for FixedTermLoanInterestJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        FIXED_TERM_LOAN_JOB
+        FIXED_TERM_LOAN_INTEREST_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(FixedTermLoanJobRunner {
+        Ok(Box::new(FixedTermLoanInterestJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
@@ -41,19 +41,19 @@ impl JobInitializer for FixedTermLoanJobInitializer {
     }
 }
 
-pub struct FixedTermLoanJobRunner {
+pub struct FixedTermLoanInterestJobRunner {
     config: FixedTermLoanJobConfig,
     repo: FixedTermLoanRepo,
     ledger: Ledger,
 }
 
 #[async_trait]
-impl JobRunner for FixedTermLoanJobRunner {
+impl JobRunner for FixedTermLoanInterestJobRunner {
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        Ok(JobCompletion::Complete)
+        // Ok(JobCompletion::Complete)
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         // match loan.state {
         //     FixedTermLoanState::Initializing => {

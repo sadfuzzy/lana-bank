@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use sqlx::{postgres::types::PgInterval, PgPool, Postgres, Transaction};
 use tokio::sync::RwLock;
 use tracing::instrument;
@@ -57,27 +58,6 @@ impl JobExecutor {
         )
         .execute(&mut **tx)
         .await?;
-        Ok(())
-    }
-
-    pub async fn resume_job(
-        &self,
-        tx: &mut Transaction<'_, Postgres>,
-        id: JobId,
-    ) -> Result<(), JobError> {
-        let result = sqlx::query!(
-            r#"
-          UPDATE job_executions
-          SET state = 'running'
-          WHERE id = $1
-        "#,
-            id as JobId,
-        )
-        .execute(&mut **tx)
-        .await?;
-        if result.rows_affected() != 1 {
-            return Err(JobError::CouldNotResumeJob);
-        }
         Ok(())
     }
 
@@ -244,12 +224,9 @@ impl JobExecutor {
             JobCompletion::CompleteWithTx(tx) => {
                 Self::complete_job(tx, id, repo).await?;
             }
-            JobCompletion::Pause => {
+            JobCompletion::RescheduleAt(t) => {
                 let tx = pool.begin().await?;
-                Self::pause_job(tx, id, repo).await?;
-            }
-            JobCompletion::PauseWithTx(tx) => {
-                Self::pause_job(tx, id, repo).await?;
+                Self::reschedule_job(tx, id, t).await?;
             }
         }
         Ok(())
@@ -275,24 +252,22 @@ impl JobExecutor {
         Ok(())
     }
 
-    async fn pause_job(
+    async fn reschedule_job(
         mut tx: Transaction<'_, Postgres>,
         id: JobId,
-        repo: JobRepo,
+        reschedule_at: DateTime<Utc>,
     ) -> Result<(), JobError> {
-        let mut job = repo.find_by_id(id).await?;
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state = 'paused'
+          SET state = 'pending', reschedule_after = $2
           WHERE id = $1
         "#,
-            id as JobId
+            id as JobId,
+            reschedule_at,
         )
         .execute(&mut *tx)
         .await?;
-        job.pause();
-        repo.persist(&mut tx, job).await?;
         tx.commit().await?;
         Ok(())
     }

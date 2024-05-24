@@ -1,7 +1,7 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use super::error::*;
+use super::{error::*, terms::*};
 use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,10 +11,12 @@ pub enum FixedTermLoanEvent {
         id: FixedTermLoanId,
         user_id: UserId,
         account_ids: FixedTermLoanAccountIds,
+        terms: FixedTermLoanTerms,
     },
     Approved {
         tx_id: LedgerTxId,
         collateral: Satoshis,
+        principal: UsdCents,
     },
 }
 
@@ -31,6 +33,7 @@ pub struct FixedTermLoan {
     pub id: FixedTermLoanId,
     pub user_id: UserId,
     pub account_ids: FixedTermLoanAccountIds,
+    pub terms: FixedTermLoanTerms,
     pub(super) events: EntityEvents<FixedTermLoanEvent>,
 }
 
@@ -39,6 +42,7 @@ impl FixedTermLoan {
         &mut self,
         tx_id: LedgerTxId,
         collateral: Satoshis,
+        principal: UsdCents,
     ) -> Result<(), FixedTermLoanError> {
         for event in self.events.iter() {
             if let FixedTermLoanEvent::Approved { .. } = event {
@@ -46,8 +50,11 @@ impl FixedTermLoan {
             }
         }
 
-        self.events
-            .push(FixedTermLoanEvent::Approved { tx_id, collateral });
+        self.events.push(FixedTermLoanEvent::Approved {
+            tx_id,
+            collateral,
+            principal,
+        });
         Ok(())
     }
 }
@@ -67,8 +74,13 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                     id,
                     user_id,
                     account_ids,
+                    terms,
                 } => {
-                    builder = builder.id(*id).user_id(*user_id).account_ids(*account_ids);
+                    builder = builder
+                        .id(*id)
+                        .user_id(*user_id)
+                        .account_ids(*account_ids)
+                        .terms(terms.clone());
                 }
                 FixedTermLoanEvent::Approved { .. } => {}
             }
@@ -85,6 +97,10 @@ pub struct NewFixedTermLoan {
     pub(super) user_id: UserId,
     #[builder(setter(into))]
     pub(super) account_ids: FixedTermLoanAccountIds,
+    #[builder(setter(into))]
+    pub(super) interest_interval: InterestInterval,
+    #[builder(setter(into))]
+    pub(super) rate: FixedTermLoanRate,
 }
 
 impl NewFixedTermLoan {
@@ -99,6 +115,10 @@ impl NewFixedTermLoan {
                 id: self.id,
                 user_id: self.user_id,
                 account_ids: self.account_ids,
+                terms: FixedTermLoanTerms {
+                    interval: self.interest_interval,
+                    rate: self.rate,
+                },
             }],
         )
     }

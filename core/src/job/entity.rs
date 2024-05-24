@@ -31,8 +31,6 @@ pub enum JobEvent {
         description: Option<String>,
         config: serde_json::Value,
     },
-    Paused,
-    Resumed,
     Completed,
 }
 
@@ -62,14 +60,6 @@ impl Job {
     pub(super) fn complete(&mut self) {
         self.events.push(JobEvent::Completed);
     }
-
-    pub(super) fn pause(&mut self) {
-        self.events.push(JobEvent::Paused);
-    }
-
-    pub(super) fn resume(&mut self) {
-        self.events.push(JobEvent::Resumed);
-    }
 }
 
 impl Entity for Job {
@@ -97,7 +87,7 @@ impl TryFrom<EntityEvents<JobEvent>> for Job {
                         .description(description.clone())
                         .config(config.clone());
                 }
-                JobEvent::Paused | JobEvent::Resumed | JobEvent::Completed => (),
+                JobEvent::Completed => {}
             }
         }
         builder.events(events).build()

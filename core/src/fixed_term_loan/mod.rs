@@ -1,7 +1,8 @@
 mod entity;
 pub mod error;
-// mod job;
+mod job;
 mod repo;
+mod terms;
 
 use sqlx::PgPool;
 use tracing::instrument;
@@ -77,7 +78,7 @@ impl FixedTermLoans {
         let user = self.users.find_by_id(loan.user_id).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
-        loan.approve(tx_id, collateral)?;
+        loan.approve(tx_id, collateral, principal)?;
         self.repo.persist_in_tx(&mut tx, &mut loan).await?;
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)

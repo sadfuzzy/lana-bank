@@ -61,19 +61,6 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "lava.jobs.resume_job", skip(self, tx))]
-    pub async fn resume_job(
-        &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        id: JobId,
-    ) -> Result<(), JobError> {
-        let mut job = self.repo.find_by_id(id).await?;
-        job.resume();
-        self.executor.resume_job(tx, id).await?;
-        self.repo.persist(tx, job).await?;
-        Ok(())
-    }
-
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
         self.executor.start_poll().await
     }
