@@ -75,15 +75,6 @@ impl FixedTermLoans {
             .build()
             .expect("Could not build FixedTermLoan");
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
-        self.jobs()
-            .create_and_spawn_job_at::<FixedTermLoanInterestJobInitializer, _>(
-                &mut tx,
-                loan.id,
-                format!("loan-interest-{}", loan.id),
-                FixedTermLoanJobConfig { loan_id: loan.id },
-                loan.next_interest_at().expect("first interest payment"),
-            )
-            .await?;
         tx.commit().await?;
         Ok(loan)
     }
@@ -112,6 +103,15 @@ impl FixedTermLoans {
                 collateral,
                 principal,
                 format!("{}-approval", loan.id),
+            )
+            .await?;
+        self.jobs()
+            .create_and_spawn_job_at::<FixedTermLoanInterestJobInitializer, _>(
+                &mut tx,
+                loan.id,
+                format!("loan-interest-{}", loan.id),
+                FixedTermLoanJobConfig { loan_id: loan.id },
+                loan.next_interest_at().expect("first interest payment"),
             )
             .await?;
         tx.commit().await?;

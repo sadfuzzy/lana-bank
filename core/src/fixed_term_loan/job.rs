@@ -60,7 +60,10 @@ impl JobRunner for FixedTermLoanInterestJobRunner {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         let tx_id = LedgerTxId::new();
         let tx_ref = loan.record_interest_transaction(tx_id);
-        println!("Loan interest job running for loan: {:?}", loan.id);
+        println!(
+            "Loan interest job running for loan: {:?} - ref {}",
+            loan.id, tx_ref
+        );
         let mut db_tx = current_job.pool().begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
