@@ -22,7 +22,7 @@ pub struct User {
 impl User {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<UserBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let balance = app.ledger().get_balance(self.account_ids).await?;
+        let balance = app.ledger().get_user_balance(self.account_ids).await?;
         Ok(UserBalance::from(balance))
     }
 }

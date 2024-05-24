@@ -32,8 +32,8 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
-    #[instrument(name = "lava.ledger.get_balance", skip(self), err)]
-    pub async fn get_balance(
+    #[instrument(name = "lava.ledger.get_user_balance", skip(self), err)]
+    pub async fn get_user_balance(
         &self,
         account_ids: UserLedgerAccountIds,
     ) -> Result<UserBalance, LedgerError> {
