@@ -1,3 +1,7 @@
+type Checking {
+	usdBalance: UsdCents!
+}
+
 type FixedTermLoan {
 	loanId: UUID!
 	userId: UUID!
@@ -49,7 +53,12 @@ scalar UsdCents
 type User {
 	userId: UUID!
 	bitfinexUsername: String!
+	balance: UserBalance!
+}
+
+type UserBalance {
 	unallocatedCollateral: UnallocatedCollateral!
+	checking: Checking!
 }
 
 input UserCreateInput {

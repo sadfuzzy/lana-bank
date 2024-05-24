@@ -1,20 +1,29 @@
-query UserBalances($journalId: UUID!, $unallocated_collateral_id: UUID!, $checking_id: UUID!) {
-  account(id: $id) {
-    accountId
-    usdBalance: balance(journalId: $journalId, currency: "USD"){
-      settled {
-        normalBalance {
-          units
-          currency
-        }
+query UserBalance(
+  $journalId: UUID!
+  $unallocatedCollateralId: UUID!
+  $checkingId: UUID!
+) {
+  unallocated_collateral: balance(
+    journalId: $journalId
+    accountId: $unallocatedCollateralId
+    currency: "BTC"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
       }
     }
-    btcBalance: balance(journalId: $journalId, currency: "BTC"){
-      settled {
-        normalBalance {
-          units
-          currency
-        }
+  }
+  checking: balance(
+    journalId: $journalId
+    accountId: $checkingId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
       }
     }
   }

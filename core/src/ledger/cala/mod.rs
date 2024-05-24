@@ -117,6 +117,22 @@ impl CalaClient {
             .map(T::from))
     }
 
+    #[instrument(name = "lava.ledger.cala.get_user_balance", skip(self), err)]
+    pub async fn get_user_balance<T: From<user_balance::ResponseData>>(
+        &self,
+        account_ids: UserLedgerAccountIds,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = user_balance::Variables {
+            journal_id: super::constants::CORE_JOURNAL_ID,
+            unallocated_collateral_id: Uuid::from(account_ids.unallocated_collateral_id),
+            checking_id: Uuid::from(account_ids.checking_id),
+        };
+        let response =
+            Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
+
+        Ok(response.data.map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
     pub async fn find_tx_template_by_code<
         T: From<tx_template_by_code::TxTemplateByCodeTxTemplateByCode>,
