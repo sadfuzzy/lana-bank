@@ -2,8 +2,10 @@ mutation UserTopupCollateral($input: UserTopupCollateralInput!) {
   userTopupCollateral(input: $input) {
     user {
       userId
-      unallocatedCollateral {
-        btcBalance
+      balance {
+        unallocatedCollateral {
+          btcBalance
+        }
       }
     }
   }

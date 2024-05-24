@@ -3,8 +3,13 @@ mutation userCreate($input: UserCreateInput!) {
     user {
       userId
       bitfinexUsername
-      unallocatedCollateral {
-        btcBalance
+      balance {
+        unallocatedCollateral {
+          btcBalance
+        }
+        checking {
+          usdBalance
+        }
       }
     }
   }

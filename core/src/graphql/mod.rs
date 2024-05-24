@@ -3,6 +3,7 @@ mod primitives;
 mod schema;
 mod unallocated_collateral;
 mod user;
+mod user_balance;
 
 use async_graphql::*;
 

@@ -45,6 +45,17 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
+    #[instrument(name = "lava.ledger.get_balance", skip(self), err)]
+    pub async fn get_balance(
+        &self,
+        account_ids: UserLedgerAccountIds,
+    ) -> Result<UserBalance, LedgerError> {
+        self.cala
+            .get_user_balance(account_ids)
+            .await?
+            .ok_or(LedgerError::AccountNotFound)
+    }
+
     #[instrument(
         name = "lava.ledger.create_unallocated_collateral_account_for_user",
         skip(self),

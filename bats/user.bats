@@ -25,7 +25,7 @@ teardown_file() {
   user=$(graphql_output '.data.userCreate.user.bitfinexUsername')
   [[ "$user" == "$username" ]] || exit 1;
 
-  sats=$(graphql_output '.data.userCreate.user.unallocatedCollateral.btcBalance')
+  sats=$(graphql_output '.data.userCreate.user.balance.unallocatedCollateral.btcBalance')
   [[ "$sats" == "0" ]] || exit 1;
 }
 
@@ -43,7 +43,7 @@ teardown_file() {
   exec_graphql 'user-create' "$variables"
 
   user_id=$(graphql_output '.data.userCreate.user.userId')
-  sats=$(graphql_output '.data.userCreate.user.unallocatedCollateral.btcBalance')
+  sats=$(graphql_output '.data.userCreate.user.balance.unallocatedCollateral.btcBalance')
   [[ "$sats" == "0" ]] || exit 1;
 
   variables=$(
@@ -58,7 +58,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'topup-unallocated-collateral' "$variables"
-  sats=$(graphql_output '.data.userTopupCollateral.user.unallocatedCollateral.btcBalance')
+  sats=$(graphql_output '.data.userTopupCollateral.user.balance.unallocatedCollateral.btcBalance')
   echo $(graphql_output)
   [[ "$sats" == "100000" ]] || exit 1;
 }

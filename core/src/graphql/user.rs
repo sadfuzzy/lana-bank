@@ -1,11 +1,8 @@
 use async_graphql::*;
 
-use crate::{
-    app::LavaApp,
-    primitives::{LedgerAccountId, Satoshis},
-};
+use crate::{app::LavaApp, ledger::user::UserLedgerAccountIds, primitives::Satoshis};
 
-use super::{primitives::UUID, unallocated_collateral::*};
+use super::{primitives::UUID, user_balance::*};
 
 #[derive(InputObject)]
 pub struct UserCreateInput {
@@ -18,21 +15,15 @@ pub struct User {
     user_id: UUID,
     bitfinex_username: String,
     #[graphql(skip)]
-    unallocated_collateral_ledger_account_id: LedgerAccountId,
+    account_ids: UserLedgerAccountIds,
 }
 
 #[ComplexObject]
 impl User {
-    async fn unallocated_collateral(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<UnallocatedCollateral> {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<UserBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account = app
-            .ledger()
-            .get_unallocated_collateral(self.unallocated_collateral_ledger_account_id)
-            .await?;
-        Ok(UnallocatedCollateral::from(account))
+        let balance = app.ledger().get_balance(self.account_ids).await?;
+        Ok(UserBalance::from(balance))
     }
 }
 
@@ -41,7 +32,7 @@ impl From<crate::user::User> for User {
         User {
             user_id: UUID::from(user.id),
             bitfinex_username: user.bitfinex_username,
-            unallocated_collateral_ledger_account_id: user.account_ids.unallocated_collateral_id,
+            account_ids: user.account_ids,
         }
     }
 }
