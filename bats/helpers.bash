@@ -1,6 +1,9 @@
 REPO_ROOT=$(git rev-parse --show-toplevel)
 COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 
+CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
+mkdir -p "$CACHE_DIR"
+
 GQL_ENDPOINT="http://localhost:5252/graphql"
 
 LAVG_HOME="${LAVG_HOME:-.lava}"
@@ -134,4 +137,12 @@ random_uuid() {
   else
     uuidgen
   fi
+}
+
+cache_value() {
+  echo $2 >${CACHE_DIR}/$1
+}
+
+read_value() {
+  cat ${CACHE_DIR}/$1
 }
