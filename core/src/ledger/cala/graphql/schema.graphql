@@ -9,6 +9,8 @@ type Account {
 	externalId: String
 	description: String
 	metadata: JSON
+	createdAt: Timestamp!
+	modifiedAt: Timestamp!
 	balance(journalId: UUID!, currency: CurrencyCode!): Balance
 }
 
@@ -157,6 +159,8 @@ type Journal {
 	name: String!
 	status: Status!
 	description: String
+	createdAt: Timestamp!
+	modifiedAt: Timestamp!
 }
 
 input JournalCreateInput {
@@ -240,6 +244,8 @@ type Query {
 	accounts(first: Int!, after: String): AccountConnection!
 	journal(id: UUID!): Journal
 	balance(journalId: UUID!, accountId: UUID!, currency: CurrencyCode!): Balance
+	transaction(id: UUID!): Transaction
+	transactionByExternalId(externalId: String!): Transaction
 	txTemplate(id: UUID!): TxTemplate
 	txTemplateByCode(code: String!): TxTemplate
 	jobs(first: Int!, after: String): JobConnection!
@@ -250,6 +256,8 @@ enum Status {
 	LOCKED
 }
 
+
+scalar Timestamp
 
 type Transaction {
 	id: ID!
@@ -262,6 +270,8 @@ type Transaction {
 	externalId: String
 	description: String
 	metadata: JSON
+	createdAt: Timestamp!
+	modifiedAt: Timestamp!
 }
 
 input TransactionInput {
@@ -289,6 +299,8 @@ type TxTemplate {
 	entries: [EntryInput!]!
 	description: String
 	metadata: JSON
+	createdAt: Timestamp!
+	modifiedAt: Timestamp!
 }
 
 input TxTemplateCreateInput {
