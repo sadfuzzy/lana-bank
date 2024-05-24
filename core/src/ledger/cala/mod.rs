@@ -269,6 +269,39 @@ impl CalaClient {
         Ok(())
     }
 
+    #[instrument(name = "lava.ledger.cala.execute_interest_tx", skip(self), err)]
+    pub async fn execute_interest_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        // let variables = post_approve_loan_transaction::Variables {
+        //     transaction_id: transaction_id.into(),
+        //     unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+        //     loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+        //     loan_principal_account: loan_account_ids.principal_account_id.into(),
+        //     checking_account: user_account_ids.checking_id.into(),
+        //     collateral_amount,
+        //     principal_amount,
+        //     external_id,
+        // };
+        // let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+        //     &self.client,
+        //     &self.url,
+        //     variables,
+        // )
+        // .await?;
+
+        // response
+        //     .data
+        //     .map(|d| d.post_transaction.transaction.transaction_id)
+        //     .ok_or_else(|| CalaError::MissingDataField)?;
+        // Ok(())
+        Ok(())
+    }
+
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
         client: &ReqwestClient,
         url: U,

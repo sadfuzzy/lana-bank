@@ -4,6 +4,7 @@ mod job;
 mod repo;
 mod terms;
 
+use job::*;
 use sqlx::PgPool;
 use tracing::instrument;
 
@@ -18,6 +19,7 @@ use crate::{
 pub use entity::*;
 use error::*;
 use repo::*;
+pub use terms::*;
 
 #[derive(Clone)]
 pub struct FixedTermLoans {
@@ -31,11 +33,15 @@ pub struct FixedTermLoans {
 impl FixedTermLoans {
     pub fn new(
         pool: &PgPool,
-        _registry: &mut JobRegistry,
+        registry: &mut JobRegistry,
         users: &UserRepo,
         ledger: &Ledger,
     ) -> Self {
         let repo = FixedTermLoanRepo::new(pool);
+        registry.add_initializer(FixedTermLoanInterestJobInitializer::new(
+            ledger,
+            repo.clone(),
+        ));
         Self {
             repo,
             users: users.clone(),
@@ -49,6 +55,10 @@ impl FixedTermLoans {
         self.jobs = Some(jobs.clone());
     }
 
+    pub fn jobs(&self) -> &Jobs {
+        self.jobs.as_ref().expect("Jobs must already be set")
+    }
+
     #[instrument(name = "lava.fixed_term_loans.create_loan_for_user", skip(self), err)]
     pub async fn create_loan_for_user(
         &self,
@@ -60,9 +70,20 @@ impl FixedTermLoans {
             .id(loan_id)
             .user_id(user_id)
             .account_ids(FixedTermLoanAccountIds::new())
+            .interest_interval(InterestInterval::Secondly)
+            .rate(FixedTermLoanRate::from_bips(5))
             .build()
             .expect("Could not build FixedTermLoan");
         let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
+        self.jobs()
+            .create_and_spawn_job_at::<FixedTermLoanInterestJobInitializer, _>(
+                &mut tx,
+                loan.id,
+                format!("loan-interest-{}", loan.id),
+                FixedTermLoanJobConfig { loan_id: loan.id },
+                loan.next_interest_at().expect("first interest payment"),
+            )
+            .await?;
         tx.commit().await?;
         Ok(loan)
     }

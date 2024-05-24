@@ -2,7 +2,11 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
 use super::repo::*;
-use crate::{job::*, ledger::*, primitives::FixedTermLoanId};
+use crate::{
+    job::*,
+    ledger::*,
+    primitives::{FixedTermLoanId, LedgerTxId, UsdCents},
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct FixedTermLoanJobConfig {
@@ -51,22 +55,27 @@ pub struct FixedTermLoanInterestJobRunner {
 impl JobRunner for FixedTermLoanInterestJobRunner {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // Ok(JobCompletion::Complete)
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
-        // match loan.state {
-        //     FixedTermLoanState::Initializing => {
-        //         let loan_id = self.ledger.create_accounts_for_loan(loan.id).await?;
-        //         loan.set_ledger_account_id(loan_id)?;
-        //         self.repo.persist(&mut loan).await?;
-        //         return Ok(JobCompletion::Pause);
-        //     }
-        //     FixedTermLoanState::Collateralized => {
-        //         // update USD allocation
-        //     }
-        //     _ => (),
-        // }
-        Ok(JobCompletion::Complete)
+        let tx_id = LedgerTxId::new();
+        let tx_ref = loan.record_interest_transaction(tx_id);
+        println!("Loan interest job running for loan: {:?}", loan.id);
+        let mut db_tx = current_job.pool().begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+
+        self.ledger
+            .record_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
+            .await?;
+
+        match loan.next_interest_at() {
+            Some(next_interest_at) => {
+                Ok(JobCompletion::RescheduleAtWithTx(db_tx, next_interest_at))
+            }
+            None => {
+                println!("Loan interest job completed for loan: {:?}", loan.id);
+                Ok(JobCompletion::CompleteWithTx(db_tx))
+            }
+        }
     }
 }

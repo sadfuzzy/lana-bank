@@ -5,12 +5,18 @@ use serde::{Deserialize, Serialize};
 #[serde(transparent)]
 pub struct FixedTermLoanRate(Decimal);
 
+impl FixedTermLoanRate {
+    pub fn from_bips(bips: u32) -> Self {
+        FixedTermLoanRate(Decimal::from(bips) / Decimal::from(10_000))
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum InterestInterval {
+    Secondly,
+    Daily,
+    Weekly,
     Monthly,
-    Quarterly,
-    SemiAnnually,
-    Annually,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

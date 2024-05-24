@@ -18,6 +18,7 @@ pub enum JobCompletion {
     Complete,
     CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
     RescheduleAt(DateTime<Utc>),
+    RescheduleAtWithTx(sqlx::Transaction<'static, sqlx::Postgres>, DateTime<Utc>),
 }
 
 #[async_trait]

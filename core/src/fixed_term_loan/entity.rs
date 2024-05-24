@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +18,10 @@ pub enum FixedTermLoanEvent {
         tx_id: LedgerTxId,
         collateral: Satoshis,
         principal: UsdCents,
+    },
+    InterestRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
     },
 }
 
@@ -57,6 +62,34 @@ impl FixedTermLoan {
         });
         Ok(())
     }
+
+    pub fn record_interest_transaction(&mut self, tx_id: LedgerTxId) -> String {
+        let tx_ref = format!(
+            "{}-interest-{}",
+            self.id,
+            self.count_interest_payments() + 1
+        );
+        self.events.push(FixedTermLoanEvent::InterestRecorded {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+        });
+        tx_ref
+    }
+
+    fn count_interest_payments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, FixedTermLoanEvent::InterestRecorded { .. }))
+            .count()
+    }
+
+    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
+        if self.count_interest_payments() <= 1 {
+            Some(Utc::now())
+        } else {
+            None
+        }
+    }
 }
 
 impl Entity for FixedTermLoan {
@@ -83,6 +116,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                         .terms(terms.clone());
                 }
                 FixedTermLoanEvent::Approved { .. } => {}
+                FixedTermLoanEvent::InterestRecorded { .. } => {}
             }
         }
         builder.events(events).build()

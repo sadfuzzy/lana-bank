@@ -8,6 +8,7 @@ mod traits;
 
 pub mod error;
 
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use tracing::instrument;
 
@@ -57,7 +58,30 @@ impl Jobs {
             .build()
             .expect("Could not build job");
         let job = self.repo.create_in_tx(tx, new_job).await?;
-        self.executor.spawn_job::<I>(tx, &job).await?;
+        self.executor.spawn_job::<I>(tx, &job, None).await?;
+        Ok(job)
+    }
+
+    #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
+    pub async fn create_and_spawn_job_at<I: JobInitializer, C: serde::Serialize>(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        id: impl Into<JobId> + std::fmt::Debug,
+        name: String,
+        config: C,
+        schedule_at: DateTime<Utc>,
+    ) -> Result<Job, JobError> {
+        let new_job = NewJob::builder()
+            .id(id.into())
+            .name(name)
+            .config(config)?
+            .job_type(<I as JobInitializer>::job_type())
+            .build()
+            .expect("Could not build job");
+        let job = self.repo.create_in_tx(tx, new_job).await?;
+        self.executor
+            .spawn_job::<I>(tx, &job, Some(schedule_at))
+            .await?;
         Ok(job)
     }
 

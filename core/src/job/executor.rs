@@ -39,6 +39,7 @@ impl JobExecutor {
         &self,
         tx: &mut Transaction<'_, Postgres>,
         job: &Job,
+        schedule_at: Option<DateTime<Utc>>,
     ) -> Result<(), JobError> {
         if job.job_type != I::job_type() {
             return Err(JobError::JobTypeMismatch(
@@ -51,10 +52,11 @@ impl JobExecutor {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id)
-          VALUES ($1)
+          INSERT INTO job_executions (id, reschedule_after)
+          VALUES ($1, COALESCE($2, NOW()))
         "#,
             job.id as JobId,
+            schedule_at
         )
         .execute(&mut **tx)
         .await?;
@@ -226,6 +228,9 @@ impl JobExecutor {
             }
             JobCompletion::RescheduleAt(t) => {
                 let tx = pool.begin().await?;
+                Self::reschedule_job(tx, id, t).await?;
+            }
+            JobCompletion::RescheduleAtWithTx(tx, t) => {
                 Self::reschedule_job(tx, id, t).await?;
             }
         }
