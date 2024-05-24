@@ -9,7 +9,8 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
+    FixedTermLoanId, LedgerAccountId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId,
+    Satoshis, UsdCents,
 };
 
 use cala::*;
@@ -53,7 +54,7 @@ impl Ledger {
         bitfinex_username: &str,
     ) -> Result<UserLedgerAccountIds, LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             account_ids.unallocated_collateral_id,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
@@ -62,7 +63,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             account_ids.checking_id,
             &format!("USERS.CHECKING.{}", bitfinex_username),
@@ -136,7 +137,7 @@ impl Ledger {
             interest_income_account_id,
         }: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             collateral_account_id,
             &format!("LOAN.COLLATERAL.{}", loan_id),
@@ -145,7 +146,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             &self.cala,
             principal_account_id,
             &format!("LOAN.PRINCIPAL.{}", loan_id),
@@ -154,7 +155,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             &self.cala,
             interest_account_id,
             &format!("LOAN.INTEREST.{}", loan_id),
@@ -163,7 +164,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             interest_income_account_id,
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
@@ -196,7 +197,7 @@ impl Ledger {
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             cala,
             constants::CORE_ASSETS_ID.into(),
             constants::CORE_ASSETS_NAME,
@@ -208,6 +209,7 @@ impl Ledger {
     }
 
     async fn assert_account_exists(
+        normal_balance_type: LedgerDebitOrCredit,
         cala: &CalaClient,
         account_id: LedgerAccountId,
         name: &str,
@@ -224,6 +226,7 @@ impl Ledger {
         let err = match cala
             .create_account(
                 account_id,
+                normal_balance_type,
                 name.to_owned(),
                 code.to_owned(),
                 external_id.to_owned(),
@@ -238,6 +241,42 @@ impl Ledger {
             .await
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
+    }
+
+    async fn assert_credit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        external_id: &str,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            LedgerDebitOrCredit::Credit,
+            cala,
+            account_id,
+            name,
+            code,
+            external_id,
+        )
+        .await
+    }
+
+    async fn assert_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        external_id: &str,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            LedgerDebitOrCredit::Debit,
+            cala,
+            account_id,
+            name,
+            code,
+            external_id,
+        )
+        .await
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
