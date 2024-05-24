@@ -37,7 +37,7 @@ impl JobExecutor {
 
     pub async fn spawn_job<I: JobInitializer>(
         &self,
-        tx: &mut Transaction<'_, Postgres>,
+        db: &mut Transaction<'_, Postgres>,
         job: &Job,
         schedule_at: Option<DateTime<Utc>>,
     ) -> Result<(), JobError> {
@@ -58,7 +58,7 @@ impl JobExecutor {
             job.id as JobId,
             schedule_at
         )
-        .execute(&mut **tx)
+        .execute(&mut **db)
         .await?;
         Ok(())
     }
@@ -237,7 +237,7 @@ impl JobExecutor {
         Ok(())
     }
     async fn complete_job(
-        mut tx: Transaction<'_, Postgres>,
+        mut db: Transaction<'_, Postgres>,
         id: JobId,
         repo: JobRepo,
     ) -> Result<(), JobError> {
@@ -249,16 +249,16 @@ impl JobExecutor {
         "#,
             id as JobId
         )
-        .execute(&mut *tx)
+        .execute(&mut *db)
         .await?;
         job.complete();
-        repo.persist(&mut tx, job).await?;
-        tx.commit().await?;
+        repo.persist(&mut db, job).await?;
+        db.commit().await?;
         Ok(())
     }
 
     async fn reschedule_job(
-        mut tx: Transaction<'_, Postgres>,
+        mut db: Transaction<'_, Postgres>,
         id: JobId,
         reschedule_at: DateTime<Utc>,
     ) -> Result<(), JobError> {
@@ -271,9 +271,9 @@ impl JobExecutor {
             id as JobId,
             reschedule_at,
         )
-        .execute(&mut *tx)
+        .execute(&mut *db)
         .await?;
-        tx.commit().await?;
+        db.commit().await?;
         Ok(())
     }
 }

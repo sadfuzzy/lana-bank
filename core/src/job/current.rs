@@ -29,7 +29,7 @@ impl CurrentJob {
 
     pub async fn update_payload<T: Serialize>(
         &mut self,
-        tx: &mut Transaction<'_, Postgres>,
+        db: &mut Transaction<'_, Postgres>,
         payload: T,
     ) -> Result<(), JobError> {
         let payload_json =
@@ -43,7 +43,7 @@ impl CurrentJob {
             payload_json,
             self.id as JobId
         )
-        .execute(&mut **tx)
+        .execute(&mut **db)
         .await?;
         self.payload_json = Some(payload_json);
         Ok(())
