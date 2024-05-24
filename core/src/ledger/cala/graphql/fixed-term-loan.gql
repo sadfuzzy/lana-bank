@@ -1,0 +1,56 @@
+query FixedTermLoanBalance(
+  $journalId: UUID!
+  $collateralId: UUID!
+  $principalId: UUID!
+  $interestIncomeId: UUID!
+  $interestId: UUID!
+) {
+  collateral: balance(
+    journalId: $journalId
+    accountId: $collateralId
+    currency: "BTC"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  principal: balance(
+    journalId: $journalId
+    accountId: $principalId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  interestIncome: balance(
+    journalId: $journalId
+    accountId: $interestIncomeId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+  interest: balance(
+    journalId: $journalId
+    accountId: $interestId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+}

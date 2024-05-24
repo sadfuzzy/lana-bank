@@ -81,7 +81,7 @@ impl UsdCents {
     pub fn from_usd(usd: Decimal) -> Self {
         let cents = usd * CENTS_PER_USD;
         assert!(cents.trunc() == cents, "Cents must be an integer");
-        Self(u64::try_from(cents).expect("Cents must be an integer"))
+        Self(u64::try_from(cents).expect("Cents must be a positive integer"))
     }
 
     pub fn into_inner(self) -> u64 {

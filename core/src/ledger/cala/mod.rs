@@ -137,6 +137,25 @@ impl CalaClient {
         Ok(response.data.map(T::from))
     }
 
+    #[instrument(name = "lava.ledger.cala.get_fixed_term_loan_balance", skip(self), err)]
+    pub async fn get_fixed_term_loan_balance<T: From<fixed_term_loan_balance::ResponseData>>(
+        &self,
+        account_ids: FixedTermLoanAccountIds,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = fixed_term_loan_balance::Variables {
+            journal_id: super::constants::CORE_JOURNAL_ID,
+            collateral_id: Uuid::from(account_ids.collateral_account_id),
+            principal_id: Uuid::from(account_ids.principal_account_id),
+            interest_id: Uuid::from(account_ids.interest_account_id),
+            interest_income_id: Uuid::from(account_ids.interest_income_account_id),
+        };
+        let response =
+            Self::traced_gql_request::<FixedTermLoanBalance, _>(&self.client, &self.url, variables)
+                .await?;
+
+        Ok(response.data.map(T::from))
+    }
+
     #[instrument(name = "lava.ledger.cala.find_tx_template_by_code", skip(self), err)]
     pub async fn find_tx_template_by_code<
         T: From<tx_template_by_code::TxTemplateByCodeTxTemplateByCode>,
