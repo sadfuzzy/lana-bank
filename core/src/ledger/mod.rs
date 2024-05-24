@@ -87,6 +87,17 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.get_fixed_term_loan_balance", skip(self), err)]
+    pub async fn get_fixed_term_loan_balance(
+        &self,
+        account_ids: FixedTermLoanAccountIds,
+    ) -> Result<FixedTermLoanBalance, LedgerError> {
+        self.cala
+            .get_fixed_term_loan_balance(account_ids)
+            .await?
+            .ok_or(LedgerError::AccountNotFound)
+    }
+
     pub async fn approve_loan(
         &self,
         tx_id: LedgerTxId,

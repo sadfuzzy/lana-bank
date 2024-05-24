@@ -2,9 +2,14 @@ type Checking {
 	usdBalance: UsdCents!
 }
 
+type Collateral {
+	btcBalance: Satoshis!
+}
+
 type FixedTermLoan {
 	loanId: UUID!
 	userId: UUID!
+	balance: FixedTermLoanBalance!
 }
 
 input FixedTermLoanApproveInput {
@@ -15,6 +20,13 @@ input FixedTermLoanApproveInput {
 
 type FixedTermLoanApprovePayload {
 	loan: FixedTermLoan!
+}
+
+type FixedTermLoanBalance {
+	collateral: Collateral!
+	principal: Principal!
+	totalInterestIncurred: InterestIncome!
+	unpaidInterestIncurred: InterestIncurredAndUnpaid!
 }
 
 input FixedTermLoanCreateInput {
@@ -28,11 +40,23 @@ type FixedTermLoanCreatePayload {
 
 
 
+type InterestIncome {
+	usdBalance: UsdCents!
+}
+
+type InterestIncurredAndUnpaid {
+	usdBalance: UsdCents!
+}
+
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
+}
+
+type Principal {
+	usdBalance: UsdCents!
 }
 
 type Query {

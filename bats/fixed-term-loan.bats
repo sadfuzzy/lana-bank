@@ -36,6 +36,10 @@ teardown_file() {
   exec_graphql 'fixed-term-loan-create' "$variables"
   id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
   [[ "$id" != null ]] || exit 1;
+  collateral_balance=$(graphql_output '.data.fixedTermLoanCreate.loan.balance.collateral.btcBalance')
+  [[ "$collateral_balance" == "0" ]] || exit 1;
+  principal_balance=$(graphql_output '.data.fixedTermLoanCreate.loan.balance.principal.usdBalance')
+  [[ "$principal_balance" == "0" ]] || exit 1;
 
   variables=$(
     jq -n \
@@ -50,6 +54,9 @@ teardown_file() {
   )
   exec_graphql 'approve-loan' "$variables"
   loan_id=$(graphql_output '.data.fixedTermLoanApprove.loan.loanId')
-  echo $(graphql_output)
   [[ "$id" == "$loan_id" ]] || exit 1;
+  collateral_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.collateral.btcBalance')
+  [[ "$collateral_balance" == "100000" ]] || exit 1;
+  principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.principal.usdBalance')
+  [[ "$principal_balance" == "200000" ]] || exit 1;
 }
