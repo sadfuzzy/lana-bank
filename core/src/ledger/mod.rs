@@ -4,7 +4,6 @@ mod constants;
 pub mod error;
 pub mod fixed_term_loan;
 mod tx_template;
-mod unallocated_collateral;
 pub mod user;
 
 use tracing::instrument;
@@ -17,7 +16,6 @@ use cala::*;
 pub use config::*;
 use error::*;
 use fixed_term_loan::*;
-pub use unallocated_collateral::*;
 use user::*;
 
 #[derive(Clone)]
@@ -32,17 +30,6 @@ impl Ledger {
         Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
-    }
-
-    #[instrument(name = "lava.ledger.get_unallocated_collateral", skip(self), err)]
-    pub async fn get_unallocated_collateral(
-        &self,
-        id: LedgerAccountId,
-    ) -> Result<UnallocatedCollateral, LedgerError> {
-        self.cala
-            .find_account_by_id(id)
-            .await?
-            .ok_or(LedgerError::AccountNotFound)
     }
 
     #[instrument(name = "lava.ledger.get_balance", skip(self), err)]
