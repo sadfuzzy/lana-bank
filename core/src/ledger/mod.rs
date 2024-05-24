@@ -54,20 +54,18 @@ impl Ledger {
         bitfinex_username: &str,
     ) -> Result<UserLedgerAccountIds, LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             account_ids.unallocated_collateral_id,
-            LedgerDebitOrCredit::Credit,
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
             &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             account_ids.checking_id,
-            LedgerDebitOrCredit::Credit,
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("USERS.CHECKING.{}", bitfinex_username),
             &format!("usr:bfx-{}:checking", bitfinex_username),
@@ -139,40 +137,36 @@ impl Ledger {
             interest_income_account_id,
         }: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             collateral_account_id,
-            LedgerDebitOrCredit::Credit,
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
             &format!("LOAN.COLLATERAL.{}", loan_id),
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             &self.cala,
             principal_account_id,
-            LedgerDebitOrCredit::Credit,
             &format!("LOAN.PRINCIPAL.{}", loan_id),
             &format!("LOAN.PRINCIPAL.{}", loan_id),
             &format!("LOAN.PRINCIPAL.{}", loan_id),
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             &self.cala,
             interest_account_id,
-            LedgerDebitOrCredit::Credit,
             &format!("LOAN.INTEREST.{}", loan_id),
             &format!("LOAN.INTEREST.{}", loan_id),
             &format!("LOAN.INTEREST.{}", loan_id),
         )
         .await?;
 
-        Self::assert_account_exists(
+        Self::assert_credit_account_exists(
             &self.cala,
             interest_income_account_id,
-            LedgerDebitOrCredit::Credit,
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
@@ -203,10 +197,9 @@ impl Ledger {
     }
 
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_account_exists(
+        Self::assert_debit_account_exists(
             cala,
             constants::CORE_ASSETS_ID.into(),
-            LedgerDebitOrCredit::Credit,
             constants::CORE_ASSETS_NAME,
             constants::CORE_ASSETS_CODE,
             &constants::CORE_ASSETS_ID.to_string(),
@@ -216,9 +209,9 @@ impl Ledger {
     }
 
     async fn assert_account_exists(
+        normal_balance_type: LedgerDebitOrCredit,
         cala: &CalaClient,
         account_id: LedgerAccountId,
-        normal_balance_type: LedgerDebitOrCredit,
         name: &str,
         code: &str,
         external_id: &str,
@@ -248,6 +241,42 @@ impl Ledger {
             .await
             .map_err(|_| err)?
             .ok_or_else(|| LedgerError::CouldNotAssertAccountExits)
+    }
+
+    async fn assert_credit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        external_id: &str,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            LedgerDebitOrCredit::Credit,
+            cala,
+            account_id,
+            name,
+            code,
+            external_id,
+        )
+        .await
+    }
+
+    async fn assert_debit_account_exists(
+        cala: &CalaClient,
+        account_id: LedgerAccountId,
+        name: &str,
+        code: &str,
+        external_id: &str,
+    ) -> Result<LedgerAccountId, LedgerError> {
+        Self::assert_account_exists(
+            LedgerDebitOrCredit::Debit,
+            cala,
+            account_id,
+            name,
+            code,
+            external_id,
+        )
+        .await
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
