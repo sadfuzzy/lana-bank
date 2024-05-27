@@ -145,8 +145,7 @@ impl CalaClient {
         let variables = fixed_term_loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            principal_id: Uuid::from(account_ids.principal_account_id),
-            interest_id: Uuid::from(account_ids.interest_account_id),
+            loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
             interest_income_id: Uuid::from(account_ids.interest_income_account_id),
         };
         let response =
@@ -276,7 +275,7 @@ impl CalaClient {
             transaction_id: transaction_id.into(),
             unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_principal_account: loan_account_ids.principal_account_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             checking_account: user_account_ids.checking_id.into(),
             collateral_amount,
             principal_amount,
@@ -333,7 +332,7 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_interest_account: loan_account_ids.interest_account_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             loan_interest_income_account: loan_account_ids.interest_income_account_id.into(),
             interest_amount,
             external_id,

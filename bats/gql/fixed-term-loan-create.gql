@@ -6,13 +6,10 @@ mutation fixedTermLoanCreate($input: FixedTermLoanCreateInput!) {
         collateral {
           btcBalance
         }
-        principal {
+        outstanding {
           usdBalance
         }
-        totalInterestIncurred {
-          usdBalance
-        }
-        unpaidInterestIncurred {
+        interestIncurred {
           usdBalance
         }
       }

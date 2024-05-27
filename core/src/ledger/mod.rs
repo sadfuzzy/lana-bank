@@ -143,8 +143,7 @@ impl Ledger {
         loan_id: FixedTermLoanId,
         FixedTermLoanAccountIds {
             collateral_account_id,
-            principal_account_id,
-            interest_account_id,
+            outstanding_account_id,
             interest_income_account_id,
         }: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
@@ -159,19 +158,10 @@ impl Ledger {
 
         Self::assert_debit_account_exists(
             &self.cala,
-            principal_account_id,
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            &self.cala,
-            interest_account_id,
-            &format!("LOAN.INTEREST.{}", loan_id),
-            &format!("LOAN.INTEREST.{}", loan_id),
-            &format!("LOAN.INTEREST.{}", loan_id),
+            outstanding_account_id,
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
         )
         .await?;
 
