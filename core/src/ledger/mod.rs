@@ -135,6 +135,20 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.make_payment", skip(self), err)]
+    pub async fn make_payment(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        amount: UsdCents,
+        tx_ref: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_loan_payment_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
+            .await?)
+    }
+
     #[instrument(
         name = "lava.ledger.create_unallocated_collateral_account_for_user",
         skip(self),
@@ -208,6 +222,16 @@ impl Ledger {
             &constants::CORE_ASSETS_ID.to_string(),
         )
         .await?;
+
+        Self::assert_debit_account_exists(
+            cala,
+            constants::BANK_CASH_ID.into(),
+            constants::BANK_CASH_NAME,
+            constants::BANK_CASH_CODE,
+            &constants::BANK_CASH_ID.to_string(),
+        )
+        .await?;
+
         Ok(())
     }
 
@@ -294,6 +318,7 @@ impl Ledger {
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
             .await?;
 
+        Self::assert_make_payment_tx_template_exists(cala, constants::MAKE_PAYMENT_CODE).await?;
         Ok(())
     }
 
@@ -363,6 +388,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_incur_interest_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_make_payment_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_make_payment_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

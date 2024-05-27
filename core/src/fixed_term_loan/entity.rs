@@ -23,6 +23,11 @@ pub enum FixedTermLoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
     },
+    PaymentMade {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -67,7 +72,7 @@ impl FixedTermLoan {
         let tx_ref = format!(
             "{}-interest-{}",
             self.id,
-            self.count_interest_payments() + 1
+            self.count_interest_incurred() + 1
         );
         self.events.push(FixedTermLoanEvent::InterestRecorded {
             tx_id,
@@ -76,7 +81,7 @@ impl FixedTermLoan {
         tx_ref
     }
 
-    fn count_interest_payments(&self) -> usize {
+    fn count_interest_incurred(&self) -> usize {
         self.events
             .iter()
             .filter(|event| matches!(event, FixedTermLoanEvent::InterestRecorded { .. }))
@@ -84,11 +89,28 @@ impl FixedTermLoan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if self.count_interest_payments() <= 1 {
+        if self.count_interest_incurred() <= 1 {
             Some(Utc::now())
         } else {
             None
         }
+    }
+
+    pub fn make_payment(&mut self, tx_id: LedgerTxId, amount: UsdCents) -> String {
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
+        self.events.push(FixedTermLoanEvent::PaymentMade {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+            amount,
+        });
+        tx_ref
+    }
+
+    fn count_payment_made(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, FixedTermLoanEvent::PaymentMade { .. }))
+            .count()
     }
 }
 
@@ -117,6 +139,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 }
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
+                FixedTermLoanEvent::PaymentMade { .. } => {}
             }
         }
         builder.events(events).build()

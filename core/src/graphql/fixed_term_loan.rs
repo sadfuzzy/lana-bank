@@ -25,6 +25,16 @@ impl FixedTermLoan {
     }
 }
 
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
+    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
+        FixedTermLoan {
+            loan_id: UUID::from(loan.id),
+            user_id: UUID::from(loan.user_id),
+            account_ids: loan.account_ids,
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct FixedTermLoanCreateInput {
     pub user_id: UUID,
@@ -33,6 +43,14 @@ pub struct FixedTermLoanCreateInput {
 #[derive(SimpleObject)]
 pub struct FixedTermLoanCreatePayload {
     loan: FixedTermLoan,
+}
+
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload {
+    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
+        Self {
+            loan: FixedTermLoan::from(loan),
+        }
+    }
 }
 
 #[derive(InputObject)]
@@ -47,17 +65,7 @@ pub struct FixedTermLoanApprovePayload {
     loan: FixedTermLoan,
 }
 
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
-    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
-        FixedTermLoan {
-            loan_id: UUID::from(loan.id),
-            user_id: UUID::from(loan.user_id),
-            account_ids: loan.account_ids,
-        }
-    }
-}
-
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload {
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         Self {
             loan: FixedTermLoan::from(loan),
@@ -65,7 +73,18 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCreatePayload 
     }
 }
 
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload {
+#[derive(InputObject)]
+pub struct FixedTermLoanMakePaymentInput {
+    pub loan_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct FixedTermLoanMakePaymentPayload {
+    loan: FixedTermLoan,
+}
+
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanMakePaymentPayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         Self {
             loan: FixedTermLoan::from(loan),

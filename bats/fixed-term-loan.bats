@@ -17,9 +17,11 @@ wait_for_interest() {
     '{ id: $loanId }'
   )
   exec_graphql 'find-loan' "$variables"
+  outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
+  cache_value 'outstanding' "$outstanding_balance"
   interest_balance=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
   cache_value 'interest_incurred' "$interest_balance"
-  [[ "$interest_balance" -gt "0" ]] || return 1
+  [[ "$interest_balance" == "2" ]] || return 1
 }
 
 @test "fixed-term-loan: loan lifecycle" {
@@ -74,5 +76,21 @@ wait_for_interest() {
 
   retry 10 1 wait_for_interest "$id"
   interest_balance=$(read_value 'interest_incurred')
-  [[ "$interest_balance" -gt "0" ]] || exit 1
+  [[ "$interest_balance" == "2" ]] || exit 1
+
+  outstanding_before=$(read_value 'outstanding')
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: 1,
+      }
+    }'
+  )
+  exec_graphql 'make-payment' "$variables"
+  outstanding_after=$(graphql_output '.data.fixedTermLoanMakePayment.loan.balance.outstanding.usdBalance')
+  [[ "$outstanding_after" -gt "0" ]] || exit 1
+  [[ "$outstanding_after" -lt "$outstanding_before" ]] || exit 1
 }

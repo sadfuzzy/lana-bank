@@ -36,6 +36,15 @@ type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
 }
 
+input FixedTermLoanMakePaymentInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type FixedTermLoanMakePaymentPayload {
+	loan: FixedTermLoan!
+}
+
 
 
 
@@ -52,6 +61,7 @@ type Mutation {
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
+	fixedTermLoanMakePayment(input: FixedTermLoanMakePaymentInput!): FixedTermLoanMakePaymentPayload!
 }
 
 type Query {

@@ -80,4 +80,17 @@ impl Mutation {
             .await?;
         Ok(FixedTermLoanApprovePayload::from(loan))
     }
+
+    pub async fn fixed_term_loan_make_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanMakePaymentInput,
+    ) -> async_graphql::Result<FixedTermLoanMakePaymentPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .make_payment(input.loan_id, input.amount)
+            .await?;
+        Ok(FixedTermLoanMakePaymentPayload::from(loan))
+    }
 }

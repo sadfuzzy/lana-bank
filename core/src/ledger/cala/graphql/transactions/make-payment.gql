@@ -1,0 +1,89 @@
+mutation MakePaymentTemplateCreate(
+  $templateId: UUID!
+  $journalId: Expression!
+  $bankCashAccountId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: "MAKE_PAYMENT"
+      description: "Make payment for loan."
+      params: [
+        {
+          name: "loanOutstandingAccount"
+          type: UUID
+          description: "Loan amount-outstanding account ID."
+        }
+        {
+          name: "paymentAmount"
+          type: DECIMAL
+          description: "Amount of USD being paid against outstanding amount."
+        }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+          default: "date()"
+        }
+      ]
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
+      entries: [
+        {
+          accountId: $bankCashAccountId
+          units: "params.paymentAmount"
+          currency: "'USD'"
+          entryType: "'MAKE_PAYMENT_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.loanOutstandingAccount"
+          units: "params.paymentAmount"
+          currency: "'USD'"
+          entryType: "'MAKE_PAYMENT_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate {
+      txTemplateId
+      code
+      version
+    }
+  }
+}
+
+mutation PostMakePaymentTransaction(
+  $transactionId: UUID!
+  $loanOutstandingAccount: UUID!
+  $paymentAmount: Decimal!
+  $externalId: String!
+) {
+  postTransaction(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "MAKE_PAYMENT"
+      params: {
+        loanOutstandingAccount: $loanOutstandingAccount
+        paymentAmount: $paymentAmount
+        externalId: $externalId
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+    }
+  }
+}

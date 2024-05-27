@@ -351,6 +351,62 @@ impl CalaClient {
         Ok(())
     }
 
+    #[instrument(
+        name = "lava.ledger.cala.create_make_payment_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_make_payment_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = make_payment_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_cash_account_id: format!("uuid(\"{}\")", super::constants::BANK_CASH_ID),
+        };
+        let response = Self::traced_gql_request::<MakePaymentTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_pay_interest_tx", skip(self), err)]
+    pub async fn execute_loan_payment_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        payment_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_make_payment_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            payment_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostMakePaymentTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(
         client: &ReqwestClient,
         url: U,
