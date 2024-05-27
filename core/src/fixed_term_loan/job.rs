@@ -59,7 +59,7 @@ impl JobRunner for FixedTermLoanInterestJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_interest_transaction(tx_id);
+        let tx_ref = loan.record_incur_interest_transaction(tx_id);
         println!(
             "Loan interest job running for loan: {:?} - ref {}",
             loan.id, tx_ref

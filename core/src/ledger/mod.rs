@@ -98,6 +98,7 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
+    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
     pub async fn approve_loan(
         &self,
         tx_id: LedgerTxId,
@@ -120,6 +121,7 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
     pub async fn record_interest(
         &self,
         tx_id: LedgerTxId,

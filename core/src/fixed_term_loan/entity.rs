@@ -63,7 +63,7 @@ impl FixedTermLoan {
         Ok(())
     }
 
-    pub fn record_interest_transaction(&mut self, tx_id: LedgerTxId) -> String {
+    pub fn record_incur_interest_transaction(&mut self, tx_id: LedgerTxId) -> String {
         let tx_ref = format!(
             "{}-interest-{}",
             self.id,
