@@ -82,7 +82,15 @@ pub struct PostTopupUnallocatedCollateralTransaction;
     query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct CoreWithdrawalTxTemplateCreate;
+pub struct WithdrawFromCheckingTxTemplateCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct PostWithdrawFromCheckingTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(

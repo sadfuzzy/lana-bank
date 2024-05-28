@@ -55,6 +55,40 @@ impl Mutation {
         ))
     }
 
+    pub async fn user_withdraw_via_ach(
+        &self,
+        ctx: &Context<'_>,
+        input: UserWithdrawViaAchInput,
+    ) -> async_graphql::Result<UserWithdrawViaAchPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(UserWithdrawViaAchPayload::from(
+            app.users()
+                .withdraw_via_ach_for_user(
+                    UserId::from(input.user_id),
+                    input.amount,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
+    pub async fn user_withdraw_via_tether(
+        &self,
+        ctx: &Context<'_>,
+        input: UserWithdrawViaTetherInput,
+    ) -> async_graphql::Result<UserWithdrawViaTetherPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(UserWithdrawViaTetherPayload::from(
+            app.users()
+                .withdraw_via_tether_for_user(
+                    UserId::from(input.user_id),
+                    input.amount,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
     pub async fn fixed_term_loan_create(
         &self,
         ctx: &Context<'_>,

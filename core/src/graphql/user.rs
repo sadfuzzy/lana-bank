@@ -1,6 +1,10 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, ledger::user::UserLedgerAccountIds, primitives::Satoshis};
+use crate::{
+    app::LavaApp,
+    ledger::user::UserLedgerAccountIds,
+    primitives::{Satoshis, UsdCents},
+};
 
 use super::{primitives::UUID, user_balance::*};
 
@@ -42,6 +46,14 @@ pub struct UserCreatePayload {
     user: User,
 }
 
+impl From<crate::user::User> for UserCreatePayload {
+    fn from(user: crate::user::User) -> Self {
+        Self {
+            user: User::from(user),
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct UserTopupCollateralInput {
     pub user_id: UUID,
@@ -54,7 +66,7 @@ pub struct UserTopupCollateralPayload {
     pub user: User,
 }
 
-impl From<crate::user::User> for UserCreatePayload {
+impl From<crate::user::User> for UserTopupCollateralPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),
@@ -62,7 +74,39 @@ impl From<crate::user::User> for UserCreatePayload {
     }
 }
 
-impl From<crate::user::User> for UserTopupCollateralPayload {
+#[derive(InputObject)]
+pub struct UserWithdrawViaAchInput {
+    pub user_id: UUID,
+    pub amount: UsdCents,
+    pub reference: String,
+}
+
+#[derive(SimpleObject)]
+pub struct UserWithdrawViaAchPayload {
+    pub user: User,
+}
+
+impl From<crate::user::User> for UserWithdrawViaAchPayload {
+    fn from(user: crate::user::User) -> Self {
+        Self {
+            user: User::from(user),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct UserWithdrawViaTetherInput {
+    pub user_id: UUID,
+    pub amount: UsdCents,
+    pub reference: String,
+}
+
+#[derive(SimpleObject)]
+pub struct UserWithdrawViaTetherPayload {
+    pub user: User,
+}
+
+impl From<crate::user::User> for UserWithdrawViaTetherPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),
