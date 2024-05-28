@@ -363,7 +363,6 @@ impl CalaClient {
         let variables = make_payment_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            bank_cash_account_id: format!("uuid(\"{}\")", super::constants::BANK_CASH_ID),
         };
         let response = Self::traced_gql_request::<MakePaymentTemplateCreate, _>(
             &self.client,
@@ -384,11 +383,13 @@ impl CalaClient {
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
         payment_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_make_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
+            checking_account: user_account_ids.checking_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,

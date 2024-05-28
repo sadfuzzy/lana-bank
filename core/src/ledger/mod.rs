@@ -140,12 +140,19 @@ impl Ledger {
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_loan_payment_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
+            .execute_loan_payment_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                amount.to_usd(),
+                tx_ref,
+            )
             .await?)
     }
 
@@ -220,15 +227,6 @@ impl Ledger {
             constants::CORE_ASSETS_NAME,
             constants::CORE_ASSETS_CODE,
             &constants::CORE_ASSETS_ID.to_string(),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            cala,
-            constants::BANK_CASH_ID.into(),
-            constants::BANK_CASH_NAME,
-            constants::BANK_CASH_CODE,
-            &constants::BANK_CASH_ID.to_string(),
         )
         .await?;
 

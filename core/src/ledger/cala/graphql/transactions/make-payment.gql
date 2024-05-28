@@ -1,7 +1,6 @@
 mutation MakePaymentTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
-  $bankCashAccountId: Expression!
 ) {
   txTemplateCreate(
     input: {
@@ -9,6 +8,11 @@ mutation MakePaymentTemplateCreate(
       code: "MAKE_PAYMENT"
       description: "Make payment for loan."
       params: [
+        {
+          name: "checkingAccount"
+          type: UUID
+          description: "User Checking account ID."
+        }
         {
           name: "loanOutstandingAccount"
           type: UUID
@@ -38,7 +42,7 @@ mutation MakePaymentTemplateCreate(
       }
       entries: [
         {
-          accountId: $bankCashAccountId
+          accountId: "params.checkingAccount"
           units: "params.paymentAmount"
           currency: "'USD'"
           entryType: "'MAKE_PAYMENT_DR'"
@@ -66,6 +70,7 @@ mutation MakePaymentTemplateCreate(
 
 mutation PostMakePaymentTransaction(
   $transactionId: UUID!
+  $checkingAccount: UUID!
   $loanOutstandingAccount: UUID!
   $paymentAmount: Decimal!
   $externalId: String!
@@ -75,6 +80,7 @@ mutation PostMakePaymentTransaction(
       transactionId: $transactionId
       txTemplateCode: "MAKE_PAYMENT"
       params: {
+        checkingAccount: $checkingAccount
         loanOutstandingAccount: $loanOutstandingAccount
         paymentAmount: $paymentAmount
         externalId: $externalId

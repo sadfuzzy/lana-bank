@@ -129,6 +129,7 @@ impl FixedTermLoans {
             return Ok(loan);
         }
 
+        let user = self.users.find_by_id(loan.user_id).await?;
         let balances = self
             .ledger
             .get_fixed_term_loan_balance(loan.account_ids)
@@ -149,7 +150,13 @@ impl FixedTermLoans {
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .make_payment(tx_id, loan.account_ids, payment_amount, tx_ref)
+            .make_payment(
+                tx_id,
+                loan.account_ids,
+                user.account_ids,
+                payment_amount,
+                tx_ref,
+            )
             .await?;
         db_tx.commit().await?;
         Ok(loan)
