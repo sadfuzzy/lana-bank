@@ -137,8 +137,6 @@ impl FixedTermLoans {
         let PaymentAllocation {
             payment_amount,
             amount_left_after_payment,
-            // TODO: handle any payments in excess of outstanding amount somehow
-            excess_amount: _,
         } = loan.allocate_payment(unallocated_amount, &balances);
 
         let tx_id = LedgerTxId::new();

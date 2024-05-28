@@ -48,7 +48,6 @@ impl EntityEvent for FixedTermLoanEvent {
 pub struct PaymentAllocation {
     pub payment_amount: UsdCents,
     pub amount_left_after_payment: UsdCents,
-    pub excess_amount: UsdCents,
 }
 
 impl PaymentAllocation {
@@ -58,17 +57,14 @@ impl PaymentAllocation {
             std::cmp::Ordering::Less => PaymentAllocation {
                 payment_amount: amount,
                 amount_left_after_payment: outstanding.sub(amount),
-                excess_amount: UsdCents::ZERO,
             },
             std::cmp::Ordering::Equal => PaymentAllocation {
                 payment_amount: amount,
                 amount_left_after_payment: UsdCents::ZERO,
-                excess_amount: UsdCents::ZERO,
             },
             std::cmp::Ordering::Greater => PaymentAllocation {
                 payment_amount: outstanding,
                 amount_left_after_payment: UsdCents::ZERO,
-                excess_amount: amount.sub(outstanding),
             },
         }
     }
