@@ -11,7 +11,7 @@ struct Collateral {
 }
 
 #[derive(SimpleObject)]
-struct Principal {
+struct LoanOutstanding {
     usd_balance: UsdCents,
 }
 
@@ -28,9 +28,8 @@ struct InterestIncurredAndUnpaid {
 #[derive(SimpleObject)]
 pub(super) struct FixedTermLoanBalance {
     collateral: Collateral,
-    principal: Principal,
-    total_interest_incurred: InterestIncome,
-    unpaid_interest_incurred: InterestIncurredAndUnpaid,
+    outstanding: LoanOutstanding,
+    interest_incurred: InterestIncome,
 }
 
 impl From<ledger::fixed_term_loan::FixedTermLoanBalance> for FixedTermLoanBalance {
@@ -39,14 +38,11 @@ impl From<ledger::fixed_term_loan::FixedTermLoanBalance> for FixedTermLoanBalanc
             collateral: Collateral {
                 btc_balance: balance.collateral,
             },
-            principal: Principal {
-                usd_balance: balance.principal,
+            outstanding: LoanOutstanding {
+                usd_balance: balance.outstanding,
             },
-            total_interest_incurred: InterestIncome {
-                usd_balance: balance.total_interest_incurred,
-            },
-            unpaid_interest_incurred: InterestIncurredAndUnpaid {
-                usd_balance: balance.unpaid_interest_incurred,
+            interest_incurred: InterestIncome {
+                usd_balance: balance.interest_incurred,
             },
         }
     }

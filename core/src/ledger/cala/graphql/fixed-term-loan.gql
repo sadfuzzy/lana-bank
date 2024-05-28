@@ -1,9 +1,8 @@
 query FixedTermLoanBalance(
   $journalId: UUID!
   $collateralId: UUID!
-  $principalId: UUID!
+  $loanOutstandingId: UUID!
   $interestIncomeId: UUID!
-  $interestId: UUID!
 ) {
   collateral: balance(
     journalId: $journalId
@@ -17,9 +16,9 @@ query FixedTermLoanBalance(
       }
     }
   }
-  principal: balance(
+  loanOutstanding: balance(
     journalId: $journalId
-    accountId: $principalId
+    accountId: $loanOutstandingId
     currency: "USD"
   ) {
     settled {
@@ -32,18 +31,6 @@ query FixedTermLoanBalance(
   interestIncome: balance(
     journalId: $journalId
     accountId: $interestIncomeId
-    currency: "USD"
-  ) {
-    settled {
-      normalBalance {
-        units
-        currency
-      }
-    }
-  }
-  interest: balance(
-    journalId: $journalId
-    accountId: $interestId
     currency: "USD"
   ) {
     settled {

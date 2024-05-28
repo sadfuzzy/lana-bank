@@ -23,6 +23,12 @@ pub enum FixedTermLoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
     },
+    PaymentRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+    },
+    Completed,
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -63,20 +69,51 @@ impl FixedTermLoan {
         Ok(())
     }
 
-    pub fn record_interest_transaction(&mut self, tx_id: LedgerTxId) -> String {
+    pub fn record_incur_interest_transaction(
+        &mut self,
+        tx_id: LedgerTxId,
+    ) -> Result<String, FixedTermLoanError> {
+        if self.is_completed() {
+            return Err(FixedTermLoanError::AlreadyComplete);
+        }
+
         let tx_ref = format!(
             "{}-interest-{}",
             self.id,
-            self.count_interest_payments() + 1
+            self.count_interest_incurred() + 1
         );
         self.events.push(FixedTermLoanEvent::InterestRecorded {
             tx_id,
             tx_ref: tx_ref.clone(),
         });
-        tx_ref
+        Ok(tx_ref)
     }
 
-    fn count_interest_payments(&self) -> usize {
+    pub fn record_if_not_exceeding_outstanding(
+        &mut self,
+        tx_id: LedgerTxId,
+        outstanding: UsdCents,
+        record_amount: UsdCents,
+    ) -> Result<String, FixedTermLoanError> {
+        if outstanding < record_amount {
+            return Err(FixedTermLoanError::PaymentExceedsOutstandingLoanAmount(
+                record_amount,
+                outstanding,
+            ));
+        }
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
+        self.events.push(FixedTermLoanEvent::PaymentRecorded {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+            amount: record_amount,
+        });
+        if outstanding == record_amount {
+            self.events.push(FixedTermLoanEvent::Completed);
+        }
+        Ok(tx_ref)
+    }
+
+    fn count_interest_incurred(&self) -> usize {
         self.events
             .iter()
             .filter(|event| matches!(event, FixedTermLoanEvent::InterestRecorded { .. }))
@@ -84,11 +121,26 @@ impl FixedTermLoan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if self.count_interest_payments() <= 1 {
+        if !self.is_completed() && self.count_interest_incurred() <= 1 {
             Some(Utc::now())
         } else {
             None
         }
+    }
+
+    fn count_payment_made(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, FixedTermLoanEvent::PaymentRecorded { .. }))
+            .count()
+    }
+
+    pub fn is_completed(&self) -> bool {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, FixedTermLoanEvent::Completed { .. }))
+            .count()
+            > 0
     }
 }
 
@@ -117,6 +169,8 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 }
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
+                FixedTermLoanEvent::PaymentRecorded { .. } => {}
+                FixedTermLoanEvent::Completed { .. } => {}
             }
         }
         builder.events(events).build()

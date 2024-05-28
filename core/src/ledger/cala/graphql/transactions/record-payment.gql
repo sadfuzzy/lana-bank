@@ -1,27 +1,27 @@
-mutation IncurInterestTemplateCreate(
+mutation RecordPaymentTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "INCUR_INTEREST"
-      description: "Incur interest payment owed for loan."
+      code: "RECORD_PAYMENT"
+      description: "Make payment for loan."
       params: [
+        {
+          name: "checkingAccount"
+          type: UUID
+          description: "User Checking account ID."
+        }
         {
           name: "loanOutstandingAccount"
           type: UUID
           description: "Loan amount-outstanding account ID."
         }
         {
-          name: "loanInterestIncomeAccount"
-          type: UUID
-          description: "Loan interest income earned account id."
-        }
-        {
-          name: "interestAmount"
+          name: "paymentAmount"
           type: DECIMAL
-          description: "Amount of USD being paid as interest."
+          description: "Amount of USD being paid against outstanding amount."
         }
         {
           name: "externalId"
@@ -42,18 +42,18 @@ mutation IncurInterestTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.loanOutstandingAccount"
-          units: "params.interestAmount"
+          accountId: "params.checkingAccount"
+          units: "params.paymentAmount"
           currency: "'USD'"
-          entryType: "'INCUR_INTEREST_DR'"
+          entryType: "'RECORD_PAYMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanInterestIncomeAccount"
-          units: "params.interestAmount"
+          accountId: "params.loanOutstandingAccount"
+          units: "params.paymentAmount"
           currency: "'USD'"
-          entryType: "'INCUR_INTEREST_CR'"
+          entryType: "'RECORD_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -68,21 +68,21 @@ mutation IncurInterestTemplateCreate(
   }
 }
 
-mutation PostIncurInterestTransaction(
+mutation PostRecordPaymentTransaction(
   $transactionId: UUID!
+  $checkingAccount: UUID!
   $loanOutstandingAccount: UUID!
-  $loanInterestIncomeAccount: UUID!
-  $interestAmount: Decimal!
+  $paymentAmount: Decimal!
   $externalId: String!
 ) {
   postTransaction(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "INCUR_INTEREST"
+      txTemplateCode: "RECORD_PAYMENT"
       params: {
+        checkingAccount: $checkingAccount
         loanOutstandingAccount: $loanOutstandingAccount
-        loanInterestIncomeAccount: $loanInterestIncomeAccount
-        interestAmount: $interestAmount
+        paymentAmount: $paymentAmount
         externalId: $externalId
       }
     }

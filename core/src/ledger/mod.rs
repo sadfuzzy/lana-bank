@@ -98,6 +98,7 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
+    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
     pub async fn approve_loan(
         &self,
         tx_id: LedgerTxId,
@@ -120,6 +121,7 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
     pub async fn record_interest(
         &self,
         tx_id: LedgerTxId,
@@ -133,6 +135,27 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.record_payment", skip(self), err)]
+    pub async fn record_payment(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        amount: UsdCents,
+        tx_ref: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_loan_payment_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                amount.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
     #[instrument(
         name = "lava.ledger.create_unallocated_collateral_account_for_user",
         skip(self),
@@ -143,8 +166,7 @@ impl Ledger {
         loan_id: FixedTermLoanId,
         FixedTermLoanAccountIds {
             collateral_account_id,
-            principal_account_id,
-            interest_account_id,
+            outstanding_account_id,
             interest_income_account_id,
         }: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
@@ -159,19 +181,10 @@ impl Ledger {
 
         Self::assert_debit_account_exists(
             &self.cala,
-            principal_account_id,
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-            &format!("LOAN.PRINCIPAL.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            &self.cala,
-            interest_account_id,
-            &format!("LOAN.INTEREST.{}", loan_id),
-            &format!("LOAN.INTEREST.{}", loan_id),
-            &format!("LOAN.INTEREST.{}", loan_id),
+            outstanding_account_id,
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
+            &format!("LOAN.OUTSTANDING.{}", loan_id),
         )
         .await?;
 
@@ -216,6 +229,7 @@ impl Ledger {
             &constants::CORE_ASSETS_ID.to_string(),
         )
         .await?;
+
         Ok(())
     }
 
@@ -302,6 +316,8 @@ impl Ledger {
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
             .await?;
 
+        Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
+            .await?;
         Ok(())
     }
 
@@ -371,6 +387,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_incur_interest_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_record_payment_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_record_payment_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

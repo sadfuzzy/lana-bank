@@ -6,13 +6,10 @@ mutation approveLoan($input: FixedTermLoanApproveInput!) {
         collateral {
           btcBalance
         }
-        principal {
+        outstanding {
           usdBalance
         }
-        totalInterestIncurred {
-          usdBalance
-        }
-        unpaidInterestIncurred {
+        interestIncurred {
           usdBalance
         }
       }

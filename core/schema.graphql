@@ -24,9 +24,8 @@ type FixedTermLoanApprovePayload {
 
 type FixedTermLoanBalance {
 	collateral: Collateral!
-	principal: Principal!
-	totalInterestIncurred: InterestIncome!
-	unpaidInterestIncurred: InterestIncurredAndUnpaid!
+	outstanding: LoanOutstanding!
+	interestIncurred: InterestIncome!
 }
 
 input FixedTermLoanCreateInput {
@@ -37,6 +36,15 @@ type FixedTermLoanCreatePayload {
 	loan: FixedTermLoan!
 }
 
+input FixedTermLoanRecordPaymentInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type FixedTermLoanRecordPaymentPayload {
+	loan: FixedTermLoan!
+}
+
 
 
 
@@ -44,7 +52,7 @@ type InterestIncome {
 	usdBalance: UsdCents!
 }
 
-type InterestIncurredAndUnpaid {
+type LoanOutstanding {
 	usdBalance: UsdCents!
 }
 
@@ -53,10 +61,7 @@ type Mutation {
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
-}
-
-type Principal {
-	usdBalance: UsdCents!
+	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
 }
 
 type Query {

@@ -87,4 +87,23 @@ impl UsdCents {
     pub fn into_inner(self) -> u64 {
         self.0
     }
+
+    pub fn is_zero(self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl fmt::Display for UsdCents {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl std::ops::Sub<UsdCents> for UsdCents {
+    type Output = Self;
+
+    fn sub(self, other: UsdCents) -> Self {
+        assert!(self.0 >= other.0, "Subtraction result cannot be negative");
+        Self(self.0 - other.0)
+    }
 }

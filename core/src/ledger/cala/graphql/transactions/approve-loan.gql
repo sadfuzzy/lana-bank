@@ -8,22 +8,24 @@ mutation ApproveLoanTemplateCreate(
       code: "APPROVE_LOAN"
       description: "Move money from unallocated collateral to loan account."
       params: [
-        { name: "unallocatedCollateralAccount",
-          type: UUID,
+        {
+          name: "unallocatedCollateralAccount"
+          type: UUID
           description: "User Unallocated Collateral account ID."
         }
-        { name: "loanCollateralAccount",
-          type: UUID,
+        {
+          name: "loanCollateralAccount"
+          type: UUID
           description: "Loan Collateral account ID."
         }
         {
-          name: "loanPrincipalAccount",
-          type: UUID,
-          description: "Loan Principal account ID."
+          name: "loanOutstandingAccount"
+          type: UUID
+          description: "Loan amount-outstanding account ID."
         }
         {
-          name: "checkingAccount",
-          type: UUID,
+          name: "checkingAccount"
+          type: UUID
           description: "User Checking account ID."
         }
         {
@@ -48,7 +50,11 @@ mutation ApproveLoanTemplateCreate(
           default: "date()"
         }
       ]
-      txInput: { journalId: $journalId, effective: "params.effective", externalId: "params.externalId" }
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
       entries: [
         {
           accountId: "params.unallocatedCollateralAccount"
@@ -67,7 +73,7 @@ mutation ApproveLoanTemplateCreate(
           layer: "SETTLED"
         }
         {
-          accountId: "params.loanPrincipalAccount"
+          accountId: "params.loanOutstandingAccount"
           units: "params.principalAmount"
           currency: "'USD'"
           entryType: "'APPROVE_LOAN_PRINCIPAL_DR'"
@@ -97,7 +103,7 @@ mutation PostApproveLoanTransaction(
   $transactionId: UUID!
   $unallocatedCollateralAccount: UUID!
   $loanCollateralAccount: UUID!
-  $loanPrincipalAccount: UUID!
+  $loanOutstandingAccount: UUID!
   $checkingAccount: UUID!
   $collateralAmount: Decimal!
   $principalAmount: Decimal!
@@ -110,7 +116,7 @@ mutation PostApproveLoanTransaction(
       params: {
         unallocatedCollateralAccount: $unallocatedCollateralAccount
         loanCollateralAccount: $loanCollateralAccount
-        loanPrincipalAccount: $loanPrincipalAccount
+        loanOutstandingAccount: $loanOutstandingAccount
         checkingAccount: $checkingAccount
         collateralAmount: $collateralAmount
         principalAmount: $principalAmount
