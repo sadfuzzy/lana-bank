@@ -3,7 +3,11 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::{error::*, terms::*};
-use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primitives::*};
+use crate::{
+    entity::*,
+    ledger::fixed_term_loan::{FixedTermLoanAccountIds, FixedTermLoanBalance},
+    primitives::*,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -37,6 +41,36 @@ impl EntityEvent for FixedTermLoanEvent {
     type EntityId = FixedTermLoanId;
     fn event_table_name() -> &'static str {
         "fixed_term_loan_events"
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PaymentAllocation {
+    pub payment_amount: UsdCents,
+    pub amount_left_after_payment: UsdCents,
+    pub excess_amount: UsdCents,
+}
+
+impl PaymentAllocation {
+    pub fn new(amount: UsdCents, balances: &FixedTermLoanBalance) -> Self {
+        let outstanding = balances.outstanding;
+        match amount.cmp(&outstanding) {
+            std::cmp::Ordering::Less => PaymentAllocation {
+                payment_amount: amount,
+                amount_left_after_payment: outstanding.sub(amount),
+                excess_amount: UsdCents::ZERO,
+            },
+            std::cmp::Ordering::Equal => PaymentAllocation {
+                payment_amount: amount,
+                amount_left_after_payment: UsdCents::ZERO,
+                excess_amount: UsdCents::ZERO,
+            },
+            std::cmp::Ordering::Greater => PaymentAllocation {
+                payment_amount: outstanding,
+                amount_left_after_payment: UsdCents::ZERO,
+                excess_amount: amount.sub(outstanding),
+            },
+        }
     }
 }
 
@@ -114,6 +148,20 @@ impl FixedTermLoan {
             .iter()
             .filter(|event| matches!(event, FixedTermLoanEvent::PaymentMade { .. }))
             .count()
+    }
+
+    pub fn allocate_payment(
+        &mut self,
+        amount: UsdCents,
+        balances: &FixedTermLoanBalance,
+    ) -> PaymentAllocation {
+        PaymentAllocation::new(amount, &balances)
+    }
+
+    pub fn mark_repaid(&mut self, interest_income: UsdCents) -> () {
+        self.events.push(FixedTermLoanEvent::Repaid {
+            interest_earned: interest_income,
+        })
     }
 
     pub fn is_repaid(&mut self) -> bool {

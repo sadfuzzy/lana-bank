@@ -93,4 +93,18 @@ wait_for_interest() {
   outstanding_after=$(graphql_output '.data.fixedTermLoanMakePayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding_after" -gt "0" ]] || exit 1
   [[ "$outstanding_after" -lt "$outstanding_before" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
+        amount: 200001,
+      }
+    }'
+  )
+  exec_graphql 'make-payment' "$variables"
+  outstanding=$(graphql_output '.data.fixedTermLoanMakePayment.loan.balance.outstanding.usdBalance')
+  [[ "$outstanding" == "0" ]] || exit 1
 }

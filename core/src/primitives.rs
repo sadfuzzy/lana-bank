@@ -87,4 +87,13 @@ impl UsdCents {
     pub fn into_inner(self) -> u64 {
         self.0
     }
+
+    pub fn sub(self, other: UsdCents) -> Self {
+        assert!(self.0 >= other.0, "Subtraction result cannot be negative");
+        Self(self.0 - other.0)
+    }
+
+    pub fn is_zero(self) -> bool {
+        self.0 == 0
+    }
 }
