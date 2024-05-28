@@ -353,19 +353,19 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_make_payment_template",
+        name = "lava.ledger.cala.create_record_payment_template",
         skip(self),
         err
     )]
-    pub async fn create_make_payment_tx_template(
+    pub async fn create_record_payment_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = make_payment_template_create::Variables {
+        let variables = record_payment_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
         };
-        let response = Self::traced_gql_request::<MakePaymentTemplateCreate, _>(
+        let response = Self::traced_gql_request::<RecordPaymentTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -388,14 +388,14 @@ impl CalaClient {
         payment_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
-        let variables = post_make_payment_transaction::Variables {
+        let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.checking_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostMakePaymentTransaction, _>(
+        let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
             &self.client,
             &self.url,
             variables,

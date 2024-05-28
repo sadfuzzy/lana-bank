@@ -118,8 +118,8 @@ impl FixedTermLoans {
         Ok(loan)
     }
 
-    #[instrument(name = "lava.fixed_term_loans.make_payment", skip(self), err)]
-    pub async fn make_payment(
+    #[instrument(name = "lava.fixed_term_loans.record_payment", skip(self), err)]
+    pub async fn record_payment(
         &self,
         loan_id: impl Into<FixedTermLoanId> + std::fmt::Debug,
         unallocated_amount: UsdCents,
@@ -140,7 +140,7 @@ impl FixedTermLoans {
         } = loan.allocate_payment(unallocated_amount, &balances);
 
         let tx_id = LedgerTxId::new();
-        let tx_ref = loan.make_payment(tx_id, payment_amount);
+        let tx_ref = loan.record_payment(tx_id, payment_amount);
         if amount_left_after_payment.is_zero() {
             loan.mark_repaid(balances.interest_incurred);
         }
@@ -148,7 +148,7 @@ impl FixedTermLoans {
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .make_payment(
+            .record_payment(
                 tx_id,
                 loan.account_ids,
                 user.account_ids,

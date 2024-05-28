@@ -81,16 +81,16 @@ impl Mutation {
         Ok(FixedTermLoanApprovePayload::from(loan))
     }
 
-    pub async fn fixed_term_loan_make_payment(
+    pub async fn fixed_term_loan_record_payment(
         &self,
         ctx: &Context<'_>,
-        input: FixedTermLoanMakePaymentInput,
-    ) -> async_graphql::Result<FixedTermLoanMakePaymentPayload> {
+        input: FixedTermLoanRecordPaymentInput,
+    ) -> async_graphql::Result<FixedTermLoanRecordPaymentPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
             .fixed_term_loans()
-            .make_payment(input.loan_id, input.amount)
+            .record_payment(input.loan_id, input.amount)
             .await?;
-        Ok(FixedTermLoanMakePaymentPayload::from(loan))
+        Ok(FixedTermLoanRecordPaymentPayload::from(loan))
     }
 }

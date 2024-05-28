@@ -119,18 +119,18 @@ pub struct PostIncurInterestTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/make-payment.gql",
+    query_path = "src/ledger/cala/graphql/transactions/record-payment.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct MakePaymentTemplateCreate;
+pub struct RecordPaymentTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/make-payment.gql",
+    query_path = "src/ledger/cala/graphql/transactions/record-payment.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostMakePaymentTransaction;
+pub struct PostRecordPaymentTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(

@@ -129,7 +129,7 @@ impl FixedTermLoan {
         }
     }
 
-    pub fn make_payment(&mut self, tx_id: LedgerTxId, amount: UsdCents) -> String {
+    pub fn record_payment(&mut self, tx_id: LedgerTxId, amount: UsdCents) -> String {
         let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
         self.events.push(FixedTermLoanEvent::PaymentMade {
             tx_id,

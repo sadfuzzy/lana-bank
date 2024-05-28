@@ -74,17 +74,17 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanApprovePayload
 }
 
 #[derive(InputObject)]
-pub struct FixedTermLoanMakePaymentInput {
+pub struct FixedTermLoanRecordPaymentInput {
     pub loan_id: UUID,
     pub amount: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct FixedTermLoanMakePaymentPayload {
+pub struct FixedTermLoanRecordPaymentPayload {
     loan: FixedTermLoan,
 }
 
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanMakePaymentPayload {
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanRecordPaymentPayload {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         Self {
             loan: FixedTermLoan::from(loan),
