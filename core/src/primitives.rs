@@ -93,6 +93,12 @@ impl UsdCents {
     }
 }
 
+impl fmt::Display for UsdCents {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 impl std::ops::Sub<UsdCents> for UsdCents {
     type Output = Self;
 

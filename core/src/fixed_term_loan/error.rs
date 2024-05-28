@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::primitives::*;
+
 #[derive(Error, Debug)]
 pub enum FixedTermLoanError {
     #[error("FixedTermLoanError - Sqlx: {0}")]
@@ -14,4 +16,8 @@ pub enum FixedTermLoanError {
     JobError(#[from] crate::job::error::JobError),
     #[error("FixedTermLoanError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("FixedTermLoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
+    PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
+    #[error("FixedTermLoanError - AlreadyComplete")]
+    AlreadyComplete,
 }

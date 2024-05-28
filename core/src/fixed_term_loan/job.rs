@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
-use super::repo::*;
+use super::{error::*, repo::*};
 use crate::{
     job::*,
     ledger::*,
@@ -59,7 +59,13 @@ impl JobRunner for FixedTermLoanInterestJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_incur_interest_transaction(tx_id);
+        let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
+            Err(FixedTermLoanError::AlreadyComplete) => {
+                return Ok(JobCompletion::Complete);
+            }
+            Ok(tx_ref) => tx_ref,
+            Err(_) => unreachable!(),
+        };
         println!(
             "Loan interest job running for loan: {:?} - ref {}",
             loan.id, tx_ref

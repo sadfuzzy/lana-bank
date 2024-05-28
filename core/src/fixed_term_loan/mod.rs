@@ -122,39 +122,26 @@ impl FixedTermLoans {
     pub async fn record_payment(
         &self,
         loan_id: impl Into<FixedTermLoanId> + std::fmt::Debug,
-        unallocated_amount: UsdCents,
+        amount: UsdCents,
     ) -> Result<FixedTermLoan, FixedTermLoanError> {
         let mut loan = self.repo.find_by_id(loan_id.into()).await?;
-        if loan.is_repaid() {
-            return Ok(loan);
-        }
 
-        let user = self.users.find_by_id(loan.user_id).await?;
         let balances = self
             .ledger
             .get_fixed_term_loan_balance(loan.account_ids)
             .await?;
-        let PaymentAllocation {
-            payment_amount,
-            amount_left_after_payment,
-        } = loan.allocate_payment(unallocated_amount, &balances);
 
         let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_payment(tx_id, payment_amount);
-        if amount_left_after_payment.is_zero() {
-            loan.mark_repaid(balances.interest_incurred);
-        }
+        let tx_ref =
+            loan.record_if_not_exceeding_outstanding(tx_id, balances.outstanding, amount)?;
+
+        let user = self.users.find_by_id(loan.user_id).await?;
+
         let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_payment(
-                tx_id,
-                loan.account_ids,
-                user.account_ids,
-                payment_amount,
-                tx_ref,
-            )
+            .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
             .await?;
         db_tx.commit().await?;
         Ok(loan)

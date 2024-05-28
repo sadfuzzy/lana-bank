@@ -3,11 +3,7 @@ use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
 use super::{error::*, terms::*};
-use crate::{
-    entity::*,
-    ledger::fixed_term_loan::{FixedTermLoanAccountIds, FixedTermLoanBalance},
-    primitives::*,
-};
+use crate::{entity::*, ledger::fixed_term_loan::FixedTermLoanAccountIds, primitives::*};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -27,46 +23,18 @@ pub enum FixedTermLoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
     },
-    PaymentMade {
+    PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
     },
-    Repaid {
-        interest_earned: UsdCents,
-    },
+    Completed,
 }
 
 impl EntityEvent for FixedTermLoanEvent {
     type EntityId = FixedTermLoanId;
     fn event_table_name() -> &'static str {
         "fixed_term_loan_events"
-    }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct PaymentAllocation {
-    pub payment_amount: UsdCents,
-    pub amount_left_after_payment: UsdCents,
-}
-
-impl PaymentAllocation {
-    pub fn new(amount: UsdCents, balances: &FixedTermLoanBalance) -> Self {
-        let outstanding = balances.outstanding;
-        match amount.cmp(&outstanding) {
-            std::cmp::Ordering::Less => PaymentAllocation {
-                payment_amount: amount,
-                amount_left_after_payment: outstanding - amount,
-            },
-            std::cmp::Ordering::Equal => PaymentAllocation {
-                payment_amount: amount,
-                amount_left_after_payment: UsdCents::ZERO,
-            },
-            std::cmp::Ordering::Greater => PaymentAllocation {
-                payment_amount: outstanding,
-                amount_left_after_payment: UsdCents::ZERO,
-            },
-        }
     }
 }
 
@@ -101,7 +69,14 @@ impl FixedTermLoan {
         Ok(())
     }
 
-    pub fn record_incur_interest_transaction(&mut self, tx_id: LedgerTxId) -> String {
+    pub fn record_incur_interest_transaction(
+        &mut self,
+        tx_id: LedgerTxId,
+    ) -> Result<String, FixedTermLoanError> {
+        if self.is_completed() {
+            return Err(FixedTermLoanError::AlreadyComplete);
+        }
+
         let tx_ref = format!(
             "{}-interest-{}",
             self.id,
@@ -111,7 +86,31 @@ impl FixedTermLoan {
             tx_id,
             tx_ref: tx_ref.clone(),
         });
-        tx_ref
+        Ok(tx_ref)
+    }
+
+    pub fn record_if_not_exceeding_outstanding(
+        &mut self,
+        tx_id: LedgerTxId,
+        outstanding: UsdCents,
+        record_amount: UsdCents,
+    ) -> Result<String, FixedTermLoanError> {
+        if outstanding < record_amount {
+            return Err(FixedTermLoanError::PaymentExceedsOutstandingLoanAmount(
+                record_amount,
+                outstanding,
+            ));
+        }
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
+        self.events.push(FixedTermLoanEvent::PaymentRecorded {
+            tx_id,
+            tx_ref: tx_ref.clone(),
+            amount: record_amount,
+        });
+        if outstanding == record_amount {
+            self.events.push(FixedTermLoanEvent::Completed);
+        }
+        Ok(tx_ref)
     }
 
     fn count_interest_incurred(&self) -> usize {
@@ -122,48 +121,24 @@ impl FixedTermLoan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if self.count_interest_incurred() <= 1 {
+        if !self.is_completed() && self.count_interest_incurred() <= 1 {
             Some(Utc::now())
         } else {
             None
         }
     }
 
-    pub fn record_payment(&mut self, tx_id: LedgerTxId, amount: UsdCents) -> String {
-        let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
-        self.events.push(FixedTermLoanEvent::PaymentMade {
-            tx_id,
-            tx_ref: tx_ref.clone(),
-            amount,
-        });
-        tx_ref
-    }
-
     fn count_payment_made(&self) -> usize {
         self.events
             .iter()
-            .filter(|event| matches!(event, FixedTermLoanEvent::PaymentMade { .. }))
+            .filter(|event| matches!(event, FixedTermLoanEvent::PaymentRecorded { .. }))
             .count()
     }
 
-    pub fn allocate_payment(
-        &mut self,
-        amount: UsdCents,
-        balances: &FixedTermLoanBalance,
-    ) -> PaymentAllocation {
-        PaymentAllocation::new(amount, balances)
-    }
-
-    pub fn mark_repaid(&mut self, interest_income: UsdCents) {
-        self.events.push(FixedTermLoanEvent::Repaid {
-            interest_earned: interest_income,
-        })
-    }
-
-    pub fn is_repaid(&mut self) -> bool {
+    pub fn is_completed(&self) -> bool {
         self.events
             .iter()
-            .filter(|event| matches!(event, FixedTermLoanEvent::Repaid { .. }))
+            .filter(|event| matches!(event, FixedTermLoanEvent::Completed { .. }))
             .count()
             > 0
     }
@@ -194,8 +169,8 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 }
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
-                FixedTermLoanEvent::PaymentMade { .. } => {}
-                FixedTermLoanEvent::Repaid { .. } => {}
+                FixedTermLoanEvent::PaymentRecorded { .. } => {}
+                FixedTermLoanEvent::Completed { .. } => {}
             }
         }
         builder.events(events).build()
