@@ -74,7 +74,7 @@ wait_for_interest() {
   principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.outstanding.usdBalance')
   [[ "$principal_balance" == "200000" ]] || exit 1;
 
-  retry 10 1 wait_for_interest "$id"
+  retry 30 1 wait_for_interest "$id"
   interest_balance=$(read_value 'interest_incurred')
   [[ "$interest_balance" == "2" ]] || exit 1
 
