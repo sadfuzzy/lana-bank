@@ -125,6 +125,10 @@ impl FixedTermLoans {
         amount: UsdCents,
     ) -> Result<FixedTermLoan, FixedTermLoanError> {
         let mut loan = self.repo.find_by_id(loan_id.into()).await?;
+        if loan.is_repaid() {
+            return Ok(loan);
+        }
+
         let tx_id = LedgerTxId::new();
         let tx_ref = loan.make_payment(tx_id, amount);
         let mut db_tx = self.pool.begin().await?;

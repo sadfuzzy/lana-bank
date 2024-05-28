@@ -28,6 +28,9 @@ pub enum FixedTermLoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
+    Repaid {
+        interest_earned: UsdCents,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -112,6 +115,14 @@ impl FixedTermLoan {
             .filter(|event| matches!(event, FixedTermLoanEvent::PaymentMade { .. }))
             .count()
     }
+
+    pub fn is_repaid(&mut self) -> bool {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, FixedTermLoanEvent::Repaid { .. }))
+            .count()
+            > 0
+    }
 }
 
 impl Entity for FixedTermLoan {
@@ -140,6 +151,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
                 FixedTermLoanEvent::PaymentMade { .. } => {}
+                FixedTermLoanEvent::Repaid { .. } => {}
             }
         }
         builder.events(events).build()
