@@ -56,7 +56,7 @@ impl PaymentAllocation {
         match amount.cmp(&outstanding) {
             std::cmp::Ordering::Less => PaymentAllocation {
                 payment_amount: amount,
-                amount_left_after_payment: outstanding.sub(amount),
+                amount_left_after_payment: outstanding - amount,
             },
             std::cmp::Ordering::Equal => PaymentAllocation {
                 payment_amount: amount,
@@ -151,10 +151,10 @@ impl FixedTermLoan {
         amount: UsdCents,
         balances: &FixedTermLoanBalance,
     ) -> PaymentAllocation {
-        PaymentAllocation::new(amount, &balances)
+        PaymentAllocation::new(amount, balances)
     }
 
-    pub fn mark_repaid(&mut self, interest_income: UsdCents) -> () {
+    pub fn mark_repaid(&mut self, interest_income: UsdCents) {
         self.events.push(FixedTermLoanEvent::Repaid {
             interest_earned: interest_income,
         })
