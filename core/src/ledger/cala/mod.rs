@@ -74,6 +74,7 @@ impl CalaClient {
                 code,
                 description: None,
                 metadata: None,
+                account_set_ids: None,
             },
         };
         let response =
