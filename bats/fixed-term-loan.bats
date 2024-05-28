@@ -89,8 +89,8 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'make-payment' "$variables"
-  outstanding_after=$(graphql_output '.data.fixedTermLoanMakePayment.loan.balance.outstanding.usdBalance')
+  exec_graphql 'record-payment' "$variables"
+  outstanding_after=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding_after" -gt "0" ]] || exit 1
   [[ "$outstanding_after" -lt "$outstanding_before" ]] || exit 1
 
@@ -104,7 +104,7 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'make-payment' "$variables"
-  outstanding=$(graphql_output '.data.fixedTermLoanMakePayment.loan.balance.outstanding.usdBalance')
+  exec_graphql 'record-payment' "$variables"
+  outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
 }
