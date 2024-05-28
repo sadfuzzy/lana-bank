@@ -94,4 +94,12 @@ impl Users {
             .await?;
         Ok(user)
     }
+
+    pub async fn find_by_id(&self, id: UserId) -> Result<Option<User>, UserError> {
+        match self.repo.find_by_id(id).await {
+            Ok(user) => Ok(Some(user)),
+            Err(UserError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
 }

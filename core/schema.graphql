@@ -68,6 +68,7 @@ type Mutation {
 
 type Query {
 	loan(id: UUID!): FixedTermLoan
+	user(id: UUID!): User
 }
 
 scalar Satoshis
