@@ -60,7 +60,7 @@ impl JobRunner for FixedTermLoanInterestJobRunner {
         let mut loan = self.repo.find_by_id(self.config.loan_id).await?;
         let tx_id = LedgerTxId::new();
         let tx_ref = match loan.record_incur_interest_transaction(tx_id) {
-            Err(FixedTermLoanError::AlreadyComplete) => {
+            Err(FixedTermLoanError::AlreadyFullyRepaid) => {
                 return Ok(JobCompletion::Complete);
             }
             Ok(tx_ref) => tx_ref,

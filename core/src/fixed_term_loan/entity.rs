@@ -28,7 +28,7 @@ pub enum FixedTermLoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
-    Completed,
+    FullyRepaid,
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -73,8 +73,8 @@ impl FixedTermLoan {
         &mut self,
         tx_id: LedgerTxId,
     ) -> Result<String, FixedTermLoanError> {
-        if self.is_completed() {
-            return Err(FixedTermLoanError::AlreadyComplete);
+        if self.is_fully_repaid() {
+            return Err(FixedTermLoanError::AlreadyFullyRepaid);
         }
 
         let tx_ref = format!(
@@ -108,7 +108,7 @@ impl FixedTermLoan {
             amount: record_amount,
         });
         if outstanding == record_amount {
-            self.events.push(FixedTermLoanEvent::Completed);
+            self.events.push(FixedTermLoanEvent::FullyRepaid);
         }
         Ok(tx_ref)
     }
@@ -121,7 +121,7 @@ impl FixedTermLoan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_completed() && self.count_interest_incurred() <= 1 {
+        if !self.is_fully_repaid() && self.count_interest_incurred() <= 1 {
             Some(Utc::now())
         } else {
             None
@@ -135,10 +135,10 @@ impl FixedTermLoan {
             .count()
     }
 
-    pub fn is_completed(&self) -> bool {
+    pub fn is_fully_repaid(&self) -> bool {
         self.events
             .iter()
-            .filter(|event| matches!(event, FixedTermLoanEvent::Completed { .. }))
+            .filter(|event| matches!(event, FixedTermLoanEvent::FullyRepaid { .. }))
             .count()
             > 0
     }
@@ -170,7 +170,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
                 FixedTermLoanEvent::PaymentRecorded { .. } => {}
-                FixedTermLoanEvent::Completed { .. } => {}
+                FixedTermLoanEvent::FullyRepaid { .. } => {}
             }
         }
         builder.events(events).build()
