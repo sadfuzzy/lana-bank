@@ -67,30 +67,16 @@ impl Users {
         Ok(user)
     }
 
-    pub async fn withdraw_via_ach_for_user(
+    pub async fn withdraw_via_usdt_for_user(
         &self,
         user_id: UserId,
         amount: UsdCents,
         reference: String,
     ) -> Result<User, UserError> {
-        // TODO: determine how to link this to actual ACH transfer
+        // TODO: determine how to link this to actual usdt transfer
         let user = self.repo.find_by_id(user_id).await?;
         self.ledger
-            .withdraw_via_ach_for_user(user.account_ids, amount, reference)
-            .await?;
-        Ok(user)
-    }
-
-    pub async fn withdraw_via_tether_for_user(
-        &self,
-        user_id: UserId,
-        amount: UsdCents,
-        reference: String,
-    ) -> Result<User, UserError> {
-        // TODO: determine how to link this to actual tether transfer
-        let user = self.repo.find_by_id(user_id).await?;
-        self.ledger
-            .withdraw_via_tether_for_user(user.account_ids, amount, reference)
+            .withdraw_via_usdt_for_user(user.account_ids, amount, reference)
             .await?;
         Ok(user)
     }

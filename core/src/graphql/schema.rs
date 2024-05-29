@@ -61,32 +61,15 @@ impl Mutation {
         ))
     }
 
-    pub async fn user_withdraw_via_ach(
+    pub async fn user_withdraw_via_usdt(
         &self,
         ctx: &Context<'_>,
-        input: UserWithdrawViaAchInput,
-    ) -> async_graphql::Result<UserWithdrawViaAchPayload> {
+        input: UserWithdrawViaUsdtInput,
+    ) -> async_graphql::Result<UserWithdrawViaUsdtPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserWithdrawViaAchPayload::from(
+        Ok(UserWithdrawViaUsdtPayload::from(
             app.users()
-                .withdraw_via_ach_for_user(
-                    UserId::from(input.user_id),
-                    input.amount,
-                    input.reference,
-                )
-                .await?,
-        ))
-    }
-
-    pub async fn user_withdraw_via_tether(
-        &self,
-        ctx: &Context<'_>,
-        input: UserWithdrawViaTetherInput,
-    ) -> async_graphql::Result<UserWithdrawViaTetherPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserWithdrawViaTetherPayload::from(
-            app.users()
-                .withdraw_via_tether_for_user(
+                .withdraw_via_usdt_for_user(
                     UserId::from(input.user_id),
                     input.amount,
                     input.reference,

@@ -88,8 +88,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.withdraw_via_tether_for_user", skip(self), err)]
-    pub async fn withdraw_via_tether_for_user(
+    #[instrument(name = "lava.ledger.withdraw_via_usdt_for_user", skip(self), err)]
+    pub async fn withdraw_via_usdt_for_user(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
@@ -97,24 +97,11 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_withdraw_from_checking_via_tether_tx(
+            .execute_withdraw_from_checking_via_usdt_tx(
                 user_account_ids,
                 amount.to_usd(),
                 reference,
             )
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.withdraw_via_ach_for_user", skip(self), err)]
-    pub async fn withdraw_via_ach_for_user(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        amount: UsdCents,
-        reference: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_withdraw_from_checking_via_ach_tx(user_account_ids, amount.to_usd(), reference)
             .await?)
     }
 
@@ -263,19 +250,10 @@ impl Ledger {
 
         Self::assert_debit_account_exists(
             cala,
-            constants::BANK_ACH_CASH_ID.into(),
-            constants::BANK_ACH_CASH_NAME,
-            constants::BANK_ACH_CASH_CODE,
-            &constants::BANK_ACH_CASH_ID.to_string(),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            cala,
-            constants::BANK_TETHER_CASH_ID.into(),
-            constants::BANK_TETHER_CASH_NAME,
-            constants::BANK_TETHER_CASH_CODE,
-            &constants::BANK_TETHER_CASH_ID.to_string(),
+            constants::BANK_USDT_CASH_ID.into(),
+            constants::BANK_USDT_CASH_NAME,
+            constants::BANK_USDT_CASH_CODE,
+            &constants::BANK_USDT_CASH_ID.to_string(),
         )
         .await?;
 

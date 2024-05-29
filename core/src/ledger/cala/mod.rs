@@ -262,52 +262,9 @@ impl CalaClient {
         Ok(())
     }
 
-    #[instrument(
-        name = "lava.ledger.cala.execute_withdraw_from_checking_via_tether_tx",
-        skip(self),
-        err
-    )]
-    pub async fn execute_withdraw_from_checking_via_tether_tx(
+    pub async fn execute_withdraw_from_checking_via_usdt_tx(
         &self,
         user_account_ids: UserLedgerAccountIds,
-        amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        Self::execute_withdraw_from_checking_tx(
-            self,
-            user_account_ids,
-            super::constants::BANK_TETHER_CASH_ID.into(),
-            amount,
-            external_id,
-        )
-        .await
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.execute_withdraw_from_checking_via_ach_tx",
-        skip(self),
-        err
-    )]
-    pub async fn execute_withdraw_from_checking_via_ach_tx(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        Self::execute_withdraw_from_checking_tx(
-            self,
-            user_account_ids,
-            super::constants::BANK_ACH_CASH_ID.into(),
-            amount,
-            external_id,
-        )
-        .await
-    }
-
-    async fn execute_withdraw_from_checking_tx(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        bank_account_id: LedgerAccountId,
         amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
@@ -315,7 +272,7 @@ impl CalaClient {
         let variables = post_withdraw_from_checking_transaction::Variables {
             transaction_id,
             user_account: user_account_ids.checking_id.into(),
-            bank_account: bank_account_id.into(),
+            bank_account: super::constants::BANK_USDT_CASH_ID,
             amount,
             external_id,
         };

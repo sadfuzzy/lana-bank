@@ -75,38 +75,18 @@ impl From<crate::user::User> for UserTopupCollateralPayload {
 }
 
 #[derive(InputObject)]
-pub struct UserWithdrawViaAchInput {
+pub struct UserWithdrawViaUsdtInput {
     pub user_id: UUID,
     pub amount: UsdCents,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
-pub struct UserWithdrawViaAchPayload {
+pub struct UserWithdrawViaUsdtPayload {
     pub user: User,
 }
 
-impl From<crate::user::User> for UserWithdrawViaAchPayload {
-    fn from(user: crate::user::User) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
-
-#[derive(InputObject)]
-pub struct UserWithdrawViaTetherInput {
-    pub user_id: UUID,
-    pub amount: UsdCents,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct UserWithdrawViaTetherPayload {
-    pub user: User,
-}
-
-impl From<crate::user::User> for UserWithdrawViaTetherPayload {
+impl From<crate::user::User> for UserWithdrawViaUsdtPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),

@@ -59,8 +59,7 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
-	userWithdrawViaAch(input: UserWithdrawViaAchInput!): UserWithdrawViaAchPayload!
-	userWithdrawViaTether(input: UserWithdrawViaTetherInput!): UserWithdrawViaTetherPayload!
+	userWithdrawViaUsdt(input: UserWithdrawViaUsdtInput!): UserWithdrawViaUsdtPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -111,23 +110,13 @@ type UserTopupCollateralPayload {
 	user: User!
 }
 
-input UserWithdrawViaAchInput {
+input UserWithdrawViaUsdtInput {
 	userId: UUID!
 	amount: UsdCents!
 	reference: String!
 }
 
-type UserWithdrawViaAchPayload {
-	user: User!
-}
-
-input UserWithdrawViaTetherInput {
-	userId: UUID!
-	amount: UsdCents!
-	reference: String!
-}
-
-type UserWithdrawViaTetherPayload {
+type UserWithdrawViaUsdtPayload {
 	user: User!
 }
 

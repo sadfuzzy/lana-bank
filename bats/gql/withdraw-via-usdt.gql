@@ -1,5 +1,5 @@
-mutation UserWithdrawViaTether($input: UserWithdrawViaTetherInput!) {
-  userWithdrawViaTether(input: $input) {
+mutation UserWithdrawViaUsdt($input: UserWithdrawViaUsdtInput!) {
+  userWithdrawViaUsdt(input: $input) {
     user {
       userId
       balance {

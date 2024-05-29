@@ -51,7 +51,7 @@ teardown_file() {
   [[ "$sats" == "100000" ]] || exit 1;
 }
 
-@test "user: can withdraw via ach" {
+@test "user: can withdraw via usdt" {
   user_id=$(read_value 'user.id')
   variables=$(
     jq -n \
@@ -100,22 +100,7 @@ teardown_file() {
       }
     }'
   )
-  exec_graphql 'withdraw-via-ach' "$variables"
-  checking_balance=$(graphql_output '.data.userWithdrawViaAch.user.balance.checking.usdBalance')
+  exec_graphql 'withdraw-via-usdt' "$variables"
+  checking_balance=$(graphql_output '.data.userWithdrawViaUsdt.user.balance.checking.usdBalance')
   [[ "$checking_balance" == "190000" ]] || exit 1
-
-  variables=$(
-    jq -n \
-      --arg userId "$user_id" \
-    '{
-      input: {
-        userId: $userId,
-        amount: 10000,
-        reference: ("txn_reference-" + $userId)
-      }
-    }'
-  )
-  exec_graphql 'withdraw-via-tether' "$variables"
-  checking_balance=$(graphql_output '.data.userWithdrawViaTether.user.balance.checking.usdBalance')
-  [[ "$checking_balance" == "180000" ]] || exit 1
 }
