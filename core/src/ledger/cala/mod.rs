@@ -450,6 +450,28 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
+    pub async fn create_withdraw_from_checking_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = withdraw_from_checking_tx_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<WithdrawFromCheckingTxTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
     #[instrument(name = "lava.ledger.cala.execute_pay_interest_tx", skip(self), err)]
     pub async fn execute_loan_payment_tx(
         &self,
