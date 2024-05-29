@@ -147,6 +147,10 @@ impl FixedTermLoan {
     }
 
     pub fn complete(&mut self, tx_id: LedgerTxId) -> Result<(), FixedTermLoanError> {
+        if !self.is_fully_repaid() {
+            return Err(FixedTermLoanError::NotFullyRepaid);
+        }
+
         for event in self.events.iter() {
             if let FixedTermLoanEvent::CollateralReleased { .. } = event {
                 return Err(FixedTermLoanError::AlreadyCompleted);

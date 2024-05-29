@@ -22,4 +22,6 @@ pub enum FixedTermLoanError {
     AlreadyFullyRepaid,
     #[error("FixedTermLoanError - AlreadyCompleted")]
     AlreadyCompleted,
+    #[error("FixedTermLoanError - NotFullyRepaid")]
+    NotFullyRepaid,
 }
