@@ -59,7 +59,7 @@ impl Satoshis {
     pub fn from_btc(btc: Decimal) -> Self {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(u64::try_from(sats).expect("Satoshis must be an integer"))
+        Self(u64::try_from(sats).expect("Satoshis must be a positive integer"))
     }
 
     pub fn into_inner(self) -> u64 {

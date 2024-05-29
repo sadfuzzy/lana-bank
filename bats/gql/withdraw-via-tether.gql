@@ -1,0 +1,15 @@
+mutation UserWithdrawViaTether($input: UserWithdrawViaTetherInput!) {
+  userWithdrawViaTether(input: $input) {
+    user {
+      userId
+      balance {
+        unallocatedCollateral {
+          btcBalance
+        }
+        checking {
+          usdBalance
+        }
+      }
+    }
+  }
+}

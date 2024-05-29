@@ -1,0 +1,15 @@
+mutation UserWithdrawViaAch($input: UserWithdrawViaAchInput!) {
+  userWithdrawViaAch(input: $input) {
+    user {
+      userId
+      balance {
+        unallocatedCollateral {
+          btcBalance
+        }
+        checking {
+          usdBalance
+        }
+      }
+    }
+  }
+}

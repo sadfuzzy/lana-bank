@@ -1,0 +1,12 @@
+query user($id: UUID!) {
+  user(id: $id) {
+    balance {
+      unallocatedCollateral {
+        btcBalance
+      }
+      checking {
+        usdBalance
+      }
+    }
+  }
+}

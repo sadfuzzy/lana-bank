@@ -27,25 +27,13 @@ teardown_file() {
 
   sats=$(graphql_output '.data.userCreate.user.balance.unallocatedCollateral.btcBalance')
   [[ "$sats" == "0" ]] || exit 1;
+
+  user_id=$(graphql_output '.data.userCreate.user.userId')
+  cache_value 'user.id' "$user_id"
 }
 
 @test "user: can topup unallocated collateral" {
-  username=$(random_uuid)
-  variables=$(
-    jq -n \
-      --arg username "$username" \
-    '{
-      input: {
-        bitfinexUsername: $username,
-      }
-    }'
-  )
-  exec_graphql 'user-create' "$variables"
-
-  user_id=$(graphql_output '.data.userCreate.user.userId')
-  sats=$(graphql_output '.data.userCreate.user.balance.unallocatedCollateral.btcBalance')
-  [[ "$sats" == "0" ]] || exit 1;
-
+  user_id=$(read_value 'user.id')
   variables=$(
     jq -n \
       --arg userId "$user_id" \
@@ -61,4 +49,73 @@ teardown_file() {
   sats=$(graphql_output '.data.userTopupCollateral.user.balance.unallocatedCollateral.btcBalance')
   echo $(graphql_output)
   [[ "$sats" == "100000" ]] || exit 1;
+}
+
+@test "user: can withdraw via ach" {
+  user_id=$(read_value 'user.id')
+  variables=$(
+    jq -n \
+    --arg userId "$user_id" \
+    '{
+      input: {
+        userId: $userId,
+      }
+    }'
+  )
+  exec_graphql 'fixed-term-loan-create' "$variables"
+  id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
+  [[ "$id" != null ]] || exit 1
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 100000,
+        principal: 200000,
+      }
+    }'
+  )
+  exec_graphql 'approve-loan' "$variables"
+  loan_id=$(graphql_output '.data.fixedTermLoanApprove.loan.loanId')
+  [[ "$id" == "$loan_id" ]] || exit 1
+
+  variables=$(
+    jq -n \
+    --arg userId "$user_id" \
+    '{ id: $userId }'
+  )
+  exec_graphql 'find-user' "$variables"
+  checking_balance=$(graphql_output '.data.user.balance.checking.usdBalance')
+  [[ "$checking_balance" == "200000" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg userId "$user_id" \
+    '{
+      input: {
+        userId: $userId,
+        amount: 10000,
+        reference: ("txn_reference-" + $userId)
+      }
+    }'
+  )
+  exec_graphql 'withdraw-via-ach' "$variables"
+  checking_balance=$(graphql_output '.data.userWithdrawViaAch.user.balance.checking.usdBalance')
+  [[ "$checking_balance" == "190000" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg userId "$user_id" \
+    '{
+      input: {
+        userId: $userId,
+        amount: 10000,
+        reference: ("txn_reference-" + $userId)
+      }
+    }'
+  )
+  exec_graphql 'withdraw-via-tether' "$variables"
+  checking_balance=$(graphql_output '.data.userWithdrawViaTether.user.balance.checking.usdBalance')
+  [[ "$checking_balance" == "180000" ]] || exit 1
 }
