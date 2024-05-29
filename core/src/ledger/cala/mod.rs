@@ -204,6 +204,33 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.create_complete_loan_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_complete_loan_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = complete_loan_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.execute_pledge_unallocated_collateral_tx",
         skip(self),
         err
@@ -395,6 +422,35 @@ impl CalaClient {
             external_id,
         };
         let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    pub async fn execute_complete_loan_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_complete_loan_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
             &self.client,
             &self.url,
             variables,

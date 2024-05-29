@@ -1,0 +1,95 @@
+mutation CompleteLoanTemplateCreate(
+  $templateId: UUID!
+  $journalId: Expression!
+) {
+  txTemplateCreate(
+    input: {
+      txTemplateId: $templateId
+      code: "COMPLETE_LOAN"
+      description: "Move money from unallocated collateral to loan account."
+      params: [
+        {
+          name: "loanCollateralAccount"
+          type: UUID
+          description: "Loan Collateral account ID."
+        }
+        {
+          name: "unallocatedCollateralAccount"
+          type: UUID
+          description: "User Unallocated Collateral account ID."
+        }
+        {
+          name: "collateralAmount"
+          type: DECIMAL
+          description: "Amount of BTC being put into the loan."
+        }
+        {
+          name: "externalId"
+          type: STRING
+          description: "External ID for the transaction"
+        }
+        {
+          name: "effective"
+          type: DATE
+          description: "Effective date for transaction."
+          default: "date()"
+        }
+      ]
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
+      entries: [
+        {
+          accountId: "params.loanCollateralAccount"
+          units: "params.collateralAmount"
+          currency: "'BTC'"
+          entryType: "'RELEASE_LOAN_COLLATERAL_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.unallocatedCollateralAccount"
+          units: "params.collateralAmount"
+          currency: "'BTC'"
+          entryType: "'RELEASE_LOAN_COLLATERAL_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
+        }
+      ]
+    }
+  ) {
+    txTemplate {
+      txTemplateId
+      code
+      version
+    }
+  }
+}
+
+mutation PostCompleteLoanTransaction(
+  $transactionId: UUID!
+  $unallocatedCollateralAccount: UUID!
+  $loanCollateralAccount: UUID!
+  $collateralAmount: Decimal!
+  $externalId: String!
+) {
+  postTransaction(
+    input: {
+      transactionId: $transactionId
+      txTemplateCode: "COMPLETE_LOAN"
+      params: {
+        unallocatedCollateralAccount: $unallocatedCollateralAccount
+        loanCollateralAccount: $loanCollateralAccount
+        collateralAmount: $collateralAmount
+        externalId: $externalId
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+    }
+  }
+}

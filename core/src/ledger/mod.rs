@@ -192,6 +192,27 @@ impl Ledger {
             .await?)
     }
 
+    #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
+    pub async fn complete_loan(
+        &self,
+        tx_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        collateral: Satoshis,
+        external_id: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_complete_loan_tx(
+                tx_id,
+                loan_account_ids,
+                user_account_ids,
+                collateral.to_btc(),
+                external_id,
+            )
+            .await?)
+    }
+
     #[instrument(
         name = "lava.ledger.create_unallocated_collateral_account_for_user",
         skip(self),
@@ -376,6 +397,8 @@ impl Ledger {
         )
         .await?;
 
+        Self::assert_complete_loan_tx_template_exists(cala, constants::COMPLETE_LOAN_CODE).await?;
+
         Ok(())
     }
 
@@ -470,6 +493,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_record_payment_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_complete_loan_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_complete_loan_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }
