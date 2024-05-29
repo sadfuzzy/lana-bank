@@ -29,6 +29,9 @@ pub enum FixedTermLoanEvent {
         amount: UsdCents,
     },
     FullyRepaid,
+    CollateralReleased {
+        tx_id: LedgerTxId,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -142,6 +145,18 @@ impl FixedTermLoan {
             .count()
             > 0
     }
+
+    pub fn complete(&mut self, tx_id: LedgerTxId) -> Result<(), FixedTermLoanError> {
+        for event in self.events.iter() {
+            if let FixedTermLoanEvent::CollateralReleased { .. } = event {
+                return Err(FixedTermLoanError::AlreadyCompleted);
+            }
+        }
+
+        self.events
+            .push(FixedTermLoanEvent::CollateralReleased { tx_id });
+        Ok(())
+    }
 }
 
 impl Entity for FixedTermLoan {
@@ -171,6 +186,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
                 FixedTermLoanEvent::PaymentRecorded { .. } => {}
                 FixedTermLoanEvent::FullyRepaid { .. } => {}
+                FixedTermLoanEvent::CollateralReleased { .. } => {}
             }
         }
         builder.events(events).build()
