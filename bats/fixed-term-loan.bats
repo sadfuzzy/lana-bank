@@ -100,6 +100,19 @@ wait_for_interest() {
     '{
       input: {
         loanId: $loanId,
+      }
+    }'
+  )
+  exec_graphql 'complete-loan' "$variables"
+  err_msg=$(graphql_output '.errors[0].message')
+  [[ "$err_msg" =~ "NotFullyRepaid" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
         amount: 25000001,
       }
     }'
@@ -107,4 +120,17 @@ wait_for_interest() {
   exec_graphql 'record-payment' "$variables"
   outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_graphql 'complete-loan' "$variables"
+  collateral_balance=$(graphql_output '.data.fixedTermLoanComplete.loan.balance.collateral.btcBalance')
+  [[ "$collateral_balance" == "0" ]] || exit 1
 }
