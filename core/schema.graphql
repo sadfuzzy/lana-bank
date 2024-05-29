@@ -33,6 +33,14 @@ type FixedTermLoanBalance {
 	interestIncurred: InterestIncome!
 }
 
+input FixedTermLoanCompleteInput {
+	loanId: UUID!
+}
+
+type FixedTermLoanCompletePayload {
+	loan: FixedTermLoan!
+}
+
 input FixedTermLoanCreateInput {
 	userId: UUID!
 }
@@ -69,6 +77,7 @@ type Mutation {
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
+	fixedTermLoanComplete(input: FixedTermLoanCompleteInput!): FixedTermLoanCompletePayload!
 }
 
 type Query {

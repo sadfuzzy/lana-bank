@@ -147,6 +147,35 @@ impl FixedTermLoans {
         Ok(loan)
     }
 
+    #[instrument(name = "lava.fixed_term_loans.complete_loan", skip(self), err)]
+    pub async fn complete_loan(
+        &self,
+        loan_id: impl Into<FixedTermLoanId> + std::fmt::Debug,
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
+        let mut loan = self.repo.find_by_id(loan_id.into()).await?;
+        let user = self.users.find_by_id(loan.user_id).await?;
+        let balances = self
+            .ledger
+            .get_fixed_term_loan_balance(loan.account_ids)
+            .await?;
+        let tx_id = LedgerTxId::new();
+
+        let mut db_tx = self.pool.begin().await?;
+        loan.complete(tx_id)?;
+        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.ledger
+            .complete_loan(
+                tx_id,
+                loan.account_ids,
+                user.account_ids,
+                balances.collateral,
+                format!("{}-completion", loan.id),
+            )
+            .await?;
+        db_tx.commit().await?;
+        Ok(loan)
+    }
+
     pub async fn find_by_id(
         &self,
         id: FixedTermLoanId,

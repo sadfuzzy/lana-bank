@@ -131,4 +131,14 @@ impl Mutation {
             .await?;
         Ok(FixedTermLoanRecordPaymentPayload::from(loan))
     }
+
+    pub async fn fixed_term_loan_complete(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanCompleteInput,
+    ) -> async_graphql::Result<FixedTermLoanCompletePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app.fixed_term_loans().complete_loan(input.loan_id).await?;
+        Ok(FixedTermLoanCompletePayload::from(loan))
+    }
 }
