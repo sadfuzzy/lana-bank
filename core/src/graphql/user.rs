@@ -75,18 +75,24 @@ impl From<crate::user::User> for UserTopupCollateralPayload {
 }
 
 #[derive(InputObject)]
-pub struct UserWithdrawViaUsdtInput {
+pub struct UsdtOnTron {
+    pub address: String,
+}
+
+#[derive(InputObject)]
+pub struct UserInitiateWithdrawalViaUsdtOnTronInput {
     pub user_id: UUID,
     pub amount: UsdCents,
+    pub destination: UsdtOnTron,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
-pub struct UserWithdrawViaUsdtPayload {
+pub struct UserInitiateWithdrawalViaUsdtOnTronPayload {
     pub user: User,
 }
 
-impl From<crate::user::User> for UserWithdrawViaUsdtPayload {
+impl From<crate::user::User> for UserInitiateWithdrawalViaUsdtOnTronPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),

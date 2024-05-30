@@ -59,7 +59,7 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
-	userWithdrawViaUsdt(input: UserWithdrawViaUsdtInput!): UserWithdrawViaUsdtPayload!
+	userInitiateWithdrawalViaUsdtOnTron(input: UserInitiateWithdrawalViaUsdtOnTronInput!): UserInitiateWithdrawalViaUsdtOnTronPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -81,6 +81,10 @@ type UnallocatedCollateral {
 
 scalar UsdCents
 
+input UsdtOnTron {
+	address: String!
+}
+
 type User {
 	userId: UUID!
 	bitfinexUsername: String!
@@ -100,6 +104,17 @@ type UserCreatePayload {
 	user: User!
 }
 
+input UserInitiateWithdrawalViaUsdtOnTronInput {
+	userId: UUID!
+	amount: UsdCents!
+	destination: UsdtOnTron!
+	reference: String!
+}
+
+type UserInitiateWithdrawalViaUsdtOnTronPayload {
+	user: User!
+}
+
 input UserTopupCollateralInput {
 	userId: UUID!
 	amount: Satoshis!
@@ -107,16 +122,6 @@ input UserTopupCollateralInput {
 }
 
 type UserTopupCollateralPayload {
-	user: User!
-}
-
-input UserWithdrawViaUsdtInput {
-	userId: UUID!
-	amount: UsdCents!
-	reference: String!
-}
-
-type UserWithdrawViaUsdtPayload {
 	user: User!
 }
 

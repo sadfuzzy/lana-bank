@@ -88,8 +88,12 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.withdraw_via_usdt_for_user", skip(self), err)]
-    pub async fn withdraw_via_usdt_for_user(
+    #[instrument(
+        name = "lava.ledger.initiate_withdrawal_via_usdt_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn initiate_withdrawal_via_usdt_for_user(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
@@ -97,7 +101,7 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_withdraw_from_checking_via_usdt_tx(
+            .execute_initiate_withdrawal_from_checking_via_usdt_tx(
                 user_account_ids,
                 amount.to_usd(),
                 reference,
@@ -346,9 +350,9 @@ impl Ledger {
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
 
-        Self::assert_withdraw_from_checking_tx_template_exists(
+        Self::assert_initiate_withdrawal_from_checking_tx_template_exists(
             cala,
-            constants::WITHDRAW_FROM_CHECKING_CODE,
+            constants::INITIATE_WITHDRAWAL_FROM_CHECKING_CODE,
         )
         .await?;
 
@@ -458,7 +462,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_withdraw_from_checking_tx_template_exists(
+    async fn assert_initiate_withdrawal_from_checking_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -471,7 +475,7 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala
-            .create_withdraw_from_checking_tx_template(template_id)
+            .create_initiate_withdrawal_from_checking_tx_template(template_id)
             .await
         {
             Ok(id) => {

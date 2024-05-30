@@ -262,26 +262,27 @@ impl CalaClient {
         Ok(())
     }
 
-    pub async fn execute_withdraw_from_checking_via_usdt_tx(
+    pub async fn execute_initiate_withdrawal_from_checking_via_usdt_tx(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let transaction_id = uuid::Uuid::new_v4();
-        let variables = post_withdraw_from_checking_transaction::Variables {
+        let variables = post_initiate_withdrawal_from_checking_transaction::Variables {
             transaction_id,
             user_account: user_account_ids.checking_id.into(),
             bank_account: super::constants::BANK_USDT_CASH_ID,
             amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostWithdrawFromCheckingTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
+        let response =
+            Self::traced_gql_request::<PostInitiateWithdrawalFromCheckingTransaction, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
 
         response
             .data
@@ -407,20 +408,21 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    pub async fn create_withdraw_from_checking_tx_template(
+    pub async fn create_initiate_withdrawal_from_checking_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = withdraw_from_checking_tx_template_create::Variables {
+        let variables = initiate_withdrawal_from_checking_tx_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
         };
-        let response = Self::traced_gql_request::<WithdrawFromCheckingTxTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
+        let response =
+            Self::traced_gql_request::<InitiateWithdrawalFromCheckingTxTemplateCreate, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
 
         response
             .data

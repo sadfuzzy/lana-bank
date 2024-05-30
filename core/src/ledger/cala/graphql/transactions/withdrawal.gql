@@ -1,11 +1,11 @@
-mutation WithdrawFromCheckingTxTemplateCreate(
+mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "WITHDRAW_FROM_CHECKING"
+      code: "INITIATE_WITHDRAWAL_FROM_CHECKING"
       description: "A withdrawal from user checking account."
       params: [
         {
@@ -39,7 +39,7 @@ mutation WithdrawFromCheckingTxTemplateCreate(
           currency: "'USD'"
           entryType: "'ACH_DR'"
           direction: "DEBIT"
-          layer: "SETTLED"
+          layer: "ENCUMBERED"
         }
         {
           accountId: "params.bankAccount"
@@ -47,7 +47,7 @@ mutation WithdrawFromCheckingTxTemplateCreate(
           currency: "'USD'"
           entryType: "'ACH_CR'"
           direction: "CREDIT"
-          layer: "SETTLED"
+          layer: "ENCUMBERED"
         }
       ]
     }
@@ -59,7 +59,7 @@ mutation WithdrawFromCheckingTxTemplateCreate(
   }
 }
 
-mutation PostWithdrawFromCheckingTransaction(
+mutation PostInitiateWithdrawalFromCheckingTransaction(
   $transactionId: UUID!
   $userAccount: UUID!
   $bankAccount: UUID!
@@ -69,7 +69,7 @@ mutation PostWithdrawFromCheckingTransaction(
   postTransaction(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "WITHDRAW_FROM_CHECKING"
+      txTemplateCode: "INITIATE_WITHDRAWAL_FROM_CHECKING"
       params: {
         userAccount: $userAccount
         bankAccount: $bankAccount

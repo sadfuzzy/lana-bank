@@ -61,17 +61,18 @@ impl Mutation {
         ))
     }
 
-    pub async fn user_withdraw_via_usdt(
+    pub async fn user_initiate_withdrawal_via_usdt_on_tron(
         &self,
         ctx: &Context<'_>,
-        input: UserWithdrawViaUsdtInput,
-    ) -> async_graphql::Result<UserWithdrawViaUsdtPayload> {
+        input: UserInitiateWithdrawalViaUsdtOnTronInput,
+    ) -> async_graphql::Result<UserInitiateWithdrawalViaUsdtOnTronPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserWithdrawViaUsdtPayload::from(
+        Ok(UserInitiateWithdrawalViaUsdtOnTronPayload::from(
             app.users()
-                .withdraw_via_usdt_for_user(
+                .initiate_withdrawal_via_usdt_on_tron_for_user(
                     UserId::from(input.user_id),
                     input.amount,
+                    input.destination.address,
                     input.reference,
                 )
                 .await?,

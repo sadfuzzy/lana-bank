@@ -67,16 +67,17 @@ impl Users {
         Ok(user)
     }
 
-    pub async fn withdraw_via_usdt_for_user(
+    pub async fn initiate_withdrawal_via_usdt_on_tron_for_user(
         &self,
         user_id: UserId,
         amount: UsdCents,
+        tron_address: String,
         reference: String,
     ) -> Result<User, UserError> {
-        // TODO: determine how to link this to actual usdt transfer
+        // TODO: create outbox event from params for external tron withdrawal
         let user = self.repo.find_by_id(user_id).await?;
         self.ledger
-            .withdraw_via_usdt_for_user(user.account_ids, amount, reference)
+            .initiate_withdrawal_via_usdt_for_user(user.account_ids, amount, reference)
             .await?;
         Ok(user)
     }
