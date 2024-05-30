@@ -121,7 +121,7 @@ input UserInitiateWithdrawalViaUsdtOnTronInput {
 }
 
 type UserInitiateWithdrawalViaUsdtOnTronPayload {
-	user: User!
+	withdraw: Withdraw!
 }
 
 input UserTopupCollateralInput {
@@ -132,6 +132,11 @@ input UserTopupCollateralInput {
 
 type UserTopupCollateralPayload {
 	user: User!
+}
+
+type Withdraw {
+	id: UUID!
+	userId: UUID!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

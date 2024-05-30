@@ -3,8 +3,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, ledger::user::UserLedgerAccountIds, primitives::*};
 
-use super::error::UserError;
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserEvent {
@@ -12,18 +10,6 @@ pub enum UserEvent {
         id: UserId,
         bitfinex_username: String,
         account_ids: UserLedgerAccountIds,
-    },
-    UsdWithdrawalInitiated {
-        tx_id: LedgerTxId,
-        reference: String,
-        destination: WithdrawalDestination,
-        amount: UsdCents,
-    },
-    UsdWithdrawalSettled {
-        tx_id: LedgerTxId,
-        reference: String,
-        confirmation: TransactionConfirmation,
-        amount: UsdCents,
     },
 }
 
@@ -41,56 +27,6 @@ pub struct User {
     pub bitfinex_username: String,
     pub account_ids: UserLedgerAccountIds,
     pub(super) events: EntityEvents<UserEvent>,
-}
-
-impl User {
-    pub fn initiate_withdrawal(
-        &mut self,
-        tx_id: LedgerTxId,
-        amount: UsdCents,
-        destination: WithdrawalDestination,
-        reference: String,
-    ) -> Result<(), UserError> {
-        self.events.push(UserEvent::UsdWithdrawalInitiated {
-            tx_id,
-            destination,
-            reference,
-            amount,
-        });
-        Ok(())
-    }
-
-    pub fn settle_withdrawal(
-        &mut self,
-        tx_id: LedgerTxId,
-        confirmation: TransactionConfirmation,
-        withdrawal_reference: String,
-    ) -> Result<UsdCents, UserError> {
-        let amount = self
-            .events
-            .iter()
-            .find_map(|event| {
-                if let UserEvent::UsdWithdrawalInitiated {
-                    reference, amount, ..
-                } = event
-                {
-                    if *reference == withdrawal_reference {
-                        return Some(*amount);
-                    }
-                }
-                None
-            })
-            .ok_or_else(|| UserError::CouldNotEventFindByReference(withdrawal_reference.clone()))?;
-
-        self.events.push(UserEvent::UsdWithdrawalSettled {
-            tx_id,
-            reference: withdrawal_reference,
-            confirmation,
-            amount,
-        });
-
-        Ok(amount)
-    }
 }
 
 impl Entity for User {
@@ -114,8 +50,6 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .bitfinex_username(bitfinex_username.clone())
                         .account_ids(*account_ids);
                 }
-                UserEvent::UsdWithdrawalInitiated { .. } => {}
-                UserEvent::UsdWithdrawalSettled { .. } => {}
             }
         }
         builder.events(events).build()

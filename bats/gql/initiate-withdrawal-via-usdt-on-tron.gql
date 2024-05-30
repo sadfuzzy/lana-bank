@@ -2,23 +2,9 @@ mutation UserInitiateWithdrawalViaUsdtOnTron(
   $input: UserInitiateWithdrawalViaUsdtOnTronInput!
 ) {
   userInitiateWithdrawalViaUsdtOnTron(input: $input) {
-    user {
+    withdraw {
+      id
       userId
-      balance {
-        unallocatedCollateral {
-          settled {
-            btcBalance
-          }
-        }
-        checking {
-          settled {
-            usdBalance
-          }
-          encumbrance {
-            usdBalance
-          }
-        }
-      }
     }
   }
 }

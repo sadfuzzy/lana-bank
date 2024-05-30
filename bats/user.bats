@@ -104,8 +104,16 @@ teardown_file() {
     }'
   )
   exec_graphql 'initiate-withdrawal-via-usdt-on-tron' "$variables"
-  checking_balance=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.user.balance.checking.settled.usdBalance')
+  withdraw_id=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.withdraw.id')
+
+  variables=$(
+    jq -n \
+    --arg userId "$user_id" \
+    '{ id: $userId }'
+  )
+  exec_graphql 'find-user' "$variables"
+  checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
   [[ "$checking_balance" == "190000" ]] || exit 1
-  encumbered_checking_balance=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.user.balance.checking.encumbrance.usdBalance')
+  encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.encumbrance.usdBalance')
   [[ "$encumbered_checking_balance" == "10000" ]] || exit 1
 }

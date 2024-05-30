@@ -10,6 +10,9 @@ query user($id: UUID!) {
         settled {
           usdBalance
         }
+        encumbrance {
+          usdBalance
+        }
       }
     }
   }

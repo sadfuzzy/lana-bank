@@ -74,6 +74,21 @@ impl From<crate::user::User> for UserTopupCollateralPayload {
     }
 }
 
+#[derive(SimpleObject)]
+pub struct Withdraw {
+    id: UUID,
+    user_id: UUID,
+}
+
+impl From<crate::withdraw::Withdraw> for Withdraw {
+    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
+        Withdraw {
+            id: UUID::from(withdraw.id),
+            user_id: UUID::from(withdraw.user_id),
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct UsdtOnTron {
     pub address: String,
@@ -89,13 +104,13 @@ pub struct UserInitiateWithdrawalViaUsdtOnTronInput {
 
 #[derive(SimpleObject)]
 pub struct UserInitiateWithdrawalViaUsdtOnTronPayload {
-    pub user: User,
+    pub withdraw: Withdraw,
 }
 
-impl From<crate::user::User> for UserInitiateWithdrawalViaUsdtOnTronPayload {
-    fn from(user: crate::user::User) -> Self {
+impl From<crate::withdraw::Withdraw> for UserInitiateWithdrawalViaUsdtOnTronPayload {
+    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
         Self {
-            user: User::from(user),
+            withdraw: Withdraw::from(withdraw),
         }
     }
 }

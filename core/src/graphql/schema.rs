@@ -3,7 +3,7 @@ use async_graphql::*;
 use super::{fixed_term_loan::*, primitives::UUID, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{FixedTermLoanId, UserId},
+    primitives::{FixedTermLoanId, UserId, WithdrawId},
 };
 
 pub struct Query;
@@ -67,10 +67,11 @@ impl Mutation {
         input: UserInitiateWithdrawalViaUsdtOnTronInput,
     ) -> async_graphql::Result<UserInitiateWithdrawalViaUsdtOnTronPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let new_withdraw = app.withdraws().create_withdraw(input.user_id).await?;
         Ok(UserInitiateWithdrawalViaUsdtOnTronPayload::from(
-            app.users()
+            app.withdraws()
                 .initiate_withdrawal_via_usdt_on_tron_for_user(
-                    UserId::from(input.user_id),
+                    new_withdraw.id,
                     input.amount,
                     input.destination.address,
                     input.reference,
