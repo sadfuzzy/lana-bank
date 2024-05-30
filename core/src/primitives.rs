@@ -7,6 +7,7 @@ use std::fmt;
 crate::entity_id! { UserId }
 crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }
+crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
 
 impl From<FixedTermLoanId> for LedgerAccountId {

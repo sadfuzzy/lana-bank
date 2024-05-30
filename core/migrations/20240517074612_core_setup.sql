@@ -28,6 +28,21 @@ CREATE TABLE fixed_term_loan_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE withdraws (
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE withdraw_events (
+  id UUID NOT NULL REFERENCES withdraws(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   name VARCHAR NOT NULL UNIQUE,
