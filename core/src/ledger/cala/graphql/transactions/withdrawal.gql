@@ -31,7 +31,11 @@ mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
           default: "date()"
         }
       ]
-      txInput: { journalId: $journalId, effective: "params.effective" }
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
       entries: [
         {
           accountId: "params.userAccount"
@@ -134,7 +138,11 @@ mutation SettleWithdrawalFromCheckingTxTemplateCreate(
           default: "date()"
         }
       ]
-      txInput: { journalId: $journalId, effective: "params.effective" }
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
       entries: [
         {
           accountId: "params.userAccount"

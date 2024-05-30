@@ -41,7 +41,7 @@ teardown_file() {
       input: {
         userId: $userId,
         amount: 100000,
-        reference: ("txn_reference-" + $userId)
+        reference: ("topup-" + $userId)
       }
     }'
   )
@@ -99,7 +99,7 @@ teardown_file() {
         destination: {
           address: "tron-address",
         },
-        reference: ("txn_reference-" + $userId)
+        reference: ("initiate_withdraw-" + $userId)
       }
     }'
   )
