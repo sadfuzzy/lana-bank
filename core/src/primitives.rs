@@ -107,8 +107,3 @@ impl std::ops::Sub<UsdCents> for UsdCents {
         Self(self.0 - other.0)
     }
 }
-
-pub struct LayeredUsdBalance {
-    pub settled: UsdCents,
-    pub encumbrance: UsdCents,
-}

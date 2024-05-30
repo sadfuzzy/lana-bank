@@ -3,6 +3,7 @@ mod config;
 mod constants;
 pub mod error;
 pub mod fixed_term_loan;
+pub mod primitives;
 mod tx_template;
 pub mod user;
 

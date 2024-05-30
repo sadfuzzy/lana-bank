@@ -1,7 +1,7 @@
-use crate::primitives::{LayeredUsdBalance, LedgerAccountId, Satoshis, UsdCents};
+use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
-use super::cala::graphql::*;
+use super::{cala::graphql::*, primitives::LayeredUsdBalance};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct UserLedgerAccountIds {
