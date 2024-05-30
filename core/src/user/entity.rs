@@ -15,7 +15,14 @@ pub enum UserEvent {
     },
     WithdrawalInitiated {
         tx_id: LedgerTxId,
+        reference: String,
         destination: WithdrawalDestination,
+        amount: CurrencyAmount, // should this be some sort of Money type instead?
+    },
+    WithdrawalSettled {
+        tx_id: LedgerTxId,
+        reference: String,
+        confirmation: TransactionConfirmation,
         amount: CurrencyAmount, // should this be some sort of Money type instead?
     },
 }
@@ -42,13 +49,49 @@ impl User {
         tx_id: LedgerTxId,
         amount: UsdCents,
         destination: WithdrawalDestination,
+        reference: String,
     ) -> Result<(), UserError> {
         self.events.push(UserEvent::WithdrawalInitiated {
             tx_id,
             destination,
+            reference,
             amount: CurrencyAmount::UsdCents(amount),
         });
         Ok(())
+    }
+
+    pub fn settle_withdrawal(
+        &mut self,
+        tx_id: LedgerTxId,
+        confirmation: TransactionConfirmation,
+        withdrawal_reference: String,
+    ) -> Result<UsdCents, UserError> {
+        let amount = self
+            .events
+            .iter()
+            .find_map(|event| {
+                if let UserEvent::WithdrawalInitiated {
+                    reference, amount, ..
+                } = event
+                {
+                    if *reference == withdrawal_reference {
+                        return Some(*amount);
+                    }
+                }
+                None
+            })
+            .ok_or_else(|| UserError::CouldNotEventFindByReference(withdrawal_reference.clone()))?;
+
+        self.events.push(UserEvent::WithdrawalSettled {
+            tx_id,
+            reference: withdrawal_reference,
+            confirmation,
+            amount,
+        });
+
+        amount
+            .as_usd_cents()
+            .ok_or_else(|| UserError::UnexpectedCurrency)
     }
 }
 
@@ -74,6 +117,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .account_ids(*account_ids);
                 }
                 UserEvent::WithdrawalInitiated { .. } => {}
+                UserEvent::WithdrawalSettled { .. } => {}
             }
         }
         builder.events(events).build()

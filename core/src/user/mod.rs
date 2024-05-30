@@ -5,7 +5,10 @@ mod repo;
 use crate::{
     entity::*,
     ledger::*,
-    primitives::{Satoshis, UsdCents, UserId},
+    primitives::{
+        LedgerTxId, Satoshis, TransactionConfirmation, TronTransactionConfirmation,
+        TronWithdrawalDestination, UsdCents, UserId, WithdrawalDestination,
+    },
 };
 
 pub use entity::*;
@@ -74,11 +77,44 @@ impl Users {
         tron_address: String,
         reference: String,
     ) -> Result<User, UserError> {
-        // TODO: create outbox event from params for external tron withdrawal
-        let user = self.repo.find_by_id(user_id).await?;
+        let mut user = self.repo.find_by_id(user_id).await?;
+        let tx_id = LedgerTxId::new();
+        let destination = WithdrawalDestination::Tron(TronWithdrawalDestination {
+            address: tron_address,
+        });
+
+        let mut db_tx = self._pool.begin().await?;
+        user.initiate_withdrawal(tx_id, amount, destination, reference.clone())?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+
         self.ledger
             .initiate_withdrawal_via_usdt_for_user(user.account_ids, amount, reference)
             .await?;
+
+        db_tx.commit().await?;
+        Ok(user)
+    }
+
+    pub async fn settle_withdrawal_via_usdt_on_tron_for_user(
+        &self,
+        user_id: UserId,
+        tron_tx_id: String,
+        reference: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id).await?;
+        let tx_id = LedgerTxId::new();
+        let confirmation =
+            TransactionConfirmation::Tron(TronTransactionConfirmation { tx_id: tron_tx_id });
+
+        let mut db_tx = self._pool.begin().await?;
+        let amount = user.settle_withdrawal(tx_id, confirmation, reference.clone())?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+
+        self.ledger
+            .settle_withdrawal_via_usdt_for_user(user.account_ids, amount, reference)
+            .await?;
+
+        db_tx.commit().await?;
         Ok(user)
     }
 
