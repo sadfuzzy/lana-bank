@@ -12,8 +12,8 @@ pub enum WithdrawError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("WithdrawError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
-    #[error("WithdrawError - CouldNotFindEventByReference: {0}")]
-    CouldNotEventFindByReference(String),
+    #[error("WithdrawError - CouldNotFindById: {0}")]
+    CouldNotFindById(WithdrawId),
     #[error("WithdrawError - AlreadySettled: {0}")]
     AlreadySettled(WithdrawId),
 }

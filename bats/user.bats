@@ -116,4 +116,30 @@ teardown_file() {
   [[ "$checking_balance" == "190000" ]] || exit 1
   encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.encumbrance.usdBalance')
   [[ "$encumbered_checking_balance" == "10000" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdraw_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId,
+        confirmation: {
+          txId: "tron-tx-id",
+        },
+        reference: ("settle_withdraw-" + $withdrawalId)
+      }
+    }'
+  )
+  exec_graphql 'settle-withdrawal' "$variables"
+
+  variables=$(
+    jq -n \
+    --arg userId "$user_id" \
+    '{ id: $userId }'
+  )
+  exec_graphql 'find-user' "$variables"
+  checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
+  [[ "$checking_balance" == "190000" ]] || exit 1
+  encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.encumbrance.usdBalance')
+  [[ "$encumbered_checking_balance" == "0" ]] || exit 1
 }

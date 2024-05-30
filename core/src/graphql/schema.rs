@@ -80,6 +80,23 @@ impl Mutation {
         ))
     }
 
+    pub async fn user_settle_withdrawal(
+        &self,
+        ctx: &Context<'_>,
+        input: UserSettleWithdrawalInput,
+    ) -> async_graphql::Result<UserSettleWithdrawalPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(UserSettleWithdrawalPayload::from(
+            app.withdraws()
+                .settle_withdrawal_via_usdt_on_tron_for_user(
+                    WithdrawId::from(input.withdrawal_id),
+                    input.confirmation.tx_id,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
     pub async fn fixed_term_loan_create(
         &self,
         ctx: &Context<'_>,

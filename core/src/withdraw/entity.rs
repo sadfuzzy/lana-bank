@@ -18,12 +18,14 @@ pub enum WithdrawEvent {
         user_id: UserId,
     },
     UsdInitiated {
+        id: WithdrawId,
         tx_id: LedgerTxId,
         reference: String,
         destination: WithdrawalDestination,
         amount: UsdCents,
     },
     UsdSettled {
+        id: WithdrawId,
         tx_id: LedgerTxId,
         reference: String,
         confirmation: TransactionConfirmation,
@@ -49,12 +51,14 @@ pub struct Withdraw {
 impl Withdraw {
     pub fn initiate_usd_withdrawal(
         &mut self,
+        id: WithdrawId,
         tx_id: LedgerTxId,
         amount: UsdCents,
         destination: WithdrawalDestination,
         reference: String,
     ) -> Result<(), WithdrawError> {
         self.events.push(WithdrawEvent::UsdInitiated {
+            id,
             tx_id,
             destination,
             reference,
@@ -65,9 +69,10 @@ impl Withdraw {
 
     pub fn settle(
         &mut self,
+        id: WithdrawId,
         tx_id: LedgerTxId,
         confirmation: TransactionConfirmation,
-        withdrawal_reference: String,
+        reference: String,
     ) -> Result<UsdCents, WithdrawError> {
         for event in self.events.iter() {
             if let WithdrawEvent::UsdSettled {
@@ -85,23 +90,24 @@ impl Withdraw {
             .iter()
             .find_map(|event| {
                 if let WithdrawEvent::UsdInitiated {
-                    reference, amount, ..
+                    id: id_from_event,
+                    amount,
+                    ..
                 } = event
                 {
-                    if *reference == withdrawal_reference {
+                    if *id_from_event == id {
                         return Some(*amount);
                     }
                 }
                 None
             })
-            .ok_or_else(|| {
-                WithdrawError::CouldNotEventFindByReference(withdrawal_reference.clone())
-            })?;
+            .ok_or_else(|| WithdrawError::CouldNotFindById(id))?;
 
         self.events.push(WithdrawEvent::UsdSettled {
+            id,
             tx_id,
-            reference: withdrawal_reference,
             confirmation,
+            reference,
             amount,
         });
 

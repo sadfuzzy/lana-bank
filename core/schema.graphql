@@ -65,6 +65,7 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
 	userInitiateWithdrawalViaUsdtOnTron(input: UserInitiateWithdrawalViaUsdtOnTronInput!): UserInitiateWithdrawalViaUsdtOnTronPayload!
+	userSettleWithdrawal(input: UserSettleWithdrawalInput!): UserSettleWithdrawalPayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -90,7 +91,11 @@ type UsdBalance {
 
 scalar UsdCents
 
-input UsdtOnTron {
+input UsdtOnTronConfirmation {
+	txId: String!
+}
+
+input UsdtOnTronDestination {
 	address: String!
 }
 
@@ -116,11 +121,21 @@ type UserCreatePayload {
 input UserInitiateWithdrawalViaUsdtOnTronInput {
 	userId: UUID!
 	amount: UsdCents!
-	destination: UsdtOnTron!
+	destination: UsdtOnTronDestination!
 	reference: String!
 }
 
 type UserInitiateWithdrawalViaUsdtOnTronPayload {
+	withdraw: Withdraw!
+}
+
+input UserSettleWithdrawalInput {
+	withdrawalId: UUID!
+	confirmation: UsdtOnTronConfirmation!
+	reference: String!
+}
+
+type UserSettleWithdrawalPayload {
 	withdraw: Withdraw!
 }
 

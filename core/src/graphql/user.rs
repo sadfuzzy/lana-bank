@@ -90,15 +90,20 @@ impl From<crate::withdraw::Withdraw> for Withdraw {
 }
 
 #[derive(InputObject)]
-pub struct UsdtOnTron {
+pub struct UsdtOnTronDestination {
     pub address: String,
+}
+
+#[derive(InputObject)]
+pub struct UsdtOnTronConfirmation {
+    pub tx_id: String,
 }
 
 #[derive(InputObject)]
 pub struct UserInitiateWithdrawalViaUsdtOnTronInput {
     pub user_id: UUID,
     pub amount: UsdCents,
-    pub destination: UsdtOnTron,
+    pub destination: UsdtOnTronDestination,
     pub reference: String,
 }
 
@@ -108,6 +113,26 @@ pub struct UserInitiateWithdrawalViaUsdtOnTronPayload {
 }
 
 impl From<crate::withdraw::Withdraw> for UserInitiateWithdrawalViaUsdtOnTronPayload {
+    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
+        Self {
+            withdraw: Withdraw::from(withdraw),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct UserSettleWithdrawalInput {
+    pub withdrawal_id: UUID,
+    pub confirmation: UsdtOnTronConfirmation,
+    pub reference: String,
+}
+
+#[derive(SimpleObject)]
+pub struct UserSettleWithdrawalPayload {
+    pub withdraw: Withdraw,
+}
+
+impl From<crate::withdraw::Withdraw> for UserSettleWithdrawalPayload {
     fn from(withdraw: crate::withdraw::Withdraw) -> Self {
         Self {
             withdraw: Withdraw::from(withdraw),

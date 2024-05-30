@@ -71,7 +71,7 @@ impl Withdraws {
         });
 
         let mut db_tx = self._pool.begin().await?;
-        withdraw.initiate_usd_withdrawal(tx_id, amount, destination, reference.clone())?;
+        withdraw.initiate_usd_withdrawal(id, tx_id, amount, destination, reference.clone())?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
@@ -95,7 +95,7 @@ impl Withdraws {
             TransactionConfirmation::Tron(TronTransactionConfirmation { tx_id: tron_tx_id });
 
         let mut db_tx = self._pool.begin().await?;
-        let amount = withdraw.settle(tx_id, confirmation, reference.clone())?;
+        let amount = withdraw.settle(id, tx_id, confirmation, reference.clone())?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
