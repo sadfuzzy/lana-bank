@@ -96,11 +96,16 @@ teardown_file() {
       input: {
         userId: $userId,
         amount: 10000,
+        destination: {
+          address: "tron-address",
+        },
         reference: ("txn_reference-" + $userId)
       }
     }'
   )
-  exec_graphql 'withdraw-via-usdt' "$variables"
-  checking_balance=$(graphql_output '.data.userWithdrawViaUsdt.user.balance.checking.usdBalance')
+  exec_graphql 'initiate-withdrawal-via-usdt-on-tron' "$variables"
+  checking_balance=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.user.balance.checking.settled.usdBalance')
   [[ "$checking_balance" == "190000" ]] || exit 1
+  encumbered_checking_balance=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.user.balance.checking.encumbrance.usdBalance')
+  [[ "$encumbered_checking_balance" == "10000" ]] || exit 1
 }
