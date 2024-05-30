@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, ledger::user::UserLedgerAccountIds, primitives::*};
 
+use super::error::UserError;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserEvent {
@@ -10,6 +12,11 @@ pub enum UserEvent {
         id: UserId,
         bitfinex_username: String,
         account_ids: UserLedgerAccountIds,
+    },
+    WithdrawalInitiated {
+        tx_id: LedgerTxId,
+        destination: WithdrawalDestination,
+        amount: CurrencyAmount, // should this be some sort of Money type instead?
     },
 }
 
@@ -26,7 +33,23 @@ pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
     pub account_ids: UserLedgerAccountIds,
-    pub(super) _events: EntityEvents<UserEvent>,
+    pub(super) events: EntityEvents<UserEvent>,
+}
+
+impl User {
+    pub fn initiate_withdrawal(
+        &mut self,
+        tx_id: LedgerTxId,
+        amount: UsdCents,
+        destination: WithdrawalDestination,
+    ) -> Result<(), UserError> {
+        self.events.push(UserEvent::WithdrawalInitiated {
+            tx_id,
+            destination,
+            amount: CurrencyAmount::UsdCents(amount),
+        });
+        Ok(())
+    }
 }
 
 impl Entity for User {
@@ -50,9 +73,10 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .bitfinex_username(bitfinex_username.clone())
                         .account_ids(*account_ids);
                 }
+                UserEvent::WithdrawalInitiated { .. } => {}
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 

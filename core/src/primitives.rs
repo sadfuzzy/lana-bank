@@ -107,3 +107,28 @@ impl std::ops::Sub<UsdCents> for UsdCents {
         Self(self.0 - other.0)
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TronWithdrawalDestination {
+    address: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum WithdrawalDestination {
+    Tron(TronWithdrawalDestination),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CurrencyAmount {
+    Satoshis(Satoshis),
+    UsdCents(UsdCents),
+}
+
+impl CurrencyAmount {
+    pub fn currency(&self) -> String {
+        match self {
+            CurrencyAmount::Satoshis(_) => "BTC".to_string(),
+            CurrencyAmount::UsdCents(_) => "USD".to_string(),
+        }
+    }
+}
