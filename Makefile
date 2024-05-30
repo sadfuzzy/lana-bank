@@ -10,6 +10,9 @@ start-deps:
 setup-db:
 	cd core && cargo sqlx migrate run
 
+sqlx-prepare:
+	cd core && cargo sqlx prepare
+
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
