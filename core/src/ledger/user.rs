@@ -1,4 +1,4 @@
-use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
+use crate::primitives::{LayeredUsdBalance, LedgerAccountId, Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::cala::graphql::*;
@@ -21,7 +21,7 @@ impl UserLedgerAccountIds {
 
 pub struct UserBalance {
     pub unallocated_collateral: Satoshis,
-    pub checking: UsdCents,
+    pub checking: LayeredUsdBalance,
 }
 
 impl From<user_balance::ResponseData> for UserBalance {
@@ -31,10 +31,17 @@ impl From<user_balance::ResponseData> for UserBalance {
                 .unallocated_collateral
                 .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Satoshis::ZERO),
-            checking: data
-                .checking
-                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| UsdCents::ZERO),
+            checking: LayeredUsdBalance {
+                settled: data
+                    .checking
+                    .clone()
+                    .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
+                    .unwrap_or_else(|| UsdCents::ZERO),
+                encumbrance: data
+                    .checking
+                    .map(|b| UsdCents::from_usd(b.encumbrance.normal_balance.units))
+                    .unwrap_or_else(|| UsdCents::ZERO),
+            },
         }
     }
 }

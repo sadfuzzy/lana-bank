@@ -1,5 +1,10 @@
+type BtcBalance {
+	btcBalance: Satoshis!
+}
+
 type Checking {
-	usdBalance: UsdCents!
+	settled: UsdBalance!
+	encumbrance: UsdBalance!
 }
 
 type Collateral {
@@ -76,7 +81,11 @@ scalar Satoshis
 scalar UUID
 
 type UnallocatedCollateral {
-	btcBalance: Satoshis!
+	settled: BtcBalance!
+}
+
+type UsdBalance {
+	usdBalance: UsdCents!
 }
 
 scalar UsdCents
