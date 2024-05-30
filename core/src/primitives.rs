@@ -127,26 +127,3 @@ pub enum WithdrawalDestination {
 pub enum TransactionConfirmation {
     Tron(TronTransactionConfirmation),
 }
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum CurrencyAmount {
-    Satoshis(Satoshis),
-    UsdCents(UsdCents),
-}
-
-impl CurrencyAmount {
-    pub fn currency(&self) -> String {
-        match self {
-            CurrencyAmount::Satoshis(_) => "BTC".to_string(),
-            CurrencyAmount::UsdCents(_) => "USD".to_string(),
-        }
-    }
-
-    pub fn as_usd_cents(&self) -> Option<UsdCents> {
-        if let CurrencyAmount::UsdCents(amount) = self {
-            Some(*amount)
-        } else {
-            None
-        }
-    }
-}

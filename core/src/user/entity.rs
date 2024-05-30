@@ -13,17 +13,17 @@ pub enum UserEvent {
         bitfinex_username: String,
         account_ids: UserLedgerAccountIds,
     },
-    WithdrawalInitiated {
+    UsdWithdrawalInitiated {
         tx_id: LedgerTxId,
         reference: String,
         destination: WithdrawalDestination,
-        amount: CurrencyAmount, // should this be some sort of Money type instead?
+        amount: UsdCents,
     },
-    WithdrawalSettled {
+    UsdWithdrawalSettled {
         tx_id: LedgerTxId,
         reference: String,
         confirmation: TransactionConfirmation,
-        amount: CurrencyAmount, // should this be some sort of Money type instead?
+        amount: UsdCents,
     },
 }
 
@@ -51,11 +51,11 @@ impl User {
         destination: WithdrawalDestination,
         reference: String,
     ) -> Result<(), UserError> {
-        self.events.push(UserEvent::WithdrawalInitiated {
+        self.events.push(UserEvent::UsdWithdrawalInitiated {
             tx_id,
             destination,
             reference,
-            amount: CurrencyAmount::UsdCents(amount),
+            amount,
         });
         Ok(())
     }
@@ -70,7 +70,7 @@ impl User {
             .events
             .iter()
             .find_map(|event| {
-                if let UserEvent::WithdrawalInitiated {
+                if let UserEvent::UsdWithdrawalInitiated {
                     reference, amount, ..
                 } = event
                 {
@@ -82,16 +82,14 @@ impl User {
             })
             .ok_or_else(|| UserError::CouldNotEventFindByReference(withdrawal_reference.clone()))?;
 
-        self.events.push(UserEvent::WithdrawalSettled {
+        self.events.push(UserEvent::UsdWithdrawalSettled {
             tx_id,
             reference: withdrawal_reference,
             confirmation,
             amount,
         });
 
-        amount
-            .as_usd_cents()
-            .ok_or_else(|| UserError::UnexpectedCurrency)
+        Ok(amount)
     }
 }
 
@@ -116,8 +114,8 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .bitfinex_username(bitfinex_username.clone())
                         .account_ids(*account_ids);
                 }
-                UserEvent::WithdrawalInitiated { .. } => {}
-                UserEvent::WithdrawalSettled { .. } => {}
+                UserEvent::UsdWithdrawalInitiated { .. } => {}
+                UserEvent::UsdWithdrawalSettled { .. } => {}
             }
         }
         builder.events(events).build()
