@@ -63,7 +63,7 @@ pub fn store_server_pid(lava_home: &str, pid: u32) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn create_lava_dir(bria_home: &str) -> anyhow::Result<()> {
-    let _ = fs::create_dir(bria_home);
+fn create_lava_dir(lava_home: &str) -> anyhow::Result<()> {
+    let _ = fs::create_dir(lava_home);
     Ok(())
 }
