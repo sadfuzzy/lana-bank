@@ -64,8 +64,8 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
-	userInitiateWithdrawalViaUsdtOnTron(input: UserInitiateWithdrawalViaUsdtOnTronInput!): UserInitiateWithdrawalViaUsdtOnTronPayload!
-	userSettleWithdrawal(input: UserSettleWithdrawalInput!): UserSettleWithdrawalPayload!
+	withdrawViaUsdtOnTronInitiate(input: WithdrawViaUsdtOnTronInitiateInput!): WithdrawViaUsdtOnTronInitiatePayload!
+	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -118,27 +118,6 @@ type UserCreatePayload {
 	user: User!
 }
 
-input UserInitiateWithdrawalViaUsdtOnTronInput {
-	userId: UUID!
-	amount: UsdCents!
-	destination: UsdtOnTronDestination!
-	reference: String!
-}
-
-type UserInitiateWithdrawalViaUsdtOnTronPayload {
-	withdraw: Withdraw!
-}
-
-input UserSettleWithdrawalInput {
-	withdrawalId: UUID!
-	confirmation: UsdtOnTronConfirmation!
-	reference: String!
-}
-
-type UserSettleWithdrawalPayload {
-	withdraw: Withdraw!
-}
-
 input UserTopupCollateralInput {
 	userId: UUID!
 	amount: Satoshis!
@@ -152,6 +131,27 @@ type UserTopupCollateralPayload {
 type Withdraw {
 	id: UUID!
 	userId: UUID!
+}
+
+input WithdrawSettleInput {
+	withdrawalId: UUID!
+	confirmation: UsdtOnTronConfirmation!
+	reference: String!
+}
+
+type WithdrawSettlePayload {
+	withdraw: Withdraw!
+}
+
+input WithdrawViaUsdtOnTronInitiateInput {
+	userId: UUID!
+	amount: UsdCents!
+	destination: UsdtOnTronDestination!
+	reference: String!
+}
+
+type WithdrawViaUsdtOnTronInitiatePayload {
+	withdraw: Withdraw!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

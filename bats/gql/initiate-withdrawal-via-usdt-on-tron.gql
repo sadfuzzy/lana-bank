@@ -1,7 +1,7 @@
-mutation UserInitiateWithdrawalViaUsdtOnTron(
-  $input: UserInitiateWithdrawalViaUsdtOnTronInput!
+mutation WithdrawViaUsdtOnTronInitiate(
+  $input: WithdrawViaUsdtOnTronInitiateInput!
 ) {
-  userInitiateWithdrawalViaUsdtOnTron(input: $input) {
+  withdrawViaUsdtOnTronInitiate(input: $input) {
     withdraw {
       id
       userId

@@ -61,14 +61,14 @@ impl Mutation {
         ))
     }
 
-    pub async fn user_initiate_withdrawal_via_usdt_on_tron(
+    pub async fn withdraw_via_usdt_on_tron_initiate(
         &self,
         ctx: &Context<'_>,
-        input: UserInitiateWithdrawalViaUsdtOnTronInput,
-    ) -> async_graphql::Result<UserInitiateWithdrawalViaUsdtOnTronPayload> {
+        input: WithdrawViaUsdtOnTronInitiateInput,
+    ) -> async_graphql::Result<WithdrawViaUsdtOnTronInitiatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let new_withdraw = app.withdraws().create_withdraw(input.user_id).await?;
-        Ok(UserInitiateWithdrawalViaUsdtOnTronPayload::from(
+        Ok(WithdrawViaUsdtOnTronInitiatePayload::from(
             app.withdraws()
                 .initiate_withdrawal_via_usdt_on_tron_for_user(
                     new_withdraw.id,
@@ -80,13 +80,13 @@ impl Mutation {
         ))
     }
 
-    pub async fn user_settle_withdrawal(
+    pub async fn withdraw_settle(
         &self,
         ctx: &Context<'_>,
-        input: UserSettleWithdrawalInput,
-    ) -> async_graphql::Result<UserSettleWithdrawalPayload> {
+        input: WithdrawSettleInput,
+    ) -> async_graphql::Result<WithdrawSettlePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserSettleWithdrawalPayload::from(
+        Ok(WithdrawSettlePayload::from(
             app.withdraws()
                 .settle_withdrawal_via_usdt_on_tron_for_user(
                     WithdrawId::from(input.withdrawal_id),

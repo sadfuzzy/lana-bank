@@ -104,7 +104,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'initiate-withdrawal-via-usdt-on-tron' "$variables"
-  withdraw_id=$(graphql_output '.data.userInitiateWithdrawalViaUsdtOnTron.withdraw.id')
+  withdraw_id=$(graphql_output '.data.withdrawViaUsdtOnTronInitiate.withdraw.id')
 
   variables=$(
     jq -n \
