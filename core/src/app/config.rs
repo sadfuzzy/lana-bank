@@ -6,5 +6,6 @@ use crate::{job::JobExecutorConfig, ledger::LedgerConfig};
 pub struct AppConfig {
     #[serde(default)]
     pub job_execution: JobExecutorConfig,
+    #[serde(default)]
     pub ledger: LedgerConfig,
 }
