@@ -48,6 +48,10 @@ start_server() {
   do
     if head .e2e-logs | grep -q 'Starting graphql server on port'; then
       break
+    elif head .e2e-logs | grep -q 'Connection reset by peer'; then
+      stop_server
+      sleep 1
+      background server_cmd > .e2e-logs 2>&1
     else
       sleep 1
     fi
