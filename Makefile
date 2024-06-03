@@ -31,6 +31,8 @@ build:
 e2e: clean-deps start-deps build
 	bats -t bats
 
+e2e-in-ci: bump-cala-docker-image e2e
+
 sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > core/schema.graphql
 
