@@ -1,7 +1,7 @@
 mutation WithdrawalSettle($input: WithdrawalSettleInput!) {
   withdrawalSettle(input: $input) {
     withdrawal {
-      id
+      withdrawalId
       userId
     }
   }
