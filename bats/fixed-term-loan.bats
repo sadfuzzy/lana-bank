@@ -61,8 +61,8 @@ wait_for_interest() {
     '{
       input: {
         loanId: $loanId,
-        collateral: 100000,
-        principal: 200000,
+        collateral: 400000000,
+        principal: 25000000,
       }
     }'
   )
@@ -70,9 +70,9 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.fixedTermLoanApprove.loan.loanId')
   [[ "$id" == "$loan_id" ]] || exit 1;
   collateral_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.collateral.btcBalance')
-  [[ "$collateral_balance" == "100000" ]] || exit 1;
+  [[ "$collateral_balance" == "400000000" ]] || exit 1;
   principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.outstanding.usdBalance')
-  [[ "$principal_balance" == "200000" ]] || exit 1;
+  [[ "$principal_balance" == "25000000" ]] || exit 1;
 
   retry 30 1 wait_for_interest "$id"
   interest_balance=$(read_value 'interest_incurred')
@@ -100,7 +100,7 @@ wait_for_interest() {
     '{
       input: {
         loanId: $loanId,
-        amount: 200001,
+        amount: 25000001,
       }
     }'
   )
