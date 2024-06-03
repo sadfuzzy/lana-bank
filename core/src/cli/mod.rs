@@ -25,8 +25,6 @@ struct Cli {
         value_name = "DIRECTORY"
     )]
     lava_home: String,
-    #[clap(long, env = "LAVA_SERVER_ID")]
-    server_id: Option<String>,
     #[clap(env = "PG_CON")]
     pg_con: String,
 }
@@ -34,13 +32,7 @@ struct Cli {
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let config = Config::from_path(
-        cli.config,
-        EnvOverride {
-            db_con: cli.pg_con,
-            server_id: cli.server_id,
-        },
-    )?;
+    let config = Config::from_path(cli.config, EnvOverride { db_con: cli.pg_con })?;
 
     run_cmd(&cli.lava_home, config).await?;
 
