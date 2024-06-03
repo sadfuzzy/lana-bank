@@ -123,6 +123,7 @@ type UserPledgeCollateralPayload {
 type Withdrawal {
 	withdrawalId: UUID!
 	userId: UUID!
+	amount: UsdCents!
 }
 
 input WithdrawalInitiateInput {
