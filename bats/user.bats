@@ -97,12 +97,13 @@ teardown_file() {
         userId: $userId,
         amount: 10000,
         destination: "tron-address",
-        reference: ("initiate_withdraw-" + $userId)
+        reference: ("initiate_withdrawal-" + $userId)
       }
     }'
   )
   exec_graphql 'initiate-withdrawal' "$variables"
-  withdraw_id=$(graphql_output '.data.withdrawInitiate.withdraw.id')
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.id')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -117,15 +118,17 @@ teardown_file() {
 
   variables=$(
     jq -n \
-      --arg withdrawalId "$withdraw_id" \
+      --arg withdrawalId "$withdrawal_id" \
     '{
       input: {
         withdrawalId: $withdrawalId,
-        reference: ("settle_withdraw-" + $withdrawalId)
+        reference: ("settle_withdrawal-" + $withdrawalId)
       }
     }'
   )
   exec_graphql 'settle-withdrawal' "$variables"
+  withdrawal_id_on_settle=$(graphql_output '.data.withdrawalSettle.withdrawal.id')
+  [[ "$withdrawal_id_on_settle" == "$withdrawal_id" ]] || exit 1
 
   variables=$(
     jq -n \

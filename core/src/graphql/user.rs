@@ -75,14 +75,14 @@ impl From<crate::user::User> for UserPledgeCollateralPayload {
 }
 
 #[derive(SimpleObject)]
-pub struct Withdraw {
+pub struct Withdrawal {
     id: UUID,
     user_id: UUID,
 }
 
-impl From<crate::withdraw::Withdraw> for Withdraw {
+impl From<crate::withdraw::Withdraw> for Withdrawal {
     fn from(withdraw: crate::withdraw::Withdraw) -> Self {
-        Withdraw {
+        Withdrawal {
             id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
         }
@@ -90,7 +90,7 @@ impl From<crate::withdraw::Withdraw> for Withdraw {
 }
 
 #[derive(InputObject)]
-pub struct WithdrawInitiateInput {
+pub struct WithdrawalInitiateInput {
     pub user_id: UUID,
     pub amount: UsdCents,
     pub destination: String,
@@ -98,33 +98,33 @@ pub struct WithdrawInitiateInput {
 }
 
 #[derive(SimpleObject)]
-pub struct WithdrawInitiatePayload {
-    pub withdraw: Withdraw,
+pub struct WithdrawalInitiatePayload {
+    pub withdrawal: Withdrawal,
 }
 
-impl From<crate::withdraw::Withdraw> for WithdrawInitiatePayload {
-    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
+impl From<crate::withdraw::Withdraw> for WithdrawalInitiatePayload {
+    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
         Self {
-            withdraw: Withdraw::from(withdraw),
+            withdrawal: Withdrawal::from(withdrawal),
         }
     }
 }
 
 #[derive(InputObject)]
-pub struct WithdrawSettleInput {
+pub struct WithdrawalSettleInput {
     pub withdrawal_id: UUID,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
-pub struct WithdrawSettlePayload {
-    pub withdraw: Withdraw,
+pub struct WithdrawalSettlePayload {
+    pub withdrawal: Withdrawal,
 }
 
-impl From<crate::withdraw::Withdraw> for WithdrawSettlePayload {
-    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
+impl From<crate::withdraw::Withdraw> for WithdrawalSettlePayload {
+    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
         Self {
-            withdraw: Withdraw::from(withdraw),
+            withdrawal: Withdrawal::from(withdrawal),
         }
     }
 }
