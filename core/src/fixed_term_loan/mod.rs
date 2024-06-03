@@ -131,50 +131,32 @@ impl FixedTermLoans {
             .get_fixed_term_loan_balance(loan.account_ids)
             .await?;
 
-        let record_tx_id = LedgerTxId::new();
+        let tx_id = LedgerTxId::new();
         let tx_ref =
-            loan.record_if_not_exceeding_outstanding(record_tx_id, balances.outstanding, amount)?;
+            loan.record_if_not_exceeding_outstanding(tx_id, balances.outstanding, amount)?;
 
         let user = self.users.find_by_id(loan.user_id).await?;
 
         let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        self.ledger
-            .record_payment(
-                record_tx_id,
-                loan.account_ids,
-                user.account_ids,
-                amount,
-                tx_ref,
-            )
-            .await?;
-        db_tx.commit().await?;
-
-        let balances = self
-            .ledger
-            .get_fixed_term_loan_balance(loan.account_ids)
-            .await?;
-        let complete_tx_id = LedgerTxId::new();
-
-        let mut db_tx = self.pool.begin().await?;
-        match loan.complete(complete_tx_id) {
-            Err(FixedTermLoanError::NotFullyRepaid) => (),
-            Ok(_) => {
-                self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-                self.ledger
-                    .complete_loan(
-                        complete_tx_id,
-                        loan.account_ids,
-                        user.account_ids,
-                        balances.collateral,
-                        format!("{}-completion", loan.id),
-                    )
-                    .await?;
-                db_tx.commit().await?;
-            }
-            Err(e) => return Err(e),
+        if !loan.is_completed() {
+            self.ledger
+                .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+                .await?;
+        } else {
+            self.ledger
+                .record_final_payment_and_release_collateral(
+                    tx_id,
+                    loan.account_ids,
+                    user.account_ids,
+                    amount,
+                    balances.collateral,
+                    tx_ref,
+                )
+                .await?;
         }
+        db_tx.commit().await?;
 
         Ok(loan)
     }

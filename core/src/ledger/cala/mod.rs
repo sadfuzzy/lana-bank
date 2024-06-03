@@ -204,24 +204,25 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_complete_loan_template",
+        name = "lava.ledger.cala.create_record_payment_and_release_collateral_template",
         skip(self),
         err
     )]
-    pub async fn create_complete_loan_tx_template(
+    pub async fn create_record_payment_and_release_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = complete_loan_template_create::Variables {
+        let variables = record_payment_and_release_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
         };
-        let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
+        let response =
+            Self::traced_gql_request::<RecordPaymentAndReleaseCollateralTemplateCreate, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
 
         response
             .data
@@ -435,26 +436,29 @@ impl CalaClient {
         Ok(())
     }
 
-    pub async fn execute_complete_loan_tx(
+    pub async fn execute_record_payment_and_release_collateral_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
         user_account_ids: UserLedgerAccountIds,
+        payment_amount: Decimal,
         collateral_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
-        let variables = post_complete_loan_transaction::Variables {
+        let variables = post_record_payment_and_release_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
+            checking_account: user_account_ids.checking_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
+            payment_amount,
             collateral_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
+        let response = Self::traced_gql_request::<
+            PostRecordPaymentAndReleaseCollateralTransaction,
+            _,
+        >(&self.client, &self.url, variables)
         .await?;
 
         response
@@ -491,8 +495,8 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.execute_interest_tx", skip(self), err)]
-    pub async fn execute_interest_tx(
+    #[instrument(name = "lava.ledger.cala.execute_incur_interest_tx", skip(self), err)]
+    pub async fn execute_incur_interest_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
@@ -547,8 +551,42 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.execute_pay_interest_tx", skip(self), err)]
-    pub async fn execute_loan_payment_tx(
+    #[instrument(name = "lava.ledger.cala.execute_repay_loan_tx", skip(self), err)]
+    pub async fn execute_repay_loan_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        loan_account_ids: FixedTermLoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
+        payment_amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_record_payment_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            checking_account: user_account_ids.checking_id.into(),
+            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            payment_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_repay_loan_and_release_collateral_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_repay_loan_and_release_collateral_tx(
         &self,
         transaction_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,

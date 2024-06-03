@@ -18,10 +18,6 @@ pub enum FixedTermLoanError {
     AlreadyApproved,
     #[error("FixedTermLoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
-    #[error("FixedTermLoanError - AlreadyFullyRepaid")]
-    AlreadyFullyRepaid,
     #[error("FixedTermLoanError - AlreadyCompleted")]
     AlreadyCompleted,
-    #[error("FixedTermLoanError - NotFullyRepaid")]
-    NotFullyRepaid,
 }

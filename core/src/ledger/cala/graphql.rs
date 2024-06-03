@@ -127,18 +127,18 @@ pub struct PostApproveLoanTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
+    query_path = "src/ledger/cala/graphql/transactions/record-payment-and-release-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct CompleteLoanTemplateCreate;
+pub struct RecordPaymentAndReleaseCollateralTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
+    query_path = "src/ledger/cala/graphql/transactions/record-payment-and-release-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostCompleteLoanTransaction;
+pub struct PostRecordPaymentAndReleaseCollateralTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(

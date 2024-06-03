@@ -28,9 +28,10 @@ pub enum FixedTermLoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
-    FullyRepaid,
-    CollateralReleased {
+    Completed {
         tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
     },
 }
 
@@ -76,8 +77,8 @@ impl FixedTermLoan {
         &mut self,
         tx_id: LedgerTxId,
     ) -> Result<String, FixedTermLoanError> {
-        if self.is_fully_repaid() {
-            return Err(FixedTermLoanError::AlreadyFullyRepaid);
+        if self.is_completed() {
+            return Err(FixedTermLoanError::AlreadyCompleted);
         }
 
         let tx_ref = format!(
@@ -98,12 +99,19 @@ impl FixedTermLoan {
         outstanding: UsdCents,
         record_amount: UsdCents,
     ) -> Result<String, FixedTermLoanError> {
+        for event in self.events.iter() {
+            if let FixedTermLoanEvent::Completed { .. } = event {
+                return Err(FixedTermLoanError::AlreadyCompleted);
+            }
+        }
+
         if outstanding < record_amount {
             return Err(FixedTermLoanError::PaymentExceedsOutstandingLoanAmount(
                 record_amount,
                 outstanding,
             ));
         }
+
         let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
         self.events.push(FixedTermLoanEvent::PaymentRecorded {
             tx_id,
@@ -111,7 +119,11 @@ impl FixedTermLoan {
             amount: record_amount,
         });
         if outstanding == record_amount {
-            self.events.push(FixedTermLoanEvent::FullyRepaid);
+            self.events.push(FixedTermLoanEvent::Completed {
+                tx_id,
+                tx_ref: tx_ref.clone(),
+                amount: record_amount,
+            });
         }
         Ok(tx_ref)
     }
@@ -124,7 +136,7 @@ impl FixedTermLoan {
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_fully_repaid() && self.count_interest_incurred() <= 1 {
+        if !self.is_completed() && self.count_interest_incurred() <= 1 {
             Some(Utc::now())
         } else {
             None
@@ -138,28 +150,12 @@ impl FixedTermLoan {
             .count()
     }
 
-    pub fn is_fully_repaid(&self) -> bool {
+    pub fn is_completed(&self) -> bool {
         self.events
             .iter()
-            .filter(|event| matches!(event, FixedTermLoanEvent::FullyRepaid { .. }))
+            .filter(|event| matches!(event, FixedTermLoanEvent::Completed { .. }))
             .count()
             > 0
-    }
-
-    pub fn complete(&mut self, tx_id: LedgerTxId) -> Result<(), FixedTermLoanError> {
-        if !self.is_fully_repaid() {
-            return Err(FixedTermLoanError::NotFullyRepaid);
-        }
-
-        for event in self.events.iter() {
-            if let FixedTermLoanEvent::CollateralReleased { .. } = event {
-                return Err(FixedTermLoanError::AlreadyCompleted);
-            }
-        }
-
-        self.events
-            .push(FixedTermLoanEvent::CollateralReleased { tx_id });
-        Ok(())
     }
 }
 
@@ -189,8 +185,7 @@ impl TryFrom<EntityEvents<FixedTermLoanEvent>> for FixedTermLoan {
                 FixedTermLoanEvent::Approved { .. } => {}
                 FixedTermLoanEvent::InterestRecorded { .. } => {}
                 FixedTermLoanEvent::PaymentRecorded { .. } => {}
-                FixedTermLoanEvent::FullyRepaid { .. } => {}
-                FixedTermLoanEvent::CollateralReleased { .. } => {}
+                FixedTermLoanEvent::Completed { .. } => {}
             }
         }
         builder.events(events).build()
