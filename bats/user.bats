@@ -40,7 +40,7 @@ teardown_file() {
     '{
       input: {
         userId: $userId,
-        amount: 100000,
+        amount: 1000000000,
         reference: ("pledge-" + $userId)
       }
     }'
@@ -48,7 +48,7 @@ teardown_file() {
   exec_graphql 'pledge-unallocated-collateral' "$variables"
   sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
   echo $(graphql_output)
-  [[ "$sats" == "100000" ]] || exit 1;
+  [[ "$sats" == "1000000000" ]] || exit 1;
 }
 
 @test "user: can withdraw" {
@@ -71,8 +71,8 @@ teardown_file() {
     '{
       input: {
         loanId: $loanId,
-        collateral: 100000,
-        principal: 200000,
+        collateral: 400000000,
+        principal: 25000000,
       }
     }'
   )
@@ -87,7 +87,7 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "200000" ]] || exit 1
+  [[ "$checking_balance" == "25000000" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -95,7 +95,7 @@ teardown_file() {
     '{
       input: {
         userId: $userId,
-        amount: 10000,
+        amount: 1500000,
         destination: "tron-address",
         reference: ("initiate_withdraw-" + $userId)
       }
@@ -111,9 +111,9 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "190000" ]] || exit 1
+  [[ "$checking_balance" == "23500000" ]] || exit 1
   encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.pending.usdBalance')
-  [[ "$encumbered_checking_balance" == "10000" ]] || exit 1
+  [[ "$encumbered_checking_balance" == "1500000" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -134,7 +134,7 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "190000" ]] || exit 1
+  [[ "$checking_balance" == "23500000" ]] || exit 1
   encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.pending.usdBalance')
   [[ "$encumbered_checking_balance" == "0" ]] || exit 1
 }
