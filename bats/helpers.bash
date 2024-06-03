@@ -64,12 +64,6 @@ stop_server() {
   fi
 }
 
-stop_rust_example() {
-  if [[ -f "$EXAMPLE_PID_FILE" ]]; then
-    kill -9 $(cat "$EXAMPLE_PID_FILE") || true
-  fi
-}
-
 gql_file() {
   echo "${REPO_ROOT}/bats/gql/$1.gql"
 }
