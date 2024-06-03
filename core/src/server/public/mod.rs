@@ -1,3 +1,5 @@
+pub mod graphql;
+
 mod config;
 
 use async_graphql::*;
@@ -7,11 +9,9 @@ use axum_extra::headers::HeaderMap;
 
 use crate::app::LavaApp;
 
-use super::graphql;
-
 pub use config::*;
 
-pub async fn run(config: ServerConfig, app: LavaApp) -> anyhow::Result<()> {
+pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
     let schema = graphql::schema(Some(app.clone()));
 
     let app = Router::new()
@@ -21,7 +21,7 @@ pub async fn run(config: ServerConfig, app: LavaApp) -> anyhow::Result<()> {
         )
         .layer(Extension(schema));
 
-    println!("Starting graphql server on port {}", config.port);
+    println!("Starting public graphql server on port {}", config.port);
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
             .await?;
