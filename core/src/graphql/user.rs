@@ -55,18 +55,18 @@ impl From<crate::user::User> for UserCreatePayload {
 }
 
 #[derive(InputObject)]
-pub struct UserTopupCollateralInput {
+pub struct UserPledgeCollateralInput {
     pub user_id: UUID,
     pub amount: Satoshis,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
-pub struct UserTopupCollateralPayload {
+pub struct UserPledgeCollateralPayload {
     pub user: User,
 }
 
-impl From<crate::user::User> for UserTopupCollateralPayload {
+impl From<crate::user::User> for UserPledgeCollateralPayload {
     fn from(user: crate::user::User) -> Self {
         Self {
             user: User::from(user),

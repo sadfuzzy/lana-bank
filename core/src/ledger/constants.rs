@@ -13,7 +13,7 @@ pub(super) const BANK_USDT_CASH_NAME: &str = "Bank USDT Cash";
 pub(super) const BANK_USDT_CASH_CODE: &str = "BANK.USDT_CASH";
 
 // Templates
-pub(super) const TOPUP_UNALLOCATED_COLLATERAL_CODE: &str = "TOPUP_UNALLOCATED_COLLATERAL";
+pub(super) const PLEDGE_UNALLOCATED_COLLATERAL_CODE: &str = "PLEDGE_UNALLOCATED_COLLATERAL";
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";

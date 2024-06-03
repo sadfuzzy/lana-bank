@@ -63,18 +63,18 @@ pub struct TxTemplateByCode;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/topup-unallocated-collateral.gql",
+    query_path = "src/ledger/cala/graphql/transactions/pledge-unallocated-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct TopupUnallocatedCollateralTemplateCreate;
+pub struct PledgeUnallocatedCollateralTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/topup-unallocated-collateral.gql",
+    query_path = "src/ledger/cala/graphql/transactions/pledge-unallocated-collateral.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostTopupUnallocatedCollateralTransaction;
+pub struct PostPledgeUnallocatedCollateralTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(
