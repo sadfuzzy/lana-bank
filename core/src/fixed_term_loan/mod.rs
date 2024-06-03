@@ -131,9 +131,9 @@ impl FixedTermLoans {
             .get_fixed_term_loan_balance(loan.account_ids)
             .await?;
 
-        let tx_id = LedgerTxId::new();
+        let record_tx_id = LedgerTxId::new();
         let tx_ref =
-            loan.record_if_not_exceeding_outstanding(tx_id, balances.outstanding, amount)?;
+            loan.record_if_not_exceeding_outstanding(record_tx_id, balances.outstanding, amount)?;
 
         let user = self.users.find_by_id(loan.user_id).await?;
 
@@ -141,38 +141,41 @@ impl FixedTermLoans {
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+            .record_payment(
+                record_tx_id,
+                loan.account_ids,
+                user.account_ids,
+                amount,
+                tx_ref,
+            )
             .await?;
         db_tx.commit().await?;
-        Ok(loan)
-    }
 
-    #[instrument(name = "lava.fixed_term_loans.complete_loan", skip(self), err)]
-    pub async fn complete_loan(
-        &self,
-        loan_id: impl Into<FixedTermLoanId> + std::fmt::Debug,
-    ) -> Result<FixedTermLoan, FixedTermLoanError> {
-        let mut loan = self.repo.find_by_id(loan_id.into()).await?;
-        let user = self.users.find_by_id(loan.user_id).await?;
         let balances = self
             .ledger
             .get_fixed_term_loan_balance(loan.account_ids)
             .await?;
-        let tx_id = LedgerTxId::new();
+        let complete_tx_id = LedgerTxId::new();
 
         let mut db_tx = self.pool.begin().await?;
-        loan.complete(tx_id)?;
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.ledger
-            .complete_loan(
-                tx_id,
-                loan.account_ids,
-                user.account_ids,
-                balances.collateral,
-                format!("{}-completion", loan.id),
-            )
-            .await?;
-        db_tx.commit().await?;
+        match loan.complete(complete_tx_id) {
+            Err(FixedTermLoanError::NotFullyRepaid) => (),
+            Ok(_) => {
+                self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+                self.ledger
+                    .complete_loan(
+                        complete_tx_id,
+                        loan.account_ids,
+                        user.account_ids,
+                        balances.collateral,
+                        format!("{}-completion", loan.id),
+                    )
+                    .await?;
+                db_tx.commit().await?;
+            }
+            Err(e) => return Err(e),
+        }
+
         Ok(loan)
     }
 

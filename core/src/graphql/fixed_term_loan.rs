@@ -91,21 +91,3 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanRecordPaymentP
         }
     }
 }
-
-#[derive(InputObject)]
-pub struct FixedTermLoanCompleteInput {
-    pub loan_id: UUID,
-}
-
-#[derive(SimpleObject)]
-pub struct FixedTermLoanCompletePayload {
-    loan: FixedTermLoan,
-}
-
-impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoanCompletePayload {
-    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
-        Self {
-            loan: FixedTermLoan::from(loan),
-        }
-    }
-}
