@@ -5,7 +5,9 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
-use crate::{app::LavaApp, graphql};
+use crate::app::LavaApp;
+
+use super::graphql;
 
 pub use config::*;
 

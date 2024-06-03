@@ -8,7 +8,7 @@ start-deps:
 	docker compose up -d integration-deps
 
 setup-db:
-	cd core && cargo sqlx migrate run
+	cd core && sleep 2 && cargo sqlx migrate run
 
 sqlx-prepare:
 	cd core && cargo sqlx prepare
