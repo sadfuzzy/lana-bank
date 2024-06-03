@@ -1,4 +1,4 @@
-mutation TopupUnallocatedCollateralTemplateCreate(
+mutation PledgeUnallocatedCollateralTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
   $assetAccountId: Expression!
@@ -6,11 +6,12 @@ mutation TopupUnallocatedCollateralTemplateCreate(
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "TOPUP_UNALLOCATED_COLLATERAL"
+      code: "PLEDGE_UNALLOCATED_COLLATERAL"
       description: "A transfer of BTC being pledged as collateral into the users unallocated collateral account."
       params: [
-        { name: "account",
-          type: UUID,
+        {
+          name: "account"
+          type: UUID
           description: "Unallocated Collateral account ID."
         }
         {
@@ -30,13 +31,17 @@ mutation TopupUnallocatedCollateralTemplateCreate(
           description: "External ID for the transaction"
         }
       ]
-      txInput: { journalId: $journalId, effective: "params.effective", externalId: "params.externalId" }
+      txInput: {
+        journalId: $journalId
+        effective: "params.effective"
+        externalId: "params.externalId"
+      }
       entries: [
         {
           accountId: $assetAccountId
           units: "params.amount"
           currency: "'BTC'"
-          entryType: "'TOPUP_UNALLOCATED_COLLATERAL_DR'"
+          entryType: "'PLEDGE_UNALLOCATED_COLLATERAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -44,7 +49,7 @@ mutation TopupUnallocatedCollateralTemplateCreate(
           accountId: "params.account"
           units: "params.amount"
           currency: "'BTC'"
-          entryType: "'TOPUP_UNALLOCATED_COLLATERAL_CR'"
+          entryType: "'PLEDGE_UNALLOCATED_COLLATERAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -59,7 +64,7 @@ mutation TopupUnallocatedCollateralTemplateCreate(
   }
 }
 
-mutation PostTopupUnallocatedCollateralTransaction(
+mutation PostPledgeUnallocatedCollateralTransaction(
   $transactionId: UUID!
   $accountId: UUID!
   $amount: Decimal!
@@ -68,12 +73,8 @@ mutation PostTopupUnallocatedCollateralTransaction(
   postTransaction(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "TOPUP_UNALLOCATED_COLLATERAL"
-      params: {
-        account: $accountId
-        amount: $amount
-        externalId: $externalId
-      }
+      txTemplateCode: "PLEDGE_UNALLOCATED_COLLATERAL"
+      params: { account: $accountId, amount: $amount, externalId: $externalId }
     }
   ) {
     transaction {

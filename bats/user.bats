@@ -32,7 +32,7 @@ teardown_file() {
   cache_value 'user.id' "$user_id"
 }
 
-@test "user: can topup unallocated collateral" {
+@test "user: can pledge unallocated collateral" {
   user_id=$(read_value 'user.id')
   variables=$(
     jq -n \
@@ -41,12 +41,12 @@ teardown_file() {
       input: {
         userId: $userId,
         amount: 100000,
-        reference: ("topup-" + $userId)
+        reference: ("pledge-" + $userId)
       }
     }'
   )
-  exec_graphql 'topup-unallocated-collateral' "$variables"
-  sats=$(graphql_output '.data.userTopupCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
+  exec_graphql 'pledge-unallocated-collateral' "$variables"
+  sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
   echo $(graphql_output)
   [[ "$sats" == "100000" ]] || exit 1;
 }

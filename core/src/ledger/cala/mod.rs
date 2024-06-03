@@ -176,20 +176,20 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_topup_unallocated_collateral_tx_template",
+        name = "lava.ledger.cala.create_pledge_unallocated_collateral_tx_template",
         skip(self),
         err
     )]
-    pub async fn create_topup_unallocated_collateral_tx_template(
+    pub async fn create_pledge_unallocated_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
-        let variables = topup_unallocated_collateral_template_create::Variables {
+        let variables = pledge_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
         };
-        let response = Self::traced_gql_request::<TopupUnallocatedCollateralTemplateCreate, _>(
+        let response = Self::traced_gql_request::<PledgeUnallocatedCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -204,24 +204,24 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.execute_topup_unallocated_collateral_tx",
+        name = "lava.ledger.cala.execute_pledge_unallocated_collateral_tx",
         skip(self),
         err
     )]
-    pub async fn execute_topup_unallocated_collateral_tx(
+    pub async fn execute_pledge_unallocated_collateral_tx(
         &self,
         account_id: LedgerAccountId,
         amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let transaction_id = uuid::Uuid::new_v4();
-        let variables = post_topup_unallocated_collateral_transaction::Variables {
+        let variables = post_pledge_unallocated_collateral_transaction::Variables {
             transaction_id,
             account_id: Uuid::from(account_id),
             amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostTopupUnallocatedCollateralTransaction, _>(
+        let response = Self::traced_gql_request::<PostPledgeUnallocatedCollateralTransaction, _>(
             &self.client,
             &self.url,
             variables,

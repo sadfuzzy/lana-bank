@@ -50,7 +50,7 @@ impl Users {
         Ok(user)
     }
 
-    pub async fn topup_unallocated_collateral_for_user(
+    pub async fn pledge_unallocated_collateral_for_user(
         &self,
         user_id: UserId,
         amount: Satoshis,
@@ -58,7 +58,7 @@ impl Users {
     ) -> Result<User, UserError> {
         let user = self.repo.find_by_id(user_id).await?;
         self.ledger
-            .topup_collateral_for_user(
+            .pledge_collateral_for_user(
                 user.account_ids.unallocated_collateral_id,
                 amount,
                 reference,

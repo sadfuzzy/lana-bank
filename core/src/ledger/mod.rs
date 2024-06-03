@@ -76,8 +76,8 @@ impl Ledger {
         Ok(account_ids)
     }
 
-    #[instrument(name = "lava.ledger.topup_collateral_for_user", skip(self), err)]
-    pub async fn topup_collateral_for_user(
+    #[instrument(name = "lava.ledger.pledge_collateral_for_user", skip(self), err)]
+    pub async fn pledge_collateral_for_user(
         &self,
         id: LedgerAccountId,
         amount: Satoshis,
@@ -85,7 +85,7 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_topup_unallocated_collateral_tx(id, amount.to_btc(), reference)
+            .execute_pledge_unallocated_collateral_tx(id, amount.to_btc(), reference)
             .await?)
     }
 
@@ -350,9 +350,9 @@ impl Ledger {
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {
-        Self::assert_topup_unallocated_collateral_tx_template_exists(
+        Self::assert_pledge_unallocated_collateral_tx_template_exists(
             cala,
-            constants::TOPUP_UNALLOCATED_COLLATERAL_CODE,
+            constants::PLEDGE_UNALLOCATED_COLLATERAL_CODE,
         )
         .await?;
 
@@ -379,7 +379,7 @@ impl Ledger {
         Ok(())
     }
 
-    async fn assert_topup_unallocated_collateral_tx_template_exists(
+    async fn assert_pledge_unallocated_collateral_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -392,7 +392,7 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala
-            .create_topup_unallocated_collateral_tx_template(template_id)
+            .create_pledge_unallocated_collateral_tx_template(template_id)
             .await
         {
             Ok(id) => {

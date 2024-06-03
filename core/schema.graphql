@@ -63,7 +63,7 @@ type LoanOutstanding {
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
-	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
+	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
 	withdrawInitiate(input: WithdrawInitiateInput!): WithdrawInitiatePayload!
 	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
@@ -110,13 +110,13 @@ type UserCreatePayload {
 	user: User!
 }
 
-input UserTopupCollateralInput {
+input UserPledgeCollateralInput {
 	userId: UUID!
 	amount: Satoshis!
 	reference: String!
 }
 
-type UserTopupCollateralPayload {
+type UserPledgeCollateralPayload {
 	user: User!
 }
 
