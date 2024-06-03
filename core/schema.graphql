@@ -64,8 +64,8 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
-	withdrawInitiate(input: WithdrawInitiateInput!): WithdrawInitiatePayload!
-	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -120,29 +120,29 @@ type UserPledgeCollateralPayload {
 	user: User!
 }
 
-type Withdraw {
+type Withdrawal {
 	id: UUID!
 	userId: UUID!
 }
 
-input WithdrawInitiateInput {
+input WithdrawalInitiateInput {
 	userId: UUID!
 	amount: UsdCents!
 	destination: String!
 	reference: String!
 }
 
-type WithdrawInitiatePayload {
-	withdraw: Withdraw!
+type WithdrawalInitiatePayload {
+	withdrawal: Withdrawal!
 }
 
-input WithdrawSettleInput {
+input WithdrawalSettleInput {
 	withdrawalId: UUID!
 	reference: String!
 }
 
-type WithdrawSettlePayload {
-	withdraw: Withdraw!
+type WithdrawalSettlePayload {
+	withdrawal: Withdrawal!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
