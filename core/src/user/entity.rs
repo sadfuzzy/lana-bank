@@ -26,7 +26,7 @@ pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
     pub account_ids: UserLedgerAccountIds,
-    pub(super) _events: EntityEvents<UserEvent>,
+    pub(super) events: EntityEvents<UserEvent>,
 }
 
 impl Entity for User {
@@ -52,7 +52,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 }
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 

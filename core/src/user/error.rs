@@ -12,4 +12,6 @@ pub enum UserError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("UserError - CouldNotFindById: {0}")]
     CouldNotFindById(UserId),
+    #[error("UserError - UnexpectedCurrency")]
+    UnexpectedCurrency,
 }

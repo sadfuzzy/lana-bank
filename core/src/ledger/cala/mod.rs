@@ -204,33 +204,6 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_approve_loan_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_approve_loan_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = approve_loan_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
         name = "lava.ledger.cala.execute_topup_unallocated_collateral_tx",
         skip(self),
         err
@@ -260,6 +233,145 @@ impl CalaClient {
             .map(|d| d.post_transaction.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_initiate_withdrawal_from_checking_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_initiate_withdrawal_from_checking_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = initiate_withdrawal_from_checking_tx_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response =
+            Self::traced_gql_request::<InitiateWithdrawalFromCheckingTxTemplateCreate, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    pub async fn execute_initiate_withdrawal_from_checking_via_usdt_tx(
+        &self,
+        user_account_ids: UserLedgerAccountIds,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let transaction_id = uuid::Uuid::new_v4();
+        let variables = post_initiate_withdrawal_from_checking_transaction::Variables {
+            transaction_id,
+            user_account: user_account_ids.checking_id.into(),
+            bank_account: super::constants::BANK_USDT_CASH_ID,
+            amount,
+            external_id,
+        };
+        let response =
+            Self::traced_gql_request::<PostInitiateWithdrawalFromCheckingTransaction, _>(
+                &self.client,
+                &self.url,
+                variables,
+            )
+            .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_settle_withdrawal_from_checking_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_settle_withdrawal_from_checking_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = settle_withdrawal_from_checking_tx_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<SettleWithdrawalFromCheckingTxTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    pub async fn execute_settle_withdrawal_from_checking_via_usdt_tx(
+        &self,
+        user_account_ids: UserLedgerAccountIds,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let transaction_id = uuid::Uuid::new_v4();
+        let variables = post_settle_withdrawal_from_checking_transaction::Variables {
+            transaction_id,
+            user_account: user_account_ids.checking_id.into(),
+            bank_account: super::constants::BANK_USDT_CASH_ID,
+            amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostSettleWithdrawalFromCheckingTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.post_transaction.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.create_approve_loan_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_approve_loan_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = approve_loan_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
     }
 
     #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]

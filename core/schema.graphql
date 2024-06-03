@@ -1,5 +1,10 @@
+type BtcBalance {
+	btcBalance: Satoshis!
+}
+
 type Checking {
-	usdBalance: UsdCents!
+	settled: UsdBalance!
+	encumbrance: UsdBalance!
 }
 
 type Collateral {
@@ -59,6 +64,8 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
+	withdrawViaUsdtOnTronInitiate(input: WithdrawViaUsdtOnTronInitiateInput!): WithdrawViaUsdtOnTronInitiatePayload!
+	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
@@ -66,6 +73,7 @@ type Mutation {
 
 type Query {
 	loan(id: UUID!): FixedTermLoan
+	user(id: UUID!): User
 }
 
 scalar Satoshis
@@ -74,10 +82,22 @@ scalar Satoshis
 scalar UUID
 
 type UnallocatedCollateral {
-	btcBalance: Satoshis!
+	settled: BtcBalance!
+}
+
+type UsdBalance {
+	usdBalance: UsdCents!
 }
 
 scalar UsdCents
+
+input UsdtOnTronConfirmation {
+	txId: String!
+}
+
+input UsdtOnTronDestination {
+	address: String!
+}
 
 type User {
 	userId: UUID!
@@ -106,6 +126,32 @@ input UserTopupCollateralInput {
 
 type UserTopupCollateralPayload {
 	user: User!
+}
+
+type Withdraw {
+	id: UUID!
+	userId: UUID!
+}
+
+input WithdrawSettleInput {
+	withdrawalId: UUID!
+	confirmation: UsdtOnTronConfirmation!
+	reference: String!
+}
+
+type WithdrawSettlePayload {
+	withdraw: Withdraw!
+}
+
+input WithdrawViaUsdtOnTronInitiateInput {
+	userId: UUID!
+	amount: UsdCents!
+	destination: UsdtOnTronDestination!
+	reference: String!
+}
+
+type WithdrawViaUsdtOnTronInitiatePayload {
+	withdraw: Withdraw!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

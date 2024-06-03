@@ -7,6 +7,7 @@ use std::fmt;
 crate::entity_id! { UserId }
 crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }
+crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
 
 impl From<FixedTermLoanId> for LedgerAccountId {
@@ -59,7 +60,7 @@ impl Satoshis {
     pub fn from_btc(btc: Decimal) -> Self {
         let sats = btc * SATS_PER_BTC;
         assert!(sats.trunc() == sats, "Satoshis must be an integer");
-        Self(u64::try_from(sats).expect("Satoshis must be an integer"))
+        Self(u64::try_from(sats).expect("Satoshis must be a positive integer"))
     }
 
     pub fn into_inner(self) -> u64 {
@@ -106,4 +107,24 @@ impl std::ops::Sub<UsdCents> for UsdCents {
         assert!(self.0 >= other.0, "Subtraction result cannot be negative");
         Self(self.0 - other.0)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TronWithdrawalDestination {
+    pub address: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TronTransactionConfirmation {
+    pub tx_id: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum WithdrawalDestination {
+    Tron(TronWithdrawalDestination),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum TransactionConfirmation {
+    Tron(TronTransactionConfirmation),
 }

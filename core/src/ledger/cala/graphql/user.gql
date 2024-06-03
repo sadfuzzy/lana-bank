@@ -26,5 +26,11 @@ query UserBalance(
         currency
       }
     }
+    encumbrance {
+      normalBalance {
+        units
+        currency
+      }
+    }
   }
 }

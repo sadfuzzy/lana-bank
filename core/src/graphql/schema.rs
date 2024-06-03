@@ -3,7 +3,7 @@ use async_graphql::*;
 use super::{fixed_term_loan::*, primitives::UUID, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{FixedTermLoanId, UserId},
+    primitives::{FixedTermLoanId, UserId, WithdrawId},
 };
 
 pub struct Query;
@@ -21,6 +21,12 @@ impl Query {
             .find_by_id(FixedTermLoanId::from(id))
             .await?;
         Ok(loan.map(FixedTermLoan::from))
+    }
+
+    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app.users().find_by_id(UserId::from(id)).await?;
+        Ok(user.map(User::from))
     }
 }
 
@@ -49,6 +55,42 @@ impl Mutation {
                 .topup_unallocated_collateral_for_user(
                     UserId::from(input.user_id),
                     input.amount,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
+    pub async fn withdraw_via_usdt_on_tron_initiate(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawViaUsdtOnTronInitiateInput,
+    ) -> async_graphql::Result<WithdrawViaUsdtOnTronInitiatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let new_withdraw = app.withdraws().create_withdraw(input.user_id).await?;
+        Ok(WithdrawViaUsdtOnTronInitiatePayload::from(
+            app.withdraws()
+                .initiate_withdrawal_via_usdt_on_tron_for_user(
+                    new_withdraw.id,
+                    input.amount,
+                    input.destination.address,
+                    input.reference,
+                )
+                .await?,
+        ))
+    }
+
+    pub async fn withdraw_settle(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawSettleInput,
+    ) -> async_graphql::Result<WithdrawSettlePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        Ok(WithdrawSettlePayload::from(
+            app.withdraws()
+                .settle_withdrawal_via_usdt_on_tron_for_user(
+                    WithdrawId::from(input.withdrawal_id),
+                    input.confirmation.tx_id,
                     input.reference,
                 )
                 .await?,

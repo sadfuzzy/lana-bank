@@ -1,0 +1,10 @@
+mutation WithdrawViaUsdtOnTronInitiate(
+  $input: WithdrawViaUsdtOnTronInitiateInput!
+) {
+  withdrawViaUsdtOnTronInitiate(input: $input) {
+    withdraw {
+      id
+      userId
+    }
+  }
+}

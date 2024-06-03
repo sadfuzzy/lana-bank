@@ -1,0 +1,8 @@
+mutation WithdrawSettle($input: WithdrawSettleInput!) {
+  withdrawSettle(input: $input) {
+    withdraw {
+      id
+      userId
+    }
+  }
+}

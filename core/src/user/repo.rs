@@ -52,4 +52,13 @@ impl UserRepo {
             Err(e) => Err(e.into()),
         }
     }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        settings: &mut User,
+    ) -> Result<(), UserError> {
+        settings.events.persist(db).await?;
+        Ok(())
+    }
 }

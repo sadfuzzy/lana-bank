@@ -3,6 +3,7 @@ mod config;
 mod constants;
 pub mod error;
 pub mod fixed_term_loan;
+pub mod primitives;
 mod tx_template;
 pub mod user;
 
@@ -75,6 +76,7 @@ impl Ledger {
         Ok(account_ids)
     }
 
+    #[instrument(name = "lava.ledger.topup_collateral_for_user", skip(self), err)]
     pub async fn topup_collateral_for_user(
         &self,
         id: LedgerAccountId,
@@ -84,6 +86,48 @@ impl Ledger {
         Ok(self
             .cala
             .execute_topup_unallocated_collateral_tx(id, amount.to_btc(), reference)
+            .await?)
+    }
+
+    #[instrument(
+        name = "lava.ledger.initiate_withdrawal_via_usdt_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn initiate_withdrawal_via_usdt_for_user(
+        &self,
+        user_account_ids: UserLedgerAccountIds,
+        amount: UsdCents,
+        reference: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_initiate_withdrawal_from_checking_via_usdt_tx(
+                user_account_ids,
+                amount.to_usd(),
+                reference,
+            )
+            .await?)
+    }
+
+    #[instrument(
+        name = "lava.ledger.settle_withdrawal_via_usdt_for_user",
+        skip(self),
+        err
+    )]
+    pub async fn settle_withdrawal_via_usdt_for_user(
+        &self,
+        user_account_ids: UserLedgerAccountIds,
+        amount: UsdCents,
+        reference: String,
+    ) -> Result<(), LedgerError> {
+        Ok(self
+            .cala
+            .execute_settle_withdrawal_from_checking_via_usdt_tx(
+                user_account_ids,
+                amount.to_usd(),
+                reference,
+            )
             .await?)
     }
 
@@ -230,6 +274,15 @@ impl Ledger {
         )
         .await?;
 
+        Self::assert_debit_account_exists(
+            cala,
+            constants::BANK_USDT_CASH_ID.into(),
+            constants::BANK_USDT_CASH_NAME,
+            constants::BANK_USDT_CASH_CODE,
+            &constants::BANK_USDT_CASH_ID.to_string(),
+        )
+        .await?;
+
         Ok(())
     }
 
@@ -318,6 +371,19 @@ impl Ledger {
 
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
+
+        Self::assert_initiate_withdrawal_from_checking_tx_template_exists(
+            cala,
+            constants::INITIATE_WITHDRAWAL_FROM_CHECKING_CODE,
+        )
+        .await?;
+
+        Self::assert_settle_withdrawal_from_checking_tx_template_exists(
+            cala,
+            constants::SETTLE_WITHDRAWAL_FROM_CHECKING_CODE,
+        )
+        .await?;
+
         Ok(())
     }
 
@@ -412,6 +478,62 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_record_payment_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_initiate_withdrawal_from_checking_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_initiate_withdrawal_from_checking_tx_template(template_id)
+            .await
+        {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_settle_withdrawal_from_checking_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_settle_withdrawal_from_checking_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }

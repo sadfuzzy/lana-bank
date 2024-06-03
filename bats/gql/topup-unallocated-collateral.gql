@@ -4,7 +4,9 @@ mutation UserTopupCollateral($input: UserTopupCollateralInput!) {
       userId
       balance {
         unallocatedCollateral {
-          btcBalance
+          settled {
+            btcBalance
+          }
         }
       }
     }

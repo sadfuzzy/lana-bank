@@ -30,6 +30,12 @@ impl From<UUID> for UserId {
     }
 }
 
+impl From<UUID> for WithdrawId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Decimal(rust_decimal::Decimal);
