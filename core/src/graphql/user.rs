@@ -76,14 +76,14 @@ impl From<crate::user::User> for UserPledgeCollateralPayload {
 
 #[derive(SimpleObject)]
 pub struct Withdrawal {
-    id: UUID,
+    withdrawal_id: UUID,
     user_id: UUID,
 }
 
 impl From<crate::withdraw::Withdraw> for Withdrawal {
     fn from(withdraw: crate::withdraw::Withdraw) -> Self {
         Withdrawal {
-            id: UUID::from(withdraw.id),
+            withdrawal_id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
         }
     }

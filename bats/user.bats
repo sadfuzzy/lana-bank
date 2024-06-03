@@ -102,7 +102,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'initiate-withdrawal' "$variables"
-  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.id')
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
 
   variables=$(
@@ -127,7 +127,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'settle-withdrawal' "$variables"
-  withdrawal_id_on_settle=$(graphql_output '.data.withdrawalSettle.withdrawal.id')
+  withdrawal_id_on_settle=$(graphql_output '.data.withdrawalSettle.withdrawal.withdrawalId')
   [[ "$withdrawal_id_on_settle" == "$withdrawal_id" ]] || exit 1
 
   variables=$(

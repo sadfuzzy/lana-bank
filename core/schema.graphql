@@ -121,7 +121,7 @@ type UserPledgeCollateralPayload {
 }
 
 type Withdrawal {
-	id: UUID!
+	withdrawalId: UUID!
 	userId: UUID!
 }
 
