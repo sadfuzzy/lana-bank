@@ -51,7 +51,7 @@ teardown_file() {
   [[ "$sats" == "100000" ]] || exit 1;
 }
 
-@test "user: can withdraw via usdt" {
+@test "user: can withdraw" {
   user_id=$(read_value 'user.id')
   variables=$(
     jq -n \
@@ -96,15 +96,13 @@ teardown_file() {
       input: {
         userId: $userId,
         amount: 10000,
-        destination: {
-          address: "tron-address",
-        },
+        destination: "tron-address",
         reference: ("initiate_withdraw-" + $userId)
       }
     }'
   )
-  exec_graphql 'initiate-withdrawal-via-usdt-on-tron' "$variables"
-  withdraw_id=$(graphql_output '.data.withdrawViaUsdtOnTronInitiate.withdraw.id')
+  exec_graphql 'initiate-withdrawal' "$variables"
+  withdraw_id=$(graphql_output '.data.withdrawInitiate.withdraw.id')
 
   variables=$(
     jq -n \
@@ -123,9 +121,6 @@ teardown_file() {
     '{
       input: {
         withdrawalId: $withdrawalId,
-        confirmation: {
-          txId: "tron-tx-id",
-        },
         reference: ("settle_withdraw-" + $withdrawalId)
       }
     }'

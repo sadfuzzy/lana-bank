@@ -108,23 +108,3 @@ impl std::ops::Sub<UsdCents> for UsdCents {
         Self(self.0 - other.0)
     }
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TronWithdrawalDestination {
-    pub address: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TronTransactionConfirmation {
-    pub tx_id: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum WithdrawalDestination {
-    Tron(TronWithdrawalDestination),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TransactionConfirmation {
-    Tron(TronTransactionConfirmation),
-}

@@ -64,7 +64,7 @@ type LoanOutstanding {
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
-	withdrawViaUsdtOnTronInitiate(input: WithdrawViaUsdtOnTronInitiateInput!): WithdrawViaUsdtOnTronInitiatePayload!
+	withdrawInitiate(input: WithdrawInitiateInput!): WithdrawInitiatePayload!
 	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
@@ -90,14 +90,6 @@ type UsdBalance {
 }
 
 scalar UsdCents
-
-input UsdtOnTronConfirmation {
-	txId: String!
-}
-
-input UsdtOnTronDestination {
-	address: String!
-}
 
 type User {
 	userId: UUID!
@@ -133,24 +125,23 @@ type Withdraw {
 	userId: UUID!
 }
 
+input WithdrawInitiateInput {
+	userId: UUID!
+	amount: UsdCents!
+	destination: String!
+	reference: String!
+}
+
+type WithdrawInitiatePayload {
+	withdraw: Withdraw!
+}
+
 input WithdrawSettleInput {
 	withdrawalId: UUID!
-	confirmation: UsdtOnTronConfirmation!
 	reference: String!
 }
 
 type WithdrawSettlePayload {
-	withdraw: Withdraw!
-}
-
-input WithdrawViaUsdtOnTronInitiateInput {
-	userId: UUID!
-	amount: UsdCents!
-	destination: UsdtOnTronDestination!
-	reference: String!
-}
-
-type WithdrawViaUsdtOnTronInitiatePayload {
 	withdraw: Withdraw!
 }
 

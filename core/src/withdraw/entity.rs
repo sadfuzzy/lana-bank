@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{
-        LedgerTxId, TransactionConfirmation, UsdCents, UserId, WithdrawId, WithdrawalDestination,
-    },
+    primitives::{LedgerTxId, UsdCents, UserId, WithdrawId},
 };
 
 use super::error::WithdrawError;
@@ -17,18 +15,17 @@ pub enum WithdrawEvent {
         id: WithdrawId,
         user_id: UserId,
     },
-    UsdInitiated {
+    Initiated {
         id: WithdrawId,
         tx_id: LedgerTxId,
         reference: String,
-        destination: WithdrawalDestination,
+        destination: String,
         amount: UsdCents,
     },
-    UsdSettled {
+    Settled {
         id: WithdrawId,
         tx_id: LedgerTxId,
         reference: String,
-        confirmation: TransactionConfirmation,
         amount: UsdCents,
     },
 }
@@ -54,10 +51,10 @@ impl Withdraw {
         id: WithdrawId,
         tx_id: LedgerTxId,
         amount: UsdCents,
-        destination: WithdrawalDestination,
+        destination: String,
         reference: String,
     ) -> Result<(), WithdrawError> {
-        self.events.push(WithdrawEvent::UsdInitiated {
+        self.events.push(WithdrawEvent::Initiated {
             id,
             tx_id,
             destination,
@@ -71,11 +68,10 @@ impl Withdraw {
         &mut self,
         id: WithdrawId,
         tx_id: LedgerTxId,
-        confirmation: TransactionConfirmation,
         reference: String,
     ) -> Result<UsdCents, WithdrawError> {
         for event in self.events.iter() {
-            if let WithdrawEvent::UsdSettled {
+            if let WithdrawEvent::Settled {
                 id: id_from_event, ..
             } = event
             {
@@ -89,7 +85,7 @@ impl Withdraw {
             .events
             .iter()
             .find_map(|event| {
-                if let WithdrawEvent::UsdInitiated {
+                if let WithdrawEvent::Initiated {
                     id: id_from_event,
                     amount,
                     ..
@@ -103,10 +99,9 @@ impl Withdraw {
             })
             .ok_or_else(|| WithdrawError::CouldNotFindById(id))?;
 
-        self.events.push(WithdrawEvent::UsdSettled {
+        self.events.push(WithdrawEvent::Settled {
             id,
             tx_id,
-            confirmation,
             reference,
             amount,
         });
@@ -129,8 +124,8 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                 WithdrawEvent::Initialized { id, user_id } => {
                     builder = builder.id(*id).user_id(*user_id);
                 }
-                WithdrawEvent::UsdInitiated { .. } => {}
-                WithdrawEvent::UsdSettled { .. } => {}
+                WithdrawEvent::Initiated { .. } => {}
+                WithdrawEvent::Settled { .. } => {}
             }
         }
         builder.events(events).build()

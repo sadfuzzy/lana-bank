@@ -5,10 +5,7 @@ mod repo;
 use crate::{
     entity::*,
     ledger::Ledger,
-    primitives::{
-        LedgerTxId, TransactionConfirmation, TronTransactionConfirmation,
-        TronWithdrawalDestination, UsdCents, UserId, WithdrawId, WithdrawalDestination,
-    },
+    primitives::{LedgerTxId, UsdCents, UserId, WithdrawId},
     user::UserRepo,
 };
 
@@ -56,19 +53,16 @@ impl Withdraws {
         Ok(withdraw)
     }
 
-    pub async fn initiate_withdrawal_via_usdt_on_tron_for_user(
+    pub async fn initiate(
         &self,
         id: WithdrawId,
         amount: UsdCents,
-        tron_address: String,
+        destination: String,
         reference: String,
     ) -> Result<Withdraw, WithdrawError> {
         let mut withdraw = self.repo.find_by_id(id).await?;
         let user = self.users.find_by_id(withdraw.user_id).await?;
         let tx_id = LedgerTxId::new();
-        let destination = WithdrawalDestination::Tron(TronWithdrawalDestination {
-            address: tron_address,
-        });
 
         let mut db_tx = self._pool.begin().await?;
         withdraw.initiate_usd_withdrawal(id, tx_id, amount, destination, reference.clone())?;
@@ -82,20 +76,17 @@ impl Withdraws {
         Ok(withdraw)
     }
 
-    pub async fn settle_withdrawal_via_usdt_on_tron_for_user(
+    pub async fn settle(
         &self,
         id: WithdrawId,
-        tron_tx_id: String,
         reference: String,
     ) -> Result<Withdraw, WithdrawError> {
         let mut withdraw = self.repo.find_by_id(id).await?;
         let user = self.users.find_by_id(withdraw.user_id).await?;
         let tx_id = LedgerTxId::new();
-        let confirmation =
-            TransactionConfirmation::Tron(TronTransactionConfirmation { tx_id: tron_tx_id });
 
         let mut db_tx = self._pool.begin().await?;
-        let amount = withdraw.settle(id, tx_id, confirmation, reference.clone())?;
+        let amount = withdraw.settle(id, tx_id, reference.clone())?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
