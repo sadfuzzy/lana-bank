@@ -37,9 +37,9 @@ impl From<user_balance::ResponseData> for UserBalance {
                     .clone()
                     .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
                     .unwrap_or_else(|| UsdCents::ZERO),
-                encumbrance: data
+                pending: data
                     .checking
-                    .map(|b| UsdCents::from_usd(b.encumbrance.normal_balance.units))
+                    .map(|b| UsdCents::from_usd(b.pending.normal_balance.units))
                     .unwrap_or_else(|| UsdCents::ZERO),
             },
         }

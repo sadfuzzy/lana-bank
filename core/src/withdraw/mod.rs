@@ -69,7 +69,7 @@ impl Withdraws {
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
-            .initiate_withdrawal_via_usdt_for_user(user.account_ids, amount, reference)
+            .initiate_withdrawal_for_user(user.account_ids, amount, reference)
             .await?;
 
         db_tx.commit().await?;
@@ -90,7 +90,7 @@ impl Withdraws {
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
-            .settle_withdrawal_via_usdt_for_user(user.account_ids, amount, reference)
+            .settle_withdrawal_for_user(user.account_ids, amount, reference)
             .await?;
 
         db_tx.commit().await?;

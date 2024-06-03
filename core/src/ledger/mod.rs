@@ -89,12 +89,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(
-        name = "lava.ledger.initiate_withdrawal_via_usdt_for_user",
-        skip(self),
-        err
-    )]
-    pub async fn initiate_withdrawal_via_usdt_for_user(
+    #[instrument(name = "lava.ledger.initiate_withdrawal_for_user", skip(self), err)]
+    pub async fn initiate_withdrawal_for_user(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
@@ -102,7 +98,7 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_initiate_withdrawal_from_checking_via_usdt_tx(
+            .execute_initiate_withdrawal_from_checking_tx(
                 user_account_ids,
                 amount.to_usd(),
                 reference,
@@ -110,12 +106,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(
-        name = "lava.ledger.settle_withdrawal_via_usdt_for_user",
-        skip(self),
-        err
-    )]
-    pub async fn settle_withdrawal_via_usdt_for_user(
+    #[instrument(name = "lava.ledger.settle_withdrawal_for_user", skip(self), err)]
+    pub async fn settle_withdrawal_for_user(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: UsdCents,
@@ -123,7 +115,7 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_settle_withdrawal_from_checking_via_usdt_tx(
+            .execute_settle_withdrawal_from_checking_tx(
                 user_account_ids,
                 amount.to_usd(),
                 reference,

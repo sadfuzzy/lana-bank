@@ -12,7 +12,7 @@ struct UnallocatedCollateral {
 #[derive(SimpleObject)]
 struct Checking {
     settled: UsdBalance,
-    encumbrance: UsdBalance,
+    pending: UsdBalance,
 }
 
 #[derive(SimpleObject)]
@@ -33,8 +33,8 @@ impl From<ledger::user::UserBalance> for UserBalance {
                 settled: UsdBalance {
                     usd_balance: balance.checking.settled,
                 },
-                encumbrance: UsdBalance {
-                    usd_balance: balance.checking.encumbrance,
+                pending: UsdBalance {
+                    usd_balance: balance.checking.pending,
                 },
             },
         }

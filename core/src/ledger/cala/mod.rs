@@ -263,7 +263,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    pub async fn execute_initiate_withdrawal_from_checking_via_usdt_tx(
+    pub async fn execute_initiate_withdrawal_from_checking_tx(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: Decimal,
@@ -319,7 +319,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    pub async fn execute_settle_withdrawal_from_checking_via_usdt_tx(
+    pub async fn execute_settle_withdrawal_from_checking_tx(
         &self,
         user_account_ids: UserLedgerAccountIds,
         amount: Decimal,

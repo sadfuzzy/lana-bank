@@ -10,7 +10,7 @@ query user($id: UUID!) {
         settled {
           usdBalance
         }
-        encumbrance {
+        pending {
           usdBalance
         }
       }

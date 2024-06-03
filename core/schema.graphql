@@ -4,7 +4,7 @@ type BtcBalance {
 
 type Checking {
 	settled: UsdBalance!
-	encumbrance: UsdBalance!
+	pending: UsdBalance!
 }
 
 type Collateral {
