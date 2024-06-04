@@ -1,11 +1,11 @@
-mutation RecordPaymentAndReleaseCollateralTemplateCreate(
+mutation CompleteLoanTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "RECORD_PAYMENT_AND_RELEASE_COLLATERAL"
+      code: "COMPLETE_LOAN"
       description: "Make final payment for loan and release collateral."
       params: [
         {
@@ -60,7 +60,7 @@ mutation RecordPaymentAndReleaseCollateralTemplateCreate(
           accountId: "params.checkingAccount"
           units: "params.paymentAmount"
           currency: "'USD'"
-          entryType: "'RECORD_FINAL_PAYMENT_DR'"
+          entryType: "'COMPLETE_LOAN_PAYMENT_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -68,7 +68,7 @@ mutation RecordPaymentAndReleaseCollateralTemplateCreate(
           accountId: "params.loanOutstandingAccount"
           units: "params.paymentAmount"
           currency: "'USD'"
-          entryType: "'RECORD_FINAL_PAYMENT_CR'"
+          entryType: "'COMPLETE_LOAN_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -76,7 +76,7 @@ mutation RecordPaymentAndReleaseCollateralTemplateCreate(
           accountId: "params.loanCollateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'RELEASE_LOAN_COLLATERAL_DR'"
+          entryType: "'COMPLETE_LOAN_COLLATERAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -84,7 +84,7 @@ mutation RecordPaymentAndReleaseCollateralTemplateCreate(
           accountId: "params.unallocatedCollateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'RELEASE_LOAN_COLLATERAL_CR'"
+          entryType: "'COMPLETE_LOAN_COLLATERAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -99,7 +99,7 @@ mutation RecordPaymentAndReleaseCollateralTemplateCreate(
   }
 }
 
-mutation PostRecordPaymentAndReleaseCollateralTransaction(
+mutation PostCompleteLoanTransaction(
   $transactionId: UUID!
   $checkingAccount: UUID!
   $loanOutstandingAccount: UUID!
@@ -112,7 +112,7 @@ mutation PostRecordPaymentAndReleaseCollateralTransaction(
   postTransaction(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "RECORD_PAYMENT_AND_RELEASE_COLLATERAL"
+      txTemplateCode: "COMPLETE_LOAN"
       params: {
         checkingAccount: $checkingAccount
         loanOutstandingAccount: $loanOutstandingAccount

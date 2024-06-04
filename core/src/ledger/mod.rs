@@ -192,8 +192,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.record_final_payment", skip(self), err)]
-    pub async fn record_final_payment_and_release_collateral(
+    #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
+    pub async fn complete_loan(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: FixedTermLoanAccountIds,
@@ -204,7 +204,7 @@ impl Ledger {
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
-            .execute_record_payment_and_release_collateral_tx(
+            .execute_complete_loan_tx(
                 tx_id,
                 loan_account_ids,
                 user_account_ids,
@@ -399,11 +399,7 @@ impl Ledger {
         )
         .await?;
 
-        Self::assert_record_payment_and_release_collateral_tx_template_exists(
-            cala,
-            constants::RECORD_PAYMENT_AND_RELEASE_COLLATERAL_CODE,
-        )
-        .await?;
+        Self::assert_complete_loan_tx_template_exists(cala, constants::COMPLETE_LOAN_CODE).await?;
 
         Ok(())
     }
@@ -511,7 +507,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_record_payment_and_release_collateral_tx_template_exists(
+    async fn assert_complete_loan_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -523,10 +519,7 @@ impl Ledger {
         }
 
         let template_id = LedgerTxTemplateId::new();
-        let err = match cala
-            .create_record_payment_and_release_collateral_tx_template(template_id)
-            .await
-        {
+        let err = match cala.create_complete_loan_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

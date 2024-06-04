@@ -146,7 +146,7 @@ impl FixedTermLoans {
                 .await?;
         } else {
             self.ledger
-                .record_final_payment_and_release_collateral(
+                .complete_loan(
                     tx_id,
                     loan.account_ids,
                     user.account_ids,
