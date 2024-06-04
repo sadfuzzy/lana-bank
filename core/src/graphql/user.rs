@@ -78,6 +78,7 @@ impl From<crate::user::User> for UserPledgeCollateralPayload {
 pub struct Withdrawal {
     withdrawal_id: UUID,
     user_id: UUID,
+    amount: UsdCents,
 }
 
 impl From<crate::withdraw::Withdraw> for Withdrawal {
@@ -85,6 +86,7 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
         Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
+            amount: withdraw.amount,
         }
     }
 }

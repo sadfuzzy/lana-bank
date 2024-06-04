@@ -67,15 +67,13 @@ impl Mutation {
         input: WithdrawalInitiateInput,
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let new_withdraw = app.withdraws().create_withdraw(input.user_id).await?;
+        let new_withdraw = app
+            .withdraws()
+            .create_withdraw(input.user_id, input.amount)
+            .await?;
         Ok(WithdrawalInitiatePayload::from(
             app.withdraws()
-                .initiate(
-                    new_withdraw.id,
-                    input.amount,
-                    input.destination,
-                    input.reference,
-                )
+                .initiate(new_withdraw.id, input.destination, input.reference)
                 .await?,
         ))
     }

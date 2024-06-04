@@ -14,13 +14,13 @@ pub enum WithdrawEvent {
     Initialized {
         id: WithdrawId,
         user_id: UserId,
+        amount: UsdCents,
     },
     Initiated {
         id: WithdrawId,
         tx_id: LedgerTxId,
         reference: String,
         destination: String,
-        amount: UsdCents,
     },
     Settled {
         id: WithdrawId,
@@ -42,6 +42,7 @@ impl EntityEvent for WithdrawEvent {
 pub struct Withdraw {
     pub id: WithdrawId,
     pub user_id: UserId,
+    pub amount: UsdCents,
     pub(super) events: EntityEvents<WithdrawEvent>,
 }
 
@@ -50,7 +51,6 @@ impl Withdraw {
         &mut self,
         id: WithdrawId,
         tx_id: LedgerTxId,
-        amount: UsdCents,
         destination: String,
         reference: String,
     ) -> Result<(), WithdrawError> {
@@ -59,7 +59,6 @@ impl Withdraw {
             tx_id,
             destination,
             reference,
-            amount,
         });
         Ok(())
     }
@@ -85,7 +84,7 @@ impl Withdraw {
             .events
             .iter()
             .find_map(|event| {
-                if let WithdrawEvent::Initiated {
+                if let WithdrawEvent::Initialized {
                     id: id_from_event,
                     amount,
                     ..
@@ -121,8 +120,12 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
         let mut builder = WithdrawBuilder::default();
         for event in events.iter() {
             match event {
-                WithdrawEvent::Initialized { id, user_id } => {
-                    builder = builder.id(*id).user_id(*user_id);
+                WithdrawEvent::Initialized {
+                    id,
+                    user_id,
+                    amount,
+                } => {
+                    builder = builder.id(*id).user_id(*user_id).amount(*amount);
                 }
                 WithdrawEvent::Initiated { .. } => {}
                 WithdrawEvent::Settled { .. } => {}
@@ -138,6 +141,8 @@ pub struct NewWithdraw {
     pub(super) id: WithdrawId,
     #[builder(setter(into))]
     pub(super) user_id: UserId,
+    #[builder(setter(into))]
+    pub(super) amount: UsdCents,
 }
 
 impl NewWithdraw {
@@ -151,6 +156,7 @@ impl NewWithdraw {
             [WithdrawEvent::Initialized {
                 id: self.id,
                 user_id: self.user_id,
+                amount: self.amount,
             }],
         )
     }
