@@ -107,4 +107,13 @@ wait_for_interest() {
   exec_graphql 'record-payment' "$variables"
   outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
+
+  variables=$(
+    jq -n \
+    --arg loanId "$id" \
+    '{ id: $loanId }'
+  )
+  exec_graphql 'find-loan' "$variables"
+  collateral_balance=$(graphql_output '.data.loan.balance.collateral.btcBalance')
+  [[ "$collateral_balance" == "0" ]] || exit 1
 }

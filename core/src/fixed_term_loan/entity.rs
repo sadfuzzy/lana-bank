@@ -28,7 +28,11 @@ pub enum FixedTermLoanEvent {
         tx_ref: String,
         amount: UsdCents,
     },
-    Completed,
+    Completed {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+    },
 }
 
 impl EntityEvent for FixedTermLoanEvent {
@@ -74,7 +78,7 @@ impl FixedTermLoan {
         tx_id: LedgerTxId,
     ) -> Result<String, FixedTermLoanError> {
         if self.is_completed() {
-            return Err(FixedTermLoanError::AlreadyComplete);
+            return Err(FixedTermLoanError::AlreadyCompleted);
         }
 
         let tx_ref = format!(
@@ -95,12 +99,19 @@ impl FixedTermLoan {
         outstanding: UsdCents,
         record_amount: UsdCents,
     ) -> Result<String, FixedTermLoanError> {
+        for event in self.events.iter() {
+            if let FixedTermLoanEvent::Completed { .. } = event {
+                return Err(FixedTermLoanError::AlreadyCompleted);
+            }
+        }
+
         if outstanding < record_amount {
             return Err(FixedTermLoanError::PaymentExceedsOutstandingLoanAmount(
                 record_amount,
                 outstanding,
             ));
         }
+
         let tx_ref = format!("{}-payment-{}", self.id, self.count_payment_made() + 1);
         self.events.push(FixedTermLoanEvent::PaymentRecorded {
             tx_id,
@@ -108,7 +119,11 @@ impl FixedTermLoan {
             amount: record_amount,
         });
         if outstanding == record_amount {
-            self.events.push(FixedTermLoanEvent::Completed);
+            self.events.push(FixedTermLoanEvent::Completed {
+                tx_id,
+                tx_ref: tx_ref.clone(),
+                amount: record_amount,
+            });
         }
         Ok(tx_ref)
     }

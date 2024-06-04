@@ -140,10 +140,24 @@ impl FixedTermLoans {
         let mut db_tx = self.pool.begin().await?;
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        self.ledger
-            .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
-            .await?;
+        if !loan.is_completed() {
+            self.ledger
+                .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+                .await?;
+        } else {
+            self.ledger
+                .complete_loan(
+                    tx_id,
+                    loan.account_ids,
+                    user.account_ids,
+                    amount,
+                    balances.collateral,
+                    tx_ref,
+                )
+                .await?;
+        }
         db_tx.commit().await?;
+
         Ok(loan)
     }
 
