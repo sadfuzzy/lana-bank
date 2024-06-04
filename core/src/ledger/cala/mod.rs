@@ -187,7 +187,7 @@ impl CalaClient {
         let variables = pledge_unallocated_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-            asset_account_id: format!("uuid(\"{}\")", super::constants::CORE_ASSETS_ID),
+            asset_account_id: format!("uuid(\"{}\")", super::constants::BANK_OFF_BALANCE_SHEET_ID),
         };
         let response = Self::traced_gql_request::<PledgeUnallocatedCollateralTemplateCreate, _>(
             &self.client,

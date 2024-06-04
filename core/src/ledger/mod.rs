@@ -259,10 +259,10 @@ impl Ledger {
     async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
         Self::assert_debit_account_exists(
             cala,
-            constants::CORE_ASSETS_ID.into(),
-            constants::CORE_ASSETS_NAME,
-            constants::CORE_ASSETS_CODE,
-            &constants::CORE_ASSETS_ID.to_string(),
+            constants::BANK_OFF_BALANCE_SHEET_ID.into(),
+            constants::BANK_OFF_BALANCE_SHEET_NAME,
+            constants::BANK_OFF_BALANCE_SHEET_CODE,
+            &constants::BANK_OFF_BALANCE_SHEET_ID.to_string(),
         )
         .await?;
 
