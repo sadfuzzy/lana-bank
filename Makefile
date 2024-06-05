@@ -34,7 +34,7 @@ e2e: clean-deps start-deps build
 e2e-in-ci: bump-cala-docker-image e2e
 
 sdl:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > core/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/schema.graphql
 
 bump-cala-schema:
 	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql

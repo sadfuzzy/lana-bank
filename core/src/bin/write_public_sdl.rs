@@ -1,3 +1,8 @@
 fn main() {
-    println!("{}", lava_core::public::graphql::schema(None).sdl().trim());
+    println!(
+        "{}",
+        lava_core::server::public::graphql::schema(None)
+            .sdl()
+            .trim()
+    );
 }
