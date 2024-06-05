@@ -171,4 +171,11 @@ impl FixedTermLoans {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn list_for_user(
+        &self,
+        user_id: UserId,
+    ) -> Result<Vec<FixedTermLoan>, FixedTermLoanError> {
+        self.repo.list_for_user(user_id).await
+    }
 }
