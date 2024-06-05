@@ -76,7 +76,7 @@ impl FixedTermLoanRepo {
             FROM fixed_term_loans l
             JOIN fixed_term_loan_events e ON l.id = e.id
             WHERE l.user_id = $1
-            ORDER BY e.sequence"#,
+            ORDER BY l.id, e.sequence"#,
             user_id as UserId,
         )
         .fetch_all(&self.pool)
