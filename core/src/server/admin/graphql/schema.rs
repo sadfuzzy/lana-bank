@@ -3,7 +3,7 @@ use async_graphql::*;
 use super::{fixed_term_loan::*, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{UserId, WithdrawId},
+    primitives::{FixedTermLoanId, UserId, WithdrawId},
     server::shared::primitives::UUID,
 };
 
@@ -11,6 +11,25 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    async fn loan(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<FixedTermLoan>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .find_by_id(FixedTermLoanId::from(id))
+            .await?;
+        Ok(loan.map(FixedTermLoan::from))
+    }
+
+    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app.users().find_by_id(UserId::from(id)).await?;
+        Ok(user.map(User::from))
+    }
+
     async fn loans_for_user(
         &self,
         ctx: &Context<'_>,
