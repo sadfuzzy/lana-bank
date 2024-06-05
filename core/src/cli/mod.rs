@@ -42,10 +42,37 @@ pub async fn run() -> anyhow::Result<()> {
 async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     lava_tracing::init_tracer(config.tracing)?;
     store_server_pid(lava_home, std::process::id())?;
+
+    let (send, mut receive) = tokio::sync::mpsc::channel(1);
+    let mut handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
-    let app = crate::app::LavaApp::run(pool, config.app).await?;
-    crate::server::public::run(config.public_server, app).await?;
-    Ok(())
+    let app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
+    let admin_app = app.clone();
+
+    let admin_send = send.clone();
+    handles.push(tokio::spawn(async move {
+        let _ = admin_send.try_send(
+            crate::server::admin::run(config.admin_server, admin_app)
+                .await
+                .context("Admin server error"),
+        );
+    }));
+
+    let api_send = send.clone();
+    handles.push(tokio::spawn(async move {
+        let _ = api_send.try_send(
+            crate::server::public::run(config.public_server, app)
+                .await
+                .context("Public server error"),
+        );
+    }));
+
+    let reason = receive.recv().await.expect("Didn't receive msg");
+    for handle in handles {
+        handle.abort();
+    }
+
+    reason
 }
 
 pub fn store_server_pid(lava_home: &str, pid: u32) -> anyhow::Result<()> {

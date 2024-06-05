@@ -17,37 +17,10 @@ type FixedTermLoan {
 	balance: FixedTermLoanBalance!
 }
 
-input FixedTermLoanApproveInput {
-	loanId: UUID!
-	collateral: Satoshis!
-	principal: UsdCents!
-}
-
-type FixedTermLoanApprovePayload {
-	loan: FixedTermLoan!
-}
-
 type FixedTermLoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
-}
-
-input FixedTermLoanCreateInput {
-	userId: UUID!
-}
-
-type FixedTermLoanCreatePayload {
-	loan: FixedTermLoan!
-}
-
-input FixedTermLoanRecordPaymentInput {
-	loanId: UUID!
-	amount: UsdCents!
-}
-
-type FixedTermLoanRecordPaymentPayload {
-	loan: FixedTermLoan!
 }
 
 
@@ -62,11 +35,8 @@ type LoanOutstanding {
 }
 
 type Mutation {
-	userCreate(input: UserCreateInput!): UserCreatePayload!
-	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
-	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
-	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
-	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
+	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
+	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
 }
 
 type Query {
@@ -100,11 +70,13 @@ type UserBalance {
 	checking: Checking!
 }
 
-input UserCreateInput {
-	bitfinexUsername: String!
+input UserPledgeCollateralInput {
+	userId: UUID!
+	amount: Satoshis!
+	reference: String!
 }
 
-type UserCreatePayload {
+type UserPledgeCollateralPayload {
 	user: User!
 }
 
@@ -114,14 +86,12 @@ type Withdrawal {
 	amount: UsdCents!
 }
 
-input WithdrawalInitiateInput {
-	userId: UUID!
-	amount: UsdCents!
-	destination: String!
+input WithdrawalSettleInput {
+	withdrawalId: UUID!
 	reference: String!
 }
 
-type WithdrawalInitiatePayload {
+type WithdrawalSettlePayload {
 	withdrawal: Withdrawal!
 }
 

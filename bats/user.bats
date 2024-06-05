@@ -45,9 +45,8 @@ teardown_file() {
       }
     }'
   )
-  exec_graphql 'pledge-unallocated-collateral' "$variables"
+  exec_admin_graphql 'pledge-unallocated-collateral' "$variables"
   sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
-  echo $(graphql_output)
   [[ "$sats" == "1000000000" ]] || exit 1;
 }
 
@@ -126,7 +125,7 @@ teardown_file() {
       }
     }'
   )
-  exec_graphql 'settle-withdrawal' "$variables"
+  exec_admin_graphql 'settle-withdrawal' "$variables"
   withdrawal_id_on_settle=$(graphql_output '.data.withdrawalSettle.withdrawal.withdrawalId')
   [[ "$withdrawal_id_on_settle" == "$withdrawal_id" ]] || exit 1
 
