@@ -1,12 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ServerConfig {
+pub struct AdminServerConfig {
     #[serde(default = "default_port")]
     pub port: u16,
 }
 
-impl Default for ServerConfig {
+impl Default for AdminServerConfig {
     fn default() -> Self {
         Self {
             port: default_port(),
@@ -15,5 +15,5 @@ impl Default for ServerConfig {
 }
 
 fn default_port() -> u16 {
-    5252
+    5253
 }
