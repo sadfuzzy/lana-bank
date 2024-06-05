@@ -5,7 +5,7 @@ CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
 GQL_ENDPOINT="http://localhost:5252/graphql"
-GQL_ADMDIN_ENDPOINT="http://localhost:5253/graphql"
+GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
 
 LAVG_HOME="${LAVG_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
