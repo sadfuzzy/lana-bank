@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::path::Path;
 
 use super::db::*;
-use crate::{server::admin::AdminServerConfig, app::AppConfig, server::public::PublicServerConfig};
+use crate::{app::AppConfig, server::admin::AdminServerConfig, server::public::PublicServerConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
