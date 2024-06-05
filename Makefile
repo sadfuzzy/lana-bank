@@ -18,8 +18,9 @@ reset-deps: clean-deps start-deps setup-db
 run-server:
 	cargo run --bin lava-core -- --config ./bats/lava.yml
 
-check-code: sdl
+check-code: public-sdl admin-sdl
 	git diff --exit-code core/src/server/public/schema.graphql
+	git diff --exit-code core/src/server/admin/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -33,8 +34,11 @@ e2e: clean-deps start-deps build
 
 e2e-in-ci: bump-cala-docker-image e2e
 
-sdl:
+public-sdl:
 	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/src/server/public/schema.graphql
+
+admin-sdl:
+	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > core/src/server/admin/schema.graphql
 
 bump-cala-schema:
 	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql

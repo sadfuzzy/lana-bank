@@ -42,19 +42,6 @@ impl From<crate::user::User> for User {
     }
 }
 
-#[derive(SimpleObject)]
-pub struct UserCreatePayload {
-    user: User,
-}
-
-impl From<crate::user::User> for UserCreatePayload {
-    fn from(user: crate::user::User) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
-
 #[derive(InputObject)]
 pub struct UserPledgeCollateralInput {
     pub user_id: UUID,
@@ -88,27 +75,6 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             user_id: UUID::from(withdraw.user_id),
             amount: withdraw.amount,
-        }
-    }
-}
-
-#[derive(InputObject)]
-pub struct WithdrawalInitiateInput {
-    pub user_id: UUID,
-    pub amount: UsdCents,
-    pub destination: String,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct WithdrawalInitiatePayload {
-    pub withdrawal: Withdrawal,
-}
-
-impl From<crate::withdraw::Withdraw> for WithdrawalInitiatePayload {
-    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
-        Self {
-            withdrawal: Withdrawal::from(withdrawal),
         }
     }
 }

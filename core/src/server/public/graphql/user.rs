@@ -1,9 +1,7 @@
 use async_graphql::*;
 
 use crate::{
-    app::LavaApp,
-    ledger::user::UserLedgerAccountIds,
-    primitives::{Satoshis, UsdCents},
+    app::LavaApp, ledger::user::UserLedgerAccountIds, primitives::UsdCents,
     server::shared::primitives::UUID,
 };
 
@@ -55,26 +53,6 @@ impl From<crate::user::User> for UserCreatePayload {
     }
 }
 
-#[derive(InputObject)]
-pub struct UserPledgeCollateralInput {
-    pub user_id: UUID,
-    pub amount: Satoshis,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct UserPledgeCollateralPayload {
-    pub user: User,
-}
-
-impl From<crate::user::User> for UserPledgeCollateralPayload {
-    fn from(user: crate::user::User) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
-
 #[derive(SimpleObject)]
 pub struct Withdrawal {
     withdrawal_id: UUID,
@@ -106,25 +84,6 @@ pub struct WithdrawalInitiatePayload {
 }
 
 impl From<crate::withdraw::Withdraw> for WithdrawalInitiatePayload {
-    fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
-        Self {
-            withdrawal: Withdrawal::from(withdrawal),
-        }
-    }
-}
-
-#[derive(InputObject)]
-pub struct WithdrawalSettleInput {
-    pub withdrawal_id: UUID,
-    pub reference: String,
-}
-
-#[derive(SimpleObject)]
-pub struct WithdrawalSettlePayload {
-    pub withdrawal: Withdrawal,
-}
-
-impl From<crate::withdraw::Withdraw> for WithdrawalSettlePayload {
     fn from(withdrawal: crate::withdraw::Withdraw) -> Self {
         Self {
             withdrawal: Withdrawal::from(withdrawal),

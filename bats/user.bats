@@ -45,7 +45,7 @@ teardown_file() {
       }
     }'
   )
-  exec_graphql 'pledge-unallocated-collateral' "$variables"
+  exec_admin_graphql 'pledge-unallocated-collateral' "$variables"
   sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
   echo $(graphql_output)
   [[ "$sats" == "1000000000" ]] || exit 1;
