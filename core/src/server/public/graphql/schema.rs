@@ -1,9 +1,10 @@
 use async_graphql::*;
 
-use super::{fixed_term_loan::*, primitives::UUID, user::*};
+use super::{fixed_term_loan::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId, WithdrawId},
+    server::shared::primitives::*,
 };
 
 pub struct Query;

@@ -1,2 +1,3 @@
-pub mod public;
 pub mod admin;
+pub mod public;
+mod shared;

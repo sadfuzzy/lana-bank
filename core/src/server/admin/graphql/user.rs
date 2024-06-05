@@ -4,9 +4,10 @@ use crate::{
     app::LavaApp,
     ledger::user::UserLedgerAccountIds,
     primitives::{Satoshis, UsdCents},
+    server::shared::primitives::UUID,
 };
 
-use super::{primitives::UUID, user_balance::*};
+use super::user_balance::*;
 
 #[derive(InputObject)]
 pub struct UserCreateInput {

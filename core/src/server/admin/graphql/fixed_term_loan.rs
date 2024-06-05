@@ -1,8 +1,10 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, ledger::fixed_term_loan::FixedTermLoanAccountIds};
+use crate::{
+    app::LavaApp, ledger::fixed_term_loan::FixedTermLoanAccountIds, server::shared::primitives::*,
+};
 
-use super::{fixed_term_loan_balance::*, primitives::*};
+use super::fixed_term_loan_balance::*;
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
