@@ -63,28 +63,12 @@ type LoanOutstanding {
 
 type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
-
-	# admin (could have declare intent from user in additional)
-	userTopupCollateral(input: UserTopupCollateralInput!): UserTopupCollateralPayload!
-	
-	# user query?
-	withdrawInitiate(input: WithdrawInitiateInput!): WithdrawInitiatePayload!
-
-	# admin
-	withdrawSettle(input: WithdrawSettleInput!): WithdrawSettlePayload!
-
-	# user initiated
+	userPledgeCollateral(input: UserPledgeCollateralInput!): UserPledgeCollateralPayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalSettle(input: WithdrawalSettleInput!): WithdrawalSettlePayload!
 	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
-
-	# unclear. could be user initiated
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
-
-	# user
-	# TODO: rename mutation
-	fixedTermLoanRepay(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
-
-	# TODO:
-	depositTopup()
+	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
 }
 
 type Query {
@@ -126,40 +110,40 @@ type UserCreatePayload {
 	user: User!
 }
 
-input UserTopupCollateralInput {
+input UserPledgeCollateralInput {
 	userId: UUID!
 	amount: Satoshis!
 	reference: String!
 }
 
-type UserTopupCollateralPayload {
+type UserPledgeCollateralPayload {
 	user: User!
 }
 
-# TODO: rename to Withdrawal
-type Withdraw {
-	id: UUID!
+type Withdrawal {
+	withdrawalId: UUID!
 	userId: UUID!
+	amount: UsdCents!
 }
 
-input WithdrawInitiateInput {
+input WithdrawalInitiateInput {
 	userId: UUID!
 	amount: UsdCents!
 	destination: String!
 	reference: String!
 }
 
-type WithdrawInitiatePayload {
-	withdraw: Withdraw!
+type WithdrawalInitiatePayload {
+	withdrawal: Withdrawal!
 }
 
-input WithdrawSettleInput {
+input WithdrawalSettleInput {
 	withdrawalId: UUID!
 	reference: String!
 }
 
-type WithdrawSettlePayload {
-	withdraw: Withdraw!
+type WithdrawalSettlePayload {
+	withdrawal: Withdrawal!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

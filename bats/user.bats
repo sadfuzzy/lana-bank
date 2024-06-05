@@ -32,7 +32,7 @@ teardown_file() {
   cache_value 'user.id' "$user_id"
 }
 
-@test "user: can topup unallocated collateral" {
+@test "user: can pledge unallocated collateral" {
   user_id=$(read_value 'user.id')
   variables=$(
     jq -n \
@@ -40,15 +40,15 @@ teardown_file() {
     '{
       input: {
         userId: $userId,
-        amount: 100000,
-        reference: ("topup-" + $userId)
+        amount: 1000000000,
+        reference: ("pledge-" + $userId)
       }
     }'
   )
-  exec_graphql 'topup-unallocated-collateral' "$variables"
-  sats=$(graphql_output '.data.userTopupCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
+  exec_graphql 'pledge-unallocated-collateral' "$variables"
+  sats=$(graphql_output '.data.userPledgeCollateral.user.balance.unallocatedCollateral.settled.btcBalance')
   echo $(graphql_output)
-  [[ "$sats" == "100000" ]] || exit 1;
+  [[ "$sats" == "1000000000" ]] || exit 1;
 }
 
 @test "user: can withdraw" {
@@ -71,8 +71,8 @@ teardown_file() {
     '{
       input: {
         loanId: $loanId,
-        collateral: 100000,
-        principal: 200000,
+        collateral: 400000000,
+        principal: 25000000,
       }
     }'
   )
@@ -87,7 +87,7 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "200000" ]] || exit 1
+  [[ "$checking_balance" == "25000000" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -95,14 +95,15 @@ teardown_file() {
     '{
       input: {
         userId: $userId,
-        amount: 10000,
+        amount: 1500000,
         destination: "tron-address",
-        reference: ("initiate_withdraw-" + $userId)
+        reference: ("initiate_withdrawal-" + $userId)
       }
     }'
   )
   exec_graphql 'initiate-withdrawal' "$variables"
-  withdraw_id=$(graphql_output '.data.withdrawInitiate.withdraw.id')
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -111,21 +112,23 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "190000" ]] || exit 1
+  [[ "$checking_balance" == "23500000" ]] || exit 1
   encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.pending.usdBalance')
-  [[ "$encumbered_checking_balance" == "10000" ]] || exit 1
+  [[ "$encumbered_checking_balance" == "1500000" ]] || exit 1
 
   variables=$(
     jq -n \
-      --arg withdrawalId "$withdraw_id" \
+      --arg withdrawalId "$withdrawal_id" \
     '{
       input: {
         withdrawalId: $withdrawalId,
-        reference: ("settle_withdraw-" + $withdrawalId)
+        reference: ("settle_withdrawal-" + $withdrawalId)
       }
     }'
   )
   exec_graphql 'settle-withdrawal' "$variables"
+  withdrawal_id_on_settle=$(graphql_output '.data.withdrawalSettle.withdrawal.withdrawalId')
+  [[ "$withdrawal_id_on_settle" == "$withdrawal_id" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -134,7 +137,7 @@ teardown_file() {
   )
   exec_graphql 'find-user' "$variables"
   checking_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == "190000" ]] || exit 1
+  [[ "$checking_balance" == "23500000" ]] || exit 1
   encumbered_checking_balance=$(graphql_output '.data.user.balance.checking.pending.usdBalance')
   [[ "$encumbered_checking_balance" == "0" ]] || exit 1
 }

@@ -45,15 +45,15 @@ impl Mutation {
         Ok(UserCreatePayload::from(user))
     }
 
-    pub async fn user_topup_collateral(
+    pub async fn user_pledge_collateral(
         &self,
         ctx: &Context<'_>,
-        input: UserTopupCollateralInput,
-    ) -> async_graphql::Result<UserTopupCollateralPayload> {
+        input: UserPledgeCollateralInput,
+    ) -> async_graphql::Result<UserPledgeCollateralPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserTopupCollateralPayload::from(
+        Ok(UserPledgeCollateralPayload::from(
             app.users()
-                .topup_unallocated_collateral_for_user(
+                .pledge_unallocated_collateral_for_user(
                     UserId::from(input.user_id),
                     input.amount,
                     input.reference,
@@ -62,32 +62,30 @@ impl Mutation {
         ))
     }
 
-    pub async fn withdraw_initiate(
+    pub async fn withdrawal_initiate(
         &self,
         ctx: &Context<'_>,
-        input: WithdrawInitiateInput,
-    ) -> async_graphql::Result<WithdrawInitiatePayload> {
+        input: WithdrawalInitiateInput,
+    ) -> async_graphql::Result<WithdrawalInitiatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let new_withdraw = app.withdraws().create_withdraw(input.user_id).await?;
-        Ok(WithdrawInitiatePayload::from(
+        let new_withdraw = app
+            .withdraws()
+            .create_withdraw(input.user_id, input.amount)
+            .await?;
+        Ok(WithdrawalInitiatePayload::from(
             app.withdraws()
-                .initiate(
-                    new_withdraw.id,
-                    input.amount,
-                    input.destination,
-                    input.reference,
-                )
+                .initiate(new_withdraw.id, input.destination, input.reference)
                 .await?,
         ))
     }
 
-    pub async fn withdraw_settle(
+    pub async fn withdrawal_settle(
         &self,
         ctx: &Context<'_>,
-        input: WithdrawSettleInput,
-    ) -> async_graphql::Result<WithdrawSettlePayload> {
+        input: WithdrawalSettleInput,
+    ) -> async_graphql::Result<WithdrawalSettlePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
-        Ok(WithdrawSettlePayload::from(
+        Ok(WithdrawalSettlePayload::from(
             app.withdraws()
                 .settle(WithdrawId::from(input.withdrawal_id), input.reference)
                 .await?,

@@ -1,5 +1,5 @@
-mutation UserTopupCollateral($input: UserTopupCollateralInput!) {
-  userTopupCollateral(input: $input) {
+mutation UserPledgeCollateral($input: UserPledgeCollateralInput!) {
+  userPledgeCollateral(input: $input) {
     user {
       userId
       balance {

@@ -18,13 +18,6 @@ reset-deps: clean-deps start-deps setup-db
 run-server:
 	cargo run --bin lava-core -- --config ./bats/lava.yml
 
-rust-example:
-	cargo run --bin cala-ledger-example-rust
-
-update-lib-in-nodejs-example:
-	cd cala-nodejs && SQLX_OFFLINE=true yarn build
-	cd examples/nodejs && rm -rf ./node_modules && yarn install
-
 check-code: sdl
 	git diff --exit-code core/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
@@ -37,6 +30,8 @@ build:
 
 e2e: clean-deps start-deps build
 	bats -t bats
+
+e2e-in-ci: bump-cala-docker-image e2e
 
 sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > core/schema.graphql

@@ -71,7 +71,7 @@ groups:
 jobs:
 - #@ rust_check_code()
 - #@ on_nix_host("integration-tests", "make test-in-ci")
-- #@ on_nix_host("bats-tests", "make e2e")
+- #@ on_nix_host("bats-tests", "make e2e-in-ci")
 - #@ build_edge_image()
 
 - name: release

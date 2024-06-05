@@ -65,7 +65,6 @@ impl JobExecutor {
 
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
         let pool = self.pool.clone();
-        let server_id = self.config.server_id.clone();
         let poll_interval = self.config.poll_interval;
         let pg_interval = PgInterval::try_from(poll_interval * 4)
             .map_err(|e| JobError::InvalidPollInterval(e.to_string()))?;
@@ -80,7 +79,6 @@ impl JobExecutor {
                     &pool,
                     &registry,
                     &mut keep_alive,
-                    &server_id,
                     poll_limit,
                     pg_interval.clone(),
                     &running_jobs,
@@ -96,6 +94,7 @@ impl JobExecutor {
 
     #[allow(clippy::too_many_arguments)]
     #[instrument(
+        level = "trace",
         name = "job_executor.poll_jobs",
         skip(pool, registry, running_jobs),
         fields(n_jobs_to_spawn, n_jobs_running),
@@ -105,7 +104,6 @@ impl JobExecutor {
         pool: &PgPool,
         registry: &Arc<JobRegistry>,
         keep_alive: &mut bool,
-        server_id: &str,
         poll_limit: u32,
         pg_interval: PgInterval,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
@@ -121,12 +119,10 @@ impl JobExecutor {
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
-                    SET reschedule_after = NOW() + $3::interval,
-                        executing_server_id = $2
+                    SET reschedule_after = NOW() + $2::interval
                     WHERE id = ANY($1)
                     "#,
                     &ids as &[JobId],
-                    server_id,
                     pg_interval
                 )
                 .fetch_all(pool)
@@ -141,17 +137,15 @@ impl JobExecutor {
                   FROM job_executions
                   WHERE reschedule_after < NOW()
                   AND state = 'pending'
-                  LIMIT $2
+                  LIMIT $1
                   FOR UPDATE
               )
               UPDATE job_executions AS je
-              SET state = 'running', reschedule_after = NOW() + $3::interval,
-                  executing_server_id = $1
+              SET state = 'running', reschedule_after = NOW() + $2::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
               RETURNING je.id AS "id!: JobId", je.payload_json
               "#,
-            server_id,
             poll_limit as i32,
             pg_interval
         )

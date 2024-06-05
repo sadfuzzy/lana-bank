@@ -39,11 +39,13 @@ impl Withdraws {
     pub async fn create_withdraw(
         &self,
         user_id: impl Into<UserId> + std::fmt::Debug,
+        amount: UsdCents,
     ) -> Result<Withdraw, WithdrawError> {
         let id = WithdrawId::new();
         let new_withdraw = NewWithdraw::builder()
             .id(id)
             .user_id(user_id)
+            .amount(amount)
             .build()
             .expect("Could not build Withdraw");
 
@@ -56,7 +58,6 @@ impl Withdraws {
     pub async fn initiate(
         &self,
         id: WithdrawId,
-        amount: UsdCents,
         destination: String,
         reference: String,
     ) -> Result<Withdraw, WithdrawError> {
@@ -65,11 +66,11 @@ impl Withdraws {
         let tx_id = LedgerTxId::new();
 
         let mut db_tx = self._pool.begin().await?;
-        withdraw.initiate_usd_withdrawal(id, tx_id, amount, destination, reference.clone())?;
+        withdraw.initiate_usd_withdrawal(id, tx_id, destination, reference.clone())?;
         self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
 
         self.ledger
-            .initiate_withdrawal_for_user(user.account_ids, amount, reference)
+            .initiate_withdrawal_for_user(user.account_ids, withdraw.amount, reference)
             .await?;
 
         db_tx.commit().await?;
