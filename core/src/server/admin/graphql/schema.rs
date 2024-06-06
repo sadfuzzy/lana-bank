@@ -34,13 +34,12 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         user_id: UUID,
-    ) -> async_graphql::Result<Vec<FixedTermLoan>> {
+    ) -> async_graphql::Result<Option<Vec<FixedTermLoan>>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loans = app
-            .fixed_term_loans()
-            .list_for_user(UserId::from(user_id))
-            .await?;
-        Ok(loans.into_iter().map(FixedTermLoan::from).collect())
+        if let Some(loans) = app.list_loans_for_user(UserId::from(user_id)).await? {
+            return Ok(Some(loans.into_iter().map(FixedTermLoan::from).collect()));
+        }
+        Ok(None)
     }
 }
 
