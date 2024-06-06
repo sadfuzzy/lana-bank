@@ -29,6 +29,18 @@ impl Query {
         let user = app.users().find_by_id(UserId::from(id)).await?;
         Ok(user.map(User::from))
     }
+
+    async fn loans_for_user(
+        &self,
+        ctx: &Context<'_>,
+        user_id: UUID,
+    ) -> async_graphql::Result<Option<Vec<FixedTermLoan>>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        if let Some(loans) = app.list_loans_for_user(UserId::from(user_id)).await? {
+            return Ok(Some(loans.into_iter().map(FixedTermLoan::from).collect()));
+        }
+        Ok(None)
+    }
 }
 
 pub struct Mutation;
