@@ -120,6 +120,55 @@ type BalanceAmount {
 	entryId: UUID!
 }
 
+type BalanceSheet {
+	assets: AccountSet!
+	liabilities: AccountSet!
+	schedule1: AccountSet!
+	schedule2: AccountSet!
+	schedule3: AccountSet!
+	schedule4: AccountSet!
+	schedule5: AccountSet!
+	schedule6: AccountSet!
+	schedule7: AccountSet!
+	schedule8: AccountSet!
+	schedule9: AccountSet!
+	schedule10: AccountSet!
+	schedule11: AccountSet!
+	schedule12: AccountSet!
+}
+
+input BalanceSheetAccountSetsCreateInput {
+	journalId: UUID!
+}
+
+type BalanceSheetAccountSetsCreatePayload {
+	balanceSheet: BalanceSheet!
+}
+
+type BalanceSheetMutation {
+	balanceSheetCreate(input: BalanceSheetAccountSetsCreateInput!): BalanceSheetAccountSetsCreatePayload!
+}
+
+type BalanceSheetQuery {
+	balanceSheet(journalId: UUID!): BalanceSheet
+}
+
+type BigQueryExportCreatePayload {
+	job: Job!
+}
+
+input BigQueryExportJobCreateInput {
+	name: String!
+	description: String
+	gcpProjectId: String!
+	gcpDatasetId: String!
+	serviceAccountCredsBase64: String!
+}
+
+type BigQueryMutation {
+	bqExportJobCreate(input: BigQueryExportJobCreateInput!): BigQueryExportCreatePayload!
+}
+
 
 input CalaOutboxImportJobCreateInput {
 	name: String!
@@ -224,6 +273,8 @@ type Money {
 
 type Mutation {
 	calaOutboxImportJobCreate(input: CalaOutboxImportJobCreateInput!): CalaOutboxImportJobCreatePayload!
+	bigQuery: BigQueryMutation!
+	balanceSheet: BalanceSheetMutation!
 	accountCreate(input: AccountCreateInput!): AccountCreatePayload!
 	accountSetCreate(input: AccountSetCreateInput!): AccountSetCreatePayload!
 	addToAccountSet(input: AddToAccountSetInput!): AddToAccountSetPayload!
@@ -284,6 +335,8 @@ type PostTransactionPayload {
 }
 
 type Query {
+	serverVersion: String!
+	balanceSheet: BalanceSheetQuery!
 	account(id: UUID!): Account
 	accountByExternalId(externalId: String!): Account
 	accounts(first: Int!, after: String): AccountConnection!

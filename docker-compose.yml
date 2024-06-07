@@ -32,7 +32,7 @@ services:
       timeout: 5s
       retries: 5
   cala:
-    image: us.gcr.io/galoy-org/cala:edge
+    image: gcr.io/galoy-org/cala-enterprise:edge
     ports:
       - "2252:2252"
     volumes:
@@ -40,6 +40,7 @@ services:
     environment:
       - PG_CON=postgresql://user:password@cala-pg:5432/pg
       - CALA_CONFIG=/cala.yml
+      - CALA_HOME=/cala-enterprise
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
     depends_on:
       - cala-pg

@@ -41,10 +41,11 @@ admin-sdl:
 	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > core/src/server/admin/schema.graphql
 
 bump-cala-schema:
-	curl https://raw.githubusercontent.com/GaloyMoney/cala/main/cala-server/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
+	curl -H "Authorization: token $(GITHUB_TOKEN)" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
+
 
 bump-cala-docker-image:
-	docker pull us.gcr.io/galoy-org/cala:edge
+	docker compose pull cala
 
 bump-cala: bump-cala-docker-image bump-cala-schema
 
