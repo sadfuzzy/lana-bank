@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use super::{entity::*, error::*};
+use super::{cursor::*, entity::*, error::*};
 use crate::{entity::*, primitives::*};
 
 #[derive(Clone)]
@@ -60,5 +60,45 @@ impl UserRepo {
     ) -> Result<(), UserError> {
         settings.events.persist(db).await?;
         Ok(())
+    }
+
+    pub async fn list(
+        &self,
+        query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"
+            WITH users AS (
+              SELECT id, bitfinex_username, created_at
+              FROM users
+              WHERE ((bitfinex_username, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)
+              ORDER BY bitfinex_username, id
+              LIMIT $3
+            )
+            SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e ON a.id = e.id
+            ORDER BY a.bitfinex_username, a.id, e.sequence"#,
+            query.after.as_ref().map(|c| c.id) as Option<UserId>,
+            query.after.map(|c| c.name),
+            query.first as i64 + 1
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let (entities, has_next_page) = EntityEvents::load_n::<User>(rows, query.first)?;
+        let mut end_cursor = None;
+        if let Some(last) = entities.last() {
+            end_cursor = Some(UserByNameCursor {
+                id: last.id,
+                name: last.bitfinex_username.clone(),
+            });
+        }
+        Ok(crate::query::PaginatedQueryRet {
+            entities,
+            has_next_page,
+            end_cursor,
+        })
     }
 }

@@ -1,3 +1,4 @@
+mod cursor;
 mod entity;
 pub mod error;
 mod repo;
@@ -8,6 +9,7 @@ use crate::{
     primitives::{Satoshis, UsdCents, UserId},
 };
 
+pub use cursor::*;
 pub use entity::*;
 use error::UserError;
 pub use repo::UserRepo;
@@ -86,5 +88,12 @@ impl Users {
             Err(UserError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn list(
+        &self,
+        query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
+        self.repo.list(query).await
     }
 }

@@ -1665,6 +1665,7 @@ dependencies = [
  "async-trait",
  "axum 0.7.5",
  "axum-extra",
+ "base64 0.22.1",
  "cala-ledger-core-types",
  "chrono",
  "clap",
