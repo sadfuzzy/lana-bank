@@ -50,6 +50,7 @@
           yarn
           nodejs
           typescript
+          google-cloud-sdk
           ytt
           pnpm
         ]

@@ -10,7 +10,7 @@ import { PageHeading } from "@/components/page-heading"
 import { getLoanDetails } from "@/lib/graphql/query/get-loan"
 import { DetailItem, DetailsGroup } from "@/components/details"
 
-export const searchLoan = async (formData: FormData) => {
+const searchLoan = async (formData: FormData) => {
   "use server"
   const loanId = formData.get("loanId")
   if (!loanId || typeof loanId !== "string") {
