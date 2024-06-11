@@ -22,6 +22,13 @@
 #@   "private_docker_registry"
 #@ )
 
+#@ load("app-template.lib.yml",
+#@   "app_src_resource",
+#@   "build_app_edge_image_name",
+#@   "build_app_edge_image",
+#@   "app_edge_image"
+#@ )
+
 #@ def on_nix_host(name, cmd):
 #@ params = {}
 #@ params["REPO_PATH"] = data.values.gh_repository
@@ -67,6 +74,9 @@ groups:
   - build-edge-image
   - release
   - bump-image-in-chart
+- name: admin-panel
+  jobs:
+  - #@ build_app_edge_image_name("admin-panel")
 
 jobs:
 - #@ rust_check_code()
@@ -236,6 +246,8 @@ jobs:
         run:
           path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
 
+- #@ build_app_edge_image("admin-panel")
+
 resources:
 - #@ repo_resource(True)
 - #@ pipeline_tasks_resource()
@@ -245,6 +257,8 @@ resources:
 - #@ gh_release_resource()
 - #@ charts_repo_bot_branch()
 - #@ charts_repo_resource()
+- #@ app_src_resource("admin-panel")
+- #@ app_edge_image("admin-panel")
 - name: latest-image
   type: registry-image
   source:
