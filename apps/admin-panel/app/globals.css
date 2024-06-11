@@ -57,7 +57,9 @@ html {
     --button-text-primary: #000000;
     --button-text-secondary: #ffffff;
 
-    --input-text-primary: #6a6a6a;
+    --input-text-primary: #424141;
+
+    --border-color: #424141;
   }
 }
 

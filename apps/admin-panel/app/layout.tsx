@@ -4,6 +4,7 @@ import { Inter_Tight } from "next/font/google"
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
 import { ApolloWrapper } from "@/lib/core-admin-client/wrapper"
+import SideBar from "@/components/sidebar"
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,7 +21,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ApolloWrapper>{children}</ApolloWrapper>
+        <ApolloWrapper>
+          <main className="flex flex-col md:flex-row min-h-screen w-full">
+            <SideBar />
+            <div className="flex-1 p-6">{children}</div>
+          </main>
+        </ApolloWrapper>
       </body>
     </html>
   )
