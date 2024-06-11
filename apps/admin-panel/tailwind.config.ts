@@ -1,17 +1,44 @@
 import type { Config } from "tailwindcss"
 
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  darkMode: ["class"],
+  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic":
-          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      colors: {
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        textColor: {
+          primary: "var(--text-primary)",
+          secondary: "var(--text-secondary)",
+        },
+        button: {
+          text: {
+            DEFAULT: "var(--button-text-primary)",
+            secondary: "var(--button-text-secondary)",
+          },
+        },
+        input: {
+          text: {
+            DEFAULT: "var(--input-text-primary)",
+          },
+        },
+        success: "var(--green)",
+        destructive: "var(--error)",
+      },
+      boxShadow: {
+        glow: "0 0 8px var(--primary)",
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
     },
   },

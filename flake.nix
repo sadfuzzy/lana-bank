@@ -51,6 +51,7 @@
           nodejs
           typescript
           ytt
+          pnpm
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
@@ -74,4 +75,3 @@
         formatter = alejandra;
       });
 }
-

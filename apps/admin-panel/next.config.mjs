@@ -4,9 +4,9 @@ const nextConfig = {
     config.module.rules.push({
       test: /\.svg$/i,
       use: ["@svgr/webpack"],
-    });
-    return config;
+    })
+    return config
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig
