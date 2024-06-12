@@ -3,7 +3,6 @@ import { Inter_Tight } from "next/font/google"
 
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
-import { ApolloWrapper } from "@/lib/core-admin-client/wrapper"
 import SideBar from "@/components/sidebar"
 
 export const metadata: Metadata = {
@@ -21,12 +20,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ApolloWrapper>
-          <main className="flex flex-col md:flex-row min-h-screen w-full">
-            <SideBar />
-            <div className="flex-1 p-6">{children}</div>
-          </main>
-        </ApolloWrapper>
+        <main className="flex flex-col md:flex-row min-h-screen w-full">
+          <SideBar />
+          <div className="flex-1 p-6">{children}</div>
+        </main>
       </body>
     </html>
   )
