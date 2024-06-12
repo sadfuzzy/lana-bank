@@ -10,6 +10,8 @@ gql`
       nodes {
         userId
         bitfinexUsername
+        btcDepositAddress
+        ustDepositAddress
         balance {
           unallocatedCollateral {
             settled {

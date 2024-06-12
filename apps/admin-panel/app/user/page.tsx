@@ -94,6 +94,8 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                     <TableHead>BTC Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Pending)</TableHead>
+                    <TableHead>BTC Address</TableHead>
+                    <TableHead>UST Address</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -128,6 +130,8 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                             currency: "USD",
                           })}
                         </TableCell>
+                        <TableCell>{user.btcDepositAddress}</TableCell>
+                        <TableCell>{user.ustDepositAddress}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>

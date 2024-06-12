@@ -64,24 +64,7 @@ export type LoanOutstanding = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  userDeposit: UserDepositPayload;
-  userPledgeCollateral: UserPledgeCollateralPayload;
-  withdrawalSettle: WithdrawalSettlePayload;
-};
-
-
-export type MutationUserDepositArgs = {
-  input: UserDepositInput;
-};
-
-
-export type MutationUserPledgeCollateralArgs = {
-  input: UserPledgeCollateralInput;
-};
-
-
-export type MutationWithdrawalSettleArgs = {
-  input: WithdrawalSettleInput;
+  dummy: Scalars['Boolean']['output'];
 };
 
 /** Information about pagination in a connection */
@@ -140,7 +123,9 @@ export type User = {
   __typename?: 'User';
   balance: UserBalance;
   bitfinexUsername: Scalars['String']['output'];
+  btcDepositAddress: Scalars['String']['output'];
   userId: Scalars['UUID']['output'];
+  ustDepositAddress: Scalars['String']['output'];
 };
 
 export type UserBalance = {
@@ -159,17 +144,6 @@ export type UserConnection = {
   pageInfo: PageInfo;
 };
 
-export type UserDepositInput = {
-  amount: Scalars['UsdCents']['input'];
-  reference: Scalars['String']['input'];
-  userId: Scalars['UUID']['input'];
-};
-
-export type UserDepositPayload = {
-  __typename?: 'UserDepositPayload';
-  user: User;
-};
-
 /** An edge in a connection. */
 export type UserEdge = {
   __typename?: 'UserEdge';
@@ -178,55 +152,6 @@ export type UserEdge = {
   /** The item at the end of the edge */
   node: User;
 };
-
-export type UserPledgeCollateralInput = {
-  amount: Scalars['Satoshis']['input'];
-  reference: Scalars['String']['input'];
-  userId: Scalars['UUID']['input'];
-};
-
-export type UserPledgeCollateralPayload = {
-  __typename?: 'UserPledgeCollateralPayload';
-  user: User;
-};
-
-export type Withdrawal = {
-  __typename?: 'Withdrawal';
-  amount: Scalars['UsdCents']['output'];
-  userId: Scalars['UUID']['output'];
-  withdrawalId: Scalars['UUID']['output'];
-};
-
-export type WithdrawalSettleInput = {
-  reference: Scalars['String']['input'];
-  withdrawalId: Scalars['UUID']['input'];
-};
-
-export type WithdrawalSettlePayload = {
-  __typename?: 'WithdrawalSettlePayload';
-  withdrawal: Withdrawal;
-};
-
-export type UserDepositMutationVariables = Exact<{
-  input: UserDepositInput;
-}>;
-
-
-export type UserDepositMutation = { __typename?: 'Mutation', userDeposit: { __typename?: 'UserDepositPayload', user: { __typename?: 'User', bitfinexUsername: string, userId: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', pending: { __typename?: 'UsdBalance', usdBalance: any }, settled: { __typename?: 'UsdBalance', usdBalance: any } } } } } };
-
-export type UserPledgeCollateralMutationVariables = Exact<{
-  input: UserPledgeCollateralInput;
-}>;
-
-
-export type UserPledgeCollateralMutation = { __typename?: 'Mutation', userPledgeCollateral: { __typename?: 'UserPledgeCollateralPayload', user: { __typename?: 'User', bitfinexUsername: string, userId: string, balance: { __typename?: 'UserBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } }, unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } } } } } };
-
-export type WithdrawalSettleMutationVariables = Exact<{
-  input: WithdrawalSettleInput;
-}>;
-
-
-export type WithdrawalSettleMutation = { __typename?: 'Mutation', withdrawalSettle: { __typename?: 'WithdrawalSettlePayload', withdrawal: { __typename?: 'Withdrawal', amount: any, userId: string, withdrawalId: string } } };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -247,7 +172,7 @@ export type GetUserByUserIdQueryVariables = Exact<{
 }>;
 
 
-export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, bitfinexUsername: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, bitfinexUsername: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
 export type UsersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -255,148 +180,9 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', nodes: Array<{ __typename?: 'User', userId: string, bitfinexUsername: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', nodes: Array<{ __typename?: 'User', userId: string, bitfinexUsername: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
-export const UserDepositDocument = gql`
-    mutation UserDeposit($input: UserDepositInput!) {
-  userDeposit(input: $input) {
-    user {
-      balance {
-        unallocatedCollateral {
-          settled {
-            btcBalance
-          }
-        }
-        checking {
-          pending {
-            usdBalance
-          }
-          settled {
-            usdBalance
-          }
-        }
-      }
-      bitfinexUsername
-      userId
-    }
-  }
-}
-    `;
-export type UserDepositMutationFn = Apollo.MutationFunction<UserDepositMutation, UserDepositMutationVariables>;
-
-/**
- * __useUserDepositMutation__
- *
- * To run a mutation, you first call `useUserDepositMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserDepositMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [userDepositMutation, { data, loading, error }] = useUserDepositMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUserDepositMutation(baseOptions?: Apollo.MutationHookOptions<UserDepositMutation, UserDepositMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserDepositMutation, UserDepositMutationVariables>(UserDepositDocument, options);
-      }
-export type UserDepositMutationHookResult = ReturnType<typeof useUserDepositMutation>;
-export type UserDepositMutationResult = Apollo.MutationResult<UserDepositMutation>;
-export type UserDepositMutationOptions = Apollo.BaseMutationOptions<UserDepositMutation, UserDepositMutationVariables>;
-export const UserPledgeCollateralDocument = gql`
-    mutation UserPledgeCollateral($input: UserPledgeCollateralInput!) {
-  userPledgeCollateral(input: $input) {
-    user {
-      balance {
-        checking {
-          settled {
-            usdBalance
-          }
-          pending {
-            usdBalance
-          }
-        }
-        unallocatedCollateral {
-          settled {
-            btcBalance
-          }
-        }
-      }
-      bitfinexUsername
-      userId
-    }
-  }
-}
-    `;
-export type UserPledgeCollateralMutationFn = Apollo.MutationFunction<UserPledgeCollateralMutation, UserPledgeCollateralMutationVariables>;
-
-/**
- * __useUserPledgeCollateralMutation__
- *
- * To run a mutation, you first call `useUserPledgeCollateralMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserPledgeCollateralMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [userPledgeCollateralMutation, { data, loading, error }] = useUserPledgeCollateralMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUserPledgeCollateralMutation(baseOptions?: Apollo.MutationHookOptions<UserPledgeCollateralMutation, UserPledgeCollateralMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserPledgeCollateralMutation, UserPledgeCollateralMutationVariables>(UserPledgeCollateralDocument, options);
-      }
-export type UserPledgeCollateralMutationHookResult = ReturnType<typeof useUserPledgeCollateralMutation>;
-export type UserPledgeCollateralMutationResult = Apollo.MutationResult<UserPledgeCollateralMutation>;
-export type UserPledgeCollateralMutationOptions = Apollo.BaseMutationOptions<UserPledgeCollateralMutation, UserPledgeCollateralMutationVariables>;
-export const WithdrawalSettleDocument = gql`
-    mutation WithdrawalSettle($input: WithdrawalSettleInput!) {
-  withdrawalSettle(input: $input) {
-    withdrawal {
-      amount
-      userId
-      withdrawalId
-    }
-  }
-}
-    `;
-export type WithdrawalSettleMutationFn = Apollo.MutationFunction<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>;
-
-/**
- * __useWithdrawalSettleMutation__
- *
- * To run a mutation, you first call `useWithdrawalSettleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalSettleMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [withdrawalSettleMutation, { data, loading, error }] = useWithdrawalSettleMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useWithdrawalSettleMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>(WithdrawalSettleDocument, options);
-      }
-export type WithdrawalSettleMutationHookResult = ReturnType<typeof useWithdrawalSettleMutation>;
-export type WithdrawalSettleMutationResult = Apollo.MutationResult<WithdrawalSettleMutation>;
-export type WithdrawalSettleMutationOptions = Apollo.BaseMutationOptions<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
@@ -496,6 +282,8 @@ export const GetUserByUserIdDocument = gql`
   user(id: $id) {
     userId
     bitfinexUsername
+    btcDepositAddress
+    ustDepositAddress
     balance {
       unallocatedCollateral {
         settled {
@@ -548,6 +336,8 @@ export const UsersDocument = gql`
     nodes {
       userId
       bitfinexUsername
+      btcDepositAddress
+      ustDepositAddress
       balance {
         unallocatedCollateral {
           settled {

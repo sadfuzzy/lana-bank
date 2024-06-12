@@ -13,6 +13,8 @@ gql`
     user(id: $id) {
       userId
       bitfinexUsername
+      btcDepositAddress
+      ustDepositAddress
       balance {
         unallocatedCollateral {
           settled {
