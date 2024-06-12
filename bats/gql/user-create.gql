@@ -3,6 +3,8 @@ mutation userCreate($input: UserCreateInput!) {
     user {
       userId
       bitfinexUsername
+      btcDepositAddress
+      ustDepositAddress
       balance {
         unallocatedCollateral {
           settled {

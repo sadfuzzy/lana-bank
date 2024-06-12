@@ -3,6 +3,7 @@ services:
     image: busybox
     depends_on:
     - core-pg
+    - cala-pg
     - cala
     - otel-agent
   core-pg:
@@ -40,7 +41,7 @@ services:
     environment:
       - PG_CON=postgresql://user:password@cala-pg:5432/pg
       - CALA_CONFIG=/cala.yml
-      - CALA_HOME=/cala-enterprise
+      - BFX_LOCAL_TESTING=true
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
     depends_on:
       - cala-pg

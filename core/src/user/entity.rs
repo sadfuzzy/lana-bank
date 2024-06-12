@@ -1,7 +1,11 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, ledger::user::UserLedgerAccountIds, primitives::*};
+use crate::{
+    entity::*,
+    ledger::user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
+    primitives::*,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -10,6 +14,7 @@ pub enum UserEvent {
         id: UserId,
         bitfinex_username: String,
         account_ids: UserLedgerAccountIds,
+        account_addresses: UserLedgerAccountAddresses,
     },
 }
 
@@ -26,6 +31,7 @@ pub struct User {
     pub id: UserId,
     pub bitfinex_username: String,
     pub account_ids: UserLedgerAccountIds,
+    pub account_addresses: UserLedgerAccountAddresses,
     pub(super) events: EntityEvents<UserEvent>,
 }
 
@@ -44,11 +50,13 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                     id,
                     bitfinex_username,
                     account_ids,
+                    account_addresses,
                 } => {
                     builder = builder
                         .id(*id)
                         .bitfinex_username(bitfinex_username.clone())
-                        .account_ids(*account_ids);
+                        .account_ids(*account_ids)
+                        .account_addresses(account_addresses.clone());
                 }
             }
         }
@@ -63,6 +71,7 @@ pub struct NewUser {
     #[builder(setter(into))]
     pub(super) bitfinex_username: String,
     pub(super) account_ids: UserLedgerAccountIds,
+    pub(super) account_addresses: UserLedgerAccountAddresses,
 }
 
 impl NewUser {
@@ -77,6 +86,7 @@ impl NewUser {
                 id: self.id,
                 bitfinex_username: self.bitfinex_username,
                 account_ids: self.account_ids,
+                account_addresses: self.account_addresses,
             }],
         )
     }

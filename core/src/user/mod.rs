@@ -3,11 +3,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{
-    entity::*,
-    ledger::*,
-    primitives::{Satoshis, UsdCents, UserId},
-};
+use crate::{entity::*, ledger::*, primitives::UserId};
 
 pub use cursor::*;
 pub use entity::*;
@@ -37,7 +33,7 @@ impl Users {
 
     pub async fn create_user(&self, bitfinex_username: String) -> Result<User, UserError> {
         let id = UserId::new();
-        let ledger_account_ids = self
+        let (ledger_account_ids, ledger_account_addresses) = self
             .ledger
             .create_accounts_for_user(&bitfinex_username)
             .await?;
@@ -45,40 +41,11 @@ impl Users {
             .id(id)
             .bitfinex_username(bitfinex_username)
             .account_ids(ledger_account_ids)
+            .account_addresses(ledger_account_addresses)
             .build()
             .expect("Could not build User");
 
         let EntityUpdate { entity: user, .. } = self.repo.create(new_user).await?;
-        Ok(user)
-    }
-
-    pub async fn pledge_unallocated_collateral_for_user(
-        &self,
-        user_id: UserId,
-        amount: Satoshis,
-        reference: String,
-    ) -> Result<User, UserError> {
-        let user = self.repo.find_by_id(user_id).await?;
-        self.ledger
-            .pledge_collateral_for_user(
-                user.account_ids.unallocated_collateral_id,
-                amount,
-                reference,
-            )
-            .await?;
-        Ok(user)
-    }
-
-    pub async fn deposit_checking_for_user(
-        &self,
-        user_id: UserId,
-        amount: UsdCents,
-        reference: String,
-    ) -> Result<User, UserError> {
-        let user = self.repo.find_by_id(user_id).await?;
-        self.ledger
-            .deposit_checking_for_user(user.account_ids.checking_id, amount, reference)
-            .await?;
         Ok(user)
     }
 

@@ -92,6 +92,8 @@ scalar UsdCents
 type User {
 	userId: UUID!
 	bitfinexUsername: String!
+	btcDepositAddress: String!
+	ustDepositAddress: String!
 	balance: UserBalance!
 }
 

@@ -40,7 +40,7 @@ mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.userAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'INITIATE_WITHDRAW_USER_SETTLED_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
@@ -48,7 +48,7 @@ mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.userAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'INITIATE_WITHDRAW_USER_PENDING_CR'"
           direction: "CREDIT"
           layer: "PENDING"
@@ -56,7 +56,7 @@ mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.bankAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'INITIATE_WITHDRAW_BANK_PENDING_DR'"
           direction: "DEBIT"
           layer: "PENDING"
@@ -64,7 +64,7 @@ mutation InitiateWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.bankAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'INITIATE_WITHDRAW_BANK_SETTLED_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
@@ -147,7 +147,7 @@ mutation SettleWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.userAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'SETTLE_WITHDRAW_DR'"
           direction: "DEBIT"
           layer: "PENDING"
@@ -155,7 +155,7 @@ mutation SettleWithdrawalFromCheckingTxTemplateCreate(
         {
           accountId: "params.bankAccount"
           units: "params.amount"
-          currency: "'USD'"
+          currency: "'USDT'"
           entryType: "'SETTLE_WITHDRAW_CR'"
           direction: "CREDIT"
           layer: "PENDING"

@@ -6,6 +6,7 @@ mkdir -p "$CACHE_DIR"
 
 GQL_ENDPOINT="http://localhost:5252/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
+GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
 LAVG_HOME="${LAVG_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
@@ -82,6 +83,14 @@ gql_admin_file() {
   echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
 }
 
+gql_cala_query() {
+  cat "$(gql_cala_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
+}
+
+gql_cala_file() {
+  echo "${REPO_ROOT}/bats/cala-gql/$1.gql"
+}
+
 graphql_output() {
   echo $output | jq -r "$@"
 }
@@ -120,6 +129,24 @@ exec_admin_graphql() {
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
+}
+
+exec_cala_graphql() {
+  local query_name=$1
+  local variables=${2:-"{}"}
+
+  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
+    run_cmd="run"
+  else
+    run_cmd=""
+  fi
+
+  ${run_cmd} curl -s \
+    -X POST \
+    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
+    -H "Content-Type: application/json" \
+    -d "{\"query\": \"$(gql_cala_query $query_name)\", \"variables\": $variables}" \
+    "${GQL_CALA_ENDPOINT}"
 }
 
 # Run the given command in the background. Useful for starting a

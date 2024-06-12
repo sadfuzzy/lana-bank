@@ -9,6 +9,8 @@ use super::objects::{BtcBalance, UsdBalance};
 pub struct User {
     user_id: UUID,
     bitfinex_username: String,
+    btc_deposit_address: String,
+    ust_deposit_address: String,
     #[graphql(skip)]
     account_ids: ledger::user::UserLedgerAccountIds,
 }
@@ -26,6 +28,8 @@ impl From<crate::user::User> for User {
     fn from(user: crate::user::User) -> Self {
         User {
             user_id: UUID::from(user.id),
+            btc_deposit_address: user.account_addresses.unallocated_collateral_address,
+            ust_deposit_address: user.account_addresses.checking_address,
             bitfinex_username: user.bitfinex_username,
             account_ids: user.account_ids,
         }

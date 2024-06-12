@@ -27,12 +27,23 @@ struct Cli {
     lava_home: String,
     #[clap(env = "PG_CON")]
     pg_con: String,
+    #[clap(env = "BITFINEX_KEY", default_value = "")]
+    bfx_key: String,
+    #[clap(env = "BITFINEX_SECRET", default_value = "")]
+    bfx_secret: String,
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let config = Config::from_path(cli.config, EnvOverride { db_con: cli.pg_con })?;
+    let config = Config::from_path(
+        cli.config,
+        EnvOverride {
+            db_con: cli.pg_con,
+            bfx_key: cli.bfx_key,
+            bfx_secret: cli.bfx_secret,
+        },
+    )?;
 
     run_cmd(&cli.lava_home, config).await?;
 

@@ -18,7 +18,7 @@ query UserBalance(
   checking: balance(
     journalId: $journalId
     accountId: $checkingId
-    currency: "USD"
+    currency: "USDT"
   ) {
     settled {
       normalBalance {

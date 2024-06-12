@@ -31,6 +31,30 @@ pub struct AccountCreate;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/account-sets.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AccountSetById;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/account-sets.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AccountSetCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/add-to-account-set.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct AddToAccountSet;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/user.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
@@ -59,38 +83,6 @@ pub struct CoreJournalCreate;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct TxTemplateByCode;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/pledge-unallocated-collateral.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PledgeUnallocatedCollateralTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/pledge-unallocated-collateral.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostPledgeUnallocatedCollateralTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/deposit-checking.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct DepositCheckingTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/deposit-checking.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostDepositCheckingTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -195,6 +187,38 @@ pub struct PostRecordPaymentTransaction;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct FixedTermLoanBalance;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-integration.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxIntegrationCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-integration.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxIntegrationById;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxAddressBackedAccountCreate;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-address-backed-account.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxAddressBackedAccountById;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;

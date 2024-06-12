@@ -1,0 +1,13 @@
+mutation AccountSetCreate($input: AccountSetCreateInput!) {
+  accountSetCreate(input: $input) {
+    accountSet {
+      accountSetId
+    }
+  }
+}
+
+query AccountSetById($id: UUID!) {
+  accountSet(id: $id) {
+    accountSetId
+  }
+}

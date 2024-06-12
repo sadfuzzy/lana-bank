@@ -10,6 +10,21 @@ crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
 
+// Consider importing from cala
+#[derive(Debug)]
+pub enum LedgerAccountSetMemberType {
+    Account,
+    AccountSet,
+}
+
+crate::entity_id! { BfxIntegrationId }
+
+#[derive(Debug)]
+pub enum BfxAddressType {
+    Bitcoin,
+    Tron,
+}
+
 impl From<FixedTermLoanId> for LedgerAccountId {
     fn from(id: FixedTermLoanId) -> Self {
         LedgerAccountId::from(id.0)
@@ -27,8 +42,9 @@ pub enum DebitOrCredit {
 }
 
 pub use cala_types::primitives::{
-    AccountId as LedgerAccountId, Currency, DebitOrCredit as LedgerDebitOrCredit,
-    JournalId as LedgerJournalId, TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
+    DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
+    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
 
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);

@@ -3,7 +3,7 @@ use async_graphql::{types::connection::*, *};
 use super::user::*;
 use crate::{
     app::LavaApp,
-    primitives::{FixedTermLoanId, UserId, WithdrawId},
+    primitives::{FixedTermLoanId, UserId},
     server::shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
 };
 
@@ -82,51 +82,7 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn user_pledge_collateral(
-        &self,
-        ctx: &Context<'_>,
-        input: UserPledgeCollateralInput,
-    ) -> async_graphql::Result<UserPledgeCollateralPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        println!("user_pledge_collateral");
-        Ok(UserPledgeCollateralPayload::from(
-            app.users()
-                .pledge_unallocated_collateral_for_user(
-                    UserId::from(input.user_id),
-                    input.amount,
-                    input.reference,
-                )
-                .await?,
-        ))
-    }
-
-    pub async fn user_deposit(
-        &self,
-        ctx: &Context<'_>,
-        input: UserDepositInput,
-    ) -> async_graphql::Result<UserDepositPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        Ok(UserDepositPayload::from(
-            app.users()
-                .deposit_checking_for_user(
-                    UserId::from(input.user_id),
-                    input.amount,
-                    input.reference,
-                )
-                .await?,
-        ))
-    }
-
-    pub async fn withdrawal_settle(
-        &self,
-        ctx: &Context<'_>,
-        input: WithdrawalSettleInput,
-    ) -> async_graphql::Result<WithdrawalSettlePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        Ok(WithdrawalSettlePayload::from(
-            app.withdraws()
-                .settle(WithdrawId::from(input.withdrawal_id), input.reference)
-                .await?,
-        ))
+    pub async fn dummy(&self) -> async_graphql::Result<bool> {
+        Ok(true)
     }
 }

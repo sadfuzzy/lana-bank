@@ -1,10 +1,12 @@
-use crate::primitives::{LedgerAccountId, Satoshis};
+use crate::primitives::{LedgerAccountId, LedgerAccountSetId, Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
 pub struct LedgerAccount {
     pub id: LedgerAccountId,
     pub settled_btc_balance: Satoshis,
+    pub settled_usd_balance: UsdCents,
+    pub account_set_ids: Vec<LedgerAccountSetId>,
 }
 
 impl From<account_by_external_id::AccountByExternalIdAccountByExternalId> for LedgerAccount {
@@ -13,24 +15,19 @@ impl From<account_by_external_id::AccountByExternalIdAccountByExternalId> for Le
             id: LedgerAccountId::from(account.account_id),
             settled_usd_balance: account
                 .usd_balance
-                .map(|b| Money {
-                    amount: b.settled.normal_balance.units,
-                    currency: b.settled.normal_balance.currency,
-                })
-                .unwrap_or_else(|| Money {
-                    amount: rust_decimal::Decimal::ZERO,
-                    currency: "USD".parse().unwrap(),
-                }),
+                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| UsdCents::ZERO),
             settled_btc_balance: account
                 .btc_balance
-                .map(|b| Money {
-                    amount: b.settled.normal_balance.units,
-                    currency: b.settled.normal_balance.currency,
-                })
-                .unwrap_or_else(|| Money {
-                    amount: rust_decimal::Decimal::ZERO,
-                    currency: "BTC".parse().unwrap(),
-                }),
+                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Satoshis::ZERO),
+            account_set_ids: account
+                .sets
+                .edges
+                .iter()
+                .map(|e| e.node.account_set_id)
+                .map(LedgerAccountSetId::from)
+                .collect(),
         }
     }
 }
@@ -41,24 +38,19 @@ impl From<account_by_id::AccountByIdAccount> for LedgerAccount {
             id: LedgerAccountId::from(account.account_id),
             settled_usd_balance: account
                 .usd_balance
-                .map(|b| Money {
-                    amount: b.settled.normal_balance.units,
-                    currency: b.settled.normal_balance.currency,
-                })
-                .unwrap_or_else(|| Money {
-                    amount: rust_decimal::Decimal::ZERO,
-                    currency: "USD".parse().unwrap(),
-                }),
+                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| UsdCents::ZERO),
             settled_btc_balance: account
                 .btc_balance
-                .map(|b| Money {
-                    amount: b.settled.normal_balance.units,
-                    currency: b.settled.normal_balance.currency,
-                })
-                .unwrap_or_else(|| Money {
-                    amount: rust_decimal::Decimal::ZERO,
-                    currency: "BTC".parse().unwrap(),
-                }),
+                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Satoshis::ZERO),
+            account_set_ids: account
+                .sets
+                .edges
+                .iter()
+                .map(|e| e.node.account_set_id)
+                .map(LedgerAccountSetId::from)
+                .collect(),
         }
     }
 }

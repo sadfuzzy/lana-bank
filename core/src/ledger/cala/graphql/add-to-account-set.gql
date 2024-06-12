@@ -1,0 +1,7 @@
+mutation AddToAccountSet($input: AddToAccountSetInput!) {
+  addToAccountSet(input: $input) {
+    accountSet {
+      accountSetId
+    }
+  }
+}

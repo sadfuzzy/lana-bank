@@ -231,11 +231,16 @@ type BfxIntegrationCreatePayload {
 	integration: BfxIntegration!
 }
 
+type BfxSimulation {
+	deposit(depositAddress: String!, amount: Decimal!, currency: String!): Boolean!
+}
+
 type BfxWithdrawal {
 	withdrawalId: UUID!
 	integrationId: UUID!
-	reserveTransaction: Transaction!
+	reserveTransactionId: UUID!
 	integration: BfxIntegration!
+	reserveTransaction: Transaction!
 }
 
 input BfxWithdrawalExecuteInput {
@@ -277,11 +282,13 @@ type BitfinexMutation {
 	integrationCreate(input: BfxIntegrationCreateInput!): BfxIntegrationCreatePayload!
 	addressBackedAccountCreate(input: BfxAddressBackedAccountCreateInput!): BfxAddressBackedAccountCreatePayload!
 	withdrawalExecute(input: BfxWithdrawalExecuteInput!): BfxWithdrawalExecutePayload!
+	simulate: BfxSimulation!
 }
 
 type BitfinexQuery {
 	integration(id: UUID!): BfxIntegration
 	addressBackedAccount(id: UUID!): BfxAddressBackedAccount
+	withdrawal(id: UUID!): BfxWithdrawal
 }
 
 
