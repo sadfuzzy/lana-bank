@@ -221,6 +221,13 @@ export type UserPledgeCollateralMutationVariables = Exact<{
 
 export type UserPledgeCollateralMutation = { __typename?: 'Mutation', userPledgeCollateral: { __typename?: 'UserPledgeCollateralPayload', user: { __typename?: 'User', bitfinexUsername: string, userId: string, balance: { __typename?: 'UserBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } }, unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } } } } } };
 
+export type WithdrawalSettleMutationVariables = Exact<{
+  input: WithdrawalSettleInput;
+}>;
+
+
+export type WithdrawalSettleMutation = { __typename?: 'Mutation', withdrawalSettle: { __typename?: 'WithdrawalSettlePayload', withdrawal: { __typename?: 'Withdrawal', amount: any, userId: string, withdrawalId: string } } };
+
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -353,6 +360,43 @@ export function useUserPledgeCollateralMutation(baseOptions?: Apollo.MutationHoo
 export type UserPledgeCollateralMutationHookResult = ReturnType<typeof useUserPledgeCollateralMutation>;
 export type UserPledgeCollateralMutationResult = Apollo.MutationResult<UserPledgeCollateralMutation>;
 export type UserPledgeCollateralMutationOptions = Apollo.BaseMutationOptions<UserPledgeCollateralMutation, UserPledgeCollateralMutationVariables>;
+export const WithdrawalSettleDocument = gql`
+    mutation WithdrawalSettle($input: WithdrawalSettleInput!) {
+  withdrawalSettle(input: $input) {
+    withdrawal {
+      amount
+      userId
+      withdrawalId
+    }
+  }
+}
+    `;
+export type WithdrawalSettleMutationFn = Apollo.MutationFunction<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>;
+
+/**
+ * __useWithdrawalSettleMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalSettleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalSettleMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalSettleMutation, { data, loading, error }] = useWithdrawalSettleMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalSettleMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>(WithdrawalSettleDocument, options);
+      }
+export type WithdrawalSettleMutationHookResult = ReturnType<typeof useWithdrawalSettleMutation>;
+export type WithdrawalSettleMutationResult = Apollo.MutationResult<WithdrawalSettleMutation>;
+export type WithdrawalSettleMutationOptions = Apollo.BaseMutationOptions<WithdrawalSettleMutation, WithdrawalSettleMutationVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {

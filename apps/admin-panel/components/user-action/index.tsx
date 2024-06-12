@@ -14,10 +14,14 @@ const UpdateDeposit = dynamic(() => import("@/components/user-action/user-deposi
 const UserPledgeCollateral = dynamic(
   () => import("@/components/user-action/user-pledge-collateral"),
 )
+const WithdrawalSettle = dynamic(
+  () => import("@/components/user-action/withdrawal-settle"),
+)
 
 const UserActions = ({ userId }: { userId: string }) => {
   const [openPledgeCollateral, setOpenPledgeCollateral] = useState(false)
   const [openDeposit, setOpenDeposit] = useState(false)
+  const [openWithdrawalSettle, setOpenWithdrawalSettle] = useState(false)
 
   return (
     <>
@@ -34,6 +38,9 @@ const UserActions = ({ userId }: { userId: string }) => {
           <DropdownMenuItem onClick={() => setOpenDeposit(true)}>
             User Deposit
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setOpenWithdrawalSettle(true)}>
+            Withdrawal Settle
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       {openDeposit && (
@@ -45,6 +52,9 @@ const UserActions = ({ userId }: { userId: string }) => {
           open={openPledgeCollateral}
           setOpen={setOpenPledgeCollateral}
         />
+      )}
+      {openWithdrawalSettle && (
+        <WithdrawalSettle open={openWithdrawalSettle} setOpen={setOpenWithdrawalSettle} />
       )}
     </>
   )
