@@ -93,7 +93,7 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                     <TableHead>User</TableHead>
                     <TableHead>BTC Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
-                    <TableHead>USD Balance (Pending)</TableHead>
+                    <TableHead>USD Balance (Withdrawals)</TableHead>
                     <TableHead>BTC Address</TableHead>
                     <TableHead>UST Address</TableHead>
                     <TableHead></TableHead>
