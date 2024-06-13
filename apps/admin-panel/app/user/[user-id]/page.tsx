@@ -74,13 +74,8 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                   value={userDetails.user.bitfinexUsername}
                 />
                 <DetailItem
-                  label="Checking Pending Balance (USD)"
-                  value={formatCurrency({
-                    amount: currencyConverter.centsToUsd(
-                      userDetails.user.balance.checking.pending.usdBalance,
-                    ),
-                    currency: "USD",
-                  })}
+                  label="Unallocated Collateral Settled (BTC)"
+                  value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
                 />
                 <DetailItem
                   label="Checking Settled Balance (USD)"
@@ -92,8 +87,13 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                   })}
                 />
                 <DetailItem
-                  label="Uncollected Collateral Settled (BTC)"
-                  value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
+                  label="Pending withdrawals (USD)"
+                  value={formatCurrency({
+                    amount: currencyConverter.centsToUsd(
+                      userDetails.user.balance.checking.pending.usdBalance,
+                    ),
+                    currency: "USD",
+                  })}
                 />
                 <DetailItem
                   label="BTC Deposit Address"
