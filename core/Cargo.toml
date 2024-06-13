@@ -1,6 +1,6 @@
 [package]
 name = "lava-core"
-version = "0.1.0-dev"
+version = "0.1.10-dev"
 edition = "2021"
 
 [features]
