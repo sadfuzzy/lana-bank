@@ -1,6 +1,6 @@
 import { NavigationLinks } from "./navigation-links"
 
-import { Menu } from "@/components/icons"
+import { LogOut, Menu } from "@/components/icons"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/primitive/sheet"
 import { Button } from "@/components/primitive/button"
 
@@ -13,12 +13,15 @@ export default function SideBar() {
             <h1 className="text-xl font-bold ml-4 mt-4">LAVA BANK</h1>
           </div>
           <div className="flex flex-col justify-between h-full ">
-            <div className="flex flex-col p-8 gap-4">
+            <div className="flex flex-col ml-8 mt-8 gap-4">
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
               <Button variant="primary" className="w-60">
-                Log out
+                <div className="flex gap-2 items-center">
+                  <LogOut className="w-6 h-6" />
+                  <p>Log out</p>
+                </div>
               </Button>
             </div>
           </div>

@@ -2,16 +2,17 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
+import { User, Receipt } from "@/components/icons"
+
 const navLinks = [
-  { href: "/", label: "Dashboard" },
-  { href: "/loan", label: "Loan" },
-  { href: "/user", label: "User" },
+  { href: "/loan", label: "Loan", icon: Receipt },
+  { href: "/user", label: "Users", icon: User },
 ]
 
 const NavigationLinks = () => {
   const pathname = usePathname()
   return (
-    <nav className="flex flex-col gap-4 text-textColor-secondary">
+    <nav className="flex flex-col gap-6 text-textColor-secondary">
       {navLinks.map((link, index) => (
         <Link
           key={index}
@@ -19,7 +20,10 @@ const NavigationLinks = () => {
           prefetch={false}
           className={`hover:text-textColor-primary ${pathname === link.href && "text-primary"}`}
         >
-          {link.label}
+          <div className="flex items-center gap-4 rounded-md">
+            <link.icon className="w-5 h-5" />
+            {link.label}
+          </div>
         </Link>
       ))}
     </nav>

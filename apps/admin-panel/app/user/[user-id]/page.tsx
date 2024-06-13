@@ -1,3 +1,5 @@
+import QRCode from "react-qr-code"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import {
@@ -12,6 +14,14 @@ import { getUserByUserId } from "@/lib/graphql/query/get-user-by-userid"
 import { getLoansForUser } from "@/lib/graphql/query/get-loans-for-user"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/primitive/dialog"
+import { QrCode } from "@/components/icons"
+import { CopyButton } from "@/components/copy-button"
 
 async function UserDetails({
   params,
@@ -23,7 +33,7 @@ async function UserDetails({
   const { "user-id": userId } = params
   return (
     <main>
-      <PageHeading>User</PageHeading>
+      <PageHeading>User Details</PageHeading>
       <UserDetailsCard userId={userId} />
       <UserLoansTable userId={userId} />
     </main>
@@ -88,10 +98,22 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
                 <DetailItem
                   label="BTC Deposit Address"
                   value={userDetails.user.btcDepositAddress}
+                  valueComponent={
+                    <AddressWithQr
+                      address={userDetails.user.btcDepositAddress}
+                      title="BTC Deposit Address"
+                    />
+                  }
                 />
                 <DetailItem
                   label="UST Deposit Address"
                   value={userDetails.user.ustDepositAddress}
+                  valueComponent={
+                    <AddressWithQr
+                      address={userDetails.user.ustDepositAddress}
+                      title="UST Deposit Address"
+                    />
+                  }
                 />
               </DetailsGroup>
             </CardContent>
@@ -99,6 +121,29 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
         </>
       )}
     </Card>
+  )
+}
+
+const AddressWithQr = ({ address, title }: { address: string; title?: string }) => {
+  return (
+    <Dialog>
+      <DialogTrigger className="flex gap-2 items-center">
+        <QrCode className="w-4 h-4 bg-white text-black" />
+        <p>{address}</p>
+      </DialogTrigger>
+      <DialogContent className="flex flex-col justify-center items-center max-w-[25rem] gap-6">
+        <DialogTitle className="flex justify-center items-center w-full text-md">
+          {title || "QR Code"}
+        </DialogTitle>
+        <div className="flex justify-center items-center bg-white p-4 rounded-lg">
+          <QRCode value={address} size={250} />
+        </div>
+        <div className="flex justify-center items-center gap-2 bg-secondary-foreground rounded-md p-2">
+          <p className="text-center text-sm text-textColor-secondary">{address}</p>
+          <CopyButton value={address} />
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

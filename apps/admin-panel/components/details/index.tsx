@@ -10,10 +10,14 @@ const DetailItem = ({
   label,
   value,
   className,
+  labelComponent,
+  valueComponent,
 }: {
   label: string
   value: string
   className?: string
+  labelComponent?: React.ReactNode
+  valueComponent?: React.ReactNode
 }) => {
   return (
     <div
@@ -22,8 +26,12 @@ const DetailItem = ({
         className,
       )}
     >
-      <p className="text-textColor-secondary">{label}</p>
-      <p>{value}</p>
+      {labelComponent ? (
+        labelComponent
+      ) : (
+        <p className="text-textColor-secondary">{label}</p>
+      )}
+      {valueComponent ? valueComponent : <p>{value}</p>}
     </div>
   )
 }

@@ -64,7 +64,7 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
 
   return (
     <main>
-      <PageHeading>User</PageHeading>
+      <PageHeading>Users</PageHeading>
       <div className="mt-4 mb-4 max-w-[30rem]">
         <Label htmlFor="userId">User ID</Label>
         <form className="flex gap-2" action={searchUser}>
