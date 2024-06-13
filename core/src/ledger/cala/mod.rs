@@ -10,8 +10,8 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, LedgerAccountId, LedgerAccountSetId,
-    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId,
+    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
+    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
 use super::{
@@ -269,118 +269,6 @@ impl CalaClient {
             .map(|d| d.tx_template_create.tx_template.tx_template_id)
             .map(TxTemplateId::from)
             .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_initiate_withdrawal_from_checking_tx_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_initiate_withdrawal_from_checking_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = initiate_withdrawal_from_checking_tx_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response =
-            Self::traced_gql_request::<InitiateWithdrawalFromCheckingTxTemplateCreate, _>(
-                &self.client,
-                &self.url,
-                variables,
-            )
-            .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    pub async fn execute_initiate_withdrawal_from_checking_tx(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        let transaction_id = uuid::Uuid::new_v4();
-        let variables = post_initiate_withdrawal_from_checking_transaction::Variables {
-            transaction_id,
-            user_account: user_account_ids.checking_id.into(),
-            bank_account: super::constants::BANK_USDT_CASH_ID,
-            amount,
-            external_id,
-        };
-        let response =
-            Self::traced_gql_request::<PostInitiateWithdrawalFromCheckingTransaction, _>(
-                &self.client,
-                &self.url,
-                variables,
-            )
-            .await?;
-
-        response
-            .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_settle_withdrawal_from_checking_tx_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_settle_withdrawal_from_checking_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = settle_withdrawal_from_checking_tx_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response = Self::traced_gql_request::<SettleWithdrawalFromCheckingTxTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    pub async fn execute_settle_withdrawal_from_checking_tx(
-        &self,
-        user_account_ids: UserLedgerAccountIds,
-        amount: Decimal,
-        external_id: String,
-    ) -> Result<(), CalaError> {
-        let transaction_id = uuid::Uuid::new_v4();
-        let variables = post_settle_withdrawal_from_checking_transaction::Variables {
-            transaction_id,
-            user_account: user_account_ids.checking_id.into(),
-            bank_account: super::constants::BANK_USDT_CASH_ID,
-            amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostSettleWithdrawalFromCheckingTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| d.post_transaction.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
     }
 
     #[instrument(
@@ -729,6 +617,38 @@ impl CalaClient {
             .data
             .and_then(|d| d.bitfinex.address_backed_account)
             .map(T::from))
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn execute_bfx_withdrawal(
+        &self,
+        withdrawal_id: WithdrawId,
+        integration_id: BfxIntegrationId,
+        amount: Decimal,
+        withdrawal_method: BfxWithdrawalMethod,
+        destination_address: String,
+        debit_account_id: LedgerAccountId,
+        reserve_tx_external_id: String,
+    ) -> Result<WithdrawId, CalaError> {
+        let variables = bfx_withdrawal_execute::Variables {
+            input: bfx_withdrawal_execute::BfxWithdrawalExecuteInput {
+                withdrawal_id: withdrawal_id.into(),
+                integration_id: integration_id.into(),
+                amount,
+                withdrawal_method: withdrawal_method.into(),
+                destination_address,
+                debit_account_id: debit_account_id.into(),
+                reserve_tx_external_id: Some(reserve_tx_external_id),
+            },
+        };
+        let response =
+            Self::traced_gql_request::<BfxWithdrawalExecute, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
+            .map(WithdrawId::from)
+            .ok_or(CalaError::MissingDataField)
     }
 
     async fn traced_gql_request<Q: GraphQLQuery, U: reqwest::IntoUrl>(

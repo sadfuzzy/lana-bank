@@ -3,10 +3,9 @@ mod error;
 mod repo;
 
 use crate::{
-    entity::*,
     ledger::Ledger,
-    primitives::{LedgerTxId, UsdCents, UserId, WithdrawId},
-    user::UserRepo,
+    primitives::{UsdCents, UserId, WithdrawId},
+    user::Users,
 };
 
 pub use entity::*;
@@ -17,12 +16,12 @@ pub use repo::WithdrawRepo;
 pub struct Withdraws {
     _pool: sqlx::PgPool,
     repo: WithdrawRepo,
-    users: UserRepo,
+    users: Users,
     ledger: Ledger,
 }
 
 impl Withdraws {
-    pub fn new(pool: &sqlx::PgPool, users: &UserRepo, ledger: &Ledger) -> Self {
+    pub fn new(pool: &sqlx::PgPool, users: &Users, ledger: &Ledger) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
             _pool: pool.clone(),
@@ -36,65 +35,36 @@ impl Withdraws {
         &self.repo
     }
 
-    pub async fn create_withdraw(
+    pub async fn initiate(
         &self,
         user_id: impl Into<UserId> + std::fmt::Debug,
         amount: UsdCents,
+        destination: String,
+        reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
-        let id = WithdrawId::new();
+        let user_id = user_id.into();
+        let user = self.users.repo().find_by_id(user_id).await?;
         let new_withdraw = NewWithdraw::builder()
-            .id(id)
+            .id(WithdrawId::new())
             .user_id(user_id)
             .amount(amount)
+            .reference(reference)
+            .destination(destination)
+            .debit_account_id(user.account_ids.checking_id)
             .build()
             .expect("Could not build Withdraw");
 
-        let EntityUpdate {
-            entity: withdraw, ..
-        } = self.repo.create(new_withdraw).await?;
-        Ok(withdraw)
-    }
-
-    pub async fn initiate(
-        &self,
-        id: WithdrawId,
-        destination: String,
-        reference: String,
-    ) -> Result<Withdraw, WithdrawError> {
-        let mut withdraw = self.repo.find_by_id(id).await?;
-        let user = self.users.find_by_id(withdraw.user_id).await?;
-        let tx_id = LedgerTxId::new();
-
-        let mut db_tx = self._pool.begin().await?;
-        withdraw.initiate_usd_withdrawal(id, tx_id, destination, reference.clone())?;
-        self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
+        let withdraw = self.repo.create(new_withdraw).await?;
 
         self.ledger
-            .initiate_withdrawal_for_user(user.account_ids, withdraw.amount, reference)
+            .initiate_withdrawal_for_user(
+                withdraw.id,
+                withdraw.amount,
+                withdraw.destination.clone(),
+                format!("lava:withdraw:{}", withdraw.id),
+                withdraw.debit_account_id,
+            )
             .await?;
-
-        db_tx.commit().await?;
-        Ok(withdraw)
-    }
-
-    pub async fn settle(
-        &self,
-        id: WithdrawId,
-        reference: String,
-    ) -> Result<Withdraw, WithdrawError> {
-        let mut withdraw = self.repo.find_by_id(id).await?;
-        let user = self.users.find_by_id(withdraw.user_id).await?;
-        let tx_id = LedgerTxId::new();
-
-        let mut db_tx = self._pool.begin().await?;
-        let amount = withdraw.settle(id, tx_id, reference.clone())?;
-        self.repo.persist_in_tx(&mut db_tx, &mut withdraw).await?;
-
-        self.ledger
-            .settle_withdrawal_for_user(user.account_ids, amount, reference)
-            .await?;
-
-        db_tx.commit().await?;
         Ok(withdraw)
     }
 }

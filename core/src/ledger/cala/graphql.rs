@@ -87,38 +87,6 @@ pub struct TxTemplateByCode;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct InitiateWithdrawalFromCheckingTxTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostInitiateWithdrawalFromCheckingTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct SettleWithdrawalFromCheckingTxTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/withdrawal.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostSettleWithdrawalFromCheckingTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
@@ -219,6 +187,14 @@ pub struct BfxAddressBackedAccountCreate;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct BfxAddressBackedAccountById;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/bfx-withdrawal.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct BfxWithdrawalExecute;
 
 type UUID = uuid::Uuid;
 type JSON = serde_json::Value;
