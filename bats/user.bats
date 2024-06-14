@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "user: unauthenticated" {
+@test "user: unauthorized" {
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
