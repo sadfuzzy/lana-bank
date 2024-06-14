@@ -16,10 +16,10 @@ impl UserRepo {
     pub(super) async fn create(&self, new_user: NewUser) -> Result<EntityUpdate<User>, UserError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query!(
-            r#"INSERT INTO users (id, bitfinex_username)
+            r#"INSERT INTO users (id, email)
             VALUES ($1, $2)"#,
             new_user.id as UserId,
-            new_user.bitfinex_username,
+            new_user.email,
         )
         .execute(&mut *tx)
         .await?;
@@ -70,17 +70,17 @@ impl UserRepo {
             GenericEvent,
             r#"
             WITH users AS (
-              SELECT id, bitfinex_username, created_at
+              SELECT id, email, created_at
               FROM users
-              WHERE ((bitfinex_username, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)
-              ORDER BY bitfinex_username, id
+              WHERE ((email, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)
+              ORDER BY email, id
               LIMIT $3
             )
             SELECT a.id, e.sequence, e.event,
                 a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
             FROM users a
             JOIN user_events e ON a.id = e.id
-            ORDER BY a.bitfinex_username, a.id, e.sequence"#,
+            ORDER BY a.email, a.id, e.sequence"#,
             query.after.as_ref().map(|c| c.id) as Option<UserId>,
             query.after.map(|c| c.name),
             query.first as i64 + 1
@@ -92,7 +92,7 @@ impl UserRepo {
         if let Some(last) = entities.last() {
             end_cursor = Some(UserByNameCursor {
                 id: last.id,
-                name: last.bitfinex_username.clone(),
+                name: last.email.clone(),
             });
         }
         Ok(crate::query::PaginatedQueryRet {

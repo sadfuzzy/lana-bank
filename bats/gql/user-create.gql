@@ -2,9 +2,9 @@ mutation userCreate($input: UserCreateInput!) {
   userCreate(input: $input) {
     user {
       userId
-      bitfinexUsername
       btcDepositAddress
       ustDepositAddress
+      email
       balance {
         unallocatedCollateral {
           settled {

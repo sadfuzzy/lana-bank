@@ -12,7 +12,7 @@ use crate::{
 pub enum UserEvent {
     Initialized {
         id: UserId,
-        bitfinex_username: String,
+        email: String,
         account_ids: UserLedgerAccountIds,
         account_addresses: UserLedgerAccountAddresses,
     },
@@ -29,10 +29,16 @@ impl EntityEvent for UserEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct User {
     pub id: UserId,
-    pub bitfinex_username: String,
+    pub email: String,
     pub account_ids: UserLedgerAccountIds,
     pub account_addresses: UserLedgerAccountAddresses,
     pub(super) events: EntityEvents<UserEvent>,
+}
+
+impl core::fmt::Display for User {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "User: {}, email: {}", self.id, self.email)
+    }
 }
 
 impl Entity for User {
@@ -48,15 +54,16 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
             match event {
                 UserEvent::Initialized {
                     id,
-                    bitfinex_username,
+                    email,
                     account_ids,
                     account_addresses,
                 } => {
                     builder = builder
                         .id(*id)
-                        .bitfinex_username(bitfinex_username.clone())
                         .account_ids(*account_ids)
-                        .account_addresses(account_addresses.clone());
+                        .account_addresses(account_addresses.clone())
+                        .email(email.clone())
+                        .account_ids(*account_ids);
                 }
             }
         }
@@ -69,7 +76,7 @@ pub struct NewUser {
     #[builder(setter(into))]
     pub(super) id: UserId,
     #[builder(setter(into))]
-    pub(super) bitfinex_username: String,
+    pub(super) email: String,
     pub(super) account_ids: UserLedgerAccountIds,
     pub(super) account_addresses: UserLedgerAccountAddresses,
 }
@@ -84,7 +91,7 @@ impl NewUser {
             self.id,
             [UserEvent::Initialized {
                 id: self.id,
-                bitfinex_username: self.bitfinex_username,
+                email: self.email,
                 account_ids: self.account_ids,
                 account_addresses: self.account_addresses,
             }],

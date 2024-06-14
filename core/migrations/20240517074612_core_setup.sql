@@ -1,6 +1,6 @@
 CREATE TABLE users (
   id UUID PRIMARY KEY,
-  bitfinex_username VARCHAR NOT NULL UNIQUE,
+  email VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

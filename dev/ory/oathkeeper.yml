@@ -1,0 +1,64 @@
+log:
+  level: debug
+  format: json
+
+tracing:
+  provider: otel
+  providers:
+    otlp:
+      server_url: otel-agent:4318
+      insecure: true
+
+authenticators:
+  bearer_token:
+    enabled: true
+    config:
+      check_session_url: http://kratos:4433/sessions/whoami
+      preserve_path: true
+      preserve_query: true
+      subject_from: identity.id
+      extra_from: "@this"
+
+  cookie_session:
+    enabled: true
+    config:
+      # TODO cluster-internal mTLS
+      check_session_url: http://kratos:4433/sessions/whoami
+      preserve_path: true
+      subject_from: identity.id
+      extra_from: identity.traits
+
+authorizers:
+  allow:
+    enabled: true
+
+mutators:
+  id_token:
+    enabled: true
+    config:
+      jwks_url: file:///home/ory/jwks.json
+      issuer_url: "galoy.io"
+      claims: '{"sub": "{{ print .Subject }}" }'
+
+  header:
+    enabled: true
+    config:
+      headers:
+        X-USER-ID: "{{ .Subject }}"
+
+  noop:
+    enabled: true
+
+errors:
+  fallback:
+    - json
+  handlers:
+    json:
+      enabled: true
+      config:
+        verbose: true
+
+access_rules:
+  repositories:
+    - file:///home/ory/oathkeeper_rules.yaml
+  matching_strategy: regexp

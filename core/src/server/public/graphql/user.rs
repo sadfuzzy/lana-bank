@@ -1,34 +1,9 @@
 use async_graphql::*;
 
-use crate::{
-    primitives::UsdCents,
-    server::shared_graphql::{
-        primitives::UUID,
-        user::{User, Withdrawal},
-    },
-};
-
-#[derive(InputObject)]
-pub struct UserCreateInput {
-    pub bitfinex_username: String,
-}
-
-#[derive(SimpleObject)]
-pub struct UserCreatePayload {
-    user: User,
-}
-
-impl From<crate::user::User> for UserCreatePayload {
-    fn from(user: crate::user::User) -> Self {
-        Self {
-            user: User::from(user),
-        }
-    }
-}
+use crate::{primitives::UsdCents, server::shared_graphql::user::Withdrawal};
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
-    pub user_id: UUID,
     pub amount: UsdCents,
     pub destination: String,
     pub reference: Option<String>,

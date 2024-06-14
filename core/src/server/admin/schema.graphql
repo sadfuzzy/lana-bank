@@ -13,7 +13,6 @@ type Collateral {
 
 type FixedTermLoan {
 	loanId: UUID!
-	userId: UUID!
 	balance: FixedTermLoanBalance!
 }
 
@@ -84,9 +83,9 @@ scalar UsdCents
 
 type User {
 	userId: UUID!
-	bitfinexUsername: String!
 	btcDepositAddress: String!
 	ustDepositAddress: String!
+	email: String!
 	balance: UserBalance!
 }
 

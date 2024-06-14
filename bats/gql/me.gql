@@ -1,0 +1,20 @@
+query me {
+  me {
+    userId
+    btcDepositAddress
+    ustDepositAddress
+    email
+    balance {
+      unallocatedCollateral {
+        settled {
+          btcBalance
+        }
+      }
+      checking {
+        settled {
+          usdBalance
+        }
+      }
+    }
+  }
+}

@@ -16,7 +16,7 @@ wait_for_interest() {
     --arg loanId "$1" \
     '{ id: $loanId }'
   )
-  exec_graphql 'find-loan' "$variables"
+  exec_graphql 'alice' 'find-loan' "$variables"
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
   interest_balance=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
@@ -35,10 +35,14 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'user-create' "$variables"
-  user_id=$(graphql_output '.data.userCreate.user.userId')
-  btc_address=$(graphql_output '.data.userCreate.user.btcDepositAddress')
-  ust_address=$(graphql_output '.data.userCreate.user.ustDepositAddress')
+
+  token=$(create_user)
+  cache_value "alice" "$token"
+
+  exec_graphql 'alice' 'me'
+  user_id=$(graphql_output '.data.me.userId')
+  btc_address=$(graphql_output '.data.me.btcDepositAddress')
+  ust_address=$(graphql_output '.data.me.ustDepositAddress')
 
   variables=$(
     jq -n \
@@ -50,17 +54,8 @@ wait_for_interest() {
     }'
   )
   exec_cala_graphql 'simulate-deposit' "$variables"
+  exec_graphql 'alice' 'fixed-term-loan-create'
 
-  variables=$(
-    jq -n \
-    --arg userId "$user_id" \
-    '{
-      input: {
-        userId: $userId,
-      }
-    }'
-  )
-  exec_graphql 'fixed-term-loan-create' "$variables"
   id=$(graphql_output '.data.fixedTermLoanCreate.loan.loanId')
   [[ "$id" != null ]] || exit 1;
   collateral_balance=$(graphql_output '.data.fixedTermLoanCreate.loan.balance.collateral.btcBalance')
@@ -79,7 +74,7 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'approve-loan' "$variables"
+  exec_graphql 'alice' 'approve-loan' "$variables"
   loan_id=$(graphql_output '.data.fixedTermLoanApprove.loan.loanId')
   [[ "$id" == "$loan_id" ]] || exit 1;
   collateral_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.collateral.btcBalance')
@@ -87,15 +82,10 @@ wait_for_interest() {
   principal_balance=$(graphql_output '.data.fixedTermLoanApprove.loan.balance.outstanding.usdBalance')
   [[ "$principal_balance" == "25000000" ]] || exit 1;
 
-  variables=$(
-    jq -n \
-    --arg userId "$user_id" \
-    '{ id: $userId }'
-  )
-  exec_graphql 'find-user' "$variables"
-  usd_balance=$(graphql_output '.data.user.balance.checking.settled.usdBalance')
+  exec_graphql 'alice' 'me'
+  usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   [[ "$usd_balance" == 25000000 ]] || exit 1
-  btc_balance=$(graphql_output '.data.user.balance.unallocatedCollateral.settled.btcBalance')
+  btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
   [[ "$btc_balance" == 600000000 ]] || exit 1
 
   retry 30 1 wait_for_interest "$id"
@@ -113,7 +103,7 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'record-payment' "$variables"
+  exec_graphql 'alice' 'record-payment' "$variables"
   outstanding_after=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding_after" -gt "0" ]] || exit 1
   [[ "$outstanding_after" -lt "$outstanding_before" ]] || exit 1
@@ -139,7 +129,7 @@ wait_for_interest() {
       }
     }'
   )
-  exec_graphql 'record-payment' "$variables"
+  exec_graphql 'alice' 'record-payment' "$variables"
   outstanding=$(graphql_output '.data.fixedTermLoanRecordPayment.loan.balance.outstanding.usdBalance')
   [[ "$outstanding" == "0" ]] || exit 1
 
@@ -148,17 +138,12 @@ wait_for_interest() {
     --arg loanId "$id" \
     '{ id: $loanId }'
   )
-  exec_graphql 'find-loan' "$variables"
+  exec_graphql 'alice' 'find-loan' "$variables"
   collateral_balance=$(graphql_output '.data.loan.balance.collateral.btcBalance')
   [[ "$collateral_balance" == "0" ]] || exit 1
 
-  variables=$(
-    jq -n \
-    --arg userId "$user_id" \
-    '{ id: $userId }'
-  )
-  exec_graphql 'find-user' "$variables"
-  btc_balance=$(graphql_output '.data.user.balance.unallocatedCollateral.settled.btcBalance')
+  exec_graphql 'alice' 'me'
+  btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
   echo $(graphql_output)
   [[ "$btc_balance" == 1000000000 ]] || exit 1
 }

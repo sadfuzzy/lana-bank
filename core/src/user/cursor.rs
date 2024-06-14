@@ -11,7 +11,7 @@ pub struct UserByNameCursor {
 impl From<&User> for UserByNameCursor {
     fn from(values: &User) -> Self {
         Self {
-            name: values.bitfinex_username.clone(),
+            name: values.email.clone(),
             id: values.id,
         }
     }

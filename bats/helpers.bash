@@ -4,13 +4,13 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
-GQL_ENDPOINT="http://localhost:5252/graphql"
+GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:5253/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
-LAVG_HOME="${LAVG_HOME:-.lava}"
+LAVA_HOME="${LAVA_HOME:-.lava}"
 export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
-SERVER_PID_FILE="${LAVG_HOME}/server-pid"
+SERVER_PID_FILE="${LAVA_HOME}/server-pid"
 
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
@@ -96,8 +96,11 @@ graphql_output() {
 }
 
 exec_graphql() {
-  local query_name=$1
-  local variables=${2:-"{}"}
+  local token_name=$1
+  local query_name=$2
+  local variables=${3:-"{}"}
+
+  AUTH_HEADER="Authorization: Bearer $(read_value "$token_name")"
 
   if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
     run_cmd="run"
@@ -110,7 +113,7 @@ exec_graphql() {
     ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables}" \
-    "${GQL_ENDPOINT}"
+    "${GQL_PUBLIC_ENDPOINT}"
 }
 
 exec_admin_graphql() {
@@ -198,4 +201,26 @@ cache_value() {
 
 read_value() {
   cat ${CACHE_DIR}/$1
+}
+
+create_user() {
+  random_email="user$(date +%s%N)@example.com"
+  random_password="P@ssw0rd$(date +%s%N)"
+
+  flowId=$(curl -s -X GET \
+      -H "Accept: application/json" \
+      http://127.0.0.1:4433/self-service/registration/api | jq -r '.id')
+
+  response=$(curl -s -X POST "http://127.0.0.1:4433/self-service/registration?flow=$flowId" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "password",
+    "traits": {
+      "email": "'"$random_email"'"
+    },
+    "password": "'"$random_password"'"
+  }')
+
+  token=$(echo $response | jq -r '.session_token')
+  echo $token
 }

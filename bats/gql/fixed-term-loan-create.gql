@@ -1,5 +1,5 @@
-mutation fixedTermLoanCreate($input: FixedTermLoanCreateInput!) {
-  fixedTermLoanCreate(input: $input) {
+mutation fixedTermLoanCreate {
+  fixedTermLoanCreate {
     loan {
       loanId
       balance {

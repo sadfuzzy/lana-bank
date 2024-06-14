@@ -37,6 +37,12 @@ pub struct Withdraw {
     pub(super) events: EntityEvents<WithdrawEvent>,
 }
 
+impl std::fmt::Display for Withdraw {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Withdraw {}, uid: {}", self.id, self.user_id)
+    }
+}
+
 impl Entity for Withdraw {
     type Event = WithdrawEvent;
 }

@@ -13,7 +13,6 @@ type Collateral {
 
 type FixedTermLoan {
 	loanId: UUID!
-	userId: UUID!
 	balance: FixedTermLoanBalance!
 }
 
@@ -31,10 +30,6 @@ type FixedTermLoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
-}
-
-input FixedTermLoanCreateInput {
-	userId: UUID!
 }
 
 type FixedTermLoanCreatePayload {
@@ -62,9 +57,8 @@ type LoanOutstanding {
 }
 
 type Mutation {
-	userCreate(input: UserCreateInput!): UserCreatePayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
-	fixedTermLoanCreate(input: FixedTermLoanCreateInput!): FixedTermLoanCreatePayload!
+	fixedTermLoanCreate: FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
 }
@@ -72,6 +66,7 @@ type Mutation {
 type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
+	me: User
 }
 
 scalar Satoshis
@@ -91,9 +86,9 @@ scalar UsdCents
 
 type User {
 	userId: UUID!
-	bitfinexUsername: String!
 	btcDepositAddress: String!
 	ustDepositAddress: String!
+	email: String!
 	balance: UserBalance!
 }
 
@@ -102,22 +97,12 @@ type UserBalance {
 	checking: Checking!
 }
 
-input UserCreateInput {
-	bitfinexUsername: String!
-}
-
-type UserCreatePayload {
-	user: User!
-}
-
 type Withdrawal {
 	withdrawalId: UUID!
-	userId: UUID!
 	amount: UsdCents!
 }
 
 input WithdrawalInitiateInput {
-	userId: UUID!
 	amount: UsdCents!
 	destination: String!
 	reference: String

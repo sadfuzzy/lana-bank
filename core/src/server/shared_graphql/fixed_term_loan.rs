@@ -6,7 +6,6 @@ use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::*};
 #[graphql(complex)]
 pub struct FixedTermLoan {
     loan_id: UUID,
-    user_id: UUID,
     #[graphql(skip)]
     account_ids: ledger::fixed_term_loan::FixedTermLoanAccountIds,
 }
@@ -27,7 +26,6 @@ impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         FixedTermLoan {
             loan_id: UUID::from(loan.id),
-            user_id: UUID::from(loan.user_id),
             account_ids: loan.account_ids,
         }
     }

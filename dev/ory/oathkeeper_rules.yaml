@@ -1,0 +1,34 @@
+- id: galoy-backend
+  upstream:
+    url: "http://bats-tests:5252"
+  match:
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/graphql"
+    methods: ["POST", "GET", "OPTIONS"]
+  authenticators:
+    - handler: bearer_token
+      config:
+        token_from:
+          header: X-API-KEY
+        check_session_url: http://kratos:4433/sessions/whoami
+        force_method: GET
+        preserve_path: true
+        preserve_query: true
+        subject_from: sub
+        extra_from: "@this"
+    - handler: bearer_token
+      config:
+        check_session_url: http://kratos:4433/sessions/whoami
+        preserve_path: true
+        preserve_query: true
+        subject_from: identity.id
+        extra_from: "@this"
+  authorizer:
+    handler: allow
+  mutators:
+    # - handler: id_token
+    #   config: #! TODO: add aud: {"aud": ["https://api/graphql"] }
+    #     claims: '{"sub": "{{ print .Subject }}", "session_id": "{{ print .Extra.id }}", "expires_at": "{{ print .Extra.expires_at }}", "scope": "{{ print .Extra.scope }}", "client_id": "{{ print .Extra.client_id }}"}'
+    - handler: header
+      config:
+        headers:
+          X-USER-ID: "{{ .Subject }}"

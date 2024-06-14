@@ -6,6 +6,8 @@ services:
     - cala-pg
     - cala
     - otel-agent
+    - kratos
+    - oathkeeper
   core-pg:
     image: postgres:15.5
     ports:
@@ -56,3 +58,39 @@ services:
       - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
     volumes:
       - ./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml
+  kratos:
+    image: oryd/kratos:v1.2.0
+    extra_hosts:
+      - "bats-tests:host-gateway"
+    ports:
+      - "4433:4433" #! public
+      - "4434:4434" #! admin
+    entrypoint: sh -c
+    command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/kratos.yml --watch-courier --sqa-opt-out"'
+    environment:
+      DSN: postgres://dbuser:secret@kratos-pg:5432/default?sslmode=disable
+    links:
+      - kratos-pg:kratos-pg
+    volumes:
+      - ./dev/ory:/home/ory
+  kratos-pg:
+    image: postgres:15.5
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=dbuser
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=default
+  oathkeeper:
+    image: oryd/oathkeeper:v0.40.7-distroless
+    extra_hosts:
+    - "bats-tests:host-gateway"
+    ports:
+    - 4455:4455
+    - 4456:4456
+    command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
+    volumes:
+    - ./dev/ory:/home/ory
+    depends_on:
+    - kratos
+    - otel-agent

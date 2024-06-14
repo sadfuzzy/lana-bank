@@ -1,9 +1,11 @@
 pub mod graphql;
 
+mod auth;
 mod config;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
+use auth::auth_routes;
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
@@ -19,9 +21,12 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
-        .layer(Extension(schema));
+        .layer(Extension(schema))
+        .merge(auth_routes())
+        .layer(Extension(config.clone()))
+        .layer(Extension(app));
 
-    println!("Starting graphql server on port {}", config.port);
+    println!("Starting admin server on port {}", config.port);
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
             .await?;

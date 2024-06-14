@@ -67,8 +67,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
-                        let cursor =
-                            UserByNameCursor::from((user.id, user.bitfinex_username.as_ref()));
+                        let cursor = UserByNameCursor::from((user.id, user.email.as_ref()));
                         Edge::new(cursor, User::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
