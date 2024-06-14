@@ -10,6 +10,16 @@ teardown_file() {
   stop_server
 }
 
+@test "user: unauthenticated" {
+  cache_value "alice" "invalid-token"
+  exec_graphql 'alice' 'me'
+  error_code=$(graphql_output '.error.code')
+  [[ "$error_code" == 401 ]] || exit 1
+
+  error_status=$(graphql_output '.error.status')
+  [[ "$error_status" == "Unauthorized" ]] || exit 1
+}
+
 @test "user: can create a user" {
   token=$(create_user)
   cache_value "alice" "$token"

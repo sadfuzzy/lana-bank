@@ -1,13 +1,9 @@
 use axum::{
-    extract::Json,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-    routing::post,
-    Extension, Router,
+    extract::Json, http::StatusCode, response::IntoResponse, routing::post, Extension, Router,
 };
 use serde::{Deserialize, Serialize};
 
-use crate::{app::LavaApp, primitives::UserId};
+use crate::app::LavaApp;
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
 pub struct AuthCallbackPayload {
@@ -19,34 +15,6 @@ pub struct AuthCallbackPayload {
     transient_payload: serde_json::Value,
 }
 
-#[derive(Deserialize, Serialize)]
-pub struct IdentityPayload {
-    id: UserId,
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct ResponsePayload {
-    pub identity: IdentityPayload,
-}
-
-impl IntoResponse for ResponsePayload {
-    fn into_response(self) -> Response {
-        let body = match serde_json::to_string(&self) {
-            Ok(value) => value,
-            Err(error) => {
-                println!("Error serializing response payload: {:?}", error);
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
-                    .into_response();
-            }
-        };
-
-        Response::builder()
-            .status(StatusCode::OK)
-            .header("Content-Type", "application/json")
-            .body(body.into())
-            .expect("Failed to build response")
-    }
-}
 pub async fn auth_callback(
     Extension(app): Extension<LavaApp>,
     Json(payload): Json<AuthCallbackPayload>,
@@ -64,11 +32,10 @@ pub async fn auth_callback(
     };
 
     match app.users().create_user(id, email).await {
-        Ok(user) => ResponsePayload {
-            identity: { IdentityPayload { id: user.id } },
-        }
+        Ok(user) => axum::Json(serde_json::json!( {
+            "identity": { "id": user.id }
+        }))
         .into_response(),
-
         Err(error) => {
             println!("Error creating user: {:?}", error);
             (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error").into_response()

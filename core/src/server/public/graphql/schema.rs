@@ -5,7 +5,7 @@ use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::{
-        public::UserContext,
+        public::AuthContext,
         shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
     },
 };
@@ -34,13 +34,10 @@ impl Query {
     }
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
-        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
-            None => return Err("Unauthorized".into()),
-            Some(id) => id,
-        };
+        let AuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().find_by_id(user_id).await?;
+        let user = app.users().find_by_id(*user_id).await?;
 
         Ok(user.map(User::from))
     }
@@ -55,16 +52,13 @@ impl Mutation {
         ctx: &Context<'_>,
         input: WithdrawalInitiateInput,
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
-        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
-            None => return Err("Unauthorized".into()),
-            Some(id) => id,
-        };
+        let AuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
 
         let withdraw = app
             .withdraws()
-            .initiate(user_id, input.amount, input.destination, input.reference)
+            .initiate(*user_id, input.amount, input.destination, input.reference)
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))
@@ -74,13 +68,13 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
-        let user_id = match ctx.data_unchecked::<UserContext>().user_id {
-            None => return Err("Unauthorized".into()),
-            Some(id) => id,
-        };
+        let AuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.fixed_term_loans().create_loan_for_user(user_id).await?;
+        let loan = app
+            .fixed_term_loans()
+            .create_loan_for_user(*user_id)
+            .await?;
         Ok(FixedTermLoanCreatePayload::from(loan))
     }
 
