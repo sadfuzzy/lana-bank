@@ -17,7 +17,7 @@ impl FixedTermLoanRepo {
         &self,
         db: &mut Transaction<'_, Postgres>,
         new_loan: NewFixedTermLoan,
-    ) -> Result<EntityUpdate<FixedTermLoan>, FixedTermLoanError> {
+    ) -> Result<FixedTermLoan, FixedTermLoanError> {
         sqlx::query!(
             r#"INSERT INTO fixed_term_loans (id, user_id)
             VALUES ($1, $2)"#,
@@ -27,12 +27,8 @@ impl FixedTermLoanRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_loan.initial_events();
-        let n_new_events = events.persist(db).await?;
-        let loan = FixedTermLoan::try_from(events)?;
-        Ok(EntityUpdate {
-            entity: loan,
-            n_new_events,
-        })
+        events.persist(db).await?;
+        Ok(FixedTermLoan::try_from(events)?)
     }
 
     pub async fn find_by_id(

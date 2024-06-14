@@ -98,6 +98,7 @@ type UserBalance {
 }
 
 type Withdrawal {
+	userId: UUID!
 	withdrawalId: UUID!
 	amount: UsdCents!
 }

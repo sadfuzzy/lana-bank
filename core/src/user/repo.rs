@@ -13,7 +13,7 @@ impl UserRepo {
         Self { pool: pool.clone() }
     }
 
-    pub(super) async fn create(&self, new_user: NewUser) -> Result<EntityUpdate<User>, UserError> {
+    pub(super) async fn create(&self, new_user: NewUser) -> Result<User, UserError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query!(
             r#"INSERT INTO users (id, email)
@@ -24,13 +24,9 @@ impl UserRepo {
         .execute(&mut *tx)
         .await?;
         let mut events = new_user.initial_events();
-        let n_new_events = events.persist(&mut tx).await?;
+        events.persist(&mut tx).await?;
         tx.commit().await?;
-        let user = User::try_from(events)?;
-        Ok(EntityUpdate {
-            entity: user,
-            n_new_events,
-        })
+        Ok(User::try_from(events)?)
     }
 
     pub async fn find_by_id(&self, user_id: UserId) -> Result<User, UserError> {

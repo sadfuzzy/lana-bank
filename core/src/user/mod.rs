@@ -3,7 +3,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{entity::*, ledger::*, primitives::UserId};
+use crate::{ledger::*, primitives::UserId};
 
 pub use cursor::*;
 pub use entity::*;
@@ -43,8 +43,7 @@ impl Users {
             .build()
             .expect("Could not build User");
 
-        let EntityUpdate { entity: user, .. } = self.repo.create(new_user).await?;
-        Ok(user)
+        self.repo.create(new_user).await
     }
 
     pub async fn find_by_id(&self, id: UserId) -> Result<Option<User>, UserError> {

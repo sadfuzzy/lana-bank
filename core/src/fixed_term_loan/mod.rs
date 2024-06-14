@@ -9,7 +9,7 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
-    entity::{EntityError, EntityUpdate},
+    entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{fixed_term_loan::FixedTermLoanAccountIds, Ledger},
     primitives::*,
@@ -74,7 +74,7 @@ impl FixedTermLoans {
             .rate(FixedTermLoanRate::from_bips(5))
             .build()
             .expect("Could not build FixedTermLoan");
-        let EntityUpdate { entity: loan, .. } = self.repo.create_in_tx(&mut tx, new_loan).await?;
+        let loan = self.repo.create_in_tx(&mut tx, new_loan).await?;
         tx.commit().await?;
         Ok(loan)
     }
