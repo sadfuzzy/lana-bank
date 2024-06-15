@@ -203,9 +203,26 @@ read_value() {
   cat ${CACHE_DIR}/$1
 }
 
+KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
+
+getEmailCode() {
+  local email="$1"
+  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
+
+  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+
+  if [[ -z "$result" ]]; then
+    echo "No message for email ${email}" >&2
+    exit 1
+  fi
+
+  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+
+  echo "$code"
+}
+
 create_user() {
-  random_email="user$(date +%s%N)@example.com"
-  random_password="P@ssw0rd$(date +%s%N)"
+  email="user$(date +%s%N)@example.com"
 
   flowId=$(curl -s -X GET \
       -H "Accept: application/json" \
@@ -214,13 +231,25 @@ create_user() {
   response=$(curl -s -X POST "http://127.0.0.1:4433/self-service/registration?flow=$flowId" \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "password",
+    "method": "code",
     "traits": {
-      "email": "'"$random_email"'"
-    },
-    "password": "'"$random_password"'"
+      "email": "'"$email"'"
+    }
   }')
 
-  token=$(echo $response | jq -r '.session_token')
+  code=$(getEmailCode "$email")
+
+  verification_response=$(curl -s -X POST "http://127.0.0.1:4433/self-service/registration?flow=$flowId" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "code": "'"$code"'",
+    "method": "code",
+    "traits": {
+      "email": "'"$email"'"
+    }
+  }')
+
+  # Extract and print the session token if needed
+  token=$(echo $verification_response | jq -r '.session_token')
   echo $token
 }

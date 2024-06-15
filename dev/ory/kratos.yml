@@ -45,8 +45,6 @@ selfservice:
       enabled: false
     totp:
       enabled: true
-    password:
-      enabled: true
 
     code:
       enabled: true
@@ -111,12 +109,11 @@ selfservice:
       lifespan: 10m
       ui_url: http://localhost:3000/register
       after:
-        password:
+        code:
           hooks:
             - hook: session
             - hook: web_hook
               config:
-                # TODO: right callback url
                 url: http://bats-tests:5253/auth/callback
                 method: POST
                 body: file:///home/ory/body.jsonnet
@@ -149,9 +146,9 @@ hashers:
     cost: 8
 
 identity:
-  default_schema_id: email_password
+  default_schema_id: email
   schemas:
-    - id: email_password
+    - id: email
       url: file:///home/ory/identity.schema.json
 
 courier:
@@ -172,10 +169,7 @@ courier:
             html: base64://SGksCgpZb3UgY2FuIGNvbmZpcm0gYWNjZXNzIHRvIHlvdXIgYmxpbmsgYWNjb3VudCBieSBlbnRlcmluZyB0aGUgZm9sbG93aW5nIGNvZGU6Cgp7eyAuUmVjb3ZlcnlDb2RlIH19CgpEb24ndCBzaGFyZSB0aGlzIGNvZGUgd2l0aCBhbnlvbmUuIE91ciBlbXBsb3llZSB3aWxsIG5ldmVyIGFzayBmb3IgdGhpcyBjb2RlCg==
 
 session:
-  # TODO: check lifespan per schema
-  # or look how to extend
-  lifespan: "720h" # 1 month
-  earliest_possible_extend: "720h" # needed for test. should be shorter in prod
+  lifespan: "1h" # 1 month
 
   whoami:
     required_aal: highest_available
