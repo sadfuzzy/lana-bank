@@ -61,3 +61,14 @@ build-x86_64-apple-darwin-release:
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
+
+start-frontend:
+	cd apps/lava-bank && pnpm install --frozen-lockfile && pnpm dev
+
+check-code-apps: check-code-apps-admin-panel check-code-apps-frontend
+
+check-code-apps-admin-panel:
+	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm build
+
+check-code-apps-frontend:
+	cd apps/lava-bank && pnpm install --frozen-lockfile && pnpm lint && pnpm build
