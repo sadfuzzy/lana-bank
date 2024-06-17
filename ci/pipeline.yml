@@ -26,6 +26,8 @@
 #@   "app_src_resource",
 #@   "build_app_edge_image_name",
 #@   "app_edge_image_resource_name",
+#@   "app_latest_image_resource_name",
+#@   "app_latest_image",
 #@   "build_app_edge_image",
 #@   "app_edge_image"
 #@ )
@@ -96,6 +98,9 @@ jobs:
       - bats-tests
     - get: pipeline-tasks
     - get: version
+    - get: #@ app_edge_image_resource_name("admin-panel")
+      passed:
+      - #@ build_app_edge_image_name("admin-panel")
   - task: prep-release
     config:
       platform: linux
@@ -198,6 +203,11 @@ jobs:
       - release
       trigger: true
     - get: pipeline-tasks
+    - get: #@ app_edge_image_resource_name("admin-panel")
+      passed:
+      - release
+      params:
+        format: oci
   - task: prepare-docker-build
     config:
       platform: linux
@@ -231,10 +241,15 @@ jobs:
         DOCKERFILE: "repo/Dockerfile.release"
       run:
         path: build
-  - put: latest-image
-    params:
-      image: image/image.tar
-      additional_tags: version/version
+  - in_parallel:
+    - put: latest-image
+      params:
+        image: image/image.tar
+        additional_tags: version/version
+    - put: #@ app_latest_image_resource_name("admin-panel")
+      params:
+        image: #@ app_edge_image_resource_name("admin-panel") + "/image.tar"
+        additional_tags: version/version
 
 - name: set-dev-version
   plan:
@@ -270,7 +285,8 @@ jobs:
         - get: latest-image
           passed: [ release-docker ]
           params: { skip_download: true }
-        - get: #@ app_edge_image_resource_name("admin-panel")
+        - get: #@ app_latest_image_resource_name("admin-panel")
+          passed: [ release-docker ]
           params: { skip_download: true }
         - get: repo
           trigger: true
@@ -288,7 +304,7 @@ jobs:
         inputs:
           - name: repo
           - name: latest-image
-          - name: #@ app_edge_image_resource_name("admin-panel")
+          - name: #@ app_latest_image_resource_name("admin-panel")
           - name: pipeline-tasks
           - name: charts-repo
           - name: version
@@ -361,6 +377,7 @@ resources:
 - #@ charts_repo_resource()
 - #@ app_src_resource("admin-panel")
 - #@ app_edge_image("admin-panel")
+- #@ app_latest_image("admin-panel")
 
 resource_types:
 - #@ slack_resource_type()

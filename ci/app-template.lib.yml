@@ -98,3 +98,17 @@ source:
   password: #@ data.values.docker_registry_password
   repository: #@ private_docker_registry() + "/" + data.values.gh_repository + "-" + app
 #@ end
+
+#@ def app_latest_image_resource_name(app):
+#@   return app + "-latest-image"
+#@ end
+
+#@ def app_latest_image(app):
+name: #@ app_latest_image_resource_name(app)
+type: registry-image
+source:
+  tag: latest
+  username: #@ data.values.docker_registry_user
+  password: #@ data.values.docker_registry_password
+  repository: #@ private_docker_registry() + "/" + data.values.gh_repository + "-" + app
+#@ end

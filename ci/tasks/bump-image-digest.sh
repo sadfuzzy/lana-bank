@@ -2,7 +2,7 @@
 set -eu
 
 export digest=$(cat ./latest-image/digest)
-export admin_panel_image_digest=$(cat ./admin-panel-edge-image/digest)
+export admin_panel_image_digest=$(cat ./admin-panel-latest-image/digest)
 
 export ref=$(cat ./repo/.git/short_ref)
 export app_version=$(cat version/version)
