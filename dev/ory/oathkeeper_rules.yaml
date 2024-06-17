@@ -1,6 +1,6 @@
 - id: galoy-backend
   upstream:
-    url: "http://bats-tests:5252"
+    url: "http://dockerhost-alias:5252"
   match:
     url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/graphql"
     methods: ["POST", "GET", "OPTIONS"]

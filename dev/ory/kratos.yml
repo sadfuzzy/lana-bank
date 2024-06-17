@@ -71,7 +71,7 @@ selfservice:
       #       - hook: web_hook
       #         config:
       #           # TODO: right callback url
-      #           url: http://bats-tests:5253/auth/callback
+      #           url: http://dockerhost-alias:5253/auth/callback
       #           method: POST
       #           body: file:///home/ory/body.jsonnet
       #           auth:
@@ -114,7 +114,7 @@ selfservice:
             - hook: session
             - hook: web_hook
               config:
-                url: http://bats-tests:5253/auth/callback
+                url: http://dockerhost-alias:5253/auth/callback
                 method: POST
                 body: file:///home/ory/body.jsonnet
                 # response:
@@ -169,7 +169,7 @@ courier:
             html: base64://SGksCgpZb3UgY2FuIGNvbmZpcm0gYWNjZXNzIHRvIHlvdXIgYmxpbmsgYWNjb3VudCBieSBlbnRlcmluZyB0aGUgZm9sbG93aW5nIGNvZGU6Cgp7eyAuUmVjb3ZlcnlDb2RlIH19CgpEb24ndCBzaGFyZSB0aGlzIGNvZGUgd2l0aCBhbnlvbmUuIE91ciBlbXBsb3llZSB3aWxsIG5ldmVyIGFzayBmb3IgdGhpcyBjb2RlCg==
 
 session:
-  lifespan: "1h" # 1 month
+  lifespan: "1h"
 
   whoami:
     required_aal: highest_available

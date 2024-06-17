@@ -2,35 +2,35 @@ services:
   integration-deps:
     image: busybox
     depends_on:
-    - core-pg
-    - cala-pg
-    - cala
-    - otel-agent
-    - kratos
-    - oathkeeper
+      - core-pg
+      - cala-pg
+      - cala
+      - otel-agent
+      - kratos
+      - oathkeeper
   core-pg:
     image: postgres:15.5
     ports:
-    - "5433:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=pg
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 5s
       timeout: 5s
       retries: 5
   cala-pg:
     image: postgres:15.5
     ports:
-    - "5432:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=password
       - POSTGRES_DB=pg
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ["CMD-SHELL", "pg_isready"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -52,7 +52,7 @@ services:
     ports:
       - "4317:4317" # OpenTelemetry receiver
     image: otel/opentelemetry-collector-contrib:0.57.2
-    command: [ "--config=/etc/otel-agent-config.yaml" ]
+    command: ["--config=/etc/otel-agent-config.yaml"]
     environment:
       - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
       - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
@@ -61,7 +61,7 @@ services:
   kratos:
     image: oryd/kratos:v1.2.0
     extra_hosts:
-      - "bats-tests:host-gateway"
+      - "dockerhost-alias:host-gateway"
     ports:
       - "4433:4433" #! public
       - "4434:4434" #! admin
@@ -84,13 +84,13 @@ services:
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
     extra_hosts:
-    - "bats-tests:host-gateway"
+      - "dockerhost-alias:host-gateway"
     ports:
-    - 4455:4455
-    - 4456:4456
+      - 4455:4455
+      - 4456:4456
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes:
-    - ./dev/ory:/home/ory
+      - ./dev/ory:/home/ory
     depends_on:
-    - kratos
-    - otel-agent
+      - kratos
+      - otel-agent
