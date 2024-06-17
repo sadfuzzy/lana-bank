@@ -26,16 +26,6 @@ wait_for_interest() {
 
 @test "fixed-term-loan: loan lifecycle" {
   username=$(random_uuid)
-  variables=$(
-    jq -n \
-      --arg username "$username" \
-    '{
-      input: {
-        bitfinexUsername: $username,
-      }
-    }'
-  )
-
   token=$(create_user)
   cache_value "alice" "$token"
 
@@ -144,6 +134,5 @@ wait_for_interest() {
 
   exec_graphql 'alice' 'me'
   btc_balance=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
-  echo $(graphql_output)
   [[ "$btc_balance" == 1000000000 ]] || exit 1
 }

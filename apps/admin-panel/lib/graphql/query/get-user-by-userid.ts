@@ -12,7 +12,7 @@ gql`
   query getUserByUserId($id: UUID!) {
     user(id: $id) {
       userId
-      bitfinexUsername
+      email
       btcDepositAddress
       ustDepositAddress
       balance {

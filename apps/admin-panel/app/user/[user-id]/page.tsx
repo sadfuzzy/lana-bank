@@ -55,7 +55,7 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
             <div className="flex justify-between items-center">
               <CardTitle>
                 <div className="flex flex-col gap-1">
-                  <p className="text-lg">{userDetails.user.bitfinexUsername}</p>
+                  <p className="text-lg">{userDetails.user.email}</p>
                   <p className="text-sm text-textColor-secondary">{userId}</p>
                 </div>
               </CardTitle>
@@ -69,10 +69,7 @@ const UserDetailsCard = async ({ userId }: { userId: string }) => {
             <CardContent>
               <DetailsGroup>
                 <DetailItem label="User ID" value={userDetails.user.userId} />
-                <DetailItem
-                  label="Bitfinex username"
-                  value={userDetails.user.bitfinexUsername}
-                />
+                <DetailItem label="Email" value={userDetails.user.email} />
                 <DetailItem
                   label="Unallocated Collateral Settled (BTC)"
                   value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
@@ -148,13 +145,13 @@ const AddressWithQr = ({ address, title }: { address: string; title?: string }) 
 }
 
 const UserLoansTable = async ({ userId }: { userId: string }) => {
-  const userLoans = await getLoansForUser({ userId })
+  const userLoans = await getLoansForUser({ id: userId })
 
   return (
     <Card className="mt-4">
       {userLoans instanceof Error ? (
         <CardContent className="p-6">{userLoans.message}</CardContent>
-      ) : !userLoans.loansForUser || userLoans.loansForUser.length === 0 ? (
+      ) : !userLoans.user?.loans || userLoans.user?.loans.length === 0 ? (
         <CardContent className="p-6">No loans found for this user</CardContent>
       ) : (
         <>
@@ -172,7 +169,7 @@ const UserLoansTable = async ({ userId }: { userId: string }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {userLoans.loansForUser.map((loan) => (
+                {userLoans.user.loans.map((loan) => (
                   <TableRow key={loan.loanId}>
                     <TableCell>{loan.loanId}</TableCell>
                     <TableCell>{loan.balance.collateral.btcBalance} sats</TableCell>

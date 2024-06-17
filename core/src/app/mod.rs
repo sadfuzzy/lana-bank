@@ -4,10 +4,9 @@ mod error;
 use sqlx::PgPool;
 
 use crate::{
-    fixed_term_loan::{FixedTermLoan, FixedTermLoans},
+    fixed_term_loan::FixedTermLoans,
     job::{JobRegistry, Jobs},
     ledger::Ledger,
-    primitives::UserId,
     user::Users,
     withdraw::Withdraws,
 };
@@ -59,15 +58,5 @@ impl LavaApp {
 
     pub fn ledger(&self) -> &Ledger {
         &self.ledger
-    }
-
-    pub async fn list_loans_for_user(
-        &self,
-        user_id: UserId,
-    ) -> Result<Option<Vec<FixedTermLoan>>, ApplicationError> {
-        if self.users().find_by_id(user_id).await?.is_some() {
-            return Ok(Some(self.fixed_term_loans().list_for_user(user_id).await?));
-        }
-        Ok(None)
     }
 }

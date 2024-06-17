@@ -1,11 +1,18 @@
 use async_graphql::*;
 
-use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::*};
+use crate::{
+    app::LavaApp,
+    ledger,
+    primitives::UserId,
+    server::shared_graphql::{primitives::*, user::User},
+};
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct FixedTermLoan {
     loan_id: UUID,
+    #[graphql(skip)]
+    user_id: UUID,
     #[graphql(skip)]
     account_ids: ledger::fixed_term_loan::FixedTermLoanAccountIds,
 }
@@ -20,11 +27,22 @@ impl FixedTermLoan {
             .await?;
         Ok(FixedTermLoanBalance::from(balance))
     }
+
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app.users().find_by_id(UserId::from(&self.user_id)).await?;
+
+        match user {
+            Some(user) => Ok(User::from(user)),
+            None => panic!("user not found for a loan. should not be possible"),
+        }
+    }
 }
 
 impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
     fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
         FixedTermLoan {
+            user_id: UUID::from(loan.user_id),
             loan_id: UUID::from(loan.id),
             account_ids: loan.account_ids,
         }

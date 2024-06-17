@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct UUID(uuid::Uuid);
 scalar!(UUID);
@@ -16,7 +16,7 @@ impl<T: Into<uuid::Uuid>> From<T> for UUID {
 }
 impl From<&UUID> for FixedTermLoanId {
     fn from(uuid: &UUID) -> Self {
-        FixedTermLoanId::from(uuid.0)
+        Self::from(uuid.0)
     }
 }
 impl From<UUID> for FixedTermLoanId {
@@ -29,7 +29,11 @@ impl From<UUID> for UserId {
         Self::from(uuid.0)
     }
 }
-
+impl From<&UUID> for UserId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 impl From<UUID> for WithdrawId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)

@@ -42,7 +42,7 @@ export type FixedTermLoan = {
   __typename?: 'FixedTermLoan';
   balance: FixedTermLoanBalance;
   loanId: Scalars['UUID']['output'];
-  userId: Scalars['UUID']['output'];
+  user: User;
 };
 
 export type FixedTermLoanBalance = {
@@ -83,7 +83,6 @@ export type PageInfo = {
 export type Query = {
   __typename?: 'Query';
   loan?: Maybe<FixedTermLoan>;
-  loansForUser?: Maybe<Array<FixedTermLoan>>;
   user?: Maybe<User>;
   users: UserConnection;
 };
@@ -91,11 +90,6 @@ export type Query = {
 
 export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryLoansForUserArgs = {
-  userId: Scalars['UUID']['input'];
 };
 
 
@@ -122,8 +116,9 @@ export type UsdBalance = {
 export type User = {
   __typename?: 'User';
   balance: UserBalance;
-  bitfinexUsername: Scalars['String']['output'];
   btcDepositAddress: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  loans: Array<FixedTermLoan>;
   userId: Scalars['UUID']['output'];
   ustDepositAddress: Scalars['String']['output'];
 };
@@ -158,21 +153,21 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'FixedTermLoan', loanId: string, userId: string, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'FixedTermLoan', loanId: string, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
 
 export type GetLoansForUserQueryVariables = Exact<{
-  userId: Scalars['UUID']['input'];
+  id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForUserQuery = { __typename?: 'Query', loansForUser?: Array<{ __typename?: 'FixedTermLoan', loanId: string, userId: string, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> | null };
+export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'FixedTermLoan', loanId: string, balance: { __typename?: 'FixedTermLoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type GetUserByUserIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, bitfinexUsername: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
 export type UsersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -180,14 +175,16 @@ export type UsersQueryVariables = Exact<{
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', nodes: Array<{ __typename?: 'User', userId: string, bitfinexUsername: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', nodes: Array<{ __typename?: 'User', userId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
     loanId
-    userId
+    user {
+      userId
+    }
     balance {
       collateral {
         btcBalance
@@ -231,19 +228,21 @@ export type GetLoanDetailsQueryHookResult = ReturnType<typeof useGetLoanDetailsQ
 export type GetLoanDetailsLazyQueryHookResult = ReturnType<typeof useGetLoanDetailsLazyQuery>;
 export type GetLoanDetailsQueryResult = Apollo.QueryResult<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>;
 export const GetLoansForUserDocument = gql`
-    query GetLoansForUser($userId: UUID!) {
-  loansForUser(userId: $userId) {
-    loanId
+    query GetLoansForUser($id: UUID!) {
+  user(id: $id) {
     userId
-    balance {
-      collateral {
-        btcBalance
-      }
-      outstanding {
-        usdBalance
-      }
-      interestIncurred {
-        usdBalance
+    loans {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
       }
     }
   }
@@ -262,7 +261,7 @@ export const GetLoansForUserDocument = gql`
  * @example
  * const { data, loading, error } = useGetLoansForUserQuery({
  *   variables: {
- *      userId: // value for 'userId'
+ *      id: // value for 'id'
  *   },
  * });
  */
@@ -281,7 +280,7 @@ export const GetUserByUserIdDocument = gql`
     query getUserByUserId($id: UUID!) {
   user(id: $id) {
     userId
-    bitfinexUsername
+    email
     btcDepositAddress
     ustDepositAddress
     balance {
@@ -335,7 +334,7 @@ export const UsersDocument = gql`
   users(first: $first, after: $after) {
     nodes {
       userId
-      bitfinexUsername
+      email
       btcDepositAddress
       ustDepositAddress
       balance {

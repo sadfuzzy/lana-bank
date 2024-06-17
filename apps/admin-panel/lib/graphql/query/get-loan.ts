@@ -12,7 +12,9 @@ gql`
   query GetLoanDetails($id: UUID!) {
     loan(id: $id) {
       loanId
-      userId
+      user {
+        userId
+      }
       balance {
         collateral {
           btcBalance

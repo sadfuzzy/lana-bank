@@ -59,7 +59,7 @@ async function LoanPage({
             <CardContent>
               <Separator className="mb-6" />
               <DetailsGroup>
-                <DetailItem label="User ID" value={loanDetails.loan.userId} />
+                <DetailItem label="User ID" value={loanDetails.loan.user.userId} />
                 <DetailItem
                   label="Collateral balance (BTC)"
                   value={`${loanDetails.loan.balance.collateral.btcBalance} sats`}

@@ -9,19 +9,21 @@ import {
 import { performQuery } from "."
 
 gql`
-  query GetLoansForUser($userId: UUID!) {
-    loansForUser(userId: $userId) {
-      loanId
+  query GetLoansForUser($id: UUID!) {
+    user(id: $id) {
       userId
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
+      loans {
+        loanId
+        balance {
+          collateral {
+            btcBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          interestIncurred {
+            usdBalance
+          }
         }
       }
     }

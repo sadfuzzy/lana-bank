@@ -9,7 +9,7 @@ gql`
     users(first: $first, after: $after) {
       nodes {
         userId
-        bitfinexUsername
+        email
         btcDepositAddress
         ustDepositAddress
         balance {

@@ -14,6 +14,7 @@ type Collateral {
 type FixedTermLoan {
 	loanId: UUID!
 	balance: FixedTermLoanBalance!
+	user: User!
 }
 
 type FixedTermLoanBalance {
@@ -62,7 +63,6 @@ type PageInfo {
 type Query {
 	loan(id: UUID!): FixedTermLoan
 	user(id: UUID!): User
-	loansForUser(userId: UUID!): [FixedTermLoan!]
 	users(first: Int!, after: String): UserConnection!
 }
 
@@ -87,6 +87,7 @@ type User {
 	ustDepositAddress: String!
 	email: String!
 	balance: UserBalance!
+	loans: [FixedTermLoan!]!
 }
 
 type UserBalance {

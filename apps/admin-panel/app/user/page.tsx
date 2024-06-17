@@ -105,7 +105,7 @@ async function UserPage({ searchParams }: { searchParams: { userId?: string } })
                       <TableRow key={user.userId}>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            <div>{user.bitfinexUsername}</div>
+                            <div>{user.email}</div>
                             <div className="text-xs text-textColor-secondary">
                               {user.userId}
                             </div>
