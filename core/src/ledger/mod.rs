@@ -34,9 +34,7 @@ pub struct Ledger {
 impl Ledger {
     pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
-        Self::initialize_journal(&cala).await?;
         Self::initialize_bfx_integrations(&cala, &config.bfx_key, &config.bfx_secret).await?;
-        Self::initialize_global_accounts(&cala).await?;
         Self::initialize_tx_templates(&cala).await?;
         Ok(Ledger { cala })
     }
@@ -276,41 +274,6 @@ impl Ledger {
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
             &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn initialize_journal(cala: &CalaClient) -> Result<(), LedgerError> {
-        if cala
-            .find_journal_by_id(constants::CORE_JOURNAL_ID)
-            .await
-            .is_ok()
-        {
-            return Ok(());
-        }
-
-        let err = match cala.create_core_journal(constants::CORE_JOURNAL_ID).await {
-            Ok(_) => return Ok(()),
-            Err(e) => e,
-        };
-
-        cala.find_journal_by_id(constants::CORE_JOURNAL_ID)
-            .await
-            .map_err(|_| err)?;
-        Ok(())
-    }
-
-    async fn initialize_global_accounts(cala: &CalaClient) -> Result<(), LedgerError> {
-        // FIXME: Reconcile this with the existing withdraw mutations and the new
-        //        bfx-integration withdrawal_accounts created
-        Self::assert_debit_account_exists(
-            cala,
-            constants::BANK_USDT_CASH_ID.into(),
-            constants::BANK_USDT_CASH_NAME,
-            constants::BANK_USDT_CASH_CODE,
-            &constants::BANK_USDT_CASH_ID.to_string(),
         )
         .await?;
 
