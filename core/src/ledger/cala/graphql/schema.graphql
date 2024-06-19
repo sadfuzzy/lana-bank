@@ -315,6 +315,7 @@ type BitfinexMutation {
 type BitfinexQuery {
 	integration(id: UUID!): BfxIntegration
 	addressBackedAccount(id: UUID!): BfxAddressBackedAccount
+	addressBackedAccountByCode(code: String!): BfxAddressBackedAccount
 	withdrawal(id: UUID!): BfxWithdrawal
 }
 
