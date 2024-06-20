@@ -9,7 +9,6 @@ pub use cursor::*;
 pub use entity::*;
 use error::UserError;
 pub use repo::UserRepo;
-use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct Users {
@@ -32,9 +31,9 @@ impl Users {
         &self.repo
     }
 
-    pub async fn create_user(&self, id: Uuid, email: String) -> Result<User, UserError> {
+    pub async fn create_user(&self, id: UserId, email: String) -> Result<User, UserError> {
         let (ledger_account_ids, ledger_account_addresses) =
-            self.ledger.create_accounts_for_user(&email).await?;
+            self.ledger.create_accounts_for_user(id).await?;
         let new_user = NewUser::builder()
             .id(id)
             .email(email)

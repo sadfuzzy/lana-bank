@@ -10,13 +10,11 @@ pub mod primitives;
 mod tx_template;
 pub mod user;
 
-use account::LedgerAccount;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId,
-    LedgerAccountSetId, LedgerDebitOrCredit, LedgerTxId, LedgerTxTemplateId, Satoshis, UsdCents,
-    WithdrawId,
+    BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId,
+    Satoshis, UsdCents, UserId, WithdrawId,
 };
 
 use cala::*;
@@ -55,68 +53,11 @@ impl Ledger {
     )]
     pub async fn create_accounts_for_user(
         &self,
-        bitfinex_username: &str,
+        user_id: UserId,
     ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
         let account_ids = UserLedgerAccountIds::new();
-        Self::assert_credit_account_exists(
-            &self.cala,
-            account_ids.unallocated_collateral_id,
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("USERS.UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-            &format!("usr:bfx-{}:unallocated_collateral", bitfinex_username),
-        )
-        .await?;
-
-        let unallocated_collateral_address =
-            Self::assert_off_balance_sheet_address_backed_debit_account_exists(
-                &self.cala,
-                account_ids.bank_unallocated_collateral_id, // TODO: revisit if this should be on user entity
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-                &format!("BANK.USER_UNALLOCATED_COLLATERAL.{}", bitfinex_username),
-                account_ids.unallocated_collateral_id,
-            )
-            .await?;
-
-        // FIXME: assert is in off-balance-sheet integration omnibus
-        // Self::assert_account_in_account_set(
-        //     cala,
-        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-        //     account_ids.bank_unallocated_collateral_id,
-        // )
-        // .await?;
-
-        Self::assert_credit_account_exists(
-            &self.cala,
-            account_ids.checking_id,
-            &format!("USERS.CHECKING.{}", bitfinex_username),
-            &format!("USERS.CHECKING.{}", bitfinex_username),
-            &format!("usr:bfx-{}:checking", bitfinex_username),
-        )
-        .await?;
-
-        let checking_address = Self::assert_bank_deposit_address_backed_debit_account_exists(
-            &self.cala,
-            account_ids.bank_checking_id, // TODO: revisit if this should be on user entity
-            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
-            &format!("BANK.USER_CHECKING.{}", bitfinex_username),
-            account_ids.checking_id,
-        )
-        .await?;
-
-        // FIXME: assert is in usdt-cash integration omnibus
-        // Self::assert_account_in_account_set(
-        //     cala,
-        //     constants::BANK_OFF_BALANCE_SHEET_ACCOUNT_SET_ID.into(),
-        //     account_ids.bank_checking_id,
-        // )
-        // .await?;
-
-        let account_addresses = UserLedgerAccountAddresses {
-            checking_address,
-            unallocated_collateral_address,
-        };
-
-        Ok((account_ids, account_addresses))
+        let addresses = self.cala.create_user_accounts(user_id, account_ids).await?;
+        Ok((account_ids, addresses))
     }
 
     #[instrument(name = "lava.ledger.add_equity", skip(self), err)]
@@ -140,7 +81,7 @@ impl Ledger {
             .cala
             .execute_bfx_withdrawal(
                 withdrawal_id,
-                constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
+                constants::ON_BALANCE_SHEET_BFX_INTEGRATION_ID.into(),
                 amount.to_usd(),
                 BfxWithdrawalMethod::TronUsdt,
                 tron_usdt_address,
@@ -250,248 +191,12 @@ impl Ledger {
     pub async fn create_accounts_for_loan(
         &self,
         loan_id: FixedTermLoanId,
-        FixedTermLoanAccountIds {
-            collateral_account_id,
-            outstanding_account_id,
-            interest_income_account_id,
-        }: FixedTermLoanAccountIds,
+        loan_account_ids: FixedTermLoanAccountIds,
     ) -> Result<(), LedgerError> {
-        Self::assert_credit_account_exists(
-            &self.cala,
-            collateral_account_id,
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-            &format!("LOAN.COLLATERAL.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_debit_account_exists(
-            &self.cala,
-            outstanding_account_id,
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-            &format!("LOAN.OUTSTANDING.{}", loan_id),
-        )
-        .await?;
-
-        Self::assert_credit_account_exists(
-            &self.cala,
-            interest_income_account_id,
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-            &format!("LOAN.INTEREST_INCOME.{}", loan_id),
-        )
-        .await?;
-
+        self.cala
+            .create_loan_accounts(loan_id, loan_account_ids)
+            .await?;
         Ok(())
-    }
-
-    async fn _assert_account_set_exists(
-        normal_balance_type: LedgerDebitOrCredit,
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        name: &str,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        if let Ok(Some(id)) = cala.find_account_set_by_id(account_set_id.to_owned()).await {
-            return Ok(id);
-        }
-
-        let err = match cala
-            .create_account_set(account_set_id, name.to_owned(), normal_balance_type)
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        cala.find_account_set_by_id(account_set_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountSetExists)
-    }
-
-    async fn _assert_debit_account_set_exists(
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        name: &str,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        Self::_assert_account_set_exists(LedgerDebitOrCredit::Debit, cala, account_set_id, name)
-            .await
-    }
-
-    async fn _assert_account_in_account_set(
-        cala: &CalaClient,
-        account_set_id: LedgerAccountSetId,
-        account_id: LedgerAccountId,
-    ) -> Result<LedgerAccountSetId, LedgerError> {
-        if let Ok(Some(ledger_account)) = cala.find_account_by_id::<LedgerAccount>(account_id).await
-        {
-            if ledger_account.account_set_ids.contains(&account_set_id) {
-                return Ok(account_set_id);
-            }
-        }
-
-        let err = match cala
-            .add_account_to_account_set(account_set_id, account_id)
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        match cala
-            .find_account_by_id::<LedgerAccount>(account_id)
-            .await
-            .map_err(|_| err)
-        {
-            Ok(Some(_)) => Ok(account_set_id),
-            Ok(None) => Err(LedgerError::CouldNotAssertAccountIsMemberOfAccountSet),
-            Err(e) => Err(e)?,
-        }
-    }
-
-    async fn assert_account_exists(
-        normal_balance_type: LedgerDebitOrCredit,
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        if let Ok(Some(id)) = cala
-            .find_account_by_external_id(external_id.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let err = match cala
-            .create_account(
-                account_id,
-                normal_balance_type,
-                name.to_owned(),
-                code.to_owned(),
-                external_id.to_owned(),
-            )
-            .await
-        {
-            Ok(id) => return Ok(id),
-            Err(e) => e,
-        };
-
-        cala.find_account_by_external_id(external_id.to_owned())
-            .await
-            .map_err(|_| err)?
-            .ok_or_else(|| LedgerError::CouldNotAssertAccountExists)
-    }
-
-    async fn assert_credit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        Self::assert_account_exists(
-            LedgerDebitOrCredit::Credit,
-            cala,
-            account_id,
-            name,
-            code,
-            external_id,
-        )
-        .await
-    }
-
-    async fn assert_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        external_id: &str,
-    ) -> Result<LedgerAccountId, LedgerError> {
-        Self::assert_account_exists(
-            LedgerDebitOrCredit::Debit,
-            cala,
-            account_id,
-            name,
-            code,
-            external_id,
-        )
-        .await
-    }
-
-    async fn assert_address_backed_debit_account_exists(
-        integration_id: BfxIntegrationId,
-        address_type: BfxAddressType,
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        if let Ok(Some(address)) = cala.find_address_backed_account_by_id(account_id).await {
-            return Ok(address);
-        }
-
-        let err = match cala
-            .create_bfx_address_backed_account(
-                integration_id,
-                address_type,
-                account_id,
-                name.to_owned(),
-                code.to_owned(),
-                credit_account_id,
-            )
-            .await
-        {
-            Ok(address) => return Ok(address),
-            Err(e) => e,
-        };
-
-        match cala.find_address_backed_account_by_id(account_id).await {
-            Ok(Some(address)) => Ok(address),
-            Ok(None) => Err(LedgerError::CouldNotAssertAccountExists),
-            Err(_) => Err(err)?,
-        }
-    }
-
-    async fn assert_off_balance_sheet_address_backed_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        Self::assert_address_backed_debit_account_exists(
-            constants::BITFINEX_OFF_BALANCE_SHEET_INTEGRATION_ID.into(),
-            BfxAddressType::Bitcoin,
-            cala,
-            account_id,
-            name,
-            code,
-            credit_account_id,
-        )
-        .await
-    }
-
-    async fn assert_bank_deposit_address_backed_debit_account_exists(
-        cala: &CalaClient,
-        account_id: LedgerAccountId,
-        name: &str,
-        code: &str,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, LedgerError> {
-        Self::assert_address_backed_debit_account_exists(
-            constants::BITFINEX_BANK_RESERVE_INTEGRATION_ID.into(),
-            BfxAddressType::Tron,
-            cala,
-            account_id,
-            name,
-            code,
-            credit_account_id,
-        )
-        .await
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {

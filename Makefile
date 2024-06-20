@@ -15,6 +15,8 @@ sqlx-prepare:
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate
+	rm -rf tf/.terraform
+	rm -rf tf/.terraform.lock.hcl
 
 run-tf:
 	cd tf && tofu init && tofu apply -auto-approve

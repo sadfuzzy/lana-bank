@@ -7,7 +7,7 @@ use super::cala::graphql::*;
 pub struct FixedTermLoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
     pub outstanding_account_id: LedgerAccountId,
-    pub interest_income_account_id: LedgerAccountId,
+    pub interest_account_id: LedgerAccountId,
 }
 
 impl FixedTermLoanAccountIds {
@@ -16,7 +16,7 @@ impl FixedTermLoanAccountIds {
         Self {
             collateral_account_id: LedgerAccountId::new(),
             outstanding_account_id: LedgerAccountId::new(),
-            interest_income_account_id: LedgerAccountId::new(),
+            interest_account_id: LedgerAccountId::new(),
         }
     }
 }

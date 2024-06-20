@@ -1,11 +1,11 @@
 query UserBalance(
   $journalId: UUID!
-  $unallocatedCollateralId: UUID!
-  $checkingId: UUID!
+  $off_balance_sheet_account_id: UUID!
+  $on_balance_sheet_account_id: UUID!
 ) {
-  unallocated_collateral: balance(
+  btc_balance: balance(
     journalId: $journalId
-    accountId: $unallocatedCollateralId
+    accountId: $off_balance_sheet_account_id
     currency: "BTC"
   ) {
     settled {
@@ -15,9 +15,9 @@ query UserBalance(
       }
     }
   }
-  checking: balance(
+  usdt_balance: balance(
     journalId: $journalId
-    accountId: $checkingId
+    accountId: $on_balance_sheet_account_id
     currency: "USDT"
   ) {
     settled {

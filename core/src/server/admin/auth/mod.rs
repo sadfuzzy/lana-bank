@@ -24,7 +24,7 @@ pub async fn auth_callback(
 
     let email = payload.email;
     let id = match payload.identity_id.parse() {
-        Ok(uuid) => uuid,
+        Ok(id) => id,
         Err(error) => {
             println!("Error parsing identity_id: {:?}", error);
             return (StatusCode::BAD_REQUEST, "Invalid identity_id format").into_response();

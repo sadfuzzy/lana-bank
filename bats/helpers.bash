@@ -253,3 +253,12 @@ create_user() {
   token=$(echo $verification_response | jq -r '.session_token')
   echo $token
 }
+
+assert_assets_liabilities() {
+  exec_cala_graphql 'assets-liabilities'
+  echo $(graphql_output)
+  assets=$(graphql_output '.data.balanceSheet.byJournalId.assets.usdtBalance.settled.normalBalance.units')
+  liabilities=$(graphql_output '.data.balanceSheet.byJournalId.liabilities.usdtBalance.settled.normalBalance.units')
+
+  [[ "$assets" == "$liabilities" ]] || exit 1
+}

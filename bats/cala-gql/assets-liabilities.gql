@@ -1,0 +1,24 @@
+query BalanceSheet {
+  balanceSheet {
+    byJournalId(journalId: "00000000-0000-0000-0000-000000000001") {
+      assets {
+        ...usdtBalance
+      }
+      liabilities {
+        ...usdtBalance
+      }
+    }
+  }
+}
+
+fragment usdtBalance on AccountSet {
+  usdtBalance: balance(
+    currency: "USDT"
+  ) {
+    settled {
+      normalBalance {
+        units
+      }
+    }
+  }
+}

@@ -50,7 +50,7 @@ impl Withdraws {
             .amount(amount)
             .reference(reference)
             .destination(destination)
-            .debit_account_id(user.account_ids.checking_id)
+            .debit_account_id(user.account_ids.on_balance_sheet_deposit_account_id)
             .build()
             .expect("Could not build Withdraw");
 

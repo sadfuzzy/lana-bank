@@ -71,6 +71,22 @@ pub struct UserBalance;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/user_accounts.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreateUserAccounts;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
+    query_path = "src/ledger/cala/graphql/loan_accounts.gql",
+    response_derives = "Debug, PartialEq, Eq, Clone"
+)]
+pub struct CreateLoanAccounts;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/journals.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]

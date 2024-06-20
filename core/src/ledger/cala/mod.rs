@@ -14,7 +14,10 @@ use crate::primitives::{
     LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
 };
 
-use super::{fixed_term_loan::FixedTermLoanAccountIds, user::UserLedgerAccountIds};
+use super::{
+    fixed_term_loan::FixedTermLoanAccountIds,
+    user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
+};
 
 use error::*;
 use graphql::*;
@@ -107,6 +110,69 @@ impl CalaClient {
         Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
+    #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
+    pub async fn create_user_accounts(
+        &self,
+        user_id: impl Into<Uuid> + std::fmt::Debug,
+        user_account_ids: UserLedgerAccountIds,
+    ) -> Result<UserLedgerAccountAddresses, CalaError> {
+        let user_id = user_id.into();
+        let variables = create_user_accounts::Variables {
+            on_balance_sheet_account_id: Uuid::from(
+                user_account_ids.on_balance_sheet_deposit_account_id,
+            ),
+            on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
+            tron_account_id: Uuid::new_v4(),
+            tron_account_code: format!("ASSETS.TRON.{}", user_id),
+            user_deposit_account_set_id:
+                super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+            off_balance_sheet_account_id: Uuid::from(
+                user_account_ids.off_balance_sheet_deposit_account_id,
+            ),
+            off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", user_id),
+            btc_account_id: Uuid::new_v4(),
+            btc_account_code: format!("ASSETS.BTC.{}", user_id),
+        };
+        let response =
+            Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
+                .await?;
+        response
+            .data
+            .map(|d| UserLedgerAccountAddresses {
+                tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
+                btc_address: d.btc_address.address_backed_account_create.account.address,
+            })
+            .ok_or(CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.create_user_accounts", skip(self), err)]
+    pub async fn create_loan_accounts(
+        &self,
+        loan_id: impl Into<Uuid> + std::fmt::Debug,
+        FixedTermLoanAccountIds {
+            collateral_account_id,
+            outstanding_account_id,
+            interest_account_id,
+        }: FixedTermLoanAccountIds,
+    ) -> Result<(), CalaError> {
+        let loan_id = loan_id.into();
+        let variables = create_loan_accounts::Variables {
+            collateral_account_id: Uuid::from(collateral_account_id),
+            collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
+            outstanding_account_id: Uuid::from(outstanding_account_id),
+            outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
+            loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
+            interest_account_id: Uuid::from(interest_account_id),
+            interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
+            interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
+                .await?;
+        response.data.ok_or(CalaError::MissingDataField)?;
+        Ok(())
+    }
+
     #[instrument(name = "lava.ledger.cala.create_account", skip(self), err)]
     pub async fn create_account(
         &self,
@@ -184,8 +250,12 @@ impl CalaClient {
     ) -> Result<Option<T>, CalaError> {
         let variables = user_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
-            unallocated_collateral_id: Uuid::from(account_ids.unallocated_collateral_id),
-            checking_id: Uuid::from(account_ids.checking_id),
+            off_balance_sheet_account_id: Uuid::from(
+                account_ids.off_balance_sheet_deposit_account_id,
+            ),
+            on_balance_sheet_account_id: Uuid::from(
+                account_ids.on_balance_sheet_deposit_account_id,
+            ),
         };
         let response =
             Self::traced_gql_request::<UserBalance, _>(&self.client, &self.url, variables).await?;
@@ -202,7 +272,7 @@ impl CalaClient {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
             loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
-            interest_income_id: Uuid::from(account_ids.interest_income_account_id),
+            interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
             Self::traced_gql_request::<FixedTermLoanBalance, _>(&self.client, &self.url, variables)
@@ -375,10 +445,12 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+            unallocated_collateral_account: user_account_ids
+                .off_balance_sheet_deposit_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             collateral_amount,
             principal_amount,
             external_id,
@@ -408,9 +480,11 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_complete_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            unallocated_collateral_account: user_account_ids.unallocated_collateral_id.into(),
+            unallocated_collateral_account: user_account_ids
+                .off_balance_sheet_deposit_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             payment_amount,
             collateral_amount,
@@ -468,7 +542,7 @@ impl CalaClient {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            loan_interest_income_account: loan_account_ids.interest_income_account_id.into(),
+            loan_interest_income_account: loan_account_ids.interest_account_id.into(),
             interest_amount,
             external_id,
         };
@@ -524,7 +598,7 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,
@@ -558,7 +632,7 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.checking_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             payment_amount,
             external_id,

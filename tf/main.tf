@@ -4,19 +4,19 @@ provider "cala" {
 
 variable "bfx_key" {
   sensitive = true
-  default = "dummy_key"
+  default   = "dummy_key"
 }
 
 variable "bfx_secret" {
   sensitive = true
-  default = "dummy_key"
+  default   = "dummy_key"
 }
 
 terraform {
   required_providers {
     cala = {
       source  = "registry.terraform.io/galoymoney/cala"
-      version = "0.0.13"
+      version = "0.0.16"
     }
   }
 }

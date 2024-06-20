@@ -45,8 +45,8 @@ impl From<crate::user::User> for User {
     fn from(user: crate::user::User) -> Self {
         User {
             user_id: UUID::from(user.id),
-            btc_deposit_address: user.account_addresses.unallocated_collateral_address,
-            ust_deposit_address: user.account_addresses.checking_address,
+            btc_deposit_address: user.account_addresses.btc_address,
+            ust_deposit_address: user.account_addresses.tron_usdt_address,
             email: user.email,
             account_ids: user.account_ids,
         }
@@ -92,15 +92,15 @@ impl From<ledger::user::UserBalance> for UserBalance {
         Self {
             unallocated_collateral: UnallocatedCollateral {
                 settled: BtcBalance {
-                    btc_balance: balance.unallocated_collateral,
+                    btc_balance: balance.btc_balance,
                 },
             },
             checking: Checking {
                 settled: UsdBalance {
-                    usd_balance: balance.checking.settled,
+                    usd_balance: balance.usdt_balance.settled,
                 },
                 pending: UsdBalance {
-                    usd_balance: balance.checking.pending,
+                    usd_balance: balance.usdt_balance.pending,
                 },
             },
         }
