@@ -1,4 +1,4 @@
-version: v0.13.0
+version: v1.2.0
 
 dsn: "overridden-by-env"
 
@@ -47,6 +47,7 @@ selfservice:
       enabled: true
 
     code:
+      passwordless_enabled: true
       enabled: true
       config:
         # Defines how long the verification or the recovery code is valid for (default 1h)
@@ -96,7 +97,7 @@ selfservice:
         default_browser_return_url: http://127.0.0.1:4455/login
 
     login:
-      ui_url: http://localhost:3000/login
+      ui_url: http://localhost:3000/auth
       lifespan: 10m
 
       # this below make phone authentication fails even if there is no email in the schema
@@ -107,7 +108,7 @@ selfservice:
 
     registration:
       lifespan: 10m
-      ui_url: http://localhost:3000/register
+      ui_url: http://localhost:3000/auth
       after:
         code:
           hooks:

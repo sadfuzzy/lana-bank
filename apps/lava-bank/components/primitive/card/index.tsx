@@ -9,7 +9,7 @@ const cardVariants = cva("rounded-xl shadow", {
     variant: {
       primary: "bg-primary-foreground border",
       secondary: "bg-secondary-foreground border",
-      transparent: "bg-inherit shadow-none border",
+      transparent: "bg-inherit shadow-none",
     },
   },
   defaultVariants: {

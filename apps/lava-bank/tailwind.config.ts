@@ -44,6 +44,7 @@ const config: Config = {
       },
       borderColor: {
         DEFAULT: "var(--border-color)",
+        destructive: "var(--error)",
       },
     },
   },

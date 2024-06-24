@@ -1,6 +1,6 @@
 import * as React from "react"
 
-import { ChevronDown } from "@/components/icons"
+import { ChevronDownIcon } from "@/components/icons"
 import { cn } from "@/lib/utils"
 
 export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {}
@@ -20,7 +20,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
           {props.children}
         </select>
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-          <ChevronDown className="h-4 w-4 text-button-text-secondary" />
+          <ChevronDownIcon className="h-4 w-4 text-button-text-secondary" />
         </div>
       </div>
     )
