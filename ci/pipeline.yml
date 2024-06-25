@@ -80,6 +80,7 @@ groups:
   - set-dev-version
   - bump-image-in-chart
   - #@ build_app_edge_image_name("admin-panel")
+  - #@ build_app_edge_image_name("customer-portal")
 
 jobs:
 - #@ check_code()
@@ -101,6 +102,9 @@ jobs:
     - get: #@ app_edge_image_resource_name("admin-panel")
       passed:
       - #@ build_app_edge_image_name("admin-panel")
+    - get: #@ app_edge_image_resource_name("customer-portal")
+      passed:
+      - #@ build_app_edge_image_name("customer-portal")
   - task: prep-release
     config:
       platform: linux
@@ -208,6 +212,11 @@ jobs:
       - release
       params:
         format: oci
+    - get: #@ app_edge_image_resource_name("customer-portal")
+      passed:
+      - release
+      params:
+        format: oci
   - task: prepare-docker-build
     config:
       platform: linux
@@ -250,6 +259,10 @@ jobs:
       params:
         image: #@ app_edge_image_resource_name("admin-panel") + "/image.tar"
         additional_tags: version/version
+    - put: #@ app_latest_image_resource_name("customer-portal")
+      params:
+        image: #@ app_edge_image_resource_name("customer-portal") + "/image.tar"
+        additional_tags: version/version
 
 - name: set-dev-version
   plan:
@@ -286,6 +299,7 @@ jobs:
           passed: [ release-docker ]
           params: { skip_download: true }
         - get: #@ app_latest_image_resource_name("admin-panel")
+        - get: #@ app_latest_image_resource_name("customer-portal")
           passed: [ release-docker ]
           params: { skip_download: true }
         - get: repo
@@ -305,6 +319,7 @@ jobs:
           - name: repo
           - name: latest-image
           - name: #@ app_latest_image_resource_name("admin-panel")
+          - name: #@ app_latest_image_resource_name("customer-portal")
           - name: pipeline-tasks
           - name: charts-repo
           - name: version
@@ -338,6 +353,7 @@ jobs:
           path: pipeline-tasks/ci/tasks/chart-open-charts-pr.sh
 
 - #@ build_app_edge_image("admin-panel")
+- #@ build_app_edge_image("customer-portal")
 
 resources:
 - name: repo
@@ -378,6 +394,9 @@ resources:
 - #@ app_src_resource("admin-panel")
 - #@ app_edge_image("admin-panel")
 - #@ app_latest_image("admin-panel")
+- #@ app_src_resource("customer-portal")
+- #@ app_edge_image("customer-portal")
+- #@ app_latest_image("customer-portal")
 
 resource_types:
 - #@ slack_resource_type()
