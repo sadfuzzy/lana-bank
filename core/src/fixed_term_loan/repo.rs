@@ -55,9 +55,9 @@ impl FixedTermLoanRepo {
     pub async fn persist_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        settings: &mut FixedTermLoan,
+        loan: &mut FixedTermLoan,
     ) -> Result<(), FixedTermLoanError> {
-        settings.events.persist(db).await?;
+        loan.events.persist(db).await?;
         Ok(())
     }
 

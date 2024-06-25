@@ -58,9 +58,9 @@ impl WithdrawRepo {
     pub async fn persist_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        settings: &mut Withdraw,
+        withdraw: &mut Withdraw,
     ) -> Result<(), WithdrawError> {
-        settings.events.persist(db).await?;
+        withdraw.events.persist(db).await?;
         Ok(())
     }
 }
