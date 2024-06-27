@@ -15,6 +15,7 @@ use crate::primitives::{
 };
 
 use super::{
+    constants,
     fixed_term_loan::FixedTermLoanAccountIds,
     user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
 };
@@ -122,16 +123,25 @@ impl CalaClient {
                 user_account_ids.on_balance_sheet_deposit_account_id,
             ),
             on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
+            on_balance_sheet_account_name: format!("User Checking Account for {}", user_id),
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
+            tron_account_name: format!("Bank USDT Deposit Account for {}", user_id),
             user_deposit_account_set_id:
                 super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
+            user_deposit_control_account_set_id:
+                super::constants::USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID,
             off_balance_sheet_account_id: Uuid::from(
                 user_account_ids.off_balance_sheet_deposit_account_id,
             ),
             off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", user_id),
+            off_balance_sheet_account_name: format!(
+                "Bank Off-Balance-Sheet Deposit Account for {}",
+                user_id
+            ),
             btc_account_id: Uuid::new_v4(),
             btc_account_code: format!("ASSETS.BTC.{}", user_id),
+            btc_account_name: format!("Bank BTC Deposit Account for {}", user_id),
         };
         let response =
             Self::traced_gql_request::<CreateUserAccounts, _>(&self.client, &self.url, variables)
@@ -162,9 +172,12 @@ impl CalaClient {
             outstanding_account_id: Uuid::from(outstanding_account_id),
             outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
             loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
+            loans_control_account_set_id: super::constants::FIXED_TERM_LOANS_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
             interest_revenue_account_set_id: super::constants::INTEREST_REVENUE_ACCOUNT_SET_ID,
+            interest_revenue_control_account_set_id:
+                super::constants::INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };
         let response =
             Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
@@ -739,6 +752,19 @@ impl CalaClient {
             .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
             .map(WithdrawId::from)
             .ok_or(CalaError::MissingDataField)
+    }
+
+    pub async fn general_ledger<T: From<general_ledger::GeneralLedgerAccountSet>>(
+        &self,
+    ) -> Result<Option<T>, CalaError> {
+        let variables = general_ledger::Variables {
+            journal_id: constants::CORE_JOURNAL_ID,
+            account_set_id: constants::GENERAL_LEDGER_ACCOUNT_SET_ID,
+        };
+        let response =
+            Self::traced_gql_request::<GeneralLedger, _>(&self.client, &self.url, variables)
+                .await?;
+        Ok(response.data.and_then(|d| d.account_set).map(T::from))
     }
 
     #[instrument(name = "lava.ledger.cala.find_by_id", skip(self), err)]
