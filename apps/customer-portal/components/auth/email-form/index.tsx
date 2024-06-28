@@ -1,5 +1,7 @@
 "use client"
+
 import { useRef, useState } from "react"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 
 import { Button } from "@/components/primitive/button"
@@ -13,11 +15,14 @@ import {
 } from "@/components/primitive/card"
 import { Input } from "@/components/primitive/input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
-import { createLoginOrRegisterFlow } from "@/lib/auth/server-actions/create-login-or-register-flow"
+
+import { createAuthFlow } from "@/lib/kratos/public/create-auth-flow"
 
 const emailSchema = z.string().email({ message: "Invalid email address" })
 
-const SignInForm = () => {
+const AuthForm = () => {
+  const router = useRouter()
+
   const emailRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -30,12 +35,13 @@ const SignInForm = () => {
         setError(result.error.errors[0].message)
         return
       }
-      const response = await createLoginOrRegisterFlow({
-        email: emailRef.current.value,
-      })
 
-      if (response && response.error?.message) {
-        setError(response.error.message)
+      try {
+        const { flowId, type } = await createAuthFlow({ email: emailRef.current.value })
+        router.push(`/auth/otp?flowId=${flowId}&type=${type}`)
+      } catch (e) {
+        console.error(e)
+        setError("Something went wrong. Please try again.")
       }
     }
   }
@@ -67,4 +73,4 @@ const SignInForm = () => {
   )
 }
 
-export { SignInForm }
+export { AuthForm }

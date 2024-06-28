@@ -11,12 +11,12 @@ dependencies:
   '@apollo/experimental-nextjs-app-support':
     specifier: ^0.11.0
     version: 0.11.2(@apollo/client@3.10.4)(next@14.2.3)(react@18.3.1)
+  '@ory/client':
+    specifier: ^1.12.1
+    version: 1.12.1
   '@ory/integrations':
     specifier: 1.1.5
-    version: 1.1.5(@ory/client@1.11.10)(next@14.2.3)
-  '@ory/kratos-client':
-    specifier: ^1.2.0
-    version: 1.2.0
+    version: 1.1.5(@ory/client@1.12.1)(next@14.2.3)
   '@radix-ui/react-checkbox':
     specifier: ^1.0.4
     version: 1.0.4(@types/react-dom@18.3.0)(@types/react@18.3.2)(react-dom@18.3.1)(react@18.3.1)
@@ -50,6 +50,9 @@ dependencies:
   input-otp:
     specifier: ^1.2.4
     version: 1.2.4(react-dom@18.3.1)(react@18.3.1)
+  jose:
+    specifier: ^5.5.0
+    version: 5.5.0
   next:
     specifier: 14.2.3
     version: 14.2.3(@babel/core@7.24.5)(react-dom@18.3.1)(react@18.3.1)
@@ -3018,7 +3021,7 @@ packages:
       graphql-request: 6.1.0(graphql@16.8.1)
       http-proxy-agent: 7.0.2
       https-proxy-agent: 7.0.4
-      jose: 5.3.0
+      jose: 5.5.0
       js-yaml: 4.1.0
       lodash: 4.17.21
       scuid: 1.1.0
@@ -3536,21 +3539,21 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  /@ory/client@1.11.10:
-    resolution: {integrity: sha512-k40H1gVNT8Rw8VNfAGuzvBn46kCNnFVyLo8TuKxYNJLWdoJPdNNH+Vs7bvp/aLGabSXfGYbxzkoL89PVSXEOCQ==}
+  /@ory/client@1.12.1:
+    resolution: {integrity: sha512-YprtPQAPnvhtYPvRY1aSE7SOUOA142SnBe3HgbhK2EpVWZbRSSJ9Az1vBJmhImMfygN2+xGE5BCXWei4zLZ68w==}
     dependencies:
       axios: 1.7.2
     transitivePeerDependencies:
       - debug
     dev: false
 
-  /@ory/integrations@1.1.5(@ory/client@1.11.10)(next@14.2.3):
+  /@ory/integrations@1.1.5(@ory/client@1.12.1)(next@14.2.3):
     resolution: {integrity: sha512-UV58IuQd2ofPMzeQ5iCWjhLi3cn3+ZHueKy7XSfdeM+x2vfx9E2mr3WBicI7DrYKTDRuDaHbTZ3dNJUgW9yAlA==}
     peerDependencies:
       '@ory/client': '>1.1.38'
       next: '>=12.0.10'
     dependencies:
-      '@ory/client': 1.11.10
+      '@ory/client': 1.12.1
       '@types/tldjs': 2.3.1
       cookie: 0.5.0
       istextorbinary: 6.0.0
@@ -3560,14 +3563,6 @@ packages:
       request: 2.88.2
       set-cookie-parser: 2.6.0
       tldjs: 2.3.1
-    dev: false
-
-  /@ory/kratos-client@1.2.0:
-    resolution: {integrity: sha512-W6jFkVEjnoq5ylGOvYOOaNvEZ1cGSEN/YJsZTcBVye81nQtW5R7QWClvNsJVD1LjwgWGMVKWglrFlfHvvkKnmg==}
-    dependencies:
-      axios: 1.7.2
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /@parcel/watcher-android-arm64@2.4.1:
@@ -10317,9 +10312,8 @@ packages:
     resolution: {integrity: sha512-gFqAIbuKyyso/3G2qhiO2OM6shY6EPP/R0+mkDbyspxKazh8BXDC5FiFsUjlczgdNz/vfra0da2y+aHrusLG/Q==}
     hasBin: true
 
-  /jose@5.3.0:
-    resolution: {integrity: sha512-IChe9AtAE79ru084ow8jzkN2lNrG3Ntfiv65Cvj9uOCE2m5LNsdHG+9EbxWxAoWRF9TgDOqLN5jm08++owDVRg==}
-    dev: true
+  /jose@5.5.0:
+    resolution: {integrity: sha512-DUPr/1kYXbuqYpkCj9r66+B4SGCKXCLQ5ZbKCgmn4sJveJqcwNqWtAR56u4KPmpXjrmBO2uNuLdEAEiqIhFNBg==}
 
   /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}

@@ -1,6 +1,7 @@
 log:
   level: debug
   format: json
+  leak_sensitive_values: true
 
 tracing:
   provider: otel
@@ -27,6 +28,16 @@ authenticators:
       preserve_path: true
       subject_from: identity.id
       extra_from: identity.traits
+      only:
+        - ory_kratos_session
+
+  anonymous:
+    enabled: true
+    config:
+      subject: anonymous
+
+  noop:
+    enabled: true
 
 authorizers:
   allow:
@@ -37,7 +48,7 @@ mutators:
     enabled: true
     config:
       jwks_url: file:///home/ory/jwks.json
-      issuer_url: "galoy.io"
+      issuer_url: "lava.bank"
       claims: '{"sub": "{{ print .Subject }}" }'
 
   header:

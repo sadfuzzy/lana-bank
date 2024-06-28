@@ -9,10 +9,7 @@ serve:
       enabled: true
       allow_credentials: true
       allowed_origins:
-        - http://127.0.0.1:4433
-        - http://0.0.0.0:4434
-        - http://localhost:3000
-        - http://127.0.0.1:3000
+        - http://127.0.0.1:4455
       allowed_methods:
         - POST
         - GET
@@ -28,15 +25,13 @@ serve:
         - Content-Type
         - Set-Cookie
       debug: true
-
   admin:
     base_url: http://0.0.0.0:4434/
 
 selfservice:
-  default_browser_return_url: http://localhost:3000/
+  default_browser_return_url: http://127.0.0.1:4455/
   allowed_return_urls:
     - http://127.0.0.1:4455/
-    - http://localhost:3000/
 
   methods:
     oidc:
@@ -55,7 +50,7 @@ selfservice:
 
   flows:
     error:
-      ui_url: http://127.0.0.1:4455/error
+      ui_url: http://127.0.0.1:4455/_error
 
     settings:
       ui_url: http://127.0.0.1:4455/settings
@@ -94,10 +89,10 @@ selfservice:
 
     logout:
       after:
-        default_browser_return_url: http://127.0.0.1:4455/login
+        default_browser_return_url: http://127.0.0.1:4455/auth
 
     login:
-      ui_url: http://localhost:3000/auth
+      ui_url: http://127.0.0.1:4455/auth
       lifespan: 10m
 
       # this below make phone authentication fails even if there is no email in the schema
@@ -108,7 +103,7 @@ selfservice:
 
     registration:
       lifespan: 10m
-      ui_url: http://localhost:3000/auth
+      ui_url: http://127.0.0.1:4455/auth
       after:
         code:
           hooks:

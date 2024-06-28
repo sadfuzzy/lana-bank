@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import {
@@ -13,20 +14,16 @@ import {
 } from "@/components/primitive/card"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/primitive/otp-input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
-import { submitOtpLogin } from "@/lib/auth/server-actions/submit-otp-login"
-import { submitOtpRegister } from "@/lib/auth/server-actions/submit-otp-register"
 
-type FormType = "SIGN_IN" | "REGISTER"
+import { submitAuthFlow } from "@/lib/kratos/public/submit-auth-flow"
 
-const OtpForm = ({
-  formType,
-  flowId,
-  email,
-}: {
-  formType: FormType
+export type OtpParams = {
   flowId: string
-  email: string
-}) => {
+  type: "login" | "register"
+}
+
+const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
+  const router = useRouter()
   const [otp, setOtp] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -37,16 +34,11 @@ const OtpForm = ({
     if (otp.length !== 6) return
     setError(null)
 
-    if (formType === "SIGN_IN") {
-      const response = await submitOtpLogin({ code: otp, flowId, email })
-      if (response && response.error?.message) {
-        setError(response?.error.message)
-      }
-    } else {
-      const response = await submitOtpRegister({ code: otp, flowId, email })
-      if (response && response.error?.message) {
-        setError(response.error.message)
-      }
+    try {
+      await submitAuthFlow({ flowId, otp, type })
+      router.replace("/")
+    } catch {
+      setError("Invalid OTP or OTP has expired. Please go back and try again.")
     }
   }
 
