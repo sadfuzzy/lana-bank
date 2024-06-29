@@ -50,7 +50,7 @@ mutation CompleteLoanTemplateCreate(
           default: "date()"
         }
       ]
-      txInput: {
+      transaction: {
         journalId: $journalId
         effective: "params.effective"
         externalId: "params.externalId"

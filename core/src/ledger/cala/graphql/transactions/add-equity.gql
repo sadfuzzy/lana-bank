@@ -27,7 +27,7 @@ mutation AddEquityTemplateCreate(
           description: "External ID for the transaction"
         }
       ]
-      txInput: {
+      transaction: {
         journalId: $journalId
         effective: "params.effective"
         externalId: "params.externalId"
