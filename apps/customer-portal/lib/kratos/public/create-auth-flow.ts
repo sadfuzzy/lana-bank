@@ -1,5 +1,7 @@
 import { AxiosError } from "axios"
 
+import { InvalidFlowError, UserNotExistError } from "../error"
+
 import { kratosPublic } from "@/lib/kratos/sdk"
 import { getCsrfToken, kratosUiMessageIds } from "@/lib/kratos/utils"
 
@@ -8,8 +10,6 @@ import { OtpParams } from "@/components/auth/otp-form"
 type IdentityTraits = {
   email: string
 }
-class InvalidFlowError extends Error {}
-class UserNotExistError extends Error {}
 
 const createLoginFlow = async ({ email }: IdentityTraits): Promise<OtpParams> => {
   const flow = await kratosPublic.createBrowserLoginFlow()

@@ -15,7 +15,10 @@ import {
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/primitive/otp-input"
 import { Alert, AlertDescription } from "@/components/primitive/alert"
 
-import { submitAuthFlow } from "@/lib/kratos/public/submit-auth-flow"
+import {
+  checkIfTwoFactorRequired,
+  submitAuthFlow,
+} from "@/lib/kratos/public/submit-auth-flow"
 
 export type OtpParams = {
   flowId: string
@@ -36,10 +39,21 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
 
     try {
       await submitAuthFlow({ flowId, otp, type })
-      router.replace("/")
-    } catch {
-      setError("Invalid OTP or OTP has expired. Please go back and try again.")
+    } catch (error) {
+      console.error(error)
+      setError("Invalid OTP or OTP has expired. Please go back and try again")
+      return
     }
+
+    const checkIfTwoFactorRequiredResponse = await checkIfTwoFactorRequired()
+    if (checkIfTwoFactorRequiredResponse instanceof Error) {
+      setError(checkIfTwoFactorRequiredResponse.message)
+      return
+    }
+
+    if (checkIfTwoFactorRequiredResponse.userHasTotp)
+      router.replace(`/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
+    else router.replace("/")
   }
 
   return (

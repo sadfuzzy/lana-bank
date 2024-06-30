@@ -1,4 +1,10 @@
-import { LoginFlow, RegistrationFlow, UiNode, UiNodeAttributes } from "@ory/client"
+import {
+  LoginFlow,
+  RegistrationFlow,
+  SettingsFlow,
+  UiNode,
+  UiNodeAttributes,
+} from "@ory/client"
 
 export const kratosUiMessageIds = {
   USER_NOT_EXIST: 4000035,
@@ -6,7 +12,9 @@ export const kratosUiMessageIds = {
   OTP_EMAIL_SENT_REGISTER: 1040005,
 } as const
 
-export const getCsrfToken = (flow: LoginFlow | RegistrationFlow): string | undefined => {
+export const getCsrfToken = (
+  flow: LoginFlow | RegistrationFlow | SettingsFlow,
+): string | undefined => {
   for (const node of flow.ui.nodes) {
     if (isInputNode(node)) {
       if (node.attributes.name === "csrf_token") {
