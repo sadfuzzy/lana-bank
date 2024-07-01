@@ -14,6 +14,9 @@
           "minLength": 3,
           "ory.sh/kratos": {
             "credentials": {
+              "webauthn": {
+                "identifier": true
+              },
               "code": {
                 "identifier": true,
                 "via": "email"

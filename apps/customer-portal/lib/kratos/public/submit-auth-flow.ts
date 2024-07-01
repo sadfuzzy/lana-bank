@@ -86,8 +86,18 @@ export const checkIfTwoFactorRequired = async () => {
       return false
     }) !== undefined
 
+  const userHasWebAuth =
+    data.ui.nodes.find((node: UiNode) => {
+      if (node.group === "webauthn") {
+        const attributes = node.attributes as UiNodeInputAttributes
+        return attributes.name === "webauthn_login_trigger"
+      }
+      return false
+    }) !== undefined
+
   return {
     flowId: data.id,
     userHasTotp,
+    userHasWebAuth,
   }
 }

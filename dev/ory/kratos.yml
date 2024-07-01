@@ -4,12 +4,12 @@ dsn: "overridden-by-env"
 
 serve:
   public:
-    base_url: http://127.0.0.1:4433/
+    base_url: http://localhost:4433/
     cors:
       enabled: true
       allow_credentials: true
       allowed_origins:
-        - http://127.0.0.1:4455
+        - http://localhost:4455
       allowed_methods:
         - POST
         - GET
@@ -29,15 +29,21 @@ serve:
     base_url: http://0.0.0.0:4434/
 
 selfservice:
-  default_browser_return_url: http://127.0.0.1:4455/
+  default_browser_return_url: http://localhost:4455/
   allowed_return_urls:
-    - http://127.0.0.1:4455/
-
+    - http://localhost:4455/
   methods:
     oidc:
       enabled: false
     webauthn:
-      enabled: false
+      enabled: true
+      config:
+        passwordless: false
+        rp:
+          id: localhost
+          origins:
+            - http://localhost:4455
+          display_name: lava-bank
     totp:
       enabled: true
 
@@ -50,10 +56,10 @@ selfservice:
 
   flows:
     error:
-      ui_url: http://127.0.0.1:4455/_error
+      ui_url: http://localhost:4455/_error
 
     settings:
-      ui_url: http://127.0.0.1:4455/settings
+      ui_url: http://localhost:4455/settings
 
       # very short time frame because this has impact in the totp flow
       privileged_session_max_age: 10m
@@ -79,7 +85,7 @@ selfservice:
 
     recovery:
       enabled: true
-      ui_url: http://127.0.0.1:4455/recovery
+      ui_url: http://localhost:4455/recovery
 
     verification:
       use: code
@@ -89,10 +95,10 @@ selfservice:
 
     logout:
       after:
-        default_browser_return_url: http://127.0.0.1:4455/auth
+        default_browser_return_url: http://localhost:4455/auth
 
     login:
-      ui_url: http://127.0.0.1:4455/auth
+      ui_url: http://localhost:4455/auth
       lifespan: 10m
 
       # this below make phone authentication fails even if there is no email in the schema
@@ -103,7 +109,7 @@ selfservice:
 
     registration:
       lifespan: 10m
-      ui_url: http://127.0.0.1:4455/auth
+      ui_url: http://localhost:4455/auth
       after:
         code:
           hooks:

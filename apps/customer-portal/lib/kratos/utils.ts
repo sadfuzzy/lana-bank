@@ -5,6 +5,7 @@ import {
   UiNode,
   UiNodeAttributes,
 } from "@ory/client"
+import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies"
 
 export const kratosUiMessageIds = {
   USER_NOT_EXIST: 4000035,
@@ -54,4 +55,19 @@ export const emailParserFromUiNodeLogin = (nodes: UiNode[]): string | null => {
     }
   })
   return email
+}
+
+export const getCsrfCookiesAsString = (allCookies: RequestCookie[]): string => {
+  const csrfCookies = allCookies
+    .filter((cookie) => cookie.name.toLowerCase().startsWith("csrf_token"))
+    .reduce((obj: { [key: string]: string }, cookie) => {
+      obj[cookie.name] = cookie.value
+      return obj
+    }, {})
+
+  const cookieString = Object.entries(csrfCookies)
+    .map(([key, value]) => `${key}=${value}`)
+    .join("; ")
+
+  return cookieString
 }

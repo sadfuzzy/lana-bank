@@ -51,9 +51,23 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
       return
     }
 
+    if (
+      checkIfTwoFactorRequiredResponse.userHasWebAuth &&
+      checkIfTwoFactorRequiredResponse.userHasTotp
+    )
+      return router.replace(`/auth/2fa?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
+
     if (checkIfTwoFactorRequiredResponse.userHasTotp)
-      router.replace(`/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
-    else router.replace("/")
+      return router.replace(
+        `/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`,
+      )
+
+    if (checkIfTwoFactorRequiredResponse.userHasWebAuth)
+      return router.replace(
+        `/auth/2fa/webauthn?flowId=${checkIfTwoFactorRequiredResponse.flowId}`,
+      )
+
+    router.replace("/")
   }
 
   return (
