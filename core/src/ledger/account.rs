@@ -1,4 +1,4 @@
-use crate::primitives::{LedgerAccountId, LedgerAccountSetId, Satoshis, UsdCents};
+use crate::primitives::{Satoshis, UsdCents};
 
 use super::cala::graphql::*;
 
@@ -61,6 +61,7 @@ pub struct LayeredBtcAccountBalances {
     pub settled: BtcAccountBalance,
     pub pending: BtcAccountBalance,
     pub encumbrance: BtcAccountBalance,
+    pub all_layers: BtcAccountBalance,
 }
 
 impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccountBalances {
@@ -69,6 +70,7 @@ impl From<trial_balance::TrialBalanceAccountSetBtcBalances> for LayeredBtcAccoun
             settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
             pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
             encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
+            all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
         }
     }
 }
@@ -78,6 +80,7 @@ pub struct LayeredUsdAccountBalances {
     pub settled: UsdAccountBalance,
     pub pending: UsdAccountBalance,
     pub encumbrance: UsdAccountBalance,
+    pub all_layers: UsdAccountBalance,
 }
 
 impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccountBalances {
@@ -86,6 +89,7 @@ impl From<trial_balance::TrialBalanceAccountSetUsdBalances> for LayeredUsdAccoun
             settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
             pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
             encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
+            all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
         }
     }
 }
@@ -95,13 +99,6 @@ pub struct LedgerAccountBalancesByCurrency {
     pub btc: LayeredBtcAccountBalances,
     pub usd: LayeredUsdAccountBalances,
     pub usdt: LayeredUsdAccountBalances,
-}
-
-pub struct LedgerAccount {
-    pub id: LedgerAccountId,
-    pub settled_btc_balance: Satoshis,
-    pub settled_usd_balance: UsdCents,
-    pub account_set_ids: Vec<LedgerAccountSetId>,
 }
 
 #[derive(Debug, Clone)]
@@ -128,52 +125,6 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
                     LayeredUsdAccountBalances::from,
                 ),
             },
-        }
-    }
-}
-
-impl From<account_by_external_id::AccountByExternalIdAccountByExternalId> for LedgerAccount {
-    fn from(account: account_by_external_id::AccountByExternalIdAccountByExternalId) -> Self {
-        LedgerAccount {
-            id: LedgerAccountId::from(account.account_id),
-            settled_usd_balance: account
-                .usd_balance
-                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| UsdCents::ZERO),
-            settled_btc_balance: account
-                .btc_balance
-                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
-                .unwrap_or_else(|| Satoshis::ZERO),
-            account_set_ids: account
-                .sets
-                .edges
-                .iter()
-                .map(|e| e.node.account_set_id)
-                .map(LedgerAccountSetId::from)
-                .collect(),
-        }
-    }
-}
-
-impl From<account_by_id::AccountByIdAccount> for LedgerAccount {
-    fn from(account: account_by_id::AccountByIdAccount) -> Self {
-        LedgerAccount {
-            id: LedgerAccountId::from(account.account_id),
-            settled_usd_balance: account
-                .usd_balance
-                .map(|b| UsdCents::from_usd(b.settled.normal_balance.units))
-                .unwrap_or_else(|| UsdCents::ZERO),
-            settled_btc_balance: account
-                .btc_balance
-                .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))
-                .unwrap_or_else(|| Satoshis::ZERO),
-            account_set_ids: account
-                .sets
-                .edges
-                .iter()
-                .map(|e| e.node.account_set_id)
-                .map(LedgerAccountSetId::from)
-                .collect(),
         }
     }
 }
