@@ -1,13 +1,5 @@
 import { gql } from "@apollo/client"
 
-import {
-  GetUserByUserIdDocument,
-  GetUserByUserIdQuery,
-  GetUserByUserIdQueryVariables,
-} from "../generated"
-
-import { performQuery } from "."
-
 gql`
   query getUserByUserId($id: UUID!) {
     user(id: $id) {
@@ -33,12 +25,3 @@ gql`
     }
   }
 `
-
-export function getUserByUserId(
-  variables: GetUserByUserIdQueryVariables,
-): Promise<Error | GetUserByUserIdQuery> {
-  return performQuery<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>(
-    GetUserByUserIdDocument,
-    variables,
-  )
-}

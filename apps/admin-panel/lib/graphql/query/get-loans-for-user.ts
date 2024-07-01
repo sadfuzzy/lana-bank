@@ -1,13 +1,5 @@
 import { gql } from "@apollo/client"
 
-import {
-  GetLoansForUserDocument,
-  GetLoansForUserQuery,
-  GetLoansForUserQueryVariables,
-} from "../generated"
-
-import { performQuery } from "."
-
 gql`
   query GetLoansForUser($id: UUID!) {
     user(id: $id) {
@@ -29,12 +21,3 @@ gql`
     }
   }
 `
-
-export function getLoansForUser(
-  variables: GetLoansForUserQueryVariables,
-): Promise<Error | GetLoansForUserQuery> {
-  return performQuery<GetLoansForUserQuery, GetLoansForUserQueryVariables>(
-    GetLoansForUserDocument,
-    variables,
-  )
-}

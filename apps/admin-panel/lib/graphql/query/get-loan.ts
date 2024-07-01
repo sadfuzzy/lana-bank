@@ -1,13 +1,5 @@
 import { gql } from "@apollo/client"
 
-import {
-  GetLoanDetailsDocument,
-  GetLoanDetailsQuery,
-  GetLoanDetailsQueryVariables,
-} from "../generated"
-
-import { performQuery } from "."
-
 gql`
   query GetLoanDetails($id: UUID!) {
     loan(id: $id) {
@@ -29,12 +21,3 @@ gql`
     }
   }
 `
-
-export function getLoanDetails(
-  variables: GetLoanDetailsQueryVariables,
-): Promise<Error | GetLoanDetailsQuery> {
-  return performQuery<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>(
-    GetLoanDetailsDocument,
-    variables,
-  )
-}

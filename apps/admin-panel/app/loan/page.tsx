@@ -1,5 +1,6 @@
-import React from "react"
-import { redirect } from "next/navigation"
+"use client"
+import React, { useEffect, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
@@ -7,31 +8,45 @@ import { Label } from "@/components/primitive/label"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
-import { getLoanDetails } from "@/lib/graphql/query/get-loan"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { useGetLoanDetailsQuery } from "@/lib/graphql/generated"
 
-const searchLoan = async (formData: FormData) => {
-  "use server"
-  const loanId = formData.get("loanId")
-  if (!loanId || typeof loanId !== "string") {
-    redirect(`/loan`)
-  }
-  redirect(`/loan?loanId=${loanId}`)
-}
+function LoanPage() {
+  const searchParams = useSearchParams()
+  const loanIdParam = searchParams.get("loanId")
+  const router = useRouter()
 
-async function LoanPage({
-  searchParams,
-}: {
-  searchParams: {
-    loanId: string
-  }
-}) {
-  const loanId = searchParams.loanId
-  let loanDetails = null
+  const [loanId, setLoanId] = useState(loanIdParam)
+  const [inputLoanId, setInputLoanId] = useState("")
 
-  if (loanId) {
-    loanDetails = await getLoanDetails({ id: loanId })
+  useEffect(() => {
+    setLoanId(loanIdParam)
+  }, [loanIdParam])
+
+  const {
+    loading,
+    error,
+    data: loanDetails,
+    refetch,
+  } = useGetLoanDetailsQuery({
+    skip: !loanId,
+    variables: {
+      id: loanId || "",
+    },
+  })
+
+  useEffect(() => {
+    if (loanId) {
+      const interval = setInterval(() => {
+        refetch()
+      }, 10000)
+      return () => clearInterval(interval)
+    }
+  }, [loanId, refetch])
+
+  const handleSearch = () => {
+    router.push(`?loanId=${inputLoanId}`)
   }
 
   return (
@@ -39,15 +54,25 @@ async function LoanPage({
       <PageHeading>Loan</PageHeading>
       <div className="mt-4 mb-4 max-w-[30rem]">
         <Label htmlFor="loanId">Loan ID</Label>
-        <form className="flex gap-2" action={searchLoan}>
-          <Input placeholder="Find a loan by loan ID" id="loanId" name="loanId" />
-          <Button variant="secondary">Search</Button>
-        </form>
+        <div className="flex gap-2">
+          <Input
+            onChange={(e) => setInputLoanId(e.target.value)}
+            placeholder="Find a loan by loan ID"
+            id="loanId"
+            name="loanId"
+            value={inputLoanId}
+          />
+          <Button onClick={handleSearch} variant="secondary">
+            Search
+          </Button>
+        </div>
       </div>
 
       <Card className="max-w-[60rem]">
-        {loanDetails instanceof Error ? (
-          <CardContent className="pt-6">{loanDetails.message}</CardContent>
+        {loading ? (
+          <CardContent className="pt-6">Loading...</CardContent>
+        ) : error ? (
+          <CardContent className="pt-6">{error.message}</CardContent>
         ) : loanDetails?.loan ? (
           <>
             <CardHeader>
@@ -87,7 +112,9 @@ async function LoanPage({
           </>
         ) : loanId && !loanDetails?.loan ? (
           <CardContent className="pt-6">No loan found with this ID</CardContent>
-        ) : null}
+        ) : (
+          <CardContent className="pt-6">Enter a loan ID to find a Loan</CardContent>
+        )}
       </Card>
     </main>
   )
