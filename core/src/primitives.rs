@@ -9,6 +9,8 @@ crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
+crate::entity_id! { LoanId}
+crate::entity_id! { LoanTermsId}
 
 // Consider importing from cala
 #[derive(Debug)]
