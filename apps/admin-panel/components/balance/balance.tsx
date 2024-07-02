@@ -30,11 +30,8 @@ type BalanceProps = {
   currency: Currency
 }
 const Balance: React.FC<BalanceProps> = ({ amount, currency }) => {
-  const currencySymbol = currency === "btc" ? "₿" : "$"
-
   return (
     <div className="flex justify-end space-x-1">
-      <div className="">{currencySymbol}</div>
       <div className="font-mono">{formatAmount(amount, currency)}</div>
     </div>
   )

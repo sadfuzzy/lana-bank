@@ -69,12 +69,12 @@ function TrialBalancePage() {
               <Label htmlFor="layer-all">All</Label>
             </div>
             <div className="flex items-center space-x-2">
-              <RadioGroupItem value="pending" id="layer-pending" />
-              <Label htmlFor="layer-pending">Pending</Label>
-            </div>
-            <div className="flex items-center space-x-2">
               <RadioGroupItem value="settled" id="layer-settled" />
               <Label htmlFor="layer-settled">Settled</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="pending" id="layer-pending" />
+              <Label htmlFor="layer-pending">Pending</Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="encumbrance" id="layer-encumbrance" />
@@ -86,7 +86,7 @@ function TrialBalancePage() {
 
       <Table className="mt-4">
         <TableHeader>
-          <TableHead>Member</TableHead>
+          <TableHead>Account Name</TableHead>
           <TableHead className="text-right">Debit</TableHead>
           <TableHead className="text-right">Credit</TableHead>
           <TableHead className="text-right">Net</TableHead>
@@ -118,9 +118,7 @@ function TrialBalancePage() {
         </TableBody>
         <TableFooter className="border-t-4">
           <TableRow>
-            <TableCell className="text-right uppercase font-bold pr-10">
-              Total Balance
-            </TableCell>
+            <TableCell className="text-right uppercase font-bold pr-10">Totals</TableCell>
             <TableCell className="w-48">
               <Balance currency={currency} amount={balance[currency][layer].debit} />
             </TableCell>
