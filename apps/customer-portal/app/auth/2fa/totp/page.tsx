@@ -3,7 +3,7 @@ import { redirect } from "next/navigation"
 import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 import { TotpForm } from "@/components/auth/totp-form"
 
-async function TwoFactorAuthPage({
+async function TwoFactorAuthWithTotpPage({
   searchParams,
 }: {
   searchParams: {
@@ -19,4 +19,4 @@ async function TwoFactorAuthPage({
     </AuthTemplateCard>
   )
 }
-export default TwoFactorAuthPage
+export default TwoFactorAuthWithTotpPage

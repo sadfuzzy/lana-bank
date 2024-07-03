@@ -1,5 +1,7 @@
 import { useState } from "react"
 
+import { toast } from "sonner"
+
 import { Button } from "@/components/primitive/button"
 import {
   Dialog,
@@ -27,7 +29,6 @@ export interface AuthenticatorDialogProps {
 }
 
 const SetupWebAuth = () => {
-  const [error, setError] = useState<string | null>(null)
   const [webAuthPasskeyName, setWebAuthPasskeyName] = useState<string>("")
   const [openNameWebAuthnDialog, setOpenNameWebAuthnDialog] = useState<boolean>(false)
   const [webAuthData, setWebAuthData] = useState<{
@@ -39,7 +40,7 @@ const SetupWebAuth = () => {
   const handlePassKeySetup = async () => {
     const createPasskeySetupResponse = await createPasskeySetup()
     if (createPasskeySetupResponse instanceof Error) {
-      setError(createPasskeySetupResponse.message)
+      toast.error(createPasskeySetupResponse.message)
       return
     }
     const { webauthnRegisterTrigger, flowId, csrfToken } = createPasskeySetupResponse
@@ -52,7 +53,7 @@ const SetupWebAuth = () => {
       console.log(signupWithPasskeyResponse)
 
       if (!signupWithPasskeyResponse) {
-        setError("Error Adding passkey")
+        toast.error("Error Adding passkey")
       }
 
       setWebAuthData({
@@ -64,7 +65,7 @@ const SetupWebAuth = () => {
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
-        setError(error.message)
+        toast.error(error.message)
       }
     }
   }
@@ -82,19 +83,18 @@ const SetupWebAuth = () => {
     })
 
     if (validateWebAuthResponse instanceof Error) {
-      setError(validateWebAuthResponse.message)
+      toast.error(validateWebAuthResponse.message)
       return
     }
 
+    toast.success("Passkey added successfully")
     setOpenNameWebAuthnDialog(false)
   }
 
   return (
     <>
-      {error && <p>{error}</p>}
       <Button
-        className=" text-left items-start justify-start "
-        variant="ghost"
+        className="text-left items-start justify-start"
         onClick={handlePassKeySetup}
       >
         Setup PassKey
@@ -102,7 +102,6 @@ const SetupWebAuth = () => {
       <Dialog
         open={openNameWebAuthnDialog}
         onOpenChange={() => {
-          setError(null)
           setOpenNameWebAuthnDialog(!openNameWebAuthnDialog)
         }}
       >

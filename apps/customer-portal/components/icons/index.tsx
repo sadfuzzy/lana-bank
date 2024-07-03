@@ -4,5 +4,20 @@ import CrossIcon from "@/public/icons/cross.svg"
 import BitcoinIcon from "@/public/icons/bitcoin.svg"
 import RocketIcon from "@/public/icons/rocket.svg"
 import CopyIcon from "@/public/icons/copy.svg"
+import DownloadIcon from "@/public/icons/download.svg"
+import LoanIcon from "@/public/icons/loan.svg"
+import LavaBankIcon from "@/public/icons/lava-bank-icon.svg"
+import PersonIcon from "@/public/icons/person.svg"
 
-export { CheckMarkIcon, ChevronDownIcon, CrossIcon, BitcoinIcon, RocketIcon, CopyIcon }
+export {
+  CheckMarkIcon,
+  ChevronDownIcon,
+  CrossIcon,
+  BitcoinIcon,
+  RocketIcon,
+  CopyIcon,
+  DownloadIcon,
+  LoanIcon,
+  LavaBankIcon,
+  PersonIcon,
+}

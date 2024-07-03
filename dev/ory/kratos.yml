@@ -171,7 +171,7 @@ courier:
             html: base64://SGksCgpZb3UgY2FuIGNvbmZpcm0gYWNjZXNzIHRvIHlvdXIgYmxpbmsgYWNjb3VudCBieSBlbnRlcmluZyB0aGUgZm9sbG93aW5nIGNvZGU6Cgp7eyAuUmVjb3ZlcnlDb2RlIH19CgpEb24ndCBzaGFyZSB0aGlzIGNvZGUgd2l0aCBhbnlvbmUuIE91ciBlbXBsb3llZSB3aWxsIG5ldmVyIGFzayBmb3IgdGhpcyBjb2RlCg==
 
 session:
-  lifespan: "1h"
+  lifespan: "10h"
 
   whoami:
     required_aal: highest_available

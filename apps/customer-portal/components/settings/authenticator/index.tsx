@@ -1,6 +1,8 @@
 import QRCode from "react-qr-code"
 import { useState } from "react"
 
+import { toast } from "sonner"
+
 import { Button } from "@/components/primitive/button"
 import { CopyButton } from "@/components/primitive/copy-button"
 import {
@@ -33,7 +35,6 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
   onSubmit,
   onChange,
   totpCode,
-  error,
 }) => (
   <Dialog
     open={open}
@@ -64,7 +65,6 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
         <Button className="w-full" onClick={onSubmit}>
           Submit
         </Button>
-        {error && <p className="text-red-500">{error}</p>}
       </div>
     </DialogContent>
   </Dialog>
@@ -114,6 +114,7 @@ const SetupAuthenticator = () => {
     }
 
     if (response.success) {
+      toast.success("Authenticator app setup successfully")
       setOpenTotpDialog(false)
     }
   }
@@ -125,7 +126,6 @@ const SetupAuthenticator = () => {
         <AuthenticatorDialog
           open={openTotpDialog}
           onClose={() => {
-            setError(null)
             setTotpCode("")
             setOpenTotpDialog(!openTotpDialog)
           }}

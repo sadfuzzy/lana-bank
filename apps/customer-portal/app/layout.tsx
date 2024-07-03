@@ -3,6 +3,8 @@ import { Inter_Tight } from "next/font/google"
 
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
+import { Toaster } from "@/components/primitive/toast"
+import NavBar from "@/components/nav-bar"
 
 export const metadata: Metadata = {
   title: "Lava Bank",
@@ -17,7 +19,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <NavBar />
+        {children}
+        <Toaster />
+      </body>
     </html>
   )
 }
