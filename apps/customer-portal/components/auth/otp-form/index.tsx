@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
@@ -30,45 +30,49 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
   const [otp, setOtp] = useState("")
   const [error, setError] = useState<string | null>(null)
 
-  const submitOtpHandler = async (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
-    event.preventDefault()
-    if (otp.length !== 6) return
+  const handleOtpSubmission = async () => {
+    if (otp.length !== 6) {
+      setError("Please enter a complete 6-digit OTP.")
+      return
+    }
     setError(null)
 
     try {
       await submitAuthFlow({ flowId, otp, type })
+      const response = await checkIfTwoFactorRequired()
+      if (response instanceof Error) {
+        setError(response.message)
+        return
+      }
+
+      if (response.userHasWebAuth && response.userHasTotp) {
+        router.replace(`/auth/2fa?flowId=${response.flowId}`)
+      } else if (response.userHasTotp) {
+        router.replace(`/auth/2fa/totp?flowId=${response.flowId}`)
+      } else if (response.userHasWebAuth) {
+        router.replace(`/auth/2fa/webauth?flowId=${response.flowId}`)
+      } else {
+        router.replace("/")
+      }
     } catch (error) {
       console.error(error)
-      setError("Invalid OTP or OTP has expired. Please go back and try again")
-      return
+      setError("Invalid OTP or OTP has expired. Please go back and try again.")
     }
-
-    const checkIfTwoFactorRequiredResponse = await checkIfTwoFactorRequired()
-    if (checkIfTwoFactorRequiredResponse instanceof Error) {
-      setError(checkIfTwoFactorRequiredResponse.message)
-      return
-    }
-
-    if (
-      checkIfTwoFactorRequiredResponse.userHasWebAuth &&
-      checkIfTwoFactorRequiredResponse.userHasTotp
-    )
-      return router.replace(`/auth/2fa?flowId=${checkIfTwoFactorRequiredResponse.flowId}`)
-
-    if (checkIfTwoFactorRequiredResponse.userHasTotp)
-      return router.replace(
-        `/auth/2fa/totp?flowId=${checkIfTwoFactorRequiredResponse.flowId}`,
-      )
-
-    if (checkIfTwoFactorRequiredResponse.userHasWebAuth)
-      return router.replace(
-        `/auth/2fa/webauthn?flowId=${checkIfTwoFactorRequiredResponse.flowId}`,
-      )
-
-    router.replace("/")
   }
+
+  const submitOtpHandler = async (
+    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+  ) => {
+    event.preventDefault()
+    handleOtpSubmission()
+  }
+
+  useEffect(() => {
+    if (otp.length === 6) {
+      handleOtpSubmission()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otp, flowId, type, router])
 
   return (
     <Card variant="transparent" className="md:w-2/5">
