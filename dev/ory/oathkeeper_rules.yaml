@@ -16,7 +16,7 @@
   upstream:
     url: "http://dockerhost-alias:4433"
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/self-service/<.*>"
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(sessions|self-service)>/<.*>"
     methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
   authenticators:
     - handler: noop
@@ -30,7 +30,7 @@
     url: "http://dockerhost-alias:3000"
     preserve_host: true
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!self-service|graphql).*>"
+    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql).*>"
     methods: ["POST", "GET", "OPTIONS"]
   authenticators:
     - handler: cookie_session
