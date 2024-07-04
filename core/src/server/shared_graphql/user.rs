@@ -1,19 +1,36 @@
 use async_graphql::*;
 
+use crate::primitives;
+
 use crate::primitives::UserId;
-use crate::{app::LavaApp, ledger, primitives::UsdCents, server::shared_graphql::primitives::UUID};
+use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::UUID};
 
-use super::objects::{BtcBalance, UsdBalance};
-
+use super::balance::UserBalance;
 use super::fixed_term_loan::FixedTermLoan;
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum KycLevel {
+    Zero,
+    One,
+    Two,
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum AccountStatus {
+    Active,
+    Inactive,
+}
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct User {
     user_id: UUID,
+    email: String,
     btc_deposit_address: String,
     ust_deposit_address: String,
-    email: String,
+    status: AccountStatus,
+    level: KycLevel,
+    applicant_id: Option<String>,
     #[graphql(skip)]
     account_ids: ledger::user::UserLedgerAccountIds,
 }
@@ -41,68 +58,36 @@ impl User {
     }
 }
 
+impl From<primitives::KycLevel> for KycLevel {
+    fn from(level: primitives::KycLevel) -> Self {
+        match level {
+            primitives::KycLevel::NotKyced => KycLevel::Zero,
+            primitives::KycLevel::Basic => KycLevel::One,
+            primitives::KycLevel::Advanced => KycLevel::Two,
+        }
+    }
+}
+
+impl From<primitives::AccountStatus> for AccountStatus {
+    fn from(level: primitives::AccountStatus) -> Self {
+        match level {
+            primitives::AccountStatus::Active => AccountStatus::Active,
+            primitives::AccountStatus::Inactive => AccountStatus::Inactive,
+        }
+    }
+}
+
 impl From<crate::user::User> for User {
     fn from(user: crate::user::User) -> Self {
         User {
             user_id: UUID::from(user.id),
+            applicant_id: user.applicant_id,
             btc_deposit_address: user.account_addresses.btc_address,
             ust_deposit_address: user.account_addresses.tron_usdt_address,
             email: user.email,
             account_ids: user.account_ids,
-        }
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct Withdrawal {
-    user_id: UUID,
-    withdrawal_id: UUID,
-    amount: UsdCents,
-}
-
-impl From<crate::withdraw::Withdraw> for Withdrawal {
-    fn from(withdraw: crate::withdraw::Withdraw) -> Self {
-        Withdrawal {
-            withdrawal_id: UUID::from(withdraw.id),
-            user_id: UUID::from(withdraw.user_id),
-            amount: withdraw.amount,
-        }
-    }
-}
-
-#[derive(SimpleObject)]
-struct UnallocatedCollateral {
-    settled: BtcBalance,
-}
-
-#[derive(SimpleObject)]
-struct Checking {
-    settled: UsdBalance,
-    pending: UsdBalance,
-}
-
-#[derive(SimpleObject)]
-struct UserBalance {
-    unallocated_collateral: UnallocatedCollateral,
-    checking: Checking,
-}
-
-impl From<ledger::user::UserBalance> for UserBalance {
-    fn from(balance: ledger::user::UserBalance) -> Self {
-        Self {
-            unallocated_collateral: UnallocatedCollateral {
-                settled: BtcBalance {
-                    btc_balance: balance.btc_balance,
-                },
-            },
-            checking: Checking {
-                settled: UsdBalance {
-                    usd_balance: balance.usdt_balance.settled,
-                },
-                pending: UsdBalance {
-                    usd_balance: balance.usdt_balance.pending,
-                },
-            },
+            status: AccountStatus::from(user.status),
+            level: KycLevel::from(user.level),
         }
     }
 }

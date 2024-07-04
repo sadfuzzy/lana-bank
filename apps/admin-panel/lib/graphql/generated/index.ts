@@ -50,6 +50,11 @@ export type AccountSetBalance = {
 
 export type AccountSetMemberBalance = AccountBalance | AccountSetBalance;
 
+export enum AccountStatus {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
+
 export type BtcAccountBalance = {
   __typename?: 'BtcAccountBalance';
   credit: Scalars['Satoshis']['output'];
@@ -92,6 +97,12 @@ export type InterestIncome = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export enum KycLevel {
+  One = 'ONE',
+  Two = 'TWO',
+  Zero = 'ZERO'
+}
+
 export type LayeredBtcAccountBalances = {
   __typename?: 'LayeredBtcAccountBalances';
   all: BtcAccountBalance;
@@ -116,11 +127,17 @@ export type LoanOutstanding = {
 export type Mutation = {
   __typename?: 'Mutation';
   shareholderEquityAdd: SuccessPayload;
+  sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
 };
 
 
 export type MutationShareholderEquityAddArgs = {
   input: ShareholderEquityAddInput;
+};
+
+
+export type MutationSumsubPermalinkCreateArgs = {
+  input: SumsubPermalinkCreateInput;
 };
 
 /** Information about pagination in a connection */
@@ -170,6 +187,15 @@ export type SuccessPayload = {
   success: Scalars['Boolean']['output'];
 };
 
+export type SumsubPermalinkCreateInput = {
+  userId: Scalars['String']['input'];
+};
+
+export type SumsubPermalinkCreatePayload = {
+  __typename?: 'SumsubPermalinkCreatePayload';
+  url: Scalars['String']['output'];
+};
+
 export type UnallocatedCollateral = {
   __typename?: 'UnallocatedCollateral';
   settled: BtcBalance;
@@ -189,10 +215,13 @@ export type UsdBalance = {
 
 export type User = {
   __typename?: 'User';
+  applicantId?: Maybe<Scalars['String']['output']>;
   balance: UserBalance;
   btcDepositAddress: Scalars['String']['output'];
   email: Scalars['String']['output'];
+  level: KycLevel;
   loans: Array<FixedTermLoan>;
+  status: AccountStatus;
   userId: Scalars['UUID']['output'];
   ustDepositAddress: Scalars['String']['output'];
 };
@@ -221,6 +250,13 @@ export type UserEdge = {
   /** The item at the end of the edge */
   node: User;
 };
+
+export type SumsubPermalinkCreateMutationVariables = Exact<{
+  input: SumsubPermalinkCreateInput;
+}>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -252,7 +288,7 @@ export type GetUserByUserIdQueryVariables = Exact<{
 }>;
 
 
-export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
 export type UsersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -324,6 +360,39 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
@@ -478,6 +547,9 @@ export const GetUserByUserIdDocument = gql`
   user(id: $id) {
     userId
     email
+    status
+    level
+    applicantId
     btcDepositAddress
     ustDepositAddress
     balance {

@@ -37,7 +37,7 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
         })
         .layer(Extension(schema));
 
-    println!("Starting public graphql server on port {}", config.port);
+    println!("Starting public server on port {}", config.port);
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
             .await?;

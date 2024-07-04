@@ -22,6 +22,11 @@ type AccountSetBalance {
 
 union AccountSetMemberBalance = AccountBalance | AccountSetBalance
 
+enum AccountStatus {
+	ACTIVE
+	INACTIVE
+}
+
 
 type BtcAccountBalance {
 	debit: Satoshis!
@@ -61,6 +66,12 @@ type InterestIncome {
 	usdBalance: UsdCents!
 }
 
+enum KycLevel {
+	ZERO
+	ONE
+	TWO
+}
+
 type LayeredBtcAccountBalances {
 	all: BtcAccountBalance!
 	settled: BtcAccountBalance!
@@ -81,6 +92,7 @@ type LoanOutstanding {
 
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
+	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 }
 
 """
@@ -124,6 +136,14 @@ type SuccessPayload {
 	success: Boolean!
 }
 
+input SumsubPermalinkCreateInput {
+	userId: String!
+}
+
+type SumsubPermalinkCreatePayload {
+	url: String!
+}
+
 scalar UUID
 
 type UnallocatedCollateral {
@@ -144,9 +164,12 @@ scalar UsdCents
 
 type User {
 	userId: UUID!
+	email: String!
 	btcDepositAddress: String!
 	ustDepositAddress: String!
-	email: String!
+	status: AccountStatus!
+	level: KycLevel!
+	applicantId: String
 	balance: UserBalance!
 	loans: [FixedTermLoan!]!
 }

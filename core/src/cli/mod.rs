@@ -31,6 +31,11 @@ struct Cli {
     bfx_key: String,
     #[clap(env = "BITFINEX_SECRET", default_value = "")]
     bfx_secret: String,
+    #[clap(env = "SUMSUB_KEY", default_value = "")]
+    sumsub_key: String,
+    #[clap(env = "SUMSUB_SECRET", default_value = "")]
+    sumsub_secret: String,
+    // TODO: callback secret
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -42,6 +47,8 @@ pub async fn run() -> anyhow::Result<()> {
             db_con: cli.pg_con,
             bfx_key: cli.bfx_key,
             bfx_secret: cli.bfx_secret,
+            sumsub_key: cli.sumsub_key,
+            sumsub_secret: cli.sumsub_secret,
         },
     )?;
 

@@ -25,6 +25,8 @@ pub struct EnvOverride {
     pub db_con: String,
     pub bfx_key: String,
     pub bfx_secret: String,
+    pub sumsub_key: String,
+    pub sumsub_secret: String,
 }
 
 impl Config {
@@ -34,6 +36,8 @@ impl Config {
             db_con,
             bfx_key,
             bfx_secret,
+            sumsub_key,
+            sumsub_secret,
         }: EnvOverride,
     ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
@@ -43,6 +47,8 @@ impl Config {
         config.db.pg_con = db_con;
         config.app.ledger.bfx_key = bfx_key;
         config.app.ledger.bfx_secret = bfx_secret;
+        config.app.sumsub.sumsub_key = sumsub_key;
+        config.app.sumsub.sumsub_secret = sumsub_secret;
 
         Ok(config)
     }

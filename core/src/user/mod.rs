@@ -3,7 +3,10 @@ mod entity;
 pub mod error;
 mod repo;
 
-use crate::{ledger::*, primitives::UserId};
+use crate::{
+    ledger::*,
+    primitives::{KycLevel, UserId},
+};
 
 pub use cursor::*;
 pub use entity::*;
@@ -12,7 +15,7 @@ pub use repo::UserRepo;
 
 #[derive(Clone)]
 pub struct Users {
-    _pool: sqlx::PgPool,
+    pool: sqlx::PgPool,
     repo: UserRepo,
     ledger: Ledger,
 }
@@ -21,7 +24,7 @@ impl Users {
     pub fn new(pool: &sqlx::PgPool, ledger: &Ledger) -> Self {
         let repo = UserRepo::new(pool);
         Self {
-            _pool: pool.clone(),
+            pool: pool.clone(),
             repo,
             ledger: ledger.clone(),
         }
@@ -58,5 +61,50 @@ impl Users {
         query: crate::query::PaginatedQueryArgs<UserByNameCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<User, UserByNameCursor>, UserError> {
         self.repo.list(query).await
+    }
+
+    pub async fn start_kyc(
+        &self,
+        user_id: UserId,
+        applicant_id: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id).await?;
+        user.start_kyc(applicant_id);
+
+        let mut db_tx = self.pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
+    }
+
+    pub async fn approve_basic(
+        &self,
+        user_id: UserId,
+        applicant_id: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id).await?;
+        user.approve_kyc(KycLevel::Basic, applicant_id);
+
+        let mut db_tx = self.pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
+    }
+
+    pub async fn deactivate(
+        &self,
+        user_id: UserId,
+        applicant_id: String,
+    ) -> Result<User, UserError> {
+        let mut user = self.repo.find_by_id(user_id).await?;
+        user.deactivate(applicant_id);
+
+        let mut db_tx = self.pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut user).await?;
+        db_tx.commit().await?;
+
+        Ok(user)
     }
 }

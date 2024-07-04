@@ -1,9 +1,12 @@
 query me {
   me {
     userId
+    applicantId
+    status
     btcDepositAddress
     ustDepositAddress
     email
+    level
     balance {
       unallocatedCollateral {
         settled {

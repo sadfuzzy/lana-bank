@@ -1,12 +1,15 @@
 use async_graphql::*;
 
-use super::{fixed_term_loan::*, user::*};
+use super::{fixed_term_loan::*, withdraw::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::{
         public::AuthContext,
-        shared_graphql::{fixed_term_loan::FixedTermLoan, primitives::UUID, user::User},
+        shared_graphql::{
+            fixed_term_loan::FixedTermLoan, primitives::UUID, sumsub::SumsubTokenCreatePayload,
+            user::User,
+        },
     },
 };
 
@@ -104,5 +107,17 @@ impl Mutation {
             .record_payment(input.loan_id, input.amount)
             .await?;
         Ok(FixedTermLoanRecordPaymentPayload::from(loan))
+    }
+
+    pub async fn sumsub_token_create(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<SumsubTokenCreatePayload> {
+        let AuthContext { user_id } = ctx.data()?;
+
+        let app = ctx.data_unchecked::<LavaApp>();
+        let res = app.applicants().create_access_token(*user_id).await?;
+
+        Ok(SumsubTokenCreatePayload { token: res.token })
     }
 }

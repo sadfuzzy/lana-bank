@@ -1,3 +1,9 @@
+enum AccountStatus {
+	ACTIVE
+	INACTIVE
+}
+
+
 type BtcBalance {
 	btcBalance: Satoshis!
 }
@@ -53,6 +59,12 @@ type InterestIncome {
 	usdBalance: UsdCents!
 }
 
+enum KycLevel {
+	ZERO
+	ONE
+	TWO
+}
+
 type LoanOutstanding {
 	usdBalance: UsdCents!
 }
@@ -62,6 +74,7 @@ type Mutation {
 	fixedTermLoanCreate: FixedTermLoanCreatePayload!
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
+	sumsubTokenCreate: SumsubTokenCreatePayload!
 }
 
 type Query {
@@ -72,6 +85,10 @@ type Query {
 
 scalar Satoshis
 
+
+type SumsubTokenCreatePayload {
+	token: String!
+}
 
 scalar UUID
 
@@ -87,9 +104,12 @@ scalar UsdCents
 
 type User {
 	userId: UUID!
+	email: String!
 	btcDepositAddress: String!
 	ustDepositAddress: String!
-	email: String!
+	status: AccountStatus!
+	level: KycLevel!
+	applicantId: String
 	balance: UserBalance!
 	loans: [FixedTermLoan!]!
 }

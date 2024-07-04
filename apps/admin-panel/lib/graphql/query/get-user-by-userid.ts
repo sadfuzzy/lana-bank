@@ -5,6 +5,9 @@ gql`
     user(id: $id) {
       userId
       email
+      status
+      level
+      applicantId
       btcDepositAddress
       ustDepositAddress
       balance {

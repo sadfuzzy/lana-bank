@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{job::JobExecutorConfig, ledger::LedgerConfig};
+use crate::{applicant::SumsubConfig, job::JobExecutorConfig, ledger::LedgerConfig};
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 pub struct AppConfig {
@@ -8,4 +8,6 @@ pub struct AppConfig {
     pub job_execution: JobExecutorConfig,
     #[serde(default)]
     pub ledger: LedgerConfig,
+    #[serde(default)]
+    pub sumsub: SumsubConfig,
 }

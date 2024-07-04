@@ -9,8 +9,8 @@ crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
-crate::entity_id! { LoanId}
-crate::entity_id! { LoanTermsId}
+crate::entity_id! { LoanId }
+crate::entity_id! { LoanTermsId }
 
 // Consider importing from cala
 #[derive(Debug)]
@@ -25,6 +25,29 @@ crate::entity_id! { BfxIntegrationId }
 pub enum BfxAddressType {
     Bitcoin,
     Tron,
+}
+
+#[derive(Debug, Deserialize, Clone, Copy, Serialize)]
+pub enum KycLevel {
+    NotKyced,
+    Basic,
+    Advanced,
+}
+
+impl std::fmt::Display for KycLevel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            KycLevel::NotKyced => write!(f, "not-kyc"),
+            KycLevel::Basic => write!(f, "basic-kyc-level"),
+            KycLevel::Advanced => write!(f, "advanced-kyc-level"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum AccountStatus {
+    Active,
+    Inactive,
 }
 
 pub enum BfxWithdrawalMethod {

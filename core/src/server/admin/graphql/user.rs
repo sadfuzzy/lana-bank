@@ -68,3 +68,8 @@ impl From<UserByNameCursor> for crate::user::UserByNameCursor {
         }
     }
 }
+
+#[derive(InputObject)]
+pub struct SumsubPermalinkCreateInput {
+    pub user_id: String,
+}

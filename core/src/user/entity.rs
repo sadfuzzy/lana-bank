@@ -16,6 +16,16 @@ pub enum UserEvent {
         account_ids: UserLedgerAccountIds,
         account_addresses: UserLedgerAccountAddresses,
     },
+    KycStarted {
+        applicant_id: String,
+    },
+    KycApproved {
+        applicant_id: String,
+        level: KycLevel,
+    },
+    KycDeclined {
+        applicant_id: String,
+    },
 }
 
 impl EntityEvent for UserEvent {
@@ -32,6 +42,10 @@ pub struct User {
     pub email: String,
     pub account_ids: UserLedgerAccountIds,
     pub account_addresses: UserLedgerAccountAddresses,
+    pub status: AccountStatus,
+    pub level: KycLevel,
+    #[builder(setter(strip_option, into), default)]
+    pub applicant_id: Option<String>,
     pub(super) events: EntityEvents<UserEvent>,
 }
 
@@ -43,6 +57,32 @@ impl core::fmt::Display for User {
 
 impl Entity for User {
     type Event = UserEvent;
+}
+
+impl User {
+    pub fn start_kyc(&mut self, applicant_id: String) {
+        self.events.push(UserEvent::KycStarted {
+            applicant_id: applicant_id.clone(),
+        });
+        self.applicant_id = Some(applicant_id);
+    }
+
+    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) {
+        self.events.push(UserEvent::KycApproved {
+            level,
+            applicant_id: applicant_id.clone(),
+        });
+
+        self.applicant_id = Some(applicant_id);
+        self.level = KycLevel::Basic;
+        self.status = AccountStatus::Active;
+    }
+
+    pub fn deactivate(&mut self, applicant_id: String) {
+        self.events.push(UserEvent::KycDeclined { applicant_id });
+        self.level = KycLevel::NotKyced;
+        self.status = AccountStatus::Inactive;
+    }
 }
 
 impl TryFrom<EntityEvents<UserEvent>> for User {
@@ -63,7 +103,26 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .account_ids(*account_ids)
                         .account_addresses(account_addresses.clone())
                         .email(email.clone())
-                        .account_ids(*account_ids);
+                        .account_ids(*account_ids)
+                        .level(KycLevel::NotKyced)
+                        .status(AccountStatus::Inactive);
+                }
+                UserEvent::KycStarted { applicant_id } => {
+                    builder = builder.applicant_id(applicant_id.clone());
+                }
+                UserEvent::KycApproved {
+                    level,
+                    applicant_id,
+                } => {
+                    builder = builder
+                        .applicant_id(applicant_id.clone())
+                        .level(*level)
+                        .status(AccountStatus::Active)
+                }
+                UserEvent::KycDeclined { applicant_id } => {
+                    builder = builder
+                        .applicant_id(applicant_id.clone())
+                        .status(AccountStatus::Inactive)
                 }
             }
         }

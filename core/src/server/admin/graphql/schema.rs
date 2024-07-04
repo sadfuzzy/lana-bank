@@ -1,11 +1,13 @@
 use async_graphql::{types::connection::*, *};
+use uuid::Uuid;
 
 use super::{account_set::*, shareholder_equity::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::shared_graphql::{
-        fixed_term_loan::FixedTermLoan, objects::SuccessPayload, primitives::UUID, user::User,
+        fixed_term_loan::FixedTermLoan, objects::SuccessPayload, primitives::UUID,
+        sumsub::SumsubPermalinkCreatePayload, user::User,
     },
 };
 
@@ -91,5 +93,21 @@ impl Mutation {
                 .add_equity(input.amount, input.reference)
                 .await?,
         ))
+    }
+
+    pub async fn sumsub_permalink_create(
+        &self,
+        ctx: &Context<'_>,
+        input: SumsubPermalinkCreateInput,
+    ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
+        let user_id = Uuid::parse_str(&input.user_id);
+        let user_id = user_id.map_err(|_| "Invalid user id")?;
+        let user_id = UserId::from(user_id);
+
+        let app = ctx.data_unchecked::<LavaApp>();
+        let res = app.applicants().create_permalink(user_id).await?;
+
+        let url = res.url;
+        Ok(SumsubPermalinkCreatePayload { url })
     }
 }

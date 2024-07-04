@@ -1,6 +1,8 @@
 "use client"
 import QRCode from "react-qr-code"
 
+import { gql } from "@apollo/client"
+
 import { CopyButton } from "@/components/copy-button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { QrCode } from "@/components/icons"
@@ -13,7 +15,18 @@ import {
 } from "@/components/primitive/dialog"
 import { Separator } from "@/components/primitive/separator"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
-import { useGetUserByUserIdQuery } from "@/lib/graphql/generated"
+import {
+  useGetUserByUserIdQuery,
+  useSumsubPermalinkCreateMutation,
+} from "@/lib/graphql/generated"
+
+gql`
+  mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+    sumsubPermalinkCreate(input: $input) {
+      url
+    }
+  }
+`
 
 export const UserDetailsCard = ({ userId }: { userId: string }) => {
   const {
@@ -25,6 +38,23 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
       id: userId,
     },
   })
+
+  const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${userDetails?.user?.applicantId}/client/basicInfo`
+
+  const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
+    useSumsubPermalinkCreateMutation()
+
+  const handleCreateLink = async () => {
+    if (userDetails?.user?.userId) {
+      await createLink({
+        variables: {
+          input: {
+            userId: userDetails.user.userId,
+          },
+        },
+      })
+    }
+  }
 
   return (
     <Card>
@@ -55,6 +85,48 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
               <DetailsGroup>
                 <DetailItem label="User ID" value={userDetails.user.userId} />
                 <DetailItem label="Email" value={userDetails.user.email} />
+                <DetailItem label="Status" value={userDetails.user.status} />
+                <DetailItem
+                  label="Applicant Id"
+                  value={userDetails.user.applicantId ?? "not yet connected"}
+                  valueComponent={
+                    userDetails.user.applicantId ? (
+                      <a
+                        href={sumsubLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 underline"
+                      >
+                        {userDetails.user.applicantId}
+                      </a>
+                    ) : (
+                      <div>
+                        <p>not set yet</p>
+                        {!linkData && (
+                          <button
+                            onClick={handleCreateLink}
+                            className="text-blue-500 underline"
+                            disabled={linkLoading}
+                          >
+                            {linkLoading ? "Creating link..." : "Create Link"}
+                          </button>
+                        )}
+                        {linkData && linkData.sumsubPermalinkCreate && (
+                          <a
+                            href={linkData.sumsubPermalinkCreate.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 underline"
+                          >
+                            {linkData.sumsubPermalinkCreate.url}
+                          </a>
+                        )}
+                        {linkError && <p className="text-red-500">{linkError.message}</p>}
+                      </div>
+                    )
+                  }
+                />
+                <DetailItem label="Level" value={userDetails.user.level} />
                 <DetailItem
                   label="Unallocated Collateral Settled (BTC)"
                   value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
