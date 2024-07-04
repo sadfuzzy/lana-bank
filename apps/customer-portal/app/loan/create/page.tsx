@@ -43,7 +43,7 @@ const LoanDetails = () => {
       <div className="flex flex-row gap-8">
         <div className="flex flex-col gap-6 w-60">
           <div>
-            <Label className="font-bold">USD Loan Amount</Label>
+            <Label className="text-textColor-secondary">USD Loan Amount</Label>
             <Select>
               <option value="option0" selected>
                 $100k USD
@@ -54,32 +54,34 @@ const LoanDetails = () => {
             </Select>
           </div>
           <div>
-            <Label className="font-bold">Interest Rate</Label>
+            <Label className="text-textColor-secondary">Interest Rate</Label>
             <p>5% fixed APR</p>
           </div>
           <div>
-            <Label className="font-bold">Duration</Label>
+            <Label className="text-textColor-secondary">Duration</Label>
             <p>6 months</p>
           </div>
         </div>
         <div className="flex flex-col gap-6">
           <div>
-            <Label className="font-bold">BTC Collateral Required</Label>
+            <Label className="text-textColor-secondary">BTC Collateral Required</Label>
             <p className="mt-2">2.38021243 BTC</p>
           </div>
           <div>
-            <Label className="font-bold">Collateral Value to Loan (CVL)</Label>
+            <Label className="text-textColor-secondary">
+              Collateral Value to Loan (CVL)
+            </Label>
             <p>150%</p>
           </div>
           <div>
-            <Label className="font-bold">Origination Fee</Label>
+            <Label className="text-textColor-secondary">Origination Fee</Label>
             <p>1%</p>
           </div>
         </div>
       </div>
       <CardFooter className="gap-2 flex flex-col items-start pl-0 mt-8">
         <p className="text-sm">*Available BTC Balance: 0.00000000 BTC (Deposit BTC)</p>
-        <Link href="/loan/create/approve" className="flex justify-start">
+        <Link href="/loan/create/approve" className="flex justify-start mt-4">
           <Button>Deposit BTC</Button>
         </Link>
       </CardFooter>

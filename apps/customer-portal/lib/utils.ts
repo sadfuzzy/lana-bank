@@ -30,6 +30,19 @@ export const formatCurrency = ({
   amount: number
   currency: string
 }) => {
+  if (currency === "SATS") {
+    return (
+      new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 0,
+        useGrouping: true,
+      }).format(amount) + " Sats"
+    )
+  }
+
+  if (currency === "BTC") {
+    return `${amount} BTC`
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,

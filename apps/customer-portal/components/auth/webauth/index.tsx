@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react"
 
-import { useRouter } from "next/navigation"
-
 import {
   Card,
   CardContent,
@@ -31,7 +29,6 @@ const PasskeySignIn = ({
   email: string
   csrfToken: string
 }) => {
-  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
 
   const startWebAuth = async () => {
@@ -48,7 +45,7 @@ const PasskeySignIn = ({
       return
     }
 
-    router.replace("/")
+    window.location.href = "/"
   }
 
   useEffect(() => {

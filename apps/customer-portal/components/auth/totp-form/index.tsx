@@ -1,8 +1,6 @@
 "use client"
 import { useState } from "react"
 
-import { useRouter } from "next/navigation"
-
 import { Button } from "@/components/primitive/button"
 import {
   Card,
@@ -17,7 +15,6 @@ import { Alert, AlertDescription } from "@/components/primitive/alert"
 import { submitTotpFow } from "@/lib/kratos/public/submit-totp"
 
 const TotpForm = ({ flowId }: { flowId: string }) => {
-  const router = useRouter()
   const [totpCode, setTotpCode] = useState("")
   const [error, setError] = useState<string | null>(null)
 
@@ -38,7 +35,7 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
       return
     }
 
-    router.push("/")
+    window.location.href = "/"
   }
 
   return (

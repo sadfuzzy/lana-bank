@@ -52,7 +52,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
       } else if (response.userHasWebAuth) {
         router.replace(`/auth/2fa/webauth?flowId=${response.flowId}`)
       } else {
-        router.replace("/")
+        window.location.href = "/"
       }
     } catch (error) {
       console.error(error)

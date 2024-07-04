@@ -1,5 +1,7 @@
 import Link from "next/link"
 
+import { AuthenticatorAssuranceLevel } from "@ory/client"
+
 import {
   Card,
   CardContent,
@@ -13,20 +15,60 @@ import { Checkbox } from "@/components/primitive/check-box"
 import { Label } from "@/components/primitive/label"
 import { BalanceCard } from "@/components/balance-card"
 import { LoanCard } from "@/components/loan/recent-loans-card"
+import { getMeAndSession } from "@/lib/auth/get-session.ts"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 
-export default function Home() {
+export default async function Home() {
+  const getMeAndSessionResponse = await getMeAndSession()
+
+  if (getMeAndSessionResponse instanceof Error) {
+    return (
+      <Card className="max-w-[70rem] m-auto">
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CardDescription>{getMeAndSessionResponse.message}</CardDescription>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const balance = [
+    {
+      currency: "Bitcoin",
+      amount: formatCurrency({
+        amount:
+          getMeAndSessionResponse.me?.balance.unallocatedCollateral.settled.btcBalance,
+        currency: "SATS",
+      }),
+    },
+    {
+      currency: "US Dollar",
+      amount: formatCurrency({
+        amount: currencyConverter.centsToUsd(
+          getMeAndSessionResponse.me?.balance.checking.settled.usdBalance,
+        ),
+        currency: "USD",
+      }),
+    },
+  ]
+
   return (
     <main className="max-w-[70rem] m-auto">
-      <OnboardingCard twoFactorAuthEnabled={false} kycCompleted={false} />
-      <div className="flex gap-4 mt-4 items-stretch">
-        <BalanceCard
-          balance={[
-            { currency: "Bitcoin", amount: 0 },
-            { currency: "US Dollar", amount: 0 },
-          ]}
+      <>
+        <OnboardingCard
+          twoFactorAuthEnabled={
+            getMeAndSessionResponse.session.authenticator_assurance_level ===
+            AuthenticatorAssuranceLevel.Aal2 //can we get this from backend api?
+          }
+          kycCompleted={false}
         />
-        <LoanCard />
-      </div>
+        <div className="flex gap-4 mt-4 items-stretch">
+          <BalanceCard balance={balance} />
+          <LoanCard />
+        </div>
+      </>
     </main>
   )
 }

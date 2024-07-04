@@ -5,14 +5,21 @@ import Link from "next/link"
 import { CrossIcon, LavaBankIcon, PersonIcon } from "../icons"
 import { Card, CardContent, CardHeader, CardTitle } from "../primitive/card"
 import { Button } from "../primitive/button"
+import { Key, KeyValueCell, KeyValueGroup, Value } from "../primitive/aligned-key-value"
+
+import useLogout from "@/hooks/use-logout"
 
 export type NavBarAuthenticatedProps = {
   email: string
+  twoFactorEnabled: boolean
 }
 
-export function NavBarAuthenticated({ email }: NavBarAuthenticatedProps) {
+export function NavBarAuthenticated({
+  email,
+  twoFactorEnabled,
+}: NavBarAuthenticatedProps) {
   const [openMenu, setOpenMenu] = useState(false)
-
+  const { logout } = useLogout()
   return (
     <>
       <nav
@@ -27,9 +34,7 @@ export function NavBarAuthenticated({ email }: NavBarAuthenticatedProps) {
         <div className="flex items-center gap-4 p-4">
           <p>{email}</p>
           <div
-            onClick={() => {
-              setOpenMenu(true)
-            }}
+            onClick={() => setOpenMenu(true)}
             className="border border-primary p-2 rounded-full cursor-pointer"
           >
             <PersonIcon className="w-6 h-6" />
@@ -59,15 +64,21 @@ export function NavBarAuthenticated({ email }: NavBarAuthenticatedProps) {
                     <CardTitle>Account</CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 pt-0 flex flex-col gap-2 text-sm">
-                    <div className="flex  justify-between">
-                      <p className="text-textColor-secondary">Email</p>
-                      <p>{email}</p>
-                    </div>
-                    <div className="flex  justify-between">
-                      <p className="text-textColor-secondary">Two-Factor Auth</p>
-                      <p>Enabled</p>
-                    </div>
-                    <Button className="mt-4">Logout</Button>
+                    <KeyValueGroup>
+                      <KeyValueCell>
+                        <Key>Email</Key>
+                        <Value>{email}</Value>
+                      </KeyValueCell>
+                      {twoFactorEnabled && (
+                        <KeyValueCell>
+                          <Key>Two Factor Authentication</Key>
+                          <Value>Enabled</Value>
+                        </KeyValueCell>
+                      )}
+                    </KeyValueGroup>
+                    <Button onClick={async () => logout()} className="mt-4">
+                      Logout
+                    </Button>
                   </CardContent>
                 </Card>
               </Card>
