@@ -12,6 +12,12 @@ crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
 crate::entity_id! { LoanTermsId }
 
+impl From<LoanId> for JobId {
+    fn from(id: LoanId) -> Self {
+        JobId::from(id.0)
+    }
+}
+
 // Consider importing from cala
 #[derive(Debug)]
 pub enum LedgerAccountSetMemberType {
@@ -140,6 +146,12 @@ impl UsdCents {
     }
 }
 
+impl From<u64> for UsdCents {
+    fn from(value: u64) -> Self {
+        Self(value)
+    }
+}
+
 impl fmt::Display for UsdCents {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
@@ -152,5 +164,30 @@ impl std::ops::Sub<UsdCents> for UsdCents {
     fn sub(self, other: UsdCents) -> Self {
         assert!(self.0 >= other.0, "Subtraction result cannot be negative");
         Self(self.0 - other.0)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct PriceOfOneBTC(UsdCents);
+
+impl PriceOfOneBTC {
+    pub const fn new(price: UsdCents) -> Self {
+        Self(price)
+    }
+
+    pub fn cents_to_sats(self, cents: UsdCents) -> Satoshis {
+        Satoshis::from_btc(cents.to_usd() / self.0.to_usd())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn usd_cents_from_usd() {
+        let price = PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(1000)));
+        let cents = UsdCents::from_usd(rust_decimal_macros::dec!(1000));
+        assert_eq!(Satoshis::from_btc(dec!(1)), price.cents_to_sats(cents));
     }
 }

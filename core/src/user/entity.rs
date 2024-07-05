@@ -49,6 +49,12 @@ pub struct User {
     pub(super) events: EntityEvents<UserEvent>,
 }
 
+impl User {
+    pub fn may_create_loan(&self) -> bool {
+        true
+    }
+}
+
 impl core::fmt::Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "User: {}, email: {}", self.id, self.email)

@@ -74,7 +74,7 @@ impl JobRunner for FixedTermLoanInterestJobRunner {
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         self.ledger
-            .record_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
+            .record_fixed_term_loan_interest(tx_id, loan.account_ids, tx_ref, UsdCents::ONE)
             .await?;
 
         match loan.next_interest_at() {

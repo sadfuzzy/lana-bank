@@ -1,51 +1,120 @@
 mod entity;
 pub mod error;
+mod job;
 mod repo;
 mod terms;
 
 use sqlx::PgPool;
 
-use crate::primitives::*;
+use crate::{
+    job::{JobRegistry, Jobs},
+    ledger::loan::*,
+    ledger::Ledger,
+    primitives::*,
+    user::Users,
+};
 
 use entity::*;
 use error::*;
+use job::*;
 use repo::*;
 use terms::*;
 
+#[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
     term_repo: TermRepo,
+    users: Users,
+    ledger: Ledger,
     pool: PgPool,
+    jobs: Option<Jobs>,
 }
 
 impl Loans {
-    pub fn new(pool: &PgPool) -> Self {
+    pub fn new(pool: &PgPool, registry: &mut JobRegistry, users: &Users, ledger: &Ledger) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
+        registry.add_initializer(LoanProcessingJobInitializer::new(ledger, loan_repo.clone()));
         Self {
             loan_repo,
             term_repo,
+            users: users.clone(),
+            ledger: ledger.clone(),
             pool: pool.clone(),
+            jobs: None,
         }
+    }
+
+    pub fn set_jobs(&mut self, jobs: &Jobs) {
+        self.jobs = Some(jobs.clone());
+    }
+
+    fn jobs(&self) -> &Jobs {
+        self.jobs.as_ref().expect("Jobs must already be set")
     }
 
     pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
         self.term_repo.update_current(terms).await
     }
 
+    fn dummy_price() -> PriceOfOneBTC {
+        PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)))
+    }
+
     pub async fn create_loan_for_user(
         &self,
-        user_id: impl Into<UserId> + std::fmt::Debug,
+        user_id: UserId,
+        desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
+        let user = match self.users.find_by_id(user_id).await? {
+            Some(user) => user,
+            None => return Err(LoanError::UserNotFound(user_id)),
+        };
+
+        if !user.may_create_loan() {
+            return Err(LoanError::UserNotAllowedToCreateLoan(user_id));
+        }
+        let unallocated_collateral = self
+            .ledger
+            .get_user_balance(user.account_ids)
+            .await?
+            .btc_balance;
+
         let current_terms = self.term_repo.find_current().await?;
+        let required_collateral =
+            current_terms.required_collateral(desired_principal, Self::dummy_price());
+
+        if required_collateral > unallocated_collateral {
+            return Err(LoanError::InsufficientCollateral(
+                required_collateral,
+                unallocated_collateral,
+            ));
+        }
+
+        let mut tx = self.pool.begin().await?;
+
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
             .terms(current_terms.values)
+            .principal(desired_principal)
+            .initial_collateral(required_collateral)
+            .account_ids(LoanAccountIds::new())
+            .user_account_ids(user.account_ids)
             .build()
             .expect("could not build new loan");
-        let mut tx = self.pool.begin().await?;
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
+        self.ledger
+            .create_accounts_for_loan(loan.id, loan.account_ids)
+            .await?;
+        self.jobs()
+            .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
+                &mut tx,
+                loan.id,
+                format!("loan-processing-{}", loan.id),
+                LoanJobConfig { loan_id: loan.id },
+            )
+            .await?;
         tx.commit().await?;
         Ok(loan)
     }

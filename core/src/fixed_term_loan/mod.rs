@@ -93,10 +93,10 @@ impl FixedTermLoans {
         loan.approve(tx_id, collateral, principal)?;
         self.repo.persist_in_tx(&mut tx, &mut loan).await?;
         self.ledger
-            .create_accounts_for_loan(loan.id, loan.account_ids)
+            .create_accounts_for_fixed_term_loan(loan.id, loan.account_ids)
             .await?;
         self.ledger
-            .approve_loan(
+            .approve_fixed_term_loan(
                 tx_id,
                 loan.account_ids,
                 user.account_ids,

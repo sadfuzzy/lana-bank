@@ -1,19 +1,20 @@
 use sqlx::{PgPool, Postgres, Transaction};
 
-use crate::primitives::{LoanId, UserId};
+use crate::{
+    entity::*,
+    primitives::{LoanId, UserId},
+};
 
 use super::{error::LoanError, Loan, NewLoan};
 
 #[derive(Clone)]
 pub struct LoanRepo {
-    _pool: PgPool,
+    pool: PgPool,
 }
 
 impl LoanRepo {
     pub(super) fn new(pool: &PgPool) -> Self {
-        Self {
-            _pool: pool.clone(),
-        }
+        Self { pool: pool.clone() }
     }
 
     pub async fn create_in_tx(
@@ -32,5 +33,32 @@ impl LoanRepo {
         let mut events = new_loan.initial_events();
         events.persist(db).await?;
         Ok(Loan::try_from(events)?)
+    }
+
+    pub async fn find_by_id(&self, id: LoanId) -> Result<Loan, LoanError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT l.id, e.sequence, e.event,
+                      l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM loans l
+            JOIN loan_events e ON l.id = e.id
+            WHERE l.id = $1
+            ORDER BY e.sequence"#,
+            id as LoanId,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let res = EntityEvents::load_first::<Loan>(rows)?;
+        Ok(res)
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        loan: &mut Loan,
+    ) -> Result<(), LoanError> {
+        loan.events.persist(db).await?;
+        Ok(())
     }
 }
