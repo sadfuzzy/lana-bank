@@ -75,6 +75,7 @@ type Mutation {
 	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
 	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
 	sumsubTokenCreate: SumsubTokenCreatePayload!
+	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
 type Query {
@@ -85,6 +86,10 @@ type Query {
 
 scalar Satoshis
 
+
+type SumsubPermalinkCreatePayload {
+	url: String!
+}
 
 type SumsubTokenCreatePayload {
 	token: String!

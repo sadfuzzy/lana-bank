@@ -10,7 +10,9 @@ export const { getClient } = registerApolloClient(() => {
     link: new HttpLink({
       uri: `${env.NEXT_PUBLIC_CORE_URL}/graphql`,
       fetchOptions: { cache: "no-store" },
-      headers: Object.fromEntries(headers().entries()),
+      headers: {
+        authorization: headers().get("authorization") || "",
+      },
     }),
   })
 })

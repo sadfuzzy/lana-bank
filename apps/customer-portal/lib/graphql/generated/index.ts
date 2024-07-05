@@ -22,6 +22,11 @@ export type Scalars = {
   UsdCents: { input: any; output: any; }
 };
 
+export enum AccountStatus {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
+
 export type BtcBalance = {
   __typename?: 'BtcBalance';
   btcBalance: Scalars['Satoshis']['output'];
@@ -83,6 +88,12 @@ export type InterestIncome = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export enum KycLevel {
+  One = 'ONE',
+  Two = 'TWO',
+  Zero = 'ZERO'
+}
+
 export type LoanOutstanding = {
   __typename?: 'LoanOutstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -93,6 +104,8 @@ export type Mutation = {
   fixedTermLoanApprove: FixedTermLoanApprovePayload;
   fixedTermLoanCreate: FixedTermLoanCreatePayload;
   fixedTermLoanRecordPayment: FixedTermLoanRecordPaymentPayload;
+  sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  sumsubTokenCreate: SumsubTokenCreatePayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
 };
 
@@ -128,6 +141,16 @@ export type QueryUserArgs = {
   id: Scalars['UUID']['input'];
 };
 
+export type SumsubPermalinkCreatePayload = {
+  __typename?: 'SumsubPermalinkCreatePayload';
+  url: Scalars['String']['output'];
+};
+
+export type SumsubTokenCreatePayload = {
+  __typename?: 'SumsubTokenCreatePayload';
+  token: Scalars['String']['output'];
+};
+
 export type UnallocatedCollateral = {
   __typename?: 'UnallocatedCollateral';
   settled: BtcBalance;
@@ -140,10 +163,13 @@ export type UsdBalance = {
 
 export type User = {
   __typename?: 'User';
+  applicantId?: Maybe<Scalars['String']['output']>;
   balance: UserBalance;
   btcDepositAddress: Scalars['String']['output'];
   email: Scalars['String']['output'];
+  level: KycLevel;
   loans: Array<FixedTermLoan>;
+  status: AccountStatus;
   userId: Scalars['UUID']['output'];
   ustDepositAddress: Scalars['String']['output'];
 };
@@ -172,19 +198,96 @@ export type WithdrawalInitiatePayload = {
   withdrawal: Withdrawal;
 };
 
+export type SumsubPermalinkCreateMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+
+export type SumsubTokenCreateMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SumsubTokenCreateMutation = { __typename?: 'Mutation', sumsubTokenCreate: { __typename?: 'SumsubTokenCreatePayload', token: string } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', userId: any, btcDepositAddress: string, ustDepositAddress: string, email: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', userId: any, email: string, btcDepositAddress: string, ustDepositAddress: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
 
+export const SumsubPermalinkCreateDocument = gql`
+    mutation SumsubPermalinkCreate {
+  sumsubPermalinkCreate {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const SumsubTokenCreateDocument = gql`
+    mutation SumsubTokenCreate {
+  sumsubTokenCreate {
+    token
+  }
+}
+    `;
+export type SumsubTokenCreateMutationFn = Apollo.MutationFunction<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>;
+
+/**
+ * __useSumsubTokenCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubTokenCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubTokenCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubTokenCreateMutation, { data, loading, error }] = useSumsubTokenCreateMutation({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useSumsubTokenCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>(SumsubTokenCreateDocument, options);
+      }
+export type SumsubTokenCreateMutationHookResult = ReturnType<typeof useSumsubTokenCreateMutation>;
+export type SumsubTokenCreateMutationResult = Apollo.MutationResult<SumsubTokenCreateMutation>;
+export type SumsubTokenCreateMutationOptions = Apollo.BaseMutationOptions<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>;
 export const MeDocument = gql`
     query Me {
   me {
     userId
+    email
     btcDepositAddress
     ustDepositAddress
-    email
+    applicantId
+    status
+    level
     balance {
       unallocatedCollateral {
         settled {

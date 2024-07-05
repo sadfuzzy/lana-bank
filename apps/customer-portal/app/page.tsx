@@ -17,6 +17,8 @@ import { BalanceCard } from "@/components/balance-card"
 import { LoanCard } from "@/components/loan/recent-loans-card"
 import { getMeAndSession } from "@/lib/auth/get-session.ts"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { KycKybWrapper } from "@/components/sumsub-wrapper"
+import { KycLevel } from "@/lib/graphql/generated"
 
 export default async function Home() {
   const getMeAndSessionResponse = await getMeAndSession()
@@ -33,6 +35,10 @@ export default async function Home() {
       </Card>
     )
   }
+
+  const kycCompleted =
+    getMeAndSessionResponse.me?.level === KycLevel.One ||
+    getMeAndSessionResponse.me?.level === KycLevel.Two
 
   const balance = [
     {
@@ -62,7 +68,7 @@ export default async function Home() {
             getMeAndSessionResponse.session.authenticator_assurance_level ===
             AuthenticatorAssuranceLevel.Aal2 //can we get this from backend api?
           }
-          kycCompleted={false}
+          kycCompleted={kycCompleted}
         />
         <div className="flex gap-4 mt-4 items-stretch">
           <BalanceCard balance={balance} />
@@ -101,10 +107,7 @@ const OnboardingCard = ({
             <Checkbox checked={twoFactorAuthEnabled} />
             <Label className="hover:underline">Enable Two-Factor Authentication </Label>
           </Link>
-          <Link className="flex gap-2 items-center" aria-disabled href="/settings">
-            <Checkbox checked={kycCompleted} />
-            <Label className="hover:underline">Complete KYC or KYB onboarding</Label>
-          </Link>
+          <KycKybWrapper kycCompleted={kycCompleted} />
         </div>
       </CardContent>
     </Card>

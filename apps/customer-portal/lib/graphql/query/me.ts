@@ -8,9 +8,12 @@ gql`
   query Me {
     me {
       userId
+      email
       btcDepositAddress
       ustDepositAddress
-      email
+      applicantId
+      status
+      level
       balance {
         unallocatedCollateral {
           settled {
