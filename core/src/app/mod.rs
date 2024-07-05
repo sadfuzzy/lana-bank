@@ -21,7 +21,7 @@ pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
     fixed_term_loans: FixedTermLoans,
-    _loans: Loans,
+    loans: Loans,
     users: Users,
     withdraws: Withdraws,
     ledger: Ledger,
@@ -47,7 +47,7 @@ impl LavaApp {
             users,
             withdraws,
             fixed_term_loans,
-            _loans: loans,
+            loans,
             ledger,
             applicants,
         })
@@ -71,5 +71,9 @@ impl LavaApp {
 
     pub fn applicants(&self) -> &Applicants {
         &self.applicants
+    }
+
+    pub fn loans(&self) -> &Loans {
+        &self.loans
     }
 }

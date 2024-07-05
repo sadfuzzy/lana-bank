@@ -1,7 +1,7 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, shareholder_equity::*, user::*};
+use super::{account_set::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
@@ -109,5 +109,23 @@ impl Mutation {
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })
+    }
+
+    async fn current_terms_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CurrentTermsUpdateInput,
+    ) -> async_graphql::Result<CurrentTermsUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .interval(input.interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+        let terms = app.loans().update_current_terms(term_values).await?;
+        Ok(CurrentTermsUpdatePayload::from(terms))
     }
 }

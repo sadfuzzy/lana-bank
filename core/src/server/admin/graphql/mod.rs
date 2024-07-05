@@ -1,7 +1,9 @@
 mod account;
 mod account_set;
+mod convert;
 mod schema;
 mod shareholder_equity;
+mod terms;
 mod user;
 
 use async_graphql::*;

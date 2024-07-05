@@ -47,6 +47,19 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+input CurrentTermsUpdateInput {
+	annualRate: LoanAnnualRate!
+	interval: InterestInterval!
+	liquidationCvl: LoanCVLPct!
+	duration: LoanDurationInput!
+	marginCallCvl: LoanCVLPct!
+	initialCvl: LoanCVLPct!
+}
+
+type CurrentTermsUpdatePayload {
+	terms: Terms!
+}
+
 type FixedTermLoan {
 	loanId: UUID!
 	balance: FixedTermLoanBalance!
@@ -64,6 +77,10 @@ type FixedTermLoanBalance {
 
 type InterestIncome {
 	usdBalance: UsdCents!
+}
+
+enum InterestInterval {
+	END_OF_MONTH
 }
 
 enum KycLevel {
@@ -86,6 +103,20 @@ type LayeredUsdAccountBalances {
 	encumbrance: UsdAccountBalance!
 }
 
+scalar LoanAnnualRate
+
+scalar LoanCVLPct
+
+type LoanDuration {
+	period: Period!
+	units: Int!
+}
+
+input LoanDurationInput {
+	period: Period!
+	units: Int!
+}
+
 type LoanOutstanding {
 	usdBalance: UsdCents!
 }
@@ -93,6 +124,7 @@ type LoanOutstanding {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
+	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 }
 
 """
@@ -115,6 +147,10 @@ type PageInfo {
 	When paginating forwards, the cursor to continue.
 	"""
 	endCursor: String
+}
+
+enum Period {
+	MONTHS
 }
 
 type Query {
@@ -142,6 +178,21 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
+}
+
+type TermValues {
+	annualRate: LoanAnnualRate!
+	interval: InterestInterval!
+	duration: LoanDuration!
+	liquidationCvl: LoanCVLPct!
+	marginCallCvl: LoanCVLPct!
+	initialCvl: LoanCVLPct!
+}
+
+type Terms {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
 }
 
 scalar UUID

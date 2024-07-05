@@ -18,7 +18,7 @@ use entity::*;
 use error::*;
 use job::*;
 use repo::*;
-use terms::*;
+pub use terms::*;
 
 #[derive(Clone)]
 pub struct Loans {

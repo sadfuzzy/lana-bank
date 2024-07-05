@@ -26,6 +26,12 @@ impl LoanAnnualRate {
     }
 }
 
+impl From<Decimal> for LoanAnnualRate {
+    fn from(value: Decimal) -> Self {
+        LoanAnnualRate(value)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct LoanCVLPct(Decimal);
@@ -42,8 +48,14 @@ impl LoanCVLPct {
     }
 }
 
+impl From<Decimal> for LoanCVLPct {
+    fn from(value: Decimal) -> Self {
+        LoanCVLPct(value)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum LoanDuration {
     Months(u32),
 }
@@ -88,13 +100,19 @@ impl InterestInterval {
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
+    #[builder(setter(into))]
     pub(crate) annual_rate: LoanAnnualRate,
+    #[builder(setter(into))]
     pub(crate) duration: LoanDuration,
+    #[builder(setter(into))]
     pub(crate) interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
-    liquidation_cvl: LoanCVLPct,
-    margin_call_cvl: LoanCVLPct,
-    initial_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) liquidation_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) margin_call_cvl: LoanCVLPct,
+    #[builder(setter(into))]
+    pub(crate) initial_cvl: LoanCVLPct,
 }
 
 impl TermValues {
