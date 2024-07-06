@@ -223,7 +223,7 @@ getEmailCode() {
 }
 
 create_user() {
-  email="user$(date +%s%N)@example.com"
+  email=$(echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]')
 
   flowId=$(curl -s -X GET \
       -H "Accept: application/json" \

@@ -11,8 +11,6 @@ teardown_file() {
 }
 
 @test "user: unauthorized" {
-  "skip"
-
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -40,8 +38,6 @@ teardown_file() {
 }
 
 @test "user: can deposit" {
-  "skip"
-
   ust_address=$(read_value 'user.ust')
   btc_address=$(read_value 'user.btc')
 
@@ -83,8 +79,6 @@ teardown_file() {
 }
 
 @test "user: can withdraw" {
-  "skip"
-
   variables=$(
     jq -n \
     --arg date "$(date +%s%N)" \
