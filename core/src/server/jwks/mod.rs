@@ -9,7 +9,7 @@ use axum_extra::{
     TypedHeader,
 };
 use jsonwebtoken::{jwk::JwkSet, Algorithm, DecodingKey, TokenData, Validation};
-use serde::{de::DeserializeOwned, Deserialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 use std::sync::{Arc, RwLock};
 
@@ -17,6 +17,11 @@ pub use error::*;
 
 #[derive(Debug, Deserialize)]
 pub struct Claims<T>(pub T);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct JwtClaims {
+    pub sub: String,
+}
 
 #[derive(Clone, FromRef)]
 pub struct JwtDecoderState {
@@ -46,6 +51,9 @@ where
                 jsonwebtoken::errors::ErrorKind::ExpiredSignature => Self::Rejection::ExpiredToken,
                 jsonwebtoken::errors::ErrorKind::InvalidSignature => {
                     Self::Rejection::InvalidSignature
+                }
+                jsonwebtoken::errors::ErrorKind::InvalidAudience => {
+                    Self::Rejection::InvalidAudience
                 }
                 _ => Self::Rejection::InvalidToken,
             },
@@ -77,13 +85,18 @@ pub struct RemoteJwksDecoder {
     backoff: std::time::Duration,
 }
 
+const DEFAULT_CACHE_DURATION: u64 = 30 * 60;
+
 impl RemoteJwksDecoder {
-    pub fn new(jwks_url: String) -> Self {
+    pub fn new(jwks_url: String, aud: &str) -> Self {
+        let mut validation = Validation::new(Algorithm::RS256);
+        validation.set_audience(&[aud]);
+
         Self {
             jwks_url,
-            cache_duration: std::time::Duration::from_secs(30 * 60),
+            cache_duration: std::time::Duration::from_secs(DEFAULT_CACHE_DURATION),
             keys_cache: RwLock::new(Vec::new()),
-            validation: Validation::new(Algorithm::RS256),
+            validation,
             client: reqwest::Client::new(),
             retry_count: 10,
             backoff: std::time::Duration::from_secs(2),

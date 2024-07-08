@@ -1,4 +1,5 @@
 import { IoLogOutOutline, IoMenu } from "react-icons/io5"
+import Link from "next/link"
 
 import { NavigationLinks } from "./navigation-links"
 
@@ -18,12 +19,14 @@ export default function SideBar() {
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
-              <Button variant="primary" className="w-60">
-                <div className="flex gap-2 items-center">
-                  <IoLogOutOutline className="w-6 h-6" />
-                  <p>Log out</p>
-                </div>
-              </Button>
+              <Link href="/profile">
+                <Button variant="primary" className="w-60">
+                  <div className="flex gap-2 items-center">
+                    <IoLogOutOutline className="w-6 h-6" />
+                    <p>Profile</p>
+                  </div>
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -42,9 +45,11 @@ export default function SideBar() {
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
-              <Button variant="primary" className="w-60">
-                Log out
-              </Button>
+              <Link href="/profile">
+                <Button variant="primary" className="w-60">
+                  Profile
+                </Button>
+              </Link>
             </div>
           </SheetContent>
         </Sheet>

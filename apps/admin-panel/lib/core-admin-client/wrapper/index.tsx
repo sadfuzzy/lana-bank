@@ -9,7 +9,7 @@ import {
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const httpLink = new HttpLink({
-    uri: `${coreAdminGqlUrl}/graphql`,
+    uri: coreAdminGqlUrl,
     fetchOptions: { cache: "no-store" },
   })
 

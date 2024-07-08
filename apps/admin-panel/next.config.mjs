@@ -8,6 +8,7 @@ const nextConfig = {
     return config
   },
   output: "standalone",
+  basePath: "/admin-panel",
 }
 
 export default nextConfig

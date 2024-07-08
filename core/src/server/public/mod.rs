@@ -8,24 +8,25 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
-use serde::{Deserialize, Serialize};
-
 use crate::{app::LavaApp, primitives::UserId};
 
-use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
+use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
 
 pub use config::*;
 
 use std::sync::Arc;
 
 pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()> {
-    let schema = graphql::schema(Some(app.clone()));
+    let port = config.port;
+    let aud = config.aud.as_ref();
 
-    let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone()));
+    let jwks_decoder = Arc::new(RemoteJwksDecoder::new(config.jwks_url.clone(), aud));
     let decoder = jwks_decoder.clone();
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
+
+    let schema = graphql::schema(Some(app.clone()));
 
     let app = Router::new()
         .route(
@@ -37,21 +38,15 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
         })
         .layer(Extension(schema));
 
-    println!("Starting public server on port {}", config.port);
+    println!("Starting public server on port {}", port);
     let listener =
-        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], config.port)))
-            .await?;
+        tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
     axum::serve(listener, app.into_make_service()).await?;
     Ok(())
 }
 
-pub struct AuthContext {
+pub struct PublicAuthContext {
     pub user_id: UserId,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JwtClaims {
-    sub: String,
 }
 
 pub async fn graphql_handler(
@@ -72,8 +67,7 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = AuthContext { user_id };
-
+    let auth_context = PublicAuthContext { user_id };
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

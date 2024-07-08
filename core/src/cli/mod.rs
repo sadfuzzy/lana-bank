@@ -68,6 +68,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let admin_app = app.clone();
 
     let admin_send = send.clone();
+
     handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
             crate::server::admin::run(config.admin_server, admin_app)

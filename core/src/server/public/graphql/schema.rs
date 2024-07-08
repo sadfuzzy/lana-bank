@@ -5,7 +5,7 @@ use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
     server::{
-        public::AuthContext,
+        public::PublicAuthContext,
         shared_graphql::{
             fixed_term_loan::FixedTermLoan,
             primitives::UUID,
@@ -39,7 +39,7 @@ impl Query {
     }
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<User>> {
-        let AuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
         let user = app.users().find_by_id(*user_id).await?;
@@ -57,7 +57,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: WithdrawalInitiateInput,
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
-        let AuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
 
@@ -73,7 +73,7 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
-        let AuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
         let loan = app
@@ -115,7 +115,7 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<SumsubTokenCreatePayload> {
-        let AuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
         let res = app.applicants().create_access_token(*user_id).await?;
@@ -127,7 +127,7 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let AuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { user_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
         let res = app.applicants().create_permalink(*user_id).await?;

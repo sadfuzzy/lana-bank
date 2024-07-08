@@ -19,6 +19,7 @@ pub enum AuthError {
     MissingToken,
     ExpiredToken,
     InvalidSignature,
+    InvalidAudience,
     InternalError,
 }
 
@@ -30,6 +31,7 @@ impl IntoResponse for AuthError {
             AuthError::ExpiredToken => (StatusCode::UNAUTHORIZED, "Expired token"),
             AuthError::InvalidSignature => (StatusCode::UNAUTHORIZED, "Invalid signature"),
             AuthError::InternalError => (StatusCode::INTERNAL_SERVER_ERROR, "Internal error"),
+            AuthError::InvalidAudience => (StatusCode::UNAUTHORIZED, "Invalid audience"),
         };
 
         (status, msg).into_response()

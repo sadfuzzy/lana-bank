@@ -35,3 +35,12 @@ make run-server
 1. Run `$ direnv allow` to source token
 
 1. Run `$ make bump-cala-schema` to update schema
+
+# access the frontends:
+
+the access through the frontends needs to be proxied to oathkeeper to receive the correct Header
+
+admin panel: http://localhost:4455/admin-panel
+
+app: http://localhost:4455/
+- if you see a cookie error, delete the cookie and reload the page (for now)
