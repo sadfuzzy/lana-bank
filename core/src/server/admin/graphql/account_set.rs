@@ -46,11 +46,11 @@ pub struct AccountSetAndMemberBalances {
 impl From<crate::ledger::account_set::LedgerAccountSetAndMemberBalances>
     for AccountSetAndMemberBalances
 {
-    fn from(account_ledger: crate::ledger::account_set::LedgerAccountSetAndMemberBalances) -> Self {
+    fn from(trial_balance: crate::ledger::account_set::LedgerAccountSetAndMemberBalances) -> Self {
         AccountSetAndMemberBalances {
-            name: account_ledger.name,
-            balance: account_ledger.balance.into(),
-            member_balances: account_ledger
+            name: trial_balance.name,
+            balance: trial_balance.balance.into(),
+            member_balances: trial_balance
                 .member_balances
                 .iter()
                 .map(|l| AccountSetMemberBalance::from(l.clone()))

@@ -125,13 +125,13 @@ impl CalaClient {
             ),
             on_balance_sheet_account_code: format!("USERS.CHECKING.{}", user_id),
             on_balance_sheet_account_name: format!("User Checking Account for {}", user_id),
+            user_checking_control_account_set_id:
+                super::constants::USER_CHECKING_CONTROL_ACCOUNT_SET_ID,
             tron_account_id: Uuid::new_v4(),
             tron_account_code: format!("ASSETS.TRON.{}", user_id),
             tron_account_name: format!("Bank USDT Deposit Account for {}", user_id),
-            user_deposit_account_set_id:
-                super::constants::ON_BALANCE_SHEET_USER_DEPOSITS_ACCOUNT_SET_ID,
-            user_deposit_control_account_set_id:
-                super::constants::USER_DEPOSITS_CONTROL_ACCOUNT_SET_ID,
+            user_checking_account_set_id:
+                super::constants::ON_BALANCE_SHEET_USER_CHECKING_ACCOUNT_SET_ID,
             off_balance_sheet_account_id: Uuid::from(
                 user_account_ids.off_balance_sheet_deposit_account_id,
             ),
@@ -140,6 +140,8 @@ impl CalaClient {
                 "Bank Off-Balance-Sheet Deposit Account for {}",
                 user_id
             ),
+            user_collateral_control_account_set_id:
+                super::constants::USER_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             btc_account_id: Uuid::new_v4(),
             btc_account_code: format!("ASSETS.BTC.{}", user_id),
             btc_account_name: format!("Bank BTC Deposit Account for {}", user_id),
@@ -170,6 +172,8 @@ impl CalaClient {
         let variables = create_loan_accounts::Variables {
             collateral_account_id: Uuid::from(collateral_account_id),
             collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
+            collateral_control_account_set_id:
+                super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             outstanding_account_id: Uuid::from(outstanding_account_id),
             outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
             loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,
@@ -201,6 +205,8 @@ impl CalaClient {
         let variables = create_loan_accounts::Variables {
             collateral_account_id: Uuid::from(collateral_account_id),
             collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
+            collateral_control_account_set_id:
+                super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             outstanding_account_id: Uuid::from(outstanding_account_id),
             outstanding_account_code: format!("LOANS.OUTSTANDING.{}", loan_id),
             loans_account_set_id: super::constants::FIXED_TERM_LOANS_ACCOUNT_SET_ID,

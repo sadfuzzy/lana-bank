@@ -259,14 +259,11 @@ impl Ledger {
     pub async fn account_trial_balance_summary(
         &self,
     ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
-        match self
-            .cala
+        self.cala
             .trial_balance::<LedgerAccountSetAndMemberBalances>()
             .await
-        {
-            Ok(gl) => Ok(gl),
-            Err(e) => Err(e)?,
-        }
+            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map_err(|e| e.into())
     }
 
     async fn initialize_tx_templates(cala: &CalaClient) -> Result<(), LedgerError> {

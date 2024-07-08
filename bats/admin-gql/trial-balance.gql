@@ -35,46 +35,42 @@ fragment balancesByCurrency on AccountBalancesByCurrency {
 
 fragment btcBalances on LayeredBtcAccountBalances {
   all {
-    net
-    debit
-    credit
+    ...btcLayers
   }
   settled {
-    net
-    debit
-    credit
+    ...btcLayers
   }
   pending {
-    net
-    debit
-    credit
+    ...btcLayers
   }
   encumbrance {
-    net
-    debit
-    credit
+    ...btcLayers
   }
 }
 
 fragment usdBalances on LayeredUsdAccountBalances {
   all {
-    net
-    debit
-    credit
+    ...usdLayers
   }
   settled {
-    net
-    debit
-    credit
+    ...usdLayers
   }
   pending {
-    net
-    debit
-    credit
+    ...usdLayers
   }
   encumbrance {
-    net
-    debit
-    credit
+    ...usdLayers
   }
+}
+
+fragment usdLayers on UsdAccountBalance {
+  netDebit
+  debit
+  credit
+}
+
+fragment btcLayers on BtcAccountBalance {
+  netDebit
+  debit
+  credit
 }
