@@ -14,7 +14,7 @@ use crate::{
     user::Users,
 };
 
-use entity::*;
+pub use entity::*;
 use error::*;
 use job::*;
 use repo::*;
@@ -63,9 +63,10 @@ impl Loans {
 
     pub async fn create_loan_for_user(
         &self,
-        user_id: UserId,
+        user_id: impl Into<UserId>,
         desired_principal: UsdCents,
     ) -> Result<Loan, LoanError> {
+        let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
             Some(user) => user,
             None => return Err(LoanError::UserNotFound(user_id)),

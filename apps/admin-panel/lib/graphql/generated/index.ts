@@ -20,6 +20,7 @@ export type Scalars = {
   LoanAnnualRate: { input: any; output: any; }
   LoanCVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
+  Timestamp: { input: any; output: any; }
   UUID: { input: string; output: string; }
   UsdCents: { input: any; output: any; }
 };
@@ -139,6 +140,23 @@ export type LayeredUsdAccountBalances = {
   settled: UsdAccountBalance;
 };
 
+export type Loan = {
+  __typename?: 'Loan';
+  id: Scalars['ID']['output'];
+  loanId: Scalars['UUID']['output'];
+  startDate: Scalars['Timestamp']['output'];
+};
+
+export type LoanCreateInput = {
+  desiredPrincipal: Scalars['UsdCents']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type LoanCreatePayload = {
+  __typename?: 'LoanCreatePayload';
+  loan: Loan;
+};
+
 export type LoanDuration = {
   __typename?: 'LoanDuration';
   period: Period;
@@ -158,6 +176,7 @@ export type LoanOutstanding = {
 export type Mutation = {
   __typename?: 'Mutation';
   currentTermsUpdate: CurrentTermsUpdatePayload;
+  loanCreate: LoanCreatePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
 };
@@ -165,6 +184,11 @@ export type Mutation = {
 
 export type MutationCurrentTermsUpdateArgs = {
   input: CurrentTermsUpdateInput;
+};
+
+
+export type MutationLoanCreateArgs = {
+  input: LoanCreateInput;
 };
 
 

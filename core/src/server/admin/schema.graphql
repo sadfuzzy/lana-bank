@@ -103,9 +103,24 @@ type LayeredUsdAccountBalances {
 	encumbrance: UsdAccountBalance!
 }
 
+type Loan {
+	id: ID!
+	loanId: UUID!
+	startDate: Timestamp!
+}
+
 scalar LoanAnnualRate
 
 scalar LoanCVLPct
+
+input LoanCreateInput {
+	userId: UUID!
+	desiredPrincipal: UsdCents!
+}
+
+type LoanCreatePayload {
+	loan: Loan!
+}
 
 type LoanDuration {
 	period: Period!
@@ -125,6 +140,7 @@ type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
+	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 }
 
 """
@@ -194,6 +210,8 @@ type Terms {
 	termsId: UUID!
 	values: TermValues!
 }
+
+scalar Timestamp
 
 scalar UUID
 

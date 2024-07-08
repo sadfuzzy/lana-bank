@@ -40,6 +40,16 @@ impl From<UUID> for WithdrawId {
     }
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Timestamp(chrono::DateTime<chrono::Utc>);
+scalar!(Timestamp);
+impl From<chrono::DateTime<chrono::Utc>> for Timestamp {
+    fn from(value: chrono::DateTime<chrono::Utc>) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Decimal(rust_decimal::Decimal);

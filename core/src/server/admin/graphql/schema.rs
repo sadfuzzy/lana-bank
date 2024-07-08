@@ -1,7 +1,7 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, shareholder_equity::*, terms::*, user::*};
+use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{FixedTermLoanId, UserId},
@@ -127,5 +127,18 @@ impl Mutation {
             .build()?;
         let terms = app.loans().update_current_terms(term_values).await?;
         Ok(CurrentTermsUpdatePayload::from(terms))
+    }
+
+    async fn loan_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanCreateInput,
+    ) -> async_graphql::Result<LoanCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .loans()
+            .create_loan_for_user(input.user_id, input.desired_principal)
+            .await?;
+        Ok(LoanCreatePayload::from(loan))
     }
 }

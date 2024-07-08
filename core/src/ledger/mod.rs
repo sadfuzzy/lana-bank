@@ -229,7 +229,7 @@ impl Ledger {
     }
 
     #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        name = "lava.ledger.create_accounts_for_fixed_term_loan",
         skip(self),
         err
     )]
@@ -244,11 +244,7 @@ impl Ledger {
         Ok(())
     }
 
-    #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
     pub async fn create_accounts_for_loan(
         &self,
         loan_id: LoanId,
