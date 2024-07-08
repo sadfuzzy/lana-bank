@@ -1,6 +1,7 @@
 import Link from "next/link"
 
-import { DownloadIcon } from "@/components/icons"
+import { IoDownloadOutline } from "react-icons/io5"
+
 import {
   Card,
   CardContent,
@@ -25,7 +26,7 @@ export const LoanCard = () => {
         <Card variant="secondary">
           <CardHeader className="flex">
             <div className="flex align-middle gap-4">
-              <DownloadIcon className="w-10 h-10 text-primary" />
+              <IoDownloadOutline className="w-10 h-10 text-primary" />
               <div className="flex flex-col gap-2">
                 <CardTitle>Add funds to start a loan</CardTitle>
                 <CardDescription>

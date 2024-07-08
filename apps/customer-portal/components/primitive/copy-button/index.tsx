@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 
-import { CheckMarkIcon, CopyIcon } from "@/components/icons"
+import { IoCopyOutline, IoCheckmark } from "react-icons/io5"
 
 import { Button } from "@/components/primitive/button"
 
@@ -20,9 +20,9 @@ function CopyButton({ value }: { value: string }) {
       }}
     >
       {hasCopied ? (
-        <CheckMarkIcon className="h-4 w-4" />
+        <IoCheckmark className="h-4 w-4" />
       ) : (
-        <CopyIcon className="h-4 w-4" />
+        <IoCopyOutline className="h-4 w-4" />
       )}
     </Button>
   )

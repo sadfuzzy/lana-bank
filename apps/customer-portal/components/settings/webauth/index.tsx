@@ -7,6 +7,8 @@ import { UiNode } from "@ory/client"
 
 import { useRouter } from "next/navigation"
 
+import { IoAdd, IoTrashOutline } from "react-icons/io5"
+
 import { Button } from "@/components/primitive/button"
 import {
   Dialog,
@@ -30,7 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { AddIcon, TrashIcon } from "@/components/icons"
 
 export interface AuthenticatorDialogProps {
   open: boolean
@@ -116,7 +117,7 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
           className="text-left items-start justify-start"
           onClick={handlePassKeySetup}
         >
-          <AddIcon className="w-5 h-5" />
+          <IoAdd className="w-5 h-5" />
           <p>Add New</p>
         </Button>
       </div>
@@ -170,7 +171,7 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
                   {/* @ts-ignore */}
                   <TableCell>{node.meta.label?.context?.added_at}</TableCell>
                   <TableCell className="text-right flex justify-end items-end">
-                    <TrashIcon
+                    <IoTrashOutline
                       className="w-6 h-6 p-1 hover:bg-destructive transition-all rounded-md"
                       onClick={() => {
                         toast.info("feature not implemented yet")

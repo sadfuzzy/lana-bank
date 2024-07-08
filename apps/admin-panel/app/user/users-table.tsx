@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 
+import { IoEllipsisHorizontal } from "react-icons/io5"
+
 import {
   GetUserByUserIdQuery,
   useGetUserByUserIdQuery,
@@ -19,7 +21,6 @@ import {
 import { Card, CardContent } from "@/components/primitive/card"
 
 import { Button } from "@/components/primitive/button"
-import { EllipsisHorizontal } from "@/components/icons"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -137,7 +138,7 @@ function UsersTable({ userId }: { userId?: string }) {
                           <DropdownMenu>
                             <DropdownMenuTrigger>
                               <Button variant="ghost">
-                                <EllipsisHorizontal className="w-4 h-4" />
+                                <IoEllipsisHorizontal className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="text-sm">

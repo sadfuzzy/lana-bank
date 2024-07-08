@@ -8,6 +8,8 @@ import { UiNode } from "@ory/client"
 
 import { useRouter } from "next/navigation"
 
+import { IoAdd, IoTrashOutline } from "react-icons/io5"
+
 import { Button } from "@/components/primitive/button"
 import { CopyButton } from "@/components/primitive/copy-button"
 import {
@@ -22,7 +24,6 @@ import {
   createTotpSetupFlow,
   submitTotpSetupFlow,
 } from "@/lib/kratos/public/setup-totp-flow"
-import { AddIcon, TrashIcon } from "@/components/icons"
 
 export interface AuthenticatorDialogProps {
   open: boolean
@@ -135,7 +136,7 @@ const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null 
         </p>
         {totpUnlinkNode === null ? (
           <Button onClick={handleTotpSetup}>
-            <AddIcon className="w-5 h-5" />
+            <IoAdd className="w-5 h-5" />
             <p>Add New</p>
           </Button>
         ) : (
@@ -144,7 +145,7 @@ const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null 
               toast.info("This feature is not available yet")
             }}
           >
-            <TrashIcon className="w-5 h-5" />
+            <IoTrashOutline className="w-5 h-5" />
             <p className="ml-1">Remove</p>
           </Button>
         )}

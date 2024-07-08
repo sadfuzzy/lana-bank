@@ -2,12 +2,12 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { User, Receipt, CashOutline } from "@/components/icons"
+import { IoPerson, IoReceipt, IoCash } from "react-icons/io5"
 
 const navLinks = [
-  { href: "/loan", label: "Loan", icon: Receipt },
-  { href: "/user", label: "Users", icon: User },
-  { href: "/trial-balance", label: "Trial Balance", icon: CashOutline },
+  { href: "/loan", label: "Loan", icon: IoReceipt },
+  { href: "/user", label: "Users", icon: IoPerson },
+  { href: "/trial-balance", label: "Trial Balance", icon: IoCash },
 ]
 
 const NavigationLinks = () => {

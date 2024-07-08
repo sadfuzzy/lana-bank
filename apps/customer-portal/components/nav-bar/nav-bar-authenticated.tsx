@@ -2,7 +2,9 @@
 import React, { useState } from "react"
 import Link from "next/link"
 
-import { CrossIcon, LavaBankIcon, PersonIcon } from "../icons"
+import { IoPersonOutline, IoCloseOutline } from "react-icons/io5"
+
+import { LavaBankIcon } from "../icons"
 import { Card, CardContent, CardHeader, CardTitle } from "../primitive/card"
 import { Button } from "../primitive/button"
 import { Key, KeyValueCell, KeyValueGroup, Value } from "../primitive/aligned-key-value"
@@ -37,7 +39,7 @@ export function NavBarAuthenticated({
             onClick={() => setOpenMenu(true)}
             className="border border-primary p-2 rounded-full cursor-pointer"
           >
-            <PersonIcon className="w-6 h-6" />
+            <IoPersonOutline className="w-6 h-6" />
           </div>
           {openMenu && (
             <div className="absolute right-0 top-0 z-20">
@@ -50,12 +52,12 @@ export function NavBarAuthenticated({
                       setOpenMenu(false)
                     }}
                   >
-                    <CrossIcon className="w-6 h-6 " />
+                    <IoCloseOutline className="w-6 h-6 " />
                   </Button>
                   <div className="flex justify-end items-center gap-4">
                     <p>{email}</p>
                     <div className="border border-primary p-2 rounded-full">
-                      <PersonIcon className="w-6 h-6" />
+                      <IoPersonOutline className="w-6 h-6" />
                     </div>
                   </div>
                 </div>

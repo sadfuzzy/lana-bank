@@ -3,9 +3,10 @@ import QRCode from "react-qr-code"
 
 import { gql } from "@apollo/client"
 
+import { IoQrCode } from "react-icons/io5"
+
 import { CopyButton } from "@/components/copy-button"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { QrCode } from "@/components/icons"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
   Dialog,
@@ -182,7 +183,7 @@ const AddressWithQr = ({ address, title }: { address: string; title?: string }) 
   return (
     <Dialog>
       <DialogTrigger className="flex gap-2 items-center">
-        <QrCode className="w-4 h-4 bg-white text-black" />
+        <IoQrCode className="w-4 h-4 bg-white text-black" />
         <p>{address}</p>
       </DialogTrigger>
       <DialogContent className="flex flex-col justify-center items-center max-w-[25rem] gap-6">

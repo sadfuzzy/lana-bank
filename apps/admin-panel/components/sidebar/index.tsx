@@ -1,6 +1,7 @@
+import { IoLogOutOutline, IoMenu } from "react-icons/io5"
+
 import { NavigationLinks } from "./navigation-links"
 
-import { LogOut, Menu } from "@/components/icons"
 import { Sheet, SheetTrigger, SheetContent } from "@/components/primitive/sheet"
 import { Button } from "@/components/primitive/button"
 
@@ -19,7 +20,7 @@ export default function SideBar() {
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
               <Button variant="primary" className="w-60">
                 <div className="flex gap-2 items-center">
-                  <LogOut className="w-6 h-6" />
+                  <IoLogOutOutline className="w-6 h-6" />
                   <p>Log out</p>
                 </div>
               </Button>
@@ -32,7 +33,7 @@ export default function SideBar() {
         <Sheet>
           <SheetTrigger asChild>
             <div className="flex items-center p-4">
-              <Menu className="w-6 h-6" />
+              <IoMenu className="w-6 h-6" />
             </div>
           </SheetTrigger>
           <SheetContent side="left" className="flex flex-col justify-between h-full">
