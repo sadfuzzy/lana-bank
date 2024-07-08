@@ -90,3 +90,33 @@ export const submitPasskeySetupFlow = async ({
     return new Error("Unknown error occurred. Please try again.")
   }
 }
+
+export const removeWebAuthnRemove = async ({
+  flowId,
+  csrfToken,
+  webAuthnRemove,
+}: {
+  flowId: string
+  csrfToken: string
+  webAuthnRemove: string
+}): Promise<{ success: boolean } | Error> => {
+  const method = "webauthn"
+  try {
+    await kratosPublic.updateSettingsFlow({
+      flow: flowId,
+      updateSettingsFlowBody: {
+        method,
+        csrf_token: csrfToken,
+        webauthn_remove: webAuthnRemove,
+      },
+    })
+    return {
+      success: true,
+    }
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 400) return new Error("Invalid Action")
+    }
+    return new Error("Unknown error occurred. Please try again.")
+  }
+}

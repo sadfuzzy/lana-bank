@@ -8,6 +8,8 @@ import DownloadIcon from "@/public/icons/download.svg"
 import LoanIcon from "@/public/icons/loan.svg"
 import LavaBankIcon from "@/public/icons/lava-bank-icon.svg"
 import PersonIcon from "@/public/icons/person.svg"
+import TrashIcon from "@/public/icons/trash.svg"
+import AddIcon from "@/public/icons/add.svg"
 
 export {
   CheckMarkIcon,
@@ -20,4 +22,6 @@ export {
   LoanIcon,
   LavaBankIcon,
   PersonIcon,
+  TrashIcon,
+  AddIcon,
 }

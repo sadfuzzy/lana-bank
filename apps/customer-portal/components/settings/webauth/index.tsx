@@ -1,6 +1,11 @@
+"use client"
 import { useState } from "react"
 
 import { toast } from "sonner"
+
+import { UiNode } from "@ory/client"
+
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import {
@@ -17,6 +22,15 @@ import {
   submitPasskeySetupFlow,
 } from "@/lib/kratos/public/setup-passkey-flow"
 import { signupWithPasskey } from "@/lib/webauth"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/primitive/table"
+import { AddIcon, TrashIcon } from "@/components/icons"
 
 export interface AuthenticatorDialogProps {
   open: boolean
@@ -28,7 +42,9 @@ export interface AuthenticatorDialogProps {
   error: string | null
 }
 
-const SetupWebAuth = () => {
+const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
+  const router = useRouter()
+
   const [webAuthPasskeyName, setWebAuthPasskeyName] = useState<string>("")
   const [openNameWebAuthnDialog, setOpenNameWebAuthnDialog] = useState<boolean>(false)
   const [webAuthData, setWebAuthData] = useState<{
@@ -89,16 +105,21 @@ const SetupWebAuth = () => {
 
     toast.success("Passkey added successfully")
     setOpenNameWebAuthnDialog(false)
+    router.refresh()
   }
 
   return (
     <>
-      <Button
-        className="text-left items-start justify-start"
-        onClick={handlePassKeySetup}
-      >
-        Setup PassKey
-      </Button>
+      <div className="flex justify-between items-center align-middle">
+        <p className="font-semibold leading-none tracking-tight">Setup PassKey</p>
+        <Button
+          className="text-left items-start justify-start"
+          onClick={handlePassKeySetup}
+        >
+          <AddIcon className="w-5 h-5" />
+          <p>Add New</p>
+        </Button>
+      </div>
       <Dialog
         open={openNameWebAuthnDialog}
         onOpenChange={() => {
@@ -125,6 +146,43 @@ const SetupWebAuth = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {addedWebAuthNode.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {addedWebAuthNode.map((node) => {
+              console.log(node)
+              return (
+                <TableRow key={node?.meta?.label?.id}>
+                  <TableCell className="font-medium">
+                    {/* TODO add appropriate type for this */}
+                    {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                    {/* @ts-ignore */}
+                    {node.meta.label?.context?.display_name}
+                  </TableCell>
+                  {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+                  {/* @ts-ignore */}
+                  <TableCell>{node.meta.label?.context?.added_at}</TableCell>
+                  <TableCell className="text-right flex justify-end items-end">
+                    <TrashIcon
+                      className="w-6 h-6 p-1 hover:bg-destructive transition-all rounded-md"
+                      onClick={() => {
+                        toast.info("feature not implemented yet")
+                      }}
+                    />
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      )}
     </>
   )
 }

@@ -1,7 +1,12 @@
+"use client"
 import QRCode from "react-qr-code"
 import { useState } from "react"
 
 import { toast } from "sonner"
+
+import { UiNode } from "@ory/client"
+
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import { CopyButton } from "@/components/primitive/copy-button"
@@ -17,6 +22,7 @@ import {
   createTotpSetupFlow,
   submitTotpSetupFlow,
 } from "@/lib/kratos/public/setup-totp-flow"
+import { AddIcon, TrashIcon } from "@/components/icons"
 
 export interface AuthenticatorDialogProps {
   open: boolean
@@ -70,7 +76,8 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
   </Dialog>
 )
 
-const SetupAuthenticator = () => {
+const SetupAuthenticator = ({ totpUnlinkNode }: { totpUnlinkNode: UiNode | null }) => {
+  const router = useRouter()
   const [totpCode, setTotpCode] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [openTotpDialog, setOpenTotpDialog] = useState<boolean>(false)
@@ -116,12 +123,33 @@ const SetupAuthenticator = () => {
     if (response.success) {
       toast.success("Authenticator app setup successfully")
       setOpenTotpDialog(false)
+      router.refresh()
     }
   }
 
   return (
     <>
-      <Button onClick={handleTotpSetup}>Setup Authenticator App</Button>
+      <div className="flex justify-between items-center align-middle">
+        <p className="font-semibold leading-none tracking-tight">
+          Setup Authenticator App
+        </p>
+        {totpUnlinkNode === null ? (
+          <Button onClick={handleTotpSetup}>
+            <AddIcon className="w-5 h-5" />
+            <p>Add New</p>
+          </Button>
+        ) : (
+          <Button
+            onClick={() => {
+              toast.info("This feature is not available yet")
+            }}
+          >
+            <TrashIcon className="w-5 h-5" />
+            <p className="ml-1">Remove</p>
+          </Button>
+        )}
+      </div>
+
       {flowData && (
         <AuthenticatorDialog
           open={openTotpDialog}
