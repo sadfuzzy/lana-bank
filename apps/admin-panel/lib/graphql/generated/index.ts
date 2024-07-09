@@ -40,6 +40,12 @@ export type AccountBalancesByCurrency = {
   usdt: LayeredUsdAccountBalances;
 };
 
+export type AccountDetails = {
+  __typename?: 'AccountDetails';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
 export type AccountSetAndMemberBalances = {
   __typename?: 'AccountSetAndMemberBalances';
   balance: AccountBalancesByCurrency;
@@ -50,6 +56,13 @@ export type AccountSetAndMemberBalances = {
 export type AccountSetBalance = {
   __typename?: 'AccountSetBalance';
   balance: AccountBalancesByCurrency;
+  name: Scalars['String']['output'];
+};
+
+export type AccountSetDetails = {
+  __typename?: 'AccountSetDetails';
+  hasSubAccounts: Scalars['Boolean']['output'];
+  id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -71,6 +84,36 @@ export type BtcBalance = {
   __typename?: 'BtcBalance';
   btcBalance: Scalars['Satoshis']['output'];
 };
+
+export type ChartOfAccounts = {
+  __typename?: 'ChartOfAccounts';
+  categories: Array<ChartOfAccountsCategory>;
+  name: Scalars['String']['output'];
+};
+
+export type ChartOfAccountsCategory = {
+  __typename?: 'ChartOfAccountsCategory';
+  accounts: Array<ChartOfAccountsCategoryAccount>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type ChartOfAccountsCategoryAccount = AccountDetails | AccountSetDetails;
+
+export type ChartOfAccountsCategoryAccountWithSubAccounts = {
+  __typename?: 'ChartOfAccountsCategoryAccountWithSubAccounts';
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+  subAccounts: Array<ChartOfAccountsCategorySubAccount>;
+};
+
+
+export type ChartOfAccountsCategoryAccountWithSubAccountsSubAccountsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+export type ChartOfAccountsCategorySubAccount = AccountDetails | AccountSetDetails;
 
 export type Checking = {
   __typename?: 'Checking';
@@ -233,10 +276,17 @@ export enum Period {
 
 export type Query = {
   __typename?: 'Query';
+  chartOfAccounts?: Maybe<ChartOfAccounts>;
+  chartOfAccountsCategoryAccountSet?: Maybe<ChartOfAccountsCategoryAccountWithSubAccounts>;
   loan?: Maybe<Loan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
   users: UserConnection;
+};
+
+
+export type QueryChartOfAccountsCategoryAccountSetArgs = {
+  accountSetId: Scalars['UUID']['input'];
 };
 
 

@@ -69,6 +69,28 @@ impl Query {
         let account_summary = app.ledger().account_trial_balance_summary().await?;
         Ok(account_summary.map(AccountSetAndMemberBalances::from))
     }
+
+    async fn chart_of_accounts(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ChartOfAccounts>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let chart_of_accounts = app.ledger().chart_of_accounts().await?;
+        Ok(chart_of_accounts.map(ChartOfAccounts::from))
+    }
+
+    async fn chart_of_accounts_category_account_set(
+        &self,
+        ctx: &Context<'_>,
+        account_set_id: UUID,
+    ) -> async_graphql::Result<Option<ChartOfAccountsCategoryAccountWithSubAccounts>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let chart_of_accounts = app
+            .ledger()
+            .chart_of_accounts_category_account_set(account_set_id.into(), 0, None)
+            .await?;
+        Ok(chart_of_accounts.map(ChartOfAccountsCategoryAccountWithSubAccounts::from))
+    }
 }
 
 pub struct Mutation;

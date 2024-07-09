@@ -1,6 +1,6 @@
-use trial_balance::DebitOrCredit;
-
-use crate::primitives::{LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
+use crate::primitives::{
+    LedgerAccountId, LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents,
+};
 
 use super::cala::graphql::*;
 
@@ -121,12 +121,34 @@ pub struct LedgerAccountBalancesByCurrency {
     pub usdt: LayeredUsdAccountBalances,
 }
 
-impl From<DebitOrCredit> for LedgerDebitOrCredit {
-    fn from(debit_or_credit: DebitOrCredit) -> Self {
+impl From<trial_balance::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: trial_balance::DebitOrCredit) -> Self {
         match debit_or_credit {
-            DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
-            DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
-            DebitOrCredit::Other(_) => todo!(),
+            trial_balance::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            trial_balance::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            trial_balance::DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
+impl From<chart_of_accounts::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: chart_of_accounts::DebitOrCredit) -> Self {
+        match debit_or_credit {
+            chart_of_accounts::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            chart_of_accounts::DebitOrCredit::CREDIT => LedgerDebitOrCredit::Credit,
+            chart_of_accounts::DebitOrCredit::Other(_) => todo!(),
+        }
+    }
+}
+
+impl From<chart_of_accounts_category_account::DebitOrCredit> for LedgerDebitOrCredit {
+    fn from(debit_or_credit: chart_of_accounts_category_account::DebitOrCredit) -> Self {
+        match debit_or_credit {
+            chart_of_accounts_category_account::DebitOrCredit::DEBIT => LedgerDebitOrCredit::Debit,
+            chart_of_accounts_category_account::DebitOrCredit::CREDIT => {
+                LedgerDebitOrCredit::Credit
+            }
+            chart_of_accounts_category_account::DebitOrCredit::Other(_) => todo!(),
         }
     }
 }
@@ -157,6 +179,36 @@ impl From<trial_balance::TrialBalanceAccountSetMembersEdgesNodeOnAccount> for Le
                     LayeredUsdAccountBalances::from,
                 ),
             },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LedgerChartOfAccountsAccount {
+    pub id: LedgerAccountId,
+    pub code: String,
+    pub name: String,
+    pub normal_balance_type: LedgerDebitOrCredit,
+}
+
+impl From<chart_of_accounts::accountDetails> for LedgerChartOfAccountsAccount {
+    fn from(account: chart_of_accounts::accountDetails) -> Self {
+        LedgerChartOfAccountsAccount {
+            id: account.account_id.into(),
+            code: account.code,
+            name: account.name,
+            normal_balance_type: account.normal_balance_type.into(),
+        }
+    }
+}
+
+impl From<chart_of_accounts_category_account::accountDetails> for LedgerChartOfAccountsAccount {
+    fn from(account: chart_of_accounts_category_account::accountDetails) -> Self {
+        LedgerChartOfAccountsAccount {
+            id: account.account_id.into(),
+            code: account.code,
+            name: account.name,
+            normal_balance_type: account.normal_balance_type.into(),
         }
     }
 }
