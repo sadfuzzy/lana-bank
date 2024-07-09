@@ -67,9 +67,21 @@ type FixedTermLoan {
 }
 
 type FixedTermLoanBalance {
-	collateral: Collateral!
-	outstanding: LoanOutstanding!
-	interestIncurred: InterestIncome!
+	collateral: FixedTermLoanCollateral!
+	outstanding: FixedTermLoanOutstanding!
+	interestIncurred: FixedTermLoanInterestIncome!
+}
+
+type FixedTermLoanCollateral {
+	btcBalance: Satoshis!
+}
+
+type FixedTermLoanInterestIncome {
+	usdBalance: UsdCents!
+}
+
+type FixedTermLoanOutstanding {
+	usdBalance: UsdCents!
 }
 
 
@@ -107,9 +119,16 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	balance: LoanBalance!
 }
 
 scalar LoanAnnualRate
+
+type LoanBalance {
+	collateral: Collateral!
+	outstanding: LoanOutstanding!
+	interestIncurred: InterestIncome!
+}
 
 scalar LoanCVLPct
 
@@ -136,11 +155,21 @@ type LoanOutstanding {
 	usdBalance: UsdCents!
 }
 
+input LoanPartialPaymentInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type LoanPartialPaymentPayload {
+	loan: Loan!
+}
+
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
+	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 }
 
 """
