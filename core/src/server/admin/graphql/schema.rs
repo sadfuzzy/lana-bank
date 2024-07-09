@@ -4,9 +4,9 @@ use uuid::Uuid;
 use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{FixedTermLoanId, UserId},
+    primitives::{LoanId, UserId},
     server::shared_graphql::{
-        fixed_term_loan::FixedTermLoan, objects::SuccessPayload, primitives::UUID,
+        loan::Loan, objects::SuccessPayload, primitives::UUID,
         sumsub::SumsubPermalinkCreatePayload, user::User,
     },
 };
@@ -15,17 +15,10 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn loan(
-        &self,
-        ctx: &Context<'_>,
-        id: UUID,
-    ) -> async_graphql::Result<Option<FixedTermLoan>> {
+    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app
-            .fixed_term_loans()
-            .find_by_id(FixedTermLoanId::from(id))
-            .await?;
-        Ok(loan.map(FixedTermLoan::from))
+        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
+        Ok(loan.map(Loan::from))
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {

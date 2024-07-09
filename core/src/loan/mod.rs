@@ -163,4 +163,8 @@ impl Loans {
             Err(e) => Err(e),
         }
     }
+
+    pub async fn list_for_user(&self, user_id: UserId) -> Result<Vec<Loan>, LoanError> {
+        self.loan_repo.find_for_user(user_id).await
+    }
 }

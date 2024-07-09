@@ -14,7 +14,9 @@ wait_till_loan_collateralized() {
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
   cache_value 'usd_balance' "$usd_balance"
-  [[ "$usd_balance" == "10000" ]] || return 1
+  unallocated_collateral_sats=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
+  cache_value 'unallocated_collateral_sats' "$unallocated_collateral_sats"
+  [[ "$usd_balance" == "10000" && "$unallocated_collateral_sats" == "999766666" ]] || return 1
 }
 
 loan_balance() {
@@ -26,8 +28,8 @@ loan_balance() {
   exec_graphql 'alice' 'find-loan' "$variables"
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
-  collateral_balance=$(graphql_output '.data.loan.balance.collateral.btcBalance')
-  cache_value 'collateral' "$collateral_balance"
+  collateral_balance_sats=$(graphql_output '.data.loan.balance.collateral.btcBalance')
+  cache_value 'collateral_sats' "$collateral_balance_sats"
 }
 
 @test "loan: loan lifecycle" {
@@ -72,14 +74,12 @@ loan_balance() {
   [[ "$loan_id" != "null" ]] || exit 1
 
   retry 30 1 wait_till_loan_collateralized
-  usd_balance=$(read_value "usd_balance")
-  [[ "$usd_balance" == "10000" ]] || exit 1
 
   loan_balance "$loan_id"
   outstanding_before=$(read_value "outstanding")
   [[ "$outstanding_before" == "10000" ]] || exit 1
-  collateral=$(read_value 'collateral')
-  [[ "$collateral" != "0" ]] || exit 1
+  collateral_sats=$(read_value 'collateral_sats')
+  [[ "$collateral_sats" == "233334" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -96,7 +96,7 @@ loan_balance() {
   loan_balance "$loan_id"
   outstanding_after=$(read_value "outstanding")
   [[ "$outstanding_after" == "0" ]] || exit 1
-  collateral=$(read_value 'collateral')
-  [[ "$collateral" == "0" ]] || exit 1
+  collateral_sats=$(read_value 'collateral_sats')
+  [[ "$collateral_sats" == "0" ]] || exit 1
 
 }

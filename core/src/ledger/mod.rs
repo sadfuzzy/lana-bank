@@ -5,7 +5,6 @@ mod cala;
 mod config;
 mod constants;
 pub mod error;
-pub mod fixed_term_loan;
 pub mod loan;
 pub mod primitives;
 mod tx_template;
@@ -14,15 +13,14 @@ pub mod user;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxWithdrawalMethod, FixedTermLoanId, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, LoanId,
-    Satoshis, UsdCents, UserId, WithdrawId,
+    BfxWithdrawalMethod, LedgerAccountId, LedgerTxId, LedgerTxTemplateId, LoanId, Satoshis,
+    UsdCents, UserId, WithdrawId,
 };
 
 use account_set::LedgerAccountSetAndMemberBalances;
 use cala::*;
 pub use config::*;
 use error::*;
-use fixed_term_loan::*;
 use loan::*;
 use user::*;
 
@@ -94,17 +92,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.get_fixed_term_loan_balance", skip(self), err)]
-    pub async fn get_fixed_term_loan_balance(
-        &self,
-        account_ids: FixedTermLoanAccountIds,
-    ) -> Result<FixedTermLoanBalance, LedgerError> {
-        self.cala
-            .get_fixed_term_loan_balance(account_ids)
-            .await?
-            .ok_or(LedgerError::AccountNotFound)
-    }
-
     #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]
     pub async fn get_loan_balance(
         &self,
@@ -114,29 +101,6 @@ impl Ledger {
             .get_loan_balance(account_ids)
             .await?
             .ok_or(LedgerError::AccountNotFound)
-    }
-
-    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
-    pub async fn approve_fixed_term_loan(
-        &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
-        collateral: Satoshis,
-        principal: UsdCents,
-        external_id: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_fixed_term_loan_tx(
-                tx_id,
-                loan_account_ids,
-                user_account_ids,
-                collateral.to_btc(),
-                principal.to_usd(),
-                external_id,
-            )
-            .await?)
     }
 
     #[instrument(name = "lava.ledger.collateralize_loan", skip(self), err)]
@@ -163,25 +127,6 @@ impl Ledger {
     }
 
     #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
-    pub async fn record_fixed_term_loan_interest(
-        &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        tx_ref: String,
-        amount: UsdCents,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_incur_interest_tx_for_fixed_term_loan(
-                tx_id,
-                loan_account_ids,
-                amount.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
     pub async fn record_loan_interest(
         &self,
         tx_id: LedgerTxId,
@@ -192,27 +137,6 @@ impl Ledger {
         Ok(self
             .cala
             .execute_incur_interest_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.record_payment", skip(self), err)]
-    pub async fn record_payment_for_fixed_term_loan(
-        &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
-        amount: UsdCents,
-        tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_repay_fixed_term_loan_tx(
-                tx_id,
-                loan_account_ids,
-                user_account_ids,
-                amount.to_usd(),
-                tx_ref,
-            )
             .await?)
     }
 
@@ -232,29 +156,6 @@ impl Ledger {
                 loan_account_ids,
                 user_account_ids,
                 amount.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
-    pub async fn complete_fixed_term_loan(
-        &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: FixedTermLoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
-        payment_amount: UsdCents,
-        collateral_amount: Satoshis,
-        tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_complete_fixed_term_loan_tx(
-                tx_id,
-                loan_account_ids,
-                user_account_ids,
-                payment_amount.to_usd(),
-                collateral_amount.to_btc(),
                 tx_ref,
             )
             .await?)
@@ -281,22 +182,6 @@ impl Ledger {
                 tx_ref,
             )
             .await?)
-    }
-
-    #[instrument(
-        name = "lava.ledger.create_accounts_for_fixed_term_loan",
-        skip(self),
-        err
-    )]
-    pub async fn create_accounts_for_fixed_term_loan(
-        &self,
-        loan_id: FixedTermLoanId,
-        loan_account_ids: FixedTermLoanAccountIds,
-    ) -> Result<(), LedgerError> {
-        self.cala
-            .create_fixed_term_loan_accounts(loan_id, loan_account_ids)
-            .await?;
-        Ok(())
     }
 
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]

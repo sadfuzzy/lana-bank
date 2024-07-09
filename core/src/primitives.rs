@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 crate::entity_id! { UserId }
-crate::entity_id! { FixedTermLoanId }
 crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { JobId }
@@ -59,17 +58,6 @@ pub enum AccountStatus {
 pub enum BfxWithdrawalMethod {
     Bitcoin,
     TronUsdt,
-}
-
-impl From<FixedTermLoanId> for LedgerAccountId {
-    fn from(id: FixedTermLoanId) -> Self {
-        LedgerAccountId::from(id.0)
-    }
-}
-impl From<FixedTermLoanId> for JobId {
-    fn from(id: FixedTermLoanId) -> Self {
-        JobId::from(id.0)
-    }
 }
 
 pub enum DebitOrCredit {

@@ -17,53 +17,6 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
-type FixedTermLoan {
-	loanId: UUID!
-	balance: FixedTermLoanBalance!
-	user: User!
-}
-
-input FixedTermLoanApproveInput {
-	loanId: UUID!
-	collateral: Satoshis!
-	principal: UsdCents!
-}
-
-type FixedTermLoanApprovePayload {
-	loan: FixedTermLoan!
-}
-
-type FixedTermLoanBalance {
-	collateral: FixedTermLoanCollateral!
-	outstanding: FixedTermLoanOutstanding!
-	interestIncurred: FixedTermLoanInterestIncome!
-}
-
-type FixedTermLoanCollateral {
-	btcBalance: Satoshis!
-}
-
-type FixedTermLoanCreatePayload {
-	loan: FixedTermLoan!
-}
-
-type FixedTermLoanInterestIncome {
-	usdBalance: UsdCents!
-}
-
-type FixedTermLoanOutstanding {
-	usdBalance: UsdCents!
-}
-
-input FixedTermLoanRecordPaymentInput {
-	loanId: UUID!
-	amount: UsdCents!
-}
-
-type FixedTermLoanRecordPaymentPayload {
-	loan: FixedTermLoan!
-}
-
 
 
 
@@ -82,6 +35,7 @@ type Loan {
 	loanId: UUID!
 	startDate: Timestamp!
 	balance: LoanBalance!
+	user: User!
 }
 
 type LoanBalance {
@@ -96,15 +50,11 @@ type LoanOutstanding {
 
 type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
-	fixedTermLoanCreate: FixedTermLoanCreatePayload!
-	fixedTermLoanApprove(input: FixedTermLoanApproveInput!): FixedTermLoanApprovePayload!
-	fixedTermLoanRecordPayment(input: FixedTermLoanRecordPaymentInput!): FixedTermLoanRecordPaymentPayload!
 	sumsubTokenCreate: SumsubTokenCreatePayload!
 	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
 type Query {
-	fixedTermLoan(id: UUID!): FixedTermLoan
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	me: User
@@ -144,7 +94,7 @@ type User {
 	level: KycLevel!
 	applicantId: String
 	balance: UserBalance!
-	loans: [FixedTermLoan!]!
+	loans: [Loan!]!
 }
 
 type UserBalance {

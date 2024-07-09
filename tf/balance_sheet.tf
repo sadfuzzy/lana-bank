@@ -36,16 +36,16 @@ resource "cala_account_set_member_account" "bfx_deposits" {
   member_account_id = cala_bitfinex_integration.bank_deposit.omnibus_account_id
 }
 
-resource "cala_account_set" "fixed_term_loans" {
+resource "cala_account_set" "loans" {
   id                  = "00000000-0000-0000-0000-900000000001"
   journal_id          = cala_journal.journal.id
-  name                = "Fixed term loans"
+  name                = "Loans"
   normal_balance_type = "DEBIT"
 }
 
 resource "cala_account_set_member_account_set" "loans" {
   account_set_id        = cala_balance_sheet.lava.schedule9_account_set_id
-  member_account_set_id = cala_account_set.fixed_term_loans.id
+  member_account_set_id = cala_account_set.loans.id
 }
 
 resource "cala_account_set" "interest_revenue" {

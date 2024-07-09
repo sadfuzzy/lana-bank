@@ -59,26 +59,26 @@ resource "cala_account_set_member_account_set" "gl_user_collateral" {
   member_account_set_id = cala_account_set.user_collateral_control.id
 }
 
-resource "cala_account_set" "fixed_term_loans_control" {
+resource "cala_account_set" "loans_control" {
   id                  = "00000000-0000-0000-0000-110000000005"
   journal_id          = cala_journal.journal.id
-  name                = "Fixed term Loans Control Account"
+  name                = "Loans Control Account"
   normal_balance_type = "DEBIT"
 }
-resource "cala_account_set_member_account_set" "gl_fixed_term_loans" {
+resource "cala_account_set_member_account_set" "gl_loans" {
   account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.fixed_term_loans_control.id
+  member_account_set_id = cala_account_set.loans_control.id
 }
 
-resource "cala_account_set" "fixed_term_loans_collateral_control" {
+resource "cala_account_set" "loans_collateral_control" {
   id                  = "00000000-0000-0000-0000-110000000006"
   journal_id          = cala_journal.journal.id
-  name                = "Fixed term Loans Collateral Control Account"
+  name                = "Loans Collateral Control Account"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "gl_fixed_term_loans_collateral" {
+resource "cala_account_set_member_account_set" "gl_loans_collateral" {
   account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.fixed_term_loans_collateral_control.id
+  member_account_set_id = cala_account_set.loans_collateral_control.id
 }
 
 resource "cala_account_set" "interest_revenue_control" {

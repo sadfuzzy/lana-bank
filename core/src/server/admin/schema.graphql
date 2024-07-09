@@ -60,30 +60,6 @@ type CurrentTermsUpdatePayload {
 	terms: Terms!
 }
 
-type FixedTermLoan {
-	loanId: UUID!
-	balance: FixedTermLoanBalance!
-	user: User!
-}
-
-type FixedTermLoanBalance {
-	collateral: FixedTermLoanCollateral!
-	outstanding: FixedTermLoanOutstanding!
-	interestIncurred: FixedTermLoanInterestIncome!
-}
-
-type FixedTermLoanCollateral {
-	btcBalance: Satoshis!
-}
-
-type FixedTermLoanInterestIncome {
-	usdBalance: UsdCents!
-}
-
-type FixedTermLoanOutstanding {
-	usdBalance: UsdCents!
-}
-
 
 
 
@@ -120,6 +96,7 @@ type Loan {
 	loanId: UUID!
 	startDate: Timestamp!
 	balance: LoanBalance!
+	user: User!
 }
 
 scalar LoanAnnualRate
@@ -199,7 +176,7 @@ enum Period {
 }
 
 type Query {
-	loan(id: UUID!): FixedTermLoan
+	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
@@ -273,7 +250,7 @@ type User {
 	level: KycLevel!
 	applicantId: String
 	balance: UserBalance!
-	loans: [FixedTermLoan!]!
+	loans: [Loan!]!
 }
 
 type UserBalance {

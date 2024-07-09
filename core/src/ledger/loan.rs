@@ -27,8 +27,8 @@ pub struct LoanBalance {
     pub interest_incurred: UsdCents,
 }
 
-impl From<fixed_term_loan_balance::ResponseData> for LoanBalance {
-    fn from(data: fixed_term_loan_balance::ResponseData) -> Self {
+impl From<loan_balance::ResponseData> for LoanBalance {
+    fn from(data: loan_balance::ResponseData) -> Self {
         LoanBalance {
             collateral: data
                 .collateral
