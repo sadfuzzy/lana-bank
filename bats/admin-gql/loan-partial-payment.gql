@@ -1,5 +1,5 @@
-mutation makeLoanPayment($input: FixedTermLoanRecordPaymentInput!) {
-  fixedTermLoanRecordPayment(input: $input) {
+mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
+  loanPartialPayment(input: $input) {
     loan {
       loanId
       balance {

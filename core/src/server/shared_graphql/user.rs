@@ -2,11 +2,14 @@ use async_graphql::*;
 
 use crate::primitives;
 
-use crate::primitives::UserId;
-use crate::{app::LavaApp, ledger, server::shared_graphql::primitives::UUID};
+use crate::{
+    app::LavaApp,
+    ledger,
+    primitives::UserId,
+    server::shared_graphql::{loan::Loan, primitives::UUID},
+};
 
 use super::balance::UserBalance;
-use super::fixed_term_loan::FixedTermLoan;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum KycLevel {
@@ -43,15 +46,15 @@ impl User {
         Ok(UserBalance::from(balance))
     }
 
-    async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<FixedTermLoan>> {
+    async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
 
-        let loans: Vec<FixedTermLoan> = app
-            .fixed_term_loans()
+        let loans: Vec<Loan> = app
+            .loans()
             .list_for_user(UserId::from(&self.user_id))
             .await?
             .into_iter()
-            .map(FixedTermLoan::from)
+            .map(Loan::from)
             .collect();
 
         Ok(loans)

@@ -60,18 +60,6 @@ type CurrentTermsUpdatePayload {
 	terms: Terms!
 }
 
-type FixedTermLoan {
-	loanId: UUID!
-	balance: FixedTermLoanBalance!
-	user: User!
-}
-
-type FixedTermLoanBalance {
-	collateral: Collateral!
-	outstanding: LoanOutstanding!
-	interestIncurred: InterestIncome!
-}
-
 
 
 
@@ -107,9 +95,17 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	balance: LoanBalance!
+	user: User!
 }
 
 scalar LoanAnnualRate
+
+type LoanBalance {
+	collateral: Collateral!
+	outstanding: LoanOutstanding!
+	interestIncurred: InterestIncome!
+}
 
 scalar LoanCVLPct
 
@@ -136,11 +132,21 @@ type LoanOutstanding {
 	usdBalance: UsdCents!
 }
 
+input LoanPartialPaymentInput {
+	loanId: UUID!
+	amount: UsdCents!
+}
+
+type LoanPartialPaymentPayload {
+	loan: Loan!
+}
+
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
+	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 }
 
 """
@@ -170,7 +176,7 @@ enum Period {
 }
 
 type Query {
-	loan(id: UUID!): FixedTermLoan
+	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
 	trialBalance: AccountSetAndMemberBalances
@@ -244,7 +250,7 @@ type User {
 	level: KycLevel!
 	applicantId: String
 	balance: UserBalance!
-	loans: [FixedTermLoan!]!
+	loans: [Loan!]!
 }
 
 type UserBalance {
