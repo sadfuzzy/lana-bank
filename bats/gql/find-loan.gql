@@ -1,4 +1,4 @@
-query loan($id: UUID!) {
+query fixedTermLoan($id: UUID!) {
   loan(id: $id) {
     loanId
     balance {

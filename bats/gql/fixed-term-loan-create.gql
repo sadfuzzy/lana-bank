@@ -1,0 +1,18 @@
+mutation fixedTermLoanCreate {
+  fixedTermLoanCreate {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}

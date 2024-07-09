@@ -8,7 +8,7 @@ pub enum LoanError {
     Sqlx(#[from] sqlx::Error),
     #[error("LoanError - EntityError: {0}")]
     EntityError(#[from] crate::entity::EntityError),
-    #[error("LoanError - LedgerError: {0}")]
+    #[error("FixedTermLoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("LoanError - UserError: '{0}'")]
     UserError(#[from] crate::user::error::UserError),
@@ -22,6 +22,4 @@ pub enum LoanError {
     JobError(#[from] crate::job::error::JobError),
     #[error("LoanError - AlreadyCompleted")]
     AlreadyCompleted,
-    #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
-    PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
 }

@@ -183,10 +183,10 @@ pub struct PostRecordPaymentTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/loan.gql",
+    query_path = "src/ledger/cala/graphql/fixed-term-loan.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct LoanBalance;
+pub struct FixedTermLoanBalance;
 
 #[derive(GraphQLQuery)]
 #[graphql(

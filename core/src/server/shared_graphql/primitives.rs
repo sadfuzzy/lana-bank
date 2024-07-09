@@ -14,12 +14,12 @@ impl<T: Into<uuid::Uuid>> From<T> for UUID {
         Self(uuid)
     }
 }
-impl From<&UUID> for LoanId {
+impl From<&UUID> for FixedTermLoanId {
     fn from(uuid: &UUID) -> Self {
         Self::from(uuid.0)
     }
 }
-impl From<UUID> for LoanId {
+impl From<UUID> for FixedTermLoanId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)
     }

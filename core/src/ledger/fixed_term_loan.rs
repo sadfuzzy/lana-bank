@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 use super::cala::graphql::*;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct LoanAccountIds {
+pub struct FixedTermLoanAccountIds {
     pub collateral_account_id: LedgerAccountId,
     pub outstanding_account_id: LedgerAccountId,
     pub interest_account_id: LedgerAccountId,
 }
 
-impl LoanAccountIds {
+impl FixedTermLoanAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
@@ -21,15 +21,15 @@ impl LoanAccountIds {
     }
 }
 
-pub struct LoanBalance {
+pub struct FixedTermLoanBalance {
     pub collateral: Satoshis,
     pub outstanding: UsdCents,
     pub interest_incurred: UsdCents,
 }
 
-impl From<fixed_term_loan_balance::ResponseData> for LoanBalance {
+impl From<fixed_term_loan_balance::ResponseData> for FixedTermLoanBalance {
     fn from(data: fixed_term_loan_balance::ResponseData) -> Self {
-        LoanBalance {
+        FixedTermLoanBalance {
             collateral: data
                 .collateral
                 .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))

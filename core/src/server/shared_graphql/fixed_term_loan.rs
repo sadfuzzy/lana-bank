@@ -7,26 +7,25 @@ use crate::{
     server::shared_graphql::{primitives::*, user::User},
 };
 
-use super::convert::ToGlobalId;
-
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct Loan {
-    id: ID,
+pub struct FixedTermLoan {
     loan_id: UUID,
-    start_date: Timestamp,
     #[graphql(skip)]
     user_id: UUID,
     #[graphql(skip)]
-    account_ids: crate::ledger::loan::LoanAccountIds,
+    account_ids: ledger::fixed_term_loan::FixedTermLoanAccountIds,
 }
 
 #[ComplexObject]
-impl Loan {
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LoanBalance> {
+impl FixedTermLoan {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<FixedTermLoanBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let balance = app.ledger().get_loan_balance(self.account_ids).await?;
-        Ok(LoanBalance::from(balance))
+        let balance = app
+            .ledger()
+            .get_fixed_term_loan_balance(self.account_ids)
+            .await?;
+        Ok(FixedTermLoanBalance::from(balance))
     }
 
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
@@ -36,6 +35,16 @@ impl Loan {
         match user {
             Some(user) => Ok(User::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
+        }
+    }
+}
+
+impl From<crate::fixed_term_loan::FixedTermLoan> for FixedTermLoan {
+    fn from(loan: crate::fixed_term_loan::FixedTermLoan) -> Self {
+        FixedTermLoan {
+            user_id: UUID::from(loan.user_id),
+            loan_id: UUID::from(loan.id),
+            account_ids: loan.account_ids,
         }
     }
 }
@@ -56,14 +65,14 @@ struct InterestIncome {
 }
 
 #[derive(SimpleObject)]
-pub(super) struct LoanBalance {
+pub(super) struct FixedTermLoanBalance {
     collateral: Collateral,
     outstanding: LoanOutstanding,
     interest_incurred: InterestIncome,
 }
 
-impl From<ledger::loan::LoanBalance> for LoanBalance {
-    fn from(balance: ledger::loan::LoanBalance) -> Self {
+impl From<ledger::fixed_term_loan::FixedTermLoanBalance> for FixedTermLoanBalance {
+    fn from(balance: ledger::fixed_term_loan::FixedTermLoanBalance) -> Self {
         Self {
             collateral: Collateral {
                 btc_balance: balance.collateral,
@@ -74,24 +83,6 @@ impl From<ledger::loan::LoanBalance> for LoanBalance {
             interest_incurred: InterestIncome {
                 usd_balance: balance.interest_incurred,
             },
-        }
-    }
-}
-
-impl ToGlobalId for crate::primitives::LoanId {
-    fn to_global_id(&self) -> async_graphql::types::ID {
-        async_graphql::types::ID::from(format!("loan:{}", self))
-    }
-}
-
-impl From<crate::loan::Loan> for Loan {
-    fn from(loan: crate::loan::Loan) -> Self {
-        Loan {
-            id: loan.id.to_global_id(),
-            loan_id: UUID::from(loan.id),
-            user_id: UUID::from(loan.user_id),
-            account_ids: loan.account_ids,
-            start_date: Timestamp::from(loan.start_date),
         }
     }
 }

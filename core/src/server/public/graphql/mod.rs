@@ -1,3 +1,4 @@
+mod fixed_term_loan;
 mod schema;
 mod withdraw;
 

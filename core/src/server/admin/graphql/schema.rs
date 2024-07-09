@@ -4,9 +4,9 @@ use uuid::Uuid;
 use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
-    primitives::{LoanId, UserId},
+    primitives::{FixedTermLoanId, UserId},
     server::shared_graphql::{
-        loan::Loan, objects::SuccessPayload, primitives::UUID,
+        fixed_term_loan::FixedTermLoan, objects::SuccessPayload, primitives::UUID,
         sumsub::SumsubPermalinkCreatePayload, user::User,
     },
 };
@@ -15,10 +15,17 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
+    async fn loan(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<FixedTermLoan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
-        Ok(loan.map(Loan::from))
+        let loan = app
+            .fixed_term_loans()
+            .find_by_id(FixedTermLoanId::from(id))
+            .await?;
+        Ok(loan.map(FixedTermLoan::from))
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
@@ -133,18 +140,5 @@ impl Mutation {
             .create_loan_for_user(input.user_id, input.desired_principal)
             .await?;
         Ok(LoanCreatePayload::from(loan))
-    }
-
-    pub async fn loan_partial_payment(
-        &self,
-        ctx: &Context<'_>,
-        input: LoanPartialPaymentInput,
-    ) -> async_graphql::Result<LoanPartialPaymentPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app
-            .loans()
-            .record_payment(input.loan_id.into(), input.amount)
-            .await?;
-        Ok(LoanPartialPaymentPayload::from(loan))
     }
 }

@@ -1,4 +1,4 @@
-query LoanBalance(
+query FixedTermLoanBalance(
   $journalId: UUID!
   $collateralId: UUID!
   $loanOutstandingId: UUID!

@@ -1,13 +1,13 @@
 use async_graphql::*;
 
-use super::withdraw::*;
+use super::{fixed_term_loan::*, withdraw::*};
 use crate::{
     app::LavaApp,
-    primitives::{LoanId, UserId},
+    primitives::{FixedTermLoanId, UserId},
     server::{
         public::PublicAuthContext,
         shared_graphql::{
-            loan::Loan,
+            fixed_term_loan::FixedTermLoan,
             primitives::UUID,
             sumsub::{SumsubPermalinkCreatePayload, SumsubTokenCreatePayload},
             user::User,
@@ -19,10 +19,17 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
+    async fn loan(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<FixedTermLoan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
-        Ok(loan.map(Loan::from))
+        let loan = app
+            .fixed_term_loans()
+            .find_by_id(FixedTermLoanId::from(id))
+            .await?;
+        Ok(loan.map(FixedTermLoan::from))
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
@@ -60,6 +67,48 @@ impl Mutation {
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))
+    }
+
+    pub async fn fixed_term_loan_create(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<FixedTermLoanCreatePayload> {
+        let PublicAuthContext { user_id } = ctx.data()?;
+
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .create_loan_for_user(*user_id)
+            .await?;
+        Ok(FixedTermLoanCreatePayload::from(loan))
+    }
+
+    pub async fn fixed_term_loan_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanApproveInput,
+    ) -> async_graphql::Result<FixedTermLoanApprovePayload> {
+        // TODO: validate userId
+
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .approve_loan(input.loan_id, input.collateral, input.principal)
+            .await?;
+        Ok(FixedTermLoanApprovePayload::from(loan))
+    }
+
+    pub async fn fixed_term_loan_record_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: FixedTermLoanRecordPaymentInput,
+    ) -> async_graphql::Result<FixedTermLoanRecordPaymentPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .fixed_term_loans()
+            .record_payment(input.loan_id, input.amount)
+            .await?;
+        Ok(FixedTermLoanRecordPaymentPayload::from(loan))
     }
 
     pub async fn sumsub_token_create(
