@@ -20,6 +20,10 @@ jobs:
           username: _json_key
           password: ${{ secrets.GCR_JSON_KEY }}
       - uses: actions/checkout@v3
+
+      - name: Tilt CI
+        run: nix develop -c make tilt-in-ci
+
       - name: Run integration tests
         run: nix develop -c make test-in-ci
 

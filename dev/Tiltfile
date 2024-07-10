@@ -1,5 +1,6 @@
-docker_compose("../docker-compose.yml", project_name = "lava-bank")
+is_ci = sys.argv[1] == "ci"
 
+docker_compose("../docker-compose.yml", project_name="lava-bank")
 docker_groups = {
     "auth": ["kratos", "kratos-pg", "oathkeeper", "mailslurper"],
     "otel": ["otel-agent"],
@@ -9,33 +10,60 @@ docker_groups = {
 
 for service, deps in docker_groups.items():
     for dep in deps:
-      dc_resource(dep, labels = [service])
+        dc_resource(dep, labels=[service])
 
 local_resource(
     "core",
-    labels = ["core"],
-    serve_cmd = "cd .. && make build run-tf-in-tilt run-server",
-    serve_env = {
-      "PG_CON": "postgres://user:password@localhost:5433/pg",
-      "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    labels=["core"],
+    cmd="cd .. && make build run-tf-in-tilt",
+    serve_cmd="cd .. && make run-server",
+    serve_env={
+        "PG_CON": "postgres://user:password@localhost:5433/pg",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
     },
-    allow_parallel = True,
-    resource_deps = [
+    allow_parallel=True,
+    resource_deps=[
         "cala",
         "core-pg",
+        "cala-pg"
     ]
 )
 
 local_resource(
     "admin-panel",
-    labels = ["apps"],
-    serve_cmd = "cd ../apps/admin-panel && pnpm install && pnpm run dev",
-    allow_parallel = True,
+    labels=["apps"],
+    serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
+    allow_parallel=True,
 )
 
+if is_ci:
+    customer_portal_cmd = "cd ../apps/customer-portal && pnpm install && pnpm build"
+    customer_portal_serve_cmd = "cd ../apps/customer-portal && pnpm start"
+else:
+    customer_portal_cmd = "cd ../apps/customer-portal && pnpm install"
+    customer_portal_serve_cmd = "cd ../apps/customer-portal && pnpm run dev"
 local_resource(
     "customer-portal",
-    labels = ["apps"],
-    serve_cmd = "cd ../apps/customer-portal && pnpm install && pnpm run dev",
-    allow_parallel = True,
+    labels=["apps"],
+    cmd=customer_portal_cmd,
+    serve_cmd=customer_portal_serve_cmd,
+    allow_parallel=True,
+    resource_deps=[
+        "core",
+        "kratos",
+        "kratos-pg",
+        "oathkeeper",
+        "mailslurper"
+    ],
 )
+
+if is_ci:
+    local_resource(
+        name="cypress",
+        labels=["apps-ci-test"],
+        cmd="cd ../apps/customer-portal && pnpm cypress run",
+        allow_parallel=True,
+        resource_deps=[
+            "customer-portal"
+        ],
+    )

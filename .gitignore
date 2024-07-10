@@ -15,3 +15,4 @@ target/
 .e2e-logs
 .lava
 .env
+tilt.log

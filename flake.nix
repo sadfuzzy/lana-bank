@@ -56,6 +56,10 @@
           pnpm
           tilt
         ]
+        ++ lib.optionals pkgs.stdenv.isLinux [
+          xvfb-run
+          cypress
+        ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
         ];

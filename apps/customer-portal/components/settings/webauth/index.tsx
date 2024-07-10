@@ -115,6 +115,7 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
         <p className="font-semibold leading-none tracking-tight">Setup PassKey</p>
         <Button
           className="text-left items-start justify-start"
+          data-test-id="setup-passkey-button"
           onClick={handlePassKeySetup}
         >
           <IoAdd className="w-5 h-5" />
@@ -136,12 +137,17 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
             </DialogDescription>
           </DialogHeader>
           <Input
+            data-test-id="passkey-name-input"
             value={webAuthPasskeyName}
             onChange={(e) => setWebAuthPasskeyName(e.target.value)}
             placeholder="Enter a name for this passkey"
           />
           <DialogFooter>
-            <Button onClick={validateWebAuthnHandler} variant="primary">
+            <Button
+              data-test-id="submit-passkey-name"
+              onClick={validateWebAuthnHandler}
+              variant="primary"
+            >
               Add Passkey
             </Button>
           </DialogFooter>

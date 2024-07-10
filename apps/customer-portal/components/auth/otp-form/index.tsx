@@ -32,11 +32,9 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
 
   const handleOtpSubmission = async () => {
     if (otp.length !== 6) {
-      setError("Please enter a complete 6-digit OTP.")
       return
     }
     setError(null)
-
     try {
       await submitAuthFlow({ flowId, otp, type })
       const response = await checkIfTwoFactorRequired()
@@ -84,7 +82,12 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
       </CardHeader>
       <form>
         <CardContent>
-          <InputOTP value={otp} onChange={(value) => setOtp(value)} maxLength={6}>
+          <InputOTP
+            data-test-id="auth-otp-input"
+            value={otp}
+            onChange={(value) => setOtp(value)}
+            maxLength={6}
+          >
             <InputOTPGroup className="w-full">
               <InputOTPSlot className="w-1/6 h-12" index={0} />
               <InputOTPSlot className="w-1/6 h-12" index={1} />
@@ -97,6 +100,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
           <Button
+            data-test-id="auth-otp-submit-btn"
             type="submit"
             className="rounded-full w-full"
             onClick={submitOtpHandler}
@@ -105,7 +109,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
           </Button>
           {error && (
             <Alert variant="destructive" className="mt-1 p-3">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription data-test-id="auth-otp-error">{error}</AlertDescription>
             </Alert>
           )}
         </CardFooter>

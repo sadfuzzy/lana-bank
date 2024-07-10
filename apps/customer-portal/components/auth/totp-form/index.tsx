@@ -53,15 +53,20 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
             value={totpCode}
             onChange={(e) => setTotpCode(e.target.value)}
             placeholder="Please enter code"
+            data-test-id="auth-totp-input"
           />
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="rounded-full px-6 w-full">
+          <Button
+            data-test-id="auth-totp-submit-btn"
+            type="submit"
+            className="rounded-full px-6 w-full"
+          >
             Next
           </Button>
           {error && (
             <Alert variant="destructive" className="mt-1 p-3">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription data-test-id="auth-totp-error">{error}</AlertDescription>
             </Alert>
           )}
         </CardFooter>

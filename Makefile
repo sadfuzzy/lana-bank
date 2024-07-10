@@ -93,3 +93,6 @@ check-code-apps-customer-portal:
 # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 ngrok:
 	ngrok http 5253
+
+tilt-in-ci:
+	./dev/bin/tilt-ci.sh

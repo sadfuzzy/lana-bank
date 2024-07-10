@@ -103,7 +103,11 @@ const OnboardingCard = ({
       </CardHeader>
       <CardContent className="mt-6">
         <div className="ml-14 flex flex-col gap-4">
-          <Link className="flex gap-2 items-center" href="/settings/2fa">
+          <Link
+            data-test-id="enable-2fa-button"
+            className="flex gap-2 items-center"
+            href="/settings/2fa"
+          >
             <Checkbox checked={twoFactorAuthEnabled} />
             <Label className="hover:underline">Enable Two-Factor Authentication </Label>
           </Link>

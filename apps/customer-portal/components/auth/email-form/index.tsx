@@ -56,10 +56,19 @@ const AuthForm = () => {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent>
-          <Input type="email" ref={emailRef} placeholder="Please enter email" />
+          <Input
+            data-test-id="auth-email-input"
+            type="email"
+            ref={emailRef}
+            placeholder="Please enter email"
+          />
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button type="submit" className="rounded-full px-6 w-full">
+          <Button
+            data-test-id="auth-email-submit-btn"
+            type="submit"
+            className="rounded-full px-6 w-full"
+          >
             Next
           </Button>
           {error && (
