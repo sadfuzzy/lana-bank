@@ -18,6 +18,7 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   Satoshis: { input: any; output: any; }
+  Timestamp: { input: any; output: any; }
   UUID: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
 };
@@ -43,46 +44,6 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
-export type FixedTermLoan = {
-  __typename?: 'FixedTermLoan';
-  balance: FixedTermLoanBalance;
-  loanId: Scalars['UUID']['output'];
-  user: User;
-};
-
-export type FixedTermLoanApproveInput = {
-  collateral: Scalars['Satoshis']['input'];
-  loanId: Scalars['UUID']['input'];
-  principal: Scalars['UsdCents']['input'];
-};
-
-export type FixedTermLoanApprovePayload = {
-  __typename?: 'FixedTermLoanApprovePayload';
-  loan: FixedTermLoan;
-};
-
-export type FixedTermLoanBalance = {
-  __typename?: 'FixedTermLoanBalance';
-  collateral: Collateral;
-  interestIncurred: InterestIncome;
-  outstanding: LoanOutstanding;
-};
-
-export type FixedTermLoanCreatePayload = {
-  __typename?: 'FixedTermLoanCreatePayload';
-  loan: FixedTermLoan;
-};
-
-export type FixedTermLoanRecordPaymentInput = {
-  amount: Scalars['UsdCents']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type FixedTermLoanRecordPaymentPayload = {
-  __typename?: 'FixedTermLoanRecordPaymentPayload';
-  loan: FixedTermLoan;
-};
-
 export type InterestIncome = {
   __typename?: 'InterestIncome';
   usdBalance: Scalars['UsdCents']['output'];
@@ -94,6 +55,22 @@ export enum KycLevel {
   Zero = 'ZERO'
 }
 
+export type Loan = {
+  __typename?: 'Loan';
+  balance: LoanBalance;
+  id: Scalars['ID']['output'];
+  loanId: Scalars['UUID']['output'];
+  startDate: Scalars['Timestamp']['output'];
+  user: User;
+};
+
+export type LoanBalance = {
+  __typename?: 'LoanBalance';
+  collateral: Collateral;
+  interestIncurred: InterestIncome;
+  outstanding: LoanOutstanding;
+};
+
 export type LoanOutstanding = {
   __typename?: 'LoanOutstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -101,22 +78,9 @@ export type LoanOutstanding = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  fixedTermLoanApprove: FixedTermLoanApprovePayload;
-  fixedTermLoanCreate: FixedTermLoanCreatePayload;
-  fixedTermLoanRecordPayment: FixedTermLoanRecordPaymentPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   sumsubTokenCreate: SumsubTokenCreatePayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
-};
-
-
-export type MutationFixedTermLoanApproveArgs = {
-  input: FixedTermLoanApproveInput;
-};
-
-
-export type MutationFixedTermLoanRecordPaymentArgs = {
-  input: FixedTermLoanRecordPaymentInput;
 };
 
 
@@ -126,7 +90,7 @@ export type MutationWithdrawalInitiateArgs = {
 
 export type Query = {
   __typename?: 'Query';
-  loan?: Maybe<FixedTermLoan>;
+  loan?: Maybe<Loan>;
   me?: Maybe<User>;
   user?: Maybe<User>;
 };
@@ -168,7 +132,7 @@ export type User = {
   btcDepositAddress: Scalars['String']['output'];
   email: Scalars['String']['output'];
   level: KycLevel;
-  loans: Array<FixedTermLoan>;
+  loans: Array<Loan>;
   status: AccountStatus;
   userId: Scalars['UUID']['output'];
   ustDepositAddress: Scalars['String']['output'];
@@ -207,6 +171,18 @@ export type SumsubTokenCreateMutationVariables = Exact<{ [key: string]: never; }
 
 
 export type SumsubTokenCreateMutation = { __typename?: 'Mutation', sumsubTokenCreate: { __typename?: 'SumsubTokenCreatePayload', token: string } };
+
+export type GetLoanQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+
+export type GetMyLoansQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'User', userId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -278,6 +254,104 @@ export function useSumsubTokenCreateMutation(baseOptions?: Apollo.MutationHookOp
 export type SumsubTokenCreateMutationHookResult = ReturnType<typeof useSumsubTokenCreateMutation>;
 export type SumsubTokenCreateMutationResult = Apollo.MutationResult<SumsubTokenCreateMutation>;
 export type SumsubTokenCreateMutationOptions = Apollo.BaseMutationOptions<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>;
+export const GetLoanDocument = gql`
+    query getLoan($id: UUID!) {
+  loan(id: $id) {
+    id
+    loanId
+    startDate
+    balance {
+      collateral {
+        btcBalance
+      }
+      outstanding {
+        usdBalance
+      }
+      interestIncurred {
+        usdBalance
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetLoanQuery__
+ *
+ * To run a query within a React component, call `useGetLoanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLoanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLoanQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetLoanQuery(baseOptions: Apollo.QueryHookOptions<GetLoanQuery, GetLoanQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetLoanQuery, GetLoanQueryVariables>(GetLoanDocument, options);
+      }
+export function useGetLoanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoanQuery, GetLoanQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetLoanQuery, GetLoanQueryVariables>(GetLoanDocument, options);
+        }
+export type GetLoanQueryHookResult = ReturnType<typeof useGetLoanQuery>;
+export type GetLoanLazyQueryHookResult = ReturnType<typeof useGetLoanLazyQuery>;
+export type GetLoanQueryResult = Apollo.QueryResult<GetLoanQuery, GetLoanQueryVariables>;
+export const GetMyLoansDocument = gql`
+    query GetMyLoans {
+  me {
+    userId
+    loans {
+      id
+      loanId
+      startDate
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetMyLoansQuery__
+ *
+ * To run a query within a React component, call `useGetMyLoansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMyLoansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMyLoansQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetMyLoansQuery(baseOptions?: Apollo.QueryHookOptions<GetMyLoansQuery, GetMyLoansQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMyLoansQuery, GetMyLoansQueryVariables>(GetMyLoansDocument, options);
+      }
+export function useGetMyLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMyLoansQuery, GetMyLoansQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMyLoansQuery, GetMyLoansQueryVariables>(GetMyLoansDocument, options);
+        }
+export type GetMyLoansQueryHookResult = ReturnType<typeof useGetMyLoansQuery>;
+export type GetMyLoansLazyQueryHookResult = ReturnType<typeof useGetMyLoansLazyQuery>;
+export type GetMyLoansQueryResult = Apollo.QueryResult<GetMyLoansQuery, GetMyLoansQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {

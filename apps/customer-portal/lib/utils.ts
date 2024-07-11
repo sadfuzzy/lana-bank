@@ -64,3 +64,23 @@ export const createErrorResponse = ({
     },
   }
 }
+
+export const formatDate = (isoDateString: string): string => {
+  const date = new Date(isoDateString)
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }
+
+  const formattedDate = date.toLocaleDateString("en-US", options)
+  const formattedTime = date
+    .toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toUpperCase()
+
+  return `${formattedDate}, ${formattedTime}`
+}
