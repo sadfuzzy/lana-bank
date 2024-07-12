@@ -5,6 +5,7 @@ import { Inter_Tight } from "next/font/google"
 import "./globals.css"
 import SideBar from "@/components/sidebar"
 import ApolloServerWrapper from "@/lib/core-admin-client/apollo-server-wrapper"
+import { Toaster } from "@/components/primitive/toast"
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ApolloServerWrapper>
+          <Toaster />
           <main className="flex flex-col md:flex-row min-h-screen w-full">
             <SideBar />
             <div className="flex-1 p-6">{children}</div>

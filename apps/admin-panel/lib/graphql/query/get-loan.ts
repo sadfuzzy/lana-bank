@@ -4,6 +4,7 @@ gql`
   query GetLoanDetails($id: UUID!) {
     loan(id: $id) {
       loanId
+      startDate
       user {
         userId
       }

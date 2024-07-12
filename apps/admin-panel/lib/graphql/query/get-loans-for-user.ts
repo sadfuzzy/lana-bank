@@ -6,6 +6,7 @@ gql`
       userId
       loans {
         loanId
+        startDate
         balance {
           collateral {
             btcBalance

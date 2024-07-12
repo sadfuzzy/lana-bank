@@ -29,6 +29,7 @@ import {
 } from "@/components/primitive/dropdown-menu"
 
 import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 
 function UsersTable({ userId }: { userId?: string }) {
   let userDetails: GetUserByUserIdQuery["user"][] | UsersQuery["users"]["nodes"] | null =
@@ -145,6 +146,11 @@ function UsersTable({ userId }: { userId?: string }) {
                               <Link href={`/user/${user.userId}`}>
                                 <DropdownMenuItem>View details</DropdownMenuItem>
                               </Link>
+                              <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                                <CreateLoanDialog userId={user.userId}>
+                                  <span>Create Loan</span>
+                                </CreateLoanDialog>
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

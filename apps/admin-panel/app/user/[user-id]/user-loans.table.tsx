@@ -1,5 +1,7 @@
 "use client"
 
+import { IoEllipsisHorizontal } from "react-icons/io5"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 
@@ -11,12 +13,22 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { useGetLoansForUserQuery } from "@/lib/graphql/generated"
+import { Button } from "@/components/primitive/button"
+import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/primitive/dropdown-menu"
+import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
 
 export const UserLoansTable = ({ userId }: { userId: string }) => {
   const {
     loading,
     error,
     data: userLoans,
+    refetch,
   } = useGetLoansForUserQuery({
     variables: {
       id: userId,
@@ -33,8 +45,11 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
         <CardContent className="p-6">No loans found for this user</CardContent>
       ) : (
         <>
-          <CardHeader>
+          <CardHeader className="flex flex-row justify-between items-center">
             <CardTitle>User loans</CardTitle>
+            <CreateLoanDialog refetch={refetch} userId={userId}>
+              <Button>New Loan</Button>
+            </CreateLoanDialog>
           </CardHeader>
           <CardContent>
             <Table>
@@ -44,6 +59,7 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
                   <TableCell>Collateral (BTC)</TableCell>
                   <TableCell>Interest Incurred (USD)</TableCell>
                   <TableCell>Outstanding (USD)</TableCell>
+                  <TableCell></TableCell>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -66,6 +82,25 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
                         ),
                         currency: "USD",
                       })}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <Button variant="ghost">
+                            <IoEllipsisHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="text-sm">
+                          <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                            <LoanPartialPaymentDialog
+                              refetch={refetch}
+                              loanId={loan.loanId}
+                            >
+                              <span>Loan Partial Payment</span>
+                            </LoanPartialPaymentDialog>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

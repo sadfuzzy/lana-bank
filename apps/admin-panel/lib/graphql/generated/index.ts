@@ -400,6 +400,20 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
+export type LoanCreateMutationVariables = Exact<{
+  input: LoanCreateInput;
+}>;
+
+
+export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type LoanPartialPaymentMutationVariables = Exact<{
+  input: LoanPartialPaymentInput;
+}>;
+
+
+export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
 export type ChartOfAccountAccountSetQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -417,14 +431,14 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', loanId: string, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', loanId: string, startDate: any, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
 
 export type GetLoansForUserQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type GetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -547,6 +561,102 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+export const LoanCreateDocument = gql`
+    mutation LoanCreate($input: LoanCreateInput!) {
+  loanCreate(input: $input) {
+    loan {
+      id
+      loanId
+      startDate
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanCreateMutationFn = Apollo.MutationFunction<LoanCreateMutation, LoanCreateMutationVariables>;
+
+/**
+ * __useLoanCreateMutation__
+ *
+ * To run a mutation, you first call `useLoanCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanCreateMutation, { data, loading, error }] = useLoanCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanCreateMutation(baseOptions?: Apollo.MutationHookOptions<LoanCreateMutation, LoanCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanCreateMutation, LoanCreateMutationVariables>(LoanCreateDocument, options);
+      }
+export type LoanCreateMutationHookResult = ReturnType<typeof useLoanCreateMutation>;
+export type LoanCreateMutationResult = Apollo.MutationResult<LoanCreateMutation>;
+export type LoanCreateMutationOptions = Apollo.BaseMutationOptions<LoanCreateMutation, LoanCreateMutationVariables>;
+export const LoanPartialPaymentDocument = gql`
+    mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
+  loanPartialPayment(input: $input) {
+    loan {
+      id
+      loanId
+      startDate
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanPartialPaymentMutationFn = Apollo.MutationFunction<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+
+/**
+ * __useLoanPartialPaymentMutation__
+ *
+ * To run a mutation, you first call `useLoanPartialPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanPartialPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanPartialPaymentMutation, { data, loading, error }] = useLoanPartialPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>(LoanPartialPaymentDocument, options);
+      }
+export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
+export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
+export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
 export const ChartOfAccountAccountSetDocument = gql`
     query ChartOfAccountAccountSet($id: UUID!) {
   chartOfAccountsAccountSet(accountSetId: $id) {
@@ -647,6 +757,7 @@ export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
     loanId
+    startDate
     user {
       userId
     }
@@ -698,6 +809,7 @@ export const GetLoansForUserDocument = gql`
     userId
     loans {
       loanId
+      startDate
       balance {
         collateral {
           btcBalance

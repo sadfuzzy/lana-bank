@@ -11,6 +11,7 @@ import { PageHeading } from "@/components/page-heading"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { useGetLoanDetailsQuery } from "@/lib/graphql/generated"
+import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
 
 function LoanPage() {
   const searchParams = useSearchParams()
@@ -108,6 +109,14 @@ function LoanPage() {
                   })}
                 />
               </DetailsGroup>
+              <LoanPartialPaymentDialog
+                refetch={refetch}
+                loanId={loanDetails.loan.loanId}
+              >
+                <Button variant="secondary" className="mt-6">
+                  Make Partial Payment
+                </Button>
+              </LoanPartialPaymentDialog>
             </CardContent>
           </>
         ) : loanId && !loanDetails?.loan ? (
