@@ -21,9 +21,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <PublicEnvScript />
-      </head>
+      {process.env.NODE_ENV === "development" ||
+      process.env.RUNNING_IN_CI === "true" ? null : (
+        <head>
+          <PublicEnvScript />
+        </head>
+      )}
       <body className={inter.className}>
         <NavBar />
         {children}

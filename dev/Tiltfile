@@ -42,14 +42,18 @@ local_resource(
 if is_ci:
     customer_portal_cmd = "cd ../apps/customer-portal && pnpm install && pnpm build"
     customer_portal_serve_cmd = "cd ../apps/customer-portal && pnpm start"
+    customer_portal_env = {"RUNNING_IN_CI" : "true"}
 else:
     customer_portal_cmd = "cd ../apps/customer-portal && pnpm install"
     customer_portal_serve_cmd = "cd ../apps/customer-portal && pnpm run dev"
+    customer_portal_env = {}
 local_resource(
     "customer-portal",
     labels=["apps"],
     cmd=customer_portal_cmd,
     serve_cmd=customer_portal_serve_cmd,
+    env=customer_portal_env,
+    serve_env=customer_portal_env,
     allow_parallel=True,
     resource_deps=[
         "core",
