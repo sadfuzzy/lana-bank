@@ -1,22 +1,25 @@
 mutation CreateLoanAccounts(
-  $collateralAccountId: UUID!
-  $collateralAccountCode: String!
-  $collateralControlAccountSetId: UUID!
-  $outstandingAccountId: UUID!
-  $outstandingAccountCode: String!
+  $loanCollateralAccountId: UUID!
+  $loanCollateralAccountCode: String!
+  $loanCollateralAccountName: String!
+  $loansCollateralControlAccountSetId: UUID!
+  $loanOutstandingAccountId: UUID!
+  $loanOutstandingAccountCode: String!
+  $loanOutstandingAccountName: String!
   $interestAccountId: UUID!
   $interestAccountCode: String!
+  $interestAccountName: String!
   $loansAccountSetId: UUID!
-  $loansControlAccountSetId: UUID!
+  $loansOutstandingControlAccountSetId: UUID!
   $interestRevenueAccountSetId: UUID!
   $interestRevenueControlAccountSetId: UUID!
 ) {
   collateral: accountCreate(
     input: {
-      accountId: $collateralAccountId
-      code: $collateralAccountCode
-      name: "Loan Collateral"
-      accountSetIds: [$collateralControlAccountSetId]
+      accountId: $loanCollateralAccountId
+      code: $loanCollateralAccountCode
+      name: $loanCollateralAccountName
+      accountSetIds: [$loansCollateralControlAccountSetId]
     }
   ) {
     account {
@@ -25,11 +28,11 @@ mutation CreateLoanAccounts(
   }
   outstanding: accountCreate(
     input: {
-      accountId: $outstandingAccountId
-      code: $outstandingAccountCode
-      name: "Loan Outstanding"
+      accountId: $loanOutstandingAccountId
+      code: $loanOutstandingAccountCode
+      name: $loanOutstandingAccountName
       normalBalanceType: "DEBIT"
-      accountSetIds: [$loansAccountSetId, $loansControlAccountSetId]
+      accountSetIds: [$loansAccountSetId, $loansOutstandingControlAccountSetId]
     }
   ) {
     account {
@@ -40,7 +43,7 @@ mutation CreateLoanAccounts(
     input: {
       accountId: $interestAccountId
       code: $interestAccountCode
-      name: "Loan Interest Revenue"
+      name: $interestAccountName
       accountSetIds: [
         $interestRevenueAccountSetId
         $interestRevenueControlAccountSetId
