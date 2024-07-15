@@ -37,6 +37,12 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
 
   return (
     <Card className="mt-4">
+      <CardHeader className="flex flex-row justify-between items-center">
+        <CardTitle>User loans</CardTitle>
+        <CreateLoanDialog refetch={refetch} userId={userId}>
+          <Button>New Loan</Button>
+        </CreateLoanDialog>
+      </CardHeader>
       {loading ? (
         <CardContent className="p-6">Loading...</CardContent>
       ) : error ? (
@@ -45,12 +51,6 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
         <CardContent className="p-6">No loans found for this user</CardContent>
       ) : (
         <>
-          <CardHeader className="flex flex-row justify-between items-center">
-            <CardTitle>User loans</CardTitle>
-            <CreateLoanDialog refetch={refetch} userId={userId}>
-              <Button>New Loan</Button>
-            </CreateLoanDialog>
-          </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
