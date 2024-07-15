@@ -3,10 +3,14 @@ enum AccountStatus {
 	INACTIVE
 }
 
+scalar AnnualRate
+
 
 type BtcBalance {
 	btcBalance: Satoshis!
 }
+
+scalar CVLPct
 
 type Checking {
 	settled: UsdBalance!
@@ -17,11 +21,20 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+type Duration {
+	period: Period!
+	units: Int!
+}
+
 
 
 
 type InterestIncome {
 	usdBalance: UsdCents!
+}
+
+enum InterestInterval {
+	END_OF_MONTH
 }
 
 enum KycLevel {
@@ -54,10 +67,15 @@ type Mutation {
 	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
+enum Period {
+	MONTHS
+}
+
 type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	me: User
+	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -69,6 +87,21 @@ type SumsubPermalinkCreatePayload {
 
 type SumsubTokenCreatePayload {
 	token: String!
+}
+
+type TermValues {
+	annualRate: AnnualRate!
+	interval: InterestInterval!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type Terms {
+	id: ID!
+	termsId: UUID!
+	values: TermValues!
 }
 
 scalar Timestamp

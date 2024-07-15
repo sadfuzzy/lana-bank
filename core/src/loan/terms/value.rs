@@ -10,9 +10,9 @@ const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct LoanAnnualRate(Decimal);
+pub struct AnnualRate(Decimal);
 
-impl LoanAnnualRate {
+impl AnnualRate {
     fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
         let cents =
             principal.to_usd() * Decimal::from(days) * dec!(100) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
@@ -26,17 +26,17 @@ impl LoanAnnualRate {
     }
 }
 
-impl From<Decimal> for LoanAnnualRate {
+impl From<Decimal> for AnnualRate {
     fn from(value: Decimal) -> Self {
-        LoanAnnualRate(value)
+        AnnualRate(value)
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(transparent)]
-pub struct LoanCVLPct(Decimal);
+pub struct CVLPct(Decimal);
 
-impl LoanCVLPct {
+impl CVLPct {
     pub fn scale(&self, value: UsdCents) -> UsdCents {
         let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
         UsdCents::from(
@@ -48,22 +48,22 @@ impl LoanCVLPct {
     }
 }
 
-impl From<Decimal> for LoanCVLPct {
+impl From<Decimal> for CVLPct {
     fn from(value: Decimal) -> Self {
-        LoanCVLPct(value)
+        CVLPct(value)
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
-pub enum LoanDuration {
+pub enum Duration {
     Months(u32),
 }
 
-impl LoanDuration {
+impl Duration {
     pub fn expiration_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
-            LoanDuration::Months(months) => start_date
+            Duration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
                 .expect("should return a expiration date"),
         }
@@ -101,18 +101,18 @@ impl InterestInterval {
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
     #[builder(setter(into))]
-    pub(crate) annual_rate: LoanAnnualRate,
+    pub(crate) annual_rate: AnnualRate,
     #[builder(setter(into))]
-    pub(crate) duration: LoanDuration,
+    pub(crate) duration: Duration,
     #[builder(setter(into))]
     pub(crate) interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
-    pub(crate) liquidation_cvl: LoanCVLPct,
+    pub(crate) liquidation_cvl: CVLPct,
     #[builder(setter(into))]
-    pub(crate) margin_call_cvl: LoanCVLPct,
+    pub(crate) margin_call_cvl: CVLPct,
     #[builder(setter(into))]
-    pub(crate) initial_cvl: LoanCVLPct,
+    pub(crate) initial_cvl: CVLPct,
 }
 
 impl TermValues {
@@ -145,12 +145,12 @@ mod test {
 
     #[test]
     fn loan_cvl_pct_scale() {
-        let cvl = LoanCVLPct(dec!(140));
+        let cvl = CVLPct(dec!(140));
         let value = UsdCents::from(100000);
         let scaled = cvl.scale(value);
         assert_eq!(scaled, UsdCents::from_usd(dec!(1400)));
 
-        let cvl = LoanCVLPct(dec!(50));
+        let cvl = CVLPct(dec!(50));
         let value = UsdCents::from(333333);
         let scaled = cvl.scale(value);
         assert_eq!(scaled, UsdCents::from_usd(dec!(1666.67)));
@@ -158,12 +158,12 @@ mod test {
 
     fn terms() -> TermValues {
         TermValues::builder()
-            .annual_rate(LoanAnnualRate(dec!(0.12)))
-            .duration(LoanDuration::Months(3))
+            .annual_rate(AnnualRate(dec!(0.12)))
+            .duration(Duration::Months(3))
             .interval(InterestInterval::EndOfMonth)
-            .liquidation_cvl(LoanCVLPct(Decimal::from(105)))
-            .margin_call_cvl(LoanCVLPct(Decimal::from(125)))
-            .initial_cvl(LoanCVLPct(Decimal::from(140)))
+            .liquidation_cvl(CVLPct(dec!(105)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
             .build()
             .expect("should build a valid term")
     }
@@ -204,7 +204,7 @@ mod test {
     #[test]
     fn expiration_date() {
         let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let duration = LoanDuration::Months(3);
+        let duration = Duration::Months(3);
         let expiration_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(duration.expiration_date(start_date), expiration_date);
     }

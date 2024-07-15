@@ -38,6 +38,8 @@ enum AccountStatus {
 	INACTIVE
 }
 
+scalar AnnualRate
+
 
 type BtcAccountBalance {
 	debit: Satoshis!
@@ -48,6 +50,8 @@ type BtcAccountBalance {
 type BtcBalance {
 	btcBalance: Satoshis!
 }
+
+scalar CVLPct
 
 type ChartOfAccounts {
 	name: String!
@@ -77,16 +81,26 @@ type Collateral {
 }
 
 input CurrentTermsUpdateInput {
-	annualRate: LoanAnnualRate!
+	annualRate: AnnualRate!
 	interval: InterestInterval!
-	liquidationCvl: LoanCVLPct!
-	duration: LoanDurationInput!
-	marginCallCvl: LoanCVLPct!
-	initialCvl: LoanCVLPct!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 type CurrentTermsUpdatePayload {
 	terms: Terms!
+}
+
+type Duration {
+	period: Period!
+	units: Int!
+}
+
+input DurationInput {
+	period: Period!
+	units: Int!
 }
 
 
@@ -128,15 +142,11 @@ type Loan {
 	user: User!
 }
 
-scalar LoanAnnualRate
-
 type LoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
 }
-
-scalar LoanCVLPct
 
 input LoanCreateInput {
 	userId: UUID!
@@ -145,16 +155,6 @@ input LoanCreateInput {
 
 type LoanCreatePayload {
 	loan: Loan!
-}
-
-type LoanDuration {
-	period: Period!
-	units: Int!
-}
-
-input LoanDurationInput {
-	period: Period!
-	units: Int!
 }
 
 type LoanOutstanding {
@@ -211,6 +211,7 @@ type Query {
 	trialBalance: AccountSetAndMemberBalances
 	chartOfAccounts: ChartOfAccounts
 	chartOfAccountsAccountSet(accountSetId: UUID!): ChartOfAccountsAccountSet
+	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -238,12 +239,12 @@ type SumsubPermalinkCreatePayload {
 }
 
 type TermValues {
-	annualRate: LoanAnnualRate!
+	annualRate: AnnualRate!
 	interval: InterestInterval!
-	duration: LoanDuration!
-	liquidationCvl: LoanCVLPct!
-	marginCallCvl: LoanCVLPct!
-	initialCvl: LoanCVLPct!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 type Terms {

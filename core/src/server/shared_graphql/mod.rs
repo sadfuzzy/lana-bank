@@ -4,4 +4,5 @@ pub mod loan;
 pub mod objects;
 pub mod primitives;
 pub mod sumsub;
+pub mod terms;
 pub mod user;

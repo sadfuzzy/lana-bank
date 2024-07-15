@@ -10,6 +10,7 @@ use crate::{
             loan::Loan,
             primitives::UUID,
             sumsub::{SumsubPermalinkCreatePayload, SumsubTokenCreatePayload},
+            terms::Terms,
             user::User,
         },
     },
@@ -38,6 +39,13 @@ impl Query {
         let user = app.users().find_by_id(*user_id).await?;
 
         Ok(user.map(User::from))
+    }
+
+    async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let current_terms = app.loans().find_current_terms().await?;
+
+        Ok(current_terms.map(Terms::from))
     }
 }
 

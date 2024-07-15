@@ -24,4 +24,6 @@ pub enum LoanError {
     AlreadyCompleted,
     #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
+    #[error("LoanError - TermsNotSet")]
+    TermsNotSet,
 }

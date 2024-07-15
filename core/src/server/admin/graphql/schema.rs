@@ -7,7 +7,7 @@ use crate::{
     primitives::{LoanId, UserId},
     server::shared_graphql::{
         loan::Loan, objects::SuccessPayload, primitives::UUID,
-        sumsub::SumsubPermalinkCreatePayload, user::User,
+        sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
     },
 };
 
@@ -90,6 +90,12 @@ impl Query {
             .chart_of_accounts_account_set(account_set_id.into(), 0, None)
             .await?;
         Ok(chart_of_accounts.map(ChartOfAccountsAccountSet::from))
+    }
+
+    async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let current_terms = app.loans().find_current_terms().await?;
+        Ok(current_terms.map(Terms::from))
     }
 }
 

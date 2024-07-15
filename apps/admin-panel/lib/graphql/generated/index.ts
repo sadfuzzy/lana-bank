@@ -17,8 +17,8 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  LoanAnnualRate: { input: any; output: any; }
-  LoanCVLPct: { input: any; output: any; }
+  AnnualRate: { input: any; output: any; }
+  CVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -124,17 +124,28 @@ export type Collateral = {
 };
 
 export type CurrentTermsUpdateInput = {
-  annualRate: Scalars['LoanAnnualRate']['input'];
-  duration: LoanDurationInput;
-  initialCvl: Scalars['LoanCVLPct']['input'];
+  annualRate: Scalars['AnnualRate']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
   interval: InterestInterval;
-  liquidationCvl: Scalars['LoanCVLPct']['input'];
-  marginCallCvl: Scalars['LoanCVLPct']['input'];
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
 };
 
 export type CurrentTermsUpdatePayload = {
   __typename?: 'CurrentTermsUpdatePayload';
   terms: Terms;
+};
+
+export type Duration = {
+  __typename?: 'Duration';
+  period: Period;
+  units: Scalars['Int']['output'];
+};
+
+export type DurationInput = {
+  period: Period;
+  units: Scalars['Int']['input'];
 };
 
 export type InterestIncome = {
@@ -192,17 +203,6 @@ export type LoanCreateInput = {
 export type LoanCreatePayload = {
   __typename?: 'LoanCreatePayload';
   loan: Loan;
-};
-
-export type LoanDuration = {
-  __typename?: 'LoanDuration';
-  period: Period;
-  units: Scalars['Int']['output'];
-};
-
-export type LoanDurationInput = {
-  period: Period;
-  units: Scalars['Int']['input'];
 };
 
 export type LoanOutstanding = {
@@ -275,6 +275,7 @@ export type Query = {
   __typename?: 'Query';
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   chartOfAccountsAccountSet?: Maybe<ChartOfAccountsAccountSet>;
+  currentTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
   trialBalance?: Maybe<AccountSetAndMemberBalances>;
   user?: Maybe<User>;
@@ -323,12 +324,12 @@ export type SumsubPermalinkCreatePayload = {
 
 export type TermValues = {
   __typename?: 'TermValues';
-  annualRate: Scalars['LoanAnnualRate']['output'];
-  duration: LoanDuration;
-  initialCvl: Scalars['LoanCVLPct']['output'];
+  annualRate: Scalars['AnnualRate']['output'];
+  duration: Duration;
+  initialCvl: Scalars['CVLPct']['output'];
   interval: InterestInterval;
-  liquidationCvl: Scalars['LoanCVLPct']['output'];
-  marginCallCvl: Scalars['LoanCVLPct']['output'];
+  liquidationCvl: Scalars['CVLPct']['output'];
+  marginCallCvl: Scalars['CVLPct']['output'];
 };
 
 export type Terms = {

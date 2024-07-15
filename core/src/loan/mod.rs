@@ -167,4 +167,12 @@ impl Loans {
     pub async fn list_for_user(&self, user_id: UserId) -> Result<Vec<Loan>, LoanError> {
         self.loan_repo.find_for_user(user_id).await
     }
+
+    pub async fn find_current_terms(&self) -> Result<Option<Terms>, LoanError> {
+        match self.term_repo.find_current().await {
+            Ok(terms) => Ok(Some(terms)),
+            Err(LoanError::TermsNotSet) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
 }

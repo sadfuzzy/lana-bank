@@ -308,14 +308,14 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{InterestInterval, LoanDuration};
+    use crate::loan::{Duration, InterestInterval};
 
     use super::*;
 
     fn terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(0.12))
-            .duration(LoanDuration::Months(3))
+            .duration(Duration::Months(3))
             .interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
