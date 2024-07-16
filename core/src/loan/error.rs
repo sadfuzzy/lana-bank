@@ -22,6 +22,8 @@ pub enum LoanError {
     JobError(#[from] crate::job::error::JobError),
     #[error("LoanError - AlreadyCompleted")]
     AlreadyCompleted,
+    #[error("LoanError - AlreadyApproved")]
+    AlreadyApproved,
     #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
     #[error("LoanError - TermsNotSet")]

@@ -142,6 +142,15 @@ type Loan {
 	user: User!
 }
 
+input LoanApproveInput {
+	loanId: UUID!
+	collateral: Satoshis!
+}
+
+type LoanApprovePayload {
+	loan: Loan!
+}
+
 type LoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
@@ -175,6 +184,7 @@ type Mutation {
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
+	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 }
 

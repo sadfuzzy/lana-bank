@@ -106,8 +106,8 @@ impl Ledger {
             .ok_or(LedgerError::AccountNotFound)
     }
 
-    #[instrument(name = "lava.ledger.collateralize_loan", skip(self), err)]
-    pub async fn collateralize_loan(
+    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
+    pub async fn approve_loan(
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,

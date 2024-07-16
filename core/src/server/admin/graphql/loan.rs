@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::server::shared_graphql::{
     loan::*,
-    primitives::{UsdCents, UUID},
+    primitives::{Satoshis, UsdCents, UUID},
 };
 
 #[derive(InputObject)]
@@ -34,6 +34,23 @@ pub struct LoanPartialPaymentPayload {
 }
 
 impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
+    fn from(loan: crate::loan::Loan) -> Self {
+        Self { loan: loan.into() }
+    }
+}
+
+#[derive(InputObject)]
+pub struct LoanApproveInput {
+    pub loan_id: UUID,
+    pub collateral: Satoshis,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanApprovePayload {
+    loan: Loan,
+}
+
+impl From<crate::loan::Loan> for LoanApprovePayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
     }

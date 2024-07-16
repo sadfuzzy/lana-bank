@@ -10,15 +10,6 @@ teardown_file() {
   stop_server
 }
 
-wait_till_loan_collateralized() {
-  exec_graphql 'alice' 'me'
-  usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
-  cache_value 'usd_balance' "$usd_balance"
-  unallocated_collateral_sats=$(graphql_output '.data.me.balance.unallocatedCollateral.settled.btcBalance')
-  cache_value 'unallocated_collateral_sats' "$unallocated_collateral_sats"
-  [[ "$usd_balance" == "10000" && "$unallocated_collateral_sats" == "999766666" ]] || return 1
-}
-
 loan_balance() {
     variables=$(
     jq -n \
@@ -73,8 +64,17 @@ loan_balance() {
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
-  retry 30 1 wait_till_loan_collateralized
-
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 233334,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-approve' "$variables"
   loan_balance "$loan_id"
   outstanding_before=$(read_value "outstanding")
   [[ "$outstanding_before" == "10000" ]] || exit 1

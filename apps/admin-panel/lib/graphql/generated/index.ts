@@ -188,6 +188,16 @@ export type Loan = {
   user: User;
 };
 
+export type LoanApproveInput = {
+  collateral: Scalars['Satoshis']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanApprovePayload = {
+  __typename?: 'LoanApprovePayload';
+  loan: Loan;
+};
+
 export type LoanBalance = {
   __typename?: 'LoanBalance';
   collateral: Collateral;
@@ -223,6 +233,7 @@ export type LoanPartialPaymentPayload = {
 export type Mutation = {
   __typename?: 'Mutation';
   currentTermsUpdate: CurrentTermsUpdatePayload;
+  loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   shareholderEquityAdd: SuccessPayload;
@@ -232,6 +243,11 @@ export type Mutation = {
 
 export type MutationCurrentTermsUpdateArgs = {
   input: CurrentTermsUpdateInput;
+};
+
+
+export type MutationLoanApproveArgs = {
+  input: LoanApproveInput;
 };
 
 

@@ -19,13 +19,13 @@ pub enum LoanEvent {
         user_id: UserId,
         user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
-        initial_collateral: Satoshis,
         terms: TermValues,
         account_ids: LoanAccountIds,
         start_date: DateTime<Utc>,
     },
-    Collateralized {
+    Approved {
         tx_id: LedgerTxId,
+        initial_collateral: Satoshis,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -64,17 +64,6 @@ pub struct Loan {
 }
 
 impl Loan {
-    pub fn initial_collateral(&self) -> Satoshis {
-        if let Some(LoanEvent::Initialized {
-            initial_collateral, ..
-        }) = self.events.iter().next()
-        {
-            *initial_collateral
-        } else {
-            unreachable!("Initialized event not found")
-        }
-    }
-
     pub fn initial_principal(&self) -> UsdCents {
         if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
             *principal
@@ -107,18 +96,30 @@ impl Loan {
         self.initial_principal() + self.interest_recorded() - self.payments()
     }
 
-    pub fn is_collateralized(&self) -> bool {
+    pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
-                LoanEvent::Collateralized { .. } => return true,
+                LoanEvent::Approved { .. } => return true,
                 _ => continue,
             }
         }
         false
     }
 
-    pub(super) fn collateralize(&mut self, tx_id: LedgerTxId) {
-        self.events.push(LoanEvent::Collateralized { tx_id });
+    pub(super) fn approve(
+        &mut self,
+        tx_id: LedgerTxId,
+        initial_collateral: Satoshis,
+    ) -> Result<(), LoanError> {
+        if self.is_approved() {
+            return Err(LoanError::AlreadyApproved);
+        }
+        self.events.push(LoanEvent::Approved {
+            tx_id,
+            initial_collateral,
+        });
+
+        Ok(())
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
@@ -257,7 +258,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .user_account_ids(*user_account_ids)
                         .start_date(*start_date);
                 }
-                LoanEvent::Collateralized { .. } => (),
+                LoanEvent::Approved { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
@@ -275,7 +276,6 @@ pub struct NewLoan {
     pub(super) user_id: UserId,
     terms: TermValues,
     principal: UsdCents,
-    initial_collateral: Satoshis,
     account_ids: LoanAccountIds,
     user_account_ids: UserLedgerAccountIds,
     #[builder(default = "Utc::now()")]
@@ -295,7 +295,6 @@ impl NewLoan {
                 user_id: self.user_id,
                 terms: self.terms,
                 principal: self.principal,
-                initial_collateral: self.initial_collateral,
                 account_ids: self.account_ids,
                 user_account_ids: self.user_account_ids,
                 start_date: self.start_date,
@@ -333,7 +332,6 @@ mod test {
                 user_id: UserId::new(),
                 user_account_ids: UserLedgerAccountIds::new(),
                 principal: UsdCents::from_usd(dec!(100)),
-                initial_collateral: Satoshis::from_btc(dec!(0.00233334)),
                 terms,
                 account_ids: LoanAccountIds::new(),
                 start_date: Utc::now(),
@@ -353,5 +351,15 @@ mod test {
             .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(50)));
         assert_eq!(loan.outstanding(), UsdCents::ZERO);
         assert!(loan.is_completed());
+    }
+
+    #[test]
+    fn prevent_double_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        assert!(res.is_ok());
+
+        let res = loan.approve(LedgerTxId::new(), Satoshis::from_btc(dec!(0.12)));
+        assert!(res.is_err());
     }
 }

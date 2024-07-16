@@ -99,7 +99,6 @@ impl Loans {
             .user_id(user_id)
             .terms(current_terms.values)
             .principal(desired_principal)
-            .initial_collateral(required_collateral)
             .account_ids(LoanAccountIds::new())
             .user_account_ids(user.account_ids)
             .build()
@@ -108,6 +107,30 @@ impl Loans {
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
+        tx.commit().await?;
+        Ok(loan)
+    }
+
+    pub async fn approve_loan(
+        &self,
+        loan_id: impl Into<LoanId> + std::fmt::Debug,
+        collateral: Satoshis,
+    ) -> Result<Loan, LoanError> {
+        let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
+        let mut tx = self.pool.begin().await?;
+        let tx_id = LedgerTxId::new();
+        loan.approve(tx_id, collateral)?;
+        self.ledger
+            .approve_loan(
+                tx_id,
+                loan.account_ids,
+                loan.user_account_ids,
+                collateral,
+                loan.initial_principal(),
+                format!("{}-approval", loan.id),
+            )
+            .await?;
+        self.loan_repo.persist_in_tx(&mut tx, &mut loan).await?;
         self.jobs()
             .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
                 &mut tx,

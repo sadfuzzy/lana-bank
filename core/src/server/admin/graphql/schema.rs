@@ -163,6 +163,19 @@ impl Mutation {
         Ok(LoanCreatePayload::from(loan))
     }
 
+    async fn loan_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanApproveInput,
+    ) -> async_graphql::Result<LoanApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let loan = app
+            .loans()
+            .approve_loan(input.loan_id, input.collateral)
+            .await?;
+        Ok(LoanApprovePayload::from(loan))
+    }
+
     pub async fn loan_partial_payment(
         &self,
         ctx: &Context<'_>,
