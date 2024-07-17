@@ -7,26 +7,8 @@ query ChartOfAccounts($accountSetId: UUID!) {
           __typename
           ... on AccountSet {
             ...accountSetDetails
-            categoryAccounts: members(first: 25, after: null) {
-              pageInfo {
-                startCursor
-                endCursor
-                hasNextPage
-              }
-              edges {
-                node {
-                  __typename
-                  ... on AccountSet {
-                    ...accountSetDetails
-                    categorySubAccounts: members(first: 1) {
-                      ...subAccount
-                    }
-                  }
-                  ... on Account {
-                    ...accountDetails
-                  }
-                }
-              }
+            accounts: members(first: 25, after: null) {
+              ...account
             }
           }
           ... on Account {
@@ -45,49 +27,54 @@ query ChartOfAccountsCategoryAccount(
 ) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
-    categorySubAccounts: members(first: $first, after: $after) {
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
+    subAccounts: members(first: $first, after: $after) {
+      ...subAccount
+    }
+  }
+}
+
+fragment account on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...subAccountSet
       }
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-          }
-          ... on Account {
-            ...accountDetails
-          }
-        }
+      ... on Account {
+        ...accountDetails
       }
     }
   }
 }
 
-query ChartOfAccountsCategory($accountSetId: UUID!) {
-  accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    categoryAccounts: members(first: 25) {
-      pageInfo {
-        startCursor
-        endCursor
-        hasNextPage
+fragment subAccountSet on AccountSet {
+  ...accountSetDetails
+  subAccounts: members(first: 1) {
+    ...subAccount
+  }
+}
+
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetails
       }
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-            categorySubAccounts: members(first: 5, after: null) {
-              ...subAccount
-            }
-          }
-          ... on Account {
-            ...accountDetails
-          }
-        }
+      ... on Account {
+        ...accountDetails
       }
     }
   }
@@ -109,22 +96,4 @@ fragment accountDetails on Account {
   code
   name
   normalBalanceType
-}
-
-fragment subAccount on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    hasNextPage
-  }
-  edges {
-    node {
-      __typename
-      ... on AccountSet {
-        ...accountSetDetails
-      }
-      ... on Account {
-        ...accountDetails
-      }
-    }
-  }
 }
