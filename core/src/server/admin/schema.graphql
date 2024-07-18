@@ -167,6 +167,7 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
 }
@@ -206,6 +207,12 @@ input LoanPartialPaymentInput {
 
 type LoanPartialPaymentPayload {
 	loan: Loan!
+}
+
+enum LoanStatus {
+	NEW
+	ACTIVE
+	CLOSED
 }
 
 type Mutation {

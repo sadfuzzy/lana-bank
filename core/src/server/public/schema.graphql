@@ -47,6 +47,7 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
 }
@@ -59,6 +60,12 @@ type LoanBalance {
 
 type LoanOutstanding {
 	usdBalance: UsdCents!
+}
+
+enum LoanStatus {
+	NEW
+	ACTIVE
+	CLOSED
 }
 
 type Mutation {
