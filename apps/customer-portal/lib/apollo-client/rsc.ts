@@ -42,7 +42,7 @@ export const { getClient } = registerApolloClient(() => {
         fetchOptions: { cache: "no-store" },
         fetch: customRequest,
         headers: {
-          authorization: headers().get("authorization") || "",
+          cookie: headers().get("cookie") || "",
         },
       }),
     ]),
