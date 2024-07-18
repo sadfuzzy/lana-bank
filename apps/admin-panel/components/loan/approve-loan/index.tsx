@@ -15,14 +15,14 @@ import {
 } from "@/components/primitive/dialog"
 import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
-import { useLoanPartialPaymentMutation } from "@/lib/graphql/generated"
+import { useLoanApproveMutation } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 
 gql`
-  mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
-    loanPartialPayment(input: $input) {
+  mutation LoanApprove($input: LoanApproveInput!) {
+    loanApprove(input: $input) {
       loan {
         id
         loanId
@@ -43,35 +43,32 @@ gql`
   }
 `
 
-export const LoanPartialPaymentDialog = ({
+export const LoanApproveDialog = ({
   loanId,
-  refetch,
   children,
+  refetch,
 }: {
   loanId: string
-  refetch?: () => void
   children: React.ReactNode
+  refetch?: () => void
 }) => {
-  const [loanIdValue, setLoanIdValue] = useState<string>(loanId)
-  const [amount, setAmount] = useState<number>(0)
-  const [loanPartialPayment, { data, loading, error, reset }] =
-    useLoanPartialPaymentMutation()
+  const [collateral, setCollateral] = useState<number>(0)
+  const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
-  const handlePartialPaymentSubmit = async () => {
+  const handleLoanApprove = async () => {
     try {
-      await loanPartialPayment({
+      await LoanApprove({
         variables: {
           input: {
-            amount: currencyConverter.usdToCents(amount),
-            loanId,
+            loanId: loanId,
+            collateral,
           },
         },
       })
-
-      toast.success("Payment successful")
+      toast.success("Loan Approved successfully")
       if (refetch) refetch()
-    } catch (error) {
-      console.error(error)
+    } catch (err) {
+      console.error(err)
     }
   }
 
@@ -79,8 +76,7 @@ export const LoanPartialPaymentDialog = ({
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setLoanIdValue(loanIdValue)
-          setAmount(0)
+          setCollateral(0)
           reset()
         }
       }}
@@ -89,24 +85,21 @@ export const LoanPartialPaymentDialog = ({
       {data ? (
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Payment Complete</DialogTitle>
-            <DialogDescription>Loan details</DialogDescription>
+            <DialogTitle>Loan Approved</DialogTitle>
+            <DialogDescription>Loan Details.</DialogDescription>
           </DialogHeader>
           <DetailsGroup>
-            <DetailItem label="Loan ID" value={data.loanPartialPayment.loan.loanId} />
-            <DetailItem
-              label="Start Date"
-              value={data.loanPartialPayment.loan.startDate}
-            />
+            <DetailItem label="Loan ID" value={data.loanApprove.loan.loanId} />
+            <DetailItem label="Start Date" value={data.loanApprove.loan.startDate} />
             <DetailItem
               label="Collateral"
-              value={`${data.loanPartialPayment.loan.balance.collateral.btcBalance} sats`}
+              value={`${data.loanApprove.loan.balance.collateral.btcBalance} sats`}
             />
             <DetailItem
               label="Interest Incurred"
               value={formatCurrency({
                 amount: currencyConverter.centsToUsd(
-                  data.loanPartialPayment.loan.balance.interestIncurred.usdBalance,
+                  data.loanApprove.loan.balance.interestIncurred.usdBalance,
                 ),
                 currency: "USD",
               })}
@@ -115,7 +108,7 @@ export const LoanPartialPaymentDialog = ({
               label="Outstanding"
               value={formatCurrency({
                 amount: currencyConverter.centsToUsd(
-                  data.loanPartialPayment.loan.balance.outstanding.usdBalance,
+                  data.loanApprove.loan.balance.outstanding.usdBalance,
                 ),
                 currency: "USD",
               })}
@@ -125,30 +118,26 @@ export const LoanPartialPaymentDialog = ({
       ) : (
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Partial Payment Loan</DialogTitle>
-            <DialogDescription>Fill in the details below.</DialogDescription>
+            <DialogTitle>Approve Loan</DialogTitle>
+            <DialogDescription>Fill in the details to Approve loan.</DialogDescription>
           </DialogHeader>
           <div>
-            <Label>Amount</Label>
+            <Label>Collateral</Label>
             <div className="flex items-center gap-1">
               <Input
                 type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
+                value={collateral}
+                onChange={(e) => setCollateral(Number(e.target.value))}
                 placeholder="Enter the desired principal amount"
                 min={0}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
+              <div className="p-1.5 bg-input-text rounded-md px-4">SATS</div>
             </div>
           </div>
           {error && <span className="text-destructive">{error.message}</span>}
           <DialogFooter className="mt-4">
-            <Button
-              className="w-32"
-              disabled={loading}
-              onClick={handlePartialPaymentSubmit}
-            >
-              Submit
+            <Button className="w-32" disabled={loading} onClick={handleLoanApprove}>
+              Approve Loan
             </Button>
           </DialogFooter>
         </DialogContent>

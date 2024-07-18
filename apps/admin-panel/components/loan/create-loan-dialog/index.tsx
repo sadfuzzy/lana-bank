@@ -124,15 +124,6 @@ export const CreateLoanDialog = ({
             <DialogDescription>Fill in the details to create a loan.</DialogDescription>
           </DialogHeader>
           <div>
-            <Label>User ID</Label>
-            <Input
-              type="text"
-              value={userIdValue}
-              onChange={(e) => setUserIdValue(e.target.value)}
-              placeholder="Enter the user ID"
-            />
-          </div>
-          <div>
             <Label>Principal</Label>
             <div className="flex items-center gap-1">
               <Input
@@ -148,7 +139,7 @@ export const CreateLoanDialog = ({
           {error && <span className="text-destructive">{error.message}</span>}
           <DialogFooter className="mt-4">
             <Button className="w-32" disabled={loading} onClick={handleCreateLoan}>
-              Submit
+              Create New Loan
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -10,8 +10,10 @@ import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
-import { useGetLoanDetailsQuery } from "@/lib/graphql/generated"
+import { LoanStatus, useGetLoanDetailsQuery } from "@/lib/graphql/generated"
 import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
+import { LoanApproveDialog } from "@/components/loan/approve-loan"
+import { LoanBadge } from "@/components/loan/loan-badge"
 
 function LoanPage() {
   const searchParams = useSearchParams()
@@ -76,11 +78,16 @@ function LoanPage() {
           <CardContent className="pt-6">{error.message}</CardContent>
         ) : loanDetails?.loan ? (
           <>
-            <CardHeader>
-              <h2 className="font-semibold leading-none tracking-tight">Loan Details</h2>
-              <p className="text-textColor-secondary text-sm">
-                {loanDetails.loan.loanId}
-              </p>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <div>
+                <h2 className="font-semibold leading-none tracking-tight">
+                  Loan Details
+                </h2>
+                <p className="text-textColor-secondary text-sm mt-2">
+                  {loanDetails.loan.loanId}
+                </p>
+              </div>
+              <LoanBadge status={loanDetails.loan.status} className="p-1 px-4" />
             </CardHeader>
             <CardContent>
               <Separator className="mb-6" />
@@ -109,14 +116,25 @@ function LoanPage() {
                   })}
                 />
               </DetailsGroup>
-              <LoanPartialPaymentDialog
-                refetch={refetch}
-                loanId={loanDetails.loan.loanId}
-              >
-                <Button variant="secondary" className="mt-6">
-                  Make Partial Payment
-                </Button>
-              </LoanPartialPaymentDialog>
+              <div className="flex flex-row gap-2">
+                {loanDetails.loan.status === LoanStatus.Active && (
+                  <LoanPartialPaymentDialog
+                    refetch={refetch}
+                    loanId={loanDetails.loan.loanId}
+                  >
+                    <Button variant="secondary" className="mt-6">
+                      Make Partial Payment
+                    </Button>
+                  </LoanPartialPaymentDialog>
+                )}
+                {loanDetails.loan.status === LoanStatus.New && (
+                  <LoanApproveDialog refetch={refetch} loanId={loanDetails.loan.loanId}>
+                    <Button variant="secondary" className="mt-6">
+                      Approve Loan
+                    </Button>
+                  </LoanApproveDialog>
+                )}
+              </div>
             </CardContent>
           </>
         ) : loanId && !loanDetails?.loan ? (

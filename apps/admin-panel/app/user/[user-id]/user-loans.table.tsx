@@ -22,6 +22,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
 import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
+import { LoanApproveDialog } from "@/components/loan/approve-loan"
+import { LoanBadge } from "@/components/loan/loan-badge"
 
 export const UserLoansTable = ({ userId }: { userId: string }) => {
   const {
@@ -59,6 +61,7 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
                   <TableCell>Collateral (BTC)</TableCell>
                   <TableCell>Interest Incurred (USD)</TableCell>
                   <TableCell>Outstanding (USD)</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell></TableCell>
                 </TableRow>
               </TableHeader>
@@ -84,6 +87,9 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
                       })}
                     </TableCell>
                     <TableCell>
+                      <LoanBadge status={loan.status} />
+                    </TableCell>
+                    <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger>
                           <Button variant="ghost">
@@ -99,6 +105,13 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
                               <span>Loan Partial Payment</span>
                             </LoanPartialPaymentDialog>
                           </DropdownMenuItem>
+                          {loan.status === "NEW" && (
+                            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                              <LoanApproveDialog refetch={refetch} loanId={loan.loanId}>
+                                <span>Approve Loan</span>
+                              </LoanApproveDialog>
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
