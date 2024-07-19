@@ -7,14 +7,14 @@ gql`
       balance {
         ...balancesByCurrency
       }
-      memberBalances {
-        ... on AccountBalance {
+      subAccounts {
+        ... on AccountWithBalance {
           name
           balance {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetBalance {
+        ... on AccountSetWithBalance {
           name
           balance {
             ...balancesByCurrency

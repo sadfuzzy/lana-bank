@@ -20,8 +20,9 @@ use crate::primitives::{
 };
 
 use account_set::{
-    LedgerAccountSetAndMemberBalances, LedgerChartOfAccounts,
-    LedgerChartOfAccountsCategoryAccountSet, PaginatedLedgerChartOfAccountsCategorySubAccount,
+    LedgerAccountSetAndSubAccounts, LedgerAccountSetAndSubAccountsWithBalance,
+    LedgerChartOfAccounts, LedgerTrialBalance, PaginatedLedgerAccountSetSubAccount,
+    PaginatedLedgerAccountSetSubAccountWithBalance,
 };
 use cala::*;
 pub use config::*;
@@ -201,23 +202,19 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn trial_balance(
-        &self,
-    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+    pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.cala
-            .trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .trial_balance::<LedgerTrialBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map(|gl| gl.map(LedgerTrialBalance::from))
             .map_err(|e| e.into())
     }
 
-    pub async fn obs_trial_balance(
-        &self,
-    ) -> Result<Option<LedgerAccountSetAndMemberBalances>, LedgerError> {
+    pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
         self.cala
-            .obs_trial_balance::<LedgerAccountSetAndMemberBalances>()
+            .obs_trial_balance::<LedgerTrialBalance>()
             .await
-            .map(|gl| gl.map(LedgerAccountSetAndMemberBalances::from))
+            .map(|gl| gl.map(LedgerTrialBalance::from))
             .map_err(|e| e.into())
     }
 
@@ -239,43 +236,99 @@ impl Ledger {
             .map_err(|e| e.into())
     }
 
-    pub async fn chart_of_accounts_account_set(
+    pub async fn account_set_and_sub_accounts(
         &self,
         account_set_id: LedgerAccountSetId,
         first: i64,
         after: Option<String>,
-    ) -> Result<Option<LedgerChartOfAccountsCategoryAccountSet>, LedgerError> {
+    ) -> Result<Option<LedgerAccountSetAndSubAccounts>, LedgerError> {
         self.cala
-            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
-                account_set_id.into(),
+            .find_account_set_and_sub_accounts_by_id::<LedgerAccountSetAndSubAccounts>(
+                account_set_id,
                 first,
                 after,
             )
             .await
-            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
             .map_err(|e| e.into())
     }
 
-    pub async fn paginated_chart_of_accounts_account_set(
+    pub async fn paginated_account_set_and_sub_accounts(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        query: crate::query::PaginatedQueryArgs<SubAccountCursor>,
+    ) -> Result<
+        crate::query::PaginatedQueryRet<PaginatedLedgerAccountSetSubAccount, SubAccountCursor>,
+        LedgerError,
+    > {
+        let account_set = self
+            .cala
+            .find_account_set_and_sub_accounts_by_id::<LedgerAccountSetAndSubAccounts>(
+                account_set_id,
+                i64::try_from(query.first)?,
+                query.after.map(|c| c.value),
+            )
+            .await
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccounts::from))
+            .map_err(LedgerError::from)?;
+
+        let (sub_accounts, has_next_page, end_cursor) =
+            account_set.map_or((Vec::new(), false, None), |account_set| {
+                (
+                    account_set.sub_accounts.members,
+                    account_set.sub_accounts.page_info.has_next_page,
+                    account_set
+                        .sub_accounts
+                        .page_info
+                        .end_cursor
+                        .map(|end_cursor| SubAccountCursor { value: end_cursor }),
+                )
+            });
+
+        Ok(crate::query::PaginatedQueryRet {
+            entities: sub_accounts,
+            has_next_page,
+            end_cursor,
+        })
+    }
+
+    pub async fn account_set_and_sub_accounts_with_balance(
+        &self,
+        account_set_id: LedgerAccountSetId,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
+        self.cala
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
+                account_set_id,
+                first,
+                after,
+            )
+            .await
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
+            .map_err(|e| e.into())
+    }
+
+    pub async fn paginated_account_set_and_sub_accounts_with_balance(
         &self,
         account_set_id: LedgerAccountSetId,
         query: crate::query::PaginatedQueryArgs<SubAccountCursor>,
     ) -> Result<
         crate::query::PaginatedQueryRet<
-            PaginatedLedgerChartOfAccountsCategorySubAccount,
+            PaginatedLedgerAccountSetSubAccountWithBalance,
             SubAccountCursor,
         >,
         LedgerError,
     > {
         let account_set = self
             .cala
-            .chart_of_accounts_category_account::<LedgerChartOfAccountsCategoryAccountSet>(
-                account_set_id.into(),
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
+                account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),
             )
             .await
-            .map(|gl| gl.map(LedgerChartOfAccountsCategoryAccountSet::from))
+            .map(|gl| gl.map(LedgerAccountSetAndSubAccountsWithBalance::from))
             .map_err(LedgerError::from)?;
 
         let (sub_accounts, has_next_page, end_cursor) =

@@ -1,20 +1,32 @@
-query TrialBalance {
-  trialBalance {
+query AccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  accountSetWithBalance(accountSetId: $accountSetId) {
+    id
     name
     balance {
       ...balancesByCurrency
     }
-    subAccounts {
-      ... on AccountWithBalance {
-        name
-        balance {
-          ...balancesByCurrency
-        }
-      }
-      ... on AccountSetWithBalance {
-        name
-        balance {
-          ...balancesByCurrency
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on AccountWithBalance {
+            __typename
+            id
+            name
+            balance {
+              ...balancesByCurrency
+            }
+          }
+          ... on AccountSetWithBalance {
+            __typename
+            id
+            name
+            hasSubAccounts
+            balance {
+              ...balancesByCurrency
+            }
+          }
         }
       }
     }

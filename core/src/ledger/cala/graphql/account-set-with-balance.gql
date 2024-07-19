@@ -1,22 +1,53 @@
-query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
+query AccountSetAndSubAccountsWithBalance(
+  $journalId: UUID!
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+) {
   accountSet(id: $accountSetId) {
-    name
-    ...accountSetBalances
-    normalBalanceType
-    accounts: members(first: 100) {
-      edges {
-        node {
-          __typename
-          ... on AccountSet {
-            ...accountSetDetails
-            ...accountSetBalances
-          }
-          ... on Account {
-            ...accountDetails
-            ...accountBalances
-          }
-        }
+    ...accountSetWithBalance
+    subAccounts: members(first: $first, after: $after) {
+      ...subAccount
+    }
+  }
+}
+
+fragment subAccount on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetWithBalance
       }
+      ... on Account {
+        ...accountWithBalance
+      }
+    }
+  }
+}
+
+fragment accountWithBalance on Account {
+  accountId
+  code
+  name
+  normalBalanceType
+  ...accountBalances
+}
+
+fragment accountSetWithBalance on AccountSet {
+  accountSetId
+  name
+  normalBalanceType
+  ...accountSetBalances
+  members(first: 1) {
+    pageInfo {
+      startCursor
     }
   }
 }
@@ -73,22 +104,4 @@ fragment balances on BalanceAmount {
     units
     currency
   }
-}
-
-fragment accountSetDetails on AccountSet {
-  accountSetId
-  name
-  normalBalanceType
-  members(first: 1) {
-    pageInfo {
-      startCursor
-    }
-  }
-}
-
-fragment accountDetails on Account {
-  accountId
-  code
-  name
-  normalBalanceType
 }

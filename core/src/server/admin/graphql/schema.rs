@@ -64,19 +64,19 @@ impl Query {
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+    ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_summary = app.ledger().trial_balance().await?;
-        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+        Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn off_balance_sheet_trial_balance(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Option<AccountSetAndMemberBalances>> {
+    ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let account_summary = app.ledger().obs_trial_balance().await?;
-        Ok(account_summary.map(AccountSetAndMemberBalances::from))
+        Ok(account_summary.map(TrialBalance::from))
     }
 
     async fn chart_of_accounts(
@@ -97,17 +97,30 @@ impl Query {
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
-    async fn chart_of_accounts_account_set(
+    async fn account_set(
         &self,
         ctx: &Context<'_>,
         account_set_id: UUID,
-    ) -> async_graphql::Result<Option<ChartOfAccountsAccountSet>> {
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let chart_of_accounts = app
+        let account_set = app
             .ledger()
-            .chart_of_accounts_account_set(account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts(account_set_id.into(), 0, None)
             .await?;
-        Ok(chart_of_accounts.map(ChartOfAccountsAccountSet::from))
+        Ok(account_set.map(AccountSetAndSubAccounts::from))
+    }
+
+    async fn account_set_with_balance(
+        &self,
+        ctx: &Context<'_>,
+        account_set_id: UUID,
+    ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let account_set = app
+            .ledger()
+            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
+            .await?;
+        Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
     }
 
     async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
