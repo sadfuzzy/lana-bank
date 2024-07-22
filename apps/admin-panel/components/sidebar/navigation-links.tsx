@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { IoPerson, IoReceipt, IoCash } from "react-icons/io5"
+import { IoPerson, IoReceipt, IoCash, IoDocument } from "react-icons/io5"
 import { MdAccountTree } from "react-icons/md"
 
 const navLinks = [
@@ -10,6 +10,7 @@ const navLinks = [
   { href: "/user", label: "Users", icon: IoPerson },
   { href: "/trial-balance", label: "Trial Balance", icon: IoCash },
   { href: "/chart-of-accounts", label: "Chart of Accounts", icon: MdAccountTree },
+  { href: "/terms", label: "Terms", icon: IoDocument },
 ]
 
 const NavigationLinks = () => {

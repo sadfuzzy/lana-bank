@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import { useState, useRef } from "react"
+import { useState, useEffect } from "react"
 import { toast } from "sonner"
 
 import {
@@ -13,7 +13,12 @@ import {
 } from "@/components/primitive/dialog"
 import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
-import { InterestInterval, Period, useLoanCreateMutation } from "@/lib/graphql/generated"
+import {
+  InterestInterval,
+  Period,
+  useDefaultTermsQuery,
+  useLoanCreateMutation,
+} from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -64,29 +69,57 @@ export const CreateLoanDialog = ({
   refetch?: () => void
 }) => {
   const [userIdValue, setUserIdValue] = useState<string>(userId)
-
-  const desiredPrincipalRef = useRef<HTMLInputElement>(null)
-  const annualRateRef = useRef<HTMLInputElement>(null)
-  const intervalRef = useRef<HTMLSelectElement>(null)
-  const liquidationCvlRef = useRef<HTMLInputElement>(null)
-  const marginCallCvlRef = useRef<HTMLInputElement>(null)
-  const initialCvlRef = useRef<HTMLInputElement>(null)
-  const durationUnitsRef = useRef<HTMLInputElement>(null)
-  const durationPeriodRef = useRef<HTMLSelectElement>(null)
-
+  const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
+
+  const [formValues, setFormValues] = useState({
+    desiredPrincipal: "",
+    annualRate: "",
+    interval: "",
+    liquidationCvl: "",
+    marginCallCvl: "",
+    initialCvl: "",
+    durationUnits: "",
+    durationPeriod: "",
+  })
+
+  useEffect(() => {
+    if (defaultTermsData && defaultTermsData.defaultTerms) {
+      const terms = defaultTermsData.defaultTerms.values
+      setFormValues({
+        desiredPrincipal: "",
+        annualRate: terms.annualRate.toString(),
+        interval: terms.interval,
+        liquidationCvl: terms.liquidationCvl.toString(),
+        marginCallCvl: terms.marginCallCvl.toString(),
+        initialCvl: terms.initialCvl.toString(),
+        durationUnits: terms.duration.units.toString(),
+        durationPeriod: terms.duration.period,
+      })
+    }
+  }, [defaultTermsData])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }))
+  }
 
   const handleCreateLoan = async (event: React.FormEvent) => {
     event.preventDefault()
 
-    const desiredPrincipal = desiredPrincipalRef.current?.value
-    const annualRate = annualRateRef.current?.value
-    const interval = intervalRef.current?.value
-    const liquidationCvl = liquidationCvlRef.current?.value
-    const marginCallCvl = marginCallCvlRef.current?.value
-    const initialCvl = initialCvlRef.current?.value
-    const durationUnits = durationUnitsRef.current?.value
-    const durationPeriod = durationPeriodRef.current?.value
+    const {
+      desiredPrincipal,
+      annualRate,
+      interval,
+      liquidationCvl,
+      marginCallCvl,
+      initialCvl,
+      durationUnits,
+      durationPeriod,
+    } = formValues
 
     if (
       !desiredPrincipal ||
@@ -130,14 +163,16 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
-    if (desiredPrincipalRef.current) desiredPrincipalRef.current.value = ""
-    if (annualRateRef.current) annualRateRef.current.value = ""
-    if (intervalRef.current) intervalRef.current.value = ""
-    if (liquidationCvlRef.current) liquidationCvlRef.current.value = ""
-    if (marginCallCvlRef.current) marginCallCvlRef.current.value = ""
-    if (initialCvlRef.current) initialCvlRef.current.value = ""
-    if (durationUnitsRef.current) durationUnitsRef.current.value = ""
-    if (durationPeriodRef.current) durationPeriodRef.current.value = ""
+    setFormValues({
+      desiredPrincipal: "",
+      annualRate: "",
+      interval: "",
+      liquidationCvl: "",
+      marginCallCvl: "",
+      initialCvl: "",
+      durationUnits: "",
+      durationPeriod: "",
+    })
   }
 
   return (
@@ -223,7 +258,9 @@ export const CreateLoanDialog = ({
               <div className="flex items-center gap-1">
                 <Input
                   type="number"
-                  ref={desiredPrincipalRef}
+                  name="desiredPrincipal"
+                  value={formValues.desiredPrincipal}
+                  onChange={handleChange}
                   placeholder="Enter the desired principal amount"
                   min={0}
                   required
@@ -235,7 +272,9 @@ export const CreateLoanDialog = ({
               <Label>Margin Call CVL</Label>
               <Input
                 type="number"
-                ref={marginCallCvlRef}
+                name="marginCallCvl"
+                value={formValues.marginCallCvl}
+                onChange={handleChange}
                 placeholder="Enter the margin call CVL"
                 required
               />
@@ -244,7 +283,9 @@ export const CreateLoanDialog = ({
               <Label>Initial CVL</Label>
               <Input
                 type="number"
-                ref={initialCvlRef}
+                name="initialCvl"
+                value={formValues.initialCvl}
+                onChange={handleChange}
                 placeholder="Enter the initial CVL"
                 required
               />
@@ -253,7 +294,9 @@ export const CreateLoanDialog = ({
               <Label>Liquidation CVL</Label>
               <Input
                 type="number"
-                ref={liquidationCvlRef}
+                name="liquidationCvl"
+                value={formValues.liquidationCvl}
+                onChange={handleChange}
                 placeholder="Enter the liquidation CVL"
                 min={0}
                 required
@@ -264,13 +307,20 @@ export const CreateLoanDialog = ({
               <div className="flex gap-2">
                 <Input
                   type="number"
-                  ref={durationUnitsRef}
+                  name="durationUnits"
+                  value={formValues.durationUnits}
+                  onChange={handleChange}
                   placeholder="Duration"
                   min={0}
                   required
                   className="w-1/2"
                 />
-                <Select ref={durationPeriodRef} required defaultValue="">
+                <Select
+                  name="durationPeriod"
+                  value={formValues.durationPeriod}
+                  onChange={handleChange}
+                  required
+                >
                   <option value="" disabled>
                     Select period
                   </option>
@@ -284,7 +334,12 @@ export const CreateLoanDialog = ({
             </div>
             <div>
               <Label>Interval</Label>
-              <Select ref={intervalRef} required defaultValue="">
+              <Select
+                name="interval"
+                value={formValues.interval}
+                onChange={handleChange}
+                required
+              >
                 <option value="" disabled>
                   Select interval
                 </option>
@@ -299,7 +354,9 @@ export const CreateLoanDialog = ({
               <Label>Annual Rate</Label>
               <Input
                 type="number"
-                ref={annualRateRef}
+                name="annualRate"
+                value={formValues.annualRate}
+                onChange={handleChange}
                 placeholder="Enter the annual rate"
                 required
               />

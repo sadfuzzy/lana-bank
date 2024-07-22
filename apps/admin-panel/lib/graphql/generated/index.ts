@@ -491,6 +491,11 @@ export type UserEdge = {
   node: User;
 };
 
+export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DefaultTermsQuery = { __typename?: 'Query', defaultTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
 }>;
@@ -518,6 +523,13 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type DefaultTermsUpdateMutationVariables = Exact<{
+  input: DefaultTermsUpdateInput;
+}>;
+
+
+export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -635,6 +647,52 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
+export const DefaultTermsDocument = gql`
+    query defaultTerms {
+  defaultTerms {
+    id
+    termsId
+    values {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useDefaultTermsQuery__
+ *
+ * To run a query within a React component, call `useDefaultTermsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDefaultTermsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDefaultTermsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDefaultTermsQuery(baseOptions?: Apollo.QueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
+      }
+export function useDefaultTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
+        }
+export type DefaultTermsQueryHookResult = ReturnType<typeof useDefaultTermsQuery>;
+export type DefaultTermsLazyQueryHookResult = ReturnType<typeof useDefaultTermsLazyQuery>;
+export type DefaultTermsQueryResult = Apollo.QueryResult<DefaultTermsQuery, DefaultTermsQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -823,6 +881,53 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+export const DefaultTermsUpdateDocument = gql`
+    mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
+  defaultTermsUpdate(input: $input) {
+    terms {
+      id
+      termsId
+      values {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type DefaultTermsUpdateMutationFn = Apollo.MutationFunction<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
+
+/**
+ * __useDefaultTermsUpdateMutation__
+ *
+ * To run a mutation, you first call `useDefaultTermsUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDefaultTermsUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [defaultTermsUpdateMutation, { data, loading, error }] = useDefaultTermsUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>(DefaultTermsUpdateDocument, options);
+      }
+export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
 export const ChartOfAccountsAccountSetDocument = gql`
     query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
   accountSet(accountSetId: $accountSetId) {
