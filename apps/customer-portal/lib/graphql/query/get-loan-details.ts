@@ -21,6 +21,17 @@ gql`
           usdBalance
         }
       }
+      loanTerms {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
     }
   }
 `

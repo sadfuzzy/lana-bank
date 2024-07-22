@@ -17,6 +17,8 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  AnnualRate: { input: any; output: any; }
+  CVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: any; output: any; }
@@ -44,10 +46,20 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type Duration = {
+  __typename?: 'Duration';
+  period: Period;
+  units: Scalars['Int']['output'];
+};
+
 export type InterestIncome = {
   __typename?: 'InterestIncome';
   usdBalance: Scalars['UsdCents']['output'];
 };
+
+export enum InterestInterval {
+  EndOfMonth = 'END_OF_MONTH'
+}
 
 export enum KycLevel {
   One = 'ONE',
@@ -60,7 +72,9 @@ export type Loan = {
   balance: LoanBalance;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
+  loanTerms: TermValues;
   startDate: Scalars['Timestamp']['output'];
+  status: LoanStatus;
   user: User;
 };
 
@@ -76,6 +90,12 @@ export type LoanOutstanding = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export enum LoanStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  New = 'NEW'
+}
+
 export type Mutation = {
   __typename?: 'Mutation';
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
@@ -87,6 +107,10 @@ export type Mutation = {
 export type MutationWithdrawalInitiateArgs = {
   input: WithdrawalInitiateInput;
 };
+
+export enum Period {
+  Months = 'MONTHS'
+}
 
 export type Query = {
   __typename?: 'Query';
@@ -113,6 +137,16 @@ export type SumsubPermalinkCreatePayload = {
 export type SumsubTokenCreatePayload = {
   __typename?: 'SumsubTokenCreatePayload';
   token: Scalars['String']['output'];
+};
+
+export type TermValues = {
+  __typename?: 'TermValues';
+  annualRate: Scalars['AnnualRate']['output'];
+  duration: Duration;
+  initialCvl: Scalars['CVLPct']['output'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['output'];
+  marginCallCvl: Scalars['CVLPct']['output'];
 };
 
 export type UnallocatedCollateral = {
@@ -177,7 +211,7 @@ export type GetLoanQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } | null };
+export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type GetMyLoansQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -269,6 +303,17 @@ export const GetLoanDocument = gql`
       }
       interestIncurred {
         usdBalance
+      }
+    }
+    loanTerms {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
       }
     }
   }
