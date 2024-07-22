@@ -321,8 +321,50 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
             name: chart_of_accounts.name,
             categories: chart_of_accounts
                 .categories
-                .iter()
-                .map(|category| category.clone().into())
+                .into_iter()
+                .map(ChartOfAccountsCategory::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct BalanceSheetCategory {
+    name: String,
+    balance: AccountBalancesByCurrency,
+    accounts: Vec<AccountSetSubAccountWithBalance>,
+}
+
+impl From<crate::ledger::account_set::LedgerBalanceSheetCategory> for BalanceSheetCategory {
+    fn from(account_set: crate::ledger::account_set::LedgerBalanceSheetCategory) -> Self {
+        BalanceSheetCategory {
+            name: account_set.name,
+            balance: account_set.balance.into(),
+            accounts: account_set
+                .accounts
+                .into_iter()
+                .map(AccountSetSubAccountWithBalance::from)
+                .collect(),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct BalanceSheet {
+    name: String,
+    balance: AccountBalancesByCurrency,
+    categories: Vec<BalanceSheetCategory>,
+}
+
+impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
+    fn from(balance_sheet: crate::ledger::account_set::LedgerBalanceSheet) -> Self {
+        BalanceSheet {
+            name: balance_sheet.name,
+            balance: balance_sheet.balance.into(),
+            categories: balance_sheet
+                .categories
+                .into_iter()
+                .map(BalanceSheetCategory::from)
                 .collect(),
         }
     }
