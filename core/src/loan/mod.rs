@@ -53,8 +53,8 @@ impl Loans {
         self.jobs.as_ref().expect("Jobs must already be set")
     }
 
-    pub async fn update_current_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
-        self.term_repo.update_current(terms).await
+    pub async fn update_default_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
+        self.term_repo.update_default(terms).await
     }
 
     fn dummy_price() -> PriceOfOneBTC {
@@ -65,6 +65,7 @@ impl Loans {
         &self,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
+        terms: TermValues,
     ) -> Result<Loan, LoanError> {
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
@@ -75,15 +76,14 @@ impl Loans {
         if !user.may_create_loan() {
             return Err(LoanError::UserNotAllowedToCreateLoan(user_id));
         }
+
         let unallocated_collateral = self
             .ledger
             .get_user_balance(user.account_ids)
             .await?
             .btc_balance;
 
-        let current_terms = self.term_repo.find_current().await?;
-        let required_collateral =
-            current_terms.required_collateral(desired_principal, Self::dummy_price());
+        let required_collateral = terms.required_collateral(desired_principal, Self::dummy_price());
 
         if required_collateral > unallocated_collateral {
             return Err(LoanError::InsufficientCollateral(
@@ -97,12 +97,13 @@ impl Loans {
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
             .user_id(user_id)
-            .terms(current_terms.values)
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())
+            .terms(terms)
             .user_account_ids(user.account_ids)
             .build()
             .expect("could not build new loan");
+
         let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
@@ -191,8 +192,8 @@ impl Loans {
         self.loan_repo.find_for_user(user_id).await
     }
 
-    pub async fn find_current_terms(&self) -> Result<Option<Terms>, LoanError> {
-        match self.term_repo.find_current().await {
+    pub async fn find_default_terms(&self) -> Result<Option<Terms>, LoanError> {
+        match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
             Err(LoanError::TermsNotSet) => Ok(None),
             Err(e) => Err(e),

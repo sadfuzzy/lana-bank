@@ -8,12 +8,13 @@ import { Label } from "@/components/primitive/label"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
-import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { DetailItem } from "@/components/details"
+import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
 import { LoanStatus, useGetLoanDetailsQuery } from "@/lib/graphql/generated"
 import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
 import { LoanApproveDialog } from "@/components/loan/approve-loan"
 import { LoanBadge } from "@/components/loan/loan-badge"
+import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 
 function LoanPage() {
   const searchParams = useSearchParams()
@@ -71,7 +72,7 @@ function LoanPage() {
         </div>
       </div>
 
-      <Card className="max-w-[60rem]">
+      <Card className="max-w-[90rem]">
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
         ) : error ? (
@@ -87,55 +88,88 @@ function LoanPage() {
                   {loanDetails.loan.loanId}
                 </p>
               </div>
-              <LoanBadge status={loanDetails.loan.status} className="p-1 px-4" />
+              <div className="flex flex-col gap-2">
+                <LoanBadge status={loanDetails.loan.status} className="p-1 px-4" />
+              </div>
             </CardHeader>
+            <Separator className="mb-6" />
             <CardContent>
-              <Separator className="mb-6" />
-              <DetailsGroup>
-                <DetailItem label="User ID" value={loanDetails.loan.user.userId} />
-                <DetailItem
-                  label="Collateral balance (BTC)"
-                  value={`${loanDetails.loan.balance.collateral.btcBalance} sats`}
-                />
-                <DetailItem
-                  label="Outstanding balance (USD)"
-                  value={formatCurrency({
-                    amount: currencyConverter.centsToUsd(
-                      loanDetails.loan.balance.outstanding.usdBalance,
-                    ),
-                    currency: "USD",
-                  })}
-                />
-                <DetailItem
-                  label="Interest Incurred (USD)"
-                  value={formatCurrency({
-                    amount: currencyConverter.centsToUsd(
-                      loanDetails.loan.balance.interestIncurred.usdBalance,
-                    ),
-                    currency: "USD",
-                  })}
-                />
-              </DetailsGroup>
-              <div className="flex flex-row gap-2">
-                {loanDetails.loan.status === LoanStatus.Active && (
-                  <LoanPartialPaymentDialog
-                    refetch={refetch}
-                    loanId={loanDetails.loan.loanId}
-                  >
-                    <Button variant="secondary" className="mt-6">
-                      Make Partial Payment
-                    </Button>
-                  </LoanPartialPaymentDialog>
-                )}
-                {loanDetails.loan.status === LoanStatus.New && (
-                  <LoanApproveDialog refetch={refetch} loanId={loanDetails.loan.loanId}>
-                    <Button variant="secondary" className="mt-6">
-                      Approve Loan
-                    </Button>
-                  </LoanApproveDialog>
-                )}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="grid auto-rows-min ">
+                  <DetailItem label="User ID" value={loanDetails.loan.user.userId} />
+                  <DetailItem
+                    label="Start Date"
+                    value={formatDate(loanDetails.loan.startDate)}
+                  />
+                  <DetailItem
+                    label="Collateral balance (BTC)"
+                    value={`${loanDetails.loan.balance.collateral.btcBalance} sats`}
+                  />
+                  <DetailItem
+                    label="Outstanding balance (USD)"
+                    value={formatCurrency({
+                      amount: currencyConverter.centsToUsd(
+                        loanDetails.loan.balance.outstanding.usdBalance,
+                      ),
+                      currency: "USD",
+                    })}
+                  />
+                  <DetailItem
+                    label="Interest Incurred (USD)"
+                    value={formatCurrency({
+                      amount: currencyConverter.centsToUsd(
+                        loanDetails.loan.balance.interestIncurred.usdBalance,
+                      ),
+                      currency: "USD",
+                    })}
+                  />
+                  <DetailItem
+                    label="Initial CVL"
+                    value={`${loanDetails.loan.loanTerms.initialCvl}%`}
+                  />
+                </div>
+                <div className="grid auto-rows-min">
+                  <DetailItem
+                    label="Duration"
+                    value={`${loanDetails.loan.loanTerms.duration.units} ${formatPeriod(loanDetails.loan.loanTerms.duration.period)}`}
+                  />
+                  <DetailItem
+                    label="Interval"
+                    value={formatInterval(loanDetails.loan.loanTerms.interval)}
+                  />
+                  <DetailItem
+                    label="Annual Rate"
+                    value={`${loanDetails.loan.loanTerms.annualRate}%`}
+                  />
+                  <DetailItem
+                    label="Liquidation CVL"
+                    value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
+                  />
+                  <DetailItem
+                    label="Margin Call CVL"
+                    value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
+                  />
+                </div>
               </div>
             </CardContent>
+            {loanDetails.loan.status !== LoanStatus.Closed && (
+              <Separator className="mb-6" />
+            )}
+            <div className="flex flex-row gap-2 p-6 pt-0 mt-0">
+              {loanDetails.loan.status === LoanStatus.Active && (
+                <LoanPartialPaymentDialog
+                  refetch={refetch}
+                  loanId={loanDetails.loan.loanId}
+                >
+                  <Button>Make Partial Payment</Button>
+                </LoanPartialPaymentDialog>
+              )}
+              {loanDetails.loan.status === LoanStatus.New && (
+                <LoanApproveDialog refetch={refetch} loanId={loanDetails.loan.loanId}>
+                  <Button>Approve Loan</Button>
+                </LoanApproveDialog>
+              )}
+            </div>
           </>
         ) : loanId && !loanDetails?.loan ? (
           <CardContent className="pt-6">No loan found with this ID</CardContent>

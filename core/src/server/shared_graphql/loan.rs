@@ -4,7 +4,7 @@ use crate::{
     app::LavaApp,
     ledger,
     primitives::UserId,
-    server::shared_graphql::{primitives::*, user::User},
+    server::shared_graphql::{primitives::*, terms::TermValues, user::User},
 };
 
 use super::convert::ToGlobalId;
@@ -23,6 +23,7 @@ pub struct Loan {
     id: ID,
     loan_id: UUID,
     start_date: Timestamp,
+    loan_terms: TermValues,
     #[graphql(skip)]
     user_id: UUID,
     #[graphql(skip)]
@@ -99,9 +100,10 @@ impl From<crate::loan::Loan> for Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
             user_id: UUID::from(loan.user_id),
+            status: loan.status().into(),
+            loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
             start_date: Timestamp::from(loan.start_date),
-            status: loan.status().into(),
         }
     }
 }

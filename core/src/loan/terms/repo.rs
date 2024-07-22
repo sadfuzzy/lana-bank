@@ -14,7 +14,7 @@ impl TermRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn update_current(&self, terms: TermValues) -> Result<Terms, LoanError> {
+    pub async fn update_default(&self, terms: TermValues) -> Result<Terms, LoanError> {
         let mut tx = self.pool.begin().await?;
 
         sqlx::query!(
@@ -46,7 +46,7 @@ impl TermRepo {
         })
     }
 
-    pub async fn find_current(&self) -> Result<Terms, LoanError> {
+    pub async fn find_default(&self) -> Result<Terms, LoanError> {
         let row = sqlx::query!(
             r#"
             SELECT id, values

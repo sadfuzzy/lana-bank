@@ -67,7 +67,7 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
         <CardContent className="p-6">No user found with this ID</CardContent>
       ) : (
         <>
-          <CardHeader>
+          <CardHeader className="pb-4">
             <div className="flex justify-between items-center">
               <CardTitle>
                 <div className="flex flex-col gap-1">
@@ -76,12 +76,9 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
                 </div>
               </CardTitle>
             </div>
-            <Separator />
           </CardHeader>
-          <Card>
-            <CardHeader>
-              <CardTitle>User details</CardTitle>
-            </CardHeader>
+          <Separator />
+          <Card className="mt-4" variant="transparent">
             <CardContent>
               <DetailsGroup>
                 <DetailItem label="User ID" value={userDetails.user.userId} />

@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-xl border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+  "inline-flex items-center justify-center rounded-xl border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -30,7 +30,11 @@ export interface BadgeProps
 function Badge({ className, variant, blink, ...props }: BadgeProps) {
   return (
     <div
-      className={cn("relative flex items-center", badgeVariants({ variant }), className)}
+      className={cn(
+        "relative flex items-center justify-center text-center",
+        badgeVariants({ variant }),
+        className,
+      )}
       {...props}
     >
       {blink && (

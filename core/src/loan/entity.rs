@@ -17,11 +17,14 @@ pub enum LoanEvent {
     Initialized {
         id: LoanId,
         user_id: UserId,
-        user_account_ids: UserLedgerAccountIds,
         principal: UsdCents,
         terms: TermValues,
         account_ids: LoanAccountIds,
+        user_account_ids: UserLedgerAccountIds,
         start_date: DateTime<Utc>,
+    },
+    TermsUpdated {
+        terms: TermValues,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -114,6 +117,12 @@ impl Loan {
         } else {
             LoanStatus::New
         }
+    }
+
+    #[allow(dead_code)]
+    pub(super) fn set_terms(&mut self, terms: TermValues) {
+        self.terms = terms.clone();
+        self.events.push(LoanEvent::TermsUpdated { terms });
     }
 
     pub(super) fn approve(
@@ -254,10 +263,10 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::Initialized {
                     id,
                     user_id,
-                    terms,
                     account_ids,
                     user_account_ids,
                     start_date,
+                    terms,
                     ..
                 } => {
                     builder = builder
@@ -267,6 +276,9 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .account_ids(*account_ids)
                         .user_account_ids(*user_account_ids)
                         .start_date(*start_date);
+                }
+                LoanEvent::TermsUpdated { terms } => {
+                    builder = builder.terms(terms.clone());
                 }
                 LoanEvent::Approved { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
@@ -303,8 +315,8 @@ impl NewLoan {
             [LoanEvent::Initialized {
                 id: self.id,
                 user_id: self.user_id,
-                terms: self.terms,
                 principal: self.principal,
+                terms: self.terms,
                 account_ids: self.account_ids,
                 user_account_ids: self.user_account_ids,
                 start_date: self.start_date,
@@ -317,7 +329,7 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{Duration, InterestInterval};
+    use crate::loan::{AnnualRate, Duration, InterestInterval};
 
     use super::*;
 
@@ -334,16 +346,15 @@ mod test {
     }
 
     fn init_events() -> EntityEvents<LoanEvent> {
-        let terms = terms();
         EntityEvents::init(
             LoanId::new(),
             [LoanEvent::Initialized {
                 id: LoanId::new(),
                 user_id: UserId::new(),
-                user_account_ids: UserLedgerAccountIds::new(),
                 principal: UsdCents::from_usd(dec!(100)),
-                terms,
+                terms: terms(),
                 account_ids: LoanAccountIds::new(),
+                user_account_ids: UserLedgerAccountIds::new(),
                 start_date: Utc::now(),
             }],
         )
@@ -382,5 +393,40 @@ mod test {
         let _ = loan
             .record_if_not_exceeding_outstanding(LedgerTxId::new(), UsdCents::from_usd(dec!(100)));
         assert_eq!(loan.status(), LoanStatus::Closed);
+    }
+
+    #[test]
+    fn can_update_terms() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.12)));
+
+        let new_terms = TermValues::builder()
+            .annual_rate(dec!(0.15))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term");
+        loan.set_terms(new_terms);
+
+        assert_eq!(
+            loan.events
+                .iter()
+                .filter_map(|event| match event {
+                    LoanEvent::TermsUpdated { .. } => Some(()),
+                    _ => None,
+                })
+                .count(),
+            1
+        );
+
+        assert!(matches!(
+            loan.events.iter().last().unwrap(),
+            LoanEvent::TermsUpdated { .. }
+        ));
+
+        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.15)));
     }
 }

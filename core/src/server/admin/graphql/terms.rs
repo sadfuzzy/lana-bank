@@ -6,7 +6,7 @@ use crate::{
 };
 
 #[derive(InputObject)]
-pub(super) struct CurrentTermsUpdateInput {
+pub(super) struct DefaultTermsUpdateInput {
     pub annual_rate: AnnualRate,
     pub interval: InterestInterval,
     pub liquidation_cvl: CVLPct,
@@ -15,29 +15,15 @@ pub(super) struct CurrentTermsUpdateInput {
     pub initial_cvl: CVLPct,
 }
 
-#[derive(InputObject)]
-pub(super) struct DurationInput {
-    pub period: Period,
-    pub units: u32,
-}
-
 #[derive(SimpleObject)]
-pub struct CurrentTermsUpdatePayload {
+pub struct DefaultTermsUpdatePayload {
     pub terms: Terms,
 }
 
-impl From<crate::loan::Terms> for CurrentTermsUpdatePayload {
+impl From<crate::loan::Terms> for DefaultTermsUpdatePayload {
     fn from(terms: crate::loan::Terms) -> Self {
         Self {
             terms: terms.into(),
-        }
-    }
-}
-
-impl From<DurationInput> for crate::loan::Duration {
-    fn from(loan_duration: DurationInput) -> Self {
-        match loan_duration.period {
-            Period::Months => Self::Months(loan_duration.units),
         }
     }
 }

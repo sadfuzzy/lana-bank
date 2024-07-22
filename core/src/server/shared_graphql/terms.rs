@@ -1,11 +1,10 @@
 use async_graphql::*;
 
-use crate::{
-    loan::{AnnualRate, CVLPct},
-    server::shared_graphql::{convert::*, primitives::UUID},
-};
+use crate::server::shared_graphql::{convert::*, primitives::UUID};
 
+pub use crate::loan::AnnualRate;
 scalar!(AnnualRate);
+pub use crate::loan::CVLPct;
 scalar!(CVLPct);
 
 #[derive(SimpleObject)]
@@ -40,6 +39,12 @@ pub enum InterestInterval {
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum Period {
     Months,
+}
+
+#[derive(InputObject)]
+pub struct DurationInput {
+    pub period: Period,
+    pub units: u32,
 }
 
 impl ToGlobalId for crate::primitives::LoanTermsId {
@@ -78,6 +83,14 @@ impl From<crate::loan::Duration> for Duration {
                 period: Period::Months,
                 units: months,
             },
+        }
+    }
+}
+
+impl From<DurationInput> for crate::loan::Duration {
+    fn from(loan_duration: DurationInput) -> Self {
+        match loan_duration.period {
+            Period::Months => Self::Months(loan_duration.units),
         }
     }
 }

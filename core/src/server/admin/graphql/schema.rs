@@ -61,6 +61,12 @@ impl Query {
         .await
     }
 
+    async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let terms = app.loans().find_default_terms().await?;
+        Ok(terms.map(Terms::from))
+    }
+
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
@@ -122,12 +128,6 @@ impl Query {
             .await?;
         Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
     }
-
-    async fn current_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let current_terms = app.loans().find_current_terms().await?;
-        Ok(current_terms.map(Terms::from))
-    }
 }
 
 pub struct Mutation;
@@ -163,11 +163,11 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url })
     }
 
-    async fn current_terms_update(
+    async fn default_terms_update(
         &self,
         ctx: &Context<'_>,
-        input: CurrentTermsUpdateInput,
-    ) -> async_graphql::Result<CurrentTermsUpdatePayload> {
+        input: DefaultTermsUpdateInput,
+    ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
         let term_values = crate::loan::TermValues::builder()
             .annual_rate(input.annual_rate)
@@ -177,19 +177,31 @@ impl Mutation {
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
             .build()?;
-        let terms = app.loans().update_current_terms(term_values).await?;
-        Ok(CurrentTermsUpdatePayload::from(terms))
+        let terms = app.loans().update_default_terms(term_values).await?;
+        Ok(DefaultTermsUpdatePayload::from(terms))
     }
-
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
         input: LoanCreateInput,
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let LoanCreateInput {
+            user_id,
+            desired_principal,
+            loan_terms,
+        } = input;
+        let term_values = crate::loan::TermValues::builder()
+            .annual_rate(loan_terms.annual_rate)
+            .interval(loan_terms.interval)
+            .duration(loan_terms.duration)
+            .liquidation_cvl(loan_terms.liquidation_cvl)
+            .margin_call_cvl(loan_terms.margin_call_cvl)
+            .initial_cvl(loan_terms.initial_cvl)
+            .build()?;
         let loan = app
             .loans()
-            .create_loan_for_user(input.user_id, input.desired_principal)
+            .create_loan_for_user(user_id, desired_principal, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

@@ -3,12 +3,24 @@ use async_graphql::*;
 use crate::server::shared_graphql::{
     loan::*,
     primitives::{Satoshis, UsdCents, UUID},
+    terms::*,
 };
 
 #[derive(InputObject)]
 pub struct LoanCreateInput {
     pub user_id: UUID,
     pub desired_principal: UsdCents,
+    pub loan_terms: TermsInput,
+}
+
+#[derive(InputObject)]
+pub struct TermsInput {
+    pub annual_rate: AnnualRate,
+    pub interval: InterestInterval,
+    pub liquidation_cvl: CVLPct,
+    pub duration: DurationInput,
+    pub margin_call_cvl: CVLPct,
+    pub initial_cvl: CVLPct,
 }
 
 #[derive(SimpleObject)]

@@ -4,12 +4,12 @@ import { cva, VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
-const cardVariants = cva("rounded-xl shadow", {
+const cardVariants = cva("rounded-xl shadow border", {
   variants: {
     variant: {
       primary: "bg-primary-foreground",
       secondary: "bg-secondary-foreground",
-      transparent: "bg-inherit shadow-none",
+      transparent: "bg-inherit shadow-none border-none",
     },
   },
   defaultVariants: {

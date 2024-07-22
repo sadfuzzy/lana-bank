@@ -47,6 +47,7 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	loanTerms: TermValues!
 	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
@@ -82,7 +83,6 @@ type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	me: User
-	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -103,12 +103,6 @@ type TermValues {
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
-}
-
-type Terms {
-	id: ID!
-	termsId: UUID!
-	values: TermValues!
 }
 
 scalar Timestamp

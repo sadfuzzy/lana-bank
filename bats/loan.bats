@@ -25,9 +25,6 @@ loan_balance() {
 
 @test "loan: loan lifecycle" {
 
-  exec_admin_graphql 'current-terms-update' 
-  terms_id=$(graphql_output '.data.currentTermsUpdate.terms.termsId')
-  [[ "$terms_id" != "null" ]] || exit 1
 
   username=$(random_uuid)
   token=$(create_user)
@@ -55,11 +52,18 @@ loan_balance() {
     '{
       input: {
         userId: $userId,
-        desiredPrincipal: 10000
+        desiredPrincipal: 10000,
+        loanTerms: {
+          annualRate: "0.12",
+          interval: "END_OF_MONTH",
+          duration: { period: "MONTHS", units: 3 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+        }
       }
     }'
   )
-
   exec_admin_graphql 'loan-create' "$variables"
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1

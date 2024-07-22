@@ -142,7 +142,7 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
-input CurrentTermsUpdateInput {
+input DefaultTermsUpdateInput {
 	annualRate: AnnualRate!
 	interval: InterestInterval!
 	liquidationCvl: CVLPct!
@@ -151,7 +151,7 @@ input CurrentTermsUpdateInput {
 	initialCvl: CVLPct!
 }
 
-type CurrentTermsUpdatePayload {
+type DefaultTermsUpdatePayload {
 	terms: Terms!
 }
 
@@ -200,6 +200,7 @@ type Loan {
 	id: ID!
 	loanId: UUID!
 	startDate: Timestamp!
+	loanTerms: TermValues!
 	status: LoanStatus!
 	balance: LoanBalance!
 	user: User!
@@ -223,6 +224,7 @@ type LoanBalance {
 input LoanCreateInput {
 	userId: UUID!
 	desiredPrincipal: UsdCents!
+	loanTerms: TermsInput!
 }
 
 type LoanCreatePayload {
@@ -251,7 +253,7 @@ enum LoanStatus {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	currentTermsUpdate(input: CurrentTermsUpdateInput!): CurrentTermsUpdatePayload!
+	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -287,13 +289,13 @@ type Query {
 	loan(id: UUID!): Loan
 	user(id: UUID!): User
 	users(first: Int!, after: String): UserConnection!
+	defaultTerms: Terms
 	trialBalance: TrialBalance
 	offBalanceSheetTrialBalance: TrialBalance
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
-	currentTerms: Terms
 }
 
 scalar Satoshis
@@ -333,6 +335,15 @@ type Terms {
 	id: ID!
 	termsId: UUID!
 	values: TermValues!
+}
+
+input TermsInput {
+	annualRate: AnnualRate!
+	interval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 scalar Timestamp

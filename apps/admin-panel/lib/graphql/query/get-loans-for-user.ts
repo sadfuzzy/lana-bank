@@ -5,9 +5,21 @@ gql`
     user(id: $id) {
       userId
       loans {
+        id
         loanId
         startDate
         status
+        loanTerms {
+          annualRate
+          interval
+          liquidationCvl
+          marginCallCvl
+          initialCvl
+          duration {
+            period
+            units
+          }
+        }
         balance {
           collateral {
             btcBalance
