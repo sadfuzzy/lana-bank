@@ -33,6 +33,9 @@ gql`
             }
           }
         }
+        pageInfo {
+          hasNextPage
+        }
       }
     }
   }
@@ -44,18 +47,43 @@ type AccountProps = {
 }
 
 const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
-  const { data } = useChartOfAccountsAccountSetQuery({
+  const { data, fetchMore } = useChartOfAccountsAccountSetQuery({
     variables: {
       accountSetId: account.id,
-      first: 10,
+      first: 2,
     },
   })
 
+  const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage
   const subAccounts = data?.accountSet?.subAccounts.edges
 
-  return subAccounts?.map((subAccount) => (
-    <Account key={subAccount.node.id} account={subAccount.node} depth={depth + 1} />
-  ))
+  return (
+    <>
+      {subAccounts?.map((subAccount) => (
+        <Account key={subAccount.node.id} account={subAccount.node} depth={depth + 1} />
+      ))}
+      {hasMoreSubAccounts && subAccounts && (
+        <TableRow>
+          <TableCell
+            className="flex items-center cursor-pointer"
+            onClick={() =>
+              fetchMore({
+                variables: {
+                  after: subAccounts[subAccounts.length - 1].cursor,
+                },
+              })
+            }
+          >
+            {Array.from({ length: depth + 1 }).map((_, i) => (
+              <div key={i} className="w-8" />
+            ))}
+            <div className="w-8" />
+            <div className="font-thin italic">show more...</div>
+          </TableCell>
+        </TableRow>
+      )}
+    </>
+  )
 }
 
 export const Account: React.FC<AccountProps> = ({ account, depth = 0 }) => {
