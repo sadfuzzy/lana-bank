@@ -506,10 +506,45 @@ export type UserEdge = {
   node: User;
 };
 
+export type ChartOfAccountsAccountSetQueryVariables = Exact<{
+  accountSetId: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
+
+export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+
+export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+
 export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DefaultTermsQuery = { __typename?: 'Query', defaultTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
+export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOnBalanceSheetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } }> } | null };
+
+export type GetOffBalanceSheetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetOffBalanceSheetTrialBalanceQuery = { __typename?: 'Query', offBalanceSheetTrialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } }> } | null };
+
+export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } };
+
+export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } };
+
+export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -546,20 +581,6 @@ export type DefaultTermsUpdateMutationVariables = Exact<{
 
 export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type ChartOfAccountsAccountSetQueryVariables = Exact<{
-  accountSetId: Scalars['UUID']['input'];
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSet?: { __typename?: 'AccountSetAndSubAccounts', id: string, name: string, subAccounts: { __typename?: 'AccountSetSubAccountConnection', edges: Array<{ __typename?: 'AccountSetSubAccountEdge', cursor: string, node: { __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean } }> } } | null };
-
-export type GetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
-
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -573,17 +594,6 @@ export type GetLoansForUserQueryVariables = Exact<{
 
 
 export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
-
-export type GetTrialBalanceQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetTrialBalanceQuery = { __typename?: 'Query', trialBalance?: { __typename?: 'TrialBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } }, subAccounts: Array<{ __typename?: 'AccountSetWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } } | { __typename?: 'AccountWithBalance', name: string, balance: { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } } }> } | null };
-
-export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurrency', btc: { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } }, usd: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } }, usdt: { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } } };
-
-export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } };
-
-export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } };
 
 export type GetUserByUserIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -662,6 +672,161 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${BtcBalancesFragmentDoc}
 ${UsdBalancesFragmentDoc}`;
+export const ChartOfAccountsAccountSetDocument = gql`
+    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+  accountSet(accountSetId: $accountSetId) {
+    id
+    name
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on AccountDetails {
+            __typename
+            id
+            name
+          }
+          ... on AccountSetDetails {
+            __typename
+            id
+            name
+            hasSubAccounts
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useChartOfAccountsAccountSetQuery__
+ *
+ * To run a query within a React component, call `useChartOfAccountsAccountSetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useChartOfAccountsAccountSetQuery({
+ *   variables: {
+ *      accountSetId: // value for 'accountSetId'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useChartOfAccountsAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
+      }
+export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
+        }
+export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
+export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
+export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
+export const GetOnBalanceSheetChartOfAccountsDocument = gql`
+    query GetOnBalanceSheetChartOfAccounts {
+  chartOfAccounts {
+    name
+    categories {
+      name
+      accounts {
+        __typename
+        ... on AccountDetails {
+          id
+          name
+        }
+        ... on AccountSetDetails {
+          id
+          name
+          hasSubAccounts
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOnBalanceSheetChartOfAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetOnBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnBalanceSheetChartOfAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOnBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+      }
+export function useGetOnBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>(GetOnBalanceSheetChartOfAccountsDocument, options);
+        }
+export type GetOnBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsQuery>;
+export type GetOnBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOnBalanceSheetChartOfAccountsLazyQuery>;
+export type GetOnBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOnBalanceSheetChartOfAccountsQuery, GetOnBalanceSheetChartOfAccountsQueryVariables>;
+export const GetOffBalanceSheetChartOfAccountsDocument = gql`
+    query GetOffBalanceSheetChartOfAccounts {
+  offBalanceSheetChartOfAccounts {
+    name
+    categories {
+      name
+      accounts {
+        __typename
+        ... on AccountDetails {
+          id
+          name
+        }
+        ... on AccountSetDetails {
+          id
+          name
+          hasSubAccounts
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetOffBalanceSheetChartOfAccountsQuery__
+ *
+ * To run a query within a React component, call `useGetOffBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOffBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOffBalanceSheetChartOfAccountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOffBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+      }
+export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>(GetOffBalanceSheetChartOfAccountsDocument, options);
+        }
+export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
+export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
+export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
 export const DefaultTermsDocument = gql`
     query defaultTerms {
   defaultTerms {
@@ -708,6 +873,108 @@ export function useDefaultTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
 export type DefaultTermsQueryHookResult = ReturnType<typeof useDefaultTermsQuery>;
 export type DefaultTermsLazyQueryHookResult = ReturnType<typeof useDefaultTermsLazyQuery>;
 export type DefaultTermsQueryResult = Apollo.QueryResult<DefaultTermsQuery, DefaultTermsQueryVariables>;
+export const GetOnBalanceSheetTrialBalanceDocument = gql`
+    query GetOnBalanceSheetTrialBalance {
+  trialBalance {
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    subAccounts {
+      ... on AccountWithBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+      }
+      ... on AccountSetWithBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useGetOnBalanceSheetTrialBalanceQuery__
+ *
+ * To run a query within a React component, call `useGetOnBalanceSheetTrialBalanceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOnBalanceSheetTrialBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOnBalanceSheetTrialBalanceQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOnBalanceSheetTrialBalanceQuery(baseOptions?: Apollo.QueryHookOptions<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>(GetOnBalanceSheetTrialBalanceDocument, options);
+      }
+export function useGetOnBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>(GetOnBalanceSheetTrialBalanceDocument, options);
+        }
+export type GetOnBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOnBalanceSheetTrialBalanceQuery>;
+export type GetOnBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOnBalanceSheetTrialBalanceLazyQuery>;
+export type GetOnBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOnBalanceSheetTrialBalanceQuery, GetOnBalanceSheetTrialBalanceQueryVariables>;
+export const GetOffBalanceSheetTrialBalanceDocument = gql`
+    query GetOffBalanceSheetTrialBalance {
+  offBalanceSheetTrialBalance {
+    name
+    balance {
+      ...balancesByCurrency
+    }
+    subAccounts {
+      ... on AccountWithBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+      }
+      ... on AccountSetWithBalance {
+        name
+        balance {
+          ...balancesByCurrency
+        }
+      }
+    }
+  }
+}
+    ${BalancesByCurrencyFragmentDoc}`;
+
+/**
+ * __useGetOffBalanceSheetTrialBalanceQuery__
+ *
+ * To run a query within a React component, call `useGetOffBalanceSheetTrialBalanceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetOffBalanceSheetTrialBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetOffBalanceSheetTrialBalanceQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetOffBalanceSheetTrialBalanceQuery(baseOptions?: Apollo.QueryHookOptions<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>(GetOffBalanceSheetTrialBalanceDocument, options);
+      }
+export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>(GetOffBalanceSheetTrialBalanceDocument, options);
+        }
+export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
+export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
+export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -943,112 +1210,6 @@ export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookO
 export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
 export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
 export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
-export const ChartOfAccountsAccountSetDocument = gql`
-    query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-  accountSet(accountSetId: $accountSetId) {
-    id
-    name
-    subAccounts(first: $first, after: $after) {
-      edges {
-        cursor
-        node {
-          __typename
-          ... on AccountDetails {
-            __typename
-            id
-            name
-          }
-          ... on AccountSetDetails {
-            __typename
-            id
-            name
-            hasSubAccounts
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useChartOfAccountsAccountSetQuery__
- *
- * To run a query within a React component, call `useChartOfAccountsAccountSetQuery` and pass it any options that fit your needs.
- * When your component renders, `useChartOfAccountsAccountSetQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useChartOfAccountsAccountSetQuery({
- *   variables: {
- *      accountSetId: // value for 'accountSetId'
- *      first: // value for 'first'
- *      after: // value for 'after'
- *   },
- * });
- */
-export function useChartOfAccountsAccountSetQuery(baseOptions: Apollo.QueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
-      }
-export function useChartOfAccountsAccountSetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>(ChartOfAccountsAccountSetDocument, options);
-        }
-export type ChartOfAccountsAccountSetQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetQuery>;
-export type ChartOfAccountsAccountSetLazyQueryHookResult = ReturnType<typeof useChartOfAccountsAccountSetLazyQuery>;
-export type ChartOfAccountsAccountSetQueryResult = Apollo.QueryResult<ChartOfAccountsAccountSetQuery, ChartOfAccountsAccountSetQueryVariables>;
-export const GetChartOfAccountsDocument = gql`
-    query GetChartOfAccounts {
-  chartOfAccounts {
-    name
-    categories {
-      name
-      accounts {
-        __typename
-        ... on AccountDetails {
-          id
-          name
-        }
-        ... on AccountSetDetails {
-          id
-          name
-          hasSubAccounts
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetChartOfAccountsQuery__
- *
- * To run a query within a React component, call `useGetChartOfAccountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetChartOfAccountsQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>(GetChartOfAccountsDocument, options);
-      }
-export function useGetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>(GetChartOfAccountsDocument, options);
-        }
-export type GetChartOfAccountsQueryHookResult = ReturnType<typeof useGetChartOfAccountsQuery>;
-export type GetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetChartOfAccountsLazyQuery>;
-export type GetChartOfAccountsQueryResult = Apollo.QueryResult<GetChartOfAccountsQuery, GetChartOfAccountsQueryVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
@@ -1175,57 +1336,6 @@ export function useGetLoansForUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type GetLoansForUserQueryHookResult = ReturnType<typeof useGetLoansForUserQuery>;
 export type GetLoansForUserLazyQueryHookResult = ReturnType<typeof useGetLoansForUserLazyQuery>;
 export type GetLoansForUserQueryResult = Apollo.QueryResult<GetLoansForUserQuery, GetLoansForUserQueryVariables>;
-export const GetTrialBalanceDocument = gql`
-    query GetTrialBalance {
-  trialBalance {
-    name
-    balance {
-      ...balancesByCurrency
-    }
-    subAccounts {
-      ... on AccountWithBalance {
-        name
-        balance {
-          ...balancesByCurrency
-        }
-      }
-      ... on AccountSetWithBalance {
-        name
-        balance {
-          ...balancesByCurrency
-        }
-      }
-    }
-  }
-}
-    ${BalancesByCurrencyFragmentDoc}`;
-
-/**
- * __useGetTrialBalanceQuery__
- *
- * To run a query within a React component, call `useGetTrialBalanceQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTrialBalanceQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetTrialBalanceQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetTrialBalanceQuery(baseOptions?: Apollo.QueryHookOptions<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>(GetTrialBalanceDocument, options);
-      }
-export function useGetTrialBalanceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>(GetTrialBalanceDocument, options);
-        }
-export type GetTrialBalanceQueryHookResult = ReturnType<typeof useGetTrialBalanceQuery>;
-export type GetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetTrialBalanceLazyQuery>;
-export type GetTrialBalanceQueryResult = Apollo.QueryResult<GetTrialBalanceQuery, GetTrialBalanceQueryVariables>;
 export const GetUserByUserIdDocument = gql`
     query getUserByUserId($id: UUID!) {
   user(id: $id) {

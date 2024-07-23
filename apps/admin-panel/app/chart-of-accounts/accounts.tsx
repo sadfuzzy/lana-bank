@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { gql } from "@apollo/client"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import {
@@ -8,6 +9,34 @@ import {
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
+
+gql`
+  query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
+    accountSet(accountSetId: $accountSetId) {
+      id
+      name
+      subAccounts(first: $first, after: $after) {
+        edges {
+          cursor
+          node {
+            __typename
+            ... on AccountDetails {
+              __typename
+              id
+              name
+            }
+            ... on AccountSetDetails {
+              __typename
+              id
+              name
+              hasSubAccounts
+            }
+          }
+        }
+      }
+    }
+  }
+`
 
 type AccountProps = {
   depth?: number

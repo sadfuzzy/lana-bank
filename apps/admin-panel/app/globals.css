@@ -67,3 +67,7 @@ body {
   background: var(--background);
   color: var(--text-primary);
 }
+
+.tabsTrigger[data-state='active'] {
+  border-bottom: #ffffff 2px solid;
+}

@@ -1,8 +1,14 @@
 "use client"
 import React from "react"
+import { gql } from "@apollo/client"
 
 import { PageHeading } from "@/components/page-heading"
-import { useGetTrialBalanceQuery } from "@/lib/graphql/generated"
+import {
+  GetOffBalanceSheetTrialBalanceQuery,
+  GetOnBalanceSheetTrialBalanceQuery,
+  useGetOffBalanceSheetTrialBalanceQuery,
+  useGetOnBalanceSheetTrialBalanceQuery,
+} from "@/lib/graphql/generated"
 import { RadioGroup, RadioGroupItem } from "@/components/primitive/radio-group"
 import { Label } from "@/components/primitive/label"
 import {
@@ -14,25 +20,135 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
 
 import Balance, { Currency } from "@/components/balance/balance"
 
-type Layers = "all" | "settled" | "pending" | "encumbrance"
+gql`
+  query GetOnBalanceSheetTrialBalance {
+    trialBalance {
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      subAccounts {
+        ... on AccountWithBalance {
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSetWithBalance {
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
 
-function TrialBalancePage() {
+  query GetOffBalanceSheetTrialBalance {
+    offBalanceSheetTrialBalance {
+      name
+      balance {
+        ...balancesByCurrency
+      }
+      subAccounts {
+        ... on AccountWithBalance {
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+        ... on AccountSetWithBalance {
+          name
+          balance {
+            ...balancesByCurrency
+          }
+        }
+      }
+    }
+  }
+
+  fragment balancesByCurrency on AccountBalancesByCurrency {
+    btc: btc {
+      ...btcBalances
+    }
+    usd: usd {
+      ...usdBalances
+    }
+    usdt: usdt {
+      ...usdBalances
+    }
+  }
+
+  fragment btcBalances on LayeredBtcAccountBalances {
+    all {
+      netDebit
+      debit
+      credit
+    }
+    settled {
+      netDebit
+      debit
+      credit
+    }
+    pending {
+      netDebit
+      debit
+      credit
+    }
+    encumbrance {
+      netDebit
+      debit
+      credit
+    }
+  }
+
+  fragment usdBalances on LayeredUsdAccountBalances {
+    all {
+      netDebit
+      debit
+      credit
+    }
+    settled {
+      netDebit
+      debit
+      credit
+    }
+    pending {
+      netDebit
+      debit
+      credit
+    }
+    encumbrance {
+      netDebit
+      debit
+      credit
+    }
+  }
+`
+
+type Layers = "all" | "settled" | "pending" | "encumbrance"
+type TrialBalanceValuesProps = {
+  data:
+    | GetOffBalanceSheetTrialBalanceQuery["offBalanceSheetTrialBalance"]
+    | GetOnBalanceSheetTrialBalanceQuery["trialBalance"]
+    | undefined
+  loading: boolean
+}
+const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({ data, loading }) => {
   const [currency, setCurrency] = React.useState<Currency>("btc")
   const [layer, setLayer] = React.useState<Layers>("all")
 
-  const { data, loading } = useGetTrialBalanceQuery()
-
-  const balance = data?.trialBalance?.balance
-  const subAccounts = data?.trialBalance?.subAccounts
+  const balance = data?.balance
+  const subAccounts = data?.subAccounts
 
   if (loading || !balance) return <div>Loading...</div>
 
   return (
-    <main>
-      <PageHeading>Trial Balance</PageHeading>
+    <>
       <div>
         <div className="flex items-center mt-2">
           <div className="w-28">Currency:</div>
@@ -131,6 +247,37 @@ function TrialBalancePage() {
           </TableRow>
         </TableFooter>
       </Table>
+    </>
+  )
+}
+
+function TrialBalancePage() {
+  const { data: onBalanceSheetData, loading: onBalanceSheetLoading } =
+    useGetOnBalanceSheetTrialBalanceQuery()
+  const { data: offBalanceSheetData, loading: offBalanceSheetLoading } =
+    useGetOffBalanceSheetTrialBalanceQuery()
+
+  return (
+    <main>
+      <PageHeading>Trial Balance</PageHeading>
+      <Tabs defaultValue="onBalanceSheet">
+        <TabsList>
+          <TabsTrigger value="onBalanceSheet">On Balance Sheet</TabsTrigger>
+          <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
+        </TabsList>
+        <TabsContent value="onBalanceSheet">
+          <TrialBalanceValues
+            data={onBalanceSheetData?.trialBalance}
+            loading={onBalanceSheetLoading}
+          />
+        </TabsContent>
+        <TabsContent value="offBalanceSheet">
+          <TrialBalanceValues
+            data={offBalanceSheetData?.offBalanceSheetTrialBalance}
+            loading={offBalanceSheetLoading}
+          />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }
