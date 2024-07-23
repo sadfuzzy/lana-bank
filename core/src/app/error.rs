@@ -10,4 +10,6 @@ pub enum ApplicationError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
+    #[error("ApplicationError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

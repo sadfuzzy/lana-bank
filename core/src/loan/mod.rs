@@ -7,6 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
+    authorization::{Action, Authorization, LoanAction, Object, TermAction},
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -28,10 +29,17 @@ pub struct Loans {
     ledger: Ledger,
     pool: PgPool,
     jobs: Option<Jobs>,
+    authz: Authorization,
 }
 
 impl Loans {
-    pub fn new(pool: &PgPool, registry: &mut JobRegistry, users: &Users, ledger: &Ledger) -> Self {
+    pub fn new(
+        pool: &PgPool,
+        registry: &mut JobRegistry,
+        users: &Users,
+        ledger: &Ledger,
+        authz: &Authorization,
+    ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
         registry.add_initializer(LoanProcessingJobInitializer::new(ledger, loan_repo.clone()));
@@ -42,6 +50,7 @@ impl Loans {
             ledger: ledger.clone(),
             pool: pool.clone(),
             jobs: None,
+            authz: authz.clone(),
         }
     }
 
@@ -53,7 +62,15 @@ impl Loans {
         self.jobs.as_ref().expect("Jobs must already be set")
     }
 
-    pub async fn update_default_terms(&self, terms: TermValues) -> Result<Terms, LoanError> {
+    pub async fn update_default_terms(
+        &self,
+        sub: &Subject,
+        terms: TermValues,
+    ) -> Result<Terms, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Update))
+            .await?;
+
         self.term_repo.update_default(terms).await
     }
 
@@ -63,10 +80,15 @@ impl Loans {
 
     pub async fn create_loan_for_user(
         &self,
+        sub: &Subject,
         user_id: impl Into<UserId>,
         desired_principal: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Create))
+            .await?;
+
         let user_id = user_id.into();
         let user = match self.users.find_by_id(user_id).await? {
             Some(user) => user,
@@ -114,9 +136,14 @@ impl Loans {
 
     pub async fn approve_loan(
         &self,
+        sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
         collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Approve))
+            .await?;
+
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
@@ -146,9 +173,14 @@ impl Loans {
 
     pub async fn record_payment(
         &self,
+        sub: &Subject,
         loan_id: LoanId,
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+            .await?;
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
         assert_eq!(balances.outstanding, loan.outstanding());
@@ -180,7 +212,17 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn find_by_id(&self, id: LoanId) -> Result<Option<Loan>, LoanError> {
+    pub async fn find_by_id(
+        &self,
+        sub: Option<&Subject>,
+        id: LoanId,
+    ) -> Result<Option<Loan>, LoanError> {
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
+                .await?;
+        }
+
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
             Err(LoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
@@ -188,11 +230,24 @@ impl Loans {
         }
     }
 
-    pub async fn list_for_user(&self, user_id: UserId) -> Result<Vec<Loan>, LoanError> {
+    pub async fn list_for_user(
+        &self,
+        sub: Option<&Subject>,
+        user_id: UserId,
+    ) -> Result<Vec<Loan>, LoanError> {
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
+                .await?;
+        }
+
         self.loan_repo.find_for_user(user_id).await
     }
 
-    pub async fn find_default_terms(&self) -> Result<Option<Terms>, LoanError> {
+    pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Term, Action::Term(TermAction::Read))
+            .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),
             Err(LoanError::TermsNotSet) => Ok(None),

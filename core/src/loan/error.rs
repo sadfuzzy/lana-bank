@@ -28,4 +28,6 @@ pub enum LoanError {
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
     #[error("LoanError - TermsNotSet")]
     TermsNotSet,
+    #[error("LoanError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

@@ -64,8 +64,8 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
     let mut handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
-    let app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
-    let admin_app = app.clone();
+    let public_app = crate::app::LavaApp::run(pool.clone(), config.app).await?;
+    let admin_app = public_app.clone();
 
     let admin_send = send.clone();
 
@@ -77,10 +77,10 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
         );
     }));
 
-    let api_send = send.clone();
+    let public_send = send.clone();
     handles.push(tokio::spawn(async move {
-        let _ = api_send.try_send(
-            crate::server::public::run(config.public_server, app)
+        let _ = public_send.try_send(
+            crate::server::public::run(config.public_server, public_app)
                 .await
                 .context("Public server error"),
         );

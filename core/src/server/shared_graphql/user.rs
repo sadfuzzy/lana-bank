@@ -1,11 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives;
-
+use crate::server::admin::AdminAuthContext;
 use crate::{
     app::LavaApp,
-    ledger,
-    primitives::UserId,
+    ledger, primitives,
     server::shared_graphql::{loan::Loan, primitives::UUID},
 };
 
@@ -49,9 +47,11 @@ impl User {
     async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
 
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loans: Vec<Loan> = app
             .loans()
-            .list_for_user(UserId::from(&self.user_id))
+            .list_for_user(Some(sub), primitives::UserId::from(&self.user_id))
             .await?
             .into_iter()
             .map(Loan::from)

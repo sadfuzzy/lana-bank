@@ -5,9 +5,12 @@ use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{LoanId, UserId},
-    server::shared_graphql::{
-        loan::Loan, objects::SuccessPayload, primitives::UUID,
-        sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+    server::{
+        admin::AdminAuthContext,
+        shared_graphql::{
+            loan::Loan, objects::SuccessPayload, primitives::UUID,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+        },
     },
 };
 
@@ -17,7 +20,10 @@ pub struct Query;
 impl Query {
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let loan = app.loans().find_by_id(Some(sub), LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
     }
 
@@ -63,7 +69,9 @@ impl Query {
 
     async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let terms = app.loans().find_default_terms().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let terms = app.loans().find_default_terms(sub).await?;
         Ok(terms.map(Terms::from))
     }
 
@@ -178,6 +186,8 @@ impl Mutation {
         input: DefaultTermsUpdateInput,
     ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let term_values = crate::loan::TermValues::builder()
             .annual_rate(input.annual_rate)
             .interval(input.interval)
@@ -186,15 +196,18 @@ impl Mutation {
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
             .build()?;
-        let terms = app.loans().update_default_terms(term_values).await?;
+        let terms = app.loans().update_default_terms(sub, term_values).await?;
         Ok(DefaultTermsUpdatePayload::from(terms))
     }
+
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
         input: LoanCreateInput,
     ) -> async_graphql::Result<LoanCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let LoanCreateInput {
             user_id,
             desired_principal,
@@ -210,7 +223,7 @@ impl Mutation {
             .build()?;
         let loan = app
             .loans()
-            .create_loan_for_user(user_id, desired_principal, term_values)
+            .create_loan_for_user(sub, user_id, desired_principal, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }
@@ -221,9 +234,12 @@ impl Mutation {
         input: LoanApproveInput,
     ) -> async_graphql::Result<LoanApprovePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loan = app
             .loans()
-            .approve_loan(input.loan_id, input.collateral)
+            .approve_loan(sub, input.loan_id, input.collateral)
             .await?;
         Ok(LoanApprovePayload::from(loan))
     }
@@ -234,9 +250,11 @@ impl Mutation {
         input: LoanPartialPaymentInput,
     ) -> async_graphql::Result<LoanPartialPaymentPayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
         let loan = app
             .loans()
-            .record_payment(input.loan_id.into(), input.amount)
+            .record_payment(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
     }

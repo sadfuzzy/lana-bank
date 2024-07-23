@@ -1,6 +1,6 @@
 use axum::{extract::Json, response::IntoResponse, routing::post, Extension, Router};
 
-use crate::app::LavaApp;
+use crate::{app::LavaApp, server::jwks::JwtDecoderState};
 
 pub async fn sumsub_callback(
     Extension(app): Extension<LavaApp>,
@@ -21,6 +21,6 @@ pub async fn sumsub_callback(
     }
 }
 
-pub fn sumsub_routes() -> Router {
+pub fn sumsub_routes() -> Router<JwtDecoderState> {
     Router::new().route("/sumsub/callback", post(sumsub_callback))
 }

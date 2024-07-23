@@ -81,6 +81,61 @@ pub use cala_types::primitives::{
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
+#[derive(Debug, Clone)]
+pub struct Subject(String);
+
+impl From<&str> for Subject {
+    fn from(s: &str) -> Self {
+        Self(s.to_string())
+    }
+}
+
+impl From<String> for Subject {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl AsRef<str> for Subject {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::ops::Deref for Subject {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Role {
+    SuperUser,
+    BankManager,
+}
+
+impl AsRef<str> for Role {
+    fn as_ref(&self) -> &str {
+        match self {
+            Role::SuperUser => "super-user",
+            Role::BankManager => "bank-manager",
+        }
+    }
+}
+
+impl std::ops::Deref for Role {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            Role::SuperUser => "super-user",
+            Role::BankManager => "bank-manager",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SignedSatoshis(i64);
 

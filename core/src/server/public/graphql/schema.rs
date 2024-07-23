@@ -21,7 +21,8 @@ pub struct Query;
 impl Query {
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let loan = app.loans().find_by_id(LoanId::from(id)).await?;
+
+        let loan = app.loans().find_by_id(None, LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
     }
 

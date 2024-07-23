@@ -35,23 +35,6 @@ impl From<crate::loan::Loan> for LoanCreatePayload {
 }
 
 #[derive(InputObject)]
-pub struct LoanPartialPaymentInput {
-    pub loan_id: UUID,
-    pub amount: UsdCents,
-}
-
-#[derive(SimpleObject)]
-pub struct LoanPartialPaymentPayload {
-    loan: Loan,
-}
-
-impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
-    fn from(loan: crate::loan::Loan) -> Self {
-        Self { loan: loan.into() }
-    }
-}
-
-#[derive(InputObject)]
 pub struct LoanApproveInput {
     pub loan_id: UUID,
     pub collateral: Satoshis,
@@ -63,6 +46,23 @@ pub struct LoanApprovePayload {
 }
 
 impl From<crate::loan::Loan> for LoanApprovePayload {
+    fn from(loan: crate::loan::Loan) -> Self {
+        Self { loan: loan.into() }
+    }
+}
+
+#[derive(InputObject)]
+pub struct LoanPartialPaymentInput {
+    pub loan_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanPartialPaymentPayload {
+    loan: Loan,
+}
+
+impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
     fn from(loan: crate::loan::Loan) -> Self {
         Self { loan: loan.into() }
     }

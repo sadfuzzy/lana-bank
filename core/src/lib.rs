@@ -3,6 +3,7 @@
 
 pub mod app;
 pub mod applicant;
+pub mod authorization;
 pub mod cli;
 pub mod entity;
 pub mod job;

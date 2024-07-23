@@ -3,7 +3,7 @@ use axum::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::app::LavaApp;
+use crate::{app::LavaApp, server::jwks::JwtDecoderState};
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
 pub struct AuthCallbackPayload {
@@ -43,6 +43,6 @@ pub async fn auth_callback(
     }
 }
 
-pub fn auth_routes() -> Router {
+pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new().route("/auth/callback", post(auth_callback))
 }

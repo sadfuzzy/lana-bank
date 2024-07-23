@@ -12,7 +12,7 @@ use axum_extra::headers::HeaderMap;
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
 
-use crate::app::LavaApp;
+use crate::{app::LavaApp, primitives::Subject};
 
 pub use config::*;
 
@@ -39,12 +39,12 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
+        .merge(auth_routes())
+        .merge(sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
         .layer(Extension(schema))
-        .merge(auth_routes())
-        .merge(sumsub_routes())
         .layer(Extension(config))
         .layer(Extension(app))
         .layer(cors);
@@ -56,8 +56,15 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     Ok(())
 }
 
+#[derive(Debug, Clone)]
 pub struct AdminAuthContext {
-    pub sub: String,
+    pub sub: Subject,
+}
+
+impl AdminAuthContext {
+    pub fn new(sub: impl Into<Subject>) -> Self {
+        Self { sub: sub.into() }
+    }
 }
 
 pub async fn graphql_handler(
@@ -69,9 +76,7 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let sub: String = jwt_claims.sub;
-
-    let auth_context = AdminAuthContext { sub };
+    let auth_context = AdminAuthContext::new(jwt_claims.sub);
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

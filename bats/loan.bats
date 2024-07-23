@@ -17,6 +17,7 @@ loan_balance() {
     '{ id: $loanId }'
   )
   exec_graphql 'alice' 'find-loan' "$variables"
+
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
   collateral_balance_sats=$(graphql_output '.data.loan.balance.collateral.btcBalance')
