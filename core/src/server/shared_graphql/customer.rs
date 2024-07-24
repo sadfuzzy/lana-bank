@@ -24,8 +24,8 @@ pub enum AccountStatus {
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct User {
-    user_id: UUID,
+pub struct Customer {
+    customer_id: UUID,
     email: String,
     btc_deposit_address: String,
     ust_deposit_address: String,
@@ -33,14 +33,14 @@ pub struct User {
     level: KycLevel,
     applicant_id: Option<String>,
     #[graphql(skip)]
-    account_ids: ledger::user::UserLedgerAccountIds,
+    account_ids: ledger::customer::CustomerLedgerAccountIds,
 }
 
 #[ComplexObject]
-impl User {
+impl Customer {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<UserBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let balance = app.ledger().get_user_balance(self.account_ids).await?;
+        let balance = app.ledger().get_customer_balance(self.account_ids).await?;
         Ok(UserBalance::from(balance))
     }
 
@@ -51,7 +51,7 @@ impl User {
 
         let loans: Vec<Loan> = app
             .loans()
-            .list_for_user(Some(sub), primitives::UserId::from(&self.user_id))
+            .list_for_customer(Some(sub), primitives::CustomerId::from(&self.customer_id))
             .await?
             .into_iter()
             .map(Loan::from)
@@ -80,10 +80,10 @@ impl From<primitives::AccountStatus> for AccountStatus {
     }
 }
 
-impl From<crate::user::User> for User {
-    fn from(user: crate::user::User) -> Self {
-        User {
-            user_id: UUID::from(user.id),
+impl From<crate::customer::Customer> for Customer {
+    fn from(user: crate::customer::Customer) -> Self {
+        Customer {
+            customer_id: UUID::from(user.id),
             applicant_id: user.applicant_id,
             btc_deposit_address: user.account_addresses.btc_address,
             ust_deposit_address: user.account_addresses.tron_usdt_address,

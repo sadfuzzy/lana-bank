@@ -9,5 +9,5 @@ pub enum ApplicantError {
     #[error("ApplicantError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("ApplicantError - UserError: {0}")]
-    UserError(#[from] crate::user::error::UserError),
+    CustomerError(#[from] crate::customer::error::CustomerError),
 }

@@ -1,4 +1,4 @@
-query UserBalance(
+query CustomerBalance(
   $journalId: UUID!
   $off_balance_sheet_account_id: UUID!
   $on_balance_sheet_account_id: UUID!

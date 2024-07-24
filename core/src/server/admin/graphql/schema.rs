@@ -1,15 +1,15 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, loan::*, shareholder_equity::*, terms::*, user::*};
+use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*};
 use crate::{
     app::LavaApp,
-    primitives::{LoanId, UserId},
+    primitives::{CustomerId, LoanId},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
-            loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+            customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms,
         },
     },
 };
@@ -27,18 +27,22 @@ impl Query {
         Ok(loan.map(Loan::from))
     }
 
-    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+    async fn customer(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().find_by_id(UserId::from(id)).await?;
-        Ok(user.map(User::from))
+        let user = app.customers().find_by_id(CustomerId::from(id)).await?;
+        Ok(user.map(Customer::from))
     }
 
-    async fn users(
+    async fn customers(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<Connection<UserByNameCursor, User, EmptyFields, EmptyFields>> {
+    ) -> Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>> {
         let app = ctx.data_unchecked::<LavaApp>();
         query(
             after,
@@ -48,18 +52,18 @@ impl Query {
             |after, _, first, _| async move {
                 let first = first.expect("First always exists");
                 let res = app
-                    .users()
+                    .customers()
                     .list(crate::query::PaginatedQueryArgs {
                         first,
-                        after: after.map(crate::user::UserByNameCursor::from),
+                        after: after.map(crate::customer::CustomerByNameCursor::from),
                     })
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
-                        let cursor = UserByNameCursor::from((user.id, user.email.as_ref()));
-                        Edge::new(cursor, User::from(user))
+                        let cursor = CustomerByNameCursor::from((user.id, user.email.as_ref()));
+                        Edge::new(cursor, Customer::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },
@@ -169,12 +173,12 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let user_id = Uuid::parse_str(&input.user_id);
-        let user_id = user_id.map_err(|_| "Invalid user id")?;
-        let user_id = UserId::from(user_id);
+        let customer_id = Uuid::parse_str(&input.customer_id);
+        let customer_id = customer_id.map_err(|_| "Invalid user id")?;
+        let customer_id = CustomerId::from(customer_id);
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(user_id).await?;
+        let res = app.applicants().create_permalink(customer_id).await?;
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })
@@ -209,7 +213,7 @@ impl Mutation {
         let AdminAuthContext { sub } = ctx.data()?;
 
         let LoanCreateInput {
-            user_id,
+            customer_id,
             desired_principal,
             loan_terms,
         } = input;
@@ -223,7 +227,7 @@ impl Mutation {
             .build()?;
         let loan = app
             .loans()
-            .create_loan_for_user(sub, user_id, desired_principal, term_values)
+            .create_loan_for_customer(sub, customer_id, desired_principal, term_values)
             .await?;
         Ok(LoanCreatePayload::from(loan))
     }

@@ -7,8 +7,8 @@ gql`
       loanId
       startDate
       status
-      user {
-        userId
+      customer {
+        customerId
       }
       balance {
         collateral {

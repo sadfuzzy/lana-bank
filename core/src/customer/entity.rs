@@ -3,18 +3,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    ledger::user::{UserLedgerAccountAddresses, UserLedgerAccountIds},
+    ledger::customer::{CustomerLedgerAccountAddresses, CustomerLedgerAccountIds},
     primitives::*,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
-pub enum UserEvent {
+pub enum CustomerEvent {
     Initialized {
-        id: UserId,
+        id: CustomerId,
         email: String,
-        account_ids: UserLedgerAccountIds,
-        account_addresses: UserLedgerAccountAddresses,
+        account_ids: CustomerLedgerAccountIds,
+        account_addresses: CustomerLedgerAccountAddresses,
     },
     KycStarted {
         applicant_id: String,
@@ -28,53 +28,53 @@ pub enum UserEvent {
     },
 }
 
-impl EntityEvent for UserEvent {
-    type EntityId = UserId;
+impl EntityEvent for CustomerEvent {
+    type EntityId = CustomerId;
     fn event_table_name() -> &'static str {
-        "user_events"
+        "customer_events"
     }
 }
 
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
-pub struct User {
-    pub id: UserId,
+pub struct Customer {
+    pub id: CustomerId,
     pub email: String,
-    pub account_ids: UserLedgerAccountIds,
-    pub account_addresses: UserLedgerAccountAddresses,
+    pub account_ids: CustomerLedgerAccountIds,
+    pub account_addresses: CustomerLedgerAccountAddresses,
     pub status: AccountStatus,
     pub level: KycLevel,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    pub(super) events: EntityEvents<UserEvent>,
+    pub(super) events: EntityEvents<CustomerEvent>,
 }
 
-impl User {
+impl Customer {
     pub fn may_create_loan(&self) -> bool {
         true
     }
 }
 
-impl core::fmt::Display for User {
+impl core::fmt::Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "User: {}, email: {}", self.id, self.email)
     }
 }
 
-impl Entity for User {
-    type Event = UserEvent;
+impl Entity for Customer {
+    type Event = CustomerEvent;
 }
 
-impl User {
+impl Customer {
     pub fn start_kyc(&mut self, applicant_id: String) {
-        self.events.push(UserEvent::KycStarted {
+        self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
         });
         self.applicant_id = Some(applicant_id);
     }
 
     pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) {
-        self.events.push(UserEvent::KycApproved {
+        self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
         });
@@ -85,20 +85,21 @@ impl User {
     }
 
     pub fn deactivate(&mut self, applicant_id: String) {
-        self.events.push(UserEvent::KycDeclined { applicant_id });
+        self.events
+            .push(CustomerEvent::KycDeclined { applicant_id });
         self.level = KycLevel::NotKyced;
         self.status = AccountStatus::Inactive;
     }
 }
 
-impl TryFrom<EntityEvents<UserEvent>> for User {
+impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
     type Error = EntityError;
 
-    fn try_from(events: EntityEvents<UserEvent>) -> Result<Self, Self::Error> {
-        let mut builder = UserBuilder::default();
+    fn try_from(events: EntityEvents<CustomerEvent>) -> Result<Self, Self::Error> {
+        let mut builder = CustomerBuilder::default();
         for event in events.iter() {
             match event {
-                UserEvent::Initialized {
+                CustomerEvent::Initialized {
                     id,
                     email,
                     account_ids,
@@ -113,10 +114,10 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .level(KycLevel::NotKyced)
                         .status(AccountStatus::Inactive);
                 }
-                UserEvent::KycStarted { applicant_id } => {
+                CustomerEvent::KycStarted { applicant_id } => {
                     builder = builder.applicant_id(applicant_id.clone());
                 }
-                UserEvent::KycApproved {
+                CustomerEvent::KycApproved {
                     level,
                     applicant_id,
                 } => {
@@ -125,7 +126,7 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                         .level(*level)
                         .status(AccountStatus::Active)
                 }
-                UserEvent::KycDeclined { applicant_id } => {
+                CustomerEvent::KycDeclined { applicant_id } => {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .status(AccountStatus::Inactive)
@@ -137,24 +138,24 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
 }
 
 #[derive(Debug, Builder)]
-pub struct NewUser {
+pub struct NewCustomer {
     #[builder(setter(into))]
-    pub(super) id: UserId,
+    pub(super) id: CustomerId,
     #[builder(setter(into))]
     pub(super) email: String,
-    pub(super) account_ids: UserLedgerAccountIds,
-    pub(super) account_addresses: UserLedgerAccountAddresses,
+    pub(super) account_ids: CustomerLedgerAccountIds,
+    pub(super) account_addresses: CustomerLedgerAccountAddresses,
 }
 
-impl NewUser {
-    pub fn builder() -> NewUserBuilder {
-        NewUserBuilder::default()
+impl NewCustomer {
+    pub fn builder() -> NewCustomerBuilder {
+        NewCustomerBuilder::default()
     }
 
-    pub(super) fn initial_events(self) -> EntityEvents<UserEvent> {
+    pub(super) fn initial_events(self) -> EntityEvents<CustomerEvent> {
         EntityEvents::init(
             self.id,
-            [UserEvent::Initialized {
+            [CustomerEvent::Initialized {
                 id: self.id,
                 email: self.email,
                 account_ids: self.account_ids,

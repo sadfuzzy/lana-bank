@@ -18,9 +18,9 @@ resource "cala_account_set_member_account" "shareholder_equity_in_balance_sheet"
 # ...
 
 # Schedule 5: ...
-resource "cala_account_set_member_account_set" "user_checking_control_in_balance_sheet" {
+resource "cala_account_set_member_account_set" "customer_checking_control_in_balance_sheet" {
   account_set_id        = cala_balance_sheet.lava.schedule5_account_set_id
-  member_account_set_id = cala_account_set.user_checking_control.id
+  member_account_set_id = cala_account_set.customer_checking_control.id
 }
 
 resource "cala_account_set_member_account_set" "interest_revenue_control_in_balance_sheet" {

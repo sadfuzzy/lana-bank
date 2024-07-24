@@ -9,7 +9,7 @@ pub enum ApplicationError {
     #[error("ApplicationError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("ApplicationError - UserError: {0}")]
-    UserError(#[from] crate::user::error::UserError),
+    CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("ApplicationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

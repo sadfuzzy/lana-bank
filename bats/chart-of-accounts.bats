@@ -17,7 +17,7 @@ teardown_file() {
   exec_admin_graphql 'chart-of-accounts'
 
   liabilities_name="Liabilities"
-  user_checking_control_name="User Checking Control Account"
+  user_checking_control_name="Customer Checking Control Account"
   user_checking_control_account_set_id=$(echo "$output" | jq -r \
     --arg category_name "$liabilities_name" \
     --arg account_name "$user_checking_control_name" \

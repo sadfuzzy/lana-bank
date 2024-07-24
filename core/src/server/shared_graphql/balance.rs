@@ -21,8 +21,8 @@ pub struct UserBalance {
     checking: Checking,
 }
 
-impl From<ledger::user::UserBalance> for UserBalance {
-    fn from(balance: ledger::user::UserBalance) -> Self {
+impl From<ledger::customer::CustomerBalance> for UserBalance {
+    fn from(balance: ledger::customer::CustomerBalance) -> Self {
         Self {
             unallocated_collateral: UnallocatedCollateral {
                 settled: BtcBalance {

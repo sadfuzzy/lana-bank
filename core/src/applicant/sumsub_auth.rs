@@ -7,7 +7,7 @@ use serde_json::json;
 use sha2::Sha256;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::primitives::UserId;
+use crate::primitives::CustomerId;
 
 use super::SumsubConfig;
 
@@ -42,7 +42,7 @@ impl SumsubClient {
     pub async fn create_access_token(
         &self,
         client: &Client,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
         let method = "POST";
@@ -84,7 +84,7 @@ impl SumsubClient {
     pub async fn create_permalink(
         &self,
         client: &Client,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<CreatePermalinkResponse, anyhow::Error> {
         let method = "POST";
@@ -197,7 +197,7 @@ mod tests {
         // let random_id = uuid!("00000000-0000-0000-0000-000000000001");
         let random_id = Uuid::new_v4();
 
-        let user_id = UserId::from(random_id);
+        let user_id = CustomerId::from(random_id);
 
         let level = "basic-kyc-level";
 
@@ -229,7 +229,7 @@ mod tests {
         // let random_id = uuid!("00000000-0000-0000-0000-000000000001");
         let random_id = Uuid::new_v4();
 
-        let user_id = UserId::from(random_id);
+        let user_id = CustomerId::from(random_id);
 
         let level = "basic-kyc-level";
 

@@ -5,18 +5,18 @@ mod cala;
 mod config;
 mod constants;
 pub mod cursor;
+pub mod customer;
 pub mod error;
 pub mod loan;
 pub mod primitives;
 mod tx_template;
-pub mod user;
 
 pub use cursor::*;
 use tracing::instrument;
 
 use crate::primitives::{
-    BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
-    LoanId, Satoshis, UsdCents, UserId, WithdrawId,
+    BfxWithdrawalMethod, CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
+    LedgerTxTemplateId, LoanId, Satoshis, UsdCents, WithdrawId,
 };
 
 use account_set::{
@@ -26,9 +26,9 @@ use account_set::{
 };
 use cala::*;
 pub use config::*;
+use customer::*;
 use error::*;
 use loan::*;
-use user::*;
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -42,28 +42,31 @@ impl Ledger {
         Ok(Ledger { cala })
     }
 
-    #[instrument(name = "lava.ledger.get_user_balance", skip(self), err)]
-    pub async fn get_user_balance(
+    #[instrument(name = "lava.ledger.get_customer_balance", skip(self), err)]
+    pub async fn get_customer_balance(
         &self,
-        account_ids: UserLedgerAccountIds,
-    ) -> Result<UserBalance, LedgerError> {
+        account_ids: CustomerLedgerAccountIds,
+    ) -> Result<CustomerBalance, LedgerError> {
         self.cala
-            .get_user_balance(account_ids)
+            .get_customer_balance(account_ids)
             .await?
             .ok_or(LedgerError::AccountNotFound)
     }
 
     #[instrument(
-        name = "lava.ledger.create_unallocated_collateral_account_for_user",
+        name = "lava.ledger.create_unallocated_collateral_account_for_customer",
         skip(self),
         err
     )]
-    pub async fn create_accounts_for_user(
+    pub async fn create_accounts_for_customer(
         &self,
-        user_id: UserId,
-    ) -> Result<(UserLedgerAccountIds, UserLedgerAccountAddresses), LedgerError> {
-        let account_ids = UserLedgerAccountIds::new();
-        let addresses = self.cala.create_user_accounts(user_id, account_ids).await?;
+        customer_id: CustomerId,
+    ) -> Result<(CustomerLedgerAccountIds, CustomerLedgerAccountAddresses), LedgerError> {
+        let account_ids = CustomerLedgerAccountIds::new();
+        let addresses = self
+            .cala
+            .create_customer_accounts(customer_id, account_ids)
+            .await?;
         Ok((account_ids, addresses))
     }
 
@@ -75,8 +78,8 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.initiate_withdrawal_for_user", skip(self), err)]
-    pub async fn initiate_withdrawal_for_user(
+    #[instrument(name = "lava.ledger.initiate_withdrawal_for_customer", skip(self), err)]
+    pub async fn initiate_withdrawal_for_customer(
         &self,
         withdrawal_id: WithdrawId,
         amount: UsdCents,
@@ -114,7 +117,7 @@ impl Ledger {
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
         collateral: Satoshis,
         principal: UsdCents,
         external_id: String,
@@ -124,7 +127,7 @@ impl Ledger {
             .execute_approve_loan_tx(
                 tx_id,
                 loan_account_ids,
-                user_account_ids,
+                customer_account_ids,
                 collateral.to_btc(),
                 principal.to_usd(),
                 external_id,
@@ -151,7 +154,7 @@ impl Ledger {
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
         amount: UsdCents,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
@@ -160,7 +163,7 @@ impl Ledger {
             .execute_repay_loan_tx(
                 tx_id,
                 loan_account_ids,
-                user_account_ids,
+                customer_account_ids,
                 amount.to_usd(),
                 tx_ref,
             )
@@ -172,7 +175,7 @@ impl Ledger {
         &self,
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
         payment_amount: UsdCents,
         collateral_amount: Satoshis,
         tx_ref: String,
@@ -182,7 +185,7 @@ impl Ledger {
             .execute_complete_loan_tx(
                 tx_id,
                 loan_account_ids,
-                user_account_ids,
+                customer_account_ids,
                 payment_amount.to_usd(),
                 collateral_amount.to_btc(),
                 tx_ref,

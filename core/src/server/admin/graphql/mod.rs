@@ -1,10 +1,10 @@
 mod account;
 mod account_set;
+mod customer;
 mod loan;
 mod schema;
 mod shareholder_equity;
 mod terms;
-mod user;
 
 use async_graphql::*;
 

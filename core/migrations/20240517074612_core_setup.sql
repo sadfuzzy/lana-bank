@@ -1,11 +1,11 @@
-CREATE TABLE users (
+CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE user_events (
-  id UUID NOT NULL REFERENCES users(id),
+CREATE TABLE customer_events (
+  id UUID NOT NULL REFERENCES customers(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -23,7 +23,7 @@ CREATE UNIQUE INDEX idx_loan_terms_current ON loan_terms (current) WHERE current
 
 CREATE TABLE loans (
   id UUID PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id),
+  customer_id UUID NOT NULL REFERENCES customers(id),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE loan_events (
 
 CREATE TABLE withdraws (
   id UUID PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES users(id),
+  customer_id UUID NOT NULL REFERENCES customers(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

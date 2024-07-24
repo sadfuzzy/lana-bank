@@ -1,5 +1,7 @@
-import { IoLogOutOutline, IoMenu } from "react-icons/io5"
+import { IoMenu } from "react-icons/io5"
 import Link from "next/link"
+
+import { LavaBankIcon } from "../icon"
 
 import { NavigationLinks } from "./navigation-links"
 
@@ -11,18 +13,17 @@ export default function SideBar() {
     <>
       <div className="hidden md:block bg-primary-foreground border-r border-secondary-foreground w-64">
         <div className="flex flex-col h-full">
-          <div className="flex items-center justify-between p-4">
-            <h1 className="text-xl font-bold ml-4 mt-4">LAVA BANK</h1>
+          <div className="flex items-center justify-between p-6">
+            <LavaBankIcon />
           </div>
-          <div className="flex flex-col justify-between h-full ">
-            <div className="flex flex-col ml-8 mt-8 gap-4">
+          <div className="flex flex-col justify-between h-full">
+            <div className="flex flex-col ml-6 mt-4">
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
               <Link href="/profile">
-                <Button variant="primary" className="w-60">
+                <Button variant="secondary" className="w-56">
                   <div className="flex gap-2 items-center">
-                    <IoLogOutOutline className="w-6 h-6" />
                     <p>Profile</p>
                   </div>
                 </Button>
@@ -45,11 +46,7 @@ export default function SideBar() {
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
-              <Link href="/profile">
-                <Button variant="primary" className="w-60">
-                  Profile
-                </Button>
-              </Link>
+              <Link href="/profile">Profile</Link>
             </div>
           </SheetContent>
         </Sheet>

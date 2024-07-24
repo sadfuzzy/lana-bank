@@ -7,7 +7,7 @@ import { executeQuery } from "."
 gql`
   query Me {
     me {
-      userId
+      customerId
       email
       btcDepositAddress
       ustDepositAddress

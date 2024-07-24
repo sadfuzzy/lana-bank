@@ -5,13 +5,13 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod cli;
+pub mod customer;
 pub mod entity;
 pub mod job;
 pub mod ledger;
 pub mod loan;
 pub mod primitives;
 pub mod server;
-pub mod user;
 pub mod withdraw;
 
 pub mod query {

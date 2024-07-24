@@ -3,9 +3,9 @@ mod error;
 mod repo;
 
 use crate::{
+    customer::Customers,
     ledger::Ledger,
-    primitives::{UsdCents, UserId, WithdrawId},
-    user::Users,
+    primitives::{CustomerId, UsdCents, WithdrawId},
 };
 
 pub use entity::*;
@@ -16,17 +16,17 @@ pub use repo::WithdrawRepo;
 pub struct Withdraws {
     _pool: sqlx::PgPool,
     repo: WithdrawRepo,
-    users: Users,
+    customers: Customers,
     ledger: Ledger,
 }
 
 impl Withdraws {
-    pub fn new(pool: &sqlx::PgPool, users: &Users, ledger: &Ledger) -> Self {
+    pub fn new(pool: &sqlx::PgPool, customers: &Customers, ledger: &Ledger) -> Self {
         let repo = WithdrawRepo::new(pool);
         Self {
             _pool: pool.clone(),
             repo,
-            users: users.clone(),
+            customers: customers.clone(),
             ledger: ledger.clone(),
         }
     }
@@ -37,27 +37,27 @@ impl Withdraws {
 
     pub async fn initiate(
         &self,
-        user_id: impl Into<UserId> + std::fmt::Debug,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         amount: UsdCents,
         destination: String,
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
-        let user_id = user_id.into();
-        let user = self.users.repo().find_by_id(user_id).await?;
+        let customer_id = customer_id.into();
+        let customer = self.customers.repo().find_by_id(customer_id).await?;
         let new_withdraw = NewWithdraw::builder()
             .id(WithdrawId::new())
-            .user_id(user_id)
+            .customer_id(customer_id)
             .amount(amount)
             .reference(reference)
             .destination(destination)
-            .debit_account_id(user.account_ids.on_balance_sheet_deposit_account_id)
+            .debit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
             .build()
             .expect("Could not build Withdraw");
 
         let withdraw = self.repo.create(new_withdraw).await?;
 
         self.ledger
-            .initiate_withdrawal_for_user(
+            .initiate_withdrawal_for_customer(
                 withdraw.id,
                 withdraw.amount,
                 withdraw.destination.clone(),

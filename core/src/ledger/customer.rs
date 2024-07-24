@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use super::{cala::graphql::*, primitives::LayeredUsdBalance};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub struct UserLedgerAccountIds {
+pub struct CustomerLedgerAccountIds {
     pub off_balance_sheet_deposit_account_id: LedgerAccountId,
     pub on_balance_sheet_deposit_account_id: LedgerAccountId,
 }
 
-impl UserLedgerAccountIds {
+impl CustomerLedgerAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
@@ -20,19 +20,19 @@ impl UserLedgerAccountIds {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct UserLedgerAccountAddresses {
+pub struct CustomerLedgerAccountAddresses {
     pub tron_usdt_address: String,
     pub btc_address: String,
 }
 
-pub struct UserBalance {
+pub struct CustomerBalance {
     pub btc_balance: Satoshis,
     pub usdt_balance: LayeredUsdBalance,
 }
 
-impl From<user_balance::ResponseData> for UserBalance {
-    fn from(data: user_balance::ResponseData) -> Self {
-        UserBalance {
+impl From<customer_balance::ResponseData> for CustomerBalance {
+    fn from(data: customer_balance::ResponseData) -> Self {
+        CustomerBalance {
             btc_balance: data
                 .btc_balance
                 .map(|b| Satoshis::from_btc(b.settled.normal_balance.units))

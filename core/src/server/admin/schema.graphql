@@ -154,6 +154,47 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+type Customer {
+	customerId: UUID!
+	email: String!
+	btcDepositAddress: String!
+	ustDepositAddress: String!
+	status: AccountStatus!
+	level: KycLevel!
+	applicantId: String
+	balance: UserBalance!
+	loans: [Loan!]!
+}
+
+type CustomerConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CustomerEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Customer!]!
+}
+
+"""
+An edge in a connection.
+"""
+type CustomerEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Customer!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input DefaultTermsUpdateInput {
 	annualRate: AnnualRate!
 	interval: InterestInterval!
@@ -215,7 +256,7 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	balance: LoanBalance!
-	user: User!
+	customer: Customer!
 }
 
 input LoanApproveInput {
@@ -234,7 +275,7 @@ type LoanBalance {
 }
 
 input LoanCreateInput {
-	userId: UUID!
+	customerId: UUID!
 	desiredPrincipal: UsdCents!
 	loanTerms: TermsInput!
 }
@@ -299,8 +340,8 @@ enum Period {
 
 type Query {
 	loan(id: UUID!): Loan
-	user(id: UUID!): User
-	users(first: Int!, after: String): UserConnection!
+	customer(id: UUID!): Customer
+	customers(first: Int!, after: String): CustomerConnection!
 	defaultTerms: Terms
 	trialBalance: TrialBalance
 	offBalanceSheetTrialBalance: TrialBalance
@@ -328,7 +369,7 @@ type SuccessPayload {
 }
 
 input SumsubPermalinkCreateInput {
-	userId: String!
+	customerId: String!
 }
 
 type SumsubPermalinkCreatePayload {
@@ -385,50 +426,9 @@ type UsdBalance {
 
 scalar UsdCents
 
-type User {
-	userId: UUID!
-	email: String!
-	btcDepositAddress: String!
-	ustDepositAddress: String!
-	status: AccountStatus!
-	level: KycLevel!
-	applicantId: String
-	balance: UserBalance!
-	loans: [Loan!]!
-}
-
 type UserBalance {
 	unallocatedCollateral: UnallocatedCollateral!
 	checking: Checking!
-}
-
-type UserConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [UserEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [User!]!
-}
-
-"""
-An edge in a connection.
-"""
-type UserEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: User!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

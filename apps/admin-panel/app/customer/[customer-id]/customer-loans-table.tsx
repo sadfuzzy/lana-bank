@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { Loan, LoanStatus, useGetLoansForUserQuery } from "@/lib/graphql/generated"
+import { Loan, LoanStatus, useGetLoansForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 import {
@@ -51,23 +51,23 @@ type LoanRowProps = {
   loanTerms: Loan["loanTerms"]
 }
 
-export const UserLoansTable = ({ userId }: { userId: string }) => {
+export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
   const {
     loading,
     error,
-    data: userLoans,
+    data: customerLoans,
     refetch,
-  } = useGetLoansForUserQuery({
+  } = useGetLoansForCustomerQuery({
     variables: {
-      id: userId,
+      id: customerId,
     },
   })
 
   return (
     <Card className="mt-4">
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>User loans</CardTitle>
-        <CreateLoanDialog refetch={refetch} userId={userId}>
+        <CardTitle>customer loans</CardTitle>
+        <CreateLoanDialog refetch={refetch} customerId={customerId}>
           <Button>New Loan</Button>
         </CreateLoanDialog>
       </CardHeader>
@@ -75,8 +75,10 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
         <CardContent className="p-6">Loading...</CardContent>
       ) : error ? (
         <CardContent className="p-6">{error.message}</CardContent>
-      ) : !userLoans || !userLoans.user?.loans || userLoans.user?.loans.length === 0 ? (
-        <CardContent className="p-6">No loans found for this user</CardContent>
+      ) : !customerLoans ||
+        !customerLoans.customer?.loans ||
+        customerLoans.customer?.loans.length === 0 ? (
+        <CardContent className="p-6">No loans found for this customer</CardContent>
       ) : (
         <CardContent>
           <Table>
@@ -91,7 +93,7 @@ export const UserLoansTable = ({ userId }: { userId: string }) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {userLoans.user.loans.map((loan) => (
+              {customerLoans.customer.loans.map((loan) => (
                 <LoanRow key={loan.loanId} loan={loan} refetch={refetch} />
               ))}
             </TableBody>

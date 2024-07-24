@@ -8,11 +8,11 @@ use sqlx::PgPool;
 
 use crate::{
     authorization::{Action, Authorization, LoanAction, Object, TermAction},
+    customer::Customers,
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
     primitives::*,
-    user::Users,
 };
 
 pub use entity::*;
@@ -25,7 +25,7 @@ pub use terms::*;
 pub struct Loans {
     loan_repo: LoanRepo,
     term_repo: TermRepo,
-    users: Users,
+    customers: Customers,
     ledger: Ledger,
     pool: PgPool,
     jobs: Option<Jobs>,
@@ -36,7 +36,7 @@ impl Loans {
     pub fn new(
         pool: &PgPool,
         registry: &mut JobRegistry,
-        users: &Users,
+        customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
     ) -> Self {
@@ -46,7 +46,7 @@ impl Loans {
         Self {
             loan_repo,
             term_repo,
-            users: users.clone(),
+            customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
             jobs: None,
@@ -78,10 +78,10 @@ impl Loans {
         PriceOfOneBTC::new(UsdCents::from_usd(rust_decimal_macros::dec!(60000)))
     }
 
-    pub async fn create_loan_for_user(
+    pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
-        user_id: impl Into<UserId>,
+        customer_id: impl Into<CustomerId>,
         desired_principal: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
@@ -89,19 +89,19 @@ impl Loans {
             .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Create))
             .await?;
 
-        let user_id = user_id.into();
-        let user = match self.users.find_by_id(user_id).await? {
-            Some(user) => user,
-            None => return Err(LoanError::UserNotFound(user_id)),
+        let customer_id = customer_id.into();
+        let customer = match self.customers.find_by_id(customer_id).await? {
+            Some(customer) => customer,
+            None => return Err(LoanError::CustomerNotFound(customer_id)),
         };
 
-        if !user.may_create_loan() {
-            return Err(LoanError::UserNotAllowedToCreateLoan(user_id));
+        if !customer.may_create_loan() {
+            return Err(LoanError::CustomerNotAllowedToCreateLoan(customer_id));
         }
 
         let unallocated_collateral = self
             .ledger
-            .get_user_balance(user.account_ids)
+            .get_customer_balance(customer.account_ids)
             .await?
             .btc_balance;
 
@@ -118,11 +118,11 @@ impl Loans {
 
         let new_loan = NewLoan::builder()
             .id(LoanId::new())
-            .user_id(user_id)
+            .customer_id(customer_id)
             .principal(desired_principal)
             .account_ids(LoanAccountIds::new())
             .terms(terms)
-            .user_account_ids(user.account_ids)
+            .customer_account_ids(customer.account_ids)
             .build()
             .expect("could not build new loan");
 
@@ -152,7 +152,7 @@ impl Loans {
             .approve_loan(
                 tx_id,
                 loan.account_ids,
-                loan.user_account_ids,
+                loan.customer_account_ids,
                 collateral,
                 loan.initial_principal(),
                 format!("{}-approval", loan.id),
@@ -188,19 +188,25 @@ impl Loans {
         let tx_id = LedgerTxId::new();
         let tx_ref = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;
 
-        let user = self.users.repo().find_by_id(loan.user_id).await?;
+        let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let mut db_tx = self.pool.begin().await?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         if !loan.is_completed() {
             self.ledger
-                .record_payment(tx_id, loan.account_ids, user.account_ids, amount, tx_ref)
+                .record_payment(
+                    tx_id,
+                    loan.account_ids,
+                    customer.account_ids,
+                    amount,
+                    tx_ref,
+                )
                 .await?;
         } else {
             self.ledger
                 .complete_loan(
                     tx_id,
                     loan.account_ids,
-                    user.account_ids,
+                    customer.account_ids,
                     amount,
                     balances.collateral,
                     tx_ref,
@@ -230,10 +236,10 @@ impl Loans {
         }
     }
 
-    pub async fn list_for_user(
+    pub async fn list_for_customer(
         &self,
         sub: Option<&Subject>,
-        user_id: UserId,
+        customer_id: CustomerId,
     ) -> Result<Vec<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
@@ -241,7 +247,7 @@ impl Loans {
                 .await?;
         }
 
-        self.loan_repo.find_for_user(user_id).await
+        self.loan_repo.find_for_customer(customer_id).await
     }
 
     pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {

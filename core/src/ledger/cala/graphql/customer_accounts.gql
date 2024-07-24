@@ -1,15 +1,15 @@
-mutation CreateUserAccounts(
+mutation CreateCustomerAccounts(
   $onBalanceSheetAccountId: UUID!
   $onBalanceSheetAccountCode: String!
   $onBalanceSheetAccountName: String!
-  $userCheckingControlAccountSetId: UUID!
+  $customerCheckingControlAccountSetId: UUID!
   $tronAccountId: UUID!
   $tronAccountCode: String!
   $tronAccountName: String!
   $offBalanceSheetAccountId: UUID!
   $offBalanceSheetAccountCode: String!
   $offBalanceSheetAccountName: String!
-  $userCollateralControlAccountSetId: UUID!
+  $customerCollateralControlAccountSetId: UUID!
   $btcAccountId: UUID!
   $btcAccountCode: String!
   $btcAccountName: String!
@@ -19,7 +19,7 @@ mutation CreateUserAccounts(
       accountId: $onBalanceSheetAccountId
       code: $onBalanceSheetAccountCode
       name: $onBalanceSheetAccountName
-      accountSetIds: [$userCheckingControlAccountSetId]
+      accountSetIds: [$customerCheckingControlAccountSetId]
     }
   ) {
     account {
@@ -50,7 +50,7 @@ mutation CreateUserAccounts(
       accountId: $offBalanceSheetAccountId
       code: $offBalanceSheetAccountCode
       name: $offBalanceSheetAccountName
-      accountSetIds: [$userCollateralControlAccountSetId]
+      accountSetIds: [$customerCollateralControlAccountSetId]
     }
   ) {
     account {

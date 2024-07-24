@@ -4,7 +4,6 @@ import { useRouter, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
-import { Label } from "@/components/primitive/label"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
@@ -55,9 +54,8 @@ function LoanPage() {
 
   return (
     <main>
-      <PageHeading>Loan</PageHeading>
-      <div className="mt-4 mb-4 max-w-[30rem]">
-        <Label htmlFor="loanId">Loan ID</Label>
+      <div className="flex justify-between items-center mb-8">
+        <PageHeading className="mb-0">Loan</PageHeading>
         <div className="flex gap-2">
           <Input
             onChange={(e) => setInputLoanId(e.target.value)}
@@ -65,14 +63,15 @@ function LoanPage() {
             id="loanId"
             name="loanId"
             value={inputLoanId}
+            className="w-80"
           />
-          <Button onClick={handleSearch} variant="secondary">
+          <Button onClick={handleSearch} variant="primary">
             Search
           </Button>
         </div>
       </div>
 
-      <Card className="max-w-[90rem]">
+      <Card>
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
         ) : error ? (
@@ -96,7 +95,10 @@ function LoanPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
                 <div className="grid auto-rows-min ">
-                  <DetailItem label="User ID" value={loanDetails.loan.user.userId} />
+                  <DetailItem
+                    label="customer ID"
+                    value={loanDetails.loan.customer.customerId}
+                  />
                   <DetailItem
                     label="Start Date"
                     value={formatDate(loanDetails.loan.startDate)}

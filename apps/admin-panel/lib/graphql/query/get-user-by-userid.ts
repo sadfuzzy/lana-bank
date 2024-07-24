@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client"
 
 gql`
-  query getUserByUserId($id: UUID!) {
-    user(id: $id) {
-      userId
+  query getCustomerByCustomerId($id: UUID!) {
+    customer(id: $id) {
+      customerId
       email
       status
       level

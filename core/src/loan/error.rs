@@ -11,11 +11,11 @@ pub enum LoanError {
     #[error("LoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("LoanError - UserError: '{0}'")]
-    UserError(#[from] crate::user::error::UserError),
+    CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("LoanError - UserNotFound: {0}")]
-    UserNotFound(UserId),
+    CustomerNotFound(CustomerId),
     #[error("LoanError - UserNotAllowedToCreateLoan: {0}")]
-    UserNotAllowedToCreateLoan(UserId),
+    CustomerNotAllowedToCreateLoan(CustomerId),
     #[error("LoanError - InsufficientCollateral: {0} < {1}")]
     InsufficientCollateral(Satoshis, Satoshis),
     #[error("LoanError - JobError: {0}")]

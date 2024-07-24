@@ -1,10 +1,10 @@
 import { gql } from "@apollo/client"
 
 gql`
-  query Users($first: Int!, $after: String) {
-    users(first: $first, after: $after) {
+  query Customers($first: Int!, $after: String) {
+    customers(first: $first, after: $after) {
       nodes {
-        userId
+        customerId
         email
         btcDepositAddress
         ustDepositAddress

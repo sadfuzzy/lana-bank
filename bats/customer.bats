@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "user: unauthorized" {
+@test "customer: unauthorized" {
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -20,15 +20,14 @@ teardown_file() {
   [[ "$error_status" == "Unauthorized" ]] || exit 1
 }
 
-@test "user: can create a user" {
+@test "customer: can create a customer" {
   token=$(create_user)
   cache_value "alice" "$token"
 
   exec_graphql 'alice' 'me'
-  echo "$output"
 
-  user_id=$(graphql_output '.data.me.userId')
-  [[ "$user_id" != "null" ]] || exit 1
+  customer_id=$(graphql_output '.data.me.customerId')
+  [[ "$customer_id" != "null" ]] || exit 1
 
   btc_address=$(graphql_output '.data.me.btcDepositAddress')
   cache_value 'user.btc' "$btc_address"
@@ -37,7 +36,7 @@ teardown_file() {
   cache_value 'user.ust' "$ust_address"
 }
 
-@test "user: can deposit" {
+@test "customer: can deposit" {
   ust_address=$(read_value 'user.ust')
   btc_address=$(read_value 'user.btc')
 
@@ -51,6 +50,7 @@ teardown_file() {
     }'
   )
   exec_cala_graphql 'simulate-deposit' "$variables"
+  echo $(graphql_output)
 
   exec_graphql 'alice' 'me'
   usd_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
@@ -78,7 +78,7 @@ teardown_file() {
   assert_accounts_balanced
 }
 
-@test "user: can withdraw" {
+@test "customer: can withdraw" {
   variables=$(
     jq -n \
     --arg date "$(date +%s%N)" \
@@ -91,6 +91,7 @@ teardown_file() {
     }'
   )
   exec_graphql 'alice' 'initiate-withdrawal' "$variables"
+  echo $(graphql_output)
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
@@ -102,7 +103,7 @@ teardown_file() {
   assert_accounts_balanced
 }
 
-@test "user: verify level 2" {
+@test "customer: verify level 2" {
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')
@@ -117,7 +118,7 @@ teardown_file() {
   level=$(graphql_output '.data.me.level')
   [[ "$level" == "ZERO" ]] || exit 1
 
-  user_id=$(graphql_output '.data.me.userId')
+  user_id=$(graphql_output '.data.me.customerId')
   [[ "$user_id" != "null" ]] || exit 1
 
   status=$(graphql_output '.data.me.status')

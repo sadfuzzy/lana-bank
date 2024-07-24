@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    ledger::{loan::LoanAccountIds, user::UserLedgerAccountIds},
+    ledger::{customer::CustomerLedgerAccountIds, loan::LoanAccountIds},
     primitives::*,
 };
 
@@ -16,11 +16,11 @@ use super::terms::TermValues;
 pub enum LoanEvent {
     Initialized {
         id: LoanId,
-        user_id: UserId,
+        customer_id: CustomerId,
         principal: UsdCents,
         terms: TermValues,
         account_ids: LoanAccountIds,
-        user_account_ids: UserLedgerAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
         start_date: DateTime<Utc>,
     },
     TermsUpdated {
@@ -58,10 +58,10 @@ impl EntityEvent for LoanEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Loan {
     pub id: LoanId,
-    pub user_id: UserId,
+    pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: LoanAccountIds,
-    pub user_account_ids: UserLedgerAccountIds,
+    pub customer_account_ids: CustomerLedgerAccountIds,
     pub start_date: DateTime<Utc>,
     pub(super) events: EntityEvents<LoanEvent>,
 }
@@ -262,19 +262,19 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
             match event {
                 LoanEvent::Initialized {
                     id,
-                    user_id,
+                    customer_id,
                     account_ids,
-                    user_account_ids,
+                    customer_account_ids,
                     start_date,
                     terms,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
-                        .user_id(*user_id)
+                        .customer_id(*customer_id)
                         .terms(terms.clone())
                         .account_ids(*account_ids)
-                        .user_account_ids(*user_account_ids)
+                        .customer_account_ids(*customer_account_ids)
                         .start_date(*start_date);
                 }
                 LoanEvent::TermsUpdated { terms } => {
@@ -295,11 +295,11 @@ pub struct NewLoan {
     #[builder(setter(into))]
     pub(super) id: LoanId,
     #[builder(setter(into))]
-    pub(super) user_id: UserId,
+    pub(super) customer_id: CustomerId,
     terms: TermValues,
     principal: UsdCents,
     account_ids: LoanAccountIds,
-    user_account_ids: UserLedgerAccountIds,
+    customer_account_ids: CustomerLedgerAccountIds,
     #[builder(default = "Utc::now()")]
     start_date: DateTime<Utc>,
 }
@@ -314,11 +314,11 @@ impl NewLoan {
             self.id,
             [LoanEvent::Initialized {
                 id: self.id,
-                user_id: self.user_id,
+                customer_id: self.customer_id,
                 principal: self.principal,
                 terms: self.terms,
                 account_ids: self.account_ids,
-                user_account_ids: self.user_account_ids,
+                customer_account_ids: self.customer_account_ids,
                 start_date: self.start_date,
             }],
         )
@@ -350,11 +350,11 @@ mod test {
             LoanId::new(),
             [LoanEvent::Initialized {
                 id: LoanId::new(),
-                user_id: UserId::new(),
+                customer_id: CustomerId::new(),
                 principal: UsdCents::from_usd(dec!(100)),
                 terms: terms(),
                 account_ids: LoanAccountIds::new(),
-                user_account_ids: UserLedgerAccountIds::new(),
+                customer_account_ids: CustomerLedgerAccountIds::new(),
                 start_date: Utc::now(),
             }],
         )

@@ -1,6 +1,6 @@
 query me {
   me {
-    userId
+    customerId 
     applicantId
     status
     btcDepositAddress

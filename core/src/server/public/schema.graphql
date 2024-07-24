@@ -21,6 +21,18 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+type Customer {
+	customerId: UUID!
+	email: String!
+	btcDepositAddress: String!
+	ustDepositAddress: String!
+	status: AccountStatus!
+	level: KycLevel!
+	applicantId: String
+	balance: UserBalance!
+	loans: [Loan!]!
+}
+
 type Duration {
 	period: Period!
 	units: Int!
@@ -50,7 +62,7 @@ type Loan {
 	loanTerms: TermValues!
 	status: LoanStatus!
 	balance: LoanBalance!
-	user: User!
+	customer: Customer!
 }
 
 type LoanBalance {
@@ -81,8 +93,8 @@ enum Period {
 
 type Query {
 	loan(id: UUID!): Loan
-	user(id: UUID!): User
-	me: User
+	customer(id: UUID!): Customer
+	me: Customer
 }
 
 scalar Satoshis
@@ -119,25 +131,13 @@ type UsdBalance {
 
 scalar UsdCents
 
-type User {
-	userId: UUID!
-	email: String!
-	btcDepositAddress: String!
-	ustDepositAddress: String!
-	status: AccountStatus!
-	level: KycLevel!
-	applicantId: String
-	balance: UserBalance!
-	loans: [Loan!]!
-}
-
 type UserBalance {
 	unallocatedCollateral: UnallocatedCollateral!
 	checking: Checking!
 }
 
 type Withdrawal {
-	userId: UUID!
+	customerId: UUID!
 	withdrawalId: UUID!
 	amount: UsdCents!
 }

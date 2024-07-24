@@ -2,37 +2,37 @@ use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    primitives::{Satoshis, UserId},
-    server::shared_graphql::{primitives::UUID, user::User},
+    primitives::{CustomerId, Satoshis},
+    server::shared_graphql::{customer::Customer, primitives::UUID},
 };
 
 #[derive(InputObject)]
-pub struct UserPledgeCollateralInput {
+pub struct CustomerPledgeCollateralInput {
     pub user_id: UUID,
     pub amount: Satoshis,
     pub reference: String,
 }
 
 #[derive(SimpleObject)]
-pub struct UserPledgeCollateralPayload {
-    pub user: User,
+pub struct CustomerPledgeCollateralPayload {
+    pub user: Customer,
 }
 
-impl From<crate::user::User> for UserPledgeCollateralPayload {
-    fn from(user: crate::user::User) -> Self {
+impl From<crate::customer::Customer> for CustomerPledgeCollateralPayload {
+    fn from(user: crate::customer::Customer) -> Self {
         Self {
-            user: User::from(user),
+            user: Customer::from(user),
         }
     }
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct UserByNameCursor {
+pub(super) struct CustomerByNameCursor {
     pub name: String,
-    pub id: UserId,
+    pub id: CustomerId,
 }
 
-impl CursorType for UserByNameCursor {
+impl CursorType for CustomerByNameCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -51,8 +51,8 @@ impl CursorType for UserByNameCursor {
     }
 }
 
-impl From<(UserId, &str)> for UserByNameCursor {
-    fn from((id, name): (UserId, &str)) -> Self {
+impl From<(CustomerId, &str)> for CustomerByNameCursor {
+    fn from((id, name): (CustomerId, &str)) -> Self {
         Self {
             id,
             name: name.to_string(),
@@ -60,8 +60,8 @@ impl From<(UserId, &str)> for UserByNameCursor {
     }
 }
 
-impl From<UserByNameCursor> for crate::user::UserByNameCursor {
-    fn from(cursor: UserByNameCursor) -> Self {
+impl From<CustomerByNameCursor> for crate::customer::CustomerByNameCursor {
+    fn from(cursor: CustomerByNameCursor) -> Self {
         Self {
             id: cursor.id,
             name: cursor.name,
@@ -71,5 +71,5 @@ impl From<UserByNameCursor> for crate::user::UserByNameCursor {
 
 #[derive(InputObject)]
 pub struct SumsubPermalinkCreateInput {
-    pub user_id: String,
+    pub customer_id: String,
 }

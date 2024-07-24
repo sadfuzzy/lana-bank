@@ -1,9 +1,9 @@
 import { gql } from "@apollo/client"
 
 gql`
-  query GetLoansForUser($id: UUID!) {
-    user(id: $id) {
-      userId
+  query GetLoansForCustomer($id: UUID!) {
+    customer(id: $id) {
+      customerId
       loans {
         id
         loanId

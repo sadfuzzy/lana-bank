@@ -31,7 +31,7 @@ pub async fn auth_callback(
         }
     };
 
-    match app.users().create_user(id, email).await {
+    match app.customers().create_customers(id, email).await {
         Ok(user) => axum::Json(serde_json::json!( {
             "identity": { "id": user.id }
         }))

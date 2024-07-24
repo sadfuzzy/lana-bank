@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     entity::*,
-    primitives::{LedgerAccountId, UsdCents, UserId, WithdrawId},
+    primitives::{CustomerId, LedgerAccountId, UsdCents, WithdrawId},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -11,7 +11,7 @@ use crate::{
 pub enum WithdrawEvent {
     Initialized {
         id: WithdrawId,
-        user_id: UserId,
+        customer_id: CustomerId,
         amount: UsdCents,
         reference: String,
         destination: String,
@@ -30,7 +30,7 @@ impl EntityEvent for WithdrawEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
-    pub user_id: UserId,
+    pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub destination: String,
     pub debit_account_id: LedgerAccountId,
@@ -39,7 +39,7 @@ pub struct Withdraw {
 
 impl std::fmt::Display for Withdraw {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Withdraw {}, uid: {}", self.id, self.user_id)
+        write!(f, "Withdraw {}, uid: {}", self.id, self.customer_id)
     }
 }
 
@@ -56,7 +56,7 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
             match event {
                 WithdrawEvent::Initialized {
                     id,
-                    user_id,
+                    customer_id,
                     amount,
                     destination,
                     debit_account_id,
@@ -64,7 +64,7 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                 } => {
                     builder = builder
                         .id(*id)
-                        .user_id(*user_id)
+                        .customer_id(*customer_id)
                         .amount(*amount)
                         .destination(destination.clone())
                         .debit_account_id(*debit_account_id);
@@ -80,7 +80,7 @@ pub struct NewWithdraw {
     #[builder(setter(into))]
     pub(super) id: WithdrawId,
     #[builder(setter(into))]
-    pub(super) user_id: UserId,
+    pub(super) customer_id: CustomerId,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
     reference: Option<String>,
@@ -105,7 +105,7 @@ impl NewWithdraw {
             [WithdrawEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
-                user_id: self.user_id,
+                customer_id: self.customer_id,
                 amount: self.amount,
                 destination: self.destination,
                 debit_account_id: self.debit_account_id,

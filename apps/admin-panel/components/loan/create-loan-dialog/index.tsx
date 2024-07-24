@@ -60,15 +60,15 @@ gql`
 `
 
 export const CreateLoanDialog = ({
-  userId,
+  customerId,
   children,
   refetch,
 }: {
-  userId: string
+  customerId: string
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const [userIdValue, setUserIdValue] = useState<string>(userId)
+  const [customerIdValue, setcustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
 
@@ -139,7 +139,7 @@ export const CreateLoanDialog = ({
       await createLoan({
         variables: {
           input: {
-            userId: userIdValue,
+            customerId: customerIdValue,
             desiredPrincipal: currencyConverter.usdToCents(Number(desiredPrincipal)),
             loanTerms: {
               annualRate: parseFloat(annualRate),
@@ -179,7 +179,7 @@ export const CreateLoanDialog = ({
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setUserIdValue(userId)
+          setcustomerIdValue(customerId)
           resetForm()
           reset()
         }

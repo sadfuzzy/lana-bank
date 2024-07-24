@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            WITH users AS (\n              SELECT id, email, created_at\n              FROM users\n              WHERE ((email, id) > ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)\n              ORDER BY email, id\n              LIMIT $3\n            )\n            SELECT a.id, e.sequence, e.event,\n                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM users a\n            JOIN user_events e ON a.id = e.id\n            ORDER BY a.email, a.id, e.sequence",
+  "query": "SELECT a.id, e.sequence, e.event,\n                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM customers a\n            JOIN customer_events e\n            ON a.id = e.id\n            WHERE a.id = $1",
   "describe": {
     "columns": [
       {
@@ -31,9 +31,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Text",
-        "Int8"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -44,5 +42,5 @@
       false
     ]
   },
-  "hash": "85811e0a44ef8ef2e43f120cb18bde023bb2f2e3e3959e3538076a51c6a5bc5e"
+  "hash": "6f9cc96d5dab84f5202ac945fe1ee329776314dfebf86d044ca349f61a8bc7d3"
 }

@@ -8,7 +8,7 @@ use crate::server::shared_graphql::{
 
 #[derive(InputObject)]
 pub struct LoanCreateInput {
-    pub user_id: UUID,
+    pub customer_id: UUID,
     pub desired_principal: UsdCents,
     pub loan_terms: TermsInput,
 }

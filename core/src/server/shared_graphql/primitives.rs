@@ -24,12 +24,12 @@ impl From<UUID> for LoanId {
         Self::from(uuid.0)
     }
 }
-impl From<UUID> for UserId {
+impl From<UUID> for CustomerId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)
     }
 }
-impl From<&UUID> for UserId {
+impl From<&UUID> for CustomerId {
     fn from(uuid: &UUID) -> Self {
         Self::from(uuid.0)
     }

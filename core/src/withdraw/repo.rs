@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use super::{entity::*, error::*};
 use crate::{
     entity::*,
-    primitives::{UserId, WithdrawId},
+    primitives::{CustomerId, WithdrawId},
 };
 
 #[derive(Clone)]
@@ -22,10 +22,10 @@ impl WithdrawRepo {
     ) -> Result<Withdraw, WithdrawError> {
         let mut tx = self.pool.begin().await?;
         sqlx::query!(
-            r#"INSERT INTO withdraws (id, user_id, reference)
+            r#"INSERT INTO withdraws (id, customer_id, reference)
             VALUES ($1, $2, $3)"#,
             new_withdraw.id as WithdrawId,
-            new_withdraw.user_id as UserId,
+            new_withdraw.customer_id as CustomerId,
             new_withdraw.reference()
         )
         .execute(&mut *tx)

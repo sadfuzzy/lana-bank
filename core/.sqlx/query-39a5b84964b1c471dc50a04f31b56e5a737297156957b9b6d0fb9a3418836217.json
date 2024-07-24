@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO withdraws (id, user_id, reference)\n            VALUES ($1, $2, $3)",
+  "query": "INSERT INTO withdraws (id, customer_id, reference)\n            VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "fb8c608ed0a7e2e1346778ec417f777c9d3f5da6b1c3238651f34db7265aee44"
+  "hash": "39a5b84964b1c471dc50a04f31b56e5a737297156957b9b6d0fb9a3418836217"
 }

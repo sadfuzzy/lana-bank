@@ -46,6 +46,19 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type Customer = {
+  __typename?: 'Customer';
+  applicantId?: Maybe<Scalars['String']['output']>;
+  balance: UserBalance;
+  btcDepositAddress: Scalars['String']['output'];
+  customerId: Scalars['UUID']['output'];
+  email: Scalars['String']['output'];
+  level: KycLevel;
+  loans: Array<Loan>;
+  status: AccountStatus;
+  ustDepositAddress: Scalars['String']['output'];
+};
+
 export type Duration = {
   __typename?: 'Duration';
   period: Period;
@@ -70,12 +83,12 @@ export enum KycLevel {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  customer: Customer;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
   startDate: Scalars['Timestamp']['output'];
   status: LoanStatus;
-  user: User;
 };
 
 export type LoanBalance = {
@@ -114,18 +127,18 @@ export enum Period {
 
 export type Query = {
   __typename?: 'Query';
+  customer?: Maybe<Customer>;
   loan?: Maybe<Loan>;
-  me?: Maybe<User>;
-  user?: Maybe<User>;
+  me?: Maybe<Customer>;
 };
 
 
-export type QueryLoanArgs = {
+export type QueryCustomerArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-export type QueryUserArgs = {
+export type QueryLoanArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -159,19 +172,6 @@ export type UsdBalance = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
-export type User = {
-  __typename?: 'User';
-  applicantId?: Maybe<Scalars['String']['output']>;
-  balance: UserBalance;
-  btcDepositAddress: Scalars['String']['output'];
-  email: Scalars['String']['output'];
-  level: KycLevel;
-  loans: Array<Loan>;
-  status: AccountStatus;
-  userId: Scalars['UUID']['output'];
-  ustDepositAddress: Scalars['String']['output'];
-};
-
 export type UserBalance = {
   __typename?: 'UserBalance';
   checking: Checking;
@@ -181,7 +181,7 @@ export type UserBalance = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
-  userId: Scalars['UUID']['output'];
+  customerId: Scalars['UUID']['output'];
   withdrawalId: Scalars['UUID']['output'];
 };
 
@@ -216,12 +216,12 @@ export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan',
 export type GetMyLoansQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'User', userId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', userId: any, email: string, btcDepositAddress: string, ustDepositAddress: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, email: string, btcDepositAddress: string, ustDepositAddress: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
 
 export const SumsubPermalinkCreateDocument = gql`
@@ -350,7 +350,7 @@ export type GetLoanQueryResult = Apollo.QueryResult<GetLoanQuery, GetLoanQueryVa
 export const GetMyLoansDocument = gql`
     query GetMyLoans {
   me {
-    userId
+    customerId
     loans {
       id
       loanId
@@ -400,7 +400,7 @@ export type GetMyLoansQueryResult = Apollo.QueryResult<GetMyLoansQuery, GetMyLoa
 export const MeDocument = gql`
     query Me {
   me {
-    userId
+    customerId
     email
     btcDepositAddress
     ustDepositAddress

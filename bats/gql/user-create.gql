@@ -1,7 +1,7 @@
 mutation userCreate($input: UserCreateInput!) {
   userCreate(input: $input) {
-    user {
-      userId
+    customer {
+      customerId
       btcDepositAddress
       ustDepositAddress
       email

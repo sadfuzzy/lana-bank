@@ -1,15 +1,15 @@
 use serde::{Deserialize, Serialize};
 
-use super::{User, UserId};
+use super::{Customer, CustomerId};
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UserByNameCursor {
+pub struct CustomerByNameCursor {
     pub name: String,
-    pub id: UserId,
+    pub id: CustomerId,
 }
 
-impl From<&User> for UserByNameCursor {
-    fn from(values: &User) -> Self {
+impl From<&Customer> for CustomerByNameCursor {
+    fn from(values: &Customer) -> Self {
         Self {
             name: values.email.clone(),
             id: values.id,

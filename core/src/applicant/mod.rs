@@ -9,13 +9,13 @@ use error::ApplicantError;
 use serde::{Deserialize, Serialize};
 use sumsub_auth::*;
 
-use crate::{primitives::UserId, user::Users};
+use crate::{customer::Customers, primitives::CustomerId};
 
 #[derive(Clone)]
 pub struct Applicants {
     _pool: sqlx::PgPool,
     sumsub_client: SumsubClient,
-    users: Users,
+    users: Customers,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -51,7 +51,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         correlation_id: String,
         level_name: SumsubKycLevel,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         review_status: String,
         created_at_ms: String,
         client_id: Option<String>,
@@ -64,7 +64,7 @@ pub enum SumsubCallbackPayload {
         applicant_type: Option<String>,
         correlation_id: String,
         level_name: SumsubKycLevel,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         review_status: String,
         created_at_ms: String,
         client_id: Option<String>,
@@ -75,7 +75,7 @@ pub enum SumsubCallbackPayload {
         applicant_id: String,
         inspection_id: String,
         correlation_id: String,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         level_name: SumsubKycLevel,
         review_result: ReviewResult,
         review_status: String,
@@ -89,7 +89,7 @@ pub enum SumsubCallbackPayload {
         applicant_type: Option<String>,
         correlation_id: String,
         level_name: SumsubKycLevel,
-        external_user_id: UserId,
+        external_user_id: CustomerId,
         review_result: ReviewResult,
         review_status: String,
         created_at_ms: String,
@@ -108,7 +108,7 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &sqlx::PgPool, config: &SumsubConfig, users: &Users) -> Self {
+    pub fn new(pool: &sqlx::PgPool, config: &SumsubConfig, users: &Customers) -> Self {
         let sumsub_client = SumsubClient::new(config);
         Self {
             _pool: pool.clone(),
@@ -182,7 +182,7 @@ impl Applicants {
 
     pub async fn create_access_token(
         &self,
-        user_id: UserId,
+        user_id: CustomerId,
     ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
         let client = reqwest::Client::new();
 
@@ -195,7 +195,7 @@ impl Applicants {
 
     pub async fn create_permalink(
         &self,
-        user_id: UserId,
+        user_id: CustomerId,
     ) -> Result<CreatePermalinkResponse, anyhow::Error> {
         let client = reqwest::Client::new();
 

@@ -8,7 +8,7 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 
-use crate::{app::LavaApp, primitives::UserId};
+use crate::{app::LavaApp, primitives::CustomerId};
 
 use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
 
@@ -46,7 +46,7 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
 }
 
 pub struct PublicAuthContext {
-    pub user_id: UserId,
+    pub user_id: CustomerId,
 }
 
 pub async fn graphql_handler(
@@ -58,7 +58,7 @@ pub async fn graphql_handler(
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let user_id: UserId = match jwt_claims.sub.parse() {
+    let user_id: CustomerId = match jwt_claims.sub.parse() {
         Ok(user_id) => user_id,
         Err(_) => {
             let error = ServerError::new("Invalid user id", None);

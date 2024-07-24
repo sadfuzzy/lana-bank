@@ -11,7 +11,7 @@ import { executeQuery } from "."
 gql`
   query GetMyLoans {
     me {
-      userId
+      customerId
       loans {
         id
         loanId

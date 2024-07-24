@@ -5,10 +5,10 @@ import Link from "next/link"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
 import {
-  GetUserByUserIdQuery,
-  useGetUserByUserIdQuery,
-  UsersQuery,
-  useUsersQuery,
+  CustomersQuery,
+  GetCustomerByCustomerIdQuery,
+  useCustomersQuery,
+  useGetCustomerByCustomerIdQuery,
 } from "@/lib/graphql/generated"
 import {
   Table,
@@ -31,44 +31,46 @@ import {
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 
-function UsersTable({ userId }: { userId?: string }) {
-  let userDetails: GetUserByUserIdQuery["user"][] | UsersQuery["users"]["nodes"] | null =
-    null
+function CustomerTable({ customerId }: { customerId?: string }) {
+  let customerDetails:
+    | GetCustomerByCustomerIdQuery["customer"][]
+    | CustomersQuery["customers"]["nodes"]
+    | null = null
   let error: string | null = null
   let loading: boolean = false
 
   const {
-    data: getUsersData,
-    error: usersError,
-    loading: getUsersLoading,
-  } = useUsersQuery({
+    data: getCustomersData,
+    error: customersError,
+    loading: getcustomersLoading,
+  } = useCustomersQuery({
     variables: { first: 100 },
   })
 
   const {
-    data: getUsersByUserIdData,
-    error: getUsersByUserIdError,
-    loading: getUsersByUserIdLoading,
-  } = useGetUserByUserIdQuery({
-    variables: { id: userId || "" },
-    skip: !userId,
+    data: getCustomerByCustomerIdData,
+    error: getcustomersBycustomerIdError,
+    loading: getcustomersBycustomerIdLoading,
+  } = useGetCustomerByCustomerIdQuery({
+    variables: { id: customerId || "" },
+    skip: !customerId,
   })
 
-  if (getUsersByUserIdData) {
-    loading = getUsersByUserIdLoading
-    const result = getUsersByUserIdData
-    if (usersError) {
-      error = usersError.message
+  if (getCustomerByCustomerIdData) {
+    loading = getcustomersBycustomerIdLoading
+    const result = getCustomerByCustomerIdData
+    if (customersError) {
+      error = customersError.message
     } else {
-      userDetails = result.user ? [result.user] : null
+      customerDetails = result.customer ? [result.customer] : null
     }
   } else {
-    loading = getUsersLoading
-    const result = getUsersData
-    if (getUsersByUserIdError) {
-      error = getUsersByUserIdError.message
+    loading = getcustomersLoading
+    const result = getCustomersData
+    if (getcustomersBycustomerIdError) {
+      error = getcustomersBycustomerIdError.message
     } else {
-      userDetails = result?.users.nodes ? result.users.nodes : null
+      customerDetails = result?.customers.nodes ? result.customers.nodes : null
     }
   }
 
@@ -89,11 +91,11 @@ function UsersTable({ userId }: { userId?: string }) {
       ) : (
         <Card>
           <CardContent className="pt-6">
-            {userDetails && userDetails.length > 0 ? (
+            {customerDetails && customerDetails.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>User</TableHead>
+                    <TableHead>customer</TableHead>
                     <TableHead>BTC Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Withdrawals)</TableHead>
@@ -103,24 +105,25 @@ function UsersTable({ userId }: { userId?: string }) {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {userDetails.map((user) =>
-                    user ? (
-                      <TableRow key={user.userId}>
+                  {customerDetails.map((customer) =>
+                    customer ? (
+                      <TableRow key={customer.customerId}>
                         <TableCell>
                           <div className="flex flex-col gap-1">
-                            <div>{user.email}</div>
+                            <div>{customer.email}</div>
                             <div className="text-xs text-textColor-secondary">
-                              {user.userId}
+                              {customer.customerId}
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {user.balance.unallocatedCollateral.settled?.btcBalance} sats
+                          {customer.balance.unallocatedCollateral.settled?.btcBalance}{" "}
+                          sats
                         </TableCell>
                         <TableCell>
                           {formatCurrency({
                             amount: currencyConverter.centsToUsd(
-                              user.balance.checking.settled?.usdBalance,
+                              customer.balance.checking.settled?.usdBalance,
                             ),
                             currency: "USD",
                           })}
@@ -128,13 +131,13 @@ function UsersTable({ userId }: { userId?: string }) {
                         <TableCell>
                           {formatCurrency({
                             amount: currencyConverter.centsToUsd(
-                              user.balance.checking.pending?.usdBalance,
+                              customer.balance.checking.pending?.usdBalance,
                             ),
                             currency: "USD",
                           })}
                         </TableCell>
-                        <TableCell>{user.btcDepositAddress}</TableCell>
-                        <TableCell>{user.ustDepositAddress}</TableCell>
+                        <TableCell>{customer.btcDepositAddress}</TableCell>
+                        <TableCell>{customer.ustDepositAddress}</TableCell>
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger>
@@ -143,11 +146,11 @@ function UsersTable({ userId }: { userId?: string }) {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="text-sm">
-                              <Link href={`/user/${user.userId}`}>
+                              <Link href={`/customer/${customer.customerId}`}>
                                 <DropdownMenuItem>View details</DropdownMenuItem>
                               </Link>
                               <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                                <CreateLoanDialog userId={user.userId}>
+                                <CreateLoanDialog customerId={customer.customerId}>
                                   <span>Create Loan</span>
                                 </CreateLoanDialog>
                               </DropdownMenuItem>
@@ -169,4 +172,4 @@ function UsersTable({ userId }: { userId?: string }) {
   )
 }
 
-export default UsersTable
+export default CustomerTable

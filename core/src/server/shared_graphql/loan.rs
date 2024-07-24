@@ -3,8 +3,8 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::UserId,
-    server::shared_graphql::{primitives::*, terms::TermValues, user::User},
+    primitives::CustomerId,
+    server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
 
 use super::convert::ToGlobalId;
@@ -25,7 +25,7 @@ pub struct Loan {
     start_date: Timestamp,
     loan_terms: TermValues,
     #[graphql(skip)]
-    user_id: UUID,
+    customer_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::loan::LoanAccountIds,
     status: LoanStatus,
@@ -39,12 +39,15 @@ impl Loan {
         Ok(LoanBalance::from(balance))
     }
 
-    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.users().find_by_id(UserId::from(&self.user_id)).await?;
+        let user = app
+            .customers()
+            .find_by_id(CustomerId::from(&self.customer_id))
+            .await?;
 
         match user {
-            Some(user) => Ok(User::from(user)),
+            Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
     }
@@ -99,7 +102,7 @@ impl From<crate::loan::Loan> for Loan {
         Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
-            user_id: UUID::from(loan.user_id),
+            customer_id: UUID::from(loan.customer_id),
             status: loan.status().into(),
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,

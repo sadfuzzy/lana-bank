@@ -185,6 +185,38 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type Customer = {
+  __typename?: 'Customer';
+  applicantId?: Maybe<Scalars['String']['output']>;
+  balance: UserBalance;
+  btcDepositAddress: Scalars['String']['output'];
+  customerId: Scalars['UUID']['output'];
+  email: Scalars['String']['output'];
+  level: KycLevel;
+  loans: Array<Loan>;
+  status: AccountStatus;
+  ustDepositAddress: Scalars['String']['output'];
+};
+
+export type CustomerConnection = {
+  __typename?: 'CustomerConnection';
+  /** A list of edges. */
+  edges: Array<CustomerEdge>;
+  /** A list of nodes. */
+  nodes: Array<Customer>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type CustomerEdge = {
+  __typename?: 'CustomerEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Customer;
+};
+
 export type DefaultTermsUpdateInput = {
   annualRate: Scalars['AnnualRate']['input'];
   duration: DurationInput;
@@ -244,12 +276,12 @@ export type LayeredUsdAccountBalances = {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  customer: Customer;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
   startDate: Scalars['Timestamp']['output'];
   status: LoanStatus;
-  user: User;
 };
 
 export type LoanApproveInput = {
@@ -270,9 +302,9 @@ export type LoanBalance = {
 };
 
 export type LoanCreateInput = {
+  customerId: Scalars['UUID']['input'];
   desiredPrincipal: Scalars['UsdCents']['input'];
   loanTerms: TermsInput;
-  userId: Scalars['UUID']['input'];
 };
 
 export type LoanCreatePayload = {
@@ -364,13 +396,13 @@ export type Query = {
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   balanceSheet?: Maybe<BalanceSheet>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
+  customer?: Maybe<Customer>;
+  customers: CustomerConnection;
   defaultTerms?: Maybe<Terms>;
   loan?: Maybe<Loan>;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   trialBalance?: Maybe<TrialBalance>;
-  user?: Maybe<User>;
-  users: UserConnection;
 };
 
 
@@ -384,19 +416,19 @@ export type QueryAccountSetWithBalanceArgs = {
 };
 
 
-export type QueryLoanArgs = {
+export type QueryCustomerArgs = {
   id: Scalars['UUID']['input'];
 };
 
 
-export type QueryUserArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryUsersArgs = {
+export type QueryCustomersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryLoanArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 export type ShareholderEquityAddInput = {
@@ -410,7 +442,7 @@ export type SuccessPayload = {
 };
 
 export type SumsubPermalinkCreateInput = {
-  userId: Scalars['String']['input'];
+  customerId: Scalars['String']['input'];
 };
 
 export type SumsubPermalinkCreatePayload = {
@@ -468,42 +500,10 @@ export type UsdBalance = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
-export type User = {
-  __typename?: 'User';
-  applicantId?: Maybe<Scalars['String']['output']>;
-  balance: UserBalance;
-  btcDepositAddress: Scalars['String']['output'];
-  email: Scalars['String']['output'];
-  level: KycLevel;
-  loans: Array<Loan>;
-  status: AccountStatus;
-  userId: Scalars['UUID']['output'];
-  ustDepositAddress: Scalars['String']['output'];
-};
-
 export type UserBalance = {
   __typename?: 'UserBalance';
   checking: Checking;
   unallocatedCollateral: UnallocatedCollateral;
-};
-
-export type UserConnection = {
-  __typename?: 'UserConnection';
-  /** A list of edges. */
-  edges: Array<UserEdge>;
-  /** A list of nodes. */
-  nodes: Array<User>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type UserEdge = {
-  __typename?: 'UserEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: User;
 };
 
 export type ChartOfAccountsAccountSetQueryVariables = Exact<{
@@ -525,6 +525,13 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
+export type SumsubPermalinkCreateMutationVariables = Exact<{
+  input: SumsubPermalinkCreateInput;
+}>;
+
+
+export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
+
 export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -545,13 +552,6 @@ export type BalancesByCurrencyFragment = { __typename?: 'AccountBalancesByCurren
 export type BtcBalancesFragment = { __typename?: 'LayeredBtcAccountBalances', all: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'BtcAccountBalance', netDebit: any, debit: any, credit: any } };
 
 export type UsdBalancesFragment = { __typename?: 'LayeredUsdAccountBalances', all: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, settled: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, pending: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any }, encumbrance: { __typename?: 'UsdAccountBalance', netDebit: any, debit: any, credit: any } };
-
-export type SumsubPermalinkCreateMutationVariables = Exact<{
-  input: SumsubPermalinkCreateInput;
-}>;
-
-
-export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -586,29 +586,29 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, user: { __typename?: 'User', userId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
-export type GetLoansForUserQueryVariables = Exact<{
+export type GetLoansForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForUserQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetLoansForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
-export type GetUserByUserIdQueryVariables = Exact<{
+export type GetCustomerByCustomerIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetUserByUserIdQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null };
 
-export type UsersQueryVariables = Exact<{
+export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: { __typename?: 'UserConnection', nodes: Array<{ __typename?: 'User', userId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, balance: { __typename?: 'UserBalance', unallocatedCollateral: { __typename?: 'UnallocatedCollateral', settled: { __typename?: 'BtcBalance', btcBalance: any } }, checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountBalances {
@@ -830,6 +830,39 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export const SumsubPermalinkCreateDocument = gql`
+    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
+  sumsubPermalinkCreate(input: $input) {
+    url
+  }
+}
+    `;
+export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
+
+/**
+ * __useSumsubPermalinkCreateMutation__
+ *
+ * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
+      }
+export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
+export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const DefaultTermsDocument = gql`
     query defaultTerms {
   defaultTerms {
@@ -978,39 +1011,6 @@ export function useGetOffBalanceSheetTrialBalanceLazyQuery(baseOptions?: Apollo.
 export type GetOffBalanceSheetTrialBalanceQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceQuery>;
 export type GetOffBalanceSheetTrialBalanceLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetTrialBalanceLazyQuery>;
 export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOffBalanceSheetTrialBalanceQuery, GetOffBalanceSheetTrialBalanceQueryVariables>;
-export const SumsubPermalinkCreateDocument = gql`
-    mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
-  sumsubPermalinkCreate(input: $input) {
-    url
-  }
-}
-    `;
-export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-
-/**
- * __useSumsubPermalinkCreateMutation__
- *
- * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
-      }
-export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
 export const LoanApproveDocument = gql`
     mutation LoanApprove($input: LoanApproveInput!) {
   loanApprove(input: $input) {
@@ -1220,8 +1220,8 @@ export const GetLoanDetailsDocument = gql`
     loanId
     startDate
     status
-    user {
-      userId
+    customer {
+      customerId
     }
     balance {
       collateral {
@@ -1276,10 +1276,10 @@ export function useGetLoanDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type GetLoanDetailsQueryHookResult = ReturnType<typeof useGetLoanDetailsQuery>;
 export type GetLoanDetailsLazyQueryHookResult = ReturnType<typeof useGetLoanDetailsLazyQuery>;
 export type GetLoanDetailsQueryResult = Apollo.QueryResult<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>;
-export const GetLoansForUserDocument = gql`
-    query GetLoansForUser($id: UUID!) {
-  user(id: $id) {
-    userId
+export const GetLoansForCustomerDocument = gql`
+    query GetLoansForCustomer($id: UUID!) {
+  customer(id: $id) {
+    customerId
     loans {
       id
       loanId
@@ -1313,36 +1313,36 @@ export const GetLoansForUserDocument = gql`
     `;
 
 /**
- * __useGetLoansForUserQuery__
+ * __useGetLoansForCustomerQuery__
  *
- * To run a query within a React component, call `useGetLoansForUserQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLoansForUserQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetLoansForCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLoansForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetLoansForUserQuery({
+ * const { data, loading, error } = useGetLoansForCustomerQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetLoansForUserQuery(baseOptions: Apollo.QueryHookOptions<GetLoansForUserQuery, GetLoansForUserQueryVariables>) {
+export function useGetLoansForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLoansForUserQuery, GetLoansForUserQueryVariables>(GetLoansForUserDocument, options);
+        return Apollo.useQuery<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>(GetLoansForCustomerDocument, options);
       }
-export function useGetLoansForUserLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoansForUserQuery, GetLoansForUserQueryVariables>) {
+export function useGetLoansForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLoansForUserQuery, GetLoansForUserQueryVariables>(GetLoansForUserDocument, options);
+          return Apollo.useLazyQuery<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>(GetLoansForCustomerDocument, options);
         }
-export type GetLoansForUserQueryHookResult = ReturnType<typeof useGetLoansForUserQuery>;
-export type GetLoansForUserLazyQueryHookResult = ReturnType<typeof useGetLoansForUserLazyQuery>;
-export type GetLoansForUserQueryResult = Apollo.QueryResult<GetLoansForUserQuery, GetLoansForUserQueryVariables>;
-export const GetUserByUserIdDocument = gql`
-    query getUserByUserId($id: UUID!) {
-  user(id: $id) {
-    userId
+export type GetLoansForCustomerQueryHookResult = ReturnType<typeof useGetLoansForCustomerQuery>;
+export type GetLoansForCustomerLazyQueryHookResult = ReturnType<typeof useGetLoansForCustomerLazyQuery>;
+export type GetLoansForCustomerQueryResult = Apollo.QueryResult<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>;
+export const GetCustomerByCustomerIdDocument = gql`
+    query getCustomerByCustomerId($id: UUID!) {
+  customer(id: $id) {
+    customerId
     email
     status
     level
@@ -1369,37 +1369,37 @@ export const GetUserByUserIdDocument = gql`
     `;
 
 /**
- * __useGetUserByUserIdQuery__
+ * __useGetCustomerByCustomerIdQuery__
  *
- * To run a query within a React component, call `useGetUserByUserIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserByUserIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetUserByUserIdQuery({
+ * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetUserByUserIdQuery(baseOptions: Apollo.QueryHookOptions<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>) {
+export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>(GetUserByUserIdDocument, options);
+        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
       }
-export function useGetUserByUserIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>) {
+export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>(GetUserByUserIdDocument, options);
+          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
         }
-export type GetUserByUserIdQueryHookResult = ReturnType<typeof useGetUserByUserIdQuery>;
-export type GetUserByUserIdLazyQueryHookResult = ReturnType<typeof useGetUserByUserIdLazyQuery>;
-export type GetUserByUserIdQueryResult = Apollo.QueryResult<GetUserByUserIdQuery, GetUserByUserIdQueryVariables>;
-export const UsersDocument = gql`
-    query Users($first: Int!, $after: String) {
-  users(first: $first, after: $after) {
+export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
+export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
+export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
+export const CustomersDocument = gql`
+    query Customers($first: Int!, $after: String) {
+  customers(first: $first, after: $after) {
     nodes {
-      userId
+      customerId
       email
       btcDepositAddress
       ustDepositAddress
@@ -1430,30 +1430,30 @@ export const UsersDocument = gql`
     `;
 
 /**
- * __useUsersQuery__
+ * __useCustomersQuery__
  *
- * To run a query within a React component, call `useUsersQuery` and pass it any options that fit your needs.
- * When your component renders, `useUsersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useCustomersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCustomersQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useUsersQuery({
+ * const { data, loading, error } = useCustomersQuery({
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
  *   },
  * });
  */
-export function useUsersQuery(baseOptions: Apollo.QueryHookOptions<UsersQuery, UsersQueryVariables>) {
+export function useCustomersQuery(baseOptions: Apollo.QueryHookOptions<CustomersQuery, CustomersQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+        return Apollo.useQuery<CustomersQuery, CustomersQueryVariables>(CustomersDocument, options);
       }
-export function useUsersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<UsersQuery, UsersQueryVariables>) {
+export function useCustomersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CustomersQuery, CustomersQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<UsersQuery, UsersQueryVariables>(UsersDocument, options);
+          return Apollo.useLazyQuery<CustomersQuery, CustomersQueryVariables>(CustomersDocument, options);
         }
-export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
-export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
-export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
+export type CustomersQueryHookResult = ReturnType<typeof useCustomersQuery>;
+export type CustomersLazyQueryHookResult = ReturnType<typeof useCustomersLazyQuery>;
+export type CustomersQueryResult = Apollo.QueryResult<CustomersQuery, CustomersQueryVariables>;

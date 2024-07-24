@@ -6,7 +6,7 @@ use crate::server::shared_graphql::primitives::UUID;
 
 #[derive(SimpleObject)]
 pub struct Withdrawal {
-    user_id: UUID,
+    customer_id: UUID,
     withdrawal_id: UUID,
     amount: UsdCents,
 }
@@ -15,7 +15,7 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
     fn from(withdraw: crate::withdraw::Withdraw) -> Self {
         Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
-            user_id: UUID::from(withdraw.user_id),
+            customer_id: UUID::from(withdraw.customer_id),
             amount: withdraw.amount,
         }
     }

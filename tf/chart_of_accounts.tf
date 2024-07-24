@@ -105,19 +105,19 @@ resource "cala_account_set_member_account_set" "liabilities_in_balance_sheet" {
 }
 
 # LIABILITIES: Members
-resource "cala_account_set" "user_checking_control" {
+resource "cala_account_set" "customer_checking_control" {
   id                  = "00000000-0000-0000-0000-120000000001"
   journal_id          = cala_journal.journal.id
-  name                = "User Checking Control Account"
+  name                = "Customer Checking Control Account"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "user_checking_in_liabilities" {
+resource "cala_account_set_member_account_set" "customer_checking_in_liabilities" {
   account_set_id        = cala_account_set.liabilities.id
-  member_account_set_id = cala_account_set.user_checking_control.id
+  member_account_set_id = cala_account_set.customer_checking_control.id
 }
-resource "cala_account_set_member_account_set" "user_checking_in_trial_balance" {
+resource "cala_account_set_member_account_set" "customer_checking_in_trial_balance" {
   account_set_id        = cala_account_set.trial_balance.id
-  member_account_set_id = cala_account_set.user_checking_control.id
+  member_account_set_id = cala_account_set.customer_checking_control.id
 }
 
 

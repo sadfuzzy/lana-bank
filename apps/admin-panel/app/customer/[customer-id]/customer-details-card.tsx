@@ -17,7 +17,7 @@ import {
 import { Separator } from "@/components/primitive/separator"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import {
-  useGetUserByUserIdQuery,
+  useGetCustomerByCustomerIdQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
 
@@ -29,28 +29,28 @@ gql`
   }
 `
 
-export const UserDetailsCard = ({ userId }: { userId: string }) => {
+export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
   const {
     loading,
     error,
-    data: userDetails,
-  } = useGetUserByUserIdQuery({
+    data: customerDetails,
+  } = useGetCustomerByCustomerIdQuery({
     variables: {
-      id: userId,
+      id: customerId,
     },
   })
 
-  const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${userDetails?.user?.applicantId}/client/basicInfo`
+  const sumsubLink = `https://cockpit.sumsub.com/checkus#/applicant/${customerDetails?.customer?.applicantId}/client/basicInfo`
 
   const [createLink, { data: linkData, loading: linkLoading, error: linkError }] =
     useSumsubPermalinkCreateMutation()
 
   const handleCreateLink = async () => {
-    if (userDetails?.user?.userId) {
+    if (customerDetails?.customer?.customerId) {
       await createLink({
         variables: {
           input: {
-            userId: userDetails.user.userId,
+            customerId: customerDetails.customer.customerId,
           },
         },
       })
@@ -63,16 +63,16 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
         <CardContent className="p-6">Loading...</CardContent>
       ) : error ? (
         <CardContent className="p-6">{error.message}</CardContent>
-      ) : !userDetails || !userDetails.user ? (
-        <CardContent className="p-6">No user found with this ID</CardContent>
+      ) : !customerDetails || !customerDetails.customer ? (
+        <CardContent className="p-6">No customer found with this ID</CardContent>
       ) : (
         <>
           <CardHeader className="pb-4">
             <div className="flex justify-between items-center">
               <CardTitle>
                 <div className="flex flex-col gap-1">
-                  <p className="text-lg">{userDetails.user.email}</p>
-                  <p className="text-sm text-textColor-secondary">{userId}</p>
+                  <p className="text-lg">{customerDetails.customer.email}</p>
+                  <p className="text-sm text-textColor-secondary">{customerId}</p>
                 </div>
               </CardTitle>
             </div>
@@ -81,21 +81,24 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
           <Card className="mt-4" variant="transparent">
             <CardContent>
               <DetailsGroup>
-                <DetailItem label="User ID" value={userDetails.user.userId} />
-                <DetailItem label="Email" value={userDetails.user.email} />
-                <DetailItem label="Status" value={userDetails.user.status} />
+                <DetailItem
+                  label="customer ID"
+                  value={customerDetails.customer.customerId}
+                />
+                <DetailItem label="Email" value={customerDetails.customer.email} />
+                <DetailItem label="Status" value={customerDetails.customer.status} />
                 <DetailItem
                   label="Applicant Id"
-                  value={userDetails.user.applicantId ?? "not yet connected"}
+                  value={customerDetails.customer.applicantId ?? "not yet connected"}
                   valueComponent={
-                    userDetails.user.applicantId ? (
+                    customerDetails.customer.applicantId ? (
                       <a
                         href={sumsubLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-500 underline"
                       >
-                        {userDetails.user.applicantId}
+                        {customerDetails.customer.applicantId}
                       </a>
                     ) : (
                       <div>
@@ -124,16 +127,16 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
                     )
                   }
                 />
-                <DetailItem label="Level" value={userDetails.user.level} />
+                <DetailItem label="Level" value={customerDetails.customer.level} />
                 <DetailItem
                   label="Unallocated Collateral Settled (BTC)"
-                  value={`${userDetails.user.balance.unallocatedCollateral.settled.btcBalance} sats`}
+                  value={`${customerDetails.customer.balance.unallocatedCollateral.settled.btcBalance} sats`}
                 />
                 <DetailItem
                   label="Checking Settled Balance (USD)"
                   value={formatCurrency({
                     amount: currencyConverter.centsToUsd(
-                      userDetails.user.balance.checking.settled.usdBalance,
+                      customerDetails.customer.balance.checking.settled.usdBalance,
                     ),
                     currency: "USD",
                   })}
@@ -142,27 +145,27 @@ export const UserDetailsCard = ({ userId }: { userId: string }) => {
                   label="Pending withdrawals (USD)"
                   value={formatCurrency({
                     amount: currencyConverter.centsToUsd(
-                      userDetails.user.balance.checking.pending.usdBalance,
+                      customerDetails.customer.balance.checking.pending.usdBalance,
                     ),
                     currency: "USD",
                   })}
                 />
                 <DetailItem
                   label="BTC Deposit Address"
-                  value={userDetails.user.btcDepositAddress}
+                  value={customerDetails.customer.btcDepositAddress}
                   valueComponent={
                     <AddressWithQr
-                      address={userDetails.user.btcDepositAddress}
+                      address={customerDetails.customer.btcDepositAddress}
                       title="BTC Deposit Address"
                     />
                   }
                 />
                 <DetailItem
                   label="UST Deposit Address"
-                  value={userDetails.user.ustDepositAddress}
+                  value={customerDetails.customer.ustDepositAddress}
                   valueComponent={
                     <AddressWithQr
-                      address={userDetails.user.ustDepositAddress}
+                      address={customerDetails.customer.ustDepositAddress}
                       title="UST Deposit Address"
                     />
                   }

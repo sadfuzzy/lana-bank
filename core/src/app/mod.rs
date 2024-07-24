@@ -6,10 +6,10 @@ use sqlx::PgPool;
 use crate::{
     applicant::Applicants,
     authorization::{debug::seed_permissions, Authorization},
+    customer::Customers,
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     loan::Loans,
-    user::Users,
     withdraw::Withdraws,
 };
 
@@ -21,7 +21,7 @@ pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
     loans: Loans,
-    users: Users,
+    customers: Customers,
     withdraws: Withdraws,
     ledger: Ledger,
     applicants: Applicants,
@@ -36,17 +36,17 @@ impl LavaApp {
         let authz = Authorization::init(&pool).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
-        let users = Users::new(&pool, &ledger);
-        let applicants = Applicants::new(&pool, &config.sumsub, &users);
-        let withdraws = Withdraws::new(&pool, &users, &ledger);
-        let mut loans = Loans::new(&pool, &mut registry, &users, &ledger, &authz);
+        let customers = Customers::new(&pool, &ledger);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers);
+        let withdraws = Withdraws::new(&pool, &customers, &ledger);
+        let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
         loans.set_jobs(&jobs);
         jobs.start_poll().await?;
         Ok(Self {
             _pool: pool,
             _jobs: jobs,
-            users,
+            customers,
             withdraws,
             loans,
             ledger,
@@ -54,8 +54,8 @@ impl LavaApp {
         })
     }
 
-    pub fn users(&self) -> &Users {
-        &self.users
+    pub fn customers(&self) -> &Customers {
+        &self.customers
     }
 
     pub fn withdraws(&self) -> &Withdraws {

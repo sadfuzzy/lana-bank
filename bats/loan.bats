@@ -32,7 +32,7 @@ loan_balance() {
   cache_value "alice" "$token"
 
   exec_graphql 'alice' 'me'
-  user_id=$(graphql_output '.data.me.userId')
+  customer_id=$(graphql_output '.data.me.customerId')
   btc_address=$(graphql_output '.data.me.btcDepositAddress')
   ust_address=$(graphql_output '.data.me.ustDepositAddress')
 
@@ -49,10 +49,10 @@ loan_balance() {
 
   variables=$(
     jq -n \
-    --arg userId "$user_id" \
+    --arg customerId "$customer_id" \
     '{
       input: {
-        userId: $userId,
+        customerId: $customerId,
         desiredPrincipal: 10000,
         loanTerms: {
           annualRate: "0.12",

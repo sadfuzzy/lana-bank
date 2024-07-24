@@ -2,7 +2,7 @@ use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{
     entity::*,
-    primitives::{LoanId, UserId},
+    primitives::{CustomerId, LoanId},
 };
 
 use super::{error::LoanError, Loan, NewLoan};
@@ -23,10 +23,10 @@ impl LoanRepo {
         new_loan: NewLoan,
     ) -> Result<Loan, LoanError> {
         sqlx::query!(
-            r#"INSERT INTO loans (id, user_id)
+            r#"INSERT INTO loans (id, customer_id)
             VALUES ($1, $2)"#,
             new_loan.id as LoanId,
-            new_loan.user_id as UserId,
+            new_loan.customer_id as CustomerId,
         )
         .execute(&mut **db)
         .await?;
@@ -62,16 +62,16 @@ impl LoanRepo {
         Ok(())
     }
 
-    pub async fn find_for_user(&self, user_id: UserId) -> Result<Vec<Loan>, LoanError> {
+    pub async fn find_for_customer(&self, customer_id: CustomerId) -> Result<Vec<Loan>, LoanError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT l.id, e.sequence, e.event,
                       l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
             FROM loans l
             JOIN loan_events e ON l.id = e.id
-            WHERE l.user_id = $1
+            WHERE l.customer_id = $1
             ORDER BY l.id, e.sequence"#,
-            user_id as UserId,
+            customer_id as CustomerId,
         )
         .fetch_all(&self.pool)
         .await?;
