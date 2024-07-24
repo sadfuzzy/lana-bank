@@ -23,8 +23,6 @@ export const getMeAndSession = async (): Promise<
     .getAll()
     .reduce((acc, cookie) => `${acc}${cookie.name}=${cookie.value}; `, "")
 
-  console.log({ cookieParam })
-
   const kratosSession = await toSession({
     cookie: cookieParam,
   })

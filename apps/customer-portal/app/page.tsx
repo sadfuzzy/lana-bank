@@ -23,6 +23,10 @@ import { KycLevel } from "@/lib/graphql/generated"
 export default async function Home() {
   const getMeAndSessionResponse = await getMeAndSession()
 
+  console.log({
+    getMeAndSessionResponse: JSON.stringify(getMeAndSessionResponse, null, 2),
+  })
+
   if (getMeAndSessionResponse instanceof Error) {
     return (
       <Card className="max-w-[70rem] m-auto">
