@@ -11,7 +11,7 @@ teardown_file() {
 }
 
 loan_balance() {
-    variables=$(
+  variables=$(
     jq -n \
     --arg loanId "$1" \
     '{ id: $loanId }'
@@ -22,11 +22,17 @@ loan_balance() {
   cache_value 'outstanding' "$outstanding_balance"
   collateral_balance_sats=$(graphql_output '.data.loan.balance.collateral.btcBalance')
   cache_value 'collateral_sats' "$collateral_balance_sats"
+  interest_incurred=$(graphql_output '.data.loan.balance.interestIncurred.usdBalance')
+  cache_value 'interest' "$interest_incurred"
+}
+
+wait_for_interest() {
+  loan_balance $1
+  interest_incurred=$(read_value 'interest')
+  [[ "$interest_incurred" -gt "0" ]] || return 1
 }
 
 @test "loan: loan lifecycle" {
-
-
   username=$(random_uuid)
   token=$(create_user)
   cache_value "alice" "$token"
@@ -47,13 +53,17 @@ loan_balance() {
   )
   exec_cala_graphql 'simulate-deposit' "$variables"
 
+  revenue_before=$(net_usd_revenue)
+
+  principal=10000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
+    --argjson principal "$principal" \
     '{
       input: {
         customerId: $customerId,
-        desiredPrincipal: 10000,
+        desiredPrincipal: $principal,
         loanTerms: {
           annualRate: "0.12",
           interval: "END_OF_MONTH",
@@ -80,19 +90,35 @@ loan_balance() {
     }'
   )
   exec_admin_graphql 'loan-approve' "$variables"
-  loan_balance "$loan_id"
+
+  retry 20 1 wait_for_interest "$loan_id"
+  interest_before=$(read_value "interest")
   outstanding_before=$(read_value "outstanding")
-  [[ "$outstanding_before" == "10000" ]] || exit 1
+  expected_outstanding=$(add $principal $interest_before)
+  [[ "$outstanding_before" == "$expected_outstanding" ]] || exit 1
+
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
   variables=$(
     jq -n \
+      --arg address "$ust_address" \
+    '{
+       address: $address,
+       amount: "200",
+       currency: "UST"
+    }'
+  )
+  exec_cala_graphql 'simulate-deposit' "$variables"
+
+  variables=$(
+    jq -n \
       --arg loanId "$loan_id" \
+      --argjson amount "$outstanding_before" \
     '{
       input: {
         loanId: $loanId,
-        amount: 10000,
+        amount: $amount,
       }
     }'
   )
@@ -104,4 +130,6 @@ loan_balance() {
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "0" ]] || exit 1
 
+  revenue_after=$(net_usd_revenue)
+  [[ $revenue_after -gt $revenue_before ]] || exit 1
 }

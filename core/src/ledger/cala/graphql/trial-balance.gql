@@ -4,26 +4,40 @@ query TrialBalance($accountSetId: UUID!, $journalId: UUID!) {
     ...accountSetBalances
     normalBalanceType
     accounts: members(first: 100) {
-      ...accounts
+      ...accountsWithBalances
     }
   }
 }
 
-fragment accounts on AccountSetMemberConnection {
+# 'accounts'
+
+fragment accountsWithBalances on AccountSetMemberConnection {
   edges {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
+        ...accountSetDetailsAndBalances
       }
       ... on Account {
-        ...accountDetails
-        ...accountBalances
+        ...accountDetailsAndBalances
       }
     }
   }
 }
+
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
+  ...accountBalances
+}
+
+# 'balances'
 
 fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
@@ -78,6 +92,8 @@ fragment balances on BalanceAmount {
     currency
   }
 }
+
+# 'subAccount' details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

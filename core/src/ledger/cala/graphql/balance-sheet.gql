@@ -1,31 +1,68 @@
 query BalanceSheet($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
-    ...accountSetDetails
-    ...accountSetBalances
+    ...accountSetDetailsAndBalances
     categories: members(first: 10) {
-      ...categories
+      ...categoriesWithBalances
     }
   }
 }
 
-fragment categories on AccountSetMemberConnection {
+# 'categories' and 'accounts'
+
+fragment categoriesWithBalances on AccountSetMemberConnection {
   edges {
     node {
       __typename
       ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
-        accounts: members(first: 25, after: null) {
-          ...accounts
-        }
+        ...categoryAccountSetWithBalances
       }
       ... on Account {
-        ...accountDetails
-        ...accountBalances
+        ...accountDetailsAndBalances
       }
     }
   }
 }
+
+fragment categoryAccountSetWithBalances on AccountSet {
+  ...accountSetDetailsAndBalances
+  accounts: members(first: 25, after: null) {
+    ...accountsWithBalances
+  }
+}
+
+fragment accountsWithBalances on AccountSetMemberConnection {
+  pageInfo {
+    startCursor
+    endCursor
+    hasNextPage
+  }
+  edges {
+    cursor
+    node {
+      __typename
+      ... on AccountSet {
+        ...accountSetDetailsAndBalances
+      }
+      ... on Account {
+        ...accountDetailsAndBalances
+      }
+    }
+  }
+}
+
+# 'details' and 'balances'
+
+fragment accountSetDetailsAndBalances on AccountSet {
+  ...accountSetDetails
+  ...accountSetBalances
+}
+
+fragment accountDetailsAndBalances on Account {
+  ...accountDetails
+  ...accountBalances
+}
+
+# 'balances'
 
 fragment accountBalances on Account {
   btcBalances: balance(journalId: $journalId, currency: "BTC") {
@@ -81,56 +118,7 @@ fragment balances on BalanceAmount {
   }
 }
 
-fragment accounts on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...subAccountSet
-      }
-      ... on Account {
-        ...accountDetails
-        ...accountBalances
-      }
-    }
-  }
-}
-
-fragment subAccountSet on AccountSet {
-  ...accountSetDetails
-  ...accountSetBalances
-  subAccounts: members(first: 1) {
-    ...subAccount
-  }
-}
-
-fragment subAccount on AccountSetMemberConnection {
-  pageInfo {
-    startCursor
-    endCursor
-    hasNextPage
-  }
-  edges {
-    cursor
-    node {
-      __typename
-      ... on AccountSet {
-        ...accountSetDetails
-        ...accountSetBalances
-      }
-      ... on Account {
-        ...accountDetails
-        ...accountBalances
-      }
-    }
-  }
-}
+# account/account-set details
 
 fragment accountSetDetails on AccountSet {
   accountSetId

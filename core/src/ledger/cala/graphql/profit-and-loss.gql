@@ -1,18 +1,36 @@
-query AccountSetAndSubAccountsWithBalance(
-  $journalId: UUID!
-  $accountSetId: UUID!
-  $first: Int!
-  $after: String
-) {
+query ProfitAndLossStatement($accountSetId: UUID!, $journalId: UUID!) {
   accountSet(id: $accountSetId) {
     ...accountSetDetailsAndBalances
-    subAccounts: members(first: $first, after: $after) {
-      ...subAccountsWithBalances
+    categories: members(first: 10) {
+      ...categoriesWithBalances
     }
   }
 }
 
-fragment subAccountsWithBalances on AccountSetMemberConnection {
+# 'categories' and 'accounts'
+
+fragment categoriesWithBalances on AccountSetMemberConnection {
+  edges {
+    node {
+      __typename
+      ... on AccountSet {
+        ...categoryAccountSetWithBalances
+      }
+      ... on Account {
+        ...accountDetailsAndBalances
+      }
+    }
+  }
+}
+
+fragment categoryAccountSetWithBalances on AccountSet {
+  ...accountSetDetailsAndBalances
+  accounts: members(first: 25, after: null) {
+    ...accountsWithBalances
+  }
+}
+
+fragment accountsWithBalances on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor

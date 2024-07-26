@@ -19,6 +19,12 @@ resource "cala_account_set" "balance_sheet" {
   normal_balance_type = "DEBIT"
 }
 
+resource "cala_account_set" "profit_and_loss" {
+  id                  = "00000000-0000-0000-0000-100000000004"
+  journal_id          = cala_journal.journal.id
+  name                = "Profit & Loss Statement"
+  normal_balance_type = "CREDIT"
+}
 
 # ASSETS
 resource "random_uuid" "assets" {}
@@ -138,6 +144,19 @@ resource "cala_account_set_member_account_set" "equity_in_balance_sheet" {
   member_account_set_id = cala_account_set.equity.id
 }
 
+resource "random_uuid" "retained_earnings" {}
+resource "cala_account_set" "retained_earnings" {
+  id                  = random_uuid.retained_earnings.result
+  journal_id          = cala_journal.journal.id
+  name                = "Retained Earnings"
+  normal_balance_type = "CREDIT"
+}
+resource "cala_account_set_member_account_set" "retained_earnings_in_equity" {
+  account_set_id        = cala_account_set.balance_sheet.id # this should be 'equity'
+  member_account_set_id = cala_account_set.retained_earnings.id
+}
+
+
 # EQUITY: Members
 resource "random_uuid" "bank_shareholder_equity" {}
 resource "cala_account" "bank_shareholder_equity" {
@@ -168,6 +187,14 @@ resource "cala_account_set_member_account_set" "revenue" {
   account_set_id        = cala_account_set.chart_of_accounts.id
   member_account_set_id = cala_account_set.revenue.id
 }
+resource "cala_account_set_member_account_set" "revenue_in_profit_and_loss" {
+  account_set_id        = cala_account_set.profit_and_loss.id
+  member_account_set_id = cala_account_set.revenue.id
+}
+resource "cala_account_set_member_account_set" "revenue_in_retained_earnings" {
+  account_set_id        = cala_account_set.retained_earnings.id
+  member_account_set_id = cala_account_set.revenue.id
+}
 
 # REVENUE: Members
 resource "cala_account_set" "interest_revenue_control" {
@@ -196,6 +223,14 @@ resource "cala_account_set" "expenses" {
 }
 resource "cala_account_set_member_account_set" "expenses" {
   account_set_id        = cala_account_set.chart_of_accounts.id
+  member_account_set_id = cala_account_set.expenses.id
+}
+resource "cala_account_set_member_account_set" "expenses_in_profit_and_loss" {
+  account_set_id        = cala_account_set.profit_and_loss.id
+  member_account_set_id = cala_account_set.expenses.id
+}
+resource "cala_account_set_member_account_set" "expenses_in_retained_earnings" {
+  account_set_id        = cala_account_set.retained_earnings.id
   member_account_set_id = cala_account_set.expenses.id
 }
 

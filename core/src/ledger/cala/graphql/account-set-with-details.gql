@@ -1,36 +1,17 @@
-query ChartOfAccounts($accountSetId: UUID!) {
+query AccountSetAndSubAccounts(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+) {
   accountSet(id: $accountSetId) {
     ...accountSetDetails
-    categories: members(first: 10) {
-      ...categories
+    subAccounts: members(first: $first, after: $after) {
+      ...subAccounts
     }
   }
 }
 
-# 'categories' and 'accounts'
-
-fragment categories on AccountSetMemberConnection {
-  edges {
-    node {
-      __typename
-      ... on AccountSet {
-        ...categoryAccountSet
-      }
-      ... on Account {
-        ...accountDetails
-      }
-    }
-  }
-}
-
-fragment categoryAccountSet on AccountSet {
-  ...accountSetDetails
-  accounts: members(first: 25, after: null) {
-    ...accounts
-  }
-}
-
-fragment accounts on AccountSetMemberConnection {
+fragment subAccounts on AccountSetMemberConnection {
   pageInfo {
     startCursor
     endCursor

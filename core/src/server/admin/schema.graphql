@@ -113,13 +113,7 @@ scalar AnnualRate
 type BalanceSheet {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	categories: [BalanceSheetCategory!]!
-}
-
-type BalanceSheetCategory {
-	name: String!
-	balance: AccountBalancesByCurrency!
-	accounts: [AccountSetSubAccountWithBalance!]!
+	categories: [StatementCategory!]!
 }
 
 
@@ -127,6 +121,7 @@ type BtcAccountBalance {
 	debit: Satoshis!
 	credit: Satoshis!
 	netDebit: SignedSatoshis!
+	netCredit: SignedSatoshis!
 }
 
 type BtcBalance {
@@ -338,6 +333,12 @@ enum Period {
 	MONTHS
 }
 
+type ProfitAndLossStatement {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	categories: [StatementCategory!]!
+}
+
 type Query {
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
@@ -348,6 +349,7 @@ type Query {
 	chartOfAccounts: ChartOfAccounts
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	balanceSheet: BalanceSheet
+	profitAndLossStatement: ProfitAndLossStatement
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 }
@@ -362,6 +364,12 @@ input ShareholderEquityAddInput {
 scalar SignedSatoshis
 
 scalar SignedUsdCents
+
+type StatementCategory {
+	name: String!
+	balance: AccountBalancesByCurrency!
+	accounts: [AccountSetSubAccountWithBalance!]!
+}
 
 
 type SuccessPayload {
@@ -418,6 +426,7 @@ type UsdAccountBalance {
 	debit: UsdCents!
 	credit: UsdCents!
 	netDebit: SignedUsdCents!
+	netCredit: SignedUsdCents!
 }
 
 type UsdBalance {
