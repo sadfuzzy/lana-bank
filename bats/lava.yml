@@ -1,3 +1,5 @@
-# app:
-#   job_execution:
-#     poll_interval: 1
+app:
+  job_execution:
+    poll_interval: 1
+  user:
+    super_user_email: "super.user@example.com"

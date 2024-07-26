@@ -1,8 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    applicant::SumsubConfig, authorization::config::CasbinConfig, job::JobExecutorConfig,
-    ledger::LedgerConfig,
+    applicant::SumsubConfig, job::JobExecutorConfig, ledger::LedgerConfig, user::UserConfig,
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
@@ -14,5 +13,5 @@ pub struct AppConfig {
     #[serde(default)]
     pub sumsub: SumsubConfig,
     #[serde(default)]
-    pub casbin: CasbinConfig,
+    pub user: UserConfig,
 }

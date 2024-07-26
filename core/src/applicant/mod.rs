@@ -3,13 +3,13 @@ pub mod error;
 mod sumsub_auth;
 pub mod sumsub_public;
 
-pub use config::*;
-
-use error::ApplicantError;
 use serde::{Deserialize, Serialize};
-use sumsub_auth::*;
 
 use crate::{customer::Customers, primitives::CustomerId};
+
+pub use config::*;
+use error::ApplicantError;
+use sumsub_auth::*;
 
 #[derive(Clone)]
 pub struct Applicants {

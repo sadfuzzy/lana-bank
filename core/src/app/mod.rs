@@ -5,11 +5,12 @@ use sqlx::PgPool;
 
 use crate::{
     applicant::Applicants,
-    authorization::{debug::seed_permissions, Authorization},
+    authorization::Authorization,
     customer::Customers,
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     loan::Loans,
+    user::Users,
     withdraw::Withdraws,
 };
 
@@ -25,14 +26,11 @@ pub struct LavaApp {
     withdraws: Withdraws,
     ledger: Ledger,
     applicants: Applicants,
+    users: Users,
 }
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        if config.casbin.seed_permissions {
-            seed_permissions(&pool).await?;
-        }
-
         let authz = Authorization::init(&pool).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
@@ -41,8 +39,10 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger);
         let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
+        let users = Users::init(&pool, &authz, config.user).await?;
         loans.set_jobs(&jobs);
         jobs.start_poll().await?;
+
         Ok(Self {
             _pool: pool,
             _jobs: jobs,
@@ -51,6 +51,7 @@ impl LavaApp {
             loans,
             ledger,
             applicants,
+            users,
         })
     }
 
@@ -72,5 +73,9 @@ impl LavaApp {
 
     pub fn loans(&self) -> &Loans {
         &self.loans
+    }
+
+    pub fn users(&self) -> &Users {
+        &self.users
     }
 }

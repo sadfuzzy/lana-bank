@@ -13,6 +13,21 @@ CREATE TABLE customer_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE user_events (
+  id UUID NOT NULL REFERENCES users(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE loan_terms (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   current BOOLEAN NOT NULL,
