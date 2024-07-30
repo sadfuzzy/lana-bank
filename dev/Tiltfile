@@ -5,7 +5,8 @@ docker_groups = {
     "auth": ["kratos", "kratos-pg", "oathkeeper", "mailslurper"],
     "otel": ["otel-agent"],
     "cala": ["cala", "cala-pg"],
-    "core": ["core-pg"]
+    "core": ["core-pg"],
+    "dev": ["mailhog", "next-auth-pg"],
 }
 
 for service, deps in docker_groups.items():
@@ -25,7 +26,7 @@ local_resource(
     resource_deps=[
         "cala",
         "core-pg",
-        "cala-pg"
+        "cala-pg",
     ]
 )
 
@@ -37,6 +38,10 @@ local_resource(
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     allow_parallel=True,
+    resource_deps=[
+        "next-auth-pg",
+        "mailhog",
+    ]
 )
 
 if is_ci:

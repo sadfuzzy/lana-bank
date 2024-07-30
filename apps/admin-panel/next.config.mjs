@@ -7,6 +7,9 @@ const nextConfig = {
     })
     return config
   },
+  experimental: {
+    instrumentationHook: true,
+  },
   output: "standalone",
   basePath: process.env.BASE_PATH,
 }
