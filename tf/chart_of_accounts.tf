@@ -19,10 +19,10 @@ resource "cala_account_set" "balance_sheet" {
   normal_balance_type = "DEBIT"
 }
 
-resource "cala_account_set" "profit_and_loss" {
+resource "cala_account_set" "net_income" {
   id                  = "00000000-0000-0000-0000-100000000004"
   journal_id          = cala_journal.journal.id
-  name                = "Profit & Loss Statement"
+  name                = "Net Income"
   normal_balance_type = "CREDIT"
 }
 
@@ -135,25 +135,24 @@ resource "cala_account_set" "equity" {
   name                = "Equity"
   normal_balance_type = "CREDIT"
 }
-resource "cala_account_set_member_account_set" "equity" {
+resource "random_uuid" "equity_for_chart_of_accounts" {}
+resource "cala_account_set" "equity_for_chart_of_accounts" {
+  id                  = random_uuid.equity_for_chart_of_accounts.result
+  journal_id          = cala_journal.journal.id
+  name                = "Equity"
+  normal_balance_type = "CREDIT"
+}
+resource "cala_account_set_member_account_set" "equity_in_chart_of_accounts" {
   account_set_id        = cala_account_set.chart_of_accounts.id
-  member_account_set_id = cala_account_set.equity.id
+  member_account_set_id = cala_account_set.equity_for_chart_of_accounts.id
 }
 resource "cala_account_set_member_account_set" "equity_in_balance_sheet" {
   account_set_id        = cala_account_set.balance_sheet.id
   member_account_set_id = cala_account_set.equity.id
 }
-
-resource "random_uuid" "retained_earnings" {}
-resource "cala_account_set" "retained_earnings" {
-  id                  = random_uuid.retained_earnings.result
-  journal_id          = cala_journal.journal.id
-  name                = "Retained Earnings"
-  normal_balance_type = "CREDIT"
-}
-resource "cala_account_set_member_account_set" "retained_earnings_in_equity" {
-  account_set_id        = cala_account_set.balance_sheet.id # this should be 'equity'
-  member_account_set_id = cala_account_set.retained_earnings.id
+resource "cala_account_set_member_account_set" "net_income_in_equity" {
+  account_set_id        = cala_account_set.equity.id
+  member_account_set_id = cala_account_set.net_income.id
 }
 
 
@@ -167,6 +166,10 @@ resource "cala_account" "bank_shareholder_equity" {
 }
 resource "cala_account_set_member_account" "bank_shareholder_equity_in_equity" {
   account_set_id    = cala_account_set.equity.id
+  member_account_id = cala_account.bank_shareholder_equity.id
+}
+resource "cala_account_set_member_account" "bank_shareholder_equity_in_equity_coa" {
+  account_set_id    = cala_account_set.equity_for_chart_of_accounts.id
   member_account_id = cala_account.bank_shareholder_equity.id
 }
 resource "cala_account_set_member_account" "bank_shareholder_equity_in_trial_balance" {
@@ -187,12 +190,8 @@ resource "cala_account_set_member_account_set" "revenue" {
   account_set_id        = cala_account_set.chart_of_accounts.id
   member_account_set_id = cala_account_set.revenue.id
 }
-resource "cala_account_set_member_account_set" "revenue_in_profit_and_loss" {
-  account_set_id        = cala_account_set.profit_and_loss.id
-  member_account_set_id = cala_account_set.revenue.id
-}
-resource "cala_account_set_member_account_set" "revenue_in_retained_earnings" {
-  account_set_id        = cala_account_set.retained_earnings.id
+resource "cala_account_set_member_account_set" "revenue_in_net_income" {
+  account_set_id        = cala_account_set.net_income.id
   member_account_set_id = cala_account_set.revenue.id
 }
 
@@ -225,12 +224,8 @@ resource "cala_account_set_member_account_set" "expenses" {
   account_set_id        = cala_account_set.chart_of_accounts.id
   member_account_set_id = cala_account_set.expenses.id
 }
-resource "cala_account_set_member_account_set" "expenses_in_profit_and_loss" {
-  account_set_id        = cala_account_set.profit_and_loss.id
-  member_account_set_id = cala_account_set.expenses.id
-}
-resource "cala_account_set_member_account_set" "expenses_in_retained_earnings" {
-  account_set_id        = cala_account_set.retained_earnings.id
+resource "cala_account_set_member_account_set" "expenses_in_net_income" {
+  account_set_id        = cala_account_set.net_income.id
   member_account_set_id = cala_account_set.expenses.id
 }
 
