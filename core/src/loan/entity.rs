@@ -177,6 +177,8 @@ impl Loan {
                 .next_interest_payment(self.start_date)
                 .day()
                 - self.start_date.day()
+                + 1 // 1 is added to account for the day when the loan was
+                    // approved
         } else {
             self.terms.interval.next_interest_payment(Utc::now()).day()
         }
