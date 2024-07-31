@@ -10,9 +10,11 @@ export function AuthSessionProvider({
   children: React.ReactNode
   session: Session
 }>) {
-  return (
-    <SessionProvider basePath="/admin-panel/api/auth" session={session}>
-      {children}
-    </SessionProvider>
-  )
+  const isDevelopment = process.env.NODE_ENV === "development"
+  const sessionProviderProps = {
+    session,
+    ...(isDevelopment && { basePath: "/admin-panel/api/auth" }),
+  }
+
+  return <SessionProvider {...sessionProviderProps}>{children}</SessionProvider>
 }
