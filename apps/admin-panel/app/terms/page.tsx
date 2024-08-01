@@ -44,7 +44,7 @@ function TermPage() {
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
         ) : error ? (
-          <CardContent className="pt-6">Loading...</CardContent>
+          <CardContent className="pt-6 text-destructive">{error.message}</CardContent>
         ) : data && data.defaultTerms ? (
           <>
             <CardHeader className="flex flex-row justify-between items-center mb-0">

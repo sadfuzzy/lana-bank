@@ -78,14 +78,14 @@ function CustomerTable({ customerId }: { customerId?: string }) {
     <>
       {loading ? (
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-6">
             <div>Loading...</div>
           </CardContent>
         </Card>
       ) : error ? (
         <Card>
-          <CardContent className="p-4">
-            <div>{error}</div>
+          <CardContent className="p-6">
+            <div className="text-destructive">{error}</div>
           </CardContent>
         </Card>
       ) : (

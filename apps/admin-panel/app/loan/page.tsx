@@ -75,7 +75,7 @@ function LoanPage() {
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
         ) : error ? (
-          <CardContent className="pt-6">{error.message}</CardContent>
+          <CardContent className="pt-6 text-destructive">{error.message}</CardContent>
         ) : loanDetails?.loan ? (
           <>
             <CardHeader className="flex flex-row justify-between items-center">

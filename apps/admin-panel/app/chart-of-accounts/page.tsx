@@ -1,7 +1,7 @@
 "use client"
 
 import React from "react"
-import { gql } from "@apollo/client"
+import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
 
@@ -65,12 +65,15 @@ type ChartOfAccountsValuesProps = {
     | GetOffBalanceSheetChartOfAccountsQuery["offBalanceSheetChartOfAccounts"]
     | undefined
   loading: boolean
+  error: ApolloError | undefined
 }
 const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
   data,
   loading,
+  error,
 }) => {
   if (loading) return <p>Loading...</p>
+  if (error) return <p className="text-destructive">{error.message}</p>
 
   return (
     <Table>
@@ -98,10 +101,16 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
 }
 
 function ChartOfAccountsPage() {
-  const { data: onBalanceSheetData, loading: onBalanceSheetLoading } =
-    useGetOnBalanceSheetChartOfAccountsQuery()
-  const { data: offBalanceSheetData, loading: offBalanceSheetLoading } =
-    useGetOffBalanceSheetChartOfAccountsQuery()
+  const {
+    data: onBalanceSheetData,
+    loading: onBalanceSheetLoading,
+    error: onBalanceSheetError,
+  } = useGetOnBalanceSheetChartOfAccountsQuery()
+  const {
+    data: offBalanceSheetData,
+    loading: offBalanceSheetLoading,
+    error: offBalanceSheetError,
+  } = useGetOffBalanceSheetChartOfAccountsQuery()
 
   return (
     <main>
@@ -115,12 +124,14 @@ function ChartOfAccountsPage() {
           <ChartOfAccountsValues
             data={onBalanceSheetData?.chartOfAccounts}
             loading={onBalanceSheetLoading}
+            error={onBalanceSheetError}
           />
         </TabsContent>
         <TabsContent value="offBalanceSheet">
           <ChartOfAccountsValues
             data={offBalanceSheetData?.offBalanceSheetChartOfAccounts}
             loading={offBalanceSheetLoading}
+            error={offBalanceSheetError}
           />
         </TabsContent>
       </Tabs>

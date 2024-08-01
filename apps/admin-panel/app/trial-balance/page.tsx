@@ -1,6 +1,6 @@
 "use client"
 import React from "react"
-import { gql } from "@apollo/client"
+import { ApolloError, gql } from "@apollo/client"
 
 import { PageHeading } from "@/components/page-heading"
 import {
@@ -137,15 +137,22 @@ type TrialBalanceValuesProps = {
     | GetOnBalanceSheetTrialBalanceQuery["trialBalance"]
     | undefined
   loading: boolean
+  error: ApolloError | undefined
 }
-const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({ data, loading }) => {
+const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
+  data,
+  loading,
+  error,
+}) => {
   const [currency, setCurrency] = React.useState<Currency>("btc")
   const [layer, setLayer] = React.useState<Layers>("all")
 
   const balance = data?.balance
   const subAccounts = data?.subAccounts
 
-  if (loading || !balance) return <div>Loading...</div>
+  if (error) return <div className="text-destructive">{error.message}</div>
+  if (loading) return <div>Loading...</div>
+  if (!balance) return <div>No data</div>
 
   return (
     <>
@@ -252,10 +259,16 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({ data, loading }
 }
 
 function TrialBalancePage() {
-  const { data: onBalanceSheetData, loading: onBalanceSheetLoading } =
-    useGetOnBalanceSheetTrialBalanceQuery()
-  const { data: offBalanceSheetData, loading: offBalanceSheetLoading } =
-    useGetOffBalanceSheetTrialBalanceQuery()
+  const {
+    data: onBalanceSheetData,
+    loading: onBalanceSheetLoading,
+    error: onBalanceSheetError,
+  } = useGetOnBalanceSheetTrialBalanceQuery()
+  const {
+    data: offBalanceSheetData,
+    loading: offBalanceSheetLoading,
+    error: offBalanceSheetError,
+  } = useGetOffBalanceSheetTrialBalanceQuery()
 
   return (
     <main>
@@ -269,12 +282,14 @@ function TrialBalancePage() {
           <TrialBalanceValues
             data={onBalanceSheetData?.trialBalance}
             loading={onBalanceSheetLoading}
+            error={onBalanceSheetError}
           />
         </TabsContent>
         <TabsContent value="offBalanceSheet">
           <TrialBalanceValues
             data={offBalanceSheetData?.offBalanceSheetTrialBalance}
             loading={offBalanceSheetLoading}
+            error={offBalanceSheetError}
           />
         </TabsContent>
       </Tabs>

@@ -62,7 +62,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
       {loading ? (
         <CardContent className="p-6">Loading...</CardContent>
       ) : error ? (
-        <CardContent className="p-6">{error.message}</CardContent>
+        <CardContent className="p-6 text-destructive">{error.message}</CardContent>
       ) : !customerDetails || !customerDetails.customer ? (
         <CardContent className="p-6">No customer found with this ID</CardContent>
       ) : (

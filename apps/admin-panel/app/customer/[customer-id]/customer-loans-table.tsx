@@ -65,40 +65,44 @@ export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
 
   return (
     <Card className="mt-4">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>customer loans</CardTitle>
-        <CreateLoanDialog refetch={refetch} customerId={customerId}>
-          <Button>New Loan</Button>
-        </CreateLoanDialog>
-      </CardHeader>
       {loading ? (
         <CardContent className="p-6">Loading...</CardContent>
       ) : error ? (
-        <CardContent className="p-6">{error.message}</CardContent>
-      ) : !customerLoans ||
-        !customerLoans.customer?.loans ||
-        customerLoans.customer?.loans.length === 0 ? (
-        <CardContent className="p-6">No loans found for this customer</CardContent>
+        <CardContent className="p-6 text-destructive">{error.message}</CardContent>
       ) : (
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableCell>Loan ID</TableCell>
-                <TableCell>Collateral (BTC)</TableCell>
-                <TableCell>Interest Incurred (USD)</TableCell>
-                <TableCell>Outstanding (USD)</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {customerLoans.customer.loans.map((loan) => (
-                <LoanRow key={loan.loanId} loan={loan} refetch={refetch} />
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
+        <>
+          <CardHeader className="flex flex-row justify-between items-center pb-0">
+            <CardTitle>Customer loans</CardTitle>
+            <CreateLoanDialog refetch={refetch} customerId={customerId}>
+              <Button>New Loan</Button>
+            </CreateLoanDialog>
+          </CardHeader>
+          {!customerLoans ||
+          !customerLoans.customer?.loans ||
+          customerLoans.customer?.loans.length === 0 ? (
+            <CardContent className="p-6">No loans found for this customer</CardContent>
+          ) : (
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableCell>Loan ID</TableCell>
+                    <TableCell>Collateral (BTC)</TableCell>
+                    <TableCell>Interest Incurred (USD)</TableCell>
+                    <TableCell>Outstanding (USD)</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customerLoans.customer.loans.map((loan) => (
+                    <LoanRow key={loan.loanId} loan={loan} refetch={refetch} />
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          )}
+        </>
       )}
     </Card>
   )
