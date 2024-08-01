@@ -43,6 +43,12 @@ authorizers:
     enabled: true
 
 mutators:
+  hydrator:
+    enabled: true
+    config:
+      api:
+        url: http://dockerhost-alias:5253/user/id-from-email
+
   id_token:
     enabled: true
     config:

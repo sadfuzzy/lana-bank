@@ -36,13 +36,14 @@
     # only be in local dev. to simplify tests set up, until admin API is API-auth friendly
     - handler: anonymous
       config:
-        subject: super.user@example.com
+        subject: admin@galoy.io
   authorizer:
     handler: allow
   mutators:
+    - handler: hydrator
     - handler: id_token
       config:
-        claims: '{"sub": "{{ print .Subject }}", "aud": ["https://admin-api/graphql"] }'
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
 - id: admin-panel
   upstream:

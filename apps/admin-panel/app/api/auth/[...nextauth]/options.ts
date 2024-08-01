@@ -1,26 +1,25 @@
 import EmailProvider from "next-auth/providers/email"
-
 import { NextAuthOptions } from "next-auth"
+import axios from "axios"
 
 import { customPostgresAdapter } from "@/lib/auth/db/auth-adapter"
 import { pool } from "@/lib/auth/db"
 import { env } from "@/env"
 
-const allowedDomains = ["galoy.io", "blink.sv"]
-const allowedUsers = [
-  {
-    id: 1,
-    name: "Admin",
-    email: "admin@lava.io",
-    role: "admin",
-  },
-  {
-    id: 2,
-    name: "User",
-    email: "user@lava.io",
-    role: "user",
-  },
-]
+async function checkUserEmail(email: string): Promise<boolean> {
+  try {
+    const response = await axios.post(env.CHECK_USER_ALLOWED_CALLBACK_URL, {
+      email: email,
+      transient_payload: {},
+    })
+
+    console.log("User check response:", response.status)
+    return response.status === 200
+  } catch (error) {
+    console.error("Error checking user:", error)
+    return false
+  }
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -36,22 +35,13 @@ export const authOptions: NextAuthOptions = {
     async signIn({ account }) {
       const email = account?.providerAccountId
       if (account?.provider === "email" && email) {
-        const user = allowedUsers.find((user) => user.email === email)
-        if (user) {
-          return true
-        }
-
-        const domain = email.split("@")[1]
-        if (allowedDomains.includes(domain)) {
-          return true
-        }
+        return checkUserEmail(email)
       }
       return false
     },
     async session({ session, token }) {
-      const user = allowedUsers.find((allowedUser) => allowedUser.email === token.email)
-      if (session.user) {
-        session.user.name = user?.name || token.email?.split("@")[0]
+      if (session.user && token.email) {
+        session.user.name = token.email.split("@")[0]
         session.user.email = token.email
       }
       return session

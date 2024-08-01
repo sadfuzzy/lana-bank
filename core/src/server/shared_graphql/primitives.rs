@@ -34,6 +34,16 @@ impl From<&UUID> for CustomerId {
         Self::from(uuid.0)
     }
 }
+impl From<UUID> for UserId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
+impl From<&UUID> for UserId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 impl From<UUID> for WithdrawId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)

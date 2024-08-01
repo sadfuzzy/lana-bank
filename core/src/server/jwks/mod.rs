@@ -9,7 +9,7 @@ use axum_extra::{
     TypedHeader,
 };
 use jsonwebtoken::{jwk::JwkSet, Algorithm, DecodingKey, TokenData, Validation};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize};
 
 use std::sync::{Arc, RwLock};
 
@@ -17,11 +17,6 @@ pub use error::*;
 
 #[derive(Debug, Deserialize)]
 pub struct Claims<T>(pub T);
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct JwtClaims {
-    pub sub: String,
-}
 
 #[derive(Clone, FromRef)]
 pub struct JwtDecoderState {

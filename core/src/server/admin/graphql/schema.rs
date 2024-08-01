@@ -1,7 +1,7 @@
 use async_graphql::{types::connection::*, *};
 use uuid::Uuid;
 
-use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*};
+use super::{account_set::*, customer::*, loan::*, shareholder_equity::*, terms::*, user::*};
 use crate::{
     app::LavaApp,
     primitives::{CustomerId, LoanId},
@@ -9,7 +9,7 @@ use crate::{
         admin::AdminAuthContext,
         shared_graphql::{
             customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
         },
     },
 };
@@ -33,8 +33,15 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.customers().find_by_id(CustomerId::from(id)).await?;
-        Ok(user.map(Customer::from))
+        let customer = app.customers().find_by_id(CustomerId::from(id)).await?;
+        Ok(customer.map(Customer::from))
+    }
+
+    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let users = app.users().list_users(sub).await?;
+        Ok(users.into_iter().map(User::from).collect())
     }
 
     async fn customers(
@@ -270,5 +277,46 @@ impl Mutation {
             .record_payment(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
+    }
+
+    async fn user_create(
+        &self,
+        ctx: &Context<'_>,
+        input: UserCreateInput,
+    ) -> async_graphql::Result<UserCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().create_user(sub, input.email).await?;
+        Ok(UserCreatePayload::from(user))
+    }
+
+    async fn user_assign_role(
+        &self,
+        ctx: &Context<'_>,
+        input: UserAssignRoleInput,
+    ) -> async_graphql::Result<UserAssignRolePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let UserAssignRoleInput { id, role } = input;
+        let user = app
+            .users()
+            .assign_role_to_user(sub, id.into(), role.into())
+            .await?;
+        Ok(UserAssignRolePayload::from(user))
+    }
+
+    async fn user_revoke_role(
+        &self,
+        ctx: &Context<'_>,
+        input: UserRevokeRoleInput,
+    ) -> async_graphql::Result<UserRevokeRolePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let UserRevokeRoleInput { id, role } = input;
+        let user = app
+            .users()
+            .revoke_role_from_user(sub, id.into(), role.into())
+            .await?;
+        Ok(UserRevokeRolePayload::from(user))
     }
 }

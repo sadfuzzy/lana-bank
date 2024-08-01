@@ -2,19 +2,26 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 
-import { IoPerson, IoReceipt, IoCash, IoDocument } from "react-icons/io5"
+import {
+  IoPersonOutline,
+  IoReceiptOutline,
+  IoCashOutline,
+  IoDocumentOutline,
+} from "react-icons/io5"
+import { RiAdminLine } from "react-icons/ri"
 import { MdAccountTree } from "react-icons/md"
 
 const navLinks = [
-  { href: "/loan", label: "Loan", icon: IoReceipt },
-  { href: "/customer", label: "customers", icon: IoPerson },
-  { href: "/trial-balance", label: "Trial Balance", icon: IoCash },
+  { href: "/customer", label: "Customers", icon: IoPersonOutline },
+  { href: "/loan", label: "Loan", icon: IoReceiptOutline },
+  { href: "/trial-balance", label: "Trial Balance", icon: IoCashOutline },
   {
     href: "/chart-of-accounts",
     label: "Chart of Accounts",
     icon: MdAccountTree,
   },
-  { href: "/terms", label: "Terms", icon: IoDocument },
+  { href: "/terms", label: "Terms", icon: IoDocumentOutline },
+  { href: "/users", label: "Users", icon: RiAdminLine },
 ]
 
 const NavigationLinks = () => {

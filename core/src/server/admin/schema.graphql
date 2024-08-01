@@ -305,6 +305,9 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
+	userCreate(input: UserCreateInput!): UserCreatePayload!
+	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
+	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 }
 
 """
@@ -342,6 +345,7 @@ type ProfitAndLossStatement {
 type Query {
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
+	users: [User!]!
 	customers(first: Int!, after: String): CustomerConnection!
 	defaultTerms: Terms
 	trialBalance: TrialBalance
@@ -352,6 +356,11 @@ type Query {
 	profitAndLossStatement: ProfitAndLossStatement
 	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
+}
+
+enum Role {
+	SUPERUSER
+	BANK_MANAGER
 }
 
 scalar Satoshis
@@ -435,9 +444,41 @@ type UsdBalance {
 
 scalar UsdCents
 
+type User {
+	userId: UUID!
+	email: String!
+	roles: [Role!]!
+}
+
+input UserAssignRoleInput {
+	id: UUID!
+	role: Role!
+}
+
+type UserAssignRolePayload {
+	user: User!
+}
+
 type UserBalance {
 	unallocatedCollateral: UnallocatedCollateral!
 	checking: Checking!
+}
+
+input UserCreateInput {
+	email: String!
+}
+
+type UserCreatePayload {
+	user: User!
+}
+
+input UserRevokeRoleInput {
+	id: UUID!
+	role: Role!
+}
+
+type UserRevokeRolePayload {
+	user: User!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

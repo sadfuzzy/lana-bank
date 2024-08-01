@@ -17,6 +17,9 @@ export const env = createEnv({
       .default("http://localhost:4455/admin-panel/api/auth"),
   },
   server: {
+    CHECK_USER_ALLOWED_CALLBACK_URL: z
+      .string()
+      .default("http://localhost:5253/user/callback"),
     EMAIL_FROM: z.string().default("no-reply@lava-bank.com"),
     EMAIL_SERVER: z.string().default("smtp://localhost:1025"),
     NEXT_AUTH_DATABASE_URL: z
@@ -25,6 +28,7 @@ export const env = createEnv({
       .default("postgres://dbuser:secret@localhost:5435/default?sslmode=disable"),
   },
   runtimeEnv: {
+    CHECK_USER_ALLOWED_CALLBACK_URL: process.env.USER_ALLOWED_CALLBACK_URL,
     NEXT_PUBLIC_CORE_ADMIN_URL: process.env.NEXT_PUBLIC_CORE_ADMIN_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,

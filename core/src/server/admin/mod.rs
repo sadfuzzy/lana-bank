@@ -9,6 +9,7 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use auth::auth_routes;
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
+use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
 
@@ -16,7 +17,7 @@ use crate::{app::LavaApp, primitives::Subject};
 
 pub use config::*;
 
-use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
+use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
 
 use std::sync::Arc;
 
@@ -67,19 +68,32 @@ impl AdminAuthContext {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AdminJwtClaims {
+    pub subject: String,
+}
+
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
-    Claims(jwt_claims): Claims<JwtClaims>,
+    Claims(jwt_claims): Claims<AdminJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let auth_context = AdminAuthContext::new(jwt_claims.sub);
-    req = req.data(auth_context);
-
-    schema.execute(req).await.into()
+    match uuid::Uuid::parse_str(&jwt_claims.subject) {
+        Ok(id) => {
+            let auth_context = AdminAuthContext::new(id);
+            req = req.data(auth_context);
+            schema.execute(req).await.into()
+        }
+        Err(e) => async_graphql::Response::from_errors(vec![async_graphql::ServerError::new(
+            e.to_string(),
+            None,
+        )])
+        .into(),
+    }
 }
 
 async fn playground() -> impl axum::response::IntoResponse {

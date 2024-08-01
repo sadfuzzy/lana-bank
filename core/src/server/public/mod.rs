@@ -7,10 +7,11 @@ use async_graphql::{EmptySubscription, Schema};
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
+use serde::{Deserialize, Serialize};
 
 use crate::{app::LavaApp, primitives::CustomerId};
 
-use super::jwks::{Claims, JwtClaims, JwtDecoderState, RemoteJwksDecoder};
+use super::jwks::{Claims, JwtDecoderState, RemoteJwksDecoder};
 
 pub use config::*;
 
@@ -49,16 +50,21 @@ pub struct PublicAuthContext {
     pub user_id: CustomerId,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PublicJwtClaims {
+    pub sub: String,
+}
+
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
-    Claims(jwt_claims): Claims<JwtClaims>,
+    Claims(jwt_claims): Claims<PublicJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     lava_tracing::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    let user_id: CustomerId = match jwt_claims.sub.parse() {
+    let customer_id: CustomerId = match jwt_claims.sub.parse() {
         Ok(user_id) => user_id,
         Err(_) => {
             let error = ServerError::new("Invalid user id", None);
@@ -67,7 +73,9 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = PublicAuthContext { user_id };
+    let auth_context = PublicAuthContext {
+        user_id: customer_id,
+    };
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

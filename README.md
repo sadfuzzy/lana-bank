@@ -46,4 +46,5 @@ use email admin@galoy.io
 connect to http://0.0.0.0:8025/
 
 app: http://localhost:4455/
+
 - if you see a cookie error, delete the cookie and reload the page (for now)

@@ -83,45 +83,51 @@ pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone)]
-pub struct Subject(String);
+pub struct Subject(uuid::Uuid);
 
-impl From<&str> for Subject {
-    fn from(s: &str) -> Self {
-        Self(s.to_string())
+impl<T> From<T> for Subject
+where
+    T: Into<uuid::Uuid>,
+{
+    fn from(s: T) -> Self {
+        Self(s.into())
     }
 }
 
-impl From<String> for Subject {
-    fn from(s: String) -> Self {
-        Self(s)
-    }
-}
-
-impl AsRef<str> for Subject {
-    fn as_ref(&self) -> &str {
+impl AsRef<uuid::Uuid> for Subject {
+    fn as_ref(&self) -> &uuid::Uuid {
         &self.0
     }
 }
 
 impl std::ops::Deref for Subject {
-    type Target = str;
-
+    type Target = uuid::Uuid;
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Role {
-    SuperUser,
+    Superuser,
     BankManager,
 }
 
 impl AsRef<str> for Role {
     fn as_ref(&self) -> &str {
         match self {
-            Role::SuperUser => "super-user",
+            Role::Superuser => "superuser",
             Role::BankManager => "bank-manager",
+        }
+    }
+}
+
+impl From<&str> for Role {
+    fn from(s: &str) -> Self {
+        match s {
+            "superuser" => Role::Superuser,
+            "bank-manager" => Role::BankManager,
+            _ => panic!("Invalid role"),
         }
     }
 }
@@ -131,7 +137,7 @@ impl std::ops::Deref for Role {
 
     fn deref(&self) -> &Self::Target {
         match self {
-            Role::SuperUser => "super-user",
+            Role::Superuser => "superuser",
             Role::BankManager => "bank-manager",
         }
     }

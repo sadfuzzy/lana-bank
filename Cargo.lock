@@ -1759,6 +1759,7 @@ dependencies = [
  "hmac",
  "jsonwebtoken",
  "lava-tracing",
+ "rand",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
