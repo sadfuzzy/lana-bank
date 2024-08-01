@@ -140,6 +140,7 @@ impl Query {
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
+    #[graphql(deprecation = "Use `accountSetWithBalance` instead")]
     async fn account_set(
         &self,
         ctx: &Context<'_>,
