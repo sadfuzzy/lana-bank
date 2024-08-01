@@ -1740,7 +1740,7 @@ dependencies = [
 
 [[package]]
 name = "lava-core"
-version = "0.1.29-dev"
+version = "0.1.30-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1780,7 +1780,7 @@ dependencies = [
 
 [[package]]
 name = "lava-tracing"
-version = "0.1.29-dev"
+version = "0.1.30-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
