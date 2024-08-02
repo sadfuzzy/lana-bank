@@ -10,6 +10,10 @@ pub enum LoanError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("LoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("LoanError - LoanTermsError: {0}")]
+    LoanTermsError(#[from] super::terms::error::LoanTermsError),
+    #[error("LoanError - ConversionError: {0}")]
+    ConversionError(#[from] crate::primitives::ConversionError),
     #[error("LoanError - UserError: '{0}'")]
     CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("LoanError - UserNotFound: {0}")]

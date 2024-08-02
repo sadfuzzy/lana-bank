@@ -206,27 +206,22 @@ impl Ledger {
     }
 
     pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        Ok(self
-            .cala
-            .trial_balance::<LedgerTrialBalance>()
-            .await?
-            .map(LedgerTrialBalance::from))
+        self.cala
+            .trial_balance::<LedgerTrialBalance, LedgerError>()
+            .await
     }
 
     pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
-        Ok(self
-            .cala
-            .obs_trial_balance::<LedgerTrialBalance>()
-            .await?
-            .map(LedgerTrialBalance::from))
+        self.cala
+            .obs_trial_balance::<LedgerTrialBalance, LedgerError>()
+            .await
     }
 
     pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
         Ok(self
             .cala
             .chart_of_accounts::<LedgerChartOfAccounts>()
-            .await?
-            .map(LedgerChartOfAccounts::from))
+            .await?)
     }
 
     pub async fn obs_chart_of_accounts(
@@ -242,7 +237,7 @@ impl Ledger {
     pub async fn balance_sheet(&self) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
         Ok(self
             .cala
-            .balance_sheet::<LedgerBalanceSheet>()
+            .balance_sheet::<LedgerBalanceSheet, LedgerError>()
             .await?
             .map(LedgerBalanceSheet::from))
     }
@@ -252,7 +247,7 @@ impl Ledger {
     ) -> Result<Option<LedgerProfitAndLossStatement>, LedgerError> {
         Ok(self
             .cala
-            .profit_and_loss::<LedgerProfitAndLossStatement>()
+            .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>()
             .await?
             .map(LedgerProfitAndLossStatement::from))
     }
@@ -319,7 +314,7 @@ impl Ledger {
         after: Option<String>,
     ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
         Ok(self.cala
-            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance, LedgerError>(
                 account_set_id,
                 first,
                 after,
@@ -341,7 +336,7 @@ impl Ledger {
     > {
         let account_set = self
             .cala
-            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance>(
+            .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance, LedgerError>(
                 account_set_id,
                 i64::try_from(query.first)?,
                 query.after.map(|c| c.value),

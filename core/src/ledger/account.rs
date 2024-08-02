@@ -2,7 +2,7 @@ use crate::primitives::{
     LedgerAccountId, LedgerDebitOrCredit, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents,
 };
 
-use super::cala::graphql::*;
+use super::{cala::graphql::*, error::*};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BtcAccountBalance {
@@ -89,105 +89,111 @@ macro_rules! impl_from_account_details_and_balances {
                 }
             }
 
-            impl From<$module::balances> for BtcAccountBalance {
-                fn from(balances: $module::balances) -> Self {
-                    let net_normal = Satoshis::from_btc(balances.normal_balance.units);
-                    let debit = Satoshis::from_btc(balances.dr_balance.units);
-                    let credit = Satoshis::from_btc(balances.cr_balance.units);
+            impl TryFrom<$module::balances> for BtcAccountBalance {
+                type Error = LedgerError;
+
+                fn try_from(balances: $module::balances) -> Result<Self, Self::Error> {
+                    let net_normal = Satoshis::try_from_btc(balances.normal_balance.units)?;
+                    let debit = Satoshis::try_from_btc(balances.dr_balance.units)?;
+                    let credit = Satoshis::try_from_btc(balances.cr_balance.units)?;
                     let net_debit = SignedSatoshis::from(debit) - SignedSatoshis::from(credit);
                     let net_credit = SignedSatoshis::from(credit) - SignedSatoshis::from(debit);
 
-                    Self {
+                    Ok(Self {
                         debit,
                         credit,
                         net_normal,
                         net_debit,
                         net_credit,
-                    }
+                    })
                 }
             }
 
-            impl From<$module::balances> for UsdAccountBalance {
-                fn from(balances: $module::balances) -> Self {
-                    let net_normal = UsdCents::from_usd(balances.normal_balance.units);
-                    let debit = UsdCents::from_usd(balances.dr_balance.units);
-                    let credit = UsdCents::from_usd(balances.cr_balance.units);
+            impl TryFrom<$module::balances> for UsdAccountBalance {
+                type Error = LedgerError;
+
+                fn try_from(balances: $module::balances) -> Result<Self, Self::Error> {
+                    let net_normal = UsdCents::try_from_usd(balances.normal_balance.units)?;
+                    let debit = UsdCents::try_from_usd(balances.dr_balance.units)?;
+                    let credit = UsdCents::try_from_usd(balances.cr_balance.units)?;
                     let net_debit = SignedUsdCents::from(debit) - SignedUsdCents::from(credit);
                     let net_credit = SignedUsdCents::from(credit) - SignedUsdCents::from(debit);
 
-                    Self {
+                    Ok(Self {
                         debit,
                         credit,
                         net_normal,
                         net_debit,
                         net_credit,
-                    }
+                    })
                 }
             }
 
-            impl From<$module::balancesByLayer> for LayeredBtcAccountBalances {
-                fn from(btc_balances_by_layer: $module::balancesByLayer) -> Self {
-                    Self {
-                        settled: BtcAccountBalance::from(btc_balances_by_layer.settled),
-                        pending: BtcAccountBalance::from(btc_balances_by_layer.pending),
-                        encumbrance: BtcAccountBalance::from(btc_balances_by_layer.encumbrance),
-                        all_layers: BtcAccountBalance::from(btc_balances_by_layer.all_layers_available),
-                    }
+            impl TryFrom<$module::balancesByLayer> for LayeredBtcAccountBalances {
+                type Error = LedgerError;
+
+                fn try_from(btc_balances_by_layer: $module::balancesByLayer) -> Result<Self, Self::Error> {
+                    Ok(Self {
+                        settled: BtcAccountBalance::try_from(btc_balances_by_layer.settled)?,
+                        pending: BtcAccountBalance::try_from(btc_balances_by_layer.pending)?,
+                        encumbrance: BtcAccountBalance::try_from(btc_balances_by_layer.encumbrance)?,
+                        all_layers: BtcAccountBalance::try_from(btc_balances_by_layer.all_layers_available)?,
+                    })
                 }
             }
 
-            impl From<$module::balancesByLayer> for LayeredUsdAccountBalances {
-                fn from(usd_balances_by_layer: $module::balancesByLayer) -> Self {
-                    Self {
-                        settled: UsdAccountBalance::from(usd_balances_by_layer.settled),
-                        pending: UsdAccountBalance::from(usd_balances_by_layer.pending),
-                        encumbrance: UsdAccountBalance::from(usd_balances_by_layer.encumbrance),
-                        all_layers: UsdAccountBalance::from(usd_balances_by_layer.all_layers_available),
-                    }
+            impl TryFrom<$module::balancesByLayer> for LayeredUsdAccountBalances {
+                type Error = LedgerError;
+
+                fn try_from(usd_balances_by_layer: $module::balancesByLayer) -> Result<Self, Self::Error> {
+                    Ok(Self {
+                        settled: UsdAccountBalance::try_from(usd_balances_by_layer.settled)?,
+                        pending: UsdAccountBalance::try_from(usd_balances_by_layer.pending)?,
+                        encumbrance: UsdAccountBalance::try_from(usd_balances_by_layer.encumbrance)?,
+                        all_layers: UsdAccountBalance::try_from(usd_balances_by_layer.all_layers_available)?,
+                    })
                 }
             }
 
-            impl From<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
-                fn from(balances: $module::accountSetBalances) -> Self {
-                    LedgerAccountBalancesByCurrency {
-                        btc: balances.btc_balances.map_or_else(
-                            LayeredBtcAccountBalances::default,
-                            LayeredBtcAccountBalances::from,
-                        ),
-                        usd: balances.usd_balances.map_or_else(
-                            LayeredUsdAccountBalances::default,
-                            LayeredUsdAccountBalances::from,
-                        ),
-                        usdt: balances.usdt_balances.map_or_else(
-                            LayeredUsdAccountBalances::default,
-                            LayeredUsdAccountBalances::from,
-                        ),
-                    }
+            impl TryFrom<$module::accountSetBalances> for LedgerAccountBalancesByCurrency {
+                type Error = LedgerError;
+
+                fn try_from(balances: $module::accountSetBalances) -> Result<Self, Self::Error> {
+                    Ok(LedgerAccountBalancesByCurrency {
+                        btc: balances.btc_balances.map(
+                            LayeredBtcAccountBalances::try_from
+                        ).unwrap_or_else(|| Ok(LayeredBtcAccountBalances::default()))?,
+                        usd: balances.usd_balances.map(
+                            LayeredUsdAccountBalances::try_from
+                        ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
+                        usdt: balances.usdt_balances.map(
+                            LayeredUsdAccountBalances::try_from
+                        ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
+                    })
                 }
             }
 
-            impl From<$module::accountDetailsAndBalances> for LedgerAccountWithBalance {
-                fn from(account: $module::accountDetailsAndBalances) -> Self {
+            impl TryFrom<$module::accountDetailsAndBalances> for LedgerAccountWithBalance {
+                type Error = LedgerError;
+
+                fn try_from(account: $module::accountDetailsAndBalances) -> Result<Self, Self::Error> {
                     let account_details = account.account_details;
-                    LedgerAccountWithBalance {
+                    Ok(LedgerAccountWithBalance {
                         id: account_details.account_id.into(),
                         name: account_details.name,
                         normal_balance_type: account_details.normal_balance_type.into(),
                         balance: LedgerAccountBalancesByCurrency {
-                            btc: account.account_balances.btc_balances.map_or_else(
-                                LayeredBtcAccountBalances::default,
-                                LayeredBtcAccountBalances::from,
-                            ),
-                            usd: account.account_balances.usd_balances.map_or_else(
-                                LayeredUsdAccountBalances::default,
-                                LayeredUsdAccountBalances::from,
-                            ),
-                            usdt: account.account_balances.usdt_balances.map_or_else(
-                                LayeredUsdAccountBalances::default,
-                                LayeredUsdAccountBalances::from,
-                            ),
+                            btc: account.account_balances.btc_balances.map(
+                                LayeredBtcAccountBalances::try_from,
+                            ).unwrap_or_else(|| Ok(LayeredBtcAccountBalances::default()))?,
+                            usd: account.account_balances.usd_balances.map(
+                                LayeredUsdAccountBalances::try_from,
+                            ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
+                            usdt: account.account_balances.usdt_balances.map(
+                                LayeredUsdAccountBalances::try_from,
+                            ).unwrap_or_else(|| Ok(LayeredUsdAccountBalances::default()))?,
                         },
-                    }
+                    })
                 }
             }
         )+
@@ -276,14 +282,14 @@ mod tests {
             },
         };
         let expected_debit_normal_balance = BtcAccountBalance {
-            debit: Satoshis::from_btc(debit_amount),
-            credit: Satoshis::from_btc(credit_amount),
-            net_normal: Satoshis::from_btc(net_amount_pos),
+            debit: Satoshis::try_from_btc(debit_amount).unwrap(),
+            credit: Satoshis::try_from_btc(credit_amount).unwrap(),
+            net_normal: Satoshis::try_from_btc(net_amount_pos).unwrap(),
             net_debit: SignedSatoshis::from_btc(net_amount_neg),
             net_credit: SignedSatoshis::from_btc(net_amount_pos),
         };
 
-        let debit_normal_balance: BtcAccountBalance = btc_balance.into();
+        let debit_normal_balance: BtcAccountBalance = btc_balance.try_into().unwrap();
 
         assert_eq!(debit_normal_balance, expected_debit_normal_balance);
     }
@@ -315,14 +321,14 @@ mod tests {
             },
         };
         let expected_debit_normal_balance = UsdAccountBalance {
-            debit: UsdCents::from_usd(debit_amount),
-            credit: UsdCents::from_usd(credit_amount),
-            net_normal: UsdCents::from_usd(net_amount_pos),
+            debit: UsdCents::try_from_usd(debit_amount).unwrap(),
+            credit: UsdCents::try_from_usd(credit_amount).unwrap(),
+            net_normal: UsdCents::try_from_usd(net_amount_pos).unwrap(),
             net_debit: SignedUsdCents::from_usd(net_amount_neg),
             net_credit: SignedUsdCents::from_usd(net_amount_pos),
         };
 
-        let debit_normal_balance: UsdAccountBalance = usd_balance.into();
+        let debit_normal_balance: UsdAccountBalance = usd_balance.try_into().unwrap();
 
         assert_eq!(debit_normal_balance, expected_debit_normal_balance);
     }
