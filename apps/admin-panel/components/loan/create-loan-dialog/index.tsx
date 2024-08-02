@@ -225,7 +225,7 @@ export const CreateLoanDialog = ({
               value={`${String(data.loanCreate.loan.loanTerms.duration.units)} ${formatPeriod(data.loanCreate.loan.loanTerms.duration.period)}`}
             />
             <DetailItem
-              label="Interval"
+              label="Interest Payment Schedule"
               value={formatInterval(data.loanCreate.loan.loanTerms.interval)}
             />
             <DetailItem
@@ -269,17 +269,6 @@ export const CreateLoanDialog = ({
               </div>
             </div>
             <div>
-              <Label>Margin Call CVL</Label>
-              <Input
-                type="number"
-                name="marginCallCvl"
-                value={formValues.marginCallCvl}
-                onChange={handleChange}
-                placeholder="Enter the margin call CVL"
-                required
-              />
-            </div>
-            <div>
               <Label>Initial CVL</Label>
               <Input
                 type="number"
@@ -290,6 +279,18 @@ export const CreateLoanDialog = ({
                 required
               />
             </div>
+            <div>
+              <Label>Margin Call CVL</Label>
+              <Input
+                type="number"
+                name="marginCallCvl"
+                value={formValues.marginCallCvl}
+                onChange={handleChange}
+                placeholder="Enter the margin call CVL"
+                required
+              />
+            </div>
+
             <div>
               <Label>Liquidation CVL</Label>
               <Input
@@ -333,7 +334,7 @@ export const CreateLoanDialog = ({
               </div>
             </div>
             <div>
-              <Label>Interval</Label>
+              <Label>Interest Payment Schedule</Label>
               <Select
                 name="interval"
                 value={formValues.interval}

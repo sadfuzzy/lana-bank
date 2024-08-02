@@ -5,7 +5,13 @@ import { IoMdArrowDropdown, IoMdArrowDropup } from "react-icons/io"
 import Link from "next/link"
 import { useState } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import {
   Table,
@@ -14,7 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { Loan, LoanStatus, useGetLoansForCustomerQuery } from "@/lib/graphql/generated"
+import {
+  GetLoansForCustomerQuery,
+  Loan,
+  LoanStatus,
+  useGetLoansForCustomerQuery,
+} from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 import {
@@ -72,7 +83,10 @@ export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
       ) : (
         <>
           <CardHeader className="flex flex-row justify-between items-center pb-0">
-            <CardTitle>Customer loans</CardTitle>
+            <div className="flex flex-col space-y-1.5">
+              <CardTitle>Loans</CardTitle>
+              <CardDescription>Loan Details for Customer</CardDescription>
+            </div>
             <CreateLoanDialog refetch={refetch} customerId={customerId}>
               <Button>New Loan</Button>
             </CreateLoanDialog>
@@ -83,6 +97,7 @@ export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
             <CardContent className="p-6">No loans found for this customer</CardContent>
           ) : (
             <CardContent>
+              <LoanCountDetails customerLoans={customerLoans} />
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -105,6 +120,43 @@ export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
         </>
       )}
     </Card>
+  )
+}
+
+const LoanCountCard = ({ title, count }: { title: string; count: number }) => (
+  <Card variant="secondary" className="w-1/3">
+    <CardHeader>
+      <CardDescription>{title}</CardDescription>
+      <CardTitle className="text-4xl">{count}</CardTitle>
+    </CardHeader>
+  </Card>
+)
+
+const LoanCountDetails = ({
+  customerLoans,
+}: {
+  customerLoans: GetLoansForCustomerQuery
+}) => {
+  const initialCounts = Object.values(LoanStatus).reduce(
+    (acc, status) => {
+      acc[status] = 0
+      return acc
+    },
+    {} as Record<LoanStatus, number>,
+  )
+
+  const loanCounts =
+    customerLoans?.customer?.loans?.reduce((counts, loan) => {
+      counts[loan.status] += 1
+      return counts
+    }, initialCounts) || initialCounts
+
+  return (
+    <div className="flex w-full gap-4 mt-4 mb-8">
+      {Object.entries(LoanStatus).map(([key, status]) => (
+        <LoanCountCard key={status} title={key} count={loanCounts[status]} />
+      ))}
+    </div>
   )
 }
 

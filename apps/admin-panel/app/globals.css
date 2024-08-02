@@ -61,6 +61,11 @@ html {
 
     --border-color: #424141;
   }
+
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"] {
+    -webkit-appearance: none;
+  }
 }
 
 body {
