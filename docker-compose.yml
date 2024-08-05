@@ -62,7 +62,7 @@ services:
       DSN: postgres://dbuser:secret@kratos-pg:5432/default?sslmode=disable
     links:
       - kratos-pg:kratos-pg
-      - mailslurper:mailslurper
+      - mailhog:mailhog
     volumes:
       - ./dev/ory:/home/ory
   kratos-pg:
@@ -94,11 +94,6 @@ services:
     depends_on:
       - kratos
       - otel-agent
-  mailslurper:
-    image: oryd/mailslurper:latest-smtps
-    ports:
-      - "4436:4436"
-      - "4437:4437"
   mailhog:
     image: mailhog/mailhog:latest
     ports:
