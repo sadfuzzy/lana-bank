@@ -202,6 +202,15 @@ export type CustomerConnection = {
   pageInfo: PageInfo;
 };
 
+export type CustomerCreateInput = {
+  email: Scalars['String']['input'];
+};
+
+export type CustomerCreatePayload = {
+  __typename?: 'CustomerCreatePayload';
+  customer: Customer;
+};
+
 /** An edge in a connection. */
 export type CustomerEdge = {
   __typename?: 'CustomerEdge';
@@ -329,6 +338,7 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  customerCreate: CustomerCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
@@ -338,6 +348,11 @@ export type Mutation = {
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+};
+
+
+export type MutationCustomerCreateArgs = {
+  input: CustomerCreateInput;
 };
 
 
@@ -642,6 +657,13 @@ export type UserRevokeRoleMutationVariables = Exact<{
 
 
 export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type CustomerCreateMutationVariables = Exact<{
+  input: CustomerCreateInput;
+}>;
+
+
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, btcDepositAddress: string, ustDepositAddress: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -1218,6 +1240,47 @@ export function useUserRevokeRoleMutation(baseOptions?: Apollo.MutationHookOptio
 export type UserRevokeRoleMutationHookResult = ReturnType<typeof useUserRevokeRoleMutation>;
 export type UserRevokeRoleMutationResult = Apollo.MutationResult<UserRevokeRoleMutation>;
 export type UserRevokeRoleMutationOptions = Apollo.BaseMutationOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
+export const CustomerCreateDocument = gql`
+    mutation CustomerCreate($input: CustomerCreateInput!) {
+  customerCreate(input: $input) {
+    customer {
+      customerId
+      email
+      btcDepositAddress
+      ustDepositAddress
+      status
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
+
+/**
+ * __useCustomerCreateMutation__
+ *
+ * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
+      }
+export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
+export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
+export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
 export const LoanApproveDocument = gql`
     mutation LoanApprove($input: LoanApproveInput!) {
   loanApprove(input: $input) {

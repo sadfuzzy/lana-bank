@@ -176,6 +176,14 @@ type CustomerConnection {
 	nodes: [Customer!]!
 }
 
+input CustomerCreateInput {
+	email: String!
+}
+
+type CustomerCreatePayload {
+	customer: Customer!
+}
+
 """
 An edge in a connection.
 """
@@ -305,6 +313,7 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
+	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!

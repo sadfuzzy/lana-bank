@@ -1,27 +1,22 @@
 use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    primitives::{CustomerId, Satoshis},
-    server::shared_graphql::{customer::Customer, primitives::UUID},
-};
+use crate::{primitives::CustomerId, server::shared_graphql::customer::Customer};
 
 #[derive(InputObject)]
-pub struct CustomerPledgeCollateralInput {
-    pub user_id: UUID,
-    pub amount: Satoshis,
-    pub reference: String,
+pub struct CustomerCreateInput {
+    pub email: String,
 }
 
 #[derive(SimpleObject)]
-pub struct CustomerPledgeCollateralPayload {
-    pub user: Customer,
+pub struct CustomerCreatePayload {
+    pub customer: Customer,
 }
 
-impl From<crate::customer::Customer> for CustomerPledgeCollateralPayload {
-    fn from(user: crate::customer::Customer) -> Self {
+impl From<crate::customer::Customer> for CustomerCreatePayload {
+    fn from(customer: crate::customer::Customer) -> Self {
         Self {
-            user: Customer::from(user),
+            customer: Customer::from(customer),
         }
     }
 }

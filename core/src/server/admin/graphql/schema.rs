@@ -280,6 +280,19 @@ impl Mutation {
         Ok(LoanPartialPaymentPayload::from(loan))
     }
 
+    async fn customer_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerCreateInput,
+    ) -> async_graphql::Result<CustomerCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let customer = app
+            .customers()
+            .create_customer_through_admin(input.email)
+            .await?;
+        Ok(CustomerCreatePayload::from(customer))
+    }
+
     async fn user_create(
         &self,
         ctx: &Context<'_>,

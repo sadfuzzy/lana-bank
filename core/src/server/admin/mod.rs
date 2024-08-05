@@ -30,7 +30,6 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     tokio::spawn(async move {
         decoder.refresh_keys_periodically().await;
     });
-
     let schema = graphql::schema(Some(app.clone()));
 
     let cors = CorsLayer::permissive();

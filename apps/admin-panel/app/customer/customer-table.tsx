@@ -31,7 +31,13 @@ import {
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 
-function CustomerTable({ customerId }: { customerId?: string }) {
+function CustomerTable({
+  customerId,
+  renderCreateCustomerDialog,
+}: {
+  customerId?: string
+  renderCreateCustomerDialog: (refetch: () => void) => React.ReactNode
+}) {
   let customerDetails:
     | GetCustomerByCustomerIdQuery["customer"][]
     | CustomersQuery["customers"]["nodes"]
@@ -43,6 +49,7 @@ function CustomerTable({ customerId }: { customerId?: string }) {
     data: getCustomersData,
     error: customersError,
     loading: getcustomersLoading,
+    refetch,
   } = useCustomersQuery({
     variables: { first: 100 },
   })
@@ -76,6 +83,7 @@ function CustomerTable({ customerId }: { customerId?: string }) {
 
   return (
     <>
+      {renderCreateCustomerDialog(refetch)}
       {loading ? (
         <Card>
           <CardContent className="p-6">
