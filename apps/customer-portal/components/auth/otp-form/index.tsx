@@ -29,17 +29,20 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
   const router = useRouter()
   const [otp, setOtp] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
 
   const handleOtpSubmission = async () => {
     if (otp.length !== 6) {
       return
     }
     setError(null)
+    setLoading(true)
     try {
       await submitAuthFlow({ flowId, otp, type })
       const response = await checkIfTwoFactorRequired()
       if (response instanceof Error) {
         setError(response.message)
+        setLoading(false)
         return
       }
 
@@ -55,6 +58,8 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
     } catch (error) {
       console.error(error)
       setError("Invalid OTP or OTP has expired. Please go back and try again.")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -104,6 +109,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
             type="submit"
             className="rounded-full w-full"
             onClick={submitOtpHandler}
+            disabled={loading}
           >
             Submit
           </Button>
