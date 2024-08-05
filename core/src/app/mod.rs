@@ -5,12 +5,13 @@ use sqlx::PgPool;
 
 use crate::{
     applicant::Applicants,
-    audit::Audit,
-    authorization::Authorization,
+    audit::{Audit, AuditEntry},
+    authorization::{Action, AuditAction, Authorization, Object},
     customer::Customers,
     job::{JobRegistry, Jobs},
     ledger::Ledger,
     loan::Loans,
+    primitives::Subject,
     user::Users,
     withdraw::Withdraws,
 };
@@ -23,6 +24,7 @@ pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
     audit: Audit,
+    authz: Authorization,
     loans: Loans,
     customers: Customers,
     withdraws: Withdraws,
@@ -50,6 +52,7 @@ impl LavaApp {
             _pool: pool,
             _jobs: jobs,
             audit,
+            authz,
             customers,
             withdraws,
             loans,
@@ -65,6 +68,17 @@ impl LavaApp {
 
     pub fn audit(&self) -> &Audit {
         &self.audit
+    }
+
+    pub async fn list_audit_entries(
+        &self,
+        sub: &Subject,
+    ) -> Result<Vec<AuditEntry>, ApplicationError> {
+        self.authz
+            .check_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
+
+        self.audit.list().await.map_err(ApplicationError::from)
     }
 
     pub fn withdraws(&self) -> &Withdraws {

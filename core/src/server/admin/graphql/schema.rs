@@ -26,7 +26,7 @@ impl Query {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let logs = app.audit().list(sub).await?;
+        let logs = app.list_audit_entries(sub).await?;
         Ok(logs.into_iter().map(AuditEntry::from).collect())
     }
 

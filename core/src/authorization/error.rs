@@ -9,6 +9,12 @@ pub enum AuthorizationError {
     NotAuthorized,
     #[error("AuthorizationError - PermissionAlreadyExistsForRole: {0}")]
     PermissionAlreadyExistsForRole(String),
+    #[error("AuthorizationError - AuditError: {0}")]
+    AuditError(#[from] crate::audit::error::AuditError),
+    #[error("AuthorizationError - ObjectParseError: {value}")]
+    ObjectParseError { value: String },
+    #[error("AuthorizationError - ActionParseError: {value}")]
+    ActionParseError { value: String },
 }
 
 impl From<CasbinError> for AuthorizationError {
