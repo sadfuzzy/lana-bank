@@ -47,7 +47,7 @@ pub async fn run(config: PublicServerConfig, app: LavaApp) -> anyhow::Result<()>
 }
 
 pub struct PublicAuthContext {
-    pub user_id: CustomerId,
+    pub customer_id: CustomerId,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -73,9 +73,7 @@ pub async fn graphql_handler(
         }
     };
 
-    let auth_context = PublicAuthContext {
-        user_id: customer_id,
-    };
+    let auth_context = PublicAuthContext { customer_id };
     req = req.data(auth_context);
 
     schema.execute(req).await.into()

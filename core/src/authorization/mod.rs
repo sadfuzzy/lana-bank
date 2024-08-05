@@ -226,12 +226,7 @@ impl AsRef<str> for Object {
 impl std::ops::Deref for Object {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            Object::Applicant => "applicant",
-            Object::Loan => "loan",
-            Object::Term => "term",
-            Object::User => "user",
-        }
+        self.as_ref()
     }
 }
 
@@ -288,11 +283,7 @@ impl From<String> for Action {
 impl std::ops::Deref for Action {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            Action::Loan(action) => action.as_ref(),
-            Action::Term(action) => action.as_ref(),
-            Action::User(action) => action.as_ref(),
-        }
+        self.as_ref()
     }
 }
 
@@ -319,13 +310,7 @@ impl AsRef<str> for LoanAction {
 impl std::ops::Deref for LoanAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            LoanAction::Read => "loan-read",
-            LoanAction::Create => "loan-create",
-            LoanAction::List => "loan-list",
-            LoanAction::Approve => "loan-approve",
-            LoanAction::RecordPayment => "loan-record-payment",
-        }
+        self.as_ref()
     }
 }
 
@@ -346,10 +331,7 @@ impl AsRef<str> for TermAction {
 impl std::ops::Deref for TermAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            TermAction::Update => "term-update",
-            TermAction::Read => "term-read",
-        }
+        self.as_ref()
     }
 }
 
@@ -380,14 +362,6 @@ impl AsRef<str> for UserAction {
 impl std::ops::Deref for UserAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
-        match self {
-            UserAction::Create => "user-create",
-            UserAction::Read => "user-read",
-            UserAction::List => "user-list",
-            UserAction::Update => "user-update",
-            UserAction::Delete => "user-delete",
-            UserAction::AssignRole => "user-assign-role",
-            UserAction::RevokeRole => "user-revoke-role",
-        }
+        self.as_ref()
     }
 }

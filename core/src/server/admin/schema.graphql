@@ -364,7 +364,9 @@ type Query {
 	audit: [AuditEntry!]!
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
+	me: User!
 	users: [User!]!
+	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
 	defaultTerms: Terms
 	trialBalance: TrialBalance

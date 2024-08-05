@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{
     app::LavaApp,
-    primitives::{CustomerId, LoanId},
+    primitives::{CustomerId, LoanId, UserId},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
@@ -49,11 +49,25 @@ impl Query {
         Ok(customer.map(Customer::from))
     }
 
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().find_for_subject(sub).await?;
+        Ok(User::from(user))
+    }
+
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let users = app.users().list_users(sub).await?;
         Ok(users.into_iter().map(User::from).collect())
+    }
+
+    async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().find_by_id(sub, UserId::from(id)).await?;
+        Ok(user.map(User::from))
     }
 
     async fn customers(

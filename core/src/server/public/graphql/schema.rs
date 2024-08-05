@@ -37,10 +37,10 @@ impl Query {
     }
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Customer>> {
-        let PublicAuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { customer_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let user = app.customers().find_by_id(*user_id).await?;
+        let user = app.customers().find_by_id(*customer_id).await?;
 
         Ok(user.map(Customer::from))
     }
@@ -55,13 +55,18 @@ impl Mutation {
         ctx: &Context<'_>,
         input: WithdrawalInitiateInput,
     ) -> async_graphql::Result<WithdrawalInitiatePayload> {
-        let PublicAuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { customer_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
 
         let withdraw = app
             .withdraws()
-            .initiate(*user_id, input.amount, input.destination, input.reference)
+            .initiate(
+                *customer_id,
+                input.amount,
+                input.destination,
+                input.reference,
+            )
             .await?;
 
         Ok(WithdrawalInitiatePayload::from(withdraw))
@@ -71,10 +76,10 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<SumsubTokenCreatePayload> {
-        let PublicAuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { customer_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_access_token(*user_id).await?;
+        let res = app.applicants().create_access_token(*customer_id).await?;
 
         Ok(SumsubTokenCreatePayload { token: res.token })
     }
@@ -83,10 +88,10 @@ impl Mutation {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let PublicAuthContext { user_id } = ctx.data()?;
+        let PublicAuthContext { customer_id } = ctx.data()?;
 
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(*user_id).await?;
+        let res = app.applicants().create_permalink(*customer_id).await?;
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })
