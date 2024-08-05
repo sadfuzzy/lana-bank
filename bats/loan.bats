@@ -79,6 +79,10 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 
+  exec_admin_graphql 'audit-logs'
+  action=$(graphql_output '.data.audit[0].action')
+  [[ "$action" == "loan-create" ]] || exit 1
+
   variables=$(
     jq -n \
       --arg loanId "$loan_id" \

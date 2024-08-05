@@ -1,0 +1,10 @@
+query AuditLogs {
+  audit {
+    id
+    subject
+    object
+    action
+    authorized
+    createdAt
+  }
+}

@@ -110,6 +110,15 @@ type AccountWithBalance {
 
 scalar AnnualRate
 
+type AuditEntry {
+	id: ID!
+	subject: UUID!
+	object: String!
+	action: String!
+	authorized: Boolean!
+	createdAt: Timestamp!
+}
+
 type BalanceSheet {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -352,6 +361,7 @@ type ProfitAndLossStatement {
 }
 
 type Query {
+	audit: [AuditEntry!]!
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
 	users: [User!]!

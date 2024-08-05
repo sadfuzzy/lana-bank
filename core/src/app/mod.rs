@@ -5,6 +5,7 @@ use sqlx::PgPool;
 
 use crate::{
     applicant::Applicants,
+    audit::Audit,
     authorization::Authorization,
     customer::Customers,
     job::{JobRegistry, Jobs},
@@ -21,6 +22,7 @@ use error::ApplicationError;
 pub struct LavaApp {
     _pool: PgPool,
     _jobs: Jobs,
+    audit: Audit,
     loans: Loans,
     customers: Customers,
     withdraws: Withdraws,
@@ -31,7 +33,8 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        let authz = Authorization::init(&pool).await?;
+        let audit = Audit::new(&pool);
+        let authz = Authorization::init(&pool, audit.clone()).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger).await?;
         let customers = Customers::new(&pool, &ledger, &config.customer);
@@ -46,6 +49,7 @@ impl LavaApp {
         Ok(Self {
             _pool: pool,
             _jobs: jobs,
+            audit,
             customers,
             withdraws,
             loans,
@@ -57,6 +61,10 @@ impl LavaApp {
 
     pub fn customers(&self) -> &Customers {
         &self.customers
+    }
+
+    pub fn audit(&self) -> &Audit {
+        &self.audit
     }
 
     pub fn withdraws(&self) -> &Withdraws {

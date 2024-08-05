@@ -93,8 +93,6 @@ pub async fn user_id_from_email(
     Extension(app): Extension<LavaApp>,
     Json(mut payload): Json<HydratorPayload>,
 ) -> impl IntoResponse {
-    println!("Received user_id_from_email payload: {:?}", payload);
-
     let email = &payload.subject;
     match app.users().find_by_email(email).await {
         Ok(Some(user)) => {

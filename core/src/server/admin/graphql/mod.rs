@@ -1,5 +1,6 @@
 mod account;
 mod account_set;
+mod audit;
 mod customer;
 mod loan;
 mod schema;
