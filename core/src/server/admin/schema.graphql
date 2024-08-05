@@ -4,59 +4,11 @@ type AccountBalancesByCurrency {
 	usdt: LayeredUsdAccountBalances!
 }
 
-type AccountDetails {
-	id: UUID!
-	name: String!
-}
-
-type AccountSetAndSubAccounts {
-	id: UUID!
-	name: String!
-	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
-}
-
 type AccountSetAndSubAccountsWithBalance {
 	id: UUID!
 	name: String!
 	balance: AccountBalancesByCurrency!
 	subAccounts(first: Int!, after: String): AccountSetSubAccountWithBalanceConnection!
-}
-
-type AccountSetDetails {
-	id: UUID!
-	name: String!
-	hasSubAccounts: Boolean!
-}
-
-union AccountSetSubAccount = AccountDetails | AccountSetDetails
-
-type AccountSetSubAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [AccountSetSubAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [AccountSetSubAccount!]!
-}
-
-"""
-An edge in a connection.
-"""
-type AccountSetSubAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: AccountSetSubAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 union AccountSetSubAccountWithBalance = AccountWithBalance | AccountSetWithBalance
@@ -122,7 +74,7 @@ type AuditEntry {
 type BalanceSheet {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	categories: [StatementCategory!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 
@@ -141,12 +93,7 @@ scalar CVLPct
 
 type ChartOfAccounts {
 	name: String!
-	categories: [ChartOfAccountsCategory!]!
-}
-
-type ChartOfAccountsCategory {
-	name: String!
-	accounts: [AccountSetSubAccount!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 type Checking {
@@ -357,7 +304,7 @@ enum Period {
 type ProfitAndLossStatement {
 	name: String!
 	balance: AccountBalancesByCurrency!
-	categories: [StatementCategory!]!
+	categories: [StatementCategoryWithBalance!]!
 }
 
 type Query {
@@ -375,7 +322,6 @@ type Query {
 	offBalanceSheetChartOfAccounts: ChartOfAccounts
 	balanceSheet: BalanceSheet
 	profitAndLossStatement: ProfitAndLossStatement
-	accountSet(accountSetId: UUID!): AccountSetAndSubAccounts @deprecated(reason: "Use `accountSetWithBalance` instead")
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
 }
 
@@ -395,7 +341,7 @@ scalar SignedSatoshis
 
 scalar SignedUsdCents
 
-type StatementCategory {
+type StatementCategoryWithBalance {
 	name: String!
 	balance: AccountBalancesByCurrency!
 	accounts: [AccountSetSubAccountWithBalance!]!

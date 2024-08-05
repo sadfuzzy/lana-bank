@@ -34,25 +34,6 @@ export type AccountBalancesByCurrency = {
   usdt: LayeredUsdAccountBalances;
 };
 
-export type AccountDetails = {
-  __typename?: 'AccountDetails';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type AccountSetAndSubAccounts = {
-  __typename?: 'AccountSetAndSubAccounts';
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  subAccounts: AccountSetSubAccountConnection;
-};
-
-
-export type AccountSetAndSubAccountsSubAccountsArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-};
-
 export type AccountSetAndSubAccountsWithBalance = {
   __typename?: 'AccountSetAndSubAccountsWithBalance';
   balance: AccountBalancesByCurrency;
@@ -65,34 +46,6 @@ export type AccountSetAndSubAccountsWithBalance = {
 export type AccountSetAndSubAccountsWithBalanceSubAccountsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-export type AccountSetDetails = {
-  __typename?: 'AccountSetDetails';
-  hasSubAccounts: Scalars['Boolean']['output'];
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-};
-
-export type AccountSetSubAccount = AccountDetails | AccountSetDetails;
-
-export type AccountSetSubAccountConnection = {
-  __typename?: 'AccountSetSubAccountConnection';
-  /** A list of edges. */
-  edges: Array<AccountSetSubAccountEdge>;
-  /** A list of nodes. */
-  nodes: Array<AccountSetSubAccount>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-/** An edge in a connection. */
-export type AccountSetSubAccountEdge = {
-  __typename?: 'AccountSetSubAccountEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: AccountSetSubAccount;
 };
 
 export type AccountSetSubAccountWithBalance = AccountSetWithBalance | AccountWithBalance;
@@ -149,7 +102,7 @@ export type AuditEntry = {
 export type BalanceSheet = {
   __typename?: 'BalanceSheet';
   balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategory>;
+  categories: Array<StatementCategoryWithBalance>;
   name: Scalars['String']['output'];
 };
 
@@ -168,13 +121,7 @@ export type BtcBalance = {
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: Array<ChartOfAccountsCategory>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartOfAccountsCategory = {
-  __typename?: 'ChartOfAccountsCategory';
-  accounts: Array<AccountSetSubAccount>;
+  categories: Array<StatementCategoryWithBalance>;
   name: Scalars['String']['output'];
 };
 
@@ -430,14 +377,12 @@ export enum Period {
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   balance: AccountBalancesByCurrency;
-  categories: Array<StatementCategory>;
+  categories: Array<StatementCategoryWithBalance>;
   name: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
-  /** @deprecated Use `accountSetWithBalance` instead */
-  accountSet?: Maybe<AccountSetAndSubAccounts>;
   accountSetWithBalance?: Maybe<AccountSetAndSubAccountsWithBalance>;
   audit: Array<AuditEntry>;
   balanceSheet?: Maybe<BalanceSheet>;
@@ -453,11 +398,6 @@ export type Query = {
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
-};
-
-
-export type QueryAccountSetArgs = {
-  accountSetId: Scalars['UUID']['input'];
 };
 
 
@@ -496,8 +436,8 @@ export type ShareholderEquityAddInput = {
   reference: Scalars['String']['input'];
 };
 
-export type StatementCategory = {
-  __typename?: 'StatementCategory';
+export type StatementCategoryWithBalance = {
+  __typename?: 'StatementCategoryWithBalance';
   accounts: Array<AccountSetSubAccountWithBalance>;
   balance: AccountBalancesByCurrency;
   name: Scalars['String']['output'];
@@ -627,12 +567,12 @@ export type ChartOfAccountsAccountSetQuery = { __typename?: 'Query', accountSetW
 export type GetOnBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type GetOnBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string }> }> } | null };
 
 export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'ChartOfAccountsCategory', name: string, accounts: Array<{ __typename: 'AccountDetails', id: string, name: string } | { __typename: 'AccountSetDetails', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategoryWithBalance', name: string, accounts: Array<{ __typename: 'AccountSetWithBalance', id: string, name: string, hasSubAccounts: boolean } | { __typename: 'AccountWithBalance', id: string, name: string }> }> } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -921,11 +861,11 @@ export const GetOnBalanceSheetChartOfAccountsDocument = gql`
       name
       accounts {
         __typename
-        ... on AccountDetails {
+        ... on AccountWithBalance {
           id
           name
         }
-        ... on AccountSetDetails {
+        ... on AccountSetWithBalance {
           id
           name
           hasSubAccounts
@@ -970,11 +910,11 @@ export const GetOffBalanceSheetChartOfAccountsDocument = gql`
       name
       accounts {
         __typename
-        ... on AccountDetails {
+        ... on AccountWithBalance {
           id
           name
         }
-        ... on AccountSetDetails {
+        ... on AccountSetWithBalance {
           id
           name
           hasSubAccounts
