@@ -15,7 +15,7 @@ pub struct LoanCreateInput {
 
 #[derive(InputObject)]
 pub struct TermsInput {
-    pub annual_rate: AnnualRate,
+    pub annual_rate: AnnualRatePct,
     pub interval: InterestInterval,
     pub liquidation_cvl: CVLPct,
     pub duration: DurationInput,

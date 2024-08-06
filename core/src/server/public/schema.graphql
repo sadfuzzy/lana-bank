@@ -3,7 +3,7 @@ enum AccountStatus {
 	INACTIVE
 }
 
-scalar AnnualRate
+scalar AnnualRatePct
 
 
 type BtcBalance {
@@ -108,7 +108,7 @@ type SumsubTokenCreatePayload {
 }
 
 type TermValues {
-	annualRate: AnnualRate!
+	annualRate: AnnualRatePct!
 	interval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!

@@ -2,8 +2,8 @@ use async_graphql::*;
 
 use crate::server::shared_graphql::{convert::*, primitives::UUID};
 
-pub use crate::loan::AnnualRate;
-scalar!(AnnualRate);
+pub use crate::loan::AnnualRatePct;
+scalar!(AnnualRatePct);
 pub use crate::loan::CVLPct;
 scalar!(CVLPct);
 
@@ -16,7 +16,7 @@ pub struct Terms {
 
 #[derive(SimpleObject)]
 pub struct TermValues {
-    annual_rate: AnnualRate,
+    annual_rate: AnnualRatePct,
     interval: InterestInterval,
     duration: Duration,
     liquidation_cvl: CVLPct,

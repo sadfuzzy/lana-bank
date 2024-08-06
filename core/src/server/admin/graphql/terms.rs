@@ -1,13 +1,13 @@
 use async_graphql::*;
 
 use crate::{
-    loan::{AnnualRate, CVLPct},
+    loan::{AnnualRatePct, CVLPct},
     server::shared_graphql::terms::*,
 };
 
 #[derive(InputObject)]
 pub(super) struct DefaultTermsUpdateInput {
-    pub annual_rate: AnnualRate,
+    pub annual_rate: AnnualRatePct,
     pub interval: InterestInterval,
     pub liquidation_cvl: CVLPct,
     pub duration: DurationInput,

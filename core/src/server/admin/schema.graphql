@@ -60,7 +60,7 @@ type AccountWithBalance {
 	balance: AccountBalancesByCurrency!
 }
 
-scalar AnnualRate
+scalar AnnualRatePct
 
 type AuditEntry {
 	id: ID!
@@ -155,7 +155,7 @@ type CustomerEdge {
 }
 
 input DefaultTermsUpdateInput {
-	annualRate: AnnualRate!
+	annualRate: AnnualRatePct!
 	interval: InterestInterval!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
@@ -362,7 +362,7 @@ type SumsubPermalinkCreatePayload {
 }
 
 type TermValues {
-	annualRate: AnnualRate!
+	annualRate: AnnualRatePct!
 	interval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!
@@ -377,7 +377,7 @@ type Terms {
 }
 
 input TermsInput {
-	annualRate: AnnualRate!
+	annualRate: AnnualRatePct!
 	interval: InterestInterval!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!

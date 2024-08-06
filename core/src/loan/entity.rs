@@ -331,13 +331,13 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{AnnualRate, Duration, InterestInterval};
+    use crate::loan::{AnnualRatePct, Duration, InterestInterval};
 
     use super::*;
 
     fn terms() -> TermValues {
         TermValues::builder()
-            .annual_rate(dec!(0.12))
+            .annual_rate(dec!(12))
             .duration(Duration::Months(3))
             .interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(dec!(105))
@@ -421,10 +421,10 @@ mod test {
     #[test]
     fn can_update_terms() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.12)));
+        assert_eq!(loan.terms.annual_rate, AnnualRatePct::from(dec!(12)));
 
         let new_terms = TermValues::builder()
-            .annual_rate(dec!(0.15))
+            .annual_rate(dec!(15))
             .duration(Duration::Months(3))
             .interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(dec!(105))
@@ -450,6 +450,6 @@ mod test {
             LoanEvent::TermsUpdated { .. }
         ));
 
-        assert_eq!(loan.terms.annual_rate, AnnualRate::from(dec!(0.15)));
+        assert_eq!(loan.terms.annual_rate, AnnualRatePct::from(dec!(15)));
     }
 }

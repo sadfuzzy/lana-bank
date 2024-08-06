@@ -17,7 +17,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  AnnualRate: { input: any; output: any; }
+  AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
@@ -178,7 +178,7 @@ export type CustomerEdge = {
 };
 
 export type DefaultTermsUpdateInput = {
-  annualRate: Scalars['AnnualRate']['input'];
+  annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   initialCvl: Scalars['CVLPct']['input'];
   interval: InterestInterval;
@@ -460,7 +460,7 @@ export type SumsubPermalinkCreatePayload = {
 
 export type TermValues = {
   __typename?: 'TermValues';
-  annualRate: Scalars['AnnualRate']['output'];
+  annualRate: Scalars['AnnualRatePct']['output'];
   duration: Duration;
   initialCvl: Scalars['CVLPct']['output'];
   interval: InterestInterval;
@@ -476,7 +476,7 @@ export type Terms = {
 };
 
 export type TermsInput = {
-  annualRate: Scalars['AnnualRate']['input'];
+  annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   initialCvl: Scalars['CVLPct']['input'];
   interval: InterestInterval;

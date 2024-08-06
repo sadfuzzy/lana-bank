@@ -12,12 +12,11 @@ const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
-pub struct AnnualRate(Decimal);
+pub struct AnnualRatePct(Decimal);
 
-impl AnnualRate {
+impl AnnualRatePct {
     fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
-        let cents =
-            principal.to_usd() * Decimal::from(days) * dec!(100) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
+        let cents = principal.to_usd() * Decimal::from(days) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
 
         UsdCents::from(
             cents
@@ -28,9 +27,9 @@ impl AnnualRate {
     }
 }
 
-impl From<Decimal> for AnnualRate {
+impl From<Decimal> for AnnualRatePct {
     fn from(value: Decimal) -> Self {
-        AnnualRate(value)
+        AnnualRatePct(value)
     }
 }
 
@@ -103,7 +102,7 @@ impl InterestInterval {
 #[derive(Builder, Debug, Serialize, Deserialize, Clone)]
 pub struct TermValues {
     #[builder(setter(into))]
-    pub(crate) annual_rate: AnnualRate,
+    pub(crate) annual_rate: AnnualRatePct,
     #[builder(setter(into))]
     pub(crate) duration: Duration,
     #[builder(setter(into))]
@@ -160,7 +159,7 @@ mod test {
 
     fn terms() -> TermValues {
         TermValues::builder()
-            .annual_rate(AnnualRate(dec!(0.12)))
+            .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
             .interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(105)))
