@@ -327,6 +327,7 @@ type Query {
 
 enum Role {
 	SUPERUSER
+	ADMIN
 	BANK_MANAGER
 }
 

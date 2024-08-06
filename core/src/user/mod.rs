@@ -115,7 +115,11 @@ impl Users {
         role: Role,
     ) -> Result<User, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::AssignRole))
+            .check_permission(
+                sub,
+                Object::User,
+                Action::User(UserAction::AssignRole(role)),
+            )
             .await?;
         let user = self.repo.find_by_id(id).await?;
         self.authz.assign_role_to_subject(user.id, &role).await?;
@@ -129,7 +133,11 @@ impl Users {
         role: Role,
     ) -> Result<User, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::RevokeRole))
+            .check_permission(
+                sub,
+                Object::User,
+                Action::User(UserAction::RevokeRole(role)),
+            )
             .await?;
         let user = self.repo.find_by_id(id).await?;
         self.authz.revoke_role_from_subject(user.id, &role).await?;

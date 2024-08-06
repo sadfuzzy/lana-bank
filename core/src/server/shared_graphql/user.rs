@@ -40,5 +40,6 @@ impl From<crate::user::User> for User {
 #[graphql(remote = "crate::primitives::Role")]
 pub enum Role {
     Superuser,
+    Admin,
     BankManager,
 }

@@ -120,9 +120,10 @@ impl From<&Subject> for uuid::Uuid {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Role {
     Superuser,
+    Admin,
     BankManager,
 }
 
@@ -131,6 +132,7 @@ impl AsRef<str> for Role {
         match self {
             Role::Superuser => "superuser",
             Role::BankManager => "bank-manager",
+            Role::Admin => "admin",
         }
     }
 }
@@ -140,6 +142,7 @@ impl From<&str> for Role {
         match s {
             "superuser" => Role::Superuser,
             "bank-manager" => Role::BankManager,
+            "admin" => Role::Admin,
             _ => panic!("Invalid role"),
         }
     }

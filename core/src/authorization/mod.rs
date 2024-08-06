@@ -37,6 +37,7 @@ impl Authorization {
         };
 
         auth.seed_roles().await?;
+        auth.seed_role_hierarchy().await?;
 
         Ok(auth)
     }
@@ -44,27 +45,60 @@ impl Authorization {
     async fn seed_roles(&mut self) -> Result<(), AuthorizationError> {
         self.add_permissions_for_superuser().await?;
         self.add_permissions_for_bank_manager().await?;
+        self.add_permissions_for_admin().await?;
 
         Ok(())
+    }
+
+    async fn seed_role_hierarchy(&self) -> Result<(), AuthorizationError> {
+        self.add_role_hierarchy(Role::Admin, Role::Superuser)
+            .await?;
+        self.add_role_hierarchy(Role::BankManager, Role::Admin)
+            .await?;
+
+        Ok(())
+    }
+
+    async fn add_role_hierarchy(
+        &self,
+        parent_role: Role,
+        child_role: Role,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        match enforcer
+            .add_grouping_policy(vec![child_role.to_string(), parent_role.to_string()])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
     }
 
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Superuser;
 
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
-            .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
-            .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
-            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::AssignRole(Role::Admin)),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::User,
+            Action::User(UserAction::RevokeRole(Role::Admin)),
+        )
+        .await?;
+        Ok(())
+    }
+
+    async fn add_permissions_for_admin(&mut self) -> Result<(), AuthorizationError> {
+        let role = Role::Admin;
+
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Create))
             .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::List))
@@ -75,34 +109,16 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Delete))
             .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::AssignRole))
-            .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::RevokeRole))
-            .await?;
-        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
-            .await?;
         self.add_permission_to_role(
             &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Create),
+            Object::User,
+            Action::User(UserAction::AssignRole(Role::BankManager)),
         )
         .await?;
         self.add_permission_to_role(
             &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::List),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Read),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Update),
+            Object::User,
+            Action::User(UserAction::RevokeRole(Role::BankManager)),
         )
         .await?;
         Ok(())
@@ -149,6 +165,8 @@ impl Authorization {
             Action::Customer(CustomerAction::Update),
         )
         .await?;
+        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
+            .await?;
 
         Ok(())
     }
@@ -337,8 +355,20 @@ impl FromStr for Action {
             "user-list" => Ok(Action::User(UserAction::List)),
             "user-update" => Ok(Action::User(UserAction::Update)),
             "user-delete" => Ok(Action::User(UserAction::Delete)),
-            "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
-            "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
+            "user-assign-role-superuser" => {
+                Ok(Action::User(UserAction::AssignRole(Role::Superuser)))
+            }
+            "user-assign-role-admin" => Ok(Action::User(UserAction::AssignRole(Role::Admin))),
+            "user-assign-role-bank-manager" => {
+                Ok(Action::User(UserAction::AssignRole(Role::BankManager)))
+            }
+            "user-revoke-role-superuser" => {
+                Ok(Action::User(UserAction::RevokeRole(Role::Superuser)))
+            }
+            "user-revoke-role-admin" => Ok(Action::User(UserAction::RevokeRole(Role::Admin))),
+            "user-revoke-role-bank-manager" => {
+                Ok(Action::User(UserAction::RevokeRole(Role::BankManager)))
+            }
             "audit-list" => Ok(Action::Audit(AuditAction::List)),
             "customer-create" => Ok(Action::Customer(CustomerAction::Create)),
             "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
@@ -431,8 +461,8 @@ pub enum UserAction {
     List,
     Update,
     Delete,
-    AssignRole,
-    RevokeRole,
+    AssignRole(Role),
+    RevokeRole(Role),
 }
 
 impl AsRef<str> for UserAction {
@@ -443,8 +473,16 @@ impl AsRef<str> for UserAction {
             UserAction::List => "user-list",
             UserAction::Update => "user-update",
             UserAction::Delete => "user-delete",
-            UserAction::AssignRole => "user-assign-role",
-            UserAction::RevokeRole => "user-revoke-role",
+            UserAction::AssignRole(role) => match role {
+                Role::Superuser => "user-assign-role-superuser",
+                Role::Admin => "user-assign-role-admin",
+                Role::BankManager => "user-assign-role-bank-manager",
+            },
+            UserAction::RevokeRole(role) => match role {
+                Role::Superuser => "user-revoke-role-superuser",
+                Role::Admin => "user-revoke-role-admin",
+                Role::BankManager => "user-revoke-role-bank-manager",
+            },
         }
     }
 }

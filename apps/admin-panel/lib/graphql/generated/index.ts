@@ -427,6 +427,7 @@ export type QueryUserArgs = {
 };
 
 export enum Role {
+  Admin = 'ADMIN',
   BankManager = 'BANK_MANAGER',
   Superuser = 'SUPERUSER'
 }
