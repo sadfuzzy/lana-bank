@@ -1,5 +1,5 @@
 import { gql } from "@apollo/client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 
 import {
@@ -68,7 +68,7 @@ export const CreateLoanDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const [customerIdValue, setcustomerIdValue] = useState<string>(customerId)
+  const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { data, loading, error, reset }] = useLoanCreateMutation()
 
@@ -83,22 +83,6 @@ export const CreateLoanDialog = ({
     durationPeriod: "",
   })
 
-  useEffect(() => {
-    if (defaultTermsData && defaultTermsData.defaultTerms) {
-      const terms = defaultTermsData.defaultTerms.values
-      setFormValues({
-        desiredPrincipal: "",
-        annualRate: terms.annualRate.toString(),
-        interval: terms.interval,
-        liquidationCvl: terms.liquidationCvl.toString(),
-        marginCallCvl: terms.marginCallCvl.toString(),
-        initialCvl: terms.initialCvl.toString(),
-        durationUnits: terms.duration.units.toString(),
-        durationPeriod: terms.duration.period,
-      })
-    }
-  }, [defaultTermsData])
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormValues((prevValues) => ({
@@ -109,7 +93,6 @@ export const CreateLoanDialog = ({
 
   const handleCreateLoan = async (event: React.FormEvent) => {
     event.preventDefault()
-
     const {
       desiredPrincipal,
       annualRate,
@@ -163,25 +146,41 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
-    setFormValues({
-      desiredPrincipal: "",
-      annualRate: "",
-      interval: "",
-      liquidationCvl: "",
-      marginCallCvl: "",
-      initialCvl: "",
-      durationUnits: "",
-      durationPeriod: "",
-    })
+    if (defaultTermsData && defaultTermsData.defaultTerms) {
+      const terms = defaultTermsData.defaultTerms.values
+      setFormValues({
+        desiredPrincipal: "",
+        annualRate: terms.annualRate.toString(),
+        interval: terms.interval,
+        liquidationCvl: terms.liquidationCvl.toString(),
+        marginCallCvl: terms.marginCallCvl.toString(),
+        initialCvl: terms.initialCvl.toString(),
+        durationUnits: terms.duration.units.toString(),
+        durationPeriod: terms.duration.period,
+      })
+    } else {
+      setFormValues({
+        desiredPrincipal: "",
+        annualRate: "",
+        interval: "",
+        liquidationCvl: "",
+        marginCallCvl: "",
+        initialCvl: "",
+        durationUnits: "",
+        durationPeriod: "",
+      })
+    }
   }
 
   return (
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setcustomerIdValue(customerId)
-          resetForm()
+          setCustomerIdValue(customerId)
           reset()
+        }
+        if (isOpen) {
+          resetForm()
         }
       }}
     >
@@ -233,16 +232,16 @@ export const CreateLoanDialog = ({
               value={`${data.loanCreate.loan.loanTerms.annualRate}%`}
             />
             <DetailItem
-              label="Liquidation CVL"
-              value={`${data.loanCreate.loan.loanTerms.liquidationCvl}%`}
+              label="Initial CVL"
+              value={`${data.loanCreate.loan.loanTerms.initialCvl}%`}
             />
             <DetailItem
               label="Margin Call CVL"
               value={`${data.loanCreate.loan.loanTerms.marginCallCvl}%`}
             />
             <DetailItem
-              label="Initial CVL"
-              value={`${data.loanCreate.loan.loanTerms.initialCvl}%`}
+              label="Liquidation CVL"
+              value={`${data.loanCreate.loan.loanTerms.liquidationCvl}%`}
             />
           </DetailsGroup>
         </DialogContent>
@@ -269,7 +268,7 @@ export const CreateLoanDialog = ({
               </div>
             </div>
             <div>
-              <Label>Initial CVL</Label>
+              <Label>Initial CVL (%)</Label>
               <Input
                 type="number"
                 name="initialCvl"
@@ -280,7 +279,7 @@ export const CreateLoanDialog = ({
               />
             </div>
             <div>
-              <Label>Margin Call CVL</Label>
+              <Label>Margin Call CVL (%)</Label>
               <Input
                 type="number"
                 name="marginCallCvl"
@@ -292,7 +291,7 @@ export const CreateLoanDialog = ({
             </div>
 
             <div>
-              <Label>Liquidation CVL</Label>
+              <Label>Liquidation CVL (%)</Label>
               <Input
                 type="number"
                 name="liquidationCvl"
@@ -352,7 +351,7 @@ export const CreateLoanDialog = ({
               </Select>
             </div>
             <div>
-              <Label>Annual Rate</Label>
+              <Label>Annual Rate (%)</Label>
               <Input
                 type="number"
                 name="annualRate"
@@ -364,7 +363,12 @@ export const CreateLoanDialog = ({
             </div>
             {error && <span className="text-destructive">{error.message}</span>}
             <DialogFooter className="mt-4">
-              <Button className="w-32" disabled={loading} type="submit">
+              <Button
+                onClick={handleCreateLoan}
+                className="w-32"
+                disabled={loading}
+                type="submit"
+              >
                 Create New Loan
               </Button>
             </DialogFooter>
