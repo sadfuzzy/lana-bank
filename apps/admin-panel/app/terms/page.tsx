@@ -56,7 +56,7 @@ function TermPage() {
                   {data?.defaultTerms.termsId}
                 </p>
               </div>
-              <UpdateDefaultTermDialog refetch={refetch}>
+              <UpdateDefaultTermDialog refetch={refetch} termsData={data}>
                 <Button variant="secondary" className="mt-6 flex gap-2 items-center">
                   <PiPencilSimpleLineLight className="w-5 h-5" />
                   Update Default Terms
@@ -84,16 +84,16 @@ function TermPage() {
                   value={data.defaultTerms.values.annualRate + "%"}
                 />
                 <DetailItem
-                  label="Liquidation CVL"
-                  value={data.defaultTerms.values.liquidationCvl}
+                  label="Initial CVL"
+                  value={data.defaultTerms.values.initialCvl + "%"}
                 />
                 <DetailItem
                   label="Margin Call CVL"
-                  value={data.defaultTerms.values.marginCallCvl}
+                  value={data.defaultTerms.values.marginCallCvl + "%"}
                 />
                 <DetailItem
-                  label="Initial CVL"
-                  value={data.defaultTerms.values.initialCvl}
+                  label="Liquidation CVL"
+                  value={data.defaultTerms.values.liquidationCvl + "%"}
                 />
               </DetailsGroup>
             </CardContent>

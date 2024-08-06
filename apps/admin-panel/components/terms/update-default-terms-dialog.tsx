@@ -20,6 +20,7 @@ import { Select } from "../primitive/select"
 import { Button } from "../primitive/button"
 
 import {
+  DefaultTermsQuery,
   InterestInterval,
   Period,
   useDefaultTermsUpdateMutation,
@@ -51,7 +52,8 @@ gql`
 export const UpdateDefaultTermDialog: React.FC<{
   children: React.ReactNode
   refetch?: () => void
-}> = ({ children, refetch }) => {
+  termsData?: DefaultTermsQuery | undefined
+}> = ({ children, refetch, termsData }) => {
   const [interval, setInterval] = useState<InterestInterval | "">("")
   const [liquidationCvl, setLiquidationCvl] = useState<string>("")
   const [marginCallCvl, setMarginCallCvl] = useState<string>("")
@@ -67,7 +69,6 @@ export const UpdateDefaultTermDialog: React.FC<{
 
   const handleUpdateDefaultTerm = async (event: React.FormEvent) => {
     event.preventDefault()
-    console.log(annualRate, interval, duration, liquidationCvl, marginCallCvl, initialCvl)
 
     if (
       annualRate === "" ||
@@ -106,19 +107,29 @@ export const UpdateDefaultTermDialog: React.FC<{
   }
 
   const resetForm = () => {
-    setInterval("")
-    setLiquidationCvl("")
-    setMarginCallCvl("")
-    setInitialCvl("")
-    setDuration({ period: "", units: "" })
-    setAnnualRate("")
+    if (termsData && termsData.defaultTerms) {
+      const { values } = termsData.defaultTerms
+      setInterval(values.interval)
+      setLiquidationCvl(values.liquidationCvl)
+      setMarginCallCvl(values.marginCallCvl)
+      setInitialCvl(values.initialCvl)
+      setDuration({ period: values.duration.period, units: values.duration.units })
+      setAnnualRate(values.annualRate)
+    } else {
+      setInterval("")
+      setLiquidationCvl("")
+      setMarginCallCvl("")
+      setInitialCvl("")
+      setDuration({ period: "", units: "" })
+      setAnnualRate("")
+    }
     reset()
   }
 
   return (
     <Dialog
       onOpenChange={(isOpen) => {
-        if (!isOpen) {
+        if (isOpen) {
           resetForm()
         }
       }}
@@ -146,19 +157,19 @@ export const UpdateDefaultTermDialog: React.FC<{
             />
             <DetailItem
               label="Annual Rate"
-              value={data.defaultTermsUpdate.terms.values.annualRate}
-            />
-            <DetailItem
-              label="Liquidation CVL"
-              value={data.defaultTermsUpdate.terms.values.liquidationCvl}
-            />
-            <DetailItem
-              label="Margin Call CVL"
-              value={data.defaultTermsUpdate.terms.values.marginCallCvl}
+              value={data.defaultTermsUpdate.terms.values.annualRate + "%"}
             />
             <DetailItem
               label="Initial CVL"
-              value={data.defaultTermsUpdate.terms.values.initialCvl}
+              value={data.defaultTermsUpdate.terms.values.initialCvl + "%"}
+            />
+            <DetailItem
+              label="Margin Call CVL"
+              value={data.defaultTermsUpdate.terms.values.marginCallCvl + "%"}
+            />
+            <DetailItem
+              label="Liquidation CVL"
+              value={data.defaultTermsUpdate.terms.values.liquidationCvl + "%"}
             />
           </DetailsGroup>
         </DialogContent>
@@ -172,17 +183,7 @@ export const UpdateDefaultTermDialog: React.FC<{
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleUpdateDefaultTerm}>
             <div>
-              <Label>Margin Call CVL</Label>
-              <Input
-                type="number"
-                value={marginCallCvl}
-                onChange={(e) => setMarginCallCvl(e.target.value)}
-                placeholder="Enter the margin call CVL"
-                required
-              />
-            </div>
-            <div>
-              <Label>Initial CVL</Label>
+              <Label>Initial CVL (%)</Label>
               <Input
                 type="number"
                 value={initialCvl}
@@ -192,7 +193,17 @@ export const UpdateDefaultTermDialog: React.FC<{
               />
             </div>
             <div>
-              <Label>Liquidation CVL</Label>
+              <Label>Margin Call CVL (%)</Label>
+              <Input
+                type="number"
+                value={marginCallCvl}
+                onChange={(e) => setMarginCallCvl(e.target.value)}
+                placeholder="Enter the margin call CVL"
+                required
+              />
+            </div>
+            <div>
+              <Label>Liquidation CVL (%)</Label>
               <Input
                 type="number"
                 value={liquidationCvl}
@@ -255,7 +266,7 @@ export const UpdateDefaultTermDialog: React.FC<{
               </Select>
             </div>
             <div>
-              <Label>Annual Rate</Label>
+              <Label>Annual Rate (%)</Label>
               <Input
                 type="number"
                 value={annualRate}
