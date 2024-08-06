@@ -97,6 +97,7 @@ jobs:
       - check-code
       - integration-tests
       - bats-tests
+      trigger: true
     - get: pipeline-tasks
     - get: version
     - get: #@ app_edge_image_resource_name("admin-panel")
