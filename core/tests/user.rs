@@ -1,5 +1,6 @@
 mod helpers;
 use rand::distributions::{Alphanumeric, DistString};
+use serial_test::file_serial;
 
 use lava_core::{app::*, primitives::*, user::*};
 
@@ -9,6 +10,7 @@ fn generate_random_email() -> String {
 }
 
 #[tokio::test]
+#[file_serial]
 async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let superuser_email = generate_random_email();

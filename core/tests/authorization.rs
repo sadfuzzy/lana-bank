@@ -1,5 +1,7 @@
 mod helpers;
 
+use serial_test::file_serial;
+
 use lava_core::{
     audit::*,
     authorization::{error::AuthorizationError, *},
@@ -7,6 +9,7 @@ use lava_core::{
 };
 
 #[tokio::test]
+#[file_serial]
 async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
@@ -64,6 +67,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+#[file_serial]
 async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
@@ -123,6 +127,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+#[file_serial]
 async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
