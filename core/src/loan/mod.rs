@@ -92,7 +92,7 @@ impl Loans {
             .await?;
 
         let customer_id = customer_id.into();
-        let customer = match self.customers.find_by_id(customer_id).await? {
+        let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,
             None => return Err(LoanError::CustomerNotFound(customer_id)),
         };

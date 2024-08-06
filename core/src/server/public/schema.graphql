@@ -93,7 +93,6 @@ enum Period {
 
 type Query {
 	loan(id: UUID!): Loan
-	customer(id: UUID!): Customer
 	me: Customer
 }
 

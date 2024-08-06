@@ -45,7 +45,11 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<Customer>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let customer = app.customers().find_by_id(CustomerId::from(id)).await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let customer = app
+            .customers()
+            .find_by_id(Some(sub), CustomerId::from(id))
+            .await?;
         Ok(customer.map(Customer::from))
     }
 
@@ -77,6 +81,7 @@ impl Query {
         after: Option<String>,
     ) -> Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         query(
             after,
             None,
@@ -86,10 +91,13 @@ impl Query {
                 let first = first.expect("First always exists");
                 let res = app
                     .customers()
-                    .list(crate::query::PaginatedQueryArgs {
-                        first,
-                        after: after.map(crate::customer::CustomerByNameCursor::from),
-                    })
+                    .list(
+                        sub,
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::customer::CustomerByNameCursor::from),
+                        },
+                    )
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
@@ -298,9 +306,10 @@ impl Mutation {
         input: CustomerCreateInput,
     ) -> async_graphql::Result<CustomerCreatePayload> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         let customer = app
             .customers()
-            .create_customer_through_admin(input.email)
+            .create_customer_through_admin(sub, input.email)
             .await?;
         Ok(CustomerCreatePayload::from(customer))
     }

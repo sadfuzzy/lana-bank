@@ -43,7 +43,7 @@ impl Loan {
         let app = ctx.data_unchecked::<LavaApp>();
         let user = app
             .customers()
-            .find_by_id(CustomerId::from(&self.customer_id))
+            .find_by_id(None, CustomerId::from(&self.customer_id))
             .await?;
 
         match user {

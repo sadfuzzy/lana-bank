@@ -81,7 +81,30 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
             .await?;
-
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Create),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::List),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Update),
+        )
+        .await?;
         Ok(())
     }
 
@@ -102,6 +125,30 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
             .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Create),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::List),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Read),
+        )
+        .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Customer,
+            Action::Customer(CustomerAction::Update),
+        )
+        .await?;
 
         Ok(())
     }
@@ -201,6 +248,7 @@ impl Authorization {
             .filter(|r| r[0] == sub.to_string())
             .map(|r| Role::from(r[1].as_str()))
             .collect();
+
         Ok(roles)
     }
 }
@@ -210,6 +258,7 @@ pub enum Object {
     Loan,
     Term,
     User,
+    Customer,
     Audit,
 }
 
@@ -220,6 +269,7 @@ impl AsRef<str> for Object {
             Object::Loan => "loan",
             Object::Term => "term",
             Object::User => "user",
+            Object::Customer => "customer",
             Object::Audit => "audit",
         }
     }
@@ -242,6 +292,7 @@ impl FromStr for Object {
             "term" => Ok(Object::Term),
             "user" => Ok(Object::User),
             "audit" => Ok(Object::Audit),
+            "customer" => Ok(Object::Customer),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -253,6 +304,7 @@ pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
     User(UserAction),
+    Customer(CustomerAction),
     Audit(AuditAction),
 }
 
@@ -262,6 +314,7 @@ impl AsRef<str> for Action {
             Action::Loan(action) => action.as_ref(),
             Action::Term(action) => action.as_ref(),
             Action::User(action) => action.as_ref(),
+            Action::Customer(action) => action.as_ref(),
             Action::Audit(action) => action.as_ref(),
         }
     }
@@ -287,6 +340,10 @@ impl FromStr for Action {
             "user-assign-role" => Ok(Action::User(UserAction::AssignRole)),
             "user-revoke-role" => Ok(Action::User(UserAction::RevokeRole)),
             "audit-list" => Ok(Action::Audit(AuditAction::List)),
+            "customer-create" => Ok(Action::Customer(CustomerAction::Create)),
+            "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
+            "customer-list" => Ok(Action::Customer(CustomerAction::List)),
+            "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
@@ -393,6 +450,31 @@ impl AsRef<str> for UserAction {
 }
 
 impl std::ops::Deref for UserAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+pub enum CustomerAction {
+    Create,
+    Read,
+    List,
+    Update,
+}
+
+impl AsRef<str> for CustomerAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            CustomerAction::Create => "customer-create",
+            CustomerAction::Read => "customer-read",
+            CustomerAction::List => "customer-list",
+            CustomerAction::Update => "customer-update",
+        }
+    }
+}
+
+impl std::ops::Deref for CustomerAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()

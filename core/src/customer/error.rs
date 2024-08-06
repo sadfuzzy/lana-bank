@@ -16,4 +16,6 @@ pub enum CustomerError {
     UnexpectedCurrency,
     #[error("CustomerError - KratosClientError: {0}")]
     KratosClientError(#[from] super::kratos::error::KratosClientError),
+    #[error("CustomerError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

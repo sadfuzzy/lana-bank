@@ -6,8 +6,9 @@ mod kratos;
 mod repo;
 
 use crate::{
+    authorization::{Action, Authorization, CustomerAction, Object},
     ledger::*,
-    primitives::{CustomerId, KycLevel},
+    primitives::{CustomerId, KycLevel, Subject},
 };
 
 pub use config::*;
@@ -23,10 +24,16 @@ pub struct Customers {
     repo: CustomerRepo,
     ledger: Ledger,
     kratos: KratosClient,
+    authz: Authorization,
 }
 
 impl Customers {
-    pub fn new(pool: &sqlx::PgPool, ledger: &Ledger, config: &CustomerConfig) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        ledger: &Ledger,
+        config: &CustomerConfig,
+        authz: &Authorization,
+    ) -> Self {
         let repo = CustomerRepo::new(pool);
         let kratos = KratosClient::new(&config.kratos);
         Self {
@@ -34,6 +41,7 @@ impl Customers {
             repo,
             ledger: ledger.clone(),
             kratos,
+            authz: authz.clone(),
         }
     }
 
@@ -43,8 +51,16 @@ impl Customers {
 
     pub async fn create_customer_through_admin(
         &self,
+        sub: &Subject,
         email: String,
     ) -> Result<Customer, CustomerError> {
+        self.authz
+            .check_permission(
+                sub,
+                Object::Customer,
+                Action::Customer(CustomerAction::Create),
+            )
+            .await?;
         let customer_id = self.kratos.create_identity(&email).await?;
         self.create_customer(customer_id.into(), email).await
     }
@@ -67,7 +83,20 @@ impl Customers {
         self.repo.create(new_customer).await
     }
 
-    pub async fn find_by_id(&self, id: CustomerId) -> Result<Option<Customer>, CustomerError> {
+    pub async fn find_by_id(
+        &self,
+        sub: Option<&Subject>,
+        id: CustomerId,
+    ) -> Result<Option<Customer>, CustomerError> {
+        if let Some(sub) = sub {
+            self.authz
+                .check_permission(
+                    sub,
+                    Object::Customer,
+                    Action::Customer(CustomerAction::Read),
+                )
+                .await?;
+        }
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::CouldNotFindById(_)) => Ok(None),
@@ -77,9 +106,17 @@ impl Customers {
 
     pub async fn list(
         &self,
+        sub: &Subject,
         query: crate::query::PaginatedQueryArgs<CustomerByNameCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByNameCursor>, CustomerError>
     {
+        self.authz
+            .check_permission(
+                sub,
+                Object::Customer,
+                Action::Customer(CustomerAction::List),
+            )
+            .await?;
         self.repo.list(query).await
     }
 
