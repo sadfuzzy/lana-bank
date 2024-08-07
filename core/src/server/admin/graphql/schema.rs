@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, *};
+use async_graphql::{types::connection::*, Context, Object, Result};
 use uuid::Uuid;
 
 use super::{
@@ -7,6 +7,7 @@ use super::{
 };
 use crate::{
     app::LavaApp,
+    audit::AuditCursor,
     primitives::{CustomerId, LoanId, UserId},
     server::{
         admin::AdminAuthContext,
@@ -21,13 +22,35 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    async fn audit(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<AuditEntry>> {
+    async fn audit(
+        &self,
+        ctx: &Context<'_>,
+        first: i64,
+        after: Option<String>,
+    ) -> Result<Connection<AuditCursor, AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
-
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let logs = app.list_audit_entries(sub).await?;
-        Ok(logs.into_iter().map(AuditEntry::from).collect())
+        let after_cursor = after.map(|cursor| AuditCursor {
+            id: cursor.parse::<i64>().unwrap(),
+        });
+
+        let query_args = crate::query::PaginatedQueryArgs {
+            first: first.try_into().expect("convert to usize failed"),
+            after: after_cursor,
+        };
+
+        let res = app.list_audit(sub, query_args).await?;
+
+        let mut connection = Connection::new(false, res.has_next_page);
+        connection
+            .edges
+            .extend(res.entities.into_iter().map(|entry| {
+                let cursor = AuditCursor { id: entry.id.0 };
+                Edge::new(cursor, AuditEntry::from(entry))
+            }));
+
+        Ok(connection)
     }
 
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {

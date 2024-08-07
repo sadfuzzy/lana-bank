@@ -3,23 +3,32 @@
 import { gql } from "@apollo/client"
 
 import { PageHeading } from "@/components/page-heading"
-import { useAuditEntriesQuery } from "@/lib/graphql/generated"
+import { useAuditLogsQuery } from "@/lib/graphql/generated"
 
 gql`
-  query AuditEntries {
-    audit {
-      id
-      subject
-      object
-      action
-      authorized
-      createdAt
+  query AuditLogs($first: Int!, $after: String) {
+    audit(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          id
+          subject
+          object
+          action
+          authorized
+          createdAt
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
     }
   }
 `
 
 function LogsPage() {
-  const { data: logDetails } = useAuditEntriesQuery({})
+  const { data: logDetails } = useAuditLogsQuery({ variables: { first: 100 } })
 
   return (
     <main className="text-white min-h-screen p-4">
@@ -62,22 +71,22 @@ function LogsPage() {
               </tr>
             </thead>
             <tbody className="bg-gray-800 divide-y divide-gray-700">
-              {logDetails?.audit.map((item) => (
-                <tr key={item.id}>
+              {logDetails?.audit.edges.map((item) => (
+                <tr key={item.node.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
-                    {item.subject}
+                    {item.node.subject}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    {item.object}
+                    {item.node.object}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
-                    {item.action}
+                    {item.node.action}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    {item.authorized ? "Yes" : "No"}
+                    {item.node.authorized ? "Yes" : "No"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                    {item.createdAt}
+                    {item.node.createdAt}
                   </td>
                 </tr>
               ))}

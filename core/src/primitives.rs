@@ -378,6 +378,15 @@ impl PriceOfOneBTC {
     }
 }
 
+#[derive(Debug)]
+pub struct AuditEntryId(pub i64);
+
+impl From<i64> for AuditEntryId {
+    fn from(value: i64) -> AuditEntryId {
+        AuditEntryId(value)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

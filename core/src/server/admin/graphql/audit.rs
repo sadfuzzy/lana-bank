@@ -15,7 +15,7 @@ pub struct AuditEntry {
 impl From<crate::audit::AuditEntry> for AuditEntry {
     fn from(audit_log: crate::audit::AuditEntry) -> Self {
         Self {
-            id: audit_log.id.into(),
+            id: audit_log.id.0.into(),
             subject: UUID::from(*audit_log.subject.as_ref()),
             object: audit_log.object.as_ref().into(),
             action: audit_log.action.as_ref().into(),

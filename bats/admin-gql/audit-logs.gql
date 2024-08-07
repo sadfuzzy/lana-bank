@@ -1,10 +1,19 @@
-query AuditLogs {
-  audit {
-    id
-    subject
-    object
-    action
-    authorized
-    createdAt
+query AuditLogs($first: Int!, $after: String) {
+  audit(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        subject
+        object
+        action
+        authorized
+        createdAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
   }
 }

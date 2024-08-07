@@ -71,6 +71,35 @@ type AuditEntry {
 	createdAt: Timestamp!
 }
 
+type AuditEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AuditEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AuditEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AuditEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AuditEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type BalanceSheet {
 	name: String!
 	balance: AccountBalancesByCurrency!
@@ -308,7 +337,7 @@ type ProfitAndLossStatement {
 }
 
 type Query {
-	audit: [AuditEntry!]!
+	audit(first: Int!, after: String): AuditEntryConnection!
 	loan(id: UUID!): Loan
 	customer(id: UUID!): Customer
 	me: User!
