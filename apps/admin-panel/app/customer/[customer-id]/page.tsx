@@ -13,7 +13,7 @@ function customerDetails({
   const { "customer-id": customerId } = params
   return (
     <main>
-      <PageHeading>customer Details</PageHeading>
+      <PageHeading>Customer Details</PageHeading>
       <CustomerDetailsCard customerId={customerId} />
       <CustomerLoansTable customerId={customerId} />
     </main>

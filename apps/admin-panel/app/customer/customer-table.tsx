@@ -38,6 +38,7 @@ function CustomerTable({
   customerId?: string
   renderCreateCustomerDialog: (refetch: () => void) => React.ReactNode
 }) {
+  const pageSize = 100
   let customerDetails:
     | GetCustomerByCustomerIdQuery["customer"][]
     | CustomersQuery["customers"]["nodes"]
@@ -48,36 +49,59 @@ function CustomerTable({
   const {
     data: getCustomersData,
     error: customersError,
-    loading: getcustomersLoading,
+    loading: getCustomersLoading,
     refetch,
+    fetchMore,
   } = useCustomersQuery({
-    variables: { first: 100 },
+    variables: { first: pageSize },
   })
 
   const {
     data: getCustomerByCustomerIdData,
-    error: getcustomersBycustomerIdError,
-    loading: getcustomersBycustomerIdLoading,
+    error: getCustomerByCustomerIdError,
+    loading: getCustomerByCustomerIdLoading,
   } = useGetCustomerByCustomerIdQuery({
     variables: { id: customerId || "" },
     skip: !customerId,
   })
 
   if (getCustomerByCustomerIdData) {
-    loading = getcustomersBycustomerIdLoading
+    loading = getCustomerByCustomerIdLoading
     const result = getCustomerByCustomerIdData
-    if (customersError) {
-      error = customersError.message
+    if (getCustomerByCustomerIdError) {
+      error = getCustomerByCustomerIdError.message
     } else {
       customerDetails = result.customer ? [result.customer] : null
     }
   } else {
-    loading = getcustomersLoading
+    loading = getCustomersLoading
     const result = getCustomersData
-    if (getcustomersBycustomerIdError) {
-      error = getcustomersBycustomerIdError.message
+    if (customersError) {
+      error = customersError.message
     } else {
       customerDetails = result?.customers.nodes ? result.customers.nodes : null
+    }
+  }
+
+  const pageInfo = getCustomersData?.customers.pageInfo
+
+  const handleLoadMore = () => {
+    if (pageInfo?.hasNextPage) {
+      fetchMore({
+        variables: {
+          after: pageInfo.endCursor,
+          first: pageSize,
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return prev
+          return {
+            customers: {
+              ...fetchMoreResult.customers,
+              nodes: [...prev.customers.nodes, ...fetchMoreResult.customers.nodes],
+            },
+          }
+        },
+      })
     }
   }
 
@@ -103,7 +127,7 @@ function CustomerTable({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>customer</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>BTC Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Withdrawals)</TableHead>
@@ -175,6 +199,13 @@ function CustomerTable({
             )}
           </CardContent>
         </Card>
+      )}
+      {pageInfo?.hasNextPage && (
+        <div className="flex justify-center mt-4">
+          <Button variant="ghost" onClick={handleLoadMore}>
+            Load More
+          </Button>
+        </div>
       )}
     </>
   )
