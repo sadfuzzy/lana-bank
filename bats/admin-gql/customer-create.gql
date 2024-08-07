@@ -1,0 +1,22 @@
+mutation CustomerCreate($input: CustomerCreateInput!) {
+  customerCreate(input: $input) {
+    customer {
+      customerId
+      btcDepositAddress
+      ustDepositAddress
+      email
+      balance {
+        unallocatedCollateral {
+          settled {
+            btcBalance
+          }
+        }
+        checking {
+          settled {
+            usdBalance
+          }
+        }
+      }
+    }
+  }
+}

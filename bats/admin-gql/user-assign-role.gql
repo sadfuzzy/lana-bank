@@ -1,0 +1,9 @@
+mutation UserAssignRole($input: UserAssignRoleInput!) {
+  userAssignRole(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}

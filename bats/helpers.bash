@@ -22,7 +22,7 @@ reset_pg() {
 
 server_cmd() {
   server_location="${REPO_ROOT}/target/debug/lava-core"
-  if [[ ! -z ${CARGO_TARGET_DIR} ]] ; then
+  if [[ ! -z ${CARGO_TARGET_DIR} ]]; then
     server_location="${CARGO_TARGET_DIR}/debug/lava-core"
   fi
 
@@ -32,9 +32,15 @@ server_cmd() {
 start_server() {
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
-    server_process_and_status=$(ps a | grep 'target/debug/lava-core' | grep -v grep; echo ${PIPESTATUS[2]})
+    server_process_and_status=$(
+      ps a | grep 'target/debug/lava-core' | grep -v grep
+      echo ${PIPESTATUS[2]}
+    )
   elif [ -n "$ZSH_VERSION" ]; then
-    server_process_and_status=$(ps a | grep 'target/debug/lava-core' | grep -v grep; echo ${pipestatus[3]})
+    server_process_and_status=$(
+      ps a | grep 'target/debug/lava-core' | grep -v grep
+      echo ${pipestatus[3]}
+    )
   else
     echo "Unsupported shell."
     exit 1
@@ -46,15 +52,14 @@ start_server() {
   fi
 
   # Start server if not already running
-  background server_cmd > .e2e-logs 2>&1
-  for i in {1..20}
-  do
+  background server_cmd >.e2e-logs 2>&1
+  for i in {1..20}; do
     if head .e2e-logs | grep -q 'Starting graphql server on port'; then
       break
     elif head .e2e-logs | grep -q 'Connection reset by peer'; then
       stop_server
       sleep 1
-      background server_cmd > .e2e-logs 2>&1
+      background server_cmd >.e2e-logs 2>&1
     else
       sleep 1
     fi
@@ -74,7 +79,6 @@ gql_query() {
 gql_file() {
   echo "${REPO_ROOT}/bats/gql/$1.gql"
 }
-
 
 gql_admin_query() {
   cat "$(gql_admin_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
@@ -175,9 +179,9 @@ retry() {
   shift
   local i
 
-  for ((i=0; i < attempts; i++)); do
+  for ((i = 0; i < attempts; i++)); do
     run "$@"
-    if [[ "$status" -eq 0 ]] ; then
+    if [[ "$status" -eq 0 ]]; then
       return 0
     fi
     sleep "$delay"
@@ -221,16 +225,20 @@ getEmailCode() {
   echo "$code"
 }
 
+generate_email() {
+  echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]'
+}
+
 create_user() {
   email=$(echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]')
 
   flowId=$(curl -s -X GET \
-      -H "Accept: application/json" \
-      "$KRATOS_PUBLIC_ENDPOINT/self-service/registration/api" | jq -r '.id')
+    -H "Accept: application/json" \
+    "$KRATOS_PUBLIC_ENDPOINT/self-service/registration/api" | jq -r '.id')
 
   response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-  -H "Content-Type: application/json" \
-  -d '{
+    -H "Content-Type: application/json" \
+    -d '{
     "method": "code",
     "traits": {
       "email": "'"$email"'"
@@ -240,8 +248,8 @@ create_user() {
   code=$(getEmailCode "$email")
 
   verification_response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-  -H "Content-Type: application/json" \
-  -d '{
+    -H "Content-Type: application/json" \
+    -d '{
     "code": "'"$code"'",
     "method": "code",
     "traits": {
@@ -256,8 +264,7 @@ create_user() {
 
 add() {
   sum=0
-  for num in "$@"
-  do
+  for num in "$@"; do
     sum=$(echo "scale=2; $sum + $num" | bc)
   done
   echo $sum
@@ -269,17 +276,17 @@ assert_balance_sheet_balanced() {
 
   balance_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.netDebit')
   balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
-  balance=$( add $balance_usdt $balance_usd )
+  balance=$(add $balance_usdt $balance_usd)
   [[ "$balance" == "0" ]] || exit 1
 
   debit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.debit')
   debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
-  debit=$( add $debit_usdt $debit_usd )
+  debit=$(add $debit_usdt $debit_usd)
   [[ "$debit" -gt "0" ]] || exit 1
 
   credit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.credit')
   credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
-  credit=$( add $credit_usdt $credit_usd )
+  credit=$(add $credit_usdt $credit_usd)
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
