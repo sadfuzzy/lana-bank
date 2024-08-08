@@ -85,47 +85,55 @@ gql`
 
   fragment btcBalances on LayeredBtcAccountBalances {
     all {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     settled {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     pending {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     encumbrance {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
   }
 
   fragment usdBalances on LayeredUsdAccountBalances {
     all {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     settled {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     pending {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
     encumbrance {
-      netDebit
       debit
       credit
+      netDebit
+      netCredit
     }
   }
 `

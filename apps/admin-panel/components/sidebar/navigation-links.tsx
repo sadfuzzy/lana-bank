@@ -8,6 +8,7 @@ import {
   IoCashOutline,
   IoDocumentOutline,
   IoTimeOutline,
+  IoReaderOutline,
 } from "react-icons/io5"
 import { RiAdminLine } from "react-icons/ri"
 import { MdAccountTree } from "react-icons/md"
@@ -24,6 +25,7 @@ const navLinks = [
   { href: "/terms", label: "Terms", icon: IoDocumentOutline },
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },
+  { href: "/profit-and-loss", label: "Profit and Loss", icon: IoReaderOutline },
 ]
 
 const NavigationLinks = () => {
