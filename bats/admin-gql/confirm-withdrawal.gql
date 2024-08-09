@@ -1,0 +1,20 @@
+mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
+  withdrawalConfirm(input: $input) {
+    withdrawal {
+      withdrawalId
+      customer {
+        customerId
+        balance {
+          checking {
+            settled {
+              usdBalance
+            }
+            pending {
+              usdBalance
+            }
+          }
+        }
+      }
+    }
+  }
+}

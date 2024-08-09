@@ -1,6 +1,5 @@
 use async_graphql::*;
 
-use super::withdraw::*;
 use crate::{
     app::LavaApp,
     primitives::LoanId,
@@ -40,23 +39,6 @@ pub struct Mutation;
 
 #[Object]
 impl Mutation {
-    pub async fn withdrawal_initiate(
-        &self,
-        ctx: &Context<'_>,
-        input: WithdrawalInitiateInput,
-    ) -> async_graphql::Result<WithdrawalInitiatePayload> {
-        let PublicAuthContext { customer_id } = ctx.data()?;
-
-        let app = ctx.data_unchecked::<LavaApp>();
-
-        let withdraw = app
-            .withdraws()
-            .initiate(*customer_id, input.amount, input.reference)
-            .await?;
-
-        Ok(WithdrawalInitiatePayload::from(withdraw))
-    }
-
     pub async fn sumsub_token_create(
         &self,
         ctx: &Context<'_>,

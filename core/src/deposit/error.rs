@@ -14,6 +14,6 @@ pub enum DepositError {
     CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("DepositError - CouldNotFindById: {0}")]
     CouldNotFindById(DepositId),
-    #[error("LoanError - AuthorizationError: {0}")]
+    #[error("DepositError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

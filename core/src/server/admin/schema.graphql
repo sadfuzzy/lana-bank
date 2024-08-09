@@ -313,6 +313,8 @@ type Mutation {
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
+	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
+	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
@@ -482,6 +484,31 @@ input UserRevokeRoleInput {
 
 type UserRevokeRolePayload {
 	user: User!
+}
+
+type Withdrawal {
+	customerId: UUID!
+	withdrawalId: UUID!
+	amount: UsdCents!
+	customer: Customer
+}
+
+input WithdrawalConfirmInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalConfirmPayload {
+	withdrawal: Withdrawal!
+}
+
+input WithdrawalInitiateInput {
+	customerId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
+type WithdrawalInitiatePayload {
+	withdrawal: Withdrawal!
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

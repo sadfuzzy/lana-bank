@@ -1,5 +1,4 @@
 mod schema;
-mod withdraw;
 
 use async_graphql::*;
 

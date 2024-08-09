@@ -16,11 +16,11 @@ impl WithdrawRepo {
         Self { pool: pool.clone() }
     }
 
-    pub(super) async fn create(
+    pub(super) async fn create_in_tx(
         &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         new_withdraw: NewWithdraw,
     ) -> Result<Withdraw, WithdrawError> {
-        let mut tx = self.pool.begin().await?;
         sqlx::query!(
             r#"INSERT INTO withdraws (id, customer_id, reference)
             VALUES ($1, $2, $3)"#,
@@ -28,11 +28,10 @@ impl WithdrawRepo {
             new_withdraw.customer_id as CustomerId,
             new_withdraw.reference()
         )
-        .execute(&mut *tx)
+        .execute(&mut **db)
         .await?;
         let mut events = new_withdraw.initial_events();
-        events.persist(&mut tx).await?;
-        tx.commit().await?;
+        events.persist(db).await?;
         let withdraw = Withdraw::try_from(events)?;
         Ok(withdraw)
     }

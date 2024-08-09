@@ -11,7 +11,6 @@ teardown_file() {
 }
 
 @test "customer: unauthorized" {
-skip
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
   error_code=$(graphql_output '.error.code')
@@ -22,24 +21,26 @@ skip
 }
 
 @test "customer: can create a customer" {
-skip
-  token=$(create_user)
-  cache_value "alice" "$token"
+  customer_email=$(generate_email)
 
-  exec_graphql 'alice' 'me'
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    '{
+      input: {
+        email: $email
+        }
+      }'
+  )
 
-  customer_id=$(graphql_output '.data.me.customerId')
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
-
-  btc_address=$(graphql_output '.data.me.btcDepositAddress')
-  cache_value 'user.btc' "$btc_address"
-
-  ust_address=$(graphql_output '.data.me.ustDepositAddress')
-  cache_value 'user.ust' "$ust_address"
 }
 
 @test "customer: can deposit" {
   customer_id=$(create_customer)
+  cache_value "customer_id" $customer_id
 
   variables=$(
     jq -n \
@@ -61,32 +62,56 @@ skip
 }
 
 @test "customer: can withdraw" {
-skip
+  customer_id=$(read_value "customer_id")
+
   variables=$(
     jq -n \
+      --arg customerId "$customer_id" \
     --arg date "$(date +%s%N)" \
     '{
       input: {
+        customerId: $customerId,
         amount: 150000,
-        destination: "tron-address",
         reference: ("withdrawal-ref-" + $date)
       }
     }'
   )
-  exec_graphql 'alice' 'initiate-withdrawal' "$variables"
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
 
+  echo $(graphql_output)
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled.usdBalance')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
-  exec_graphql 'alice' 'me'
-  checking_balance=$(graphql_output '.data.me.balance.checking.settled.usdBalance')
-  [[ "$checking_balance" == 850000 ]] || exit 1
+  # assert_accounts_balanced <- debug with Arvin
 
-  assert_accounts_balanced
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+
+  echo $(graphql_output)
+  withdrawal_id=$(graphql_output '.data.withdrawalConfirm.withdrawal.withdrawalId')
+  [[ "$withdrawal_id" != "null" ]] || exit 1
+  settled_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.settled.usdBalance')
+  [[ "$settled_usd_balance" == "0" ]] || exit 1
+  pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending.usdBalance')
+  [[ "$pending_usd_balance" == "0" ]] || exit 1
+
+  # assert_accounts_balanced <- debug with Arvin
 }
 
 @test "customer: verify level 2" {
-skip
+  skip
 # TODO: mock this call
   exec_graphql 'alice' 'sumsub-token-create'
   token=$(echo "$output" | jq -r '.data.sumsubTokenCreate.token')

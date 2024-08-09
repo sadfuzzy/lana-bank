@@ -14,6 +14,8 @@ pub enum WithdrawError {
     CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("WithdrawError - CouldNotFindById: {0}")]
     CouldNotFindById(WithdrawId),
-    #[error("WithdrawError - AlreadySettled: {0}")]
-    AlreadySettled(WithdrawId),
+    #[error("WithdrawError - AlreadyConfirmed: {0}")]
+    AlreadyConfirmed(WithdrawId),
+    #[error("WithdrawError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

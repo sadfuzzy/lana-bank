@@ -1,9 +1,10 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use super::error::*;
 use crate::{
     entity::*,
-    primitives::{CustomerId, LedgerAccountId, UsdCents, WithdrawId},
+    primitives::{CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -15,6 +16,10 @@ pub enum WithdrawEvent {
         amount: UsdCents,
         reference: String,
         debit_account_id: LedgerAccountId,
+        ledger_tx_id: LedgerTxId,
+    },
+    Confirmed {
+        ledger_tx_id: LedgerTxId,
     },
 }
 
@@ -32,7 +37,21 @@ pub struct Withdraw {
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub debit_account_id: LedgerAccountId,
+    pub confirmed: bool,
     pub(super) events: EntityEvents<WithdrawEvent>,
+}
+
+impl Withdraw {
+    pub(super) fn confirm(&mut self) -> Result<LedgerTxId, WithdrawError> {
+        if self.confirmed {
+            return Err(WithdrawError::AlreadyConfirmed(self.id));
+        }
+
+        let ledger_tx_id = LedgerTxId::new();
+        self.events.push(WithdrawEvent::Confirmed { ledger_tx_id });
+
+        Ok(ledger_tx_id)
+    }
 }
 
 impl std::fmt::Display for Withdraw {
@@ -63,7 +82,11 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                         .id(*id)
                         .customer_id(*customer_id)
                         .amount(*amount)
-                        .debit_account_id(*debit_account_id);
+                        .debit_account_id(*debit_account_id)
+                        .confirmed(false);
+                }
+                WithdrawEvent::Confirmed { .. } => {
+                    builder = builder.confirmed(true);
                 }
             }
         }
@@ -100,6 +123,7 @@ impl NewWithdraw {
             [WithdrawEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
+                ledger_tx_id: LedgerTxId::from(uuid::Uuid::from(self.id)),
                 customer_id: self.customer_id,
                 amount: self.amount,
                 debit_account_id: self.debit_account_id,

@@ -1,0 +1,20 @@
+mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+  withdrawalInitiate(input: $input) {
+    withdrawal {
+      withdrawalId
+      customer {
+        customerId
+        balance {
+          checking {
+            settled {
+              usdBalance
+            }
+            pending {
+              usdBalance
+            }
+          }
+        }
+      }
+    }
+  }
+}

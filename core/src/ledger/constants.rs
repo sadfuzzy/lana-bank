@@ -33,6 +33,8 @@ pub(super) const BANK_RESERVE_FROM_SHAREHOLDER_CODE: &str = "BANK.RESERVE_FROM_S
 
 // Templates
 pub(super) const DEPOSIT_CHECKING: &str = "DEPOSIT_CHECKING";
+pub(super) const INITIATE_WITHDRAW: &str = "INITIATE_WITHDRAW";
+pub(super) const CONFIRM_WITHDRAW: &str = "CONFIRM_WITHDRAW";
 pub(super) const APPROVE_LOAN_CODE: &str = "APPROVE_LOAN";
 pub(super) const INCUR_INTEREST_CODE: &str = "INCUR_INTEREST";
 pub(super) const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";

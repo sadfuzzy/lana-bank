@@ -151,6 +151,14 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Deposit, DepositAction::List)
             .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Initiate)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
+            .await?;
         self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
             .await?;
 
@@ -266,6 +274,7 @@ pub enum Object {
     User,
     Customer,
     Deposit,
+    Withdraw,
     Audit,
     Ledger,
 }
@@ -278,6 +287,7 @@ impl AsRef<str> for Object {
             Object::Term => "term",
             Object::User => "user",
             Object::Deposit => "deposit",
+            Object::Withdraw => "withdraw",
             Object::Customer => "customer",
             Object::Audit => "audit",
             Object::Ledger => "ledger",
@@ -303,6 +313,8 @@ impl FromStr for Object {
             "user" => Ok(Object::User),
             "audit" => Ok(Object::Audit),
             "customer" => Ok(Object::Customer),
+            "deposit" => Ok(Object::Deposit),
+            "withdraw" => Ok(Object::Withdraw),
             "ledger" => Ok(Object::Ledger),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
@@ -317,6 +329,7 @@ pub enum Action {
     User(UserAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
+    Withdraw(WithdrawAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
 }
@@ -329,6 +342,7 @@ impl AsRef<str> for Action {
             Action::User(action) => action.as_ref(),
             Action::Customer(action) => action.as_ref(),
             Action::Deposit(action) => action.as_ref(),
+            Action::Withdraw(action) => action.as_ref(),
             Action::Audit(action) => action.as_ref(),
             Action::Ledger(action) => action.as_ref(),
         }
@@ -374,6 +388,10 @@ impl FromStr for Action {
             "deposit-record" => Ok(Action::Deposit(DepositAction::Record)),
             "deposit-read" => Ok(Action::Deposit(DepositAction::Read)),
             "deposit-list" => Ok(Action::Deposit(DepositAction::List)),
+            "withdraw-initiate" => Ok(Action::Withdraw(WithdrawAction::Initiate)),
+            "withdraw-confirm" => Ok(Action::Withdraw(WithdrawAction::Confirm)),
+            "withdraw-read" => Ok(Action::Deposit(DepositAction::Read)),
+            "withdraw-list" => Ok(Action::Deposit(DepositAction::List)),
             "ledger-read" => Ok(Action::Ledger(LedgerAction::Read)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
@@ -549,6 +567,7 @@ impl From<CustomerAction> for Action {
         Action::Customer(action)
     }
 }
+
 pub enum DepositAction {
     Record,
     Read,
@@ -574,6 +593,36 @@ impl std::ops::Deref for DepositAction {
 impl From<DepositAction> for Action {
     fn from(action: DepositAction) -> Self {
         Action::Deposit(action)
+    }
+}
+
+pub enum WithdrawAction {
+    Initiate,
+    Confirm,
+    Read,
+    List,
+}
+
+impl AsRef<str> for WithdrawAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            WithdrawAction::Initiate => "withdraw-initiate",
+            WithdrawAction::Confirm => "withdraw-confirm",
+            WithdrawAction::Read => "withdraw-read",
+            WithdrawAction::List => "withdraw-list",
+        }
+    }
+}
+impl std::ops::Deref for WithdrawAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+impl From<WithdrawAction> for Action {
+    fn from(action: WithdrawAction) -> Self {
+        Action::Withdraw(action)
     }
 }
 

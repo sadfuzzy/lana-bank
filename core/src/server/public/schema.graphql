@@ -80,7 +80,6 @@ enum LoanStatus {
 }
 
 type Mutation {
-	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	sumsubTokenCreate: SumsubTokenCreatePayload!
 	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
@@ -123,21 +122,6 @@ type UsdBalance {
 }
 
 scalar UsdCents
-
-type Withdrawal {
-	customerId: UUID!
-	withdrawalId: UUID!
-	amount: UsdCents!
-}
-
-input WithdrawalInitiateInput {
-	amount: UsdCents!
-	reference: String
-}
-
-type WithdrawalInitiatePayload {
-	withdrawal: Withdrawal!
-}
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
