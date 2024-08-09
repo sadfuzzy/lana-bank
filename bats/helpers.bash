@@ -262,6 +262,25 @@ create_user() {
   echo $token
 }
 
+create_customer() {
+  customer_email=$(generate_email)
+
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    '{
+      input: {
+        email: $email
+        }
+      }'
+  )
+
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
+  [[ "$customer_id" != "null" ]] || exit 1
+  echo $customer_id
+}
+
 add() {
   sum=0
   for num in "$@"; do
@@ -274,19 +293,16 @@ assert_balance_sheet_balanced() {
   exec_admin_graphql 'balance-sheet'
   echo $(graphql_output)
 
-  balance_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.netDebit')
   balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.netDebit')
-  balance=$(add $balance_usdt $balance_usd)
+  balance=${balance_usd}
   [[ "$balance" == "0" ]] || exit 1
 
-  debit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.debit')
   debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.debit')
-  debit=$(add $debit_usdt $debit_usd)
+  debit=${debit_usd}
   [[ "$debit" -gt "0" ]] || exit 1
 
-  credit_usdt=$(graphql_output '.data.balanceSheet.balance.usdt.settled.credit')
   credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.settled.credit')
-  credit=$(add $credit_usdt $credit_usd)
+  credit=${credit_usd}
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
@@ -298,9 +314,6 @@ assert_trial_balance() {
 
   all_usd=$(graphql_output '.data.trialBalance.balance.usd.all.netDebit')
   [[ "$all_usd" == "0" ]] || exit 1
-
-  all_usdt=$(graphql_output '.data.trialBalance.balance.usdt.all.netDebit')
-  [[ "$all_usdt" == "0" ]] || exit 1
 }
 
 assert_accounts_balanced() {
@@ -311,7 +324,6 @@ assert_accounts_balanced() {
 net_usd_revenue() {
   exec_admin_graphql 'profit-and-loss'
 
-  revenue_usdt=$(graphql_output '.data.profitAndLossStatement.balance.usdt.all.netCredit')
   revenue_usd=$(graphql_output '.data.profitAndLossStatement.balance.usd.all.netCredit')
-  add $revenue_usdt $revenue_usd
+  echo $revenue_usd
 }

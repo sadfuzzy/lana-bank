@@ -6,10 +6,6 @@ enum AccountStatus {
 scalar AnnualRatePct
 
 
-type BtcBalance {
-	btcBalance: Satoshis!
-}
-
 scalar CVLPct
 
 type Checking {
@@ -24,13 +20,15 @@ type Collateral {
 type Customer {
 	customerId: UUID!
 	email: String!
-	btcDepositAddress: String!
-	ustDepositAddress: String!
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
-	balance: UserBalance!
+	balance: CustomerBalance!
 	loans: [Loan!]!
+}
+
+type CustomerBalance {
+	checking: Checking!
 }
 
 type Duration {
@@ -120,20 +118,11 @@ scalar Timestamp
 
 scalar UUID
 
-type UnallocatedCollateral {
-	settled: BtcBalance!
-}
-
 type UsdBalance {
 	usdBalance: UsdCents!
 }
 
 scalar UsdCents
-
-type UserBalance {
-	unallocatedCollateral: UnallocatedCollateral!
-	checking: Checking!
-}
 
 type Withdrawal {
 	customerId: UUID!
@@ -143,7 +132,6 @@ type Withdrawal {
 
 input WithdrawalInitiateInput {
 	amount: UsdCents!
-	destination: String!
 	reference: String
 }
 

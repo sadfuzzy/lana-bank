@@ -16,7 +16,7 @@ loan_balance() {
     --arg loanId "$1" \
     '{ id: $loanId }'
   )
-  exec_graphql 'alice' 'find-loan' "$variables"
+  exec_admin_graphql 'find-loan' "$variables"
 
   outstanding_balance=$(graphql_output '.data.loan.balance.outstanding.usdBalance')
   cache_value 'outstanding' "$outstanding_balance"
@@ -33,25 +33,7 @@ wait_for_interest() {
 }
 
 @test "loan: loan lifecycle" {
-  username=$(random_uuid)
-  token=$(create_user)
-  cache_value "alice" "$token"
-
-  exec_graphql 'alice' 'me'
-  customer_id=$(graphql_output '.data.me.customerId')
-  btc_address=$(graphql_output '.data.me.btcDepositAddress')
-  ust_address=$(graphql_output '.data.me.ustDepositAddress')
-
-  variables=$(
-    jq -n \
-      --arg address "$btc_address" \
-    '{
-       address: $address,
-       amount: "10",
-       currency: "BTC"
-    }'
-  )
-  exec_cala_graphql 'simulate-deposit' "$variables"
+  customer_id=$(create_customer)
 
   revenue_before=$(net_usd_revenue)
 
@@ -65,7 +47,7 @@ wait_for_interest() {
         customerId: $customerId,
         desiredPrincipal: $principal,
         loanTerms: {
-          annualRate: "0.12",
+          annualRate: "12",
           interval: "END_OF_MONTH",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
@@ -90,6 +72,19 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'loan-approve' "$variables"
+  loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  [[ "$usd_balance" == "$principal" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
   interest_before=$(read_value "interest")
@@ -100,16 +95,19 @@ wait_for_interest() {
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
+
   variables=$(
     jq -n \
-      --arg address "$ust_address" \
+      --arg customerId "$customer_id" \
+      --argjson amount "$outstanding_before" \
     '{
-       address: $address,
-       amount: "200",
-       currency: "UST"
+      input: {
+        customerId: $customerId,
+        amount: $amount,
+      }
     }'
   )
-  exec_cala_graphql 'simulate-deposit' "$variables"
+  exec_admin_graphql 'record-deposit' "$variables"
 
   variables=$(
     jq -n \
@@ -132,4 +130,15 @@ wait_for_interest() {
 
   revenue_after=$(net_usd_revenue)
   [[ $revenue_after -gt $revenue_before ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  [[ "$usd_balance" == "$principal" ]] || exit 1
 }

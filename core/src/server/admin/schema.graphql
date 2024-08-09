@@ -1,7 +1,6 @@
 type AccountBalancesByCurrency {
 	btc: LayeredBtcAccountBalances!
 	usd: LayeredUsdAccountBalances!
-	usdt: LayeredUsdAccountBalances!
 }
 
 type AccountSetAndSubAccountsWithBalance {
@@ -114,10 +113,6 @@ type BtcAccountBalance {
 	netCredit: SignedSatoshis!
 }
 
-type BtcBalance {
-	btcBalance: Satoshis!
-}
-
 scalar CVLPct
 
 type ChartOfAccounts {
@@ -137,13 +132,15 @@ type Collateral {
 type Customer {
 	customerId: UUID!
 	email: String!
-	btcDepositAddress: String!
-	ustDepositAddress: String!
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
-	balance: UserBalance!
+	balance: CustomerBalance!
 	loans: [Loan!]!
+}
+
+type CustomerBalance {
+	checking: Checking!
 }
 
 type CustomerConnection {
@@ -194,6 +191,23 @@ input DefaultTermsUpdateInput {
 
 type DefaultTermsUpdatePayload {
 	terms: Terms!
+}
+
+type Deposit {
+	customerId: UUID!
+	depositId: UUID!
+	amount: UsdCents!
+	customer: Customer
+}
+
+input DepositRecordInput {
+	customerId: UUID!
+	amount: UsdCents!
+	reference: String
+}
+
+type DepositRecordPayload {
+	deposit: Deposit!
 }
 
 type Duration {
@@ -298,6 +312,7 @@ type Mutation {
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
+	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
@@ -424,10 +439,6 @@ type TrialBalance {
 
 scalar UUID
 
-type UnallocatedCollateral {
-	settled: BtcBalance!
-}
-
 type UsdAccountBalance {
 	debit: UsdCents!
 	credit: UsdCents!
@@ -454,11 +465,6 @@ input UserAssignRoleInput {
 
 type UserAssignRolePayload {
 	user: User!
-}
-
-type UserBalance {
-	unallocatedCollateral: UnallocatedCollateral!
-	checking: Checking!
 }
 
 input UserCreateInput {

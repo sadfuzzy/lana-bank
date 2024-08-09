@@ -1,14 +1,8 @@
 use async_graphql::*;
 
-use super::objects::{BtcBalance, UsdBalance};
+use super::objects::UsdBalance;
 
 use crate::ledger;
-
-#[derive(SimpleObject)]
-struct UnallocatedCollateral {
-    settled: BtcBalance,
-}
-
 #[derive(SimpleObject)]
 struct Checking {
     settled: UsdBalance,
@@ -16,25 +10,19 @@ struct Checking {
 }
 
 #[derive(SimpleObject)]
-pub struct UserBalance {
-    unallocated_collateral: UnallocatedCollateral,
+pub struct CustomerBalance {
     checking: Checking,
 }
 
-impl From<ledger::customer::CustomerBalance> for UserBalance {
+impl From<ledger::customer::CustomerBalance> for CustomerBalance {
     fn from(balance: ledger::customer::CustomerBalance) -> Self {
         Self {
-            unallocated_collateral: UnallocatedCollateral {
-                settled: BtcBalance {
-                    btc_balance: balance.btc_balance,
-                },
-            },
             checking: Checking {
                 settled: UsdBalance {
-                    usd_balance: balance.usdt_balance.settled,
+                    usd_balance: balance.usd_balance.settled,
                 },
                 pending: UsdBalance {
-                    usd_balance: balance.usdt_balance.pending,
+                    usd_balance: balance.usd_balance.pending,
                 },
             },
         }

@@ -66,13 +66,11 @@ impl Customers {
         id: CustomerId,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        let (ledger_account_ids, ledger_account_addresses) =
-            self.ledger.create_accounts_for_customer(id).await?;
+        let ledger_account_ids = self.ledger.create_accounts_for_customer(id).await?;
         let new_customer = NewCustomer::builder()
             .id(id)
             .email(email)
             .account_ids(ledger_account_ids)
-            .account_addresses(ledger_account_addresses)
             .build()
             .expect("Could not build customer");
 
@@ -82,14 +80,14 @@ impl Customers {
     pub async fn find_by_id(
         &self,
         sub: Option<&Subject>,
-        id: CustomerId,
+        id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         if let Some(sub) = sub {
             self.authz
                 .check_permission(sub, Object::Customer, CustomerAction::Read)
                 .await?;
         }
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),

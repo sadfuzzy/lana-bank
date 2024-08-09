@@ -6,7 +6,7 @@ use crate::{
     server::shared_graphql::{loan::Loan, primitives::UUID},
 };
 
-use super::balance::UserBalance;
+use super::balance::CustomerBalance;
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum KycLevel {
@@ -26,8 +26,6 @@ pub enum AccountStatus {
 pub struct Customer {
     customer_id: UUID,
     email: String,
-    btc_deposit_address: String,
-    ust_deposit_address: String,
     status: AccountStatus,
     level: KycLevel,
     applicant_id: Option<String>,
@@ -37,10 +35,10 @@ pub struct Customer {
 
 #[ComplexObject]
 impl Customer {
-    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<UserBalance> {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
         let app = ctx.data_unchecked::<LavaApp>();
         let balance = app.ledger().get_customer_balance(self.account_ids).await?;
-        Ok(UserBalance::from(balance))
+        Ok(CustomerBalance::from(balance))
     }
 
     async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
@@ -82,8 +80,6 @@ impl From<crate::customer::Customer> for Customer {
         Customer {
             customer_id: UUID::from(user.id),
             applicant_id: user.applicant_id,
-            btc_deposit_address: user.account_addresses.btc_address,
-            ust_deposit_address: user.account_addresses.tron_usdt_address,
             email: user.email,
             account_ids: user.account_ids,
             status: AccountStatus::from(user.status),

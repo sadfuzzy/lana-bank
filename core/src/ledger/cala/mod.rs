@@ -10,15 +10,11 @@ use tracing::instrument;
 use uuid::Uuid;
 
 use crate::primitives::{
-    BfxAddressType, BfxIntegrationId, BfxWithdrawalMethod, LedgerAccountId, LedgerAccountSetId,
-    LedgerAccountSetMemberType, LedgerDebitOrCredit, LedgerJournalId, LedgerTxId, WithdrawId,
+    LedgerAccountId, LedgerAccountSetId, LedgerAccountSetMemberType, LedgerDebitOrCredit,
+    LedgerJournalId, LedgerTxId,
 };
 
-use super::{
-    constants,
-    customer::{CustomerLedgerAccountAddresses, CustomerLedgerAccountIds},
-    loan::LoanAccountIds,
-};
+use super::{constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds};
 
 use error::*;
 use graphql::*;
@@ -138,7 +134,7 @@ impl CalaClient {
         &self,
         customer_id: impl Into<Uuid> + std::fmt::Debug,
         customer_account_ids: CustomerLedgerAccountIds,
-    ) -> Result<CustomerLedgerAccountAddresses, CalaError> {
+    ) -> Result<(), CalaError> {
         let customer_id = customer_id.into();
         let variables = create_customer_accounts::Variables {
             on_balance_sheet_account_id: Uuid::from(
@@ -148,36 +144,11 @@ impl CalaClient {
             on_balance_sheet_account_name: format!("Customer Checking Account for {}", customer_id),
             customer_checking_control_account_set_id:
                 super::constants::CUSTOMER_CHECKING_CONTROL_ACCOUNT_SET_ID,
-            tron_account_id: Uuid::new_v4(),
-            tron_account_code: format!("ASSETS.TRON.{}", customer_id),
-            tron_account_name: format!("Bank USDT Deposit Account for {}", customer_id),
-            off_balance_sheet_account_id: Uuid::from(
-                customer_account_ids.off_balance_sheet_deposit_account_id,
-            ),
-            off_balance_sheet_account_code: format!("USERS.OFF_BALANCE_SHEET.{}", customer_id),
-            off_balance_sheet_account_name: format!(
-                "Bank Off-Balance-Sheet Deposit Account for {}",
-                customer_id
-            ),
-            customer_collateral_control_account_set_id:
-                super::constants::CUSTOMER_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            btc_account_id: Uuid::new_v4(),
-            btc_account_code: format!("ASSETS.BTC.{}", customer_id),
-            btc_account_name: format!("Bank BTC Deposit Account for {}", customer_id),
         };
-        let response = Self::traced_gql_request::<CreateCustomerAccounts, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-        response
-            .data
-            .map(|d| CustomerLedgerAccountAddresses {
-                tron_usdt_address: d.tron_address.address_backed_account_create.account.address,
-                btc_address: d.btc_address.address_backed_account_create.account.address,
-            })
-            .ok_or(CalaError::MissingDataField)
+        Self::traced_gql_request::<CreateCustomerAccounts, _>(&self.client, &self.url, variables)
+            .await?;
+
+        Ok(())
     }
 
     #[instrument(name = "lava.ledger.cala.create_loan_accounts", skip(self), err)]
@@ -296,9 +267,6 @@ impl CalaClient {
     {
         let variables = customer_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
-            off_balance_sheet_account_id: Uuid::from(
-                account_ids.off_balance_sheet_deposit_account_id,
-            ),
             on_balance_sheet_account_id: Uuid::from(
                 account_ids.on_balance_sheet_deposit_account_id,
             ),
@@ -427,6 +395,76 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.create_deposit_checking_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_deposit_checking_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let deposits_omnibus_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::BANK_DEPOSITS_OMNIBUS_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::BANK_SHAREHOLDER_EQUITY_CODE.to_string(),
+            )),
+        }?;
+
+        let variables = deposit_checking_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_usd_account_id: format!("uuid(\"{}\")", deposits_omnibus_id),
+        };
+        let response = Self::traced_gql_request::<DepositCheckingTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_deposit_checking_tx", skip(self), err)]
+    pub async fn execute_deposit_checking_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_deposit_checking_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            account_id: customer_account_ids
+                .on_balance_sheet_deposit_account_id
+                .into(),
+            amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostDepositCheckingTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.create_complete_loan_tx_template",
         skip(self),
         err
@@ -435,9 +473,21 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
         let variables = complete_loan_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
         let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
             &self.client,
@@ -462,9 +512,21 @@ impl CalaClient {
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
+        let obs_assets_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
+            )),
+        }?;
         let variables = approve_loan_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
         let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
             &self.client,
@@ -492,9 +554,6 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
-            unallocated_collateral_account: user_account_ids
-                .off_balance_sheet_deposit_account_id
-                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
@@ -529,9 +588,6 @@ impl CalaClient {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            unallocated_collateral_account: user_account_ids
-                .off_balance_sheet_deposit_account_id
-                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
             payment_amount,
             collateral_amount,
@@ -662,96 +718,6 @@ impl CalaClient {
             .map(|d| d.transaction_post.transaction.transaction_id)
             .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
-    }
-
-    #[instrument(
-        name = "lava.ledger.cala.create_bfx_address_backed_account",
-        skip(self),
-        err
-    )]
-    pub async fn create_bfx_address_backed_account(
-        &self,
-        integration_id: BfxIntegrationId,
-        address_type: BfxAddressType,
-        account_id: LedgerAccountId,
-        name: String,
-        code: String,
-        credit_account_id: LedgerAccountId,
-    ) -> Result<String, CalaError> {
-        let variables = bfx_address_backed_account_create::Variables {
-            input: bfx_address_backed_account_create::BfxAddressBackedAccountCreateInput {
-                account_id: account_id.into(),
-                integration_id: integration_id.into(),
-                type_: address_type.into(),
-                deposit_credit_account_id: credit_account_id.into(),
-                name,
-                code,
-                account_set_ids: None,
-            },
-        };
-        let response = Self::traced_gql_request::<BfxAddressBackedAccountCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-        response
-            .data
-            .map(|d| d.bitfinex.address_backed_account_create.account.address)
-            .ok_or(CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.find_account_by_id", skip(self, id), err)]
-    pub async fn find_address_backed_account_by_id<
-        T: From<bfx_address_backed_account_by_id::BfxAddressBackedAccountByIdBitfinexAddressBackedAccount>,
-    >(
-        &self,
-        id: impl Into<Uuid>,
-    ) -> Result<Option<T>, CalaError>{
-        let variables = bfx_address_backed_account_by_id::Variables { id: id.into() };
-        let response = Self::traced_gql_request::<BfxAddressBackedAccountById, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        Ok(response
-            .data
-            .and_then(|d| d.bitfinex.address_backed_account)
-            .map(T::from))
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    pub async fn execute_bfx_withdrawal(
-        &self,
-        withdrawal_id: WithdrawId,
-        integration_id: BfxIntegrationId,
-        amount: Decimal,
-        withdrawal_method: BfxWithdrawalMethod,
-        destination_address: String,
-        debit_account_id: LedgerAccountId,
-        reserve_tx_external_id: String,
-    ) -> Result<WithdrawId, CalaError> {
-        let variables = bfx_withdrawal_execute::Variables {
-            input: bfx_withdrawal_execute::BfxWithdrawalExecuteInput {
-                withdrawal_id: withdrawal_id.into(),
-                integration_id: integration_id.into(),
-                amount,
-                withdrawal_method: withdrawal_method.into(),
-                destination_address,
-                debit_account_id: debit_account_id.into(),
-                reserve_tx_external_id: Some(reserve_tx_external_id),
-            },
-        };
-        let response =
-            Self::traced_gql_request::<BfxWithdrawalExecute, _>(&self.client, &self.url, variables)
-                .await?;
-        response
-            .data
-            .map(|d| d.bitfinex.withdrawal_execute.withdrawal.withdrawal_id)
-            .map(WithdrawId::from)
-            .ok_or(CalaError::MissingDataField)
     }
 
     pub async fn trial_balance<T, E>(&self) -> Result<Option<T>, E>

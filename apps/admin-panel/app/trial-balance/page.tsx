@@ -78,9 +78,6 @@ gql`
     usd: usd {
       ...usdBalances
     }
-    usdt: usdt {
-      ...usdBalances
-    }
   }
 
   fragment btcBalances on LayeredBtcAccountBalances {
@@ -180,10 +177,6 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="usd" id="currency-usd" />
               <Label htmlFor="currency-usd">USD</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="usdt" id="currency-usdt" />
-              <Label htmlFor="currency-usdt">USDT</Label>
             </div>
           </RadioGroup>
         </div>

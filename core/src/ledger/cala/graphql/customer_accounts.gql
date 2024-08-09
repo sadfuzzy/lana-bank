@@ -3,16 +3,6 @@ mutation CreateCustomerAccounts(
   $onBalanceSheetAccountCode: String!
   $onBalanceSheetAccountName: String!
   $customerCheckingControlAccountSetId: UUID!
-  $tronAccountId: UUID!
-  $tronAccountCode: String!
-  $tronAccountName: String!
-  $offBalanceSheetAccountId: UUID!
-  $offBalanceSheetAccountCode: String!
-  $offBalanceSheetAccountName: String!
-  $customerCollateralControlAccountSetId: UUID!
-  $btcAccountId: UUID!
-  $btcAccountCode: String!
-  $btcAccountName: String!
 ) {
   onBalanceSheet: accountCreate(
     input: {
@@ -24,56 +14,6 @@ mutation CreateCustomerAccounts(
   ) {
     account {
       accountId
-    }
-  }
-  tron_address: bitfinex {
-    addressBackedAccountCreate(
-      input: {
-        integrationId: "00000000-0000-0000-0000-200000000000"
-        accountId: $tronAccountId
-        code: $tronAccountCode
-        type: "TRX"
-        name: $tronAccountName
-        depositCreditAccountId: $onBalanceSheetAccountId
-      }
-    ) {
-      account {
-        address
-        account {
-          accountId
-        }
-      }
-    }
-  }
-  offBalanceSheet: accountCreate(
-    input: {
-      accountId: $offBalanceSheetAccountId
-      code: $offBalanceSheetAccountCode
-      name: $offBalanceSheetAccountName
-      accountSetIds: [$customerCollateralControlAccountSetId]
-    }
-  ) {
-    account {
-      accountId
-    }
-  }
-  btc_address: bitfinex {
-    addressBackedAccountCreate(
-      input: {
-        integrationId: "10000000-0000-0000-0000-200000000000"
-        accountId: $btcAccountId
-        code: $btcAccountCode
-        type: "BTC"
-        name: $btcAccountName
-        depositCreditAccountId: $offBalanceSheetAccountId
-      }
-    ) {
-      account {
-        address
-        account {
-          accountId
-        }
-      }
     }
   }
 }

@@ -5,6 +5,7 @@ mod repo;
 mod terms;
 
 use sqlx::PgPool;
+use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LoanAction, Object, TermAction},
@@ -114,6 +115,7 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "lava.loan.approve_loan", skip(self), err)]
     pub async fn approve_loan(
         &self,
         sub: &Subject,
@@ -171,6 +173,16 @@ impl Loans {
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let mut db_tx = self.pool.begin().await?;
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let customer_balances = self
+            .ledger
+            .get_customer_balance(customer.account_ids)
+            .await?;
+        if customer_balances.usd_balance.settled < amount {
+            return Err(LoanError::InsufficientBalance(
+                customer_balances.usd_balance.settled,
+                amount,
+            ));
+        }
         if !loan.is_completed() {
             self.ledger
                 .record_payment(
