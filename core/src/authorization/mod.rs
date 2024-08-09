@@ -81,91 +81,69 @@ impl Authorization {
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Superuser;
 
-        self.add_permission_to_role(
-            &role,
-            Object::User,
-            Action::User(UserAction::AssignRole(Role::Admin)),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::User,
-            Action::User(UserAction::RevokeRole(Role::Admin)),
-        )
-        .await?;
+        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
+            .await?;
+        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
+            .await?;
         Ok(())
     }
 
     async fn add_permissions_for_admin(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Admin;
 
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Create))
+        self.add_permission_to_role(&role, Object::User, UserAction::Create)
             .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::List))
+        self.add_permission_to_role(&role, Object::User, UserAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Read))
+        self.add_permission_to_role(&role, Object::User, UserAction::Read)
             .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Update))
+        self.add_permission_to_role(&role, Object::User, UserAction::Update)
             .await?;
-        self.add_permission_to_role(&role, Object::User, Action::User(UserAction::Delete))
+        self.add_permission_to_role(&role, Object::User, UserAction::Delete)
             .await?;
         self.add_permission_to_role(
             &role,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::BankManager)),
+            UserAction::AssignRole(Role::BankManager),
         )
         .await?;
         self.add_permission_to_role(
             &role,
             Object::User,
-            Action::User(UserAction::RevokeRole(Role::BankManager)),
+            UserAction::RevokeRole(Role::BankManager),
         )
         .await?;
+        self.add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
+            .await?;
         Ok(())
     }
 
     async fn add_permissions_for_bank_manager(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::BankManager;
 
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Read))
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::Read)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::List))
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Create))
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::Create)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::Approve))
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::Approve)
             .await?;
-        self.add_permission_to_role(&role, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::RecordPayment)
             .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Update))
+        self.add_permission_to_role(&role, Object::Term, TermAction::Update)
             .await?;
-        self.add_permission_to_role(&role, Object::Term, Action::Term(TermAction::Read))
+        self.add_permission_to_role(&role, Object::Term, TermAction::Read)
             .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Create),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::List),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Read),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::Customer,
-            Action::Customer(CustomerAction::Update),
-        )
-        .await?;
-        self.add_permission_to_role(&role, Object::Audit, Action::Audit(AuditAction::List))
+        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Create)
+            .await?;
+        self.add_permission_to_role(&role, Object::Customer, CustomerAction::List)
+            .await?;
+        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Customer, CustomerAction::Update)
             .await?;
 
         Ok(())
@@ -175,10 +153,11 @@ impl Authorization {
         &self,
         sub: &Subject,
         object: Object,
-        action: Action,
+        action: impl Into<Action>,
     ) -> Result<bool, AuthorizationError> {
         let enforcer = self.enforcer.read().await;
 
+        let action = action.into();
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
             Ok(true) => {
                 self.audit.persist(sub, object, action, true).await?;
@@ -196,10 +175,11 @@ impl Authorization {
         &self,
         role: &Role,
         object: Object,
-        action: Action,
+        action: impl Into<Action>,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
+        let action = action.into();
         match enforcer
             .add_policy(vec![
                 role.to_string(),
@@ -278,6 +258,7 @@ pub enum Object {
     User,
     Customer,
     Audit,
+    Ledger,
 }
 
 impl AsRef<str> for Object {
@@ -289,6 +270,7 @@ impl AsRef<str> for Object {
             Object::User => "user",
             Object::Customer => "customer",
             Object::Audit => "audit",
+            Object::Ledger => "ledger",
         }
     }
 }
@@ -311,6 +293,7 @@ impl FromStr for Object {
             "user" => Ok(Object::User),
             "audit" => Ok(Object::Audit),
             "customer" => Ok(Object::Customer),
+            "ledger" => Ok(Object::Ledger),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -324,6 +307,7 @@ pub enum Action {
     User(UserAction),
     Customer(CustomerAction),
     Audit(AuditAction),
+    Ledger(LedgerAction),
 }
 
 impl AsRef<str> for Action {
@@ -334,6 +318,7 @@ impl AsRef<str> for Action {
             Action::User(action) => action.as_ref(),
             Action::Customer(action) => action.as_ref(),
             Action::Audit(action) => action.as_ref(),
+            Action::Ledger(action) => action.as_ref(),
         }
     }
 }
@@ -374,6 +359,7 @@ impl FromStr for Action {
             "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
             "customer-list" => Ok(Action::Customer(CustomerAction::List)),
             "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
+            "ledger-read" => Ok(Action::Ledger(LedgerAction::Read)),
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
@@ -415,6 +401,12 @@ impl std::ops::Deref for LoanAction {
     }
 }
 
+impl From<LoanAction> for Action {
+    fn from(action: LoanAction) -> Self {
+        Action::Loan(action)
+    }
+}
+
 pub enum TermAction {
     Update,
     Read,
@@ -436,6 +428,12 @@ impl std::ops::Deref for TermAction {
     }
 }
 
+impl From<TermAction> for Action {
+    fn from(action: TermAction) -> Self {
+        Action::Term(action)
+    }
+}
+
 pub enum AuditAction {
     List,
 }
@@ -452,6 +450,12 @@ impl std::ops::Deref for AuditAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()
+    }
+}
+
+impl From<AuditAction> for Action {
+    fn from(action: AuditAction) -> Self {
+        Action::Audit(action)
     }
 }
 
@@ -494,6 +498,12 @@ impl std::ops::Deref for UserAction {
     }
 }
 
+impl From<UserAction> for Action {
+    fn from(action: UserAction) -> Self {
+        Action::User(action)
+    }
+}
+
 pub enum CustomerAction {
     Create,
     Read,
@@ -516,5 +526,36 @@ impl std::ops::Deref for CustomerAction {
     type Target = str;
     fn deref(&self) -> &Self::Target {
         self.as_ref()
+    }
+}
+
+impl From<CustomerAction> for Action {
+    fn from(action: CustomerAction) -> Self {
+        Action::Customer(action)
+    }
+}
+
+pub enum LedgerAction {
+    Read,
+}
+
+impl AsRef<str> for LedgerAction {
+    fn as_ref(&self) -> &str {
+        match self {
+            LedgerAction::Read => "ledger-read",
+        }
+    }
+}
+
+impl std::ops::Deref for LedgerAction {
+    type Target = str;
+    fn deref(&self) -> &Self::Target {
+        self.as_ref()
+    }
+}
+
+impl From<LedgerAction> for Action {
+    fn from(action: LedgerAction) -> Self {
+        Action::Ledger(action)
     }
 }

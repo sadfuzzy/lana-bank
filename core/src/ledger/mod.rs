@@ -11,9 +11,12 @@ pub mod primitives;
 
 use tracing::instrument;
 
-use crate::primitives::{
-    BfxWithdrawalMethod, CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
-    LedgerTxTemplateId, LoanId, Satoshis, UsdCents, WithdrawId,
+use crate::{
+    authorization::{Authorization, LedgerAction, Object},
+    primitives::{
+        BfxWithdrawalMethod, CustomerId, LedgerAccountId, LedgerAccountSetId, LedgerTxId,
+        LedgerTxTemplateId, LoanId, Satoshis, Subject, UsdCents, WithdrawId,
+    },
 };
 
 use account_set::{
@@ -29,14 +32,18 @@ use loan::*;
 
 #[derive(Clone)]
 pub struct Ledger {
-    pub cala: CalaClient,
+    cala: CalaClient,
+    authz: Authorization,
 }
 
 impl Ledger {
-    pub async fn init(config: LedgerConfig) -> Result<Self, LedgerError> {
+    pub async fn init(config: LedgerConfig, authz: &Authorization) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_tx_templates(&cala).await?;
-        Ok(Ledger { cala })
+        Ok(Ledger {
+            cala,
+            authz: authz.clone(),
+        })
     }
 
     #[instrument(name = "lava.ledger.get_customer_balance", skip(self), err)]
@@ -202,19 +209,37 @@ impl Ledger {
         Ok(())
     }
 
-    pub async fn trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
+    pub async fn trial_balance(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         self.cala
             .trial_balance::<LedgerTrialBalance, LedgerError>()
             .await
     }
 
-    pub async fn obs_trial_balance(&self) -> Result<Option<LedgerTrialBalance>, LedgerError> {
+    pub async fn obs_trial_balance(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerTrialBalance>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         self.cala
             .obs_trial_balance::<LedgerTrialBalance, LedgerError>()
             .await
     }
 
-    pub async fn chart_of_accounts(&self) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
+    pub async fn chart_of_accounts(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         self.cala
             .chart_of_accounts::<LedgerChartOfAccounts, LedgerError>()
             .await
@@ -222,7 +247,11 @@ impl Ledger {
 
     pub async fn obs_chart_of_accounts(
         &self,
+        sub: &Subject,
     ) -> Result<Option<LedgerChartOfAccounts>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         Ok(self
             .cala
             .obs_chart_of_accounts::<LedgerChartOfAccounts, LedgerError>()
@@ -230,7 +259,13 @@ impl Ledger {
             .map(LedgerChartOfAccounts::from))
     }
 
-    pub async fn balance_sheet(&self) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
+    pub async fn balance_sheet(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerBalanceSheet>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         Ok(self
             .cala
             .balance_sheet::<LedgerBalanceSheet, LedgerError>()
@@ -240,7 +275,11 @@ impl Ledger {
 
     pub async fn profit_and_loss(
         &self,
+        sub: &Subject,
     ) -> Result<Option<LedgerProfitAndLossStatement>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         Ok(self
             .cala
             .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>()
@@ -250,10 +289,14 @@ impl Ledger {
 
     pub async fn account_set_and_sub_accounts_with_balance(
         &self,
+        sub: &Subject,
         account_set_id: LedgerAccountSetId,
         first: i64,
         after: Option<String>,
     ) -> Result<Option<LedgerAccountSetAndSubAccountsWithBalance>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
         Ok(self.cala
             .find_account_set_and_sub_accounts_with_balance_by_id::<LedgerAccountSetAndSubAccountsWithBalance, LedgerError>(
                 account_set_id,

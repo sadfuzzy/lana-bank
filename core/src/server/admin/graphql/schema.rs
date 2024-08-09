@@ -148,7 +148,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_summary = app.ledger().trial_balance().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let account_summary = app.ledger().trial_balance(sub).await?;
         Ok(account_summary.map(TrialBalance::from))
     }
 
@@ -157,7 +158,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<TrialBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let account_summary = app.ledger().obs_trial_balance().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let account_summary = app.ledger().obs_trial_balance(sub).await?;
         Ok(account_summary.map(TrialBalance::from))
     }
 
@@ -166,7 +168,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<ChartOfAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let chart_of_accounts = app.ledger().chart_of_accounts().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let chart_of_accounts = app.ledger().chart_of_accounts(sub).await?;
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
@@ -175,7 +178,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<ChartOfAccounts>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let chart_of_accounts = app.ledger().obs_chart_of_accounts().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let chart_of_accounts = app.ledger().obs_chart_of_accounts(sub).await?;
         Ok(chart_of_accounts.map(ChartOfAccounts::from))
     }
 
@@ -184,7 +188,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<BalanceSheet>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let balance_sheet = app.ledger().balance_sheet().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let balance_sheet = app.ledger().balance_sheet(sub).await?;
         Ok(balance_sheet.map(BalanceSheet::from))
     }
 
@@ -193,7 +198,8 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Option<ProfitAndLossStatement>> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let profit_and_loss = app.ledger().profit_and_loss().await?;
+        let AdminAuthContext { sub } = ctx.data()?;
+        let profit_and_loss = app.ledger().profit_and_loss(sub).await?;
         Ok(profit_and_loss.map(ProfitAndLossStatement::from))
     }
 
@@ -203,9 +209,10 @@ impl Query {
         account_set_id: UUID,
     ) -> async_graphql::Result<Option<AccountSetAndSubAccountsWithBalance>> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         let account_set = app
             .ledger()
-            .account_set_and_sub_accounts_with_balance(account_set_id.into(), 0, None)
+            .account_set_and_sub_accounts_with_balance(sub, account_set_id.into(), 0, None)
             .await?;
         Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
     }

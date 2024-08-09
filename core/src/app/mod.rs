@@ -38,7 +38,7 @@ impl LavaApp {
         let audit = Audit::new(&pool);
         let authz = Authorization::init(&pool, audit.clone()).await?;
         let mut registry = JobRegistry::new();
-        let ledger = Ledger::init(config.ledger).await?;
+        let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &ledger, &config.customer, &authz);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
         let withdraws = Withdraws::new(&pool, &customers, &ledger);

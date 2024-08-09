@@ -22,4 +22,6 @@ pub enum LedgerError {
     CouldNotInitializeJournal,
     #[error("LedgerError - AccountNotFound")]
     AccountNotFound,
+    #[error("LedgerError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
 }

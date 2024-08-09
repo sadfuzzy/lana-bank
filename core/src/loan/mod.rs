@@ -7,7 +7,7 @@ mod terms;
 use sqlx::PgPool;
 
 use crate::{
-    authorization::{Action, Authorization, LoanAction, Object, TermAction},
+    authorization::{Authorization, LoanAction, Object, TermAction},
     customer::Customers,
     entity::EntityError,
     job::{JobRegistry, Jobs},
@@ -68,7 +68,7 @@ impl Loans {
         terms: TermValues,
     ) -> Result<Terms, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, Action::Term(TermAction::Update))
+            .check_permission(sub, Object::Term, TermAction::Update)
             .await?;
 
         self.term_repo.update_default(terms).await
@@ -82,7 +82,7 @@ impl Loans {
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Create))
+            .check_permission(sub, Object::Loan, LoanAction::Create)
             .await?;
 
         let customer_id = customer_id.into();
@@ -121,7 +121,7 @@ impl Loans {
         collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Approve))
+            .check_permission(sub, Object::Loan, LoanAction::Approve)
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
@@ -158,7 +158,7 @@ impl Loans {
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
         self.authz
-            .check_permission(sub, Object::Loan, Action::Loan(LoanAction::RecordPayment))
+            .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
@@ -205,7 +205,7 @@ impl Loans {
     ) -> Result<Option<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::Read))
+                .check_permission(sub, Object::Loan, LoanAction::Read)
                 .await?;
         }
 
@@ -223,7 +223,7 @@ impl Loans {
     ) -> Result<Vec<Loan>, LoanError> {
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Loan, Action::Loan(LoanAction::List))
+                .check_permission(sub, Object::Loan, LoanAction::List)
                 .await?;
         }
 
@@ -232,7 +232,7 @@ impl Loans {
 
     pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
         self.authz
-            .check_permission(sub, Object::Term, Action::Term(TermAction::Read))
+            .check_permission(sub, Object::Term, TermAction::Read)
             .await?;
         match self.term_repo.find_default().await {
             Ok(terms) => Ok(Some(terms)),

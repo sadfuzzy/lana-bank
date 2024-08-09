@@ -4,7 +4,7 @@ pub mod error;
 mod repo;
 
 use crate::{
-    authorization::{Action, Authorization, Object, UserAction},
+    authorization::{Authorization, Object, UserAction},
     primitives::{Role, Subject, UserId},
 };
 
@@ -66,7 +66,7 @@ impl Users {
         email: impl Into<String>,
     ) -> Result<User, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::Create))
+            .check_permission(sub, Object::User, UserAction::Create)
             .await?;
         let new_user = NewUser::builder()
             .email(email)
@@ -80,7 +80,7 @@ impl Users {
 
     pub async fn find_by_id(&self, sub: &Subject, id: UserId) -> Result<Option<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::Read))
+            .check_permission(sub, Object::User, UserAction::Read)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -103,7 +103,7 @@ impl Users {
 
     pub async fn list_users(&self, sub: &Subject) -> Result<Vec<User>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::List))
+            .check_permission(sub, Object::User, UserAction::List)
             .await?;
         self.repo.list().await
     }
@@ -115,11 +115,7 @@ impl Users {
         role: Role,
     ) -> Result<User, UserError> {
         self.authz
-            .check_permission(
-                sub,
-                Object::User,
-                Action::User(UserAction::AssignRole(role)),
-            )
+            .check_permission(sub, Object::User, UserAction::AssignRole(role))
             .await?;
         let user = self.repo.find_by_id(id).await?;
         self.authz.assign_role_to_subject(user.id, &role).await?;
@@ -133,11 +129,7 @@ impl Users {
         role: Role,
     ) -> Result<User, UserError> {
         self.authz
-            .check_permission(
-                sub,
-                Object::User,
-                Action::User(UserAction::RevokeRole(role)),
-            )
+            .check_permission(sub, Object::User, UserAction::RevokeRole(role))
             .await?;
         let user = self.repo.find_by_id(id).await?;
         self.authz.revoke_role_from_subject(user.id, &role).await?;
@@ -146,7 +138,7 @@ impl Users {
 
     pub async fn roles_for_user(&self, sub: &Subject, id: UserId) -> Result<Vec<Role>, UserError> {
         self.authz
-            .check_permission(sub, Object::User, Action::User(UserAction::Read))
+            .check_permission(sub, Object::User, UserAction::Read)
             .await?;
         let user = self.repo.find_by_id(id).await?;
         Ok(self.authz.roles_for_subject(user.id).await?)
