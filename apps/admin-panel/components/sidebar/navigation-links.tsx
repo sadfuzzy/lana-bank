@@ -1,50 +1,99 @@
 "use client"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-
+import React, { useState } from "react"
 import {
+  IoChevronDown,
+  IoChevronUp,
   IoPersonOutline,
   IoReceiptOutline,
   IoCashOutline,
   IoDocumentOutline,
   IoTimeOutline,
-  IoReaderOutline,
 } from "react-icons/io5"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+
 import { RiAdminLine } from "react-icons/ri"
-import { MdAccountTree } from "react-icons/md"
+
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/primitive/collapsible"
 
 const navLinks = [
   { href: "/customer", label: "Customers", icon: IoPersonOutline },
   { href: "/loan", label: "Loan", icon: IoReceiptOutline },
-  { href: "/trial-balance", label: "Trial Balance", icon: IoCashOutline },
-  {
-    href: "/chart-of-accounts",
-    label: "Chart of Accounts",
-    icon: MdAccountTree,
-  },
   { href: "/terms", label: "Terms", icon: IoDocumentOutline },
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },
-  { href: "/profit-and-loss", label: "Profit and Loss", icon: IoReaderOutline },
-  { href: "/balance-sheet", label: "Balance Sheet", icon: IoReaderOutline },
+  {
+    label: "Financials",
+    icon: IoCashOutline,
+    subMenu: [
+      { href: "/chart-of-accounts", label: "Chart of Accounts" },
+      { href: "/balance-sheet", label: "Balance Sheet" },
+      { href: "/profit-and-loss", label: "Profit and Loss" },
+      { href: "/trial-balance", label: "Trial Balance" },
+    ],
+  },
 ]
 
 const NavigationLinks = () => {
   const pathname = usePathname()
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
+
+  const toggleSubmenu = (label: string) => {
+    setOpenSubmenu(openSubmenu === label ? null : label)
+  }
+
   return (
-    <nav className="flex flex-col gap-4 text-textColor-secondary">
+    <nav className="flex flex-col gap-4 text-textColor-secondary pr-4">
       {navLinks.map((link, index) => (
-        <Link
-          key={index}
-          href={link.href}
-          prefetch={false}
-          className={`hover:text-textColor-primary ${pathname === link.href && "text-primary"}`}
-        >
-          <div className="flex items-center gap-4 rounded-md">
-            <link.icon className="w-4 h-4" />
-            {link.label}
-          </div>
-        </Link>
+        <React.Fragment key={index}>
+          {link.subMenu ? (
+            <Collapsible
+              open={openSubmenu === link.label}
+              onOpenChange={() => toggleSubmenu(link.label)}
+            >
+              <CollapsibleTrigger className="flex items-center justify-between w-full hover:text-textColor-primary pr-2">
+                <div className="flex items-center gap-4">
+                  <link.icon className="w-4 h-4" />
+                  {link.label}
+                </div>
+                {openSubmenu === link.label ? (
+                  <IoChevronUp className="w-4 h-4" />
+                ) : (
+                  <IoChevronDown className="w-4 h-4" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="ml-6 mt-2">
+                {link.subMenu.map((subItem, subIndex) => (
+                  <Link
+                    key={subIndex}
+                    href={subItem.href}
+                    prefetch={false}
+                    className={`block p-1.5 px-2 hover:text-textColor-primary ${
+                      pathname === subItem.href && "text-primary"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">{subItem.label}</div>
+                  </Link>
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          ) : (
+            <Link
+              href={link.href}
+              prefetch={false}
+              className={`hover:text-textColor-primary ${pathname === link.href && "text-primary"}`}
+            >
+              <div className="flex items-center gap-4 rounded-md">
+                <link.icon className="w-4 h-4" />
+                {link.label}
+              </div>
+            </Link>
+          )}
+        </React.Fragment>
       ))}
     </nav>
   )

@@ -17,7 +17,7 @@ export default function SideBar() {
             <LavaBankIcon />
           </div>
           <div className="flex flex-col justify-between h-full">
-            <div className="flex flex-col ml-6 mt-4">
+            <div className="flex flex-col  ml-6 mt-4">
               <NavigationLinks />
             </div>
             <div className="flex justify-center items-center p-4 border-t border-secondary-foreground">
