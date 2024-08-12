@@ -16,6 +16,27 @@ use sqlx_adapter::{
 
 use super::audit::Audit;
 
+macro_rules! impl_from_for_action {
+    ($from_type:ty, $variant:ident) => {
+        impl From<$from_type> for Action {
+            fn from(action: $from_type) -> Self {
+                Action::$variant(action)
+            }
+        }
+    };
+}
+
+macro_rules! impl_deref_to_str {
+    ($type:ty) => {
+        impl std::ops::Deref for $type {
+            type Target = str;
+            fn deref(&self) -> &Self::Target {
+                self.as_ref()
+            }
+        }
+    };
+}
+
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
@@ -279,43 +300,50 @@ pub enum Object {
     Ledger,
 }
 
+impl Object {
+    const APPLICANT_STR: &'static str = "applicant";
+    const LOAN_STR: &'static str = "loan";
+    const TERM_STR: &'static str = "term";
+    const USER_STR: &'static str = "user";
+    const DEPOSIT_STR: &'static str = "deposit";
+    const WITHDRAW_STR: &'static str = "withdraw";
+    const CUSTOMER_STR: &'static str = "customer";
+    const AUDIT_STR: &'static str = "audit";
+    const LEDGER_STR: &'static str = "ledger";
+}
+
 impl AsRef<str> for Object {
     fn as_ref(&self) -> &str {
         match self {
-            Object::Applicant => "applicant",
-            Object::Loan => "loan",
-            Object::Term => "term",
-            Object::User => "user",
-            Object::Deposit => "deposit",
-            Object::Withdraw => "withdraw",
-            Object::Customer => "customer",
-            Object::Audit => "audit",
-            Object::Ledger => "ledger",
+            Self::Applicant => Self::APPLICANT_STR,
+            Self::Loan => Self::LOAN_STR,
+            Self::Term => Self::TERM_STR,
+            Self::User => Self::USER_STR,
+            Self::Deposit => Self::DEPOSIT_STR,
+            Self::Withdraw => Self::WITHDRAW_STR,
+            Self::Customer => Self::CUSTOMER_STR,
+            Self::Audit => Self::AUDIT_STR,
+            Self::Ledger => Self::LEDGER_STR,
         }
     }
 }
 
-impl std::ops::Deref for Object {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
+impl_deref_to_str!(Object);
 
 impl FromStr for Object {
     type Err = crate::authorization::AuthorizationError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "applicant" => Ok(Object::Applicant),
-            "loan" => Ok(Object::Loan),
-            "term" => Ok(Object::Term),
-            "user" => Ok(Object::User),
-            "audit" => Ok(Object::Audit),
-            "customer" => Ok(Object::Customer),
-            "deposit" => Ok(Object::Deposit),
-            "withdraw" => Ok(Object::Withdraw),
-            "ledger" => Ok(Object::Ledger),
+            Self::APPLICANT_STR => Ok(Self::Applicant),
+            Self::LOAN_STR => Ok(Self::Loan),
+            Self::TERM_STR => Ok(Self::Term),
+            Self::USER_STR => Ok(Self::User),
+            Self::AUDIT_STR => Ok(Self::Audit),
+            Self::CUSTOMER_STR => Ok(Self::Customer),
+            Self::DEPOSIT_STR => Ok(Self::Deposit),
+            Self::WITHDRAW_STR => Ok(Self::Withdraw),
+            Self::LEDGER_STR => Ok(Self::Ledger),
             _ => Err(AuthorizationError::ObjectParseError {
                 value: s.to_string(),
             }),
@@ -337,14 +365,14 @@ pub enum Action {
 impl AsRef<str> for Action {
     fn as_ref(&self) -> &str {
         match self {
-            Action::Loan(action) => action.as_ref(),
-            Action::Term(action) => action.as_ref(),
-            Action::User(action) => action.as_ref(),
-            Action::Customer(action) => action.as_ref(),
-            Action::Deposit(action) => action.as_ref(),
-            Action::Withdraw(action) => action.as_ref(),
-            Action::Audit(action) => action.as_ref(),
-            Action::Ledger(action) => action.as_ref(),
+            Self::Loan(action) => action.as_ref(),
+            Self::Term(action) => action.as_ref(),
+            Self::User(action) => action.as_ref(),
+            Self::Customer(action) => action.as_ref(),
+            Self::Deposit(action) => action.as_ref(),
+            Self::Withdraw(action) => action.as_ref(),
+            Self::Audit(action) => action.as_ref(),
+            Self::Ledger(action) => action.as_ref(),
         }
     }
 }
@@ -354,45 +382,57 @@ impl FromStr for Action {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "loan-read" => Ok(Action::Loan(LoanAction::Read)),
-            "loan-create" => Ok(Action::Loan(LoanAction::Create)),
-            "loan-list" => Ok(Action::Loan(LoanAction::List)),
-            "loan-approve" => Ok(Action::Loan(LoanAction::Approve)),
-            "loan-record-payment" => Ok(Action::Loan(LoanAction::RecordPayment)),
-            "term-update" => Ok(Action::Term(TermAction::Update)),
-            "term-read" => Ok(Action::Term(TermAction::Read)),
-            "user-create" => Ok(Action::User(UserAction::Create)),
-            "user-read" => Ok(Action::User(UserAction::Read)),
-            "user-list" => Ok(Action::User(UserAction::List)),
-            "user-update" => Ok(Action::User(UserAction::Update)),
-            "user-delete" => Ok(Action::User(UserAction::Delete)),
-            "user-assign-role-superuser" => {
-                Ok(Action::User(UserAction::AssignRole(Role::Superuser)))
+            LoanAction::READ_STR => Ok(Self::Loan(LoanAction::Read)),
+            LoanAction::CREATE_STR => Ok(Self::Loan(LoanAction::Create)),
+            LoanAction::LIST_STR => Ok(Self::Loan(LoanAction::List)),
+            LoanAction::APPROVE_STR => Ok(Self::Loan(LoanAction::Approve)),
+            LoanAction::RECORD_PAYMENT_STR => Ok(Self::Loan(LoanAction::RecordPayment)),
+
+            TermAction::UPDATE_STR => Ok(Self::Term(TermAction::Update)),
+            TermAction::READ_STR => Ok(Self::Term(TermAction::Read)),
+
+            UserAction::CREATE_STR => Ok(Self::User(UserAction::Create)),
+            UserAction::READ_STR => Ok(Self::User(UserAction::Read)),
+            UserAction::LIST_STR => Ok(Self::User(UserAction::List)),
+            UserAction::UPDATE_STR => Ok(Self::User(UserAction::Update)),
+            UserAction::DELETE_STR => Ok(Self::User(UserAction::Delete)),
+            UserAction::ASSIGN_ROLE_SUPERUSER_STR => {
+                Ok(Self::User(UserAction::AssignRole(Role::Superuser)))
             }
-            "user-assign-role-admin" => Ok(Action::User(UserAction::AssignRole(Role::Admin))),
-            "user-assign-role-bank-manager" => {
-                Ok(Action::User(UserAction::AssignRole(Role::BankManager)))
+            UserAction::ASSIGN_ROLE_ADMIN_STR => {
+                Ok(Self::User(UserAction::AssignRole(Role::Admin)))
             }
-            "user-revoke-role-superuser" => {
-                Ok(Action::User(UserAction::RevokeRole(Role::Superuser)))
+            UserAction::ASSIGN_ROLE_BANK_MANAGER_STR => {
+                Ok(Self::User(UserAction::AssignRole(Role::BankManager)))
             }
-            "user-revoke-role-admin" => Ok(Action::User(UserAction::RevokeRole(Role::Admin))),
-            "user-revoke-role-bank-manager" => {
-                Ok(Action::User(UserAction::RevokeRole(Role::BankManager)))
+            UserAction::REVOKE_ROLE_SUPERUSER_STR => {
+                Ok(Self::User(UserAction::RevokeRole(Role::Superuser)))
             }
-            "audit-list" => Ok(Action::Audit(AuditAction::List)),
-            "customer-create" => Ok(Action::Customer(CustomerAction::Create)),
-            "customer-read" => Ok(Action::Customer(CustomerAction::Read)),
-            "customer-list" => Ok(Action::Customer(CustomerAction::List)),
-            "customer-update" => Ok(Action::Customer(CustomerAction::Update)),
-            "deposit-record" => Ok(Action::Deposit(DepositAction::Record)),
-            "deposit-read" => Ok(Action::Deposit(DepositAction::Read)),
-            "deposit-list" => Ok(Action::Deposit(DepositAction::List)),
-            "withdraw-initiate" => Ok(Action::Withdraw(WithdrawAction::Initiate)),
-            "withdraw-confirm" => Ok(Action::Withdraw(WithdrawAction::Confirm)),
-            "withdraw-read" => Ok(Action::Deposit(DepositAction::Read)),
-            "withdraw-list" => Ok(Action::Deposit(DepositAction::List)),
-            "ledger-read" => Ok(Action::Ledger(LedgerAction::Read)),
+            UserAction::REVOKE_ROLE_ADMIN_STR => {
+                Ok(Self::User(UserAction::RevokeRole(Role::Admin)))
+            }
+            UserAction::REVOKE_ROLE_BANK_MANAGER_STR => {
+                Ok(Self::User(UserAction::RevokeRole(Role::BankManager)))
+            }
+
+            AuditAction::LIST_STR => Ok(Self::Audit(AuditAction::List)),
+
+            CustomerAction::CREATE_STR => Ok(Self::Customer(CustomerAction::Create)),
+            CustomerAction::READ_STR => Ok(Self::Customer(CustomerAction::Read)),
+            CustomerAction::LIST_STR => Ok(Self::Customer(CustomerAction::List)),
+            CustomerAction::UPDATE_STR => Ok(Self::Customer(CustomerAction::Update)),
+
+            DepositAction::RECORD_STR => Ok(Self::Deposit(DepositAction::Record)),
+            DepositAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
+            DepositAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
+
+            WithdrawAction::INITIATE_STR => Ok(Self::Withdraw(WithdrawAction::Initiate)),
+            WithdrawAction::CONFIRM_STR => Ok(Self::Withdraw(WithdrawAction::Confirm)),
+            WithdrawAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
+            WithdrawAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
+
+            LedgerAction::READ_STR => Ok(Self::Ledger(LedgerAction::Read)),
+
             _ => Err(AuthorizationError::ActionParseError {
                 value: s.to_string(),
             }),
@@ -400,12 +440,7 @@ impl FromStr for Action {
     }
 }
 
-impl std::ops::Deref for Action {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
+impl_deref_to_str!(Action);
 
 pub enum LoanAction {
     List,
@@ -415,82 +450,69 @@ pub enum LoanAction {
     RecordPayment,
 }
 
+impl LoanAction {
+    const READ_STR: &'static str = "loan-read";
+    const CREATE_STR: &'static str = "loan-create";
+    const LIST_STR: &'static str = "loan-list";
+    const APPROVE_STR: &'static str = "loan-approve";
+    const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
+}
+
 impl AsRef<str> for LoanAction {
     fn as_ref(&self) -> &str {
         match self {
-            LoanAction::Read => "loan-read",
-            LoanAction::Create => "loan-create",
-            LoanAction::List => "loan-list",
-            LoanAction::Approve => "loan-approve",
-            LoanAction::RecordPayment => "loan-record-payment",
+            Self::Read => Self::READ_STR,
+            Self::Create => Self::CREATE_STR,
+            Self::List => Self::LIST_STR,
+            Self::Approve => Self::APPROVE_STR,
+            Self::RecordPayment => Self::RECORD_PAYMENT_STR,
         }
     }
 }
 
-impl std::ops::Deref for LoanAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl From<LoanAction> for Action {
-    fn from(action: LoanAction) -> Self {
-        Action::Loan(action)
-    }
-}
+impl_deref_to_str!(LoanAction);
+impl_from_for_action!(LoanAction, Loan);
 
 pub enum TermAction {
     Update,
     Read,
 }
 
+impl TermAction {
+    const UPDATE_STR: &'static str = "term-update";
+    const READ_STR: &'static str = "term-read";
+}
+
 impl AsRef<str> for TermAction {
     fn as_ref(&self) -> &str {
         match self {
-            TermAction::Update => "term-update",
-            TermAction::Read => "term-read",
+            Self::Update => Self::UPDATE_STR,
+            Self::Read => Self::READ_STR,
         }
     }
 }
 
-impl std::ops::Deref for TermAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl From<TermAction> for Action {
-    fn from(action: TermAction) -> Self {
-        Action::Term(action)
-    }
-}
+impl_deref_to_str!(TermAction);
+impl_from_for_action!(TermAction, Term);
 
 pub enum AuditAction {
     List,
 }
 
+impl AuditAction {
+    const LIST_STR: &'static str = "audit-list";
+}
+
 impl AsRef<str> for AuditAction {
     fn as_ref(&self) -> &str {
         match self {
-            AuditAction::List => "audit-list",
+            Self::List => Self::LIST_STR,
         }
     }
 }
 
-impl std::ops::Deref for AuditAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl From<AuditAction> for Action {
-    fn from(action: AuditAction) -> Self {
-        Action::Audit(action)
-    }
-}
+impl_deref_to_str!(AuditAction);
+impl_from_for_action!(AuditAction, Audit);
 
 pub enum UserAction {
     Create,
@@ -502,40 +524,44 @@ pub enum UserAction {
     RevokeRole(Role),
 }
 
+impl UserAction {
+    const CREATE_STR: &'static str = "user-create";
+    const READ_STR: &'static str = "user-read";
+    const LIST_STR: &'static str = "user-list";
+    const UPDATE_STR: &'static str = "user-update";
+    const DELETE_STR: &'static str = "user-delete";
+    const ASSIGN_ROLE_SUPERUSER_STR: &'static str = "user-assign-role-superuser";
+    const ASSIGN_ROLE_ADMIN_STR: &'static str = "user-assign-role-admin";
+    const ASSIGN_ROLE_BANK_MANAGER_STR: &'static str = "user-assign-role-bank-manager";
+    const REVOKE_ROLE_SUPERUSER_STR: &'static str = "user-revoke-role-superuser";
+    const REVOKE_ROLE_ADMIN_STR: &'static str = "user-revoke-role-admin";
+    const REVOKE_ROLE_BANK_MANAGER_STR: &'static str = "user-revoke-role-bank-manager";
+}
+
 impl AsRef<str> for UserAction {
     fn as_ref(&self) -> &str {
         match self {
-            UserAction::Create => "user-create",
-            UserAction::Read => "user-read",
-            UserAction::List => "user-list",
-            UserAction::Update => "user-update",
-            UserAction::Delete => "user-delete",
-            UserAction::AssignRole(role) => match role {
-                Role::Superuser => "user-assign-role-superuser",
-                Role::Admin => "user-assign-role-admin",
-                Role::BankManager => "user-assign-role-bank-manager",
+            Self::Create => Self::CREATE_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
+            Self::Update => Self::UPDATE_STR,
+            Self::Delete => Self::DELETE_STR,
+            Self::AssignRole(role) => match role {
+                Role::Superuser => Self::ASSIGN_ROLE_SUPERUSER_STR,
+                Role::Admin => Self::ASSIGN_ROLE_ADMIN_STR,
+                Role::BankManager => Self::ASSIGN_ROLE_BANK_MANAGER_STR,
             },
-            UserAction::RevokeRole(role) => match role {
-                Role::Superuser => "user-revoke-role-superuser",
-                Role::Admin => "user-revoke-role-admin",
-                Role::BankManager => "user-revoke-role-bank-manager",
+            Self::RevokeRole(role) => match role {
+                Role::Superuser => Self::REVOKE_ROLE_SUPERUSER_STR,
+                Role::Admin => Self::REVOKE_ROLE_ADMIN_STR,
+                Role::BankManager => Self::REVOKE_ROLE_BANK_MANAGER_STR,
             },
         }
     }
 }
 
-impl std::ops::Deref for UserAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl From<UserAction> for Action {
-    fn from(action: UserAction) -> Self {
-        Action::User(action)
-    }
-}
+impl_deref_to_str!(UserAction);
+impl_from_for_action!(UserAction, User);
 
 pub enum CustomerAction {
     Create,
@@ -544,29 +570,26 @@ pub enum CustomerAction {
     Update,
 }
 
+impl CustomerAction {
+    const CREATE_STR: &'static str = "customer-create";
+    const READ_STR: &'static str = "customer-read";
+    const LIST_STR: &'static str = "customer-list";
+    const UPDATE_STR: &'static str = "customer-update";
+}
+
 impl AsRef<str> for CustomerAction {
     fn as_ref(&self) -> &str {
         match self {
-            CustomerAction::Create => "customer-create",
-            CustomerAction::Read => "customer-read",
-            CustomerAction::List => "customer-list",
-            CustomerAction::Update => "customer-update",
+            Self::Create => Self::CREATE_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
+            Self::Update => Self::UPDATE_STR,
         }
     }
 }
 
-impl std::ops::Deref for CustomerAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
-
-impl From<CustomerAction> for Action {
-    fn from(action: CustomerAction) -> Self {
-        Action::Customer(action)
-    }
-}
+impl_deref_to_str!(CustomerAction);
+impl_from_for_action!(CustomerAction, Customer);
 
 pub enum DepositAction {
     Record,
@@ -574,27 +597,24 @@ pub enum DepositAction {
     List,
 }
 
+impl DepositAction {
+    const RECORD_STR: &'static str = "deposit-record";
+    const READ_STR: &'static str = "deposit-read";
+    const LIST_STR: &'static str = "deposit-list";
+}
+
 impl AsRef<str> for DepositAction {
     fn as_ref(&self) -> &str {
         match self {
-            DepositAction::Record => "deposit-record",
-            DepositAction::Read => "deposit-read",
-            DepositAction::List => "deposit-list",
+            Self::Record => Self::RECORD_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
         }
     }
 }
-impl std::ops::Deref for DepositAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
-impl From<DepositAction> for Action {
-    fn from(action: DepositAction) -> Self {
-        Action::Deposit(action)
-    }
-}
+impl_deref_to_str!(DepositAction);
+impl_from_for_action!(DepositAction, Deposit);
 
 pub enum WithdrawAction {
     Initiate,
@@ -603,50 +623,42 @@ pub enum WithdrawAction {
     List,
 }
 
+impl WithdrawAction {
+    const INITIATE_STR: &'static str = "withdraw-initiate";
+    const CONFIRM_STR: &'static str = "withdraw-confirm";
+    const READ_STR: &'static str = "withdraw-read";
+    const LIST_STR: &'static str = "withdraw-list";
+}
+
 impl AsRef<str> for WithdrawAction {
     fn as_ref(&self) -> &str {
         match self {
-            WithdrawAction::Initiate => "withdraw-initiate",
-            WithdrawAction::Confirm => "withdraw-confirm",
-            WithdrawAction::Read => "withdraw-read",
-            WithdrawAction::List => "withdraw-list",
+            Self::Initiate => Self::INITIATE_STR,
+            Self::Confirm => Self::CONFIRM_STR,
+            Self::Read => Self::READ_STR,
+            Self::List => Self::LIST_STR,
         }
     }
 }
-impl std::ops::Deref for WithdrawAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
 
-impl From<WithdrawAction> for Action {
-    fn from(action: WithdrawAction) -> Self {
-        Action::Withdraw(action)
-    }
-}
-
-impl std::ops::Deref for LedgerAction {
-    type Target = str;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
-}
+impl_deref_to_str!(WithdrawAction);
+impl_from_for_action!(WithdrawAction, Withdraw);
 
 pub enum LedgerAction {
     Read,
 }
 
+impl LedgerAction {
+    const READ_STR: &'static str = "ledger-read";
+}
+
 impl AsRef<str> for LedgerAction {
     fn as_ref(&self) -> &str {
         match self {
-            LedgerAction::Read => "ledger-read",
+            Self::Read => Self::READ_STR,
         }
     }
 }
 
-impl From<LedgerAction> for Action {
-    fn from(action: LedgerAction) -> Self {
-        Action::Ledger(action)
-    }
-}
+impl_deref_to_str!(LedgerAction);
+impl_from_for_action!(LedgerAction, Ledger);
