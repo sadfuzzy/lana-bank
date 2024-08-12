@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::{app::LavaApp, server::jwks::JwtDecoderState};
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
-pub struct AuthCallbackPayload {
+pub struct CustomerCallbackPayload {
     email: String,
     flow_id: String,
     flow_type: String,
@@ -19,9 +19,9 @@ pub struct AuthCallbackPayload {
     transient_payload: serde_json::Value,
 }
 
-pub async fn auth_callback(
+pub async fn customer_callback(
     Extension(app): Extension<LavaApp>,
-    Json(payload): Json<AuthCallbackPayload>,
+    Json(payload): Json<CustomerCallbackPayload>,
 ) -> impl IntoResponse {
     // Log the received HTTP method and JSON payload
     println!("Received auth callback with payload: {:?}", payload);
@@ -121,7 +121,7 @@ pub async fn user_id_from_email(
 
 pub fn auth_routes() -> Router<JwtDecoderState> {
     Router::new()
-        .route("/auth/callback", post(auth_callback))
+        .route("/customer/callback", post(customer_callback))
         .route("/user/callback", post(user_callback))
         .route("/user/id-from-email", post(user_id_from_email))
 }
