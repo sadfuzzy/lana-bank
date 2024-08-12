@@ -88,7 +88,7 @@ impl DepositRepo {
         WITH deposits AS (
             SELECT id, created_at
             FROM deposits
-            WHERE created_at > $1 OR $1 IS NULL
+            WHERE created_at < $1 OR $1 IS NULL
             ORDER BY created_at DESC
             LIMIT $2
         )

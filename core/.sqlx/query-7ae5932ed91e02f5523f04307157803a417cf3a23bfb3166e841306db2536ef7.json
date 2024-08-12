@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        WITH withdraws AS (\n            SELECT id, created_at\n            FROM withdraws\n            WHERE created_at > $1 OR $1 IS NULL\n            ORDER BY created_at DESC\n            LIMIT $2\n        )\n        SELECT d.id, e.sequence, e.event,\n            d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n        FROM withdraws d\n        JOIN withdraw_events e ON d.id = e.id\n        ORDER BY d.created_at DESC, d.id, e.sequence",
+  "query": "\n        WITH withdraws AS (\n            SELECT id, created_at\n            FROM withdraws\n            WHERE created_at < $1 OR $1 IS NULL\n            ORDER BY created_at DESC\n            LIMIT $2\n        )\n        SELECT d.id, e.sequence, e.event,\n            d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n        FROM withdraws d\n        JOIN withdraw_events e ON d.id = e.id\n        ORDER BY d.created_at DESC, d.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -43,5 +43,5 @@
       false
     ]
   },
-  "hash": "0dc206987a55e46bf442bb2c236873cce38c8e685fe4bb256bef871cd391b455"
+  "hash": "7ae5932ed91e02f5523f04307157803a417cf3a23bfb3166e841306db2536ef7"
 }
