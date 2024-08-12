@@ -42,6 +42,14 @@ pub struct Withdraw {
 }
 
 impl Withdraw {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("No events for withdraw")
+    }
+}
+
+impl Withdraw {
     pub(super) fn confirm(&mut self) -> Result<LedgerTxId, WithdrawError> {
         if self.confirmed {
             return Err(WithdrawError::AlreadyConfirmed(self.id));

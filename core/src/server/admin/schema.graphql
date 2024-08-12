@@ -137,6 +137,8 @@ type Customer {
 	applicantId: String
 	balance: CustomerBalance!
 	loans: [Loan!]!
+	deposits: [Deposit!]!
+	withdrawals: [Withdrawal!]!
 }
 
 type CustomerBalance {
@@ -198,6 +200,35 @@ type Deposit {
 	depositId: UUID!
 	amount: UsdCents!
 	customer: Customer
+}
+
+type DepositConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [DepositEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Deposit!]!
+}
+
+"""
+An edge in a connection.
+"""
+type DepositEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Deposit!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 input DepositRecordInput {
@@ -369,6 +400,10 @@ type Query {
 	balanceSheet: BalanceSheet
 	profitAndLossStatement: ProfitAndLossStatement
 	accountSetWithBalance(accountSetId: UUID!): AccountSetAndSubAccountsWithBalance
+	deposit(id: UUID!): Deposit
+	deposits(first: Int!, after: String): DepositConnection!
+	withdrawal(id: UUID!): Withdrawal
+	withdrawals(first: Int!, after: String): WithdrawalConnection!
 }
 
 enum Role {
@@ -499,6 +534,35 @@ input WithdrawalConfirmInput {
 
 type WithdrawalConfirmPayload {
 	withdrawal: Withdrawal!
+}
+
+type WithdrawalConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [WithdrawalEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Withdrawal!]!
+}
+
+"""
+An edge in a connection.
+"""
+type WithdrawalEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Withdrawal!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 input WithdrawalInitiateInput {

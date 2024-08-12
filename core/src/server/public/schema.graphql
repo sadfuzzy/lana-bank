@@ -25,10 +25,19 @@ type Customer {
 	applicantId: String
 	balance: CustomerBalance!
 	loans: [Loan!]!
+	deposits: [Deposit!]!
+	withdrawals: [Withdrawal!]!
 }
 
 type CustomerBalance {
 	checking: Checking!
+}
+
+type Deposit {
+	customerId: UUID!
+	depositId: UUID!
+	amount: UsdCents!
+	customer: Customer
 }
 
 type Duration {
@@ -122,6 +131,13 @@ type UsdBalance {
 }
 
 scalar UsdCents
+
+type Withdrawal {
+	customerId: UUID!
+	withdrawalId: UUID!
+	amount: UsdCents!
+	customer: Customer
+}
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

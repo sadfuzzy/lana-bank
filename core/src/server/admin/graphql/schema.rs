@@ -12,8 +12,9 @@ use crate::{
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
-            customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms,
+            customer::Customer, deposit::Deposit, loan::Loan, objects::SuccessPayload,
+            primitives::UUID, sumsub::SumsubPermalinkCreatePayload, terms::Terms,
+            withdraw::Withdrawal,
         },
     },
 };
@@ -213,6 +214,101 @@ impl Query {
             .account_set_and_sub_accounts_with_balance(sub, account_set_id.into(), 0, None)
             .await?;
         Ok(account_set.map(AccountSetAndSubAccountsWithBalance::from))
+    }
+
+    async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let deposit = app.deposits().find_by_id(sub, id).await?;
+        Ok(deposit.map(Deposit::from))
+    }
+
+    async fn deposits(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<DepositCursor, Deposit, EmptyFields, EmptyFields>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .deposits()
+                    .list(
+                        sub,
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::deposit::DepositCursor::from),
+                        },
+                    )
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|deposit| {
+                        let cursor = DepositCursor::from(deposit.created_at());
+                        Edge::new(cursor, Deposit::from(deposit))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+
+    async fn withdrawal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Withdrawal>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let deposit = app.withdraws().find_by_id(sub, id).await?;
+        Ok(deposit.map(Withdrawal::from))
+    }
+
+    async fn withdrawals(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<WithdrawCursor, Withdrawal, EmptyFields, EmptyFields>>
+    {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .withdraws()
+                    .list(
+                        sub,
+                        crate::query::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::withdraw::WithdrawCursor::from),
+                        },
+                    )
+                    .await?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|withdraw| {
+                        let cursor = WithdrawCursor::from(withdraw.created_at());
+                        Edge::new(cursor, Withdrawal::from(withdraw))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }
 

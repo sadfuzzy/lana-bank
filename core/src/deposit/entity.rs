@@ -32,7 +32,7 @@ pub struct Deposit {
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub credit_account_id: LedgerAccountId,
-    pub(super) _events: EntityEvents<DepositEvent>,
+    pub(super) events: EntityEvents<DepositEvent>,
 }
 
 impl std::fmt::Display for Deposit {
@@ -43,6 +43,14 @@ impl std::fmt::Display for Deposit {
 
 impl Entity for Deposit {
     type Event = DepositEvent;
+}
+
+impl Deposit {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("No events for deposit")
+    }
 }
 
 impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
@@ -67,7 +75,7 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                 }
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 

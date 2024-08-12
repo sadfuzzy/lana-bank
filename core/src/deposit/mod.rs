@@ -1,3 +1,4 @@
+mod cursor;
 mod entity;
 mod error;
 mod repo;
@@ -9,6 +10,7 @@ use crate::{
     primitives::{CustomerId, DepositId, Subject, UsdCents},
 };
 
+pub use cursor::*;
 pub use entity::*;
 use error::DepositError;
 pub use repo::DepositRepo;
@@ -80,5 +82,44 @@ impl Deposits {
         db_tx.commit().await?;
 
         Ok(deposit)
+    }
+
+    pub async fn find_by_id(
+        &self,
+        sub: &Subject,
+        id: impl Into<DepositId> + std::fmt::Debug,
+    ) -> Result<Option<Deposit>, DepositError> {
+        self.authz
+            .check_permission(sub, Object::Deposit, DepositAction::Read)
+            .await?;
+
+        match self.repo.find_by_id(id.into()).await {
+            Ok(deposit) => Ok(Some(deposit)),
+            Err(DepositError::CouldNotFindById(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn list_for_customer(
+        &self,
+        sub: &Subject,
+        customer_id: CustomerId,
+    ) -> Result<Vec<Deposit>, DepositError> {
+        self.authz
+            .check_permission(sub, Object::Deposit, DepositAction::List)
+            .await?;
+
+        self.repo.list_for_customer(customer_id).await
+    }
+
+    pub async fn list(
+        &self,
+        sub: &Subject,
+        query: crate::query::PaginatedQueryArgs<DepositCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Deposit, DepositCursor>, DepositError> {
+        self.authz
+            .check_permission(sub, Object::Deposit, DepositAction::List)
+            .await?;
+        self.repo.list(query).await
     }
 }

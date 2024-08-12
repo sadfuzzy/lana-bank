@@ -3,7 +3,10 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger, primitives,
-    server::shared_graphql::{loan::Loan, primitives::UUID},
+    server::{
+        admin::AdminAuthContext,
+        shared_graphql::{deposit::*, loan::Loan, primitives::UUID, withdraw::*},
+    },
 };
 
 use super::balance::CustomerBalance;
@@ -53,6 +56,32 @@ impl Customer {
             .collect();
 
         Ok(loans)
+    }
+
+    async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let deposits = app
+            .deposits()
+            .list_for_customer(sub, primitives::CustomerId::from(&self.customer_id))
+            .await?
+            .into_iter()
+            .map(Deposit::from)
+            .collect();
+        Ok(deposits)
+    }
+
+    async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let withdraws = app
+            .withdraws()
+            .list_for_customer(sub, primitives::CustomerId::from(&self.customer_id))
+            .await?
+            .into_iter()
+            .map(Withdrawal::from)
+            .collect();
+        Ok(withdraws)
     }
 }
 

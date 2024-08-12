@@ -78,7 +78,6 @@ teardown_file() {
   )
   exec_admin_graphql 'initiate-withdrawal' "$variables"
 
-  echo $(graphql_output)
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled.usdBalance')
