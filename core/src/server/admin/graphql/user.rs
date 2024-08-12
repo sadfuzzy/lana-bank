@@ -1,9 +1,6 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::{
-    primitives::UUID,
-    user::{Role, User},
-};
+use crate::{primitives::Role, server::shared_graphql::primitives::UUID};
 
 #[derive(InputObject)]
 pub struct UserCreateInput {
@@ -11,8 +8,25 @@ pub struct UserCreateInput {
 }
 
 #[derive(SimpleObject)]
+pub struct User {
+    user_id: UUID,
+    email: String,
+    roles: Vec<Role>,
+}
+
+#[derive(SimpleObject)]
 pub struct UserCreatePayload {
     user: User,
+}
+
+impl From<crate::user::User> for User {
+    fn from(user: crate::user::User) -> Self {
+        Self {
+            user_id: UUID::from(user.id),
+            roles: user.current_roles().into_iter().map(Role::from).collect(),
+            email: user.email,
+        }
+    }
 }
 
 impl From<crate::user::User> for UserCreatePayload {

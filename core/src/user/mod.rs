@@ -117,8 +117,13 @@ impl Users {
         self.authz
             .check_permission(sub, Object::User, UserAction::AssignRole(role))
             .await?;
-        let user = self.repo.find_by_id(id).await?;
-        self.authz.assign_role_to_subject(user.id, &role).await?;
+
+        let mut user = self.repo.find_by_id(id).await?;
+        if user.assign_role(role) {
+            self.authz.assign_role_to_subject(user.id, &role).await?;
+            self.repo.persist(&mut user).await?;
+        }
+
         Ok(user)
     }
 
@@ -131,16 +136,13 @@ impl Users {
         self.authz
             .check_permission(sub, Object::User, UserAction::RevokeRole(role))
             .await?;
-        let user = self.repo.find_by_id(id).await?;
-        self.authz.revoke_role_from_subject(user.id, &role).await?;
-        Ok(user)
-    }
 
-    pub async fn roles_for_user(&self, sub: &Subject, id: UserId) -> Result<Vec<Role>, UserError> {
-        self.authz
-            .check_permission(sub, Object::User, UserAction::Read)
-            .await?;
-        let user = self.repo.find_by_id(id).await?;
-        Ok(self.authz.roles_for_subject(user.id).await?)
+        let mut user = self.repo.find_by_id(id).await?;
+        if user.revoke_role(role) {
+            self.authz.revoke_role_from_subject(user.id, &role).await?;
+            self.repo.persist(&mut user).await?;
+        }
+
+        Ok(user)
     }
 }

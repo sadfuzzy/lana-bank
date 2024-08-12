@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, Context, Object, Result};
+use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
@@ -13,7 +13,7 @@ use crate::{
         admin::AdminAuthContext,
         shared_graphql::{
             customer::Customer, loan::Loan, objects::SuccessPayload, primitives::UUID,
-            sumsub::SumsubPermalinkCreatePayload, terms::Terms, user::User,
+            sumsub::SumsubPermalinkCreatePayload, terms::Terms,
         },
     },
 };
@@ -27,7 +27,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i64,
         after: Option<String>,
-    ) -> Result<Connection<AuditCursor, AuditEntry>> {
+    ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
 
@@ -99,7 +99,8 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<Connection<CustomerByNameCursor, Customer, EmptyFields, EmptyFields>>
+    {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         query(
@@ -407,7 +408,7 @@ impl Mutation {
         let UserAssignRoleInput { id, role } = input;
         let user = app
             .users()
-            .assign_role_to_user(sub, id.into(), role.into())
+            .assign_role_to_user(sub, id.into(), role)
             .await?;
         Ok(UserAssignRolePayload::from(user))
     }
@@ -422,7 +423,7 @@ impl Mutation {
         let UserRevokeRoleInput { id, role } = input;
         let user = app
             .users()
-            .revoke_role_from_user(sub, id.into(), role.into())
+            .revoke_role_from_user(sub, id.into(), role)
             .await?;
         Ok(UserRevokeRolePayload::from(user))
     }

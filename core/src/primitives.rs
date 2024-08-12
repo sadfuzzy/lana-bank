@@ -2,7 +2,7 @@ use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
-use std::fmt;
+use std::{fmt, str::FromStr};
 use thiserror::Error;
 
 crate::entity_id! { CustomerId }
@@ -111,7 +111,7 @@ impl From<&Subject> for uuid::Uuid {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(async_graphql::Enum, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Role {
     Superuser,
     Admin,
@@ -128,14 +128,21 @@ impl AsRef<str> for Role {
     }
 }
 
-impl From<&str> for Role {
-    fn from(s: &str) -> Self {
-        match s {
+#[derive(Error, Debug)]
+#[error("ParseRoleError: {0}")]
+pub struct ParseRoleError(String);
+
+impl FromStr for Role {
+    type Err = ParseRoleError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let res = match s {
             "superuser" => Role::Superuser,
             "bank-manager" => Role::BankManager,
             "admin" => Role::Admin,
-            _ => panic!("Invalid role"),
-        }
+            _ => return Err(ParseRoleError(format!("Unknown role: {}", s))),
+        };
+        Ok(res)
     }
 }
 

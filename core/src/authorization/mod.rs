@@ -192,7 +192,8 @@ impl Authorization {
         object: Object,
         action: impl Into<Action>,
     ) -> Result<bool, AuthorizationError> {
-        let enforcer = self.enforcer.read().await;
+        let mut enforcer = self.enforcer.write().await;
+        enforcer.load_policy().await?;
 
         let action = action.into();
         match enforcer.enforce((sub.as_ref(), object.as_ref(), action.as_ref())) {
@@ -275,13 +276,14 @@ impl Authorization {
         sub: impl Into<Subject>,
     ) -> Result<Vec<Role>, AuthorizationError> {
         let sub: Subject = sub.into();
+        let sub_uuid = sub.to_string();
         let enforcer = self.enforcer.read().await;
 
         let roles = enforcer
             .get_grouping_policy()
             .into_iter()
-            .filter(|r| r[0] == sub.to_string())
-            .map(|r| Role::from(r[1].as_str()))
+            .filter(|r| r[0] == sub_uuid)
+            .map(|r| r[1].parse().expect("Could not parse role"))
             .collect();
 
         Ok(roles)

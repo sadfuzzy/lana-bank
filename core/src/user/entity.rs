@@ -3,10 +3,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::{entity::*, primitives::*};
 
+use std::collections::HashSet;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum UserEvent {
     Initialized { id: UserId, email: String },
+    RoleAssigned { role: Role },
+    RoleRevoked { role: Role },
 }
 
 impl EntityEvent for UserEvent {
@@ -21,10 +25,46 @@ impl EntityEvent for UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
-    pub(super) _events: EntityEvents<UserEvent>,
+    pub(super) events: EntityEvents<UserEvent>,
 }
 
-impl User {}
+impl User {
+    pub fn assign_role(&mut self, role: Role) -> bool {
+        let mut roles = self.current_roles();
+        if roles.insert(role) {
+            self.events.push(UserEvent::RoleAssigned { role });
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn revoke_role(&mut self, role: Role) -> bool {
+        let mut roles = self.current_roles();
+        if roles.remove(&role) {
+            self.events.push(UserEvent::RoleRevoked { role });
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn current_roles(&self) -> HashSet<Role> {
+        let mut res = HashSet::new();
+        for event in self.events.iter() {
+            match event {
+                UserEvent::RoleAssigned { role } => {
+                    res.insert(*role);
+                }
+                UserEvent::RoleRevoked { role } => {
+                    res.remove(role);
+                }
+                _ => {}
+            }
+        }
+        res
+    }
+}
 
 impl core::fmt::Display for User {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -46,9 +86,11 @@ impl TryFrom<EntityEvents<UserEvent>> for User {
                 UserEvent::Initialized { id, email } => {
                     builder = builder.id(*id).email(email.clone())
                 }
+                UserEvent::RoleAssigned { .. } => (),
+                UserEvent::RoleRevoked { .. } => (),
             }
         }
-        builder._events(events).build()
+        builder.events(events).build()
     }
 }
 

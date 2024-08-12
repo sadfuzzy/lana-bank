@@ -32,32 +32,24 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         .create_user(&superuser_subject, user_email.clone())
         .await?;
     assert_eq!(user.email, user_email);
+    assert_eq!(user.current_roles().len(), 0);
 
     let bank_manager = app
         .users()
         .assign_role_to_user(&superuser_subject, user.id, Role::BankManager)
-        .await;
+        .await
+        .expect("Could not assign role to user");
 
-    assert!(bank_manager.is_ok());
-    let bank_manager_id = bank_manager?.id;
+    assert_eq!(bank_manager.id, user.id);
+    let roles: Vec<_> = bank_manager.current_roles().into_iter().collect();
+    assert_eq!(roles, vec![Role::BankManager]);
 
-    assert_eq!(
-        app.users()
-            .roles_for_user(&superuser_subject, bank_manager_id)
-            .await?,
-        vec![Role::BankManager]
-    );
-
-    app.users()
-        .revoke_role_from_user(&superuser_subject, bank_manager_id, Role::BankManager)
+    let user = app
+        .users()
+        .revoke_role_from_user(&superuser_subject, bank_manager.id, Role::BankManager)
         .await?;
 
-    assert_eq!(
-        app.users()
-            .roles_for_user(&superuser_subject, bank_manager_id)
-            .await?,
-        vec![]
-    );
+    assert_eq!(user.current_roles().len(), 0);
 
     Ok(())
 }
