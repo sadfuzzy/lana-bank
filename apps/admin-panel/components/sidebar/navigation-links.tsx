@@ -14,6 +14,8 @@ import { usePathname } from "next/navigation"
 
 import { RiAdminLine } from "react-icons/ri"
 
+import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi"
+
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -26,6 +28,9 @@ const navLinks = [
   { href: "/terms", label: "Terms", icon: IoDocumentOutline },
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },
+  { href: "/deposits", label: "Deposits", icon: PiHandDeposit },
+  { href: "/withdrawals", label: "Withdrawals", icon: PiHandWithdraw },
+
   {
     label: "Financials",
     icon: IoCashOutline,

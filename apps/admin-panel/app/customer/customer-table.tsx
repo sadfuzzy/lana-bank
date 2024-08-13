@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-
 import { IoEllipsisHorizontal } from "react-icons/io5"
+import { useState } from "react"
 
 import {
   CustomersQuery,
@@ -19,7 +19,6 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { Card, CardContent } from "@/components/primitive/card"
-
 import { Button } from "@/components/primitive/button"
 import {
   DropdownMenu,
@@ -27,9 +26,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
-
 import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
+import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-dialog"
+import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
 
 function CustomerTable({
   customerId,
@@ -38,6 +38,13 @@ function CustomerTable({
   customerId?: string
   renderCreateCustomerDialog: (refetch: () => void) => React.ReactNode
 }) {
+  const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState<
+    string | null
+  >(null)
+  const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState<string | null>(
+    null,
+  )
+
   const pageSize = 100
   let customerDetails:
     | GetCustomerByCustomerIdQuery["customer"][]
@@ -177,6 +184,20 @@ function CustomerTable({
                                   <span>Create Loan</span>
                                 </CreateLoanDialog>
                               </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setOpenRecordDepositDialog(customer.customerId)
+                                }
+                              >
+                                Record Deposit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setOpenWithdrawalInitiateDialog(customer.customerId)
+                                }
+                              >
+                                Record Withdrawal
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -197,6 +218,20 @@ function CustomerTable({
             Load More
           </Button>
         </div>
+      )}
+      {openWithdrawalInitiateDialog && (
+        <WithdrawalInitiateDialog
+          customerId={openWithdrawalInitiateDialog}
+          openWithdrawalInitiateDialog={Boolean(openWithdrawalInitiateDialog)}
+          setOpenWithdrawalInitiateDialog={() => setOpenWithdrawalInitiateDialog(null)}
+        />
+      )}
+      {openRecordDepositDialog && (
+        <RecordDepositDialog
+          customerId={openRecordDepositDialog}
+          openRecordDepositDialog={Boolean(openRecordDepositDialog)}
+          setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(null)}
+        />
       )}
     </>
   )

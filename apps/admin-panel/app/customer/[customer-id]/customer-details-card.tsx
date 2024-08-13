@@ -73,7 +73,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
             <CardContent>
               <DetailsGroup>
                 <DetailItem
-                  label="customer ID"
+                  label="Customer ID"
                   value={customerDetails.customer.customerId}
                 />
                 <DetailItem label="Email" value={customerDetails.customer.email} />
