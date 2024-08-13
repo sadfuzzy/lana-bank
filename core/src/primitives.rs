@@ -1,6 +1,7 @@
 use rust_decimal::{Decimal, RoundingStrategy};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use std::{fmt, str::FromStr};
 use thiserror::Error;
@@ -74,40 +75,50 @@ pub use cala_types::primitives::{
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
-#[derive(Debug, Clone)]
-pub struct Subject(uuid::Uuid);
+#[derive(Debug, Clone, Copy)]
+pub enum Subject {
+    Customer(CustomerId),
+    User(UserId),
+    System,
+}
 
-impl<T> From<T> for Subject
-where
-    T: Into<uuid::Uuid>,
-{
-    fn from(s: T) -> Self {
-        Self(s.into())
+impl FromStr for Subject {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split(':').collect();
+        if parts.len() != 2 {
+            return Err(());
+        }
+        let id = parts[1].parse().map_err(|_| ())?;
+        match parts[0] {
+            "customer" => Ok(Subject::Customer(CustomerId(id))),
+            "user" => Ok(Subject::User(UserId(id))),
+            "system" => Ok(Subject::System),
+            _ => Err(()),
+        }
     }
 }
 
-impl AsRef<uuid::Uuid> for Subject {
-    fn as_ref(&self) -> &uuid::Uuid {
-        &self.0
+impl From<UserId> for Subject {
+    fn from(s: UserId) -> Self {
+        Subject::User(s)
     }
 }
 
-impl std::ops::Deref for Subject {
-    type Target = uuid::Uuid;
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
+impl From<CustomerId> for Subject {
+    fn from(s: CustomerId) -> Self {
+        Subject::Customer(s)
     }
 }
 
-impl Subject {
-    pub fn inner(&self) -> &uuid::Uuid {
-        &self.0
-    }
-}
-
-impl From<&Subject> for uuid::Uuid {
-    fn from(subject: &Subject) -> Self {
-        subject.0
+impl std::fmt::Display for Subject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Subject::Customer(id) => write!(f, "customer:{}", id),
+            Subject::User(id) => write!(f, "user:{}", id),
+            Subject::System => write!(f, "system:{}", Uuid::nil()),
+        }
     }
 }
 
@@ -376,12 +387,18 @@ impl PriceOfOneBTC {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct AuditEntryId(pub i64);
 
 impl From<i64> for AuditEntryId {
     fn from(value: i64) -> AuditEntryId {
         AuditEntryId(value)
+    }
+}
+
+impl From<AuditEntryId> for i64 {
+    fn from(value: AuditEntryId) -> i64 {
+        value.0
     }
 }
 

@@ -5,6 +5,8 @@ pub mod error;
 mod kratos;
 mod repo;
 
+use std::collections::HashMap;
+
 use crate::{
     authorization::{Authorization, CustomerAction, Object},
     ledger::*,
@@ -94,6 +96,17 @@ impl Customers {
         }
     }
 
+    pub async fn find_by_id_internal(
+        &self,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Option<Customer>, CustomerError> {
+        match self.repo.find_by_id(id.into()).await {
+            Ok(customer) => Ok(Some(customer)),
+            Err(CustomerError::CouldNotFindById(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn list(
         &self,
         sub: &Subject,
@@ -149,5 +162,12 @@ impl Customers {
         db_tx.commit().await?;
 
         Ok(customer)
+    }
+
+    pub async fn find_all<T: From<Customer>>(
+        &self,
+        ids: &[CustomerId],
+    ) -> Result<HashMap<CustomerId, T>, CustomerError> {
+        self.repo.find_all(ids).await
     }
 }

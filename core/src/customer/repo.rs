@@ -1,5 +1,7 @@
 use sqlx::PgPool;
 
+use std::collections::HashMap;
+
 use super::{cursor::*, entity::*, error::*};
 use crate::{entity::*, primitives::*};
 
@@ -102,5 +104,27 @@ impl CustomerRepo {
             has_next_page,
             end_cursor,
         })
+    }
+
+    pub async fn find_all<T: From<Customer>>(
+        &self,
+        ids: &[CustomerId],
+    ) -> Result<HashMap<CustomerId, T>, CustomerError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM customers a
+            JOIN customer_events e
+            ON a.id = e.id
+            WHERE a.id = ANY($1)"#,
+            ids as &[CustomerId]
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<Customer>(rows, n)?;
+
+        Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
     }
 }

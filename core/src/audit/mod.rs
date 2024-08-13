@@ -7,7 +7,6 @@ mod cursor;
 pub use cursor::AuditCursor;
 
 use sqlx::prelude::FromRow;
-use uuid::Uuid;
 
 use crate::{
     authorization::{Action, Object},
@@ -26,7 +25,7 @@ pub struct AuditEntry {
 #[derive(Debug, FromRow)]
 struct RawAuditEntry {
     id: AuditEntryId,
-    subject: Uuid,
+    subject: String,
     object: String,
     action: String,
     authorized: bool,
@@ -55,7 +54,7 @@ impl Audit {
                 INSERT INTO audit_entries (subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4)
                 "#,
-            subject.as_ref(),
+            subject.to_string(),
             object.as_ref(),
             action.as_ref(),
             authorized,
@@ -116,7 +115,7 @@ impl Audit {
             .into_iter()
             .map(|raw_event| AuditEntry {
                 id: raw_event.id,
-                subject: Subject::from(raw_event.subject),
+                subject: raw_event.subject.parse().expect("Could not parse subject"),
                 object: raw_event.object.parse().expect("Could not parse object"),
                 action: raw_event.action.parse().expect("Could not parse action"),
                 authorized: raw_event.authorized,

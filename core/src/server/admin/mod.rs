@@ -14,7 +14,10 @@ use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
 
-use crate::{app::LavaApp, primitives::Subject};
+use crate::{
+    app::LavaApp,
+    primitives::{Subject, UserId},
+};
 
 pub use config::*;
 
@@ -57,14 +60,24 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     Ok(())
 }
 
+// admin/public Auth context can be removed as Subject has the right context already
 #[derive(Debug, Clone)]
 pub struct AdminAuthContext {
     pub sub: Subject,
 }
 
 impl AdminAuthContext {
-    pub fn new(sub: impl Into<Subject>) -> Self {
-        Self { sub: sub.into() }
+    pub fn new(sub: impl Into<UserId>) -> Self {
+        Self {
+            sub: Subject::User(sub.into()),
+        }
+    }
+
+    pub fn authenticated_user_id(&self) -> UserId {
+        match &self.sub {
+            Subject::User(id) => *id,
+            _ => panic!("AdminAuthContext is always a User"),
+        }
     }
 }
 

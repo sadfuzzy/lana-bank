@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{entity::*, primitives::UserId};
@@ -96,5 +98,27 @@ impl UserRepo {
         user.events.persist(&mut db).await?;
         db.commit().await?;
         Ok(())
+    }
+
+    pub async fn find_all<T: From<User>>(
+        &self,
+        ids: &[UserId],
+    ) -> Result<HashMap<UserId, T>, UserError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM users a
+            JOIN user_events e
+            ON a.id = e.id
+            WHERE a.id = ANY($1)"#,
+            ids as &[UserId]
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let n = rows.len();
+        let res = EntityEvents::load_n::<User>(rows, n)?;
+
+        Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
     }
 }

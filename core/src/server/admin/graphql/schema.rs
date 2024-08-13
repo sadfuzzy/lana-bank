@@ -44,12 +44,12 @@ impl Query {
         let res = app.list_audit(sub, query_args).await?;
 
         let mut connection = Connection::new(false, res.has_next_page);
-        connection
-            .edges
-            .extend(res.entities.into_iter().map(|entry| {
-                let cursor = AuditCursor { id: entry.id.0 };
-                Edge::new(cursor, AuditEntry::from(entry))
-            }));
+        for entry in res.entities {
+            let id = i64::from(entry.id);
+            let audit_entry = AuditEntry::from(entry);
+            let cursor = AuditCursor { id };
+            connection.edges.push(Edge::new(cursor, audit_entry));
+        }
 
         Ok(connection)
     }
@@ -76,8 +76,11 @@ impl Query {
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-        let user = app.users().find_for_subject(sub).await?;
+        let auth_ctx: &AdminAuthContext = ctx.data()?;
+
+        let my_id = auth_ctx.authenticated_user_id();
+        let user = app.users().find_by_id(&auth_ctx.sub, my_id).await?;
+        let user = user.expect("User always exists");
         Ok(User::from(user))
     }
 

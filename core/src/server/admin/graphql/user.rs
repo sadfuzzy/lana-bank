@@ -7,7 +7,7 @@ pub struct UserCreateInput {
     pub email: String,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct User {
     user_id: UUID,
     email: String,

@@ -24,7 +24,7 @@ pub enum AccountStatus {
     Inactive,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct Customer {
     customer_id: UUID,

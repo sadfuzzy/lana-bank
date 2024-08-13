@@ -63,11 +63,11 @@ scalar AnnualRatePct
 
 type AuditEntry {
 	id: ID!
-	subject: UUID!
 	object: String!
 	action: String!
 	authorized: Boolean!
 	createdAt: Timestamp!
+	subject: Subject!
 }
 
 type AuditEntryConnection {
@@ -430,6 +430,8 @@ type StatementCategoryWithBalance {
 }
 
 
+union Subject = User | Customer | System
+
 type SuccessPayload {
 	success: Boolean!
 }
@@ -440,6 +442,10 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
+}
+
+type System {
+	name: String!
 }
 
 type TermValues {

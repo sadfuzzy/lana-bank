@@ -4,7 +4,23 @@ query AuditLogs($first: Int!, $after: String) {
       cursor
       node {
         id
-        subject
+        subject {
+          ... on User {
+            userId
+            email
+            roles
+          }
+          ... on Customer {
+            customerId
+            email
+            status
+            level
+            applicantId
+          }
+          ... on System {
+            name
+          }
+        }
         object
         action
         authorized

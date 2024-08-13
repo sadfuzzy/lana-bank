@@ -95,7 +95,7 @@ export type AuditEntry = {
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   object: Scalars['String']['output'];
-  subject: Scalars['UUID']['output'];
+  subject: Subject;
 };
 
 export type AuditEntryConnection = {
@@ -550,6 +550,8 @@ export type StatementCategoryWithBalance = {
   name: Scalars['String']['output'];
 };
 
+export type Subject = Customer | System | User;
+
 export type SuccessPayload = {
   __typename?: 'SuccessPayload';
   success: Scalars['Boolean']['output'];
@@ -562,6 +564,11 @@ export type SumsubPermalinkCreateInput = {
 export type SumsubPermalinkCreatePayload = {
   __typename?: 'SumsubPermalinkCreatePayload';
   url: Scalars['String']['output'];
+};
+
+export type System = {
+  __typename?: 'System';
+  name: Scalars['String']['output'];
 };
 
 export type TermValues = {
@@ -700,7 +707,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, subject: string, object: string, action: string, authorized: boolean, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, createdAt: any, subject: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type BalanceSheetQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -997,7 +1004,23 @@ export const AuditLogsDocument = gql`
       cursor
       node {
         id
-        subject
+        subject {
+          ... on User {
+            userId
+            email
+            roles
+          }
+          ... on Customer {
+            customerId
+            email
+            status
+            level
+            applicantId
+          }
+          ... on System {
+            name
+          }
+        }
         object
         action
         authorized

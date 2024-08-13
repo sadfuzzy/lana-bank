@@ -1,26 +1,75 @@
-use async_graphql::{SimpleObject, ID};
+use async_graphql::{dataloader::DataLoader, ComplexObject, Context, SimpleObject, Union, ID};
 
-use crate::server::shared_graphql::primitives::{Timestamp, UUID};
+use crate::{
+    primitives::Subject as DomainSubject,
+    server::shared_graphql::{customer::Customer, primitives::Timestamp},
+};
+
+use super::{loader::LavaDataLoader, user::User};
 
 #[derive(SimpleObject)]
+pub struct System {
+    name: String,
+}
+
+#[derive(Union)]
+enum Subject {
+    User(User),
+    Customer(Customer),
+    System(System),
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct AuditEntry {
     id: ID,
-    subject: UUID,
+    #[graphql(skip)]
+    subject: DomainSubject,
     object: String,
     action: String,
     authorized: bool,
     created_at: Timestamp,
 }
 
+#[ComplexObject]
+impl AuditEntry {
+    async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<Subject> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+
+        match self.subject {
+            DomainSubject::User(id) => {
+                let user = loader.load_one(id).await?;
+                match user {
+                    None => Err("User not found".into()),
+                    Some(user) => Ok(Subject::User(user)),
+                }
+            }
+            DomainSubject::Customer(id) => {
+                let customer = loader.load_one(id).await?;
+                match customer {
+                    None => Err("Customer not found".into()),
+                    Some(customer) => Ok(Subject::Customer(customer)),
+                }
+            }
+            DomainSubject::System => {
+                let system = System {
+                    name: "System".to_string(),
+                };
+                Ok(Subject::System(system))
+            }
+        }
+    }
+}
+
 impl From<crate::audit::AuditEntry> for AuditEntry {
-    fn from(audit_log: crate::audit::AuditEntry) -> Self {
+    fn from(entry: crate::audit::AuditEntry) -> Self {
         Self {
-            id: audit_log.id.0.into(),
-            subject: UUID::from(*audit_log.subject.as_ref()),
-            object: audit_log.object.as_ref().into(),
-            action: audit_log.action.as_ref().into(),
-            authorized: audit_log.authorized,
-            created_at: audit_log.created_at.into(),
+            id: entry.id.0.into(),
+            subject: entry.subject,
+            object: entry.object.as_ref().into(),
+            action: entry.action.as_ref().into(),
+            authorized: entry.authorized,
+            created_at: entry.created_at.into(),
         }
     }
 }

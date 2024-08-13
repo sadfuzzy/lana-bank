@@ -12,7 +12,23 @@ gql`
         cursor
         node {
           id
-          subject
+          subject {
+            ... on User {
+              userId
+              email
+              roles
+            }
+            ... on Customer {
+              customerId
+              email
+              status
+              level
+              applicantId
+            }
+            ... on System {
+              name
+            }
+          }
           object
           action
           authorized
@@ -74,7 +90,15 @@ function LogsPage() {
               {logDetails?.audit.edges.map((item) => (
                 <tr key={item.node.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
-                    {item.node.subject}
+                    {item.node.subject.__typename === "User"
+                      ? item.node.subject.email
+                      : ""}
+                    {item.node.subject.__typename === "Customer"
+                      ? item.node.subject.email
+                      : ""}
+                    {item.node.subject.__typename === "System"
+                      ? item.node.subject.name
+                      : ""}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
                     {item.node.object}
