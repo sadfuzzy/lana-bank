@@ -56,11 +56,13 @@ export const Account = ({
   currency,
   depth = 0,
   layer,
+  transactionType,
 }: {
   account: AccountSetSubAccountWithBalance
   currency: Currency
   depth?: number
   layer: Layers
+  transactionType: TransactionType
 }) => {
   const [showingSubAccounts, setShowingSubAccounts] = useState(false)
   const hasSubAccounts =
@@ -86,7 +88,7 @@ export const Account = ({
         <TableCell>
           <Balance
             currency={currency}
-            amount={account.balance[currency][layer].netCredit}
+            amount={account.balance[currency][layer][transactionType]}
           />
         </TableCell>
       </TableRow>
@@ -97,6 +99,7 @@ export const Account = ({
           account={account}
           depth={depth}
           layer={layer}
+          transactionType={transactionType}
         />
       )}
     </>
@@ -108,11 +111,13 @@ const SubAccountsForAccountSet = ({
   depth = 0,
   currency,
   layer,
+  transactionType,
 }: {
   account: AccountSetSubAccountWithBalance
   depth?: number
   currency: Currency
   layer: Layers
+  transactionType: TransactionType
 }) => {
   const { data, fetchMore } = usePnlAccountSetWithBalanceQuery({
     variables: {
@@ -133,6 +138,7 @@ const SubAccountsForAccountSet = ({
           account={subAccount.node}
           depth={depth + 1}
           layer={layer}
+          transactionType={transactionType}
         />
       ))}
       {hasMoreSubAccounts && subAccounts && (

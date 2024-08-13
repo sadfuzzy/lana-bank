@@ -6,6 +6,7 @@ import { Account } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
+  StatementCategoryWithBalance,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
@@ -14,8 +15,6 @@ import {
   TableBody,
   TableCell,
   TableFooter,
-  TableHead,
-  TableHeader,
   TableRow,
 } from "@/components/primitive/table"
 
@@ -57,6 +56,13 @@ gql`
     }
   }
 `
+
+const BALANCE_FOR_CATEGORY: {
+  [key: string]: { TransactionType: TransactionType }
+} = {
+  Revenue: { TransactionType: "netCredit" },
+  Expenses: { TransactionType: "netDebit" },
+}
 
 export default function ProfitAndLossStatementPage() {
   const {
@@ -118,36 +124,26 @@ const ProfitAndLossStatement = ({
         </div>
       </div>
       <Table>
-        <TableHeader>
-          <TableHead></TableHead>
-          <TableHead className="text-right">Net</TableHead>
-        </TableHeader>
         <TableBody>
-          {categories?.map((category) => (
-            <>
-              <TableRow>
-                <TableCell className="flex items-center gap-2">{category.name}</TableCell>
-                <TableCell className="w-48">
-                  <Balance
-                    currency={currency}
-                    amount={category.balance[currency][layer].netCredit}
-                  />
-                </TableCell>
-              </TableRow>
-              {category.accounts.map((account) => (
-                <Account
-                  key={account.id}
-                  account={account}
-                  currency={currency}
-                  layer={layer}
-                />
-              ))}
-            </>
-          ))}
+          {categories?.map((category) => {
+            return (
+              <CategoryRow
+                key={category.name}
+                category={category}
+                currency={currency}
+                layer={layer}
+                transactionType={
+                  BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
+                }
+              />
+            )
+          })}
         </TableBody>
         <TableFooter>
           <TableRow>
-            <TableCell className="uppercase font-bold pr-10">Total</TableCell>
+            <TableCell className="uppercase pr-10 text-textColor-secondary">
+              NET
+            </TableCell>
             <TableCell className="w-48">
               <Balance currency={currency} amount={balance[currency][layer].netCredit} />
             </TableCell>
@@ -155,5 +151,44 @@ const ProfitAndLossStatement = ({
         </TableFooter>
       </Table>
     </main>
+  )
+}
+
+const CategoryRow = ({
+  category,
+  currency,
+  layer,
+  transactionType,
+}: {
+  category: StatementCategoryWithBalance
+  currency: Currency
+  layer: Layers
+  transactionType: TransactionType
+}) => {
+  console.log(category.name, transactionType)
+
+  return (
+    <>
+      <TableRow>
+        <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase">
+          {category.name}
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            currency={currency}
+            amount={category.balance[currency][layer][transactionType]}
+          />
+        </TableCell>
+      </TableRow>
+      {category.accounts.map((account) => (
+        <Account
+          key={account.id}
+          account={account}
+          currency={currency}
+          layer={layer}
+          transactionType={transactionType}
+        />
+      ))}
+    </>
   )
 }
