@@ -50,28 +50,16 @@ gql`
     }
   }
 `
-const BALANCE_FOR_CATEGORY: {
-  [key: string]: { TransactionType: TransactionType }
-} = {
+
+const BALANCE_FOR_CATEGORY: Record<string, { TransactionType: TransactionType }> = {
   Liabilities: { TransactionType: "netCredit" },
   Equity: { TransactionType: "netCredit" },
   Assets: { TransactionType: "netDebit" },
 }
 
 export default function BalanceSheetPage() {
-  const {
-    data: BalanceSheetData,
-    loading: BalanceSheetLoading,
-    error: BalanceSheetError,
-  } = useBalanceSheetQuery()
-
-  return (
-    <BalanceSheet
-      data={BalanceSheetData?.balanceSheet}
-      loading={BalanceSheetLoading}
-      error={BalanceSheetError}
-    />
-  )
+  const { data, loading, error } = useBalanceSheetQuery()
+  return <BalanceSheet data={data?.balanceSheet} loading={loading} error={error} />
 }
 
 const BalanceSheet = ({
@@ -86,81 +74,140 @@ const BalanceSheet = ({
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
-  const balance = data?.balance
-  console.log(balance)
-  const categories = data?.categories
-
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
-  if (!balance) return <div>No data</div>
+  if (!data?.balance) return <div>No data</div>
 
-  const assets = categories?.filter((category) => category.name === "Assets")
-  const liabilitiesAndEquity = categories?.filter(
+  const assets = data.categories?.filter((category) => category.name === "Assets")
+  const liabilitiesAndEquity = data.categories?.filter(
     (category) => category.name === "Liabilities" || category.name === "Equity",
+  )
+
+  const totalLiabilitiesAndEquity = calculateTotalLiabilitiesAndEquity(
+    liabilitiesAndEquity,
+    currency,
+    layer,
   )
 
   return (
     <main>
-      <div className="flex justify-between">
-        <PageHeading>Balance Sheet</PageHeading>
-        <div className="flex gap-4">
-          <div className="w-32">
-            <Select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as Currency)}
-            >
-              <option value="btc">BTC</option>
-              <option value="usd">USD</option>
-            </Select>
-          </div>
-          <div className="w-32">
-            <Select value={layer} onChange={(e) => setLayer(e.target.value as Layers)}>
-              <option value="all">All</option>
-              <option value="settled">Settled</option>
-              <option value="pending">Pending</option>
-              <option value="encumbrance">Encumbrance</option>
-            </Select>
-          </div>
-        </div>
-      </div>
+      <BalanceSheetHeader
+        currency={currency}
+        setCurrency={setCurrency}
+        layer={layer}
+        setLayer={setLayer}
+      />
       <div className="flex gap-4 justify-between">
-        <Table>
-          <TableBody>
-            {assets?.map((category) => (
-              <CategoryRow
-                key={category.name}
-                category={category}
-                currency={currency}
-                layer={layer}
-                transactionType={
-                  BALANCE_FOR_CATEGORY[category.name].TransactionType || "netDebit"
-                }
-              />
-            ))}
-          </TableBody>
-        </Table>
-        <div className="w-2 min-h-full bg-secondary-foreground"></div>
-        <Table>
-          <TableBody>
-            {liabilitiesAndEquity?.map((category) => (
-              <CategoryRow
-                key={category.name}
-                category={category}
-                currency={currency}
-                layer={layer}
-                transactionType={
-                  BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
-                }
-              />
-            ))}
-          </TableBody>
-        </Table>
+        {assets && assets.length > 0 && (
+          <BalanceSheetColumn
+            title="Total Assets"
+            categories={assets}
+            currency={currency}
+            layer={layer}
+            total={
+              assets[0].balance[currency][layer][
+                BALANCE_FOR_CATEGORY["Assets"].TransactionType
+              ]
+            }
+          />
+        )}
+        <div className="w-1 min-h-full bg-secondary-foreground"></div>
+        {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
+          <BalanceSheetColumn
+            title="Total Liabilities & Equity"
+            categories={liabilitiesAndEquity}
+            currency={currency}
+            layer={layer}
+            total={totalLiabilitiesAndEquity}
+          />
+        )}
       </div>
     </main>
   )
 }
 
-const CategoryRow = ({
+function BalanceSheetHeader({
+  currency,
+  setCurrency,
+  layer,
+  setLayer,
+}: {
+  currency: Currency
+  setCurrency: (currency: Currency) => void
+  layer: Layers
+  setLayer: (layer: Layers) => void
+}) {
+  return (
+    <div className="flex justify-between">
+      <PageHeading>Balance Sheet</PageHeading>
+      <div className="flex gap-4">
+        <div className="w-32">
+          <Select
+            value={currency}
+            onChange={(e) => setCurrency(e.target.value as Currency)}
+          >
+            <option value="btc">BTC</option>
+            <option value="usd">USD</option>
+          </Select>
+        </div>
+        <div className="w-32">
+          <Select value={layer} onChange={(e) => setLayer(e.target.value as Layers)}>
+            <option value="all">All</option>
+            <option value="settled">Settled</option>
+            <option value="pending">Pending</option>
+            <option value="encumbrance">Encumbrance</option>
+          </Select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function BalanceSheetColumn({
+  title,
+  categories,
+  currency,
+  layer,
+  total,
+}: {
+  title: string
+  categories: StatementCategoryWithBalance[]
+  currency: Currency
+  layer: Layers
+  total: number
+}) {
+  return (
+    <div className="flex-grow flex flex-col justify-between w-1/2">
+      <Table>
+        <TableBody>
+          {categories.map((category) => (
+            <CategoryRow
+              key={category.name}
+              category={category}
+              currency={currency}
+              layer={layer}
+              transactionType={BALANCE_FOR_CATEGORY[category.name].TransactionType}
+            />
+          ))}
+        </TableBody>
+      </Table>
+      <Table>
+        <TableBody>
+          <TableRow className="bg-secondary-foreground">
+            <TableCell className="uppercase font-bold text-textColor-secondary">
+              {title}
+            </TableCell>
+            <TableCell className="flex flex-col gap-2 items-end text-right">
+              <Balance currency={currency} amount={total} />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+function CategoryRow({
   category,
   currency,
   layer,
@@ -170,21 +217,14 @@ const CategoryRow = ({
   currency: Currency
   layer: Layers
   transactionType: TransactionType
-}) => {
-  console.log(category, transactionType)
-
+}) {
   return (
     <>
       <TableRow className="bg-secondary-foreground">
         <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase ">
           {category.name}
         </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            currency={currency}
-            amount={category.balance[currency][layer][transactionType]}
-          />
-        </TableCell>
+        <TableCell className="w-48"></TableCell>
       </TableRow>
       {category.accounts.map((account) => (
         <Account
@@ -195,6 +235,37 @@ const CategoryRow = ({
           transactionType={transactionType}
         />
       ))}
+      {category.name !== "Assets" && (
+        <TableRow>
+          <TableCell className="flex items-center gap-2 text-textColor-secondary font-semibold uppercase text-xs">
+            <div className="w-6" />
+            Total
+          </TableCell>
+          <TableCell>
+            <Balance
+              currency={currency}
+              amount={category.balance[currency][layer][transactionType]}
+            />
+          </TableCell>
+        </TableRow>
+      )}
     </>
+  )
+}
+
+function calculateTotalLiabilitiesAndEquity(
+  categories: StatementCategoryWithBalance[] | undefined,
+  currency: Currency,
+  layer: Layers,
+): number {
+  return (
+    categories?.reduce(
+      (acc, category) =>
+        acc +
+        category.balance[currency][layer][
+          BALANCE_FOR_CATEGORY[category.name].TransactionType
+        ],
+      0,
+    ) || 0
   )
 }
