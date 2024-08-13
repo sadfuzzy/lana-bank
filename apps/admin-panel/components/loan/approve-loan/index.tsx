@@ -52,16 +52,18 @@ export const LoanApproveDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const [collateral, setCollateral] = useState<number>(0)
+  const [collateral, setCollateral] = useState<string>("")
   const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
   const handleLoanApprove = async () => {
+    if (!collateral) return
+
     try {
       await LoanApprove({
         variables: {
           input: {
             loanId: loanId,
-            collateral,
+            collateral: currencyConverter.btcToSatoshi(Number(collateral)),
           },
         },
       })
@@ -76,7 +78,7 @@ export const LoanApproveDialog = ({
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setCollateral(0)
+          setCollateral("")
           reset()
         }
       }}
@@ -125,13 +127,14 @@ export const LoanApproveDialog = ({
             <Label>Collateral</Label>
             <div className="flex items-center gap-1">
               <Input
+                required
                 type="number"
                 value={collateral}
-                onChange={(e) => setCollateral(Number(e.target.value))}
-                placeholder="Enter the desired principal amount"
-                min={0}
+                onChange={(e) => setCollateral(e.target.value)}
+                placeholder="Enter the desired Collateral amount"
+                min={0.00000001}
               />
-              <div className="p-1.5 bg-input-text rounded-md px-4">SATS</div>
+              <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
             </div>
           </div>
           {error && <span className="text-destructive">{error.message}</span>}
