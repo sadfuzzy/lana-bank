@@ -163,7 +163,7 @@ function LoanPage() {
                   refetch={refetch}
                   loanId={loanDetails.loan.loanId}
                 >
-                  <Button>Make Partial Payment</Button>
+                  <Button>Make Payment</Button>
                 </LoanPartialPaymentDialog>
               )}
               {loanDetails.loan.status === LoanStatus.New && (

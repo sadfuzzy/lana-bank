@@ -125,7 +125,7 @@ export const LoanPartialPaymentDialog = ({
       ) : (
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Partial Payment Loan</DialogTitle>
+            <DialogTitle>Loan Payment</DialogTitle>
             <DialogDescription>Fill in the details below.</DialogDescription>
           </DialogHeader>
           <div>
