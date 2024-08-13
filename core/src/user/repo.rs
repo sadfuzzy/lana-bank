@@ -95,7 +95,7 @@ impl UserRepo {
 
     pub async fn persist(&self, user: &mut User) -> Result<(), UserError> {
         let mut db = self.pool.begin().await?;
-        user.events.persist(&mut db).await?;
+        self.persist_in_tx(&mut db, user).await?;
         db.commit().await?;
         Ok(())
     }
@@ -120,5 +120,14 @@ impl UserRepo {
         let res = EntityEvents::load_n::<User>(rows, n)?;
 
         Ok(res.0.into_iter().map(|u| (u.id, T::from(u))).collect())
+    }
+
+    pub async fn persist_in_tx(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        user: &mut User,
+    ) -> Result<(), UserError> {
+        user.events.persist(db).await?;
+        Ok(())
     }
 }

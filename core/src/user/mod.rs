@@ -49,10 +49,12 @@ impl Users {
                 .build()
                 .expect("Could not build user");
             let mut db = self.pool.begin().await?;
-            let user = self.repo.create_in_tx(&mut db, new_user).await?;
+            let mut user = self.repo.create_in_tx(&mut db, new_user).await?;
+            user.assign_role(Role::Superuser);
             self.authz
                 .assign_role_to_subject(user.id, &Role::Superuser)
                 .await?;
+            self.repo.persist_in_tx(&mut db, &mut user).await?;
             db.commit().await?;
         }
         Ok(())
