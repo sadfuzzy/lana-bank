@@ -20,10 +20,11 @@ import {
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
+import { currencyConverter, formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -199,25 +200,30 @@ export const CreateLoanDialog = ({
             />
             <DetailItem
               label="Collateral"
-              value={`${data.loanCreate.loan.balance.collateral.btcBalance} sats`}
+              valueComponent={
+                <Balance
+                  amount={data.loanCreate.loan.balance.collateral.btcBalance}
+                  currency="btc"
+                />
+              }
             />
             <DetailItem
               label="Interest Incurred"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanCreate.loan.balance.interestIncurred.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={data.loanCreate.loan.balance.interestIncurred.usdBalance}
+                  currency="usd"
+                />
+              }
             />
             <DetailItem
               label="Outstanding"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanCreate.loan.balance.outstanding.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={data.loanCreate.loan.balance.outstanding.usdBalance}
+                  currency="usd"
+                />
+              }
             />
             <DetailItem
               label="Duration"

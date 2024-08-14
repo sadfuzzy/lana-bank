@@ -21,7 +21,7 @@ import {
 import { useGetDepositsForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query GetDepositsForCustomer($id: UUID!) {
@@ -88,10 +88,7 @@ export const CustomerDepositsTable = ({ customerId }: { customerId: string }) =>
                         <TableCell>{deposit.depositId}</TableCell>
                         <TableCell>{deposit.customerId}</TableCell>
                         <TableCell>
-                          {formatCurrency({
-                            amount: currencyConverter.centsToUsd(deposit.amount),
-                            currency: "USD",
-                          })}
+                          <Balance amount={deposit.amount} currency="usd" />
                         </TableCell>
                       </TableRow>
                     ))}

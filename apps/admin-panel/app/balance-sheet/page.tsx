@@ -185,7 +185,7 @@ function BalanceSheetColumn({
               {title}
             </TableCell>
             <TableCell className="flex flex-col gap-2 items-end text-right">
-              <Balance currency={currency} amount={total} />
+              <Balance align="end" currency={currency} amount={total} />
             </TableCell>
           </TableRow>
         </TableBody>
@@ -230,6 +230,7 @@ function CategoryRow({
           </TableCell>
           <TableCell>
             <Balance
+              align="end"
               currency={currency}
               amount={category.balance[currency][layer][transactionType]}
             />

@@ -180,18 +180,21 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               <TableCell>{memberBalance.name}</TableCell>
               <TableCell className="w-48">
                 <Balance
+                  align="end"
                   currency={currency}
                   amount={memberBalance.balance[currency][layer].debit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
+                  align="end"
                   currency={currency}
                   amount={memberBalance.balance[currency][layer].credit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
+                  align="end"
                   currency={currency}
                   amount={memberBalance.balance[currency][layer].netDebit}
                 />
@@ -203,13 +206,25 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
           <TableRow>
             <TableCell className="text-right uppercase font-bold pr-10">Totals</TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].debit} />
+              <Balance
+                align="end"
+                currency={currency}
+                amount={balance[currency][layer].debit}
+              />
             </TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].credit} />
+              <Balance
+                align="end"
+                currency={currency}
+                amount={balance[currency][layer].credit}
+              />
             </TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].netDebit} />
+              <Balance
+                align="end"
+                currency={currency}
+                amount={balance[currency][layer].netDebit}
+              />
             </TableCell>
           </TableRow>
         </TableFooter>

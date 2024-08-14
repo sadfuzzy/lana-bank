@@ -31,7 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query GetWithdrawalsForCustomer($id: UUID!) {
@@ -114,10 +114,7 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
                         <TableRow key={withdrawal.withdrawalId}>
                           <TableCell>{withdrawal.withdrawalId}</TableCell>
                           <TableCell>
-                            {formatCurrency({
-                              amount: currencyConverter.centsToUsd(withdrawal.amount),
-                              currency: "USD",
-                            })}
+                            <Balance amount={withdrawal.amount} currency="usd" />
                           </TableCell>
                           <TableCell>
                             <Badge

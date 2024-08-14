@@ -15,7 +15,8 @@ import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
@@ -117,12 +118,12 @@ function WithdrawalInitiateDialog({
               />
               <DetailItem
                 label="Amount"
-                value={formatCurrency({
-                  currency: "USD",
-                  amount: currencyConverter.centsToUsd(
-                    data.withdrawalInitiate.withdrawal.amount,
-                  ),
-                })}
+                valueComponent={
+                  <Balance
+                    amount={data.withdrawalInitiate.withdrawal.amount}
+                    currency="usd"
+                  />
+                }
               />
             </DetailsGroup>
             <DialogFooter>

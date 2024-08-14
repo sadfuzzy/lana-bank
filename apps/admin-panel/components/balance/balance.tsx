@@ -1,3 +1,7 @@
+import { cva, VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
 const BTC_PER_SATOSHI = 100000000
 const USD_PER_CENT = 100
 
@@ -19,11 +23,25 @@ const formatAmount = (amount: number, currency: Currency) => {
 }
 
 export type Currency = "btc" | "usd"
+
 type BalanceProps = {
   amount: number
   currency: Currency
-}
-const Balance: React.FC<BalanceProps> = ({ amount, currency }) => {
+  className?: string
+} & VariantProps<typeof balanceVariants>
+
+const balanceVariants = cva("", {
+  variants: {
+    align: {
+      end: "flex justify-end space-x-1",
+      start: "flex justify-start space-x-1",
+      center: "flex justify-center space-x-1",
+      right: "flex justify-right space-x-1",
+    },
+  },
+})
+
+const Balance: React.FC<BalanceProps> = ({ amount, currency, className, align }) => {
   const isNegative = amount < 0
   const formattedAmount = formatAmount(Math.abs(amount), currency)
   const formattedAmountWithSymbol = isNegative
@@ -31,7 +49,7 @@ const Balance: React.FC<BalanceProps> = ({ amount, currency }) => {
     : `${formattedAmount}`
 
   return (
-    <div className="flex justify-end space-x-1">
+    <div className={cn(balanceVariants({ align }), className)}>
       <div className="font-mono">{formattedAmountWithSymbol}</div>
     </div>
   )

@@ -17,7 +17,7 @@ import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
 import { PageHeading } from "@/components/page-heading"
 import { useDepositQuery, useDepositsQuery } from "@/lib/graphql/generated"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query Deposits($first: Int!, $after: String) {
@@ -180,10 +180,7 @@ function DepositsTable() {
                         </TableCell>
                         <TableCell>{deposit.depositId}</TableCell>
                         <TableCell>
-                          {formatCurrency({
-                            amount: currencyConverter.centsToUsd(deposit.amount),
-                            currency: "USD",
-                          })}
+                          <Balance amount={deposit.amount} currency="usd" />
                         </TableCell>
                       </TableRow>
                     ) : null,

@@ -6,11 +6,11 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
 import { Separator } from "@/components/primitive/separator"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
 import {
   useGetCustomerByCustomerIdQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
@@ -121,21 +121,25 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                 <DetailItem label="Level" value={customerDetails.customer.level} />
                 <DetailItem
                   label="Checking Settled Balance (USD)"
-                  value={formatCurrency({
-                    amount: currencyConverter.centsToUsd(
-                      customerDetails.customer.balance.checking.settled.usdBalance,
-                    ),
-                    currency: "USD",
-                  })}
+                  valueComponent={
+                    <Balance
+                      amount={
+                        customerDetails.customer.balance.checking.settled.usdBalance
+                      }
+                      currency="usd"
+                    />
+                  }
                 />
                 <DetailItem
                   label="Pending withdrawals (USD)"
-                  value={formatCurrency({
-                    amount: currencyConverter.centsToUsd(
-                      customerDetails.customer.balance.checking.pending.usdBalance,
-                    ),
-                    currency: "USD",
-                  })}
+                  valueComponent={
+                    <Balance
+                      amount={
+                        customerDetails.customer.balance.checking.pending.usdBalance
+                      }
+                      currency="usd"
+                    />
+                  }
                 />
               </DetailsGroup>
             </CardContent>

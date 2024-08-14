@@ -17,8 +17,9 @@ import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import { useLoanApproveMutation } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation LoanApprove($input: LoanApproveInput!) {
@@ -95,25 +96,30 @@ export const LoanApproveDialog = ({
             <DetailItem label="Start Date" value={data.loanApprove.loan.startDate} />
             <DetailItem
               label="Collateral"
-              value={`${data.loanApprove.loan.balance.collateral.btcBalance} sats`}
+              valueComponent={
+                <Balance
+                  amount={data.loanApprove.loan.balance.collateral.btcBalance}
+                  currency="btc"
+                />
+              }
             />
             <DetailItem
               label="Interest Incurred"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanApprove.loan.balance.interestIncurred.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={data.loanApprove.loan.balance.interestIncurred.usdBalance}
+                  currency="usd"
+                />
+              }
             />
             <DetailItem
               label="Outstanding"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanApprove.loan.balance.outstanding.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={data.loanApprove.loan.balance.outstanding.usdBalance}
+                  currency="usd"
+                />
+              }
             />
           </DetailsGroup>
         </DialogContent>

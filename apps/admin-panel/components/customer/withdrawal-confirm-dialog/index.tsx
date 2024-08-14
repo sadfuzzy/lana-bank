@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/primitive/button"
 import { useWithdrawalConfirmMutation } from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
@@ -109,12 +109,12 @@ export function WithdrawalConfirmDialog({
               />
               <DetailItem
                 label="Amount"
-                value={formatCurrency({
-                  currency: "USD",
-                  amount: currencyConverter.centsToUsd(
-                    data.withdrawalConfirm.withdrawal.amount,
-                  ),
-                })}
+                valueComponent={
+                  <Balance
+                    amount={data.withdrawalConfirm.withdrawal.amount}
+                    currency="usd"
+                  />
+                }
               />
             </div>
             <DialogFooter>

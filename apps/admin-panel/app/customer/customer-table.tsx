@@ -26,10 +26,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { CreateLoanDialog } from "@/components/loan/create-loan-dialog"
 import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-dialog"
 import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
+import Balance from "@/components/balance/balance"
 
 function CustomerTable({
   customerId,
@@ -153,20 +153,16 @@ function CustomerTable({
                           </div>
                         </TableCell>
                         <TableCell>
-                          {formatCurrency({
-                            amount: currencyConverter.centsToUsd(
-                              customer.balance.checking.settled?.usdBalance,
-                            ),
-                            currency: "USD",
-                          })}
+                          <Balance
+                            amount={customer.balance.checking.settled?.usdBalance}
+                            currency="usd"
+                          />
                         </TableCell>
                         <TableCell>
-                          {formatCurrency({
-                            amount: currencyConverter.centsToUsd(
-                              customer.balance.checking.pending?.usdBalance,
-                            ),
-                            currency: "USD",
-                          })}
+                          <Balance
+                            amount={customer.balance.checking.pending?.usdBalance}
+                            currency="usd"
+                          />
                         </TableCell>
                         <TableCell>
                           <DropdownMenu>

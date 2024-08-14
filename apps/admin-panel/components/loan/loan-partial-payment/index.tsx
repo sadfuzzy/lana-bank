@@ -17,8 +17,9 @@ import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import { useLoanPartialPaymentMutation } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
@@ -100,25 +101,32 @@ export const LoanPartialPaymentDialog = ({
             />
             <DetailItem
               label="Collateral"
-              value={`${data.loanPartialPayment.loan.balance.collateral.btcBalance} sats`}
+              valueComponent={
+                <Balance
+                  amount={data.loanPartialPayment.loan.balance.collateral.btcBalance}
+                  currency="btc"
+                />
+              }
             />
             <DetailItem
               label="Interest Incurred"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanPartialPayment.loan.balance.interestIncurred.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={
+                    data.loanPartialPayment.loan.balance.interestIncurred.usdBalance
+                  }
+                  currency="usd"
+                />
+              }
             />
             <DetailItem
               label="Outstanding"
-              value={formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  data.loanPartialPayment.loan.balance.outstanding.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              valueComponent={
+                <Balance
+                  amount={data.loanPartialPayment.loan.balance.outstanding.usdBalance}
+                  currency="usd"
+                />
+              }
             />
           </DetailsGroup>
         </DialogContent>

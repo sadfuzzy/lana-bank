@@ -132,7 +132,11 @@ const ProfitAndLossStatement = ({
               NET
             </TableCell>
             <TableCell className="w-48">
-              <Balance currency={currency} amount={balance[currency][layer].netCredit} />
+              <Balance
+                align="end"
+                currency={currency}
+                amount={balance[currency][layer].netCredit}
+              />
             </TableCell>
           </TableRow>
         </TableFooter>
@@ -162,6 +166,7 @@ const CategoryRow = ({
         </TableCell>
         <TableCell className="w-48">
           <Balance
+            align="end"
             currency={currency}
             amount={category.balance[currency][layer][transactionType]}
           />

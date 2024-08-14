@@ -10,12 +10,13 @@ import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { PageHeading } from "@/components/page-heading"
 import { DetailItem } from "@/components/details"
-import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { LoanStatus, useGetLoanDetailsQuery } from "@/lib/graphql/generated"
 import { LoanPartialPaymentDialog } from "@/components/loan/loan-partial-payment"
 import { LoanApproveDialog } from "@/components/loan/approve-loan"
 import { LoanBadge } from "@/components/loan/loan-badge"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import Balance from "@/components/balance/balance"
 
 function LoanPage() {
   const searchParams = useSearchParams()
@@ -107,25 +108,30 @@ function LoanPage() {
                   />
                   <DetailItem
                     label="Collateral balance (BTC)"
-                    value={`${loanDetails.loan.balance.collateral.btcBalance} sats`}
+                    valueComponent={
+                      <Balance
+                        amount={loanDetails.loan.balance.collateral.btcBalance}
+                        currency="btc"
+                      />
+                    }
                   />
                   <DetailItem
                     label="Outstanding balance (USD)"
-                    value={formatCurrency({
-                      amount: currencyConverter.centsToUsd(
-                        loanDetails.loan.balance.outstanding.usdBalance,
-                      ),
-                      currency: "USD",
-                    })}
+                    valueComponent={
+                      <Balance
+                        amount={loanDetails.loan.balance.outstanding.usdBalance}
+                        currency="usd"
+                      />
+                    }
                   />
                   <DetailItem
                     label="Interest Incurred (USD)"
-                    value={formatCurrency({
-                      amount: currencyConverter.centsToUsd(
-                        loanDetails.loan.balance.interestIncurred.usdBalance,
-                      ),
-                      currency: "USD",
-                    })}
+                    valueComponent={
+                      <Balance
+                        amount={loanDetails.loan.balance.interestIncurred.usdBalance}
+                        currency="usd"
+                      />
+                    }
                   />
                   <DetailItem
                     label="Initial CVL"

@@ -25,7 +25,7 @@ import { PageHeading } from "@/components/page-heading"
 import { useWithdrawalQuery, useWithdrawalsQuery } from "@/lib/graphql/generated"
 import { Badge } from "@/components/primitive/badge"
 import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query Withdrawals($first: Int!, $after: String) {
@@ -195,10 +195,7 @@ function WithdrawalsTable() {
                         </TableCell>
                         <TableCell>{withdrawal.withdrawalId}</TableCell>
                         <TableCell>
-                          {formatCurrency({
-                            amount: currencyConverter.centsToUsd(withdrawal.amount),
-                            currency: "USD",
-                          })}
+                          <Balance amount={withdrawal.amount} currency="usd" />
                         </TableCell>
                         <TableCell>
                           <Badge

@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
 import {
   Table,
   TableBody,
@@ -44,6 +43,7 @@ import {
 } from "@/components/primitive/collapsible"
 import { DetailItem } from "@/components/details"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import Balance from "@/components/balance/balance"
 
 type LoanRowProps = {
   loanId: string
@@ -184,20 +184,14 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
                 </Button>
               </div>
             </TableCell>
-            <TableCell>{loan.balance.collateral.btcBalance} sats</TableCell>
             <TableCell>
-              {formatCurrency({
-                amount: currencyConverter.centsToUsd(
-                  loan.balance.interestIncurred.usdBalance,
-                ),
-                currency: "USD",
-              })}
+              <Balance amount={loan.balance.collateral.btcBalance} currency="btc" />
             </TableCell>
             <TableCell>
-              {formatCurrency({
-                amount: currencyConverter.centsToUsd(loan.balance.outstanding.usdBalance),
-                currency: "USD",
-              })}
+              <Balance amount={loan.balance.interestIncurred.usdBalance} currency="usd" />
+            </TableCell>
+            <TableCell>
+              <Balance amount={loan.balance.outstanding.usdBalance} currency="usd" />
             </TableCell>
             <TableCell>
               <LoanBadge status={loan.status} />

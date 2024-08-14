@@ -15,7 +15,8 @@ import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import { useRecordDepositMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter, formatCurrency } from "@/lib/utils"
+import { currencyConverter } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation RecordDeposit($input: DepositRecordInput!) {
@@ -118,10 +119,9 @@ function RecordDepositDialog({
               />
               <DetailItem
                 label="Amount"
-                value={formatCurrency({
-                  amount: currencyConverter.centsToUsd(data.depositRecord.deposit.amount),
-                  currency: "USD",
-                })}
+                valueComponent={
+                  <Balance amount={data.depositRecord.deposit.amount} currency="usd" />
+                }
               />
             </DetailsGroup>
             <DialogFooter>
