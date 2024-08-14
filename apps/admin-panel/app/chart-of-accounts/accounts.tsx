@@ -51,7 +51,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
   const { data, fetchMore } = useChartOfAccountsAccountSetQuery({
     variables: {
       accountSetId: account.id,
-      first: 2,
+      first: 10,
     },
   })
 

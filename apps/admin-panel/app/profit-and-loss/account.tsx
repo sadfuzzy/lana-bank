@@ -122,7 +122,7 @@ const SubAccountsForAccountSet = ({
   const { data, fetchMore } = usePnlAccountSetWithBalanceQuery({
     variables: {
       accountSetId: account.id,
-      first: 2,
+      first: 10,
     },
   })
 
