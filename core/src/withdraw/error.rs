@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::primitives::WithdrawId;
+use crate::primitives::{UsdCents, WithdrawId};
 
 #[derive(Error, Debug)]
 pub enum WithdrawError {
@@ -18,4 +18,6 @@ pub enum WithdrawError {
     AlreadyConfirmed(WithdrawId),
     #[error("WithdrawError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("WithdrawError - InsufficientBalance: {0} < {1}")]
+    InsufficientBalance(UsdCents, UsdCents),
 }
