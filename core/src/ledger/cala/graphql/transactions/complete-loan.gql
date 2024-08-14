@@ -1,4 +1,4 @@
-mutation CompleteLoanTemplateCreate(
+mutation ReleaseCollateralTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
   $bankCollateralAccountId: Expression!
@@ -6,28 +6,13 @@ mutation CompleteLoanTemplateCreate(
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "COMPLETE_LOAN"
-      description: "Make final payment for loan and release collateral."
+      code: "RELEASE_COLLATERAL"
+      description: "Release collateral for loan."
       params: [
-        {
-          name: "checkingAccount"
-          type: UUID
-          description: "User Checking account ID."
-        }
-        {
-          name: "loanOutstandingAccount"
-          type: UUID
-          description: "Loan amount-outstanding account ID."
-        }
         {
           name: "loanCollateralAccount"
           type: UUID
           description: "Loan Collateral account ID."
-        }
-        {
-          name: "paymentAmount"
-          type: DECIMAL
-          description: "Amount of USD being paid against outstanding amount."
         }
         {
           name: "collateralAmount"
@@ -53,26 +38,10 @@ mutation CompleteLoanTemplateCreate(
       }
       entries: [
         {
-          accountId: "params.checkingAccount"
-          units: "params.paymentAmount"
-          currency: "'USD'"
-          entryType: "'COMPLETE_LOAN_PAYMENT_DR'"
-          direction: "DEBIT"
-          layer: "SETTLED"
-        }
-        {
-          accountId: "params.loanOutstandingAccount"
-          units: "params.paymentAmount"
-          currency: "'USD'"
-          entryType: "'COMPLETE_LOAN_PAYMENT_CR'"
-          direction: "CREDIT"
-          layer: "SETTLED"
-        }
-        {
           accountId: "params.loanCollateralAccount"
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'COMPLETE_LOAN_COLLATERAL_DR'"
+          entryType: "'RELEASE_COLLATERAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -80,7 +49,7 @@ mutation CompleteLoanTemplateCreate(
           accountId: $bankCollateralAccountId
           units: "params.collateralAmount"
           currency: "'BTC'"
-          entryType: "'COMPLETE_LOAN_COLLATERAL_CR'"
+          entryType: "'RELEASE_COLLATERAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -96,25 +65,46 @@ mutation CompleteLoanTemplateCreate(
 }
 
 mutation PostCompleteLoanTransaction(
-  $transactionId: UUID!
+  $paymentTransactionId: UUID!
+  $collateralTransactionId: UUID!
   $checkingAccount: UUID!
-  $loanOutstandingAccount: UUID!
+  $loanPrincipalReceivableAccount: UUID!
+  $loanInterestReceivableAccount: UUID!
   $loanCollateralAccount: UUID!
-  $paymentAmount: Decimal!
+  $principalPaymentAmount: Decimal!
+  $interestPaymentAmount: Decimal!
   $collateralAmount: Decimal!
-  $externalId: String!
+  $paymentExternalId: String!
+  $collateralExternalId: String!
 ) {
-  transactionPost(
+  recordPayment: transactionPost(
     input: {
-      transactionId: $transactionId
-      txTemplateCode: "COMPLETE_LOAN"
+      transactionId: $paymentTransactionId
+      txTemplateCode: "RECORD_PAYMENT"
       params: {
         checkingAccount: $checkingAccount
-        loanOutstandingAccount: $loanOutstandingAccount
+        loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
+        loanInterestReceivableAccount: $loanInterestReceivableAccount
+        principalPaymentAmount: $principalPaymentAmount
+        interestPaymentAmount: $interestPaymentAmount
+        externalId: $paymentExternalId
+      }
+    }
+  ) {
+    transaction {
+      transactionId
+      correlationId
+    }
+  }
+
+  returnCollateral: transactionPost(
+    input: {
+      transactionId: $collateralTransactionId
+      txTemplateCode: "RELEASE_COLLATERAL"
+      params: {
         loanCollateralAccount: $loanCollateralAccount
-        paymentAmount: $paymentAmount
         collateralAmount: $collateralAmount
-        externalId: $externalId
+        externalId: $collateralExternalId
       }
     }
   ) {

@@ -157,7 +157,8 @@ impl CalaClient {
         loan_id: impl Into<Uuid> + std::fmt::Debug,
         LoanAccountIds {
             collateral_account_id,
-            outstanding_account_id,
+            principal_receivable_account_id,
+            interest_receivable_account_id,
             interest_account_id,
         }: LoanAccountIds,
     ) -> Result<(), CalaError> {
@@ -168,11 +169,25 @@ impl CalaClient {
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
                 super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            loan_outstanding_account_id: Uuid::from(outstanding_account_id),
-            loan_outstanding_account_code: format!("LOANS.RECEIVABLE.{}", loan_id),
-            loan_outstanding_account_name: format!("Loan Receivable Account for {}", loan_id),
-            loans_outstanding_control_account_set_id:
-                super::constants::LOANS_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
+            loan_principal_receivable_account_code: format!(
+                "LOANS.PRINCIPAL_RECEIVABLE.{}",
+                loan_id
+            ),
+            loan_principal_receivable_account_name: format!(
+                "Loan Interest Receivable Account for {}",
+                loan_id
+            ),
+            loans_principal_receivable_control_account_set_id:
+                super::constants::LOANS_PRINCIPAL_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
+            loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
+            loan_interest_receivable_account_name: format!(
+                "Loan Principal Receivable Account for {}",
+                loan_id
+            ),
+            loans_interest_receivable_control_account_set_id:
+                super::constants::LOANS_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
             interest_account_id: Uuid::from(interest_account_id),
             interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
             interest_account_name: format!("Interest Income for Loan {}", loan_id),
@@ -287,7 +302,8 @@ impl CalaClient {
         let variables = loan_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_outstanding_id: Uuid::from(account_ids.outstanding_account_id),
+            loan_principal_receivable_id: Uuid::from(account_ids.principal_receivable_account_id),
+            loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
             interest_income_id: Uuid::from(account_ids.interest_account_id),
         };
         let response =
@@ -363,8 +379,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -609,11 +624,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_complete_loan_tx_template",
+        name = "lava.ledger.cala.create_release_collateral_tx_template",
         skip(self),
         err
     )]
-    pub async fn create_complete_loan_tx_template(
+    pub async fn create_release_collateral_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
@@ -628,12 +643,12 @@ impl CalaClient {
                 super::constants::OBS_ASSETS_ACCOUNT_CODE.to_string(),
             )),
         }?;
-        let variables = complete_loan_template_create::Variables {
+        let variables = release_collateral_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             bank_collateral_account_id: format!("uuid(\"{}\")", obs_assets_id),
         };
-        let response = Self::traced_gql_request::<CompleteLoanTemplateCreate, _>(
+        let response = Self::traced_gql_request::<ReleaseCollateralTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -642,8 +657,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -681,8 +695,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -699,7 +712,9 @@ impl CalaClient {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             collateral_amount,
             principal_amount,
@@ -719,23 +734,35 @@ impl CalaClient {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn execute_complete_loan_tx(
         &self,
-        transaction_id: LedgerTxId,
+        payment_transaction_id: LedgerTxId,
+        collateral_transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
-        payment_amount: Decimal,
+        interest_payment_amount: Decimal,
+        principal_payment_amount: Decimal,
         collateral_amount: Decimal,
-        external_id: String,
+        payment_external_id: String,
+        collateral_external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_complete_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
+            payment_transaction_id: payment_transaction_id.into(),
+            collateral_transaction_id: collateral_transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_interest_receivable_account: loan_account_ids
+                .interest_receivable_account_id
+                .into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
             loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            payment_amount,
+            interest_payment_amount,
+            principal_payment_amount,
             collateral_amount,
-            external_id,
+            payment_external_id,
+            collateral_external_id,
         };
         let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
             &self.client,
@@ -743,11 +770,8 @@ impl CalaClient {
             variables,
         )
         .await?;
+        response.data.ok_or(CalaError::MissingDataField)?;
 
-        response
-            .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
-            .ok_or_else(|| CalaError::MissingDataField)?;
         Ok(())
     }
 
@@ -773,8 +797,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -788,7 +811,9 @@ impl CalaClient {
     ) -> Result<(), CalaError> {
         let variables = post_incur_interest_transaction::Variables {
             transaction_id: transaction_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
+            loan_interest_receivable_account: loan_account_ids
+                .interest_receivable_account_id
+                .into(),
             loan_interest_income_account: loan_account_ids.interest_account_id.into(),
             interest_amount,
             external_id,
@@ -829,8 +854,7 @@ impl CalaClient {
 
         response
             .data
-            .map(|d| d.tx_template_create.tx_template.tx_template_id)
-            .map(TxTemplateId::from)
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
@@ -840,14 +864,21 @@ impl CalaClient {
         transaction_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
-        payment_amount: Decimal,
+        interest_payment_amount: Decimal,
+        principal_payment_amount: Decimal,
         external_id: String,
     ) -> Result<(), CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_outstanding_account: loan_account_ids.outstanding_account_id.into(),
-            payment_amount,
+            loan_interest_receivable_account: loan_account_ids
+                .interest_receivable_account_id
+                .into(),
+            loan_principal_receivable_account: loan_account_ids
+                .principal_receivable_account_id
+                .into(),
+            interest_payment_amount,
+            principal_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(

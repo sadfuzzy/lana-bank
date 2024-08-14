@@ -156,7 +156,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn record_payment(
+    pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -168,10 +168,13 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
         let balances = self.ledger.get_loan_balance(loan.account_ids).await?;
-        assert_eq!(balances.outstanding, loan.outstanding());
+        assert_eq!(balances.principal_receivable, loan.outstanding().principal);
+        assert_eq!(balances.interest_receivable, loan.outstanding().interest);
 
-        let tx_id = LedgerTxId::new();
-        let tx_ref = loan.record_if_not_exceeding_outstanding(tx_id, amount)?;
+        let payment_tx_id = LedgerTxId::new();
+        let collateral_tx_id = LedgerTxId::new();
+        let (payment_tx_ref, collateral_tx_ref, loan_payment) =
+            loan.record_if_not_exceeding_outstanding(payment_tx_id, collateral_tx_id, amount)?;
 
         let customer = self.customers.repo().find_by_id(loan.customer_id).await?;
         let mut db_tx = self.pool.begin().await?;
@@ -189,22 +192,24 @@ impl Loans {
         if !loan.is_completed() {
             self.ledger
                 .record_payment(
-                    tx_id,
+                    payment_tx_id,
                     loan.account_ids,
                     customer.account_ids,
-                    amount,
-                    tx_ref,
+                    loan_payment,
+                    payment_tx_ref,
                 )
                 .await?;
         } else {
             self.ledger
                 .complete_loan(
-                    tx_id,
+                    payment_tx_id,
+                    collateral_tx_id,
                     loan.account_ids,
                     customer.account_ids,
-                    amount,
+                    loan_payment,
                     balances.collateral,
-                    tx_ref,
+                    payment_tx_ref,
+                    collateral_tx_ref,
                 )
                 .await?;
         }

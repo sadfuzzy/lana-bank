@@ -12,6 +12,7 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
+    loan::LoanPayment,
     primitives::{
         CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
         LoanId, Satoshis, Subject, UsdCents, WithdrawId,
@@ -193,40 +194,48 @@ impl Ledger {
         tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
+        payment: LoanPayment,
         tx_ref: String,
     ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
+        self.cala
             .execute_repay_loan_tx(
                 tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                amount.to_usd(),
+                payment.interest.to_usd(),
+                payment.principal.to_usd(),
                 tx_ref,
             )
-            .await?)
+            .await?;
+
+        Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
     pub async fn complete_loan(
         &self,
-        tx_id: LedgerTxId,
+        payment_tx_id: LedgerTxId,
+        collateral_tx_id: LedgerTxId,
         loan_account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        payment_amount: UsdCents,
+        payment: LoanPayment,
         collateral_amount: Satoshis,
-        tx_ref: String,
+        payment_tx_ref: String,
+        collateral_tx_ref: String,
     ) -> Result<(), LedgerError> {
         Ok(self
             .cala
             .execute_complete_loan_tx(
-                tx_id,
+                payment_tx_id,
+                collateral_tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                payment_amount.to_usd(),
+                payment.interest.to_usd(),
+                payment.principal.to_usd(),
                 collateral_amount.to_btc(),
-                tx_ref,
+                payment_tx_ref,
+                collateral_tx_ref,
             )
             .await?)
     }
@@ -404,7 +413,11 @@ impl Ledger {
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
 
-        Self::assert_complete_loan_tx_template_exists(cala, constants::COMPLETE_LOAN_CODE).await?;
+        Self::assert_release_collateral_tx_template_exists(
+            cala,
+            constants::RELEASE_COLLATERAL_CODE,
+        )
+        .await?;
 
         Ok(())
     }
@@ -584,7 +597,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_complete_loan_tx_template_exists(
+    async fn assert_release_collateral_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -596,7 +609,10 @@ impl Ledger {
         }
 
         let template_id = LedgerTxTemplateId::new();
-        let err = match cala.create_complete_loan_tx_template(template_id).await {
+        let err = match cala
+            .create_release_collateral_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
