@@ -85,7 +85,7 @@ teardown_file() {
   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending.usdBalance')
   [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
-  # assert_accounts_balanced <- debug with Arvin
+  assert_accounts_balanced
 
   variables=$(
     jq -n \
@@ -106,7 +106,7 @@ teardown_file() {
   pending_usd_balance=$(graphql_output '.data.withdrawalConfirm.withdrawal.customer.balance.checking.pending.usdBalance')
   [[ "$pending_usd_balance" == "0" ]] || exit 1
 
-  # assert_accounts_balanced <- debug with Arvin
+  assert_accounts_balanced
 }
 
 @test "customer: verify level 2" {
