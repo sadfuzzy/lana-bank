@@ -19,7 +19,7 @@ import {
 } from "@/components/primitive/table"
 
 import { PageHeading } from "@/components/page-heading"
-import { Select } from "@/components/primitive/select"
+import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
   query ProfitAndLossStatement {
@@ -89,7 +89,7 @@ const ProfitAndLossStatement = ({
   loading: boolean
   error: Error | undefined
 }) => {
-  const [currency, setCurrency] = useState<Currency>("btc")
+  const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
   const balance = data?.balance
@@ -101,29 +101,16 @@ const ProfitAndLossStatement = ({
 
   return (
     <main>
-      <div className="flex justify-between">
+      <div>
         <PageHeading>Profit and Loss</PageHeading>
-        <div className="flex gap-4">
-          <div className="w-32">
-            <Select
-              value={currency}
-              onChange={(e) => setCurrency(e.target.value as Currency)}
-            >
-              <option value="btc">BTC</option>
-              <option value="usd">USD</option>
-            </Select>
-          </div>
-          <div className="w-32">
-            <Select value={layer} onChange={(e) => setLayer(e.target.value as Layers)}>
-              <option value="all">All</option>
-              <option value="settled">Settled</option>
-              <option value="pending">Pending</option>
-              <option value="encumbrance">Encumbrance</option>
-            </Select>
-          </div>
-        </div>
+        <CurrencyLayerSelection
+          currency={currency}
+          setCurrency={setCurrency}
+          layer={layer}
+          setLayer={setLayer}
+        />
       </div>
-      <Table>
+      <Table className="mt-6">
         <TableBody>
           {categories?.map((category) => {
             return (

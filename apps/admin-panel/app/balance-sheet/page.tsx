@@ -13,7 +13,7 @@ import Balance, { Currency } from "@/components/balance/balance"
 import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
 
 import { PageHeading } from "@/components/page-heading"
-import { Select } from "@/components/primitive/select"
+import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
   query BalanceSheet {
@@ -97,7 +97,7 @@ const BalanceSheet = ({
         layer={layer}
         setLayer={setLayer}
       />
-      <div className="flex gap-4 justify-between">
+      <div className="flex gap-4 justify-between mt-6">
         {assets && assets.length > 0 && (
           <BalanceSheetColumn
             title="Total Assets"
@@ -138,27 +138,14 @@ function BalanceSheetHeader({
   setLayer: (layer: Layers) => void
 }) {
   return (
-    <div className="flex justify-between">
+    <div>
       <PageHeading>Balance Sheet</PageHeading>
-      <div className="flex gap-4">
-        <div className="w-32">
-          <Select
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value as Currency)}
-          >
-            <option value="btc">BTC</option>
-            <option value="usd">USD</option>
-          </Select>
-        </div>
-        <div className="w-32">
-          <Select value={layer} onChange={(e) => setLayer(e.target.value as Layers)}>
-            <option value="all">All</option>
-            <option value="settled">Settled</option>
-            <option value="pending">Pending</option>
-            <option value="encumbrance">Encumbrance</option>
-          </Select>
-        </div>
-      </div>
+      <CurrencyLayerSelection
+        currency={currency}
+        setCurrency={setCurrency}
+        layer={layer}
+        setLayer={setLayer}
+      />
     </div>
   )
 }

@@ -9,8 +9,7 @@ import {
   useGetOffBalanceSheetTrialBalanceQuery,
   useGetOnBalanceSheetTrialBalanceQuery,
 } from "@/lib/graphql/generated"
-import { RadioGroup, RadioGroupItem } from "@/components/primitive/radio-group"
-import { Label } from "@/components/primitive/label"
+
 import {
   Table,
   TableBody,
@@ -23,6 +22,7 @@ import {
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
 
 import Balance, { Currency } from "@/components/balance/balance"
+import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
   query GetOnBalanceSheetTrialBalance {
@@ -149,7 +149,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   loading,
   error,
 }) => {
-  const [currency, setCurrency] = React.useState<Currency>("btc")
+  const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
   const balance = data?.balance
@@ -161,54 +161,13 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
 
   return (
     <>
-      <div>
-        <div className="flex items-center mt-2">
-          <div className="w-28">Currency:</div>
-          <RadioGroup
-            className="flex items-center space-x-4"
-            defaultValue={"btc"}
-            value={currency}
-            onValueChange={(v: Currency) => setCurrency(v)}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="btc" id="currency-btc" />
-              <Label htmlFor="currency-btc">BTC</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="usd" id="currency-usd" />
-              <Label htmlFor="currency-usd">USD</Label>
-            </div>
-          </RadioGroup>
-        </div>
-        <div className="flex items-center mt-2">
-          <div className="w-28">Layer:</div>
-          <RadioGroup
-            className="flex items-center space-x-4"
-            defaultValue={"all"}
-            value={layer}
-            onValueChange={(v: Layers) => setLayer(v)}
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="all" id="layer-all" />
-              <Label htmlFor="layer-all">All</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="settled" id="layer-settled" />
-              <Label htmlFor="layer-settled">Settled</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="pending" id="layer-pending" />
-              <Label htmlFor="layer-pending">Pending</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="encumbrance" id="layer-encumbrance" />
-              <Label htmlFor="layer-encumbrance">Encumbrance</Label>
-            </div>
-          </RadioGroup>
-        </div>
-      </div>
-
-      <Table className="mt-4">
+      <CurrencyLayerSelection
+        currency={currency}
+        setCurrency={setCurrency}
+        layer={layer}
+        setLayer={setLayer}
+      />
+      <Table className="mt-6">
         <TableHeader>
           <TableHead>Account Name</TableHead>
           <TableHead className="text-right">Debit</TableHead>
@@ -275,7 +234,7 @@ function TrialBalancePage() {
     <main>
       <PageHeading>Trial Balance</PageHeading>
       <Tabs defaultValue="onBalanceSheet">
-        <TabsList>
+        <TabsList className="mb-4">
           <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
           <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
         </TabsList>
