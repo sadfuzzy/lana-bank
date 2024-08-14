@@ -5,7 +5,7 @@ use crate::{
     primitives::{CustomerId, LoanId},
 };
 
-use super::{error::LoanError, Loan, NewLoan};
+use super::{error::LoanError, Loan, LoanCursor, NewLoan};
 
 #[derive(Clone)]
 pub struct LoanRepo {
@@ -79,5 +79,51 @@ impl LoanRepo {
         let n = rows.len();
         let res = EntityEvents::load_n::<Loan>(rows, n)?;
         Ok(res.0)
+    }
+
+    pub async fn list(
+        &self,
+        query: crate::query::PaginatedQueryArgs<LoanCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
+        println!(
+            "{:?} {:?}",
+            query.after.as_ref().map(|l| l.created_at),
+            query.first as i64 + 1
+        );
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"
+            WITH loans AS (
+              SELECT id, customer_id, created_at
+              FROM loans
+              WHERE ((created_at, id) < ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)
+              ORDER BY created_at DESC, id DESC
+              LIMIT $3
+            )
+            SELECT l.id, e.sequence, e.event,
+              l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM loans l
+            JOIN loan_events e ON l.id = e.id
+            ORDER BY l.created_at DESC, l.id DESC, e.sequence;
+            "#,
+            query.after.as_ref().map(|c| c.id) as Option<LoanId>,
+            query.after.map(|l| l.created_at),
+            query.first as i64 + 1
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let (entities, has_next_page) = EntityEvents::load_n::<Loan>(rows, query.first)?;
+        let mut end_cursor = None;
+        if let Some(last) = entities.last() {
+            end_cursor = Some(LoanCursor {
+                id: last.id,
+                created_at: last.created_at(),
+            });
+        }
+        Ok(crate::query::PaginatedQueryRet {
+            entities,
+            has_next_page,
+            end_cursor,
+        })
     }
 }

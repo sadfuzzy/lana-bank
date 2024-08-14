@@ -4,6 +4,9 @@ mod job;
 mod repo;
 mod terms;
 
+mod cursor;
+pub use cursor::LoanCursor;
+
 use sqlx::PgPool;
 use tracing::instrument;
 
@@ -251,5 +254,16 @@ impl Loans {
             Err(LoanError::TermsNotSet) => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn list(
+        &self,
+        sub: &Subject,
+        query: crate::query::PaginatedQueryArgs<LoanCursor>,
+    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, LoanAction::List)
+            .await?;
+        self.loan_repo.list(query).await
     }
 }
