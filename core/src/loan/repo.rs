@@ -85,11 +85,6 @@ impl LoanRepo {
         &self,
         query: crate::query::PaginatedQueryArgs<LoanCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanCursor>, LoanError> {
-        println!(
-            "{:?} {:?}",
-            query.after.as_ref().map(|l| l.created_at),
-            query.first as i64 + 1
-        );
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"

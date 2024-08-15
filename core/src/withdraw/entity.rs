@@ -120,9 +120,11 @@ impl NewWithdraw {
     }
 
     pub(super) fn reference(&self) -> String {
-        self.reference
-            .clone()
-            .unwrap_or_else(|| self.id.to_string())
+        match self.reference.as_ref().map(|s| s.as_str()) {
+            None => self.id.to_string(),
+            Some("") => self.id.to_string(),
+            Some(reference) => reference.to_string(),
+        }
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<WithdrawEvent> {
