@@ -12,7 +12,6 @@ use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
-    loan::LoanPayment,
     primitives::{
         CustomerId, DepositId, LedgerAccountId, LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId,
         LoanId, Satoshis, Subject, UsdCents, WithdrawId,
@@ -20,9 +19,9 @@ use crate::{
 };
 
 use account_set::{
-    LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet, LedgerChartOfAccounts,
-    LedgerProfitAndLossStatement, LedgerSubAccountCursor, LedgerTrialBalance,
-    PaginatedLedgerAccountSetSubAccountWithBalance,
+    LedgerAccountSetAndSubAccountsWithBalance, LedgerBalanceSheet, LedgerCashFlowStatement,
+    LedgerChartOfAccounts, LedgerProfitAndLossStatement, LedgerSubAccountCursor,
+    LedgerTrialBalance, PaginatedLedgerAccountSetSubAccountWithBalance,
 };
 use cala::*;
 pub use config::*;
@@ -328,6 +327,20 @@ impl Ledger {
             .profit_and_loss::<LedgerProfitAndLossStatement, LedgerError>()
             .await?
             .map(LedgerProfitAndLossStatement::from))
+    }
+
+    pub async fn cash_flow(
+        &self,
+        sub: &Subject,
+    ) -> Result<Option<LedgerCashFlowStatement>, LedgerError> {
+        self.authz
+            .check_permission(sub, Object::Ledger, LedgerAction::Read)
+            .await?;
+        Ok(self
+            .cala
+            .cash_flow::<LedgerCashFlowStatement, LedgerError>()
+            .await?
+            .map(LedgerCashFlowStatement::from))
     }
 
     pub async fn account_set_and_sub_accounts_with_balance(
