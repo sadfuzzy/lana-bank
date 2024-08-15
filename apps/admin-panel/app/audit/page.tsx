@@ -44,8 +44,26 @@ gql`
 `
 
 function LogsPage() {
-  const { data: logDetails } = useAuditLogsQuery({ variables: { first: 100 } })
+  const { data, fetchMore, loading } = useAuditLogsQuery({ variables: { first: 100 } })
 
+  const handleFetchMore = async () => {
+    if (data?.audit.pageInfo.hasNextPage && !loading) {
+      await fetchMore({
+        variables: {
+          after: data.audit.pageInfo.endCursor,
+        },
+        updateQuery: (prev, { fetchMoreResult }) => {
+          if (!fetchMoreResult) return prev
+          return {
+            audit: {
+              ...fetchMoreResult.audit,
+              edges: [...prev.audit.edges, ...fetchMoreResult.audit.edges],
+            },
+          }
+        },
+      })
+    }
+  }
   return (
     <main className="text-white min-h-screen p-4">
       <div className="flex flex-col mb-8">
@@ -54,6 +72,12 @@ function LogsPage() {
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-800">
               <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Type
+                </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
@@ -87,8 +111,11 @@ function LogsPage() {
               </tr>
             </thead>
             <tbody className="bg-gray-800 divide-y divide-gray-700">
-              {logDetails?.audit.edges.map((item) => (
+              {data?.audit.edges.map((item) => (
                 <tr key={item.node.id}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
+                    {item.node.subject.__typename}
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-200">
                     {item.node.subject.__typename === "User"
                       ? item.node.subject.email
@@ -116,6 +143,17 @@ function LogsPage() {
               ))}
             </tbody>
           </table>
+          {data?.audit.pageInfo.hasNextPage && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={handleFetchMore}
+                className="px-4 py-2 text-sm font-medium text-gray-200 bg-gray-700 rounded hover:bg-gray-600"
+                disabled={loading}
+              >
+                {loading ? "Loading..." : "Show more"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </main>
