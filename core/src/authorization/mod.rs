@@ -430,8 +430,8 @@ impl FromStr for Action {
 
             WithdrawAction::INITIATE_STR => Ok(Self::Withdraw(WithdrawAction::Initiate)),
             WithdrawAction::CONFIRM_STR => Ok(Self::Withdraw(WithdrawAction::Confirm)),
-            WithdrawAction::READ_STR => Ok(Self::Deposit(DepositAction::Read)),
-            WithdrawAction::LIST_STR => Ok(Self::Deposit(DepositAction::List)),
+            WithdrawAction::READ_STR => Ok(Self::Withdraw(WithdrawAction::Read)),
+            WithdrawAction::LIST_STR => Ok(Self::Withdraw(WithdrawAction::List)),
 
             LedgerAction::READ_STR => Ok(Self::Ledger(LedgerAction::Read)),
 
