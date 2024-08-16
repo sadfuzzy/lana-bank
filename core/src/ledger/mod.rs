@@ -139,6 +139,27 @@ impl Ledger {
         Ok(withdrawal_id)
     }
 
+    #[instrument(name = "lava.ledger.cancel_withdrawal_for_customer", skip(self), err)]
+    pub async fn cancel_withdrawal_for_customer(
+        &self,
+        ledger_tx_id: LedgerTxId,
+        withdrawal_id: WithdrawId,
+        debit_account_id: LedgerAccountId,
+        amount: UsdCents,
+        external_id: String,
+    ) -> Result<WithdrawId, LedgerError> {
+        self.cala
+            .execute_cancel_withdraw_tx(
+                ledger_tx_id,
+                uuid::Uuid::from(withdrawal_id),
+                debit_account_id,
+                amount.to_usd(),
+                external_id,
+            )
+            .await?;
+        Ok(withdrawal_id)
+    }
+
     #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]
     pub async fn get_loan_balance(
         &self,
@@ -412,12 +433,9 @@ impl Ledger {
             constants::INITIATE_WITHDRAW,
         )
         .await?;
-        Self::assert_confirm_withdraw_template_tx_template_exists(
-            cala,
-            constants::CONFIRM_WITHDRAW,
-        )
-        .await?;
+        Self::assert_confirm_withdraw_tx_template_exists(cala, constants::CONFIRM_WITHDRAW).await?;
 
+        Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
         Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
 
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
@@ -510,7 +528,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_confirm_withdraw_template_tx_template_exists(
+    async fn assert_confirm_withdraw_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -523,6 +541,31 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_confirm_withdraw_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_cancel_withdraw_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala.create_cancel_withdraw_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

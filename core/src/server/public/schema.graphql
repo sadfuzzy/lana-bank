@@ -136,8 +136,14 @@ type Withdrawal {
 	customerId: UUID!
 	withdrawalId: UUID!
 	amount: UsdCents!
-	confirmed: Boolean!
+	status: WithdrawalStatus!
 	customer: Customer
+}
+
+enum WithdrawalStatus {
+	INITIATED
+	CANCELLED
+	CONFIRMED
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

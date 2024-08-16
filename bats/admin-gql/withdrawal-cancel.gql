@@ -1,5 +1,5 @@
-mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
-  withdrawalInitiate(input: $input) {
+mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
+  withdrawalCancel(input: $input) {
     withdrawal {
       withdrawalId
       status

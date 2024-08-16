@@ -25,7 +25,7 @@ import {
 const navLinks = [
   { href: "/customer", label: "Customers", icon: IoPersonOutline },
   { href: "/loan", label: "Loan", icon: IoReceiptOutline },
-  { href: "/terms", label: "Terms", icon: IoDocumentOutline },
+  { href: "/terms", label: "Default Terms", icon: IoDocumentOutline },
   { href: "/audit", label: "Audit Logs", icon: IoTimeOutline },
   { href: "/users", label: "Users", icon: RiAdminLine },
   { href: "/deposits", label: "Deposits", icon: PiHandDeposit },

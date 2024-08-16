@@ -520,6 +520,19 @@ impl Mutation {
         Ok(WithdrawalConfirmPayload::from(withdraw))
     }
 
+    pub async fn withdrawal_cancel(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalCancelInput,
+    ) -> async_graphql::Result<WithdrawalCancelPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let withdraw = app.withdraws().cancel(sub, input.withdrawal_id).await?;
+
+        Ok(WithdrawalCancelPayload::from(withdraw))
+    }
+
     async fn customer_create(
         &self,
         ctx: &Context<'_>,

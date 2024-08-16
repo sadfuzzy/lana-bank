@@ -1,4 +1,4 @@
-mutation ConfirmWithdrawTemplateCreate(
+mutation CancelWithdrawTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
   $bankUsdAccountId: Expression!
@@ -6,18 +6,18 @@ mutation ConfirmWithdrawTemplateCreate(
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "CONFIRM_WITHDRAW"
-      description: "Confirm a USD withdraw from the customers checking account."
+      code: "CANCEL_WITHDRAW"
+      description: "Cancel a USD withdraw from the customer's checking account."
       params: [
         {
           name: "account"
           type: UUID
-          description: "Customers checking account ID."
+          description: "Customer's checking account ID."
         }
         {
           name: "amount"
           type: DECIMAL
-          description: "Amount of USD being deposited."
+          description: "Amount of USD being cancelled."
         }
         {
           name: "effective"
@@ -47,7 +47,7 @@ mutation ConfirmWithdrawTemplateCreate(
           accountId: $bankUsdAccountId
           units: "params.amount"
           currency: "'USD'"
-          entryType: "'CONFIRM_WITHDRAW_PENDING_DR'"
+          entryType: "'CANCEL_WITHDRAW_PENDING_DR'"
           direction: "CREDIT"
           layer: "PENDING"
         }
@@ -55,9 +55,25 @@ mutation ConfirmWithdrawTemplateCreate(
           accountId: "params.account"
           units: "params.amount"
           currency: "'USD'"
-          entryType: "'CONFIRM_WITHDRAW_PENDING_CR'"
+          entryType: "'CANCEL_WITHDRAW_PENDING_CR'"
           direction: "DEBIT"
           layer: "PENDING"
+        }
+        {
+          accountId: $bankUsdAccountId
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'CANCEL_WITHDRAW_SETTLED_DR'"
+          direction: "DEBIT"
+          layer: "SETTLED"
+        }
+        {
+          accountId: "params.account"
+          units: "params.amount"
+          currency: "'USD'"
+          entryType: "'CANCEL_WITHDRAW_SETTLED_CR'"
+          direction: "CREDIT"
+          layer: "SETTLED"
         }
       ]
     }
@@ -70,7 +86,7 @@ mutation ConfirmWithdrawTemplateCreate(
   }
 }
 
-mutation PostConfirmWithdrawTransaction(
+mutation PostCancelWithdrawTransaction(
   $transactionId: UUID!
   $accountId: UUID!
   $amount: Decimal!
@@ -80,7 +96,7 @@ mutation PostConfirmWithdrawTransaction(
   transactionPost(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "CONFIRM_WITHDRAW"
+      txTemplateCode: "CANCEL_WITHDRAW"
       params: {
         account: $accountId
         amount: $amount

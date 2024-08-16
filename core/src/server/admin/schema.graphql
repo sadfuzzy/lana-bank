@@ -381,6 +381,7 @@ type Mutation {
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
+	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
@@ -568,8 +569,16 @@ type Withdrawal {
 	customerId: UUID!
 	withdrawalId: UUID!
 	amount: UsdCents!
-	confirmed: Boolean!
+	status: WithdrawalStatus!
 	customer: Customer
+}
+
+input WithdrawalCancelInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalCancelPayload {
+	withdrawal: Withdrawal!
 }
 
 input WithdrawalConfirmInput {
@@ -617,6 +626,12 @@ input WithdrawalInitiateInput {
 
 type WithdrawalInitiatePayload {
 	withdrawal: Withdrawal!
+}
+
+enum WithdrawalStatus {
+	INITIATED
+	CANCELLED
+	CONFIRMED
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

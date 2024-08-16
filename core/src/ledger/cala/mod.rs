@@ -624,6 +624,76 @@ impl CalaClient {
     }
 
     #[instrument(
+        name = "lava.ledger.cala.create_cancel_withdraw_tx_template",
+        skip(self),
+        err
+    )]
+    pub async fn create_cancel_withdraw_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let deposits_omnibus_id = match Self::find_account_by_code::<LedgerAccountId>(
+            self,
+            super::constants::BANK_DEPOSITS_OMNIBUS_CODE.to_string(),
+        )
+        .await?
+        {
+            Some(id) => Ok(id),
+            None => Err(CalaError::CouldNotFindAccountByCode(
+                super::constants::BANK_SHAREHOLDER_EQUITY_CODE.to_string(),
+            )),
+        }?;
+
+        let variables = cancel_withdraw_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+            bank_usd_account_id: format!("uuid(\"{}\")", deposits_omnibus_id),
+        };
+        let response = Self::traced_gql_request::<CancelWithdrawTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.tx_template_create.tx_template.tx_template_id)
+            .map(TxTemplateId::from)
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
+    #[instrument(name = "lava.ledger.cala.execute_cancel_withdraw_tx", skip(self), err)]
+    pub async fn execute_cancel_withdraw_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        correlation_id: Uuid,
+        debit_account_id: LedgerAccountId,
+        amount: Decimal,
+        external_id: String,
+    ) -> Result<(), CalaError> {
+        let variables = post_cancel_withdraw_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            correlation_id: correlation_id.to_string(),
+            account_id: debit_account_id.into(),
+            amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostCancelWithdrawTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| d.transaction_post.transaction.transaction_id)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(())
+    }
+
+    #[instrument(
         name = "lava.ledger.cala.create_release_collateral_tx_template",
         skip(self),
         err

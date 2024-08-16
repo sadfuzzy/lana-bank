@@ -1,8 +1,9 @@
 "use client"
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { IoEllipsisHorizontal } from "react-icons/io5"
 import { gql } from "@apollo/client"
+
+import WithdrawalDropdown from "./drop-down"
 
 import {
   Table,
@@ -14,18 +15,15 @@ import {
 } from "@/components/primitive/table"
 import { Card, CardContent } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
+
 import { Input } from "@/components/primitive/input"
 import { PageHeading } from "@/components/page-heading"
 import { useWithdrawalQuery, useWithdrawalsQuery } from "@/lib/graphql/generated"
-import { Badge } from "@/components/primitive/badge"
 import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
 import Balance from "@/components/balance/balance"
+
+import { WithdrawalStatusBadge } from "@/components/withdrawal/withdrawal-status-badge"
+import { WithdrawalCancelDialog } from "@/components/withdrawal/cancel-withdrawal-dialog"
 
 gql`
   query Withdrawals($first: Int!, $after: String) {
@@ -40,7 +38,7 @@ gql`
         customerId
         withdrawalId
         amount
-        confirmed
+        status
         customer {
           customerId
           email
@@ -54,7 +52,7 @@ gql`
       customerId
       withdrawalId
       amount
-      confirmed
+      status
       customer {
         customerId
         email
@@ -69,6 +67,8 @@ function WithdrawalsTable() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get("id") || ""
   const [searchInput, setSearchInput] = useState<string>(searchQuery)
+  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] =
+    useState<WithdrawalWithCustomer | null>(null)
   const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
     useState<WithdrawalWithCustomer | null>(null)
 
@@ -178,7 +178,7 @@ function WithdrawalsTable() {
                     <TableHead>Customer</TableHead>
                     <TableHead>Withdrawal ID</TableHead>
                     <TableHead>Withdrawal Amount</TableHead>
-                    <TableHead>Confirmed</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -199,31 +199,15 @@ function WithdrawalsTable() {
                           <Balance amount={withdrawal.amount} currency="usd" />
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={withdrawal.confirmed ? "success" : "destructive"}
-                          >
-                            {withdrawal.confirmed ? "True" : "False"}
-                          </Badge>
+                          <WithdrawalStatusBadge status={withdrawal.status} />
                         </TableCell>
 
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger>
-                              <Button variant="ghost">
-                                <IoEllipsisHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="text-sm">
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  if (!withdrawal.confirmed)
-                                    setOpenWithdrawalConfirmDialog(withdrawal)
-                                }}
-                              >
-                                Confirm Withdraw
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <WithdrawalDropdown
+                            withdrawal={withdrawal}
+                            onConfirm={() => setOpenWithdrawalConfirmDialog(withdrawal)}
+                            onCancel={() => setOpenWithdrawalCancelDialog(withdrawal)}
+                          />
                         </TableCell>
                       </TableRow>
                     ) : null,
@@ -249,6 +233,14 @@ function WithdrawalsTable() {
           withdrawalData={openWithdrawalConfirmDialog}
           openWithdrawalConfirmDialog={Boolean(openWithdrawalConfirmDialog)}
           setOpenWithdrawalConfirmDialog={() => setOpenWithdrawalConfirmDialog(null)}
+        />
+      )}
+      {openWithdrawalCancelDialog && (
+        <WithdrawalCancelDialog
+          refetch={refetchWithdrawals || refetchWithdrawal}
+          withdrawalData={openWithdrawalCancelDialog}
+          openWithdrawalCancelDialog={Boolean(openWithdrawalCancelDialog)}
+          setOpenWithdrawalCancelDialog={() => setOpenWithdrawalCancelDialog(null)}
         />
       )}
     </main>

@@ -3,7 +3,7 @@ type TransactionType = "netCredit" | "netDebit" | "debit" | "credit"
 
 type WithdrawalWithCustomer = {
   __typename?: "Withdrawal"
-  confirmed: boolean
+  status: WithdrawalStatus
   customerId: string
   withdrawalId: string
   amount: number

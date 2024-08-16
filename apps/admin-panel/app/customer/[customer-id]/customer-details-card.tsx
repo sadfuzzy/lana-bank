@@ -63,7 +63,6 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
               <CardTitle>
                 <div className="flex flex-col gap-1">
                   <p className="text-lg">{customerDetails.customer.email}</p>
-                  <p className="text-sm text-textColor-secondary">{customerId}</p>
                 </div>
               </CardTitle>
             </div>

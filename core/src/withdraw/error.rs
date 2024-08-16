@@ -16,6 +16,8 @@ pub enum WithdrawError {
     CouldNotFindById(WithdrawId),
     #[error("WithdrawError - AlreadyConfirmed: {0}")]
     AlreadyConfirmed(WithdrawId),
+    #[error("WithdrawError - AlreadyCancelled: {0}")]
+    AlreadyCancelled(WithdrawId),
     #[error("WithdrawError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("WithdrawError - InsufficientBalance: {0} < {1}")]

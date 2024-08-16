@@ -124,6 +124,36 @@ impl Withdraws {
         Ok(withdrawal)
     }
 
+    pub async fn cancel(
+        &self,
+        sub: &Subject,
+        withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
+    ) -> Result<Withdraw, WithdrawError> {
+        self.authz
+            .check_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
+            .await?;
+        let id = withdrawal_id.into();
+        let mut withdrawal = self.repo.find_by_id(id).await?;
+        let tx_id = withdrawal.cancel()?;
+
+        let mut db_tx = self.pool.begin().await?;
+        self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
+
+        self.ledger
+            .cancel_withdrawal_for_customer(
+                tx_id,
+                withdrawal.id,
+                withdrawal.debit_account_id,
+                withdrawal.amount,
+                format!("lava:withdraw:{}:cancel", withdrawal.id),
+            )
+            .await?;
+
+        db_tx.commit().await?;
+
+        Ok(withdrawal)
+    }
+
     pub async fn find_by_id(
         &self,
         sub: &Subject,

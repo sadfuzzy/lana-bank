@@ -3,8 +3,6 @@ import { gql } from "@apollo/client"
 
 import { useState } from "react"
 
-import { IoEllipsisHorizontal } from "react-icons/io5"
-
 import {
   Card,
   CardContent,
@@ -24,28 +22,24 @@ import { useGetWithdrawalsForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-dialog"
 import { WithdrawalConfirmDialog } from "@/components/customer/withdrawal-confirm-dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
-import { Badge } from "@/components/primitive/badge"
+
 import Balance from "@/components/balance/balance"
+import WithdrawalDropdown from "@/app/withdrawals/drop-down"
+import { WithdrawalStatusBadge } from "@/components/withdrawal/withdrawal-status-badge"
+import { WithdrawalCancelDialog } from "@/components/withdrawal/cancel-withdrawal-dialog"
 
 gql`
   query GetWithdrawalsForCustomer($id: UUID!) {
     customer(id: $id) {
       customerId
       withdrawals {
-        confirmed
+        status
         customerId
         withdrawalId
         amount
         customer {
           customerId
           email
-          applicantId
         }
       }
     }
@@ -63,6 +57,8 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
     },
   })
 
+  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] =
+    useState<WithdrawalWithCustomer | null>(null)
   return (
     <>
       <WithdrawalInitiateDialog
@@ -77,6 +73,14 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
           openWithdrawalConfirmDialog={Boolean(openWithdrawalConfirmDialog)}
           setOpenWithdrawalConfirmDialog={() => setOpenWithdrawalConfirmDialog(null)}
           refetch={refetch}
+        />
+      )}
+      {openWithdrawalCancelDialog && (
+        <WithdrawalCancelDialog
+          refetch={refetch}
+          withdrawalData={openWithdrawalCancelDialog}
+          openWithdrawalCancelDialog={Boolean(openWithdrawalCancelDialog)}
+          setOpenWithdrawalCancelDialog={() => setOpenWithdrawalCancelDialog(null)}
         />
       )}
       <Card className="mt-4">
@@ -108,7 +112,7 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
                     <TableRow>
                       <TableHead>Withdrawal ID</TableHead>
                       <TableHead>Amount</TableHead>
-                      <TableHead>Confirmed</TableHead>
+                      <TableHead>Status</TableHead>
                       <TableHead></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -121,30 +125,14 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
                             <Balance amount={withdrawal.amount} currency="usd" />
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              variant={withdrawal.confirmed ? "success" : "destructive"}
-                            >
-                              {withdrawal.confirmed ? "True" : "False"}
-                            </Badge>
+                            <WithdrawalStatusBadge status={withdrawal.status} />
                           </TableCell>
                           <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger>
-                                <Button variant="ghost">
-                                  <IoEllipsisHorizontal className="w-4 h-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent className="text-sm">
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    if (!withdrawal.confirmed)
-                                      setOpenWithdrawalConfirmDialog(withdrawal)
-                                  }}
-                                >
-                                  Confirm Withdraw
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <WithdrawalDropdown
+                              withdrawal={withdrawal}
+                              onConfirm={() => setOpenWithdrawalConfirmDialog(withdrawal)}
+                              onCancel={() => setOpenWithdrawalCancelDialog(withdrawal)}
+                            />
                           </TableCell>
                         </TableRow>
                       </>

@@ -388,6 +388,7 @@ export type Mutation = {
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+  withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
 };
@@ -445,6 +446,11 @@ export type MutationUserCreateArgs = {
 
 export type MutationUserRevokeRoleArgs = {
   input: UserRevokeRoleInput;
+};
+
+
+export type MutationWithdrawalCancelArgs = {
+  input: WithdrawalCancelInput;
 };
 
 
@@ -690,10 +696,19 @@ export type UserRevokeRolePayload = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
-  confirmed: Scalars['Boolean']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
+  status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
+};
+
+export type WithdrawalCancelInput = {
+  withdrawalId: Scalars['UUID']['input'];
+};
+
+export type WithdrawalCancelPayload = {
+  __typename?: 'WithdrawalCancelPayload';
+  withdrawal: Withdrawal;
 };
 
 export type WithdrawalConfirmInput = {
@@ -734,6 +749,12 @@ export type WithdrawalInitiatePayload = {
   __typename?: 'WithdrawalInitiatePayload';
   withdrawal: Withdrawal;
 };
+
+export enum WithdrawalStatus {
+  Cancelled = 'CANCELLED',
+  Confirmed = 'CONFIRMED',
+  Initiated = 'INITIATED'
+}
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -786,7 +807,7 @@ export type GetWithdrawalsForCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', confirmed: boolean, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null }> } | null };
+export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -871,14 +892,14 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, confirmed: boolean, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
 
 export type WithdrawalQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, confirmed: boolean, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
+export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
@@ -942,6 +963,13 @@ export type UserCreateMutationVariables = Exact<{
 
 
 export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
+export type WithdrawalCancelMutationVariables = Exact<{
+  input: WithdrawalCancelInput;
+}>;
+
+
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: { __typename?: 'UsdBalance', usdBalance: any }, pending: { __typename?: 'UsdBalance', usdBalance: any } } } } | null } } };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1403,14 +1431,13 @@ export const GetWithdrawalsForCustomerDocument = gql`
   customer(id: $id) {
     customerId
     withdrawals {
-      confirmed
+      status
       customerId
       withdrawalId
       amount
       customer {
         customerId
         email
-        applicantId
       }
     }
   }
@@ -1997,7 +2024,7 @@ export const WithdrawalsDocument = gql`
       customerId
       withdrawalId
       amount
-      confirmed
+      status
       customer {
         customerId
         email
@@ -2041,7 +2068,7 @@ export const WithdrawalDocument = gql`
     customerId
     withdrawalId
     amount
-    confirmed
+    status
     customer {
       customerId
       email
@@ -2500,6 +2527,55 @@ export function useUserCreateMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutation>;
 export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
 export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
+export const WithdrawalCancelDocument = gql`
+    mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
+  withdrawalCancel(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled {
+              usdBalance
+            }
+            pending {
+              usdBalance
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalCancelMutationFn = Apollo.MutationFunction<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
+
+/**
+ * __useWithdrawalCancelMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalCancelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalCancelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalCancelMutation, { data, loading, error }] = useWithdrawalCancelMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalCancelMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>(WithdrawalCancelDocument, options);
+      }
+export type WithdrawalCancelMutationHookResult = ReturnType<typeof useWithdrawalCancelMutation>;
+export type WithdrawalCancelMutationResult = Apollo.MutationResult<WithdrawalCancelMutation>;
+export type WithdrawalCancelMutationOptions = Apollo.BaseMutationOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {

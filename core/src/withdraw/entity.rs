@@ -7,6 +7,13 @@ use crate::{
     primitives::{CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
 };
 
+#[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+pub enum WithdrawalStatus {
+    Initiated,
+    Cancelled,
+    Confirmed,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum WithdrawEvent {
@@ -19,6 +26,9 @@ pub enum WithdrawEvent {
         ledger_tx_id: LedgerTxId,
     },
     Confirmed {
+        ledger_tx_id: LedgerTxId,
+    },
+    Cancelled {
         ledger_tx_id: LedgerTxId,
     },
 }
@@ -37,7 +47,6 @@ pub struct Withdraw {
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub debit_account_id: LedgerAccountId,
-    pub confirmed: bool,
     pub(super) events: EntityEvents<WithdrawEvent>,
 }
 
@@ -51,14 +60,54 @@ impl Withdraw {
 
 impl Withdraw {
     pub(super) fn confirm(&mut self) -> Result<LedgerTxId, WithdrawError> {
-        if self.confirmed {
+        if self.is_confirmed() {
             return Err(WithdrawError::AlreadyConfirmed(self.id));
+        }
+
+        if self.is_cancelled() {
+            return Err(WithdrawError::AlreadyCancelled(self.id));
         }
 
         let ledger_tx_id = LedgerTxId::new();
         self.events.push(WithdrawEvent::Confirmed { ledger_tx_id });
 
         Ok(ledger_tx_id)
+    }
+
+    pub(super) fn cancel(&mut self) -> Result<LedgerTxId, WithdrawError> {
+        if self.is_confirmed() {
+            return Err(WithdrawError::AlreadyConfirmed(self.id));
+        }
+
+        if self.is_cancelled() {
+            return Err(WithdrawError::AlreadyCancelled(self.id));
+        }
+
+        let ledger_tx_id = LedgerTxId::new();
+        self.events.push(WithdrawEvent::Cancelled { ledger_tx_id });
+        Ok(ledger_tx_id)
+    }
+
+    fn is_confirmed(&self) -> bool {
+        self.events
+            .iter()
+            .any(|e| matches!(e, WithdrawEvent::Confirmed { .. }))
+    }
+
+    fn is_cancelled(&self) -> bool {
+        self.events
+            .iter()
+            .any(|e| matches!(e, WithdrawEvent::Cancelled { .. }))
+    }
+
+    pub fn status(&self) -> WithdrawalStatus {
+        if self.is_confirmed() {
+            WithdrawalStatus::Confirmed
+        } else if self.is_cancelled() {
+            WithdrawalStatus::Cancelled
+        } else {
+            WithdrawalStatus::Initiated
+        }
     }
 }
 
@@ -91,11 +140,9 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                         .customer_id(*customer_id)
                         .amount(*amount)
                         .debit_account_id(*debit_account_id)
-                        .confirmed(false);
                 }
-                WithdrawEvent::Confirmed { .. } => {
-                    builder = builder.confirmed(true);
-                }
+                WithdrawEvent::Confirmed { .. } => {}
+                WithdrawEvent::Cancelled { .. } => {}
             }
         }
         builder.events(events).build()

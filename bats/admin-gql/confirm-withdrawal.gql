@@ -2,6 +2,7 @@ mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
   withdrawalConfirm(input: $input) {
     withdrawal {
       withdrawalId
+      status
       customer {
         customerId
         balance {

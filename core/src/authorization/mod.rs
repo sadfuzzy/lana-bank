@@ -176,6 +176,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
             .await?;
+        self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Cancel)
+            .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
             .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
@@ -623,6 +625,7 @@ pub enum WithdrawAction {
     Confirm,
     Read,
     List,
+    Cancel,
 }
 
 impl WithdrawAction {
@@ -630,6 +633,7 @@ impl WithdrawAction {
     const CONFIRM_STR: &'static str = "withdraw-confirm";
     const READ_STR: &'static str = "withdraw-read";
     const LIST_STR: &'static str = "withdraw-list";
+    const CANCEL_STR: &'static str = "withdraw-cancel";
 }
 
 impl AsRef<str> for WithdrawAction {
@@ -639,6 +643,7 @@ impl AsRef<str> for WithdrawAction {
             Self::Confirm => Self::CONFIRM_STR,
             Self::Read => Self::READ_STR,
             Self::List => Self::LIST_STR,
+            Self::Cancel => Self::CANCEL_STR,
         }
     }
 }
