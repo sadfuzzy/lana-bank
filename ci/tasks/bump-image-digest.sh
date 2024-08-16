@@ -18,7 +18,7 @@ sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github
 yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
 
 rm -rf ./charts/${CHARTS_SUBDIR}/lava-setup || true
-cp -r ./repo/tf/lava-setup ./charts/${CHARTS_SUBDIR}/lava-setup
+cp -r ../repo/tf/lava-setup ./charts/${CHARTS_SUBDIR}/lava-setup
 
 if [[ -z $(git config --global user.email) ]]; then
   git config --global user.email "bot@galoy.io"
