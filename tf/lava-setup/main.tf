@@ -1,11 +1,3 @@
-provider "cala" {
-  endpoint = "http://localhost:2252/graphql"
-}
-
-module "setup" {
-  source = "./lava-setup"
-}
-
 terraform {
   required_providers {
     cala = {
