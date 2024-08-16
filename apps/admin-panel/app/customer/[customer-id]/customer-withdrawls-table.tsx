@@ -42,6 +42,11 @@ gql`
         customerId
         withdrawalId
         amount
+        customer {
+          customerId
+          email
+          applicantId
+        }
       }
     }
   }
@@ -49,9 +54,8 @@ gql`
 
 export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string }) => {
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
-  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] = useState<
-    string | null
-  >(null)
+  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
+    useState<WithdrawalWithCustomer | null>(null)
 
   const { loading, error, data, refetch } = useGetWithdrawalsForCustomerQuery({
     variables: {
@@ -69,7 +73,7 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
       />
       {openWithdrawalConfirmDialog && (
         <WithdrawalConfirmDialog
-          withdrawalId={openWithdrawalConfirmDialog}
+          withdrawalData={openWithdrawalConfirmDialog}
           openWithdrawalConfirmDialog={Boolean(openWithdrawalConfirmDialog)}
           setOpenWithdrawalConfirmDialog={() => setOpenWithdrawalConfirmDialog(null)}
           refetch={refetch}
@@ -134,9 +138,7 @@ export const CustomerWithdrawalsTable = ({ customerId }: { customerId: string })
                                 <DropdownMenuItem
                                   onClick={() => {
                                     if (!withdrawal.confirmed)
-                                      setOpenWithdrawalConfirmDialog(
-                                        withdrawal.withdrawalId,
-                                      )
+                                      setOpenWithdrawalConfirmDialog(withdrawal)
                                   }}
                                 >
                                   Confirm Withdraw

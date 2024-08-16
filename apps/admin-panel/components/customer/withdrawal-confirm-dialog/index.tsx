@@ -12,8 +12,9 @@ import {
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
 import { useWithdrawalConfirmMutation } from "@/lib/graphql/generated"
-import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import { DetailItem, DetailsGroup } from "@/components/details"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 
 gql`
   mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
@@ -42,12 +43,12 @@ gql`
 export function WithdrawalConfirmDialog({
   setOpenWithdrawalConfirmDialog,
   openWithdrawalConfirmDialog,
-  withdrawalId,
+  withdrawalData,
   refetch,
 }: {
   setOpenWithdrawalConfirmDialog: (isOpen: boolean) => void
   openWithdrawalConfirmDialog: boolean
-  withdrawalId: string
+  withdrawalData: WithdrawalWithCustomer
   refetch?: () => void
 }) {
   const [confirmWithdrawal, { loading, data, reset }] = useWithdrawalConfirmMutation()
@@ -61,7 +62,7 @@ export function WithdrawalConfirmDialog({
       const result = await confirmWithdrawal({
         variables: {
           input: {
-            withdrawalId,
+            withdrawalId: withdrawalData.withdrawalId,
           },
         },
       })
@@ -130,12 +131,26 @@ export function WithdrawalConfirmDialog({
               </DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <p>Withdrawal ID:</p>
-                <p className="text-sm text-textColor-secondary bg-secondary-foreground p-2 rounded-md">
-                  {withdrawalId}
-                </p>
-              </div>
+              <DetailsGroup>
+                <DetailItem
+                  className="text-sm"
+                  label="Withdrawal ID"
+                  value={withdrawalData.withdrawalId}
+                />
+                <DetailItem
+                  className="text-sm"
+                  label="Customer Email"
+                  value={withdrawalData.customer?.email || "N/A"}
+                />
+                <DetailItem
+                  className="text-sm"
+                  label="Amount"
+                  value={formatCurrency({
+                    currency: "USD",
+                    amount: currencyConverter.centsToUsd(withdrawalData.amount),
+                  })}
+                />
+              </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
                 <Button type="submit" disabled={loading}>

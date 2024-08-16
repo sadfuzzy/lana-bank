@@ -69,7 +69,8 @@ function WithdrawalsTable() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.get("id") || ""
   const [searchInput, setSearchInput] = useState<string>(searchQuery)
-  const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null)
+  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
+    useState<WithdrawalWithCustomer | null>(null)
 
   const pageSize = 100
 
@@ -216,7 +217,7 @@ function WithdrawalsTable() {
                               <DropdownMenuItem
                                 onClick={() => {
                                   if (!withdrawal.confirmed)
-                                    setSelectedWithdrawalId(withdrawal.withdrawalId)
+                                    setOpenWithdrawalConfirmDialog(withdrawal)
                                 }}
                               >
                                 Confirm Withdraw
@@ -242,13 +243,12 @@ function WithdrawalsTable() {
           </Button>
         </div>
       )}
-      {selectedWithdrawalId && (
+      {openWithdrawalConfirmDialog && (
         <WithdrawalConfirmDialog
-          key={selectedWithdrawalId}
           refetch={refetchWithdrawals || refetchWithdrawal}
-          withdrawalId={selectedWithdrawalId}
-          openWithdrawalConfirmDialog={Boolean(selectedWithdrawalId)}
-          setOpenWithdrawalConfirmDialog={() => setSelectedWithdrawalId(null)}
+          withdrawalData={openWithdrawalConfirmDialog}
+          openWithdrawalConfirmDialog={Boolean(openWithdrawalConfirmDialog)}
+          setOpenWithdrawalConfirmDialog={() => setOpenWithdrawalConfirmDialog(null)}
         />
       )}
     </main>

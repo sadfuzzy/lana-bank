@@ -786,7 +786,7 @@ export type GetWithdrawalsForCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', confirmed: boolean, customerId: string, withdrawalId: string, amount: any }> } | null };
+export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', confirmed: boolean, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null }> } | null };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1407,6 +1407,11 @@ export const GetWithdrawalsForCustomerDocument = gql`
       customerId
       withdrawalId
       amount
+      customer {
+        customerId
+        email
+        applicantId
+      }
     }
   }
 }
