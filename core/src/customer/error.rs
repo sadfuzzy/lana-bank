@@ -18,4 +18,6 @@ pub enum CustomerError {
     KratosClientError(#[from] super::kratos::error::KratosClientError),
     #[error("CustomerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("CustomerError - CouldNotFindByEmail: {0}")]
+    CouldNotFindByEmail(String),
 }

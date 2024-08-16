@@ -74,6 +74,17 @@ impl Query {
         Ok(customer.map(Customer::from))
     }
 
+    async fn customer_by_email(
+        &self,
+        ctx: &Context<'_>,
+        email: String,
+    ) -> async_graphql::Result<Option<Customer>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let customer = app.customers().find_by_email(sub, email).await?;
+        Ok(customer.map(Customer::from))
+    }
+
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
         let auth_ctx: &AdminAuthContext = ctx.data()?;

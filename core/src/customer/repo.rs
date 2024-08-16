@@ -56,6 +56,28 @@ impl CustomerRepo {
         }
     }
 
+    pub async fn find_by_email(&self, email: &str) -> Result<Customer, CustomerError> {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"SELECT a.id, e.sequence, e.event,
+                a.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM customers a
+            JOIN customer_events e
+            ON a.id = e.id
+            WHERE a.email = $1"#,
+            email
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        match EntityEvents::load_first(rows) {
+            Ok(customer) => Ok(customer),
+            Err(EntityError::NoEntityEventsPresent) => {
+                Err(CustomerError::CouldNotFindByEmail(email.to_string()))
+            }
+            Err(e) => Err(e.into()),
+        }
+    }
+
     pub async fn persist_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,

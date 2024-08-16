@@ -1,14 +1,14 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { IoEllipsisHorizontal } from "react-icons/io5"
-import { useState } from "react"
 
 import {
   CustomersQuery,
-  GetCustomerByCustomerIdQuery,
   useCustomersQuery,
   useGetCustomerByCustomerIdQuery,
+  useGetCustomerByCustomerEmailQuery,
 } from "@/lib/graphql/generated"
 import {
   Table,
@@ -31,11 +31,15 @@ import WithdrawalInitiateDialog from "@/components/customer/withdrawal-initiate-
 import RecordDepositDialog from "@/components/customer/record-deposit-dialog"
 import Balance from "@/components/balance/balance"
 
+type CustomerType = NonNullable<CustomersQuery["customers"]["nodes"][number]>
+
 function CustomerTable({
-  customerId,
+  searchValue,
+  searchType,
   renderCreateCustomerDialog,
 }: {
-  customerId?: string
+  searchValue?: string
+  searchType?: "customerId" | "email" | "unknown"
   renderCreateCustomerDialog: (refetch: () => void) => React.ReactNode
 }) {
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState<
@@ -46,51 +50,54 @@ function CustomerTable({
   )
 
   const pageSize = 100
-  let customerDetails:
-    | GetCustomerByCustomerIdQuery["customer"][]
-    | CustomersQuery["customers"]["nodes"]
-    | null = null
-  let error: string | null = null
-  let loading: boolean = false
 
   const {
-    data: getCustomersData,
+    data: customersData,
     error: customersError,
-    loading: getCustomersLoading,
-    refetch,
+    loading: customersLoading,
+    refetch: refetchCustomers,
     fetchMore,
   } = useCustomersQuery({
     variables: { first: pageSize },
+    skip: !!searchValue,
   })
 
   const {
-    data: getCustomerByCustomerIdData,
-    error: getCustomerByCustomerIdError,
-    loading: getCustomerByCustomerIdLoading,
+    data: customerByIdData,
+    error: customerByIdError,
+    loading: customerByIdLoading,
   } = useGetCustomerByCustomerIdQuery({
-    variables: { id: customerId || "" },
-    skip: !customerId,
+    variables: { id: searchValue || "" },
+    skip: !searchValue || searchType !== "customerId",
   })
 
-  if (getCustomerByCustomerIdData) {
-    loading = getCustomerByCustomerIdLoading
-    const result = getCustomerByCustomerIdData
-    if (getCustomerByCustomerIdError) {
-      error = getCustomerByCustomerIdError.message
-    } else {
-      customerDetails = result.customer ? [result.customer] : null
-    }
-  } else {
-    loading = getCustomersLoading
-    const result = getCustomersData
-    if (customersError) {
-      error = customersError.message
-    } else {
-      customerDetails = result?.customers.nodes ? result.customers.nodes : null
-    }
+  const {
+    data: customerByEmailData,
+    error: customerByEmailError,
+    loading: customerByEmailLoading,
+  } = useGetCustomerByCustomerEmailQuery({
+    variables: { email: searchValue || "" },
+    skip: !searchValue || searchType !== "email",
+  })
+
+  let customerDetails: CustomerType[] | null = null
+  let error: string | null = null
+  const loading = customersLoading || customerByIdLoading || customerByEmailLoading
+
+  if (searchType === "customerId" && customerByIdData?.customer) {
+    customerDetails = [customerByIdData.customer]
+    error = customerByIdError?.message || null
+  } else if (searchType === "email" && customerByEmailData?.customerByEmail) {
+    customerDetails = [customerByEmailData.customerByEmail]
+    error = customerByEmailError?.message || null
+  } else if (!searchValue) {
+    customerDetails = customersData?.customers.nodes || null
+    error = customersError?.message || null
+  } else if (searchType === "unknown") {
+    error = "Invalid search input. Please enter a valid customer ID or email."
   }
 
-  const pageInfo = getCustomersData?.customers.pageInfo
+  const pageInfo = customersData?.customers.pageInfo
 
   const handleLoadMore = () => {
     if (pageInfo?.hasNextPage) {
@@ -114,7 +121,7 @@ function CustomerTable({
 
   return (
     <>
-      {renderCreateCustomerDialog(refetch)}
+      {renderCreateCustomerDialog(refetchCustomers)}
       {loading ? (
         <Card>
           <CardContent className="p-6">
@@ -141,65 +148,63 @@ function CustomerTable({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {customerDetails.map((customer) =>
-                    customer ? (
-                      <TableRow key={customer.customerId}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <div>{customer.email}</div>
-                            <div className="text-xs text-textColor-secondary">
-                              {customer.customerId}
-                            </div>
+                  {customerDetails.map((customer) => (
+                    <TableRow key={customer.customerId}>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          <div>{customer.email}</div>
+                          <div className="text-xs text-textColor-secondary">
+                            {customer.customerId}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Balance
-                            amount={customer.balance.checking.settled?.usdBalance}
-                            currency="usd"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Balance
-                            amount={customer.balance.checking.pending?.usdBalance}
-                            currency="usd"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger>
-                              <Button variant="ghost">
-                                <IoEllipsisHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent className="text-sm">
-                              <Link href={`/customer/${customer.customerId}`}>
-                                <DropdownMenuItem>View details</DropdownMenuItem>
-                              </Link>
-                              <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                                <CreateLoanDialog customerId={customer.customerId}>
-                                  <span>Create Loan</span>
-                                </CreateLoanDialog>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setOpenRecordDepositDialog(customer.customerId)
-                                }
-                              >
-                                Record Deposit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setOpenWithdrawalInitiateDialog(customer.customerId)
-                                }
-                              >
-                                Record Withdrawal
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ) : null,
-                  )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Balance
+                          amount={customer.balance.checking.settled?.usdBalance}
+                          currency="usd"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Balance
+                          amount={customer.balance.checking.pending?.usdBalance}
+                          currency="usd"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <Button variant="ghost">
+                              <IoEllipsisHorizontal className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent className="text-sm">
+                            <Link href={`/customer/${customer.customerId}`}>
+                              <DropdownMenuItem>View details</DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                              <CreateLoanDialog customerId={customer.customerId}>
+                                <span>Create Loan</span>
+                              </CreateLoanDialog>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setOpenRecordDepositDialog(customer.customerId)
+                              }
+                            >
+                              Record Deposit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setOpenWithdrawalInitiateDialog(customer.customerId)
+                              }
+                            >
+                              Record Withdrawal
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             ) : (
@@ -208,7 +213,7 @@ function CustomerTable({
           </CardContent>
         </Card>
       )}
-      {pageInfo?.hasNextPage && (
+      {!searchValue && pageInfo?.hasNextPage && (
         <div className="flex justify-center mt-4">
           <Button variant="ghost" onClick={handleLoadMore}>
             Load More

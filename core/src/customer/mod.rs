@@ -96,6 +96,22 @@ impl Customers {
         }
     }
 
+    pub async fn find_by_email(
+        &self,
+        sub: &Subject,
+        email: String,
+    ) -> Result<Option<Customer>, CustomerError> {
+        self.authz
+            .check_permission(sub, Object::Customer, CustomerAction::Read)
+            .await?;
+
+        match self.repo.find_by_email(&email).await {
+            Ok(customer) => Ok(Some(customer)),
+            Err(CustomerError::CouldNotFindByEmail(_)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn find_by_id_internal(
         &self,
         id: impl Into<CustomerId> + std::fmt::Debug,

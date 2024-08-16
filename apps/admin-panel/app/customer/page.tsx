@@ -1,44 +1,118 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { gql } from "@apollo/client"
 
 import CustomerTable from "./customer-table"
 
-import { handleCustomerSearchFormSubmit } from "./server-actions"
-
 import { Input } from "@/components/primitive/input"
-
 import { Button } from "@/components/primitive/button"
-
 import { PageHeading } from "@/components/page-heading"
 import CreateCustomerDialog from "@/components/customer/create-customer-dialog"
+import { isEmail, isUUID } from "@/lib/utils"
 
-function CustomerPage({ searchParams }: { searchParams: { customerId?: string } }) {
-  const { customerId } = searchParams
+gql`
+  query getCustomerByCustomerEmail($email: String!) {
+    customerByEmail(email: $email) {
+      customerId
+      email
+      status
+      level
+      applicantId
+      balance {
+        checking {
+          settled {
+            usdBalance
+          }
+          pending {
+            usdBalance
+          }
+        }
+      }
+    }
+  }
+
+  query getCustomerByCustomerId($id: UUID!) {
+    customer(id: $id) {
+      customerId
+      email
+      status
+      level
+      applicantId
+      balance {
+        checking {
+          settled {
+            usdBalance
+          }
+          pending {
+            usdBalance
+          }
+        }
+      }
+    }
+  }
+`
+
+function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
+  const { search } = searchParams
+  const [searchInput, setSearchInput] = useState(search || "")
   const [openCreateCustomerDialog, setOpenCreateCustomerDialog] = useState(false)
+  const router = useRouter()
 
   const handleOpenCreateCustomerDialog = (e: React.FormEvent) => {
     e.preventDefault()
     setOpenCreateCustomerDialog(true)
   }
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchInput) {
+      let searchType = "unknown"
+      if (isUUID(searchInput)) {
+        searchType = "customerId"
+      } else if (isEmail(searchInput)) {
+        searchType = "email"
+      }
+      router.push(
+        `/customer?search=${encodeURIComponent(searchInput)}&searchType=${searchType}`,
+      )
+    } else {
+      router.push("/customer")
+    }
+  }
+
+  const handleClear = () => {
+    setSearchInput("")
+    router.push("/customer")
+  }
+
+  const searchType = search
+    ? isUUID(search)
+      ? "customerId"
+      : isEmail(search)
+        ? "email"
+        : "unknown"
+    : undefined
+
   return (
     <main>
-      <form
-        className="flex justify-between items-center mb-8"
-        action={handleCustomerSearchFormSubmit}
-      >
+      <form className="flex justify-between items-center mb-8" onSubmit={handleSearch}>
         <PageHeading className="mb-0">Customers</PageHeading>
         <div className="flex gap-2">
           <Input
-            placeholder="Find a customer by customer ID"
-            id="customerId"
-            name="customerId"
+            placeholder="Find a customer by ID or email"
+            id="search"
+            name="search"
             className="w-80"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
-          <Button variant="secondary">Search</Button>
-          {customerId && (
-            <Button variant="secondary" type="submit" name="submit" value="clear">
+          <Button variant="secondary" type="submit">
+            Search
+          </Button>
+          {search && (
+            <Button variant="secondary" type="button" onClick={handleClear}>
               X Clear
             </Button>
           )}
@@ -46,7 +120,8 @@ function CustomerPage({ searchParams }: { searchParams: { customerId?: string } 
         </div>
       </form>
       <CustomerTable
-        customerId={customerId}
+        searchValue={search}
+        searchType={searchType as "customerId" | "email" | "unknown" | undefined}
         renderCreateCustomerDialog={(refetch) => (
           <CreateCustomerDialog
             setOpenCreateCustomerDialog={setOpenCreateCustomerDialog}
