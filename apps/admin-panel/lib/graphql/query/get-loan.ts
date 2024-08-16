@@ -5,7 +5,7 @@ gql`
     loan(id: $id) {
       id
       loanId
-      startDate
+      createdAt
       status
       customer {
         customerId

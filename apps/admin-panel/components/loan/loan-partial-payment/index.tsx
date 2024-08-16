@@ -27,7 +27,7 @@ gql`
       loan {
         id
         loanId
-        startDate
+        createdAt
         balance {
           collateral {
             btcBalance
@@ -96,8 +96,8 @@ export const LoanPartialPaymentDialog = ({
           <DetailsGroup>
             <DetailItem label="Loan ID" value={data.loanPartialPayment.loan.loanId} />
             <DetailItem
-              label="Start Date"
-              value={data.loanPartialPayment.loan.startDate}
+              label="Created At"
+              value={data.loanPartialPayment.loan.createdAt}
             />
             <DetailItem
               label="Collateral"

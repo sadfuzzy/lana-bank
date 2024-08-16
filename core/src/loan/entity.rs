@@ -51,7 +51,6 @@ pub enum LoanEvent {
         terms: TermValues,
         account_ids: LoanAccountIds,
         customer_account_ids: CustomerLedgerAccountIds,
-        start_date: DateTime<Utc>,
     },
     TermsUpdated {
         terms: TermValues,
@@ -93,7 +92,6 @@ pub struct Loan {
     pub terms: TermValues,
     pub account_ids: LoanAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
-    pub start_date: DateTime<Utc>,
     pub(super) events: EntityEvents<LoanEvent>,
 }
 
@@ -208,7 +206,7 @@ impl Loan {
     }
 
     fn is_expired(&self) -> bool {
-        Utc::now() > self.terms.duration.expiration_date(self.start_date)
+        Utc::now() > self.terms.duration.expiration_date(self.created_at())
     }
 
     fn count_interest_incurred(&self) -> usize {
@@ -228,9 +226,9 @@ impl Loan {
         if self.count_interest_incurred() == 0 {
             self.terms
                 .interval
-                .next_interest_payment(self.start_date)
+                .next_interest_payment(self.created_at())
                 .day()
-                - self.start_date.day()
+                - self.created_at().day()
                 + 1 // 1 is added to account for the day when the loan was
                     // approved
         } else {
@@ -333,7 +331,6 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     customer_id,
                     account_ids,
                     customer_account_ids,
-                    start_date,
                     terms,
                     ..
                 } => {
@@ -343,7 +340,6 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                         .terms(terms.clone())
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
-                        .start_date(*start_date);
                 }
                 LoanEvent::TermsUpdated { terms } => {
                     builder = builder.terms(terms.clone());
@@ -368,8 +364,6 @@ pub struct NewLoan {
     principal: UsdCents,
     account_ids: LoanAccountIds,
     customer_account_ids: CustomerLedgerAccountIds,
-    #[builder(default = "Utc::now()")]
-    start_date: DateTime<Utc>,
 }
 
 impl NewLoan {
@@ -387,7 +381,6 @@ impl NewLoan {
                 terms: self.terms,
                 account_ids: self.account_ids,
                 customer_account_ids: self.customer_account_ids,
-                start_date: self.start_date,
             }],
         )
     }
@@ -424,7 +417,6 @@ mod test {
                     terms: terms(),
                     account_ids: LoanAccountIds::new(),
                     customer_account_ids: CustomerLedgerAccountIds::new(),
-                    start_date: Utc::now(),
                 },
                 LoanEvent::InterestIncurred {
                     tx_id: LedgerTxId::new(),

@@ -291,7 +291,7 @@ type LayeredUsdAccountBalances {
 type Loan {
 	id: ID!
 	loanId: UUID!
-	startDate: Timestamp!
+	createdAt: Timestamp!
 	loanTerms: TermValues!
 	status: LoanStatus!
 	balance: LoanBalance!

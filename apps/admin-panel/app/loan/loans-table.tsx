@@ -31,7 +31,7 @@ gql`
         node {
           loanId
           status
-          startDate
+          createdAt
           customer {
             customerId
             email
@@ -81,7 +81,7 @@ const LoansTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Start Date</TableHead>
+              <TableHead>Created At</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Outstanding Balance</TableHead>
@@ -93,7 +93,7 @@ const LoansTable = () => {
               const loan = edge?.node
               return (
                 <TableRow key={loan.loanId}>
-                  <TableCell>{formatDate(loan.startDate)}</TableCell>
+                  <TableCell>{formatDate(loan.createdAt)}</TableCell>
                   <TableCell>{loan.status}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">

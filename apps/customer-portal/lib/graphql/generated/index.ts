@@ -46,15 +46,25 @@ export type Customer = {
   applicantId?: Maybe<Scalars['String']['output']>;
   balance: CustomerBalance;
   customerId: Scalars['UUID']['output'];
+  deposits: Array<Deposit>;
   email: Scalars['String']['output'];
   level: KycLevel;
   loans: Array<Loan>;
   status: AccountStatus;
+  withdrawals: Array<Withdrawal>;
 };
 
 export type CustomerBalance = {
   __typename?: 'CustomerBalance';
   checking: Checking;
+};
+
+export type Deposit = {
+  __typename?: 'Deposit';
+  amount: Scalars['UsdCents']['output'];
+  customer?: Maybe<Customer>;
+  customerId: Scalars['UUID']['output'];
+  depositId: Scalars['UUID']['output'];
 };
 
 export type Duration = {
@@ -81,11 +91,11 @@ export enum KycLevel {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
-  startDate: Scalars['Timestamp']['output'];
   status: LoanStatus;
 };
 
@@ -111,12 +121,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   sumsubTokenCreate: SumsubTokenCreatePayload;
-  withdrawalInitiate: WithdrawalInitiatePayload;
-};
-
-
-export type MutationWithdrawalInitiateArgs = {
-  input: WithdrawalInitiateInput;
 };
 
 export enum Period {
@@ -162,19 +166,17 @@ export type UsdBalance = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
+  customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
+  status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
 };
 
-export type WithdrawalInitiateInput = {
-  amount: Scalars['UsdCents']['input'];
-  reference?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type WithdrawalInitiatePayload = {
-  __typename?: 'WithdrawalInitiatePayload';
-  withdrawal: Withdrawal;
-};
+export enum WithdrawalStatus {
+  Cancelled = 'CANCELLED',
+  Confirmed = 'CONFIRMED',
+  Initiated = 'INITIATED'
+}
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -191,12 +193,12 @@ export type GetLoanQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type GetMyLoansQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -273,7 +275,7 @@ export const GetLoanDocument = gql`
   loan(id: $id) {
     id
     loanId
-    startDate
+    createdAt
     balance {
       collateral {
         btcBalance
@@ -334,7 +336,7 @@ export const GetMyLoansDocument = gql`
     loans {
       id
       loanId
-      startDate
+      createdAt
       balance {
         collateral {
           btcBalance

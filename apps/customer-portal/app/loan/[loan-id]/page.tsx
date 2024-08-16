@@ -112,7 +112,7 @@ export default async function LoanDetailsPage({ params }: Props) {
             <div className="text-right">
               <p className="text-sm">Refresh Print Export</p>
               <p className="font-semibold text-lg">
-                {formatDate(getLoanResponse.loan?.startDate)}
+                {formatDate(getLoanResponse.loan?.createdAt)}
               </p>
             </div>
           </div>

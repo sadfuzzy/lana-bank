@@ -69,7 +69,7 @@ export const LoanCard = async () => {
                       className="flex flex-col gap-1 mt-1"
                       href={`/loan/${loan.loanId}`}
                     >
-                      <p>{formatDate(loan.startDate)}</p>
+                      <p>{formatDate(loan.createdAt)}</p>
                       <p className="text-xs text-primary">{loan.loanId}</p>
                     </Link>
                   </TableCell>

@@ -299,11 +299,11 @@ export type LayeredUsdAccountBalances = {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
   id: Scalars['ID']['output'];
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
-  startDate: Scalars['Timestamp']['output'];
   status: LoanStatus;
 };
 
@@ -830,7 +830,7 @@ export type LoansQueryVariables = Exact<{
 }>;
 
 
-export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, startDate: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type PnlAccountSetWithBalanceQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -934,21 +934,21 @@ export type LoanApproveMutationVariables = Exact<{
 }>;
 
 
-export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
 export type LoanCreateMutationVariables = Exact<{
   input: LoanCreateInput;
 }>;
 
 
-export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type LoanPartialPaymentMutationVariables = Exact<{
   input: LoanPartialPaymentInput;
 }>;
 
 
-export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, startDate: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
 export type DefaultTermsUpdateMutationVariables = Exact<{
   input: DefaultTermsUpdateInput;
@@ -976,14 +976,14 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type GetLoansForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, startDate: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
+export type GetLoansForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type GetCustomerByCustomerIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1571,7 +1571,7 @@ export const LoansDocument = gql`
       node {
         loanId
         status
-        startDate
+        createdAt
         customer {
           customerId
           email
@@ -2294,7 +2294,7 @@ export const LoanApproveDocument = gql`
     loan {
       id
       loanId
-      startDate
+      createdAt
       balance {
         collateral {
           btcBalance
@@ -2342,7 +2342,7 @@ export const LoanCreateDocument = gql`
     loan {
       id
       loanId
-      startDate
+      createdAt
       balance {
         collateral {
           btcBalance
@@ -2401,7 +2401,7 @@ export const LoanPartialPaymentDocument = gql`
     loan {
       id
       loanId
-      startDate
+      createdAt
       balance {
         collateral {
           btcBalance
@@ -2581,7 +2581,7 @@ export const GetLoanDetailsDocument = gql`
   loan(id: $id) {
     id
     loanId
-    startDate
+    createdAt
     status
     customer {
       customerId
@@ -2646,7 +2646,7 @@ export const GetLoansForCustomerDocument = gql`
     loans {
       id
       loanId
-      startDate
+      createdAt
       status
       loanTerms {
         annualRate

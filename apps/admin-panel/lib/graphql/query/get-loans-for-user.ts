@@ -7,7 +7,7 @@ gql`
       loans {
         id
         loanId
-        startDate
+        createdAt
         status
         loanTerms {
           annualRate

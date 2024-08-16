@@ -9,7 +9,7 @@ gql`
     loan(id: $id) {
       id
       loanId
-      startDate
+      createdAt
       balance {
         collateral {
           btcBalance

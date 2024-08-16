@@ -50,8 +50,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                   value={loanDetails.loan.customer.customerId}
                 />
                 <DetailItem
-                  label="Start Date"
-                  value={formatDate(loanDetails.loan.startDate)}
+                  label="Created At"
+                  value={formatDate(loanDetails.loan.createdAt)}
                 />
                 <DetailItem
                   label="Collateral balance (BTC)"

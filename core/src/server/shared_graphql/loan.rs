@@ -22,7 +22,7 @@ pub enum LoanStatus {
 pub struct Loan {
     id: ID,
     loan_id: UUID,
-    start_date: Timestamp,
+    created_at: Timestamp,
     loan_terms: TermValues,
     #[graphql(skip)]
     customer_id: UUID,
@@ -99,6 +99,7 @@ impl ToGlobalId for crate::primitives::LoanId {
 
 impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
+        let created_at = loan.created_at().into();
         Loan {
             id: loan.id.to_global_id(),
             loan_id: UUID::from(loan.id),
@@ -106,7 +107,7 @@ impl From<crate::loan::Loan> for Loan {
             status: loan.status().into(),
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
-            start_date: Timestamp::from(loan.start_date),
+            created_at,
         }
     }
 }
