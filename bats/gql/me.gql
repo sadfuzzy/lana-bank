@@ -1,6 +1,6 @@
 query me {
   me {
-    customerId 
+    customerId
     applicantId
     status
     btcDepositAddress
@@ -14,9 +14,7 @@ query me {
         }
       }
       checking {
-        settled {
-          usdBalance
-        }
+        settled
       }
     }
   }

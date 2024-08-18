@@ -25,22 +25,22 @@ import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
-  query GetOnBalanceSheetTrialBalance {
-    trialBalance {
+  query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
+    trialBalance(from: $from, until: $until) {
       name
-      balance {
+      total {
         ...balancesByCurrency
       }
       subAccounts {
-        ... on AccountWithBalance {
+        ... on Account {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
@@ -48,22 +48,22 @@ gql`
     }
   }
 
-  query GetOffBalanceSheetTrialBalance {
-    offBalanceSheetTrialBalance {
+  query GetOffBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
+    offBalanceSheetTrialBalance(from: $from, until: $until) {
       name
-      balance {
+      total {
         ...balancesByCurrency
       }
       subAccounts {
-        ... on AccountWithBalance {
+        ... on Account {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           name
-          balance {
+          amounts {
             ...balancesByCurrency
           }
         }
@@ -71,16 +71,40 @@ gql`
     }
   }
 
-  fragment balancesByCurrency on AccountBalancesByCurrency {
+  fragment balancesByCurrency on AccountAmountsByCurrency {
     btc: btc {
-      ...btcBalances
+      ...rangedBtcBalances
     }
     usd: usd {
+      ...rangedUsdBalances
+    }
+  }
+
+  fragment rangedBtcBalances on BtcAccountAmountsInPeriod {
+    openingBalance {
+      ...btcBalances
+    }
+    closingBalance {
+      ...btcBalances
+    }
+    amount {
+      ...btcBalances
+    }
+  }
+
+  fragment rangedUsdBalances on UsdAccountAmountsInPeriod {
+    openingBalance {
+      ...usdBalances
+    }
+    closingBalance {
+      ...usdBalances
+    }
+    amount {
       ...usdBalances
     }
   }
 
-  fragment btcBalances on LayeredBtcAccountBalances {
+  fragment btcBalances on LayeredBtcAccountAmounts {
     all {
       debit
       credit
@@ -107,7 +131,7 @@ gql`
     }
   }
 
-  fragment usdBalances on LayeredUsdAccountBalances {
+  fragment usdBalances on LayeredUsdAccountAmounts {
     all {
       debit
       credit
@@ -152,12 +176,12 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
-  const balance = data?.balance
+  const total = data?.total
   const subAccounts = data?.subAccounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
-  if (!balance) return <div>No data</div>
+  if (!total) return <div>No data</div>
 
   return (
     <>
@@ -182,21 +206,21 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency][layer].debit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].debit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency][layer].credit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].credit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.balance[currency][layer].netDebit}
+                  amount={memberBalance.amounts[currency].closingBalance[layer].netDebit}
                 />
               </TableCell>
             </TableRow>
@@ -209,21 +233,27 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency][layer].debit}
+                amount={total[currency].closingBalance[layer].debit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency][layer].credit}
+                amount={total[currency].closingBalance[layer].credit}
               />
             </TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency][layer].netDebit}
+                amount={total[currency].closingBalance[layer].credit}
+              />
+            </TableCell>
+            <TableCell className="w-48">
+              <Balance
+                currency={currency}
+                amount={total[currency].closingBalance[layer].netDebit}
               />
             </TableCell>
           </TableRow>
@@ -238,12 +268,20 @@ function TrialBalancePage() {
     data: onBalanceSheetData,
     loading: onBalanceSheetLoading,
     error: onBalanceSheetError,
-  } = useGetOnBalanceSheetTrialBalanceQuery()
+  } = useGetOnBalanceSheetTrialBalanceQuery({
+    variables: {
+      from: new Date(Date.now()),
+    },
+  })
   const {
     data: offBalanceSheetData,
     loading: offBalanceSheetLoading,
     error: offBalanceSheetError,
-  } = useGetOffBalanceSheetTrialBalanceQuery()
+  } = useGetOffBalanceSheetTrialBalanceQuery({
+    variables: {
+      from: new Date(Date.now()),
+    },
+  })
 
   return (
     <main>

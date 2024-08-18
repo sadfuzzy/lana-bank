@@ -5,15 +5,21 @@ import { gql } from "@apollo/client"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import {
-  AccountBalancesByCurrency,
-  AccountSetSubAccountWithBalance,
+  AccountAmountsByCurrency,
+  AccountSetSubAccount,
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
 
 gql`
-  query ChartOfAccountsAccountSet($accountSetId: UUID!, $first: Int!, $after: String) {
-    accountSetWithBalance(accountSetId: $accountSetId) {
+  query ChartOfAccountsAccountSet(
+    $accountSetId: UUID!
+    $first: Int!
+    $after: String
+    $from: Timestamp!
+    $until: Timestamp
+  ) {
+    accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
       id
       name
       subAccounts(first: $first, after: $after) {
@@ -21,12 +27,12 @@ gql`
           cursor
           node {
             __typename
-            ... on AccountWithBalance {
+            ... on Account {
               __typename
               id
               name
             }
-            ... on AccountSetWithBalance {
+            ... on AccountSet {
               __typename
               id
               name
@@ -44,7 +50,7 @@ gql`
 
 type AccountProps = {
   depth?: number
-  account: AccountSetSubAccountWithBalance
+  account: AccountSetSubAccount
 }
 
 const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
@@ -52,11 +58,12 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
     variables: {
       accountSetId: account.id,
       first: 10,
+      from: new Date(Date.now()),
     },
   })
 
-  const hasMoreSubAccounts = data?.accountSetWithBalance?.subAccounts.pageInfo.hasNextPage
-  const subAccounts = data?.accountSetWithBalance?.subAccounts.edges
+  const hasMoreSubAccounts = data?.accountSet?.subAccounts.pageInfo.hasNextPage
+  const subAccounts = data?.accountSet?.subAccounts.edges
 
   return (
     <>
@@ -65,7 +72,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
           key={subAccount.node.id}
           account={{
             ...subAccount.node,
-            balance: undefined as unknown as AccountBalancesByCurrency,
+            amounts: undefined as unknown as AccountAmountsByCurrency,
           }}
           depth={depth + 1}
         />
@@ -96,8 +103,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
 
 export const Account: React.FC<AccountProps> = ({ account, depth = 0 }) => {
   const [showingSubAccounts, setShowingSubAccounts] = React.useState(false)
-  const hasSubAccounts =
-    account.__typename === "AccountSetWithBalance" && account.hasSubAccounts
+  const hasSubAccounts = account.__typename === "AccountSet" && account.hasSubAccounts
 
   return (
     <>

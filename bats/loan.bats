@@ -38,10 +38,16 @@ wait_for_interest() {
 
   revenue_before=$(net_usd_revenue)
 
-  exec_admin_graphql 'cash-flow'
-  cash_flow_net_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.netCredit')
-  cash_flow_debit_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.debit')
-  cash_flow_credit_before=$(graphql_output '.data.cashFlowStatement.balance.usd.all.credit')
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'cash-flow' "$variables"
+  cash_flow_net_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.netCredit')
+  cash_flow_debit_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.debit')
+  cash_flow_credit_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.credit')
+  [[ "$cash_flow_net_before" != "null" ]] || exit 1
 
   # Create Loan
   principal=10000
@@ -90,7 +96,7 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'customer' "$variables"
-  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled')
   [[ "$usd_balance" == "$principal" ]] || exit 1
 
   retry 20 1 wait_for_interest "$loan_id"
@@ -102,9 +108,14 @@ wait_for_interest() {
   collateral_sats=$(read_value 'collateral_sats')
   [[ "$collateral_sats" == "233334" ]] || exit 1
 
-  exec_admin_graphql 'cash-flow'
-  cash_flow_debit_during=$(graphql_output '.data.cashFlowStatement.balance.usd.all.debit')
-  cash_flow_credit_during=$(graphql_output '.data.cashFlowStatement.balance.usd.all.credit')
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'cash-flow' "$variables"
+  cash_flow_debit_during=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.debit')
+  cash_flow_credit_during=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.credit')
   [[ $(sub "$cash_flow_debit_during" "$cash_flow_debit_before") == "$interest_before" ]] || exit 1
   [[ $(sub "$cash_flow_credit_during" "$cash_flow_credit_before") == "$interest_before" ]] || exit 1
 
@@ -152,11 +163,16 @@ wait_for_interest() {
     }'
   )
   exec_admin_graphql 'customer' "$variables"
-  usd_balance=$(graphql_output '.data.customer.balance.checking.settled.usdBalance')
+  usd_balance=$(graphql_output '.data.customer.balance.checking.settled')
   [[ "$usd_balance" == "$principal" ]] || exit 1
 
-  exec_admin_graphql 'cash-flow'
-  cash_flow_net_after=$(graphql_output '.data.cashFlowStatement.balance.usd.all.netCredit')
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'cash-flow' "$variables"
+  cash_flow_net_after=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.netCredit')
   [[ $(sub "$cash_flow_net_after" "$cash_flow_net_before") == "$interest_before" ]] || exit 1
 }
 

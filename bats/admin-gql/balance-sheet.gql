@@ -1,27 +1,27 @@
-query BalanceSheet {
-  balanceSheet {
+query BalanceSheet($from: Timestamp!) {
+  balanceSheet(from: $from) {
     name
     balance {
-      ...balancesByCurrency
+      ...amountsByCurrency
     }
     categories {
       name
-      balance {
-        ...balancesByCurrency
+      amounts {
+        ...amountsByCurrency
       }
       accounts {
-        ... on AccountWithBalance {
+        ... on Account {
           id
           name
-          balance {
-            ...balancesByCurrency
+          amounts {
+            ...amountsByCurrency
           }
         }
-        ... on AccountSetWithBalance {
+        ... on AccountSet {
           id
           name
-          balance {
-            ...balancesByCurrency
+          amounts {
+            ...amountsByCurrency
           }
         }
       }
@@ -29,13 +29,19 @@ query BalanceSheet {
   }
 }
 
-fragment balancesByCurrency on AccountBalancesByCurrency {
+fragment amountsByCurrency on AccountAmountsByCurrency {
   usd: usd {
-    ...usdBalances
+    ...usdAmountsInPeriod
   }
 }
 
-fragment usdBalances on LayeredUsdAccountBalances {
+fragment usdAmountsInPeriod on UsdAccountAmountsInPeriod {
+  balancesByLayer: closingBalance {
+    ...usdAmounts
+  }
+}
+
+fragment usdAmounts on LayeredUsdAccountAmounts {
   all {
     ...usdLayers
   }
@@ -50,7 +56,7 @@ fragment usdBalances on LayeredUsdAccountBalances {
   }
 }
 
-fragment usdLayers on UsdAccountBalance {
+fragment usdLayers on UsdAccountAmounts {
   netDebit
   debit
   credit

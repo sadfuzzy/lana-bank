@@ -8,12 +8,8 @@ gql`
         email
         balance {
           checking {
-            settled {
-              usdBalance
-            }
-            pending {
-              usdBalance
-            }
+            settled
+            pending
           }
         }
       }

@@ -10,12 +10,8 @@ gql`
       applicantId
       balance {
         checking {
-          settled {
-            usdBalance
-          }
-          pending {
-            usdBalance
-          }
+          settled
+          pending
         }
       }
     }

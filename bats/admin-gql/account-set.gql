@@ -1,20 +1,37 @@
-query TrialBalance($from: Timestamp!) {
-  trialBalance(from: $from) {
+query AccountSet(
+  $accountSetId: UUID!
+  $first: Int!
+  $after: String
+  $from: Timestamp!
+) {
+  accountSet(accountSetId: $accountSetId, from: $from) {
+    id
     name
-    total {
+    amounts {
       ...amountsByCurrency
     }
-    subAccounts {
-      ... on Account {
-        name
-        amounts {
-          ...amountsByCurrency
-        }
-      }
-      ... on AccountSet {
-        name
-        amounts {
-          ...amountsByCurrency
+    subAccounts(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          __typename
+          ... on Account {
+            __typename
+            id
+            name
+            amounts {
+              ...amountsByCurrency
+            }
+          }
+          ... on AccountSet {
+            __typename
+            id
+            name
+            hasSubAccounts
+            amounts {
+              ...amountsByCurrency
+            }
+          }
         }
       }
     }

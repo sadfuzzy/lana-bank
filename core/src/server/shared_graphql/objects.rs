@@ -1,11 +1,4 @@
-use crate::primitives::UsdCents;
-
 use async_graphql::*;
-
-#[derive(SimpleObject)]
-pub struct UsdBalance {
-    pub usd_balance: UsdCents,
-}
 
 #[derive(SimpleObject)]
 pub struct SuccessPayload {

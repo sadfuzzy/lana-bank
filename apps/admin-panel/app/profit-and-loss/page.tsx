@@ -6,7 +6,7 @@ import { Account } from "./account"
 
 import {
   ProfitAndLossStatementQuery,
-  StatementCategoryWithBalance,
+  StatementCategory,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
@@ -22,32 +22,32 @@ import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 
 gql`
-  query ProfitAndLossStatement {
-    profitAndLossStatement {
+  query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+    profitAndLossStatement(from: $from, until: $until) {
       name
-      balance {
+      net {
         ...balancesByCurrency
       }
       categories {
         name
-        balance {
+        amounts {
           ...balancesByCurrency
         }
         accounts {
-          ... on AccountWithBalance {
+          ... on Account {
             __typename
             id
             name
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
-          ... on AccountSetWithBalance {
+          ... on AccountSet {
             __typename
             id
             name
             hasSubAccounts
-            balance {
+            amounts {
               ...balancesByCurrency
             }
           }
@@ -69,7 +69,11 @@ export default function ProfitAndLossStatementPage() {
     data: ProfitAndLossStatementData,
     loading: ProfitAndLossStatementLoading,
     error: ProfitAndLossStatementError,
-  } = useProfitAndLossStatementQuery()
+  } = useProfitAndLossStatementQuery({
+    variables: {
+      from: new Date(Date.now()),
+    },
+  })
 
   return (
     <ProfitAndLossStatement
@@ -92,12 +96,12 @@ const ProfitAndLossStatement = ({
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
-  const balance = data?.balance
+  const net = data?.net
   const categories = data?.categories
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading) return <div>Loading...</div>
-  if (!balance) return <div>No data</div>
+  if (!net) return <div>No data</div>
 
   return (
     <main>
@@ -135,7 +139,7 @@ const ProfitAndLossStatement = ({
               <Balance
                 align="end"
                 currency={currency}
-                amount={balance[currency][layer].netCredit}
+                amount={net[currency].closingBalance[layer].netCredit}
               />
             </TableCell>
           </TableRow>
@@ -151,7 +155,7 @@ const CategoryRow = ({
   layer,
   transactionType,
 }: {
-  category: StatementCategoryWithBalance
+  category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
@@ -168,7 +172,7 @@ const CategoryRow = ({
           <Balance
             align="end"
             currency={currency}
-            amount={category.balance[currency][layer][transactionType]}
+            amount={category.amounts[currency].closingBalance[layer][transactionType]}
           />
         </TableCell>
       </TableRow>

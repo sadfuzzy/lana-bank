@@ -1,24 +1,25 @@
 use async_graphql::{types::connection::*, *};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use crate::{app::LavaApp, server::shared_graphql::primitives::UUID};
 
-use super::account::AccountBalancesByCurrency;
+use super::account::AccountAmountsByCurrency;
 
 #[derive(SimpleObject)]
-pub struct AccountSetWithBalance {
+pub struct AccountSet {
     id: UUID,
     name: String,
-    balance: AccountBalancesByCurrency,
+    amounts: AccountAmountsByCurrency,
     has_sub_accounts: bool,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetWithBalance> for AccountSetWithBalance {
+impl From<crate::ledger::account_set::LedgerAccountSetWithBalance> for AccountSet {
     fn from(line_item: crate::ledger::account_set::LedgerAccountSetWithBalance) -> Self {
-        AccountSetWithBalance {
+        AccountSet {
             id: line_item.id.into(),
             name: line_item.name,
-            balance: line_item.balance.into(),
+            amounts: line_item.balance.into(),
             has_sub_accounts: line_item.page_info.start_cursor.is_some(),
         }
     }
@@ -58,42 +59,38 @@ impl From<SubAccountCursor> for crate::ledger::account_set::LedgerSubAccountCurs
 }
 
 #[derive(Union)]
-enum AccountSetSubAccountWithBalance {
-    Account(super::account::AccountWithBalance),
-    AccountSet(AccountSetWithBalance),
+enum AccountSetSubAccount {
+    Account(super::account::Account),
+    AccountSet(AccountSet),
 }
 
 impl From<crate::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance>
-    for AccountSetSubAccountWithBalance
+    for AccountSetSubAccount
 {
     fn from(
         member: crate::ledger::account_set::PaginatedLedgerAccountSetSubAccountWithBalance,
     ) -> Self {
         match member.value {
             crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
-                AccountSetSubAccountWithBalance::Account(super::account::AccountWithBalance::from(
-                    val,
-                ))
+                AccountSetSubAccount::Account(super::account::Account::from(val))
             }
             crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(val) => {
-                AccountSetSubAccountWithBalance::AccountSet(AccountSetWithBalance::from(val))
+                AccountSetSubAccount::AccountSet(AccountSet::from(val))
             }
         }
     }
 }
 
 impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
-    for AccountSetSubAccountWithBalance
+    for AccountSetSubAccount
 {
     fn from(member: crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance) -> Self {
         match member {
             crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::Account(val) => {
-                AccountSetSubAccountWithBalance::Account(super::account::AccountWithBalance::from(
-                    val,
-                ))
+                AccountSetSubAccount::Account(super::account::Account::from(val))
             }
             crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance::AccountSet(val) => {
-                AccountSetSubAccountWithBalance::AccountSet(AccountSetWithBalance::from(val))
+                AccountSetSubAccount::AccountSet(AccountSet::from(val))
             }
         }
     }
@@ -101,36 +98,48 @@ impl From<crate::ledger::account_set::LedgerAccountSetSubAccountWithBalance>
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
-pub struct AccountSetAndSubAccountsWithBalance {
+pub struct AccountSetAndSubAccounts {
     id: UUID,
     name: String,
-    balance: AccountBalancesByCurrency,
+    amounts: AccountAmountsByCurrency,
+    #[graphql(skip)]
+    from: DateTime<Utc>,
+    #[graphql(skip)]
+    until: Option<DateTime<Utc>>,
 }
 
-impl From<crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance>
-    for AccountSetAndSubAccountsWithBalance
+impl
+    From<(
+        DateTime<Utc>,
+        Option<DateTime<Utc>>,
+        crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+    )> for AccountSetAndSubAccounts
 {
     fn from(
-        account_set: crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+        (from, until, account_set): (
+            DateTime<Utc>,
+            Option<DateTime<Utc>>,
+            crate::ledger::account_set::LedgerAccountSetAndSubAccountsWithBalance,
+        ),
     ) -> Self {
-        AccountSetAndSubAccountsWithBalance {
+        AccountSetAndSubAccounts {
             id: account_set.id.into(),
             name: account_set.name,
-            balance: account_set.balance.into(),
+            amounts: account_set.balance.into(),
+            from,
+            until,
         }
     }
 }
 
 #[ComplexObject]
-impl AccountSetAndSubAccountsWithBalance {
+impl AccountSetAndSubAccounts {
     async fn sub_accounts(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> Result<
-        Connection<SubAccountCursor, AccountSetSubAccountWithBalance, EmptyFields, EmptyFields>,
-    > {
+    ) -> Result<Connection<SubAccountCursor, AccountSetSubAccount, EmptyFields, EmptyFields>> {
         let app = ctx.data_unchecked::<LavaApp>();
         query(
             after,
@@ -143,6 +152,8 @@ impl AccountSetAndSubAccountsWithBalance {
                     .ledger()
                     .paginated_account_set_and_sub_accounts_with_balance(
                         self.id.clone().into(),
+                        self.from,
+                        self.until,
                         crate::query::PaginatedQueryArgs {
                             first,
                             after: after
@@ -155,7 +166,7 @@ impl AccountSetAndSubAccountsWithBalance {
                     .edges
                     .extend(res.entities.into_iter().map(|sub_account| {
                         let cursor = SubAccountCursor::from(sub_account.cursor.clone());
-                        Edge::new(cursor, AccountSetSubAccountWithBalance::from(sub_account))
+                        Edge::new(cursor, AccountSetSubAccount::from(sub_account))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
             },
@@ -166,19 +177,19 @@ impl AccountSetAndSubAccountsWithBalance {
 #[derive(SimpleObject)]
 pub struct TrialBalance {
     name: String,
-    balance: AccountBalancesByCurrency,
-    sub_accounts: Vec<AccountSetSubAccountWithBalance>,
+    total: AccountAmountsByCurrency,
+    sub_accounts: Vec<AccountSetSubAccount>,
 }
 
 impl From<crate::ledger::account_set::LedgerTrialBalance> for TrialBalance {
     fn from(trial_balance: crate::ledger::account_set::LedgerTrialBalance) -> Self {
         TrialBalance {
             name: trial_balance.name,
-            balance: trial_balance.balance.into(),
+            total: trial_balance.balance.into(),
             sub_accounts: trial_balance
                 .accounts
                 .into_iter()
-                .map(AccountSetSubAccountWithBalance::from)
+                .map(AccountSetSubAccount::from)
                 .collect(),
         }
     }
@@ -187,7 +198,7 @@ impl From<crate::ledger::account_set::LedgerTrialBalance> for TrialBalance {
 #[derive(SimpleObject)]
 pub struct ChartOfAccounts {
     name: String,
-    categories: Vec<StatementCategoryWithBalance>,
+    categories: Vec<StatementCategory>,
 }
 
 impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts {
@@ -197,30 +208,28 @@ impl From<crate::ledger::account_set::LedgerChartOfAccounts> for ChartOfAccounts
             categories: chart_of_accounts
                 .categories
                 .into_iter()
-                .map(StatementCategoryWithBalance::from)
+                .map(StatementCategory::from)
                 .collect(),
         }
     }
 }
 
 #[derive(SimpleObject)]
-pub struct StatementCategoryWithBalance {
+pub struct StatementCategory {
     name: String,
-    balance: AccountBalancesByCurrency,
-    accounts: Vec<AccountSetSubAccountWithBalance>,
+    amounts: AccountAmountsByCurrency,
+    accounts: Vec<AccountSetSubAccount>,
 }
 
-impl From<crate::ledger::account_set::LedgerStatementCategoryWithBalance>
-    for StatementCategoryWithBalance
-{
+impl From<crate::ledger::account_set::LedgerStatementCategoryWithBalance> for StatementCategory {
     fn from(account_set: crate::ledger::account_set::LedgerStatementCategoryWithBalance) -> Self {
-        StatementCategoryWithBalance {
+        StatementCategory {
             name: account_set.name,
-            balance: account_set.balance.into(),
+            amounts: account_set.balance.into(),
             accounts: account_set
                 .accounts
                 .into_iter()
-                .map(AccountSetSubAccountWithBalance::from)
+                .map(AccountSetSubAccount::from)
                 .collect(),
         }
     }
@@ -229,8 +238,8 @@ impl From<crate::ledger::account_set::LedgerStatementCategoryWithBalance>
 #[derive(SimpleObject)]
 pub struct BalanceSheet {
     name: String,
-    balance: AccountBalancesByCurrency,
-    categories: Vec<StatementCategoryWithBalance>,
+    balance: AccountAmountsByCurrency,
+    categories: Vec<StatementCategory>,
 }
 
 impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
@@ -241,7 +250,7 @@ impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
             categories: balance_sheet
                 .categories
                 .into_iter()
-                .map(StatementCategoryWithBalance::from)
+                .map(StatementCategory::from)
                 .collect(),
         }
     }
@@ -250,19 +259,19 @@ impl From<crate::ledger::account_set::LedgerBalanceSheet> for BalanceSheet {
 #[derive(SimpleObject)]
 pub struct ProfitAndLossStatement {
     name: String,
-    balance: AccountBalancesByCurrency,
-    categories: Vec<StatementCategoryWithBalance>,
+    net: AccountAmountsByCurrency,
+    categories: Vec<StatementCategory>,
 }
 
 impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAndLossStatement {
     fn from(profit_and_loss: crate::ledger::account_set::LedgerProfitAndLossStatement) -> Self {
         ProfitAndLossStatement {
             name: profit_and_loss.name,
-            balance: profit_and_loss.balance.into(),
+            net: profit_and_loss.balance.into(),
             categories: profit_and_loss
                 .categories
                 .into_iter()
-                .map(StatementCategoryWithBalance::from)
+                .map(StatementCategory::from)
                 .collect(),
         }
     }
@@ -271,19 +280,19 @@ impl From<crate::ledger::account_set::LedgerProfitAndLossStatement> for ProfitAn
 #[derive(SimpleObject)]
 pub struct CashFlowStatement {
     name: String,
-    balance: AccountBalancesByCurrency,
-    categories: Vec<StatementCategoryWithBalance>,
+    total: AccountAmountsByCurrency,
+    categories: Vec<StatementCategory>,
 }
 
 impl From<crate::ledger::account_set::LedgerCashFlowStatement> for CashFlowStatement {
     fn from(profit_and_loss: crate::ledger::account_set::LedgerCashFlowStatement) -> Self {
         CashFlowStatement {
             name: profit_and_loss.name,
-            balance: profit_and_loss.balance.into(),
+            total: profit_and_loss.balance.into(),
             categories: profit_and_loss
                 .categories
                 .into_iter()
-                .map(StatementCategoryWithBalance::from)
+                .map(StatementCategory::from)
                 .collect(),
         }
     }
