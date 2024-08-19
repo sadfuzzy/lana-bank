@@ -288,12 +288,16 @@ enum BfxWithdrawalMethod {
 	TETHER_USX
 }
 
-type BigQueryExportCreatePayload {
-	job: Job!
+type BigQueryIntegration {
+	integrationId: UUID!
+	name: String!
+	description: String
+	gcpProjectId: String!
+	gcpDatasetId: String!
 }
 
-input BigQueryExportJobCreateInput {
-	jobId: UUID!
+input BigQueryIntegrationCreateInput {
+	integrationId: UUID!
 	name: String!
 	description: String
 	gcpProjectId: String!
@@ -301,8 +305,39 @@ input BigQueryExportJobCreateInput {
 	serviceAccountCredsBase64: String!
 }
 
+type BigQueryIntegrationCreatePayload {
+	integration: BigQueryIntegration!
+}
+
 type BigQueryMutation {
-	bqExportJobCreate(input: BigQueryExportJobCreateInput!): BigQueryExportCreatePayload!
+	integrationCreate(input: BigQueryIntegrationCreateInput!): BigQueryIntegrationCreatePayload!
+	tableCreate(input: BigQueryTableCreateInput!): BigQueryTableCreatePayload!
+	rowInsert(input: BigQueryRowInsertInput!): BigQueryRowInsertPayload!
+}
+
+type BigQueryQuery {
+	integration(id: UUID!): BigQueryIntegration
+}
+
+input BigQueryRowInsertInput {
+	integrationId: UUID!
+	tableName: String!
+	rowData: JSON!
+}
+
+type BigQueryRowInsertPayload {
+	integration: BigQueryIntegration!
+}
+
+input BigQueryTableCreateInput {
+	integrationId: UUID!
+	tableName: String!
+	tableSchema: JSON!
+}
+
+type BigQueryTableCreatePayload {
+	tableName: String!
+	integration: BigQueryIntegration!
 }
 
 type BitfinexMutation {
@@ -493,6 +528,7 @@ input ParamDefinitionInput {
 
 type Query {
 	serverVersion: String!
+	bigQuery: BigQueryQuery!
 	bitfinex: BitfinexQuery!
 	account(id: UUID!): Account
 	accountByExternalId(externalId: String!): Account
