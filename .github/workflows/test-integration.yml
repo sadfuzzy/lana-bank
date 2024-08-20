@@ -9,21 +9,28 @@ jobs:
     name: Integration Test
     runs-on: ubuntu-latest
     steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v2
       - name: Login to GCR
         uses: docker/login-action@v3
         with:
           registry: gcr.io
           username: _json_key
           password: ${{ secrets.GCR_JSON_KEY }}
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v2
       - uses: actions/checkout@v3
+      - id: 'gcp-auth'
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GOOGLE_CREDENTIALS }}'
 
       - name: Tilt CI
         run: nix develop -c make tilt-in-ci
 
       - name: Run integration tests
         run: nix develop -c make test-in-ci
-
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_name_prefix: "lava_gha_ci"
