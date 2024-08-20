@@ -5,6 +5,7 @@ variable "bq_creds" {
 
 variable "dataset_id" {
   type = string
+  default = ""
 }
 
 locals {
