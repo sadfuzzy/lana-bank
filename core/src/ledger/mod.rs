@@ -209,56 +209,64 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.record_payment", skip(self), err)]
-    pub async fn record_payment(
+    #[instrument(name = "lava.ledger.record_loan_payment", skip(self), err)]
+    pub async fn record_loan_repayment(
         &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
-        payment: LoanPayment,
-        tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        self.cala
-            .execute_repay_loan_tx(
+        repayment: LoanRepayment,
+    ) -> Result<DateTime<Utc>, LedgerError> {
+        let executed_at = match repayment {
+            LoanRepayment::Partial {
                 tx_id,
-                loan_account_ids,
-                customer_account_ids,
-                payment.interest.to_usd(),
-                payment.principal.to_usd(),
                 tx_ref,
-            )
-            .await?;
-
-        Ok(())
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    #[instrument(name = "lava.ledger.complete_loan", skip(self), err)]
-    pub async fn complete_loan(
-        &self,
-        payment_tx_id: LedgerTxId,
-        collateral_tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
-        payment: LoanPayment,
-        collateral_amount: Satoshis,
-        payment_tx_ref: String,
-        collateral_tx_ref: String,
-    ) -> Result<(), LedgerError> {
-        Ok(self
-            .cala
-            .execute_complete_loan_tx(
-                payment_tx_id,
-                collateral_tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                payment.interest.to_usd(),
-                payment.principal.to_usd(),
-                collateral_amount.to_btc(),
+                amounts:
+                    LoanPaymentAmounts {
+                        interest,
+                        principal,
+                    },
+            } => {
+                self.cala
+                    .execute_repay_loan_tx(
+                        tx_id,
+                        loan_account_ids,
+                        customer_account_ids,
+                        interest.to_usd(),
+                        principal.to_usd(),
+                        tx_ref,
+                    )
+                    .await?
+            }
+            LoanRepayment::Final {
+                payment_tx_id,
                 payment_tx_ref,
+                collateral_tx_id,
                 collateral_tx_ref,
-            )
-            .await?)
+                collateral,
+                loan_account_ids,
+                customer_account_ids,
+                amounts:
+                    LoanPaymentAmounts {
+                        interest,
+                        principal,
+                    },
+            } => {
+                self.cala
+                    .execute_complete_loan_tx(
+                        payment_tx_id,
+                        collateral_tx_id,
+                        loan_account_ids,
+                        customer_account_ids,
+                        interest.to_usd(),
+                        principal.to_usd(),
+                        collateral.to_btc(),
+                        payment_tx_ref,
+                        collateral_tx_ref,
+                    )
+                    .await?
+            }
+        };
+        Ok(executed_at)
     }
 
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]

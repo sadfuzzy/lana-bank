@@ -1,7 +1,8 @@
-use crate::primitives::{LedgerAccountId, Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
-use super::{cala::graphql::*, error::*};
+use crate::primitives::{LedgerAccountId, LedgerTxId, Satoshis, UsdCents};
+
+use super::{cala::graphql::*, customer::CustomerLedgerAccountIds, error::*};
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct LoanAccountIds {
@@ -23,8 +24,29 @@ impl LoanAccountIds {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum LoanRepayment {
+    Partial {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        loan_account_ids: LoanAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amounts: LoanPaymentAmounts,
+    },
+    Final {
+        payment_tx_id: LedgerTxId,
+        payment_tx_ref: String,
+        collateral_tx_id: LedgerTxId,
+        collateral_tx_ref: String,
+        collateral: Satoshis,
+        loan_account_ids: LoanAccountIds,
+        customer_account_ids: CustomerLedgerAccountIds,
+        amounts: LoanPaymentAmounts,
+    },
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct LoanPayment {
+pub struct LoanPaymentAmounts {
     pub interest: UsdCents,
     pub principal: UsdCents,
 }

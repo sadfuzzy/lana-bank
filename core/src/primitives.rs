@@ -43,7 +43,7 @@ pub enum KycLevel {
     Advanced,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LoanStatus {
     New,
     Active,

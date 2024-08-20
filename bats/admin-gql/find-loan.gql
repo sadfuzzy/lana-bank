@@ -12,5 +12,10 @@ query loan($id: UUID!) {
         usdBalance
       }
     }
+    transactions {
+      amount
+      transactionType
+      recordedAt
+    }
   }
 }

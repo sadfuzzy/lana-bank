@@ -822,7 +822,7 @@ impl CalaClient {
         collateral_amount: Decimal,
         payment_external_id: String,
         collateral_external_id: String,
-    ) -> Result<(), CalaError> {
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_complete_loan_transaction::Variables {
             payment_transaction_id: payment_transaction_id.into(),
             collateral_transaction_id: collateral_transaction_id.into(),
@@ -846,9 +846,11 @@ impl CalaClient {
             variables,
         )
         .await?;
-        response.data.ok_or(CalaError::MissingDataField)?;
-
-        Ok(())
+        let created_at = response
+            .data
+            .map(|d| d.return_collateral.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
     }
 
     #[instrument(
@@ -943,7 +945,7 @@ impl CalaClient {
         interest_payment_amount: Decimal,
         principal_payment_amount: Decimal,
         external_id: String,
-    ) -> Result<(), CalaError> {
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_payment_transaction::Variables {
             transaction_id: transaction_id.into(),
             checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
@@ -964,11 +966,11 @@ impl CalaClient {
         )
         .await?;
 
-        response
+        let created_at = response
             .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.created_at)
             .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        Ok(created_at)
     }
 
     pub async fn trial_balance<T, E>(

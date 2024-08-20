@@ -94,6 +94,7 @@ mutation PostCompleteLoanTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 
@@ -111,6 +112,7 @@ mutation PostCompleteLoanTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }

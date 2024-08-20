@@ -174,6 +174,17 @@ wait_for_interest() {
   exec_admin_graphql 'cash-flow' "$variables"
   cash_flow_net_after=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.netCredit')
   [[ $(sub "$cash_flow_net_after" "$cash_flow_net_before") == "$interest_before" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      id: $loanId
+    }'
+  )
+  exec_admin_graphql 'find-loan' "$variables"
+  transactions_len=$(graphql_output '.data.loan.transactions' | jq 'length')
+  [[ "$transactions_len" == "2" ]] || exit 1
 }
 
 @test "loan: paginated listing" {

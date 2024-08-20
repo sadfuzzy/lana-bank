@@ -112,6 +112,7 @@ mutation PostRecordPaymentTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }
