@@ -4,7 +4,7 @@ variable "bq_creds" {
 }
 
 variable "dataset_id" {
-  type = string
+  type    = string
   default = ""
 }
 
