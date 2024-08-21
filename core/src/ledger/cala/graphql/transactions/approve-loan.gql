@@ -1,19 +1,13 @@
 mutation ApproveLoanTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
-  $bankCollateralAccountId: Expression!
 ) {
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
       code: "APPROVE_LOAN"
-      description: "Collateralize loan and payout principal."
+      description: "Payout principal."
       params: [
-        {
-          name: "loanCollateralAccount"
-          type: UUID
-          description: "Loan Collateral account ID."
-        }
         {
           name: "loanPrincipalReceivableAccount"
           type: UUID
@@ -23,11 +17,6 @@ mutation ApproveLoanTemplateCreate(
           name: "checkingAccount"
           type: UUID
           description: "User Checking account ID."
-        }
-        {
-          name: "collateralAmount"
-          type: DECIMAL
-          description: "Amount of BTC being put into the loan."
         }
         {
           name: "principalAmount"
@@ -52,22 +41,6 @@ mutation ApproveLoanTemplateCreate(
         externalId: "params.externalId"
       }
       entries: [
-        {
-          accountId: $bankCollateralAccountId
-          units: "params.collateralAmount"
-          currency: "'BTC'"
-          entryType: "'APPROVE_LOAN_COLLATERAL_DR'"
-          direction: "DEBIT"
-          layer: "SETTLED"
-        }
-        {
-          accountId: "params.loanCollateralAccount"
-          units: "params.collateralAmount"
-          currency: "'BTC'"
-          entryType: "'APPROVE_LOAN_COLLATERAL_CR'"
-          direction: "CREDIT"
-          layer: "SETTLED"
-        }
         {
           accountId: "params.loanPrincipalReceivableAccount"
           units: "params.principalAmount"
@@ -97,10 +70,8 @@ mutation ApproveLoanTemplateCreate(
 
 mutation PostApproveLoanTransaction(
   $transactionId: UUID!
-  $loanCollateralAccount: UUID!
   $loanPrincipalReceivableAccount: UUID!
   $checkingAccount: UUID!
-  $collateralAmount: Decimal!
   $principalAmount: Decimal!
   $externalId: String!
 ) {
@@ -109,10 +80,8 @@ mutation PostApproveLoanTransaction(
       transactionId: $transactionId
       txTemplateCode: "APPROVE_LOAN"
       params: {
-        loanCollateralAccount: $loanCollateralAccount
         loanPrincipalReceivableAccount: $loanPrincipalReceivableAccount
         checkingAccount: $checkingAccount
-        collateralAmount: $collateralAmount
         principalAmount: $principalAmount
         externalId: $externalId
       }

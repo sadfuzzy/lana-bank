@@ -6,7 +6,7 @@ use crate::{
     entity::*,
     ledger::{
         customer::CustomerLedgerAccountIds,
-        loan::{LoanAccountIds, LoanPaymentAmounts, LoanRepayment},
+        loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},
     },
     primitives::*,
 };
@@ -65,7 +65,6 @@ pub enum LoanEvent {
     },
     Approved {
         tx_id: LedgerTxId,
-        initial_collateral: Satoshis,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -79,10 +78,17 @@ pub enum LoanEvent {
         interest_amount: UsdCents,
         transaction_recorded_at: DateTime<Utc>,
     },
+    CollateralUpdated {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        collateral: Satoshis,
+        action: CollateralAction,
+        recorded_at: DateTime<Utc>,
+    },
     Completed {
-        collateral_tx_id: LedgerTxId,
-        collateral_tx_ref: String,
-        transaction_recorded_at: DateTime<Utc>,
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        completed_at: DateTime<Utc>,
     },
 }
 
@@ -117,19 +123,6 @@ impl Loan {
         } else {
             unreachable!("Initialized event not found")
         }
-    }
-
-    fn collateral(&self) -> Satoshis {
-        self.events.iter().rfold(Satoshis::ZERO, |acc, event| {
-            if let LoanEvent::Approved {
-                initial_collateral, ..
-            } = event
-            {
-                *initial_collateral
-            } else {
-                acc
-            }
-        })
     }
 
     fn principal_payments(&self) -> UsdCents {
@@ -171,6 +164,24 @@ impl Loan {
             principal: self.initial_principal() - self.principal_payments(),
             interest: self.interest_recorded() - self.interest_payments(),
         }
+    }
+
+    pub fn collateral(&self) -> Satoshis {
+        let total = self.events.iter().fold(SignedSatoshis::ZERO, |acc, event| {
+            if let LoanEvent::CollateralUpdated {
+                action, collateral, ..
+            } = event
+            {
+                let signed_collateral = SignedSatoshis::from(*collateral);
+                match action {
+                    CollateralAction::Add => acc + signed_collateral,
+                    CollateralAction::Remove => acc - signed_collateral,
+                }
+            } else {
+                acc
+            }
+        });
+        Satoshis::try_from(total).expect("should be a valid satoshi amount")
     }
 
     pub fn transactions(&self) -> Vec<LoanTransaction> {
@@ -224,18 +235,16 @@ impl Loan {
         }
     }
 
-    pub(super) fn approve(
-        &mut self,
-        tx_id: LedgerTxId,
-        initial_collateral: Satoshis,
-    ) -> Result<(), LoanError> {
+    pub(super) fn approve(&mut self, tx_id: LedgerTxId) -> Result<(), LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
-        self.events.push(LoanEvent::Approved {
-            tx_id,
-            initial_collateral,
-        });
+
+        if self.collateral() == Satoshis::ZERO {
+            return Err(LoanError::NoCollateral);
+        }
+
+        self.events.push(LoanEvent::Approved { tx_id });
 
         Ok(())
     }
@@ -380,6 +389,7 @@ impl Loan {
                         interest,
                         principal,
                     },
+                collateral,
                 ..
             } => {
                 self.events.push(LoanEvent::PaymentRecorded {
@@ -389,10 +399,17 @@ impl Loan {
                     interest_amount: interest,
                     transaction_recorded_at,
                 });
+                self.events.push(LoanEvent::CollateralUpdated {
+                    tx_id: collateral_tx_id,
+                    tx_ref: collateral_tx_ref.clone(),
+                    collateral,
+                    action: CollateralAction::Remove,
+                    recorded_at: transaction_recorded_at,
+                });
                 self.events.push(LoanEvent::Completed {
-                    collateral_tx_id,
-                    collateral_tx_ref,
-                    transaction_recorded_at,
+                    tx_id: collateral_tx_id,
+                    tx_ref: collateral_tx_ref,
+                    completed_at: transaction_recorded_at,
                 });
             }
         }
@@ -403,6 +420,71 @@ impl Loan {
             .iter()
             .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
             .count()
+    }
+
+    fn count_collateral_adjustments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, LoanEvent::CollateralUpdated { .. }))
+            .count()
+    }
+
+    pub(super) fn initiate_collateral_update(
+        &self,
+        updated_collateral: Satoshis,
+    ) -> Result<LoanCollateralUpdate, LoanError> {
+        let current_collateral = self.collateral();
+        let diff =
+            SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
+
+        if diff == SignedSatoshis::ZERO {
+            return Err(LoanError::CollateralNotUpdated(
+                current_collateral,
+                updated_collateral,
+            ));
+        }
+
+        let (collateral, action) = if diff > SignedSatoshis::ZERO {
+            (Satoshis::try_from(diff)?, CollateralAction::Add)
+        } else {
+            (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
+        };
+
+        let tx_ref = format!(
+            "{}-collateral-{}",
+            self.id,
+            self.count_collateral_adjustments() + 1
+        );
+
+        let tx_id = LedgerTxId::new();
+
+        Ok(LoanCollateralUpdate {
+            collateral,
+            loan_account_ids: self.account_ids,
+            tx_ref,
+            tx_id,
+            action,
+        })
+    }
+
+    pub(super) fn confirm_collateral_update(
+        &mut self,
+        LoanCollateralUpdate {
+            tx_id,
+            tx_ref,
+            collateral,
+            action,
+            ..
+        }: LoanCollateralUpdate,
+        executed_at: DateTime<Utc>,
+    ) {
+        self.events.push(LoanEvent::CollateralUpdated {
+            tx_id,
+            tx_ref,
+            collateral,
+            action,
+            recorded_at: executed_at,
+        });
     }
 }
 
@@ -436,6 +518,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
+                LoanEvent::CollateralUpdated { .. } => (),
             }
         }
         builder.events(events).build()
@@ -567,31 +650,56 @@ mod test {
     #[test]
     fn prevent_double_approve() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
+        let res = loan.approve(LedgerTxId::new());
         assert!(res.is_ok());
 
-        let res = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let res = loan.approve(LedgerTxId::new());
         assert!(res.is_err());
     }
 
     #[test]
-    fn test_status() {
+    fn status() {
         let mut loan = Loan::try_from(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
-        let _ = loan.approve(
-            LedgerTxId::new(),
-            Satoshis::try_from_btc(dec!(0.12)).unwrap(),
-        );
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
+        let _ = loan.approve(LedgerTxId::new());
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
         loan.confirm_repayment(repayment, Utc::now());
         assert_eq!(loan.status(), LoanStatus::Closed);
+    }
+
+    #[test]
+    fn collateral() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        // initially collateral should be 0
+        assert_eq!(loan.collateral(), Satoshis::ZERO);
+
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
+        assert_eq!(loan.collateral(), Satoshis::from(10000));
+
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(5000))
+            .unwrap();
+        loan.confirm_collateral_update(loan_collateral_update, Utc::now());
+        assert_eq!(loan.collateral(), Satoshis::from(5000));
+    }
+
+    #[test]
+    fn cannot_approve_if_loan_has_no_collateral() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let res = loan.approve(LedgerTxId::new());
+        assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
 }

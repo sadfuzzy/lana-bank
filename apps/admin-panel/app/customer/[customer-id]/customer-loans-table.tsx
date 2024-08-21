@@ -44,6 +44,7 @@ import {
 import { DetailItem } from "@/components/details"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
 import Balance from "@/components/balance/balance"
+import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 
 type LoanRowProps = {
   loanId: string
@@ -162,10 +163,25 @@ const LoanCountDetails = ({
 
 const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] = useState<{
+    loanId: string
+    existingCollateral: number
+  } | null>(null)
 
   return (
     <Collapsible asChild>
       <>
+        {openCollateralUpdateDialog && (
+          <CollateralUpdateDialog
+            setOpenCollateralUpdateDialog={() => setOpenCollateralUpdateDialog(null)}
+            openCollateralUpdateDialog={Boolean(openCollateralUpdateDialog)}
+            loanData={{
+              loanId: openCollateralUpdateDialog.loanId,
+              existingCollateral: openCollateralUpdateDialog.existingCollateral,
+            }}
+            refetch={refetch}
+          />
+        )}
         <CollapsibleTrigger asChild>
           <TableRow onClick={() => setIsOpen(!isOpen)}>
             <TableCell>
@@ -218,9 +234,22 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
                   )}
                   {loan.status === LoanStatus.New && (
                     <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                      <LoanApproveDialog refetch={refetch} loanId={loan.loanId}>
+                      <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
                         <span>Approve Loan</span>
                       </LoanApproveDialog>
+                    </DropdownMenuItem>
+                  )}
+                  {loan.status !== LoanStatus.Closed && (
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setOpenCollateralUpdateDialog({
+                          loanId: loan.loanId,
+                          existingCollateral: loan.balance.collateral.btcBalance,
+                        })
+                      }}
+                    >
+                      Update Collateral
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>

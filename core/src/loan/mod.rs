@@ -123,7 +123,6 @@ impl Loans {
         &self,
         sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
-        collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         self.authz
             .check_permission(sub, Object::Loan, LoanAction::Approve)
@@ -132,13 +131,12 @@ impl Loans {
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
         let mut tx = self.pool.begin().await?;
         let tx_id = LedgerTxId::new();
-        loan.approve(tx_id, collateral)?;
+        loan.approve(tx_id)?;
         self.ledger
             .approve_loan(
                 tx_id,
                 loan.account_ids,
                 loan.customer_account_ids,
-                collateral,
                 loan.initial_principal(),
                 format!("{}-approval", loan.id),
             )
@@ -153,6 +151,33 @@ impl Loans {
             )
             .await?;
         tx.commit().await?;
+        Ok(loan)
+    }
+
+    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
+    pub async fn update_collateral(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        updated_collateral: Satoshis,
+    ) -> Result<Loan, LoanError> {
+        self.authz
+            .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
+            .await?;
+
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+
+        let loan_collateral_update = loan.initiate_collateral_update(updated_collateral)?;
+
+        let mut db_tx = self.pool.begin().await?;
+        let executed_at = self
+            .ledger
+            .update_collateral(loan_collateral_update.clone())
+            .await?;
+
+        loan.confirm_collateral_update(loan_collateral_update, executed_at);
+        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        db_tx.commit().await?;
         Ok(loan)
     }
 

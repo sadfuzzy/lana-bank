@@ -1,69 +1,3 @@
-mutation ReleaseCollateralTemplateCreate(
-  $templateId: UUID!
-  $journalId: Expression!
-  $bankCollateralAccountId: Expression!
-) {
-  txTemplateCreate(
-    input: {
-      txTemplateId: $templateId
-      code: "RELEASE_COLLATERAL"
-      description: "Release collateral for loan."
-      params: [
-        {
-          name: "loanCollateralAccount"
-          type: UUID
-          description: "Loan Collateral account ID."
-        }
-        {
-          name: "collateralAmount"
-          type: DECIMAL
-          description: "Amount of BTC being put into the loan."
-        }
-        {
-          name: "externalId"
-          type: STRING
-          description: "External ID for the transaction"
-        }
-        {
-          name: "effective"
-          type: DATE
-          description: "Effective date for transaction."
-          default: "date()"
-        }
-      ]
-      transaction: {
-        journalId: $journalId
-        effective: "params.effective"
-        externalId: "params.externalId"
-      }
-      entries: [
-        {
-          accountId: "params.loanCollateralAccount"
-          units: "params.collateralAmount"
-          currency: "'BTC'"
-          entryType: "'RELEASE_COLLATERAL_DR'"
-          direction: "DEBIT"
-          layer: "SETTLED"
-        }
-        {
-          accountId: $bankCollateralAccountId
-          units: "params.collateralAmount"
-          currency: "'BTC'"
-          entryType: "'RELEASE_COLLATERAL_CR'"
-          direction: "CREDIT"
-          layer: "SETTLED"
-        }
-      ]
-    }
-  ) {
-    txTemplate {
-      txTemplateId
-      code
-      version
-    }
-  }
-}
-
 mutation PostCompleteLoanTransaction(
   $paymentTransactionId: UUID!
   $collateralTransactionId: UUID!
@@ -101,7 +35,7 @@ mutation PostCompleteLoanTransaction(
   returnCollateral: transactionPost(
     input: {
       transactionId: $collateralTransactionId
-      txTemplateCode: "RELEASE_COLLATERAL"
+      txTemplateCode: "REMOVE_COLLATERAL"
       params: {
         loanCollateralAccount: $loanCollateralAccount
         collateralAmount: $collateralAmount

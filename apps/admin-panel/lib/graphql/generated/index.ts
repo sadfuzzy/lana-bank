@@ -163,6 +163,16 @@ export type Collateral = {
   btcBalance: Scalars['Satoshis']['output'];
 };
 
+export type CollateralUpdateInput = {
+  collateral: Scalars['Satoshis']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type CollateralUpdatePayload = {
+  __typename?: 'CollateralUpdatePayload';
+  loan: Loan;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -306,6 +316,7 @@ export type LayeredUsdAccountAmounts = {
 export type Loan = {
   __typename?: 'Loan';
   balance: LoanBalance;
+  collateral: Scalars['Satoshis']['output'];
   createdAt: Scalars['Timestamp']['output'];
   customer: Customer;
   id: Scalars['ID']['output'];
@@ -316,7 +327,6 @@ export type Loan = {
 };
 
 export type LoanApproveInput = {
-  collateral: Scalars['Satoshis']['input'];
   loanId: Scalars['UUID']['input'];
 };
 
@@ -392,6 +402,7 @@ export type LoanTransaction = {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  collateralUpdate: CollateralUpdatePayload;
   customerCreate: CustomerCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   depositRecord: DepositRecordPayload;
@@ -406,6 +417,11 @@ export type Mutation = {
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
+};
+
+
+export type MutationCollateralUpdateArgs = {
+  input: CollateralUpdateInput;
 };
 
 
@@ -1036,6 +1052,13 @@ export type LoanApproveMutationVariables = Exact<{
 
 
 export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type CollateralUpdateMutationVariables = Exact<{
+  input: CollateralUpdateInput;
+}>;
+
+
+export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
 export type LoanCreateMutationVariables = Exact<{
   input: LoanCreateInput;
@@ -2609,6 +2632,52 @@ export function useLoanApproveMutation(baseOptions?: Apollo.MutationHookOptions<
 export type LoanApproveMutationHookResult = ReturnType<typeof useLoanApproveMutation>;
 export type LoanApproveMutationResult = Apollo.MutationResult<LoanApproveMutation>;
 export type LoanApproveMutationOptions = Apollo.BaseMutationOptions<LoanApproveMutation, LoanApproveMutationVariables>;
+export const CollateralUpdateDocument = gql`
+    mutation CollateralUpdate($input: CollateralUpdateInput!) {
+  collateralUpdate(input: $input) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type CollateralUpdateMutationFn = Apollo.MutationFunction<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
+
+/**
+ * __useCollateralUpdateMutation__
+ *
+ * To run a mutation, you first call `useCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCollateralUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [collateralUpdateMutation, { data, loading, error }] = useCollateralUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CollateralUpdateMutation, CollateralUpdateMutationVariables>(CollateralUpdateDocument, options);
+      }
+export type CollateralUpdateMutationHookResult = ReturnType<typeof useCollateralUpdateMutation>;
+export type CollateralUpdateMutationResult = Apollo.MutationResult<CollateralUpdateMutation>;
+export type CollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
 export const LoanCreateDocument = gql`
     mutation LoanCreate($input: LoanCreateInput!) {
   loanCreate(input: $input) {

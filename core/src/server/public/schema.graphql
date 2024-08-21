@@ -68,6 +68,7 @@ type Loan {
 	createdAt: Timestamp!
 	loanTerms: TermValues!
 	status: LoanStatus!
+	collateral: Satoshis!
 	transactions: [LoanTransaction!]!
 	balance: LoanBalance!
 	customer: Customer!

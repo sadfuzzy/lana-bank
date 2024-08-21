@@ -1,7 +1,5 @@
 import { gql } from "@apollo/client"
 
-import { useState } from "react"
-
 import { toast } from "sonner"
 
 import {
@@ -13,11 +11,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
-import { Label } from "@/components/primitive/label"
-import { useLoanApproveMutation } from "@/lib/graphql/generated"
+import { Loan, useLoanApproveMutation } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
@@ -45,26 +40,22 @@ gql`
 `
 
 export const LoanApproveDialog = ({
-  loanId,
+  loanDetails,
   children,
   refetch,
 }: {
-  loanId: string
+  loanDetails: Loan
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const [collateral, setCollateral] = useState<string>("")
   const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
   const handleLoanApprove = async () => {
-    if (!collateral) return
-
     try {
       await LoanApprove({
         variables: {
           input: {
-            loanId: loanId,
-            collateral: currencyConverter.btcToSatoshi(Number(collateral)),
+            loanId: loanDetails.loanId,
           },
         },
       })
@@ -79,7 +70,6 @@ export const LoanApproveDialog = ({
     <Dialog
       onOpenChange={(isOpen) => {
         if (!isOpen) {
-          setCollateral("")
           reset()
         }
       }}
@@ -129,20 +119,37 @@ export const LoanApproveDialog = ({
             <DialogTitle>Approve Loan</DialogTitle>
             <DialogDescription>Fill in the details to Approve loan.</DialogDescription>
           </DialogHeader>
-          <div>
-            <Label>Collateral</Label>
-            <div className="flex items-center gap-1">
-              <Input
-                required
-                type="number"
-                value={collateral}
-                onChange={(e) => setCollateral(e.target.value)}
-                placeholder="Enter the desired Collateral amount"
-                min={0.00000001}
-              />
-              <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
-            </div>
-          </div>
+          <DetailsGroup>
+            <DetailItem label="Loan ID" value={loanDetails.loanId} />
+            <DetailItem label="Created At" value={loanDetails.createdAt} />
+            <DetailItem
+              label="Collateral"
+              valueComponent={
+                <Balance
+                  amount={loanDetails.balance.collateral.btcBalance}
+                  currency="btc"
+                />
+              }
+            />
+            <DetailItem
+              label="Interest Incurred"
+              valueComponent={
+                <Balance
+                  amount={loanDetails.balance.interestIncurred.usdBalance}
+                  currency="usd"
+                />
+              }
+            />
+            <DetailItem
+              label="Outstanding"
+              valueComponent={
+                <Balance
+                  amount={loanDetails.balance.outstanding.usdBalance}
+                  currency="usd"
+                />
+              }
+            />
+          </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
           <DialogFooter className="mt-4">
             <Button className="w-32" disabled={loading} onClick={handleLoanApprove}>

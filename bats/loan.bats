@@ -84,6 +84,19 @@ wait_for_interest() {
       }
     }'
   )
+  exec_admin_graphql 'collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
   exec_admin_graphql 'loan-approve' "$variables"
   loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
@@ -215,7 +228,6 @@ wait_for_interest() {
     exec_admin_graphql 'loan-create' "$variables"
     loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
     [[ "$loan_id" != "null" ]] || exit 1
-
     variables=$(
       jq -n \
         --arg loanId "$loan_id" \
@@ -226,6 +238,17 @@ wait_for_interest() {
         }
       }'
     )
+    exec_admin_graphql 'collateral-update' "$variables"
+
+      variables=$(
+        jq -n \
+          --arg loanId "$loan_id" \
+        '{
+          input: {
+            loanId: $loanId,
+          }
+        }'
+      )
     exec_admin_graphql 'loan-approve' "$variables"
     loan_id=$(graphql_output '.data.loanApprove.loan.loanId')
     [[ "$loan_id" != "null" ]] || exit 1

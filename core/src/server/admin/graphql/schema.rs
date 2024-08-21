@@ -505,10 +505,7 @@ impl Mutation {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let loan = app
-            .loans()
-            .approve_loan(sub, input.loan_id, input.collateral)
-            .await?;
+        let loan = app.loans().approve_loan(sub, input.loan_id).await?;
         Ok(LoanApprovePayload::from(loan))
     }
 
@@ -525,6 +522,25 @@ impl Mutation {
             .record_payment_or_complete_loan(sub, input.loan_id.into(), input.amount)
             .await?;
         Ok(LoanPartialPaymentPayload::from(loan))
+    }
+
+    pub async fn collateral_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CollateralUpdateInput,
+    ) -> async_graphql::Result<CollateralUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let CollateralUpdateInput {
+            loan_id,
+            collateral,
+        } = input;
+        let loan = app
+            .loans()
+            .update_collateral(sub, loan_id.into(), collateral)
+            .await?;
+        Ok(CollateralUpdatePayload::from(loan))
     }
 
     pub async fn deposit_record(

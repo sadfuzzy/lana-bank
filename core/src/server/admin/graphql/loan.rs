@@ -43,7 +43,6 @@ impl From<crate::loan::Loan> for LoanCreatePayload {
 #[derive(InputObject)]
 pub struct LoanApproveInput {
     pub loan_id: UUID,
-    pub collateral: Satoshis,
 }
 
 #[derive(SimpleObject)]
@@ -111,5 +110,22 @@ impl From<LoanCursor> for crate::loan::LoanCursor {
             id: cursor.id,
             created_at: cursor.created_at,
         }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CollateralUpdateInput {
+    pub loan_id: UUID,
+    pub collateral: Satoshis,
+}
+
+#[derive(SimpleObject)]
+pub struct CollateralUpdatePayload {
+    loan: Loan,
+}
+
+impl From<crate::loan::Loan> for CollateralUpdatePayload {
+    fn from(loan: crate::loan::Loan) -> Self {
+        Self { loan: loan.into() }
     }
 }

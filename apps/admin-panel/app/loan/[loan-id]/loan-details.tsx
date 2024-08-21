@@ -2,6 +2,8 @@
 
 import { gql } from "@apollo/client"
 
+import { useState } from "react"
+
 import Balance from "@/components/balance/balance"
 import { DetailItem } from "@/components/details"
 import { LoanApproveDialog } from "@/components/loan/approve-loan"
@@ -28,9 +30,11 @@ import {
   LoanStatus,
   useGetLoanDetailsQuery,
   TransactionType,
+  Loan,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatDate } from "@/lib/utils"
+import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 
 gql`
   query GetLoanDetails($id: UUID!) {
@@ -76,6 +80,9 @@ gql`
 type LoanDetailsProps = { loanId: string }
 
 const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
+  const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
+    useState<boolean>(false)
+
   const {
     data: loanDetails,
     loading,
@@ -85,6 +92,18 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 
   return (
     <>
+      {loanDetails && loanDetails.loan?.loanId && (
+        <CollateralUpdateDialog
+          setOpenCollateralUpdateDialog={setOpenCollateralUpdateDialog}
+          openCollateralUpdateDialog={openCollateralUpdateDialog}
+          loanData={{
+            loanId: loanDetails.loan?.loanId,
+            existingCollateral: loanDetails.loan?.balance.collateral.btcBalance,
+          }}
+          refetch={refetch}
+        />
+      )}
+
       <Card>
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
@@ -175,6 +194,11 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
               <Separator className="mb-6" />
             )}
             <div className="flex flex-row gap-2 p-6 pt-0 mt-0">
+              {loanDetails.loan.status !== LoanStatus.Closed && (
+                <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
+                  Update collateral
+                </Button>
+              )}
               {loanDetails.loan.status === LoanStatus.Active && (
                 <LoanPartialPaymentDialog
                   refetch={refetch}
@@ -184,7 +208,10 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 </LoanPartialPaymentDialog>
               )}
               {loanDetails.loan.status === LoanStatus.New && (
-                <LoanApproveDialog refetch={refetch} loanId={loanDetails.loan.loanId}>
+                <LoanApproveDialog
+                  refetch={refetch}
+                  loanDetails={loanDetails.loan as Loan}
+                >
                   <Button>Approve Loan</Button>
                 </LoanApproveDialog>
               )}

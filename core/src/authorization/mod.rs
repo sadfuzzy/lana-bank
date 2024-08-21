@@ -154,6 +154,8 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Loan, LoanAction::RecordPayment)
             .await?;
+        self.add_permission_to_role(&role, Object::Loan, LoanAction::UpdateCollateral)
+            .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Update)
             .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Read)
@@ -391,6 +393,7 @@ impl FromStr for Action {
             LoanAction::LIST_STR => Ok(Self::Loan(LoanAction::List)),
             LoanAction::APPROVE_STR => Ok(Self::Loan(LoanAction::Approve)),
             LoanAction::RECORD_PAYMENT_STR => Ok(Self::Loan(LoanAction::RecordPayment)),
+            LoanAction::UPDATE_COLLATERAL_STR => Ok(Self::Loan(LoanAction::UpdateCollateral)),
 
             TermAction::UPDATE_STR => Ok(Self::Term(TermAction::Update)),
             TermAction::READ_STR => Ok(Self::Term(TermAction::Read)),
@@ -452,6 +455,7 @@ pub enum LoanAction {
     Create,
     Approve,
     RecordPayment,
+    UpdateCollateral,
 }
 
 impl LoanAction {
@@ -460,6 +464,7 @@ impl LoanAction {
     const LIST_STR: &'static str = "loan-list";
     const APPROVE_STR: &'static str = "loan-approve";
     const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
+    const UPDATE_COLLATERAL_STR: &'static str = "loan-update-collateral";
 }
 
 impl AsRef<str> for LoanAction {
@@ -470,6 +475,7 @@ impl AsRef<str> for LoanAction {
             Self::List => Self::LIST_STR,
             Self::Approve => Self::APPROVE_STR,
             Self::RecordPayment => Self::RECORD_PAYMENT_STR,
+            Self::UpdateCollateral => Self::UPDATE_COLLATERAL_STR,
         }
     }
 }

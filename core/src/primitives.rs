@@ -194,12 +194,24 @@ impl std::ops::Sub<SignedSatoshis> for SignedSatoshis {
     }
 }
 
+impl std::ops::Add<SignedSatoshis> for SignedSatoshis {
+    type Output = SignedSatoshis;
+
+    fn add(self, other: SignedSatoshis) -> SignedSatoshis {
+        SignedSatoshis(self.0 + other.0)
+    }
+}
+
 impl SignedSatoshis {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(1);
 
     pub fn to_btc(self) -> Decimal {
         Decimal::from(self.0) / SATS_PER_BTC
+    }
+
+    pub fn abs(self) -> SignedSatoshis {
+        SignedSatoshis(self.0.abs())
     }
 
     pub fn from_btc(btc: Decimal) -> Self {
@@ -269,6 +281,14 @@ impl Satoshis {
 
     pub fn into_inner(self) -> u64 {
         self.0
+    }
+}
+
+impl TryFrom<SignedSatoshis> for Satoshis {
+    type Error = ConversionError;
+
+    fn try_from(value: SignedSatoshis) -> Result<Self, Self::Error> {
+        Self::try_from_btc(value.to_btc())
     }
 }
 
@@ -443,4 +463,10 @@ mod test {
                 .unwrap()
         );
     }
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+pub enum CollateralAction {
+    Add,
+    Remove,
 }
