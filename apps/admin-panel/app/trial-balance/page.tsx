@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useCallback, useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
 import { PageHeading } from "@/components/page-heading"
@@ -23,6 +23,11 @@ import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
+import {
+  DateRange,
+  DateRangeSelector,
+  getInitialDateRange,
+} from "@/components/date-range-picker"
 
 gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
@@ -167,11 +172,15 @@ type TrialBalanceValuesProps = {
     | undefined
   loading: boolean
   error: ApolloError | undefined
+  dateRange: DateRange
+  setDateRange: (dateRange: DateRange) => void
 }
 const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   data,
   loading,
   error,
+  dateRange,
+  setDateRange,
 }) => {
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
@@ -185,6 +194,10 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
 
   return (
     <>
+      <div className="flex gap-6 items-center">
+        <div>Date Range:</div>
+        <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+      </div>
       <CurrencyLayerSelection
         currency={currency}
         setCurrency={setCurrency}
@@ -264,13 +277,19 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
 }
 
 function TrialBalancePage() {
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const handleDateChange = useCallback((newDateRange: DateRange) => {
+    setDateRange(newDateRange)
+  }, [])
+
   const {
     data: onBalanceSheetData,
     loading: onBalanceSheetLoading,
     error: onBalanceSheetError,
   } = useGetOnBalanceSheetTrialBalanceQuery({
     variables: {
-      from: new Date(Date.now()),
+      from: dateRange.from,
+      until: dateRange.until,
     },
   })
   const {
@@ -279,7 +298,8 @@ function TrialBalancePage() {
     error: offBalanceSheetError,
   } = useGetOffBalanceSheetTrialBalanceQuery({
     variables: {
-      from: new Date(Date.now()),
+      from: dateRange.from,
+      until: dateRange.until,
     },
   })
 
@@ -296,6 +316,8 @@ function TrialBalancePage() {
             data={onBalanceSheetData?.trialBalance}
             loading={onBalanceSheetLoading}
             error={onBalanceSheetError}
+            dateRange={dateRange}
+            setDateRange={handleDateChange}
           />
         </TabsContent>
         <TabsContent value="offBalanceSheet">
@@ -303,6 +325,8 @@ function TrialBalancePage() {
             data={offBalanceSheetData?.offBalanceSheetTrialBalance}
             loading={offBalanceSheetLoading}
             error={offBalanceSheetError}
+            dateRange={dateRange}
+            setDateRange={handleDateChange}
           />
         </TabsContent>
       </Tabs>

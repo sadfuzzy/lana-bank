@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 
 import { Account } from "./account"
 
@@ -11,9 +11,13 @@ import {
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
 import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
-
 import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
+import {
+  DateRange,
+  DateRangeSelector,
+  getInitialDateRange,
+} from "@/components/date-range-picker"
 
 gql`
   query BalanceSheet($from: Timestamp!, $until: Timestamp) {
@@ -58,22 +62,40 @@ const BALANCE_FOR_CATEGORY: Record<string, { TransactionType: TransactionType }>
 }
 
 export default function BalanceSheetPage() {
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const handleDateChange = useCallback((newDateRange: DateRange) => {
+    setDateRange(newDateRange)
+  }, [])
+
   const { data, loading, error } = useBalanceSheetQuery({
-    variables: {
-      from: new Date(Date.now()),
-    },
+    variables: dateRange,
   })
-  return <BalanceSheet data={data?.balanceSheet} loading={loading} error={error} />
+
+  return (
+    <>
+      <BalanceSheet
+        data={data?.balanceSheet}
+        loading={loading}
+        error={error}
+        dateRange={dateRange}
+        setDateRange={handleDateChange}
+      />
+    </>
+  )
 }
 
 const BalanceSheet = ({
   data,
   loading,
   error,
+  dateRange,
+  setDateRange,
 }: {
   data: BalanceSheetQuery["balanceSheet"]
   loading: boolean
   error: Error | undefined
+  dateRange: DateRange
+  setDateRange: (dateRange: DateRange) => void
 }) => {
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
@@ -95,6 +117,11 @@ const BalanceSheet = ({
 
   return (
     <main>
+      <PageHeading>Balance Sheet</PageHeading>
+      <div className="mt-6 flex gap-6 items-center">
+        <div>Date Range:</div>
+        <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+      </div>
       <BalanceSheetHeader
         currency={currency}
         setCurrency={setCurrency}
@@ -108,6 +135,7 @@ const BalanceSheet = ({
             categories={assets}
             currency={currency}
             layer={layer}
+            dateRange={dateRange}
             total={
               assets[0].amounts[currency].closingBalance[layer][
                 BALANCE_FOR_CATEGORY["Assets"].TransactionType
@@ -123,6 +151,7 @@ const BalanceSheet = ({
             currency={currency}
             layer={layer}
             total={totalLiabilitiesAndEquity}
+            dateRange={dateRange}
           />
         )}
       </div>
@@ -143,7 +172,6 @@ function BalanceSheetHeader({
 }) {
   return (
     <div>
-      <PageHeading>Balance Sheet</PageHeading>
       <CurrencyLayerSelection
         currency={currency}
         setCurrency={setCurrency}
@@ -160,12 +188,14 @@ function BalanceSheetColumn({
   currency,
   layer,
   total,
+  dateRange,
 }: {
   title: string
   categories: StatementCategory[]
   currency: Currency
   layer: Layers
   total: number
+  dateRange: DateRange
 }) {
   return (
     <div className="flex-grow flex flex-col justify-between w-1/2">
@@ -178,6 +208,7 @@ function BalanceSheetColumn({
               currency={currency}
               layer={layer}
               transactionType={BALANCE_FOR_CATEGORY[category.name].TransactionType}
+              dateRange={dateRange}
             />
           ))}
         </TableBody>
@@ -203,11 +234,13 @@ function CategoryRow({
   currency,
   layer,
   transactionType,
+  dateRange,
 }: {
   category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
+  dateRange: DateRange
 }) {
   return (
     <>
@@ -224,6 +257,7 @@ function CategoryRow({
           currency={currency}
           layer={layer}
           transactionType={transactionType}
+          dateRange={dateRange}
         />
       ))}
       {category.name !== "Assets" && (

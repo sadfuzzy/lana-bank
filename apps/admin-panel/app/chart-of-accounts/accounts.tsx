@@ -10,6 +10,7 @@ import {
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
 import { TableCell, TableRow } from "@/components/primitive/table"
+import { DateRange } from "@/components/date-range-picker"
 
 gql`
   query ChartOfAccountsAccountSet(
@@ -51,14 +52,20 @@ gql`
 type AccountProps = {
   depth?: number
   account: AccountSetSubAccount
+  dateRange: DateRange
 }
 
-const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }) => {
+const SubAccountsForAccountSet: React.FC<AccountProps> = ({
+  account,
+  depth = 0,
+  dateRange,
+}) => {
   const { data, fetchMore } = useChartOfAccountsAccountSetQuery({
     variables: {
       accountSetId: account.id,
       first: 10,
-      from: new Date(Date.now()),
+      from: dateRange.from,
+      until: dateRange.until,
     },
   })
 
@@ -75,6 +82,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
             amounts: undefined as unknown as AccountAmountsByCurrency,
           }}
           depth={depth + 1}
+          dateRange={dateRange}
         />
       ))}
       {hasMoreSubAccounts && subAccounts && (
@@ -101,7 +109,7 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({ account, depth = 0 }
   )
 }
 
-export const Account: React.FC<AccountProps> = ({ account, depth = 0 }) => {
+export const Account: React.FC<AccountProps> = ({ account, depth = 0, dateRange }) => {
   const [showingSubAccounts, setShowingSubAccounts] = React.useState(false)
   const hasSubAccounts = account.__typename === "AccountSet" && account.hasSubAccounts
 
@@ -125,7 +133,7 @@ export const Account: React.FC<AccountProps> = ({ account, depth = 0 }) => {
       </TableRow>
 
       {hasSubAccounts && showingSubAccounts && (
-        <SubAccountsForAccountSet account={account} depth={depth} />
+        <SubAccountsForAccountSet account={account} depth={depth} dateRange={dateRange} />
       )}
     </>
   )

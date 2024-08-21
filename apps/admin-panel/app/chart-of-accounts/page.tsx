@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useCallback, useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
@@ -15,6 +15,11 @@ import {
   useGetOffBalanceSheetChartOfAccountsQuery,
   useGetOnBalanceSheetChartOfAccountsQuery,
 } from "@/lib/graphql/generated"
+import {
+  DateRange,
+  DateRangeSelector,
+  getInitialDateRange,
+} from "@/components/date-range-picker"
 
 gql`
   query GetOnBalanceSheetChartOfAccounts {
@@ -67,11 +72,13 @@ type ChartOfAccountsValuesProps = {
     | undefined
   loading: boolean
   error: ApolloError | undefined
+  dateRange: DateRange
 }
 const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
   data,
   loading,
   error,
+  dateRange,
 }) => {
   if (loading) return <p>Loading...</p>
   if (error) return <p className="text-destructive">{error.message}</p>
@@ -94,6 +101,7 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
               {category.accounts.map((account) => (
                 <Account
                   key={account.id}
+                  dateRange={dateRange}
                   account={{
                     ...account,
                     amounts: undefined as unknown as AccountAmountsByCurrency,
@@ -119,10 +127,19 @@ function ChartOfAccountsPage() {
     error: offBalanceSheetError,
   } = useGetOffBalanceSheetChartOfAccountsQuery()
 
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const handleDateChange = useCallback((newDateRange: DateRange) => {
+    setDateRange(newDateRange)
+  }, [])
+
   return (
     <main>
       <PageHeading>Chart Of Accounts</PageHeading>
-      <Tabs defaultValue="onBalanceSheet">
+      <div className="mt-6 flex gap-6 items-center">
+        <div>Date Range:</div>
+        <DateRangeSelector initialDateRange={dateRange} onDateChange={handleDateChange} />
+      </div>
+      <Tabs defaultValue="onBalanceSheet" className="mt-4">
         <TabsList>
           <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
           <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
@@ -132,6 +149,7 @@ function ChartOfAccountsPage() {
             data={onBalanceSheetData?.chartOfAccounts}
             loading={onBalanceSheetLoading}
             error={onBalanceSheetError}
+            dateRange={dateRange}
           />
         </TabsContent>
         <TabsContent value="offBalanceSheet">
@@ -139,6 +157,7 @@ function ChartOfAccountsPage() {
             data={offBalanceSheetData?.offBalanceSheetChartOfAccounts}
             loading={offBalanceSheetLoading}
             error={offBalanceSheetError}
+            dateRange={dateRange}
           />
         </TabsContent>
       </Tabs>

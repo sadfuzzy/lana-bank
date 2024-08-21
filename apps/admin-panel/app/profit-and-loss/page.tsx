@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
 import { Account } from "./account"
 
@@ -20,6 +20,11 @@ import {
 
 import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
+import {
+  DateRange,
+  DateRangeSelector,
+  getInitialDateRange,
+} from "@/components/date-range-picker"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
@@ -65,14 +70,17 @@ const BALANCE_FOR_CATEGORY: {
 }
 
 export default function ProfitAndLossStatementPage() {
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const handleDateChange = useCallback((newDateRange: DateRange) => {
+    setDateRange(newDateRange)
+  }, [])
+
   const {
     data: ProfitAndLossStatementData,
     loading: ProfitAndLossStatementLoading,
     error: ProfitAndLossStatementError,
   } = useProfitAndLossStatementQuery({
-    variables: {
-      from: new Date(Date.now()),
-    },
+    variables: dateRange,
   })
 
   return (
@@ -80,6 +88,8 @@ export default function ProfitAndLossStatementPage() {
       data={ProfitAndLossStatementData?.profitAndLossStatement}
       loading={ProfitAndLossStatementLoading}
       error={ProfitAndLossStatementError}
+      dateRange={dateRange}
+      setDateRange={handleDateChange}
     />
   )
 }
@@ -88,10 +98,14 @@ const ProfitAndLossStatement = ({
   data,
   loading,
   error,
+  dateRange,
+  setDateRange,
 }: {
   data: ProfitAndLossStatementQuery["profitAndLossStatement"]
   loading: boolean
   error: Error | undefined
+  dateRange: DateRange
+  setDateRange: (dateRange: DateRange) => void
 }) => {
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
@@ -107,6 +121,10 @@ const ProfitAndLossStatement = ({
     <main>
       <div>
         <PageHeading>Profit and Loss</PageHeading>
+        <div className="mt-6 flex gap-6 items-center">
+          <div>Date Range:</div>
+          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+        </div>
         <CurrencyLayerSelection
           currency={currency}
           setCurrency={setCurrency}
@@ -123,6 +141,7 @@ const ProfitAndLossStatement = ({
                 category={category}
                 currency={currency}
                 layer={layer}
+                dateRange={dateRange}
                 transactionType={
                   BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
                 }
@@ -154,11 +173,13 @@ const CategoryRow = ({
   currency,
   layer,
   transactionType,
+  dateRange,
 }: {
   category: StatementCategory
   currency: Currency
   layer: Layers
   transactionType: TransactionType
+  dateRange: DateRange
 }) => {
   console.log(category.name, transactionType)
 
@@ -183,6 +204,7 @@ const CategoryRow = ({
           currency={currency}
           layer={layer}
           transactionType={transactionType}
+          dateRange={dateRange}
         />
       ))}
     </>

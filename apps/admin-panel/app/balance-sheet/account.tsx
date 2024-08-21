@@ -6,6 +6,7 @@ import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 import { AccountSetSubAccount, usePnlAccountSetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
 import { TableCell, TableRow } from "@/components/primitive/table"
+import { DateRange } from "@/components/date-range-picker"
 
 export const Account = ({
   account,
@@ -13,12 +14,14 @@ export const Account = ({
   depth = 0,
   layer,
   transactionType,
+  dateRange,
 }: {
   account: AccountSetSubAccount
   currency: Currency
   depth?: number
   layer: Layers
   transactionType: TransactionType
+  dateRange: DateRange
 }) => {
   const [showingSubAccounts, setShowingSubAccounts] = useState(false)
   const hasSubAccounts = account.__typename === "AccountSet" && account.hasSubAccounts
@@ -56,6 +59,7 @@ export const Account = ({
           depth={depth}
           layer={layer}
           transactionType={transactionType}
+          dateRange={dateRange}
         />
       )}
     </>
@@ -68,18 +72,21 @@ const SubAccountsForAccountSet = ({
   currency,
   layer,
   transactionType,
+  dateRange,
 }: {
   account: AccountSetSubAccount
   depth?: number
   currency: Currency
   layer: Layers
   transactionType: TransactionType
+  dateRange: DateRange
 }) => {
   const { data, fetchMore } = usePnlAccountSetQuery({
     variables: {
       accountSetId: account.id,
       first: 10,
-      from: new Date(Date.now()),
+      from: dateRange.from,
+      until: dateRange.until,
     },
   })
 
@@ -96,6 +103,7 @@ const SubAccountsForAccountSet = ({
           depth={depth + 1}
           layer={layer}
           transactionType={transactionType}
+          dateRange={dateRange}
         />
       ))}
       {hasMoreSubAccounts && subAccounts && (

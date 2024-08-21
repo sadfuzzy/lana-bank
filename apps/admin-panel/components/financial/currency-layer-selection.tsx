@@ -19,7 +19,7 @@ export const CurrencyLayerSelection: React.FC<CurrencyLayerSelectionProps> = ({
 }) => {
   return (
     <div>
-      <div className="flex items-center mt-2">
+      <div className="flex items-center py-3 mt-2">
         <div className="w-28">Currency:</div>
         <RadioGroup
           className="flex items-center space-x-4"
@@ -37,7 +37,7 @@ export const CurrencyLayerSelection: React.FC<CurrencyLayerSelectionProps> = ({
           </div>
         </RadioGroup>
       </div>
-      <div className="flex items-center mt-2">
+      <div className="flex items-center py-3">
         <div className="w-28">Layer:</div>
         <RadioGroup
           className="flex items-center space-x-4"
