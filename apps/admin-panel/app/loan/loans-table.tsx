@@ -95,14 +95,7 @@ const LoansTable = () => {
                 <TableRow key={loan.loanId}>
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
                   <TableCell>{loan.status}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <div>{loan.customer.email}</div>
-                      <div className="text-xs text-textColor-secondary">
-                        {loan.customer.customerId}
-                      </div>
-                    </div>
-                  </TableCell>
+                  <TableCell>{loan.customer.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <div>

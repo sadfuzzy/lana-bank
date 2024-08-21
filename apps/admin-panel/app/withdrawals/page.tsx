@@ -186,14 +186,7 @@ function WithdrawalsTable() {
                   {withdrawalsToDisplay.map((withdrawal) =>
                     withdrawal && withdrawal.customer ? (
                       <TableRow key={withdrawal.withdrawalId}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <div>{withdrawal.customer.email}</div>
-                            <div className="text-xs text-textColor-secondary">
-                              {withdrawal.customerId}
-                            </div>
-                          </div>
-                        </TableCell>
+                        <TableCell>{withdrawal.customer.email}</TableCell>
                         <TableCell>{withdrawal.withdrawalId}</TableCell>
                         <TableCell>
                           <Balance amount={withdrawal.amount} currency="usd" />

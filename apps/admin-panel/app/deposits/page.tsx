@@ -170,14 +170,7 @@ function DepositsTable() {
                   {depositsToDisplay.map((deposit) =>
                     deposit && deposit.customer ? (
                       <TableRow key={deposit.depositId}>
-                        <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <div>{deposit.customer.email}</div>
-                            <div className="text-xs text-textColor-secondary">
-                              {deposit.customerId}
-                            </div>
-                          </div>
-                        </TableCell>
+                        <TableCell>{deposit.customer.email}</TableCell>
                         <TableCell>{deposit.depositId}</TableCell>
                         <TableCell>
                           <Balance amount={deposit.amount} currency="usd" />

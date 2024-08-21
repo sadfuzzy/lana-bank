@@ -150,14 +150,7 @@ function CustomerTable({
                 <TableBody>
                   {customerDetails.map((customer) => (
                     <TableRow key={customer.customerId}>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <div>{customer.email}</div>
-                          <div className="text-xs text-textColor-secondary">
-                            {customer.customerId}
-                          </div>
-                        </div>
-                      </TableCell>
+                      <TableCell>{customer.email}</TableCell>
                       <TableCell>
                         <Balance
                           amount={customer.balance.checking.settled}
