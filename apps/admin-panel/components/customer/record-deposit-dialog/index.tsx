@@ -13,7 +13,12 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import { useRecordDepositMutation } from "@/lib/graphql/generated"
+import {
+  CustomersDocument,
+  GetCustomerByCustomerEmailDocument,
+  GetCustomerByCustomerIdDocument,
+  useRecordDepositMutation,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
@@ -66,6 +71,11 @@ function RecordDepositDialog({
             reference,
           },
         },
+        refetchQueries: [
+          GetCustomerByCustomerIdDocument,
+          GetCustomerByCustomerEmailDocument,
+          CustomersDocument,
+        ],
       })
       if (result.data) {
         toast.success("Deposit recorded successfully")

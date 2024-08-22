@@ -21,7 +21,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query Loans($first: Int!, $after: String) {
@@ -99,18 +100,16 @@ const LoansTable = () => {
                   <TableCell>{loan.customer.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <div>
-                        {formatCurrency({
-                          amount: loan.balance.outstanding.usdBalance,
-                          currency: "USD",
-                        })}
-                      </div>
-                      <div className="text-xs text-textColor-secondary">
+                      <Balance
+                        amount={loan.balance.outstanding.usdBalance}
+                        currency="usd"
+                      />
+                      <div className="text-xs text-textColor-secondary flex gap-1">
                         Interest:{" "}
-                        {formatCurrency({
-                          amount: loan.balance.interestIncurred.usdBalance,
-                          currency: "USD",
-                        })}
+                        <Balance
+                          amount={loan.balance.interestIncurred.usdBalance}
+                          currency="usd"
+                        />
                       </div>
                     </div>
                   </TableCell>

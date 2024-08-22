@@ -18,6 +18,22 @@ gql`
       url
     }
   }
+
+  query getCustomerByCustomerId($id: UUID!) {
+    customer(id: $id) {
+      customerId
+      email
+      status
+      level
+      applicantId
+      balance {
+        checking {
+          settled
+          pending
+        }
+      }
+    }
+  }
 `
 
 export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {

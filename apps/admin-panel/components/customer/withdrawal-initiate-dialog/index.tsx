@@ -14,7 +14,12 @@ import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
+import {
+  CustomersDocument,
+  GetCustomerByCustomerEmailDocument,
+  GetCustomerByCustomerIdDocument,
+  useWithdrawalInitiateMutation,
+} from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 
@@ -67,6 +72,11 @@ function WithdrawalInitiateDialog({
             reference,
           },
         },
+        refetchQueries: [
+          GetCustomerByCustomerIdDocument,
+          GetCustomerByCustomerEmailDocument,
+          CustomersDocument,
+        ],
       })
       if (result.data) {
         toast.success("Withdrawal initiated successfully")

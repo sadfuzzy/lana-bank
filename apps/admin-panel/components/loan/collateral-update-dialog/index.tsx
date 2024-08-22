@@ -206,12 +206,15 @@ export function CollateralUpdateDialog({
               </div>
               <div>
                 <Label>New Collateral</Label>
-                <Input
-                  type="number"
-                  value={newCollateral !== null ? newCollateral : ""}
-                  onChange={(e) => setNewCollateral(parseFloat(e.target.value))}
-                  placeholder="Enter new collateral amount"
-                />
+                <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    value={newCollateral !== null ? newCollateral : ""}
+                    onChange={(e) => setNewCollateral(parseFloat(e.target.value))}
+                    placeholder="Enter new collateral amount"
+                  />
+                  <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
+                </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>

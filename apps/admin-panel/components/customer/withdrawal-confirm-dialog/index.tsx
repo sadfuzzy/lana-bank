@@ -11,7 +11,12 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import { useWithdrawalConfirmMutation } from "@/lib/graphql/generated"
+import {
+  CustomersDocument,
+  GetCustomerByCustomerEmailDocument,
+  GetCustomerByCustomerIdDocument,
+  useWithdrawalConfirmMutation,
+} from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, formatCurrency } from "@/lib/utils"
@@ -61,6 +66,11 @@ export function WithdrawalConfirmDialog({
             withdrawalId: withdrawalData.withdrawalId,
           },
         },
+        refetchQueries: [
+          GetCustomerByCustomerIdDocument,
+          GetCustomerByCustomerEmailDocument,
+          CustomersDocument,
+        ],
       })
       if (result.data) {
         toast.success("Withdrawal confirmed successfully")

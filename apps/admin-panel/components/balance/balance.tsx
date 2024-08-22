@@ -49,10 +49,13 @@ const Balance: React.FC<BalanceProps> = ({ amount, currency, className, align })
     : `${formattedAmount}`
 
   return (
-    <div className={cn(balanceVariants({ align }), className)}>
-      <div className="font-mono">{formattedAmountWithSymbol}</div>
+    <div className={cn(balanceVariants({ align }), className, "flex gap-0.5")}>
+      {currency === "usd" && <div>$</div>}
+      <div className="font-mono">
+        {formattedAmountWithSymbol}
+        {currency === "btc" && " BTC"}
+      </div>
     </div>
   )
 }
-
 export default Balance
