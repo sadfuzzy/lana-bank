@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 
 pub mod error;
@@ -10,7 +12,7 @@ use sqlx::prelude::FromRow;
 
 use crate::{
     authorization::{Action, Object},
-    primitives::{AuditEntryId, Subject},
+    primitives::{AuditEntryId, AuditInfo, Subject},
 };
 
 pub struct AuditEntry {
@@ -42,27 +44,45 @@ impl Audit {
         Self { pool: pool.clone() }
     }
 
-    pub async fn persist(
+    pub async fn record_entry(
         &self,
         subject: &Subject,
         object: Object,
-        action: Action,
+        action: impl Into<Action>,
         authorized: bool,
-    ) -> Result<(), AuditError> {
-        sqlx::query!(
+    ) -> Result<AuditInfo, AuditError> {
+        let mut db = self.pool.begin().await?;
+        let info = self
+            .record_entry_in_tx(&mut db, subject, object, action, authorized)
+            .await?;
+        db.commit().await?;
+        Ok(info)
+    }
+
+    pub async fn record_entry_in_tx(
+        &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        subject: &Subject,
+        object: Object,
+        action: impl Into<Action>,
+        authorized: bool,
+    ) -> Result<AuditInfo, AuditError> {
+        let action = action.into();
+        let record = sqlx::query!(
             r#"
                 INSERT INTO audit_entries (subject, object, action, authorized)
                 VALUES ($1, $2, $3, $4)
+                RETURNING id, subject
                 "#,
             subject.to_string(),
             object.as_ref(),
             action.as_ref(),
             authorized,
         )
-        .execute(&self.pool)
+        .fetch_one(&mut **db)
         .await?;
 
-        Ok(())
+        Ok(AuditInfo::from((record.id, *subject)))
     }
 
     pub async fn list(
@@ -70,7 +90,7 @@ impl Audit {
         query: crate::query::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
         // Extract the after_id and limit from the query
-        let after_id: Option<i64> = query.after.map(|cursor| cursor.id);
+        let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
 
         let limit = i64::try_from(query.first)?;
 
@@ -84,7 +104,7 @@ impl Audit {
             ORDER BY id DESC
             LIMIT $2
             "#,
-            after_id,
+            after_id as Option<AuditEntryId>,
             limit + 1,
         )
         .fetch_all(&self.pool)
@@ -105,12 +125,11 @@ impl Audit {
 
         // Create the next cursor if there is a next page
         let end_cursor = if has_next_page {
-            events.last().map(|event| AuditCursor { id: event.id.0 })
+            events.last().map(|event| AuditCursor { id: event.id })
         } else {
             None
         };
 
-        // Map raw events to the desired return type
         let audit_entries: Vec<AuditEntry> = events
             .into_iter()
             .map(|raw_event| AuditEntry {
@@ -123,11 +142,44 @@ impl Audit {
             })
             .collect();
 
-        // Return the paginated result
         Ok(crate::query::PaginatedQueryRet {
             entities: audit_entries,
             has_next_page,
             end_cursor,
         })
+    }
+
+    pub async fn find_all<T: From<AuditEntry>>(
+        &self,
+        ids: &[AuditEntryId],
+    ) -> Result<HashMap<AuditEntryId, T>, AuditError> {
+        let raw_entries = sqlx::query_as!(
+            RawAuditEntry,
+            r#"
+            SELECT id, subject, object, action, authorized, created_at
+            FROM audit_entries
+            WHERE id = ANY($1)
+            "#,
+            &ids as &[AuditEntryId],
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let audit_entries: HashMap<AuditEntryId, T> = raw_entries
+            .into_iter()
+            .map(|raw_entry| {
+                let audit_entry = AuditEntry {
+                    id: raw_entry.id,
+                    subject: raw_entry.subject.parse().expect("Could not parse subject"),
+                    object: raw_entry.object.parse().expect("Could not parse object"),
+                    action: raw_entry.action.parse().expect("Could not parse action"),
+                    authorized: raw_entry.authorized,
+                    created_at: raw_entry.created_at,
+                };
+                (raw_entry.id, T::from(audit_entry))
+            })
+            .collect();
+
+        Ok(audit_entries)
     }
 }

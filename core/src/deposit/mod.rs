@@ -52,7 +52,8 @@ impl Deposits {
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Deposit, DepositError> {
-        self.authz
+        let audit_info = self
+            .authz
             .check_permission(sub, Object::Deposit, DepositAction::Record)
             .await?;
 
@@ -64,6 +65,7 @@ impl Deposits {
             .amount(amount)
             .reference(reference.clone())
             .credit_account_id(customer.account_ids.on_balance_sheet_deposit_account_id)
+            .audit_info(audit_info)
             .build()
             .expect("Could not build Deposit");
 

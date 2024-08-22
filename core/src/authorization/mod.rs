@@ -5,7 +5,7 @@ pub mod error;
 
 use error::AuthorizationError;
 
-use crate::primitives::{Role, Subject};
+use crate::primitives::{AuditInfo, Role, Subject};
 use sqlx_adapter::{
     casbin::{
         prelude::{DefaultModel, Enforcer},
@@ -46,7 +46,7 @@ pub struct Authorization {
 }
 
 impl Authorization {
-    pub async fn init(pool: &sqlx::PgPool, audit: Audit) -> Result<Self, AuthorizationError> {
+    pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
         let adapter = SqlxAdapter::new_with_pool(pool.clone()).await?;
 
@@ -54,7 +54,7 @@ impl Authorization {
 
         let mut auth = Authorization {
             enforcer: Arc::new(RwLock::new(enforcer)),
-            audit,
+            audit: audit.clone(),
         };
 
         auth.seed_roles().await?;
@@ -195,18 +195,15 @@ impl Authorization {
         sub: &Subject,
         object: Object,
         action: impl Into<Action>,
-    ) -> Result<bool, AuthorizationError> {
+    ) -> Result<AuditInfo, AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
 
         let action = action.into();
         match enforcer.enforce((sub.to_string(), object.as_ref(), action.as_ref())) {
-            Ok(true) => {
-                self.audit.persist(sub, object, action, true).await?;
-                Ok(true)
-            }
+            Ok(true) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Ok(false) => {
-                self.audit.persist(sub, object, action, false).await?;
+                self.audit.record_entry(sub, object, action, false).await?;
                 Err(AuthorizationError::NotAuthorized)
             }
             Err(e) => Err(AuthorizationError::Casbin(e)),
@@ -456,6 +453,7 @@ pub enum LoanAction {
     Approve,
     RecordPayment,
     UpdateCollateral,
+    RecordInterest,
 }
 
 impl LoanAction {
@@ -465,6 +463,7 @@ impl LoanAction {
     const APPROVE_STR: &'static str = "loan-approve";
     const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
     const UPDATE_COLLATERAL_STR: &'static str = "loan-update-collateral";
+    const RECORD_INTEREST_STR: &'static str = "loan-record-interest";
 }
 
 impl AsRef<str> for LoanAction {
@@ -476,6 +475,7 @@ impl AsRef<str> for LoanAction {
             Self::Approve => Self::APPROVE_STR,
             Self::RecordPayment => Self::RECORD_PAYMENT_STR,
             Self::UpdateCollateral => Self::UPDATE_COLLATERAL_STR,
+            Self::RecordInterest => Self::RECORD_INTEREST_STR,
         }
     }
 }
@@ -575,6 +575,9 @@ impl_from_for_action!(UserAction, User);
 
 pub enum CustomerAction {
     Create,
+    StartKyc,
+    ApproveKyc,
+    DeclineKyc,
     Read,
     List,
     Update,
@@ -582,6 +585,9 @@ pub enum CustomerAction {
 
 impl CustomerAction {
     const CREATE_STR: &'static str = "customer-create";
+    const START_KYC_STR: &'static str = "customer-start-kyc";
+    const APPROVE_KYC_STR: &'static str = "customer-approve-kyc";
+    const DECLINE_KYC_STR: &'static str = "customer-decline-kyc";
     const READ_STR: &'static str = "customer-read";
     const LIST_STR: &'static str = "customer-list";
     const UPDATE_STR: &'static str = "customer-update";
@@ -591,6 +597,9 @@ impl AsRef<str> for CustomerAction {
     fn as_ref(&self) -> &str {
         match self {
             Self::Create => Self::CREATE_STR,
+            Self::StartKyc => Self::START_KYC_STR,
+            Self::ApproveKyc => Self::APPROVE_KYC_STR,
+            Self::DeclineKyc => Self::DECLINE_KYC_STR,
             Self::Read => Self::READ_STR,
             Self::List => Self::LIST_STR,
             Self::Update => Self::UPDATE_STR,

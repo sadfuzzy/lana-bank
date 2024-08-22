@@ -15,22 +15,21 @@ impl CustomerRepo {
         Self { pool: pool.clone() }
     }
 
-    pub(super) async fn create(
+    pub(super) async fn create_in_tx(
         &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         new_customer: NewCustomer,
     ) -> Result<Customer, CustomerError> {
-        let mut tx = self.pool.begin().await?;
         sqlx::query!(
             r#"INSERT INTO customers (id, email)
             VALUES ($1, $2)"#,
             new_customer.id as CustomerId,
             new_customer.email,
         )
-        .execute(&mut *tx)
+        .execute(&mut **db)
         .await?;
         let mut events = new_customer.initial_events();
-        events.persist(&mut tx).await?;
-        tx.commit().await?;
+        events.persist(&mut *db).await?;
         Ok(Customer::try_from(events)?)
     }
 

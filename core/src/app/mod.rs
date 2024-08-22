@@ -38,16 +38,16 @@ pub struct LavaApp {
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         let audit = Audit::new(&pool);
-        let authz = Authorization::init(&pool, audit.clone()).await?;
+        let authz = Authorization::init(&pool, &audit).await?;
         let mut registry = JobRegistry::new();
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &ledger, &config.customer, &authz);
+        let customers = Customers::new(&pool, &ledger, &config.customer, &authz, &audit);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz);
-        let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz);
+        let mut loans = Loans::new(&pool, &mut registry, &customers, &ledger, &authz, &audit);
         let mut jobs = Jobs::new(&pool, config.job_execution, registry);
-        let users = Users::init(&pool, &authz, config.user).await?;
+        let users = Users::init(&pool, config.user, &authz, &audit).await?;
         loans.set_jobs(&jobs);
         jobs.start_poll().await?;
 
