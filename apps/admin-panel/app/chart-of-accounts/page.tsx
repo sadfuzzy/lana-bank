@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useState } from "react"
+import React, { useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
@@ -15,11 +15,7 @@ import {
   useGetOffBalanceSheetChartOfAccountsQuery,
   useGetOnBalanceSheetChartOfAccountsQuery,
 } from "@/lib/graphql/generated"
-import {
-  DateRange,
-  DateRangeSelector,
-  getInitialDateRange,
-} from "@/components/date-range-picker"
+import { DateRange, getInitialDateRange } from "@/components/date-range-picker"
 
 gql`
   query GetOnBalanceSheetChartOfAccounts {
@@ -127,18 +123,11 @@ function ChartOfAccountsPage() {
     error: offBalanceSheetError,
   } = useGetOffBalanceSheetChartOfAccountsQuery()
 
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
-  const handleDateChange = useCallback((newDateRange: DateRange) => {
-    setDateRange(newDateRange)
-  }, [])
+  const [dateRange] = useState<DateRange>(getInitialDateRange)
 
   return (
     <main>
       <PageHeading>Chart Of Accounts</PageHeading>
-      <div className="mt-6 flex gap-6 items-center">
-        <div>Date Range:</div>
-        <DateRangeSelector initialDateRange={dateRange} onDateChange={handleDateChange} />
-      </div>
       <Tabs defaultValue="onBalanceSheet" className="mt-4">
         <TabsList>
           <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>

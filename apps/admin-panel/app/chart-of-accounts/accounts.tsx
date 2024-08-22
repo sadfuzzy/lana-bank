@@ -65,7 +65,6 @@ const SubAccountsForAccountSet: React.FC<AccountProps> = ({
       accountSetId: account.id,
       first: 10,
       from: dateRange.from,
-      until: dateRange.until,
     },
   })
 
