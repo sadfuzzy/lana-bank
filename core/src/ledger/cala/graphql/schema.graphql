@@ -322,6 +322,7 @@ type BigQueryQuery {
 input BigQueryRowInsertInput {
 	integrationId: UUID!
 	tableName: String!
+	insertId: String!
 	rowData: JSON!
 }
 
