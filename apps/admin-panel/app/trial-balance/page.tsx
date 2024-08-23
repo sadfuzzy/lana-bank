@@ -263,12 +263,6 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
                 amount={total[currency].closingBalance[layer].credit}
               />
             </TableCell>
-            <TableCell className="w-48">
-              <Balance
-                currency={currency}
-                amount={total[currency].closingBalance[layer].netDebit}
-              />
-            </TableCell>
           </TableRow>
         </TableFooter>
       </Table>
