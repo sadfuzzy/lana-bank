@@ -141,6 +141,11 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum CollateralAction {
+	ADD
+	REMOVE
+}
+
 input CollateralUpdateInput {
 	loanId: UUID!
 	collateral: Satoshis!
@@ -148,6 +153,12 @@ input CollateralUpdateInput {
 
 type CollateralUpdatePayload {
 	loan: Loan!
+}
+
+type CollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: DateTime!
+	action: CollateralAction!
 }
 
 type Customer {
@@ -203,6 +214,13 @@ type CustomerEdge {
 	"""
 	cursor: String!
 }
+
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
 
 input DefaultTermsUpdateInput {
 	annualRate: AnnualRatePct!
@@ -275,6 +293,16 @@ input DurationInput {
 
 
 
+type IncrementalPayment {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
+
+
+type InterestAccrued {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
 
 type InterestIncome {
 	usdBalance: UsdCents!
@@ -388,11 +416,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-type LoanTransaction {
-	amount: UsdCents!
-	transactionType: TransactionType!
-	recordedAt: Timestamp!
-}
+union LoanTransaction = IncrementalPayment | InterestAccrued | CollateralUpdated
 
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
@@ -536,11 +560,6 @@ input TermsInput {
 }
 
 scalar Timestamp
-
-enum TransactionType {
-	INTEREST_PAYMENT
-	PRINCIPAL_PAYMENT
-}
 
 type TrialBalance {
 	name: String!

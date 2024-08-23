@@ -13,9 +13,19 @@ query loan($id: UUID!) {
       }
     }
     transactions {
-      amount
-      transactionType
-      recordedAt
+      ... on IncrementalPayment {
+        cents
+        recordedAt
+      }
+      ... on InterestAccrued {
+        cents
+        recordedAt
+      }
+      ... on CollateralUpdated {
+        satoshis
+        recordedAt
+        action
+      }
     }
   }
 }

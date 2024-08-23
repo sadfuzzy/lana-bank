@@ -196,14 +196,16 @@ impl Ledger {
     #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
     pub async fn record_loan_interest(
         &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        tx_ref: String,
-        amount: UsdCents,
-    ) -> Result<(), LedgerError> {
+        LoanInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            loan_account_ids,
+        }: LoanInterestAccrual,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
-            .execute_incur_interest_tx(tx_id, loan_account_ids, amount.to_usd(), tx_ref)
+            .execute_incur_interest_tx(tx_id, loan_account_ids, interest.to_usd(), tx_ref)
             .await?)
     }
 

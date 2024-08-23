@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-
 import { useState } from "react"
 
 import Balance from "@/components/balance/balance"
@@ -29,8 +28,8 @@ import {
 import {
   LoanStatus,
   useGetLoanDetailsQuery,
-  TransactionType,
   Loan,
+  LoanTransaction,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatDate } from "@/lib/utils"
@@ -58,9 +57,19 @@ gql`
         }
       }
       transactions {
-        amount
-        transactionType
-        recordedAt
+        ... on IncrementalPayment {
+          cents
+          recordedAt
+        }
+        ... on InterestAccrued {
+          cents
+          recordedAt
+        }
+        ... on CollateralUpdated {
+          satoshis
+          recordedAt
+          action
+        }
       }
       loanTerms {
         annualRate
@@ -89,6 +98,29 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     error,
     refetch,
   } = useGetLoanDetailsQuery({ variables: { id: loanId } })
+
+  const formatTransactionType = (typename: string) => {
+    return typename
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/^\w/, (c) => c.toUpperCase())
+  }
+
+  const renderTransactionRow = (transaction: LoanTransaction) => {
+    const amount =
+      "cents" in transaction ? (
+        <Balance amount={transaction.cents} currency="usd" align="end" />
+      ) : (
+        <Balance amount={transaction.satoshis} currency="btc" align="end" />
+      )
+
+    return (
+      <TableRow key={transaction.recordedAt}>
+        <TableCell>{formatTransactionType(transaction.__typename || "-")}</TableCell>
+        <TableCell>{formatDate(transaction.recordedAt)}</TableCell>
+        <TableCell className="text-right">{amount}</TableCell>
+      </TableRow>
+    )
+  }
 
   return (
     <>
@@ -239,21 +271,11 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                 <TableRow>
                   <TableHead>Transaction Type</TableHead>
                   <TableHead>Recorded At</TableHead>
-                  <TableHead className="text-right">Amount (USD)</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {loanDetails.loan.transactions.map((transaction, index) => (
-                  <TableRow key={index}>
-                    <TableCell>
-                      {formatLoanTransactionType(transaction.transactionType)}
-                    </TableCell>
-                    <TableCell>{formatDate(transaction.recordedAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <Balance amount={transaction.amount} currency="usd" />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loanDetails.loan.transactions.map(renderTransactionRow)}
               </TableBody>
             </Table>
           ) : (
@@ -263,14 +285,6 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
       </Card>
     </>
   )
-}
-
-const formatLoanTransactionType = (transactionType: TransactionType) => {
-  return transactionType
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
 }
 
 export default LoanDetails

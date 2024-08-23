@@ -91,3 +91,11 @@ pub struct LoanCollateralUpdate {
     pub action: CollateralAction,
     pub loan_account_ids: LoanAccountIds,
 }
+
+#[derive(Debug, Clone)]
+pub struct LoanInterestAccrual {
+    pub interest: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub loan_account_ids: LoanAccountIds,
+}

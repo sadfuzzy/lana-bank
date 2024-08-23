@@ -26,6 +26,17 @@ type Collateral {
 	btcBalance: Satoshis!
 }
 
+enum CollateralAction {
+	ADD
+	REMOVE
+}
+
+type CollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: DateTime!
+	action: CollateralAction!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -43,6 +54,13 @@ type CustomerBalance {
 	checking: Checking!
 }
 
+"""
+Implement the DateTime<Utc> scalar
+
+The input/output is a string in RFC3339 format.
+"""
+scalar DateTime
+
 type Deposit {
 	customerId: UUID!
 	depositId: UUID!
@@ -57,6 +75,16 @@ type Duration {
 
 
 
+type IncrementalPayment {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
+
+
+type InterestAccrued {
+	cents: UsdCents!
+	recordedAt: DateTime!
+}
 
 type InterestIncome {
 	usdBalance: UsdCents!
@@ -100,11 +128,7 @@ enum LoanStatus {
 	CLOSED
 }
 
-type LoanTransaction {
-	amount: UsdCents!
-	transactionType: TransactionType!
-	recordedAt: Timestamp!
-}
+union LoanTransaction = IncrementalPayment | InterestAccrued | CollateralUpdated
 
 type Mutation {
 	sumsubTokenCreate: SumsubTokenCreatePayload!
@@ -153,11 +177,6 @@ type TermValues {
 }
 
 scalar Timestamp
-
-enum TransactionType {
-	INTEREST_PAYMENT
-	PRINCIPAL_PAYMENT
-}
 
 scalar UUID
 

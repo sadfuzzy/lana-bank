@@ -90,6 +90,7 @@ mutation PostIncurInterestTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }

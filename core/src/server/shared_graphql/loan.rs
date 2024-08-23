@@ -3,19 +3,12 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
-    loan::TransactionType,
+    loan::LoanTransaction,
     primitives::{CustomerId, LoanStatus},
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
 
 use super::convert::ToGlobalId;
-
-#[derive(SimpleObject)]
-pub struct LoanTransaction {
-    amount: UsdCents,
-    transaction_type: TransactionType,
-    recorded_at: Timestamp,
-}
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -103,11 +96,7 @@ impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         let created_at = loan.created_at().into();
         let collateral = loan.collateral();
-        let transactions = loan
-            .transactions()
-            .into_iter()
-            .map(LoanTransaction::from)
-            .collect();
+        let transactions = loan.transactions();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -119,16 +108,6 @@ impl From<crate::loan::Loan> for Loan {
             created_at,
             collateral,
             transactions,
-        }
-    }
-}
-
-impl From<crate::loan::LoanTransaction> for LoanTransaction {
-    fn from(tx: crate::loan::LoanTransaction) -> Self {
-        Self {
-            amount: tx.amount,
-            transaction_type: tx.transaction_type,
-            recorded_at: tx.recorded_at.into(),
         }
     }
 }

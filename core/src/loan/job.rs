@@ -7,7 +7,7 @@ use crate::{
     authorization::{LoanAction, Object},
     job::*,
     ledger::*,
-    primitives::{LedgerTxId, LoanId},
+    primitives::LoanId,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -75,8 +75,7 @@ impl JobRunner for LoanProcessingJobRunner {
                 true,
             )
             .await?;
-        let tx_id = LedgerTxId::new();
-        let (interest, tx_ref) = match loan.add_interest(tx_id, audit_info) {
+        let interest_accrual = match loan.initiate_interest() {
             Err(LoanError::AlreadyCompleted) => {
                 return Ok(JobCompletion::Complete);
             }
@@ -84,10 +83,13 @@ impl JobRunner for LoanProcessingJobRunner {
             Err(_) => unreachable!(),
         };
 
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.ledger
-            .record_loan_interest(tx_id, loan.account_ids, tx_ref, interest)
+        let executed_at = self
+            .ledger
+            .record_loan_interest(interest_accrual.clone())
             .await?;
+
+        loan.confirm_interest(interest_accrual, executed_at, audit_info);
+        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
         match loan.next_interest_at() {
             Some(next_interest_at) => {
