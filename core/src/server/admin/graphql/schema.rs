@@ -94,7 +94,7 @@ impl Query {
         let auth_ctx: &AdminAuthContext = ctx.data()?;
 
         let my_id = auth_ctx.authenticated_user_id();
-        let user = app.users().find_by_id(&auth_ctx.sub, my_id).await?;
+        let user = app.users().find_by_id_internal(my_id).await?;
         let user = user.expect("User always exists");
         Ok(User::from(user))
     }
