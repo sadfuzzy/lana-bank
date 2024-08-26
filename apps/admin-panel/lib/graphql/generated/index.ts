@@ -19,12 +19,6 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
-  /**
-   * Implement the DateTime<Utc> scalar
-   *
-   * The input/output is a string in RFC3339 format.
-   */
-  DateTime: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -187,8 +181,9 @@ export type CollateralUpdatePayload = {
 export type CollateralUpdated = {
   __typename?: 'CollateralUpdated';
   action: CollateralAction;
-  recordedAt: Scalars['DateTime']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type Customer = {
@@ -304,13 +299,15 @@ export type DurationInput = {
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['DateTime']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type InterestAccrued = {
   __typename?: 'InterestAccrued';
   cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['DateTime']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type InterestIncome = {
@@ -403,6 +400,13 @@ export type LoanEdge = {
   node: Loan;
 };
 
+export type LoanOrigination = {
+  __typename?: 'LoanOrigination';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type LoanOutstanding = {
   __typename?: 'LoanOutstanding';
   usdBalance: Scalars['UsdCents']['output'];
@@ -424,7 +428,7 @@ export enum LoanStatus {
   New = 'NEW'
 }
 
-export type LoanTransaction = CollateralUpdated | IncrementalPayment | InterestAccrued;
+export type LoanTransaction = CollateralUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -945,7 +949,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1853,15 +1857,23 @@ export const GetLoanDetailsDocument = gql`
       ... on IncrementalPayment {
         cents
         recordedAt
+        txId
       }
       ... on InterestAccrued {
         cents
         recordedAt
+        txId
       }
       ... on CollateralUpdated {
         satoshis
         recordedAt
         action
+        txId
+      }
+      ... on LoanOrigination {
+        cents
+        recordedAt
+        txId
       }
     }
     loanTerms {

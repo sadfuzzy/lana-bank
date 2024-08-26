@@ -90,6 +90,7 @@ mutation PostApproveLoanTransaction(
     transaction {
       transactionId
       correlationId
+      createdAt
     }
   }
 }

@@ -3,8 +3,7 @@ use async_graphql::*;
 use crate::{
     app::LavaApp,
     ledger,
-    loan::LoanTransaction,
-    primitives::{CustomerId, LoanStatus},
+    primitives::{CollateralAction, CustomerId, LoanStatus},
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
 
@@ -24,6 +23,43 @@ pub struct Loan {
     status: LoanStatus,
     collateral: Satoshis,
     transactions: Vec<LoanTransaction>,
+}
+
+#[derive(async_graphql::Union)]
+pub enum LoanTransaction {
+    Payment(IncrementalPayment),
+    Interest(InterestAccrued),
+    Collateral(CollateralUpdated),
+    Origination(LoanOrigination),
+}
+
+#[derive(SimpleObject)]
+pub struct IncrementalPayment {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct InterestAccrued {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CollateralUpdated {
+    pub satoshis: Satoshis,
+    pub recorded_at: Timestamp,
+    pub action: CollateralAction,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanOrigination {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
 }
 
 #[ComplexObject]
@@ -96,7 +132,11 @@ impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         let created_at = loan.created_at().into();
         let collateral = loan.collateral();
-        let transactions = loan.transactions();
+        let transactions = loan
+            .transactions()
+            .into_iter()
+            .map(LoanTransaction::from)
+            .collect();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -108,6 +148,66 @@ impl From<crate::loan::Loan> for Loan {
             created_at,
             collateral,
             transactions,
+        }
+    }
+}
+
+impl From<crate::loan::LoanTransaction> for LoanTransaction {
+    fn from(transaction: crate::loan::LoanTransaction) -> Self {
+        match transaction {
+            crate::loan::LoanTransaction::Payment(payment) => {
+                LoanTransaction::Payment(payment.into())
+            }
+            crate::loan::LoanTransaction::Interest(interest) => {
+                LoanTransaction::Interest(interest.into())
+            }
+            crate::loan::LoanTransaction::Collateral(collateral) => {
+                LoanTransaction::Collateral(collateral.into())
+            }
+            crate::loan::LoanTransaction::Origination(origination) => {
+                LoanTransaction::Origination(origination.into())
+            }
+        }
+    }
+}
+
+impl From<crate::loan::IncrementalPayment> for IncrementalPayment {
+    fn from(payment: crate::loan::IncrementalPayment) -> Self {
+        IncrementalPayment {
+            cents: payment.cents,
+            recorded_at: payment.recorded_at.into(),
+            tx_id: payment.tx_id.into(),
+        }
+    }
+}
+
+impl From<crate::loan::InterestAccrued> for InterestAccrued {
+    fn from(interest: crate::loan::InterestAccrued) -> Self {
+        InterestAccrued {
+            cents: interest.cents,
+            recorded_at: interest.recorded_at.into(),
+            tx_id: interest.tx_id.into(),
+        }
+    }
+}
+
+impl From<crate::loan::CollateralUpdated> for CollateralUpdated {
+    fn from(collateral: crate::loan::CollateralUpdated) -> Self {
+        CollateralUpdated {
+            satoshis: collateral.satoshis,
+            recorded_at: collateral.recorded_at.into(),
+            action: collateral.action,
+            tx_id: collateral.tx_id.into(),
+        }
+    }
+}
+
+impl From<crate::loan::LoanOrigination> for LoanOrigination {
+    fn from(origination: crate::loan::LoanOrigination) -> Self {
+        LoanOrigination {
+            cents: origination.cents,
+            recorded_at: origination.recorded_at.into(),
+            tx_id: origination.tx_id.into(),
         }
     }
 }

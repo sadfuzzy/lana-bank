@@ -60,15 +60,23 @@ gql`
         ... on IncrementalPayment {
           cents
           recordedAt
+          txId
         }
         ... on InterestAccrued {
           cents
           recordedAt
+          txId
         }
         ... on CollateralUpdated {
           satoshis
           recordedAt
           action
+          txId
+        }
+        ... on LoanOrigination {
+          cents
+          recordedAt
+          txId
         }
       }
       loanTerms {
@@ -116,6 +124,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     return (
       <TableRow key={transaction.recordedAt}>
         <TableCell>{formatTransactionType(transaction.__typename || "-")}</TableCell>
+        <TableCell>{transaction.txId}</TableCell>
         <TableCell>{formatDate(transaction.recordedAt)}</TableCell>
         <TableCell className="text-right">{amount}</TableCell>
       </TableRow>
@@ -271,6 +280,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Transaction Type</TableHead>
+                  <TableHead>Transaction Id</TableHead>
                   <TableHead>Recorded At</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>

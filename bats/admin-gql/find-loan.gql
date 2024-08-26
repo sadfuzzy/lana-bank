@@ -26,6 +26,10 @@ query loan($id: UUID!) {
         recordedAt
         action
       }
+      ... on LoanOrigination {
+        cents
+        recordedAt
+      }
     }
   }
 }

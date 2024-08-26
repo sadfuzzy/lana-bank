@@ -11,7 +11,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, LoanInterestAccrual};
+use super::{error::LoanError, terms::TermValues, LoanApproval, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LoanReceivable {
@@ -19,30 +19,36 @@ pub struct LoanReceivable {
     pub interest: UsdCents,
 }
 
-#[derive(async_graphql::Union)]
 pub enum LoanTransaction {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
     Collateral(CollateralUpdated),
+    Origination(LoanOrigination),
 }
 
-#[derive(async_graphql::SimpleObject)]
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub tx_id: LedgerTxId,
 }
 
-#[derive(async_graphql::SimpleObject)]
 pub struct InterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
+    pub tx_id: LedgerTxId,
 }
 
-#[derive(async_graphql::SimpleObject)]
 pub struct CollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: DateTime<Utc>,
     pub action: CollateralAction,
+    pub tx_id: LedgerTxId,
+}
+
+pub struct LoanOrigination {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+    pub tx_id: LedgerTxId,
 }
 
 impl LoanReceivable {
@@ -81,6 +87,7 @@ pub enum LoanEvent {
     Approved {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     InterestIncurred {
         tx_id: LedgerTxId,
@@ -214,6 +221,7 @@ impl Loan {
                     collateral,
                     action,
                     recorded_at,
+                    tx_id,
                     ..
                 } => match action {
                     CollateralAction::Add => {
@@ -221,6 +229,7 @@ impl Loan {
                             satoshis: *collateral,
                             action: *action,
                             recorded_at: *recorded_at,
+                            tx_id: *tx_id,
                         }));
                     }
                     CollateralAction::Remove => {
@@ -228,6 +237,7 @@ impl Loan {
                             satoshis: *collateral,
                             action: *action,
                             recorded_at: *recorded_at,
+                            tx_id: *tx_id,
                         }));
                     }
                 },
@@ -235,11 +245,13 @@ impl Loan {
                 LoanEvent::InterestIncurred {
                     amount,
                     recorded_at,
+                    tx_id,
                     ..
                 } => {
                     transactions.push(LoanTransaction::Interest(InterestAccrued {
                         cents: *amount,
                         recorded_at: *recorded_at,
+                        tx_id: *tx_id,
                     }));
                 }
 
@@ -247,11 +259,23 @@ impl Loan {
                     principal_amount,
                     interest_amount,
                     recorded_at: transaction_recorded_at,
+                    tx_id,
                     ..
                 } => {
                     transactions.push(LoanTransaction::Payment(IncrementalPayment {
                         cents: *principal_amount + *interest_amount,
                         recorded_at: *transaction_recorded_at,
+                        tx_id: *tx_id,
+                    }));
+                }
+
+                LoanEvent::Approved {
+                    tx_id, recorded_at, ..
+                } => {
+                    transactions.push(LoanTransaction::Payment(IncrementalPayment {
+                        cents: self.initial_principal(),
+                        recorded_at: *recorded_at,
+                        tx_id: *tx_id,
                     }));
                 }
 
@@ -282,11 +306,7 @@ impl Loan {
         }
     }
 
-    pub(super) fn approve(
-        &mut self,
-        tx_id: LedgerTxId,
-        audit_info: AuditInfo,
-    ) -> Result<(), LoanError> {
+    pub(super) fn initiate_approval(&self) -> Result<LoanApproval, LoanError> {
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
@@ -294,10 +314,27 @@ impl Loan {
         if self.collateral() == Satoshis::ZERO {
             return Err(LoanError::NoCollateral);
         }
+        let tx_ref = format!("{}-approval", self.id);
+        Ok(LoanApproval {
+            initial_principal: self.initial_principal(),
+            tx_ref,
+            tx_id: LedgerTxId::new(),
+            loan_account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+        })
+    }
 
-        self.events.push(LoanEvent::Approved { tx_id, audit_info });
-
-        Ok(())
+    pub(super) fn confirm_approval(
+        &mut self,
+        LoanApproval { tx_id, .. }: LoanApproval,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events.push(LoanEvent::Approved {
+            tx_id,
+            audit_info,
+            recorded_at: executed_at,
+        });
     }
 
     pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
@@ -747,11 +784,12 @@ mod test {
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
         loan.confirm_collateral_update(loan_collateral_update, Utc::now(), dummy_audit_info());
-        let res = loan.approve(LedgerTxId::new(), dummy_audit_info());
-        assert!(res.is_ok());
+        let loan_approval = loan.initiate_approval();
+        assert!(loan_approval.is_ok());
+        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
 
-        let res = loan.approve(LedgerTxId::new(), dummy_audit_info());
-        assert!(res.is_err());
+        let loan_approval = loan.initiate_approval();
+        assert!(loan_approval.is_err())
     }
 
     #[test]
@@ -762,7 +800,8 @@ mod test {
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
         loan.confirm_collateral_update(loan_collateral_update, Utc::now(), dummy_audit_info());
-        let _ = loan.approve(LedgerTxId::new(), dummy_audit_info());
+        let loan_approval = loan.initiate_approval().unwrap();
+        let _ = loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
         let repayment = loan.initiate_repayment(amount).unwrap();
@@ -792,7 +831,7 @@ mod test {
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.approve(LedgerTxId::new(), dummy_audit_info());
+        let res = loan.initiate_approval();
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
 }

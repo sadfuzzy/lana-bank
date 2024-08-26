@@ -175,20 +175,22 @@ impl Ledger {
     #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
     pub async fn approve_loan(
         &self,
-        tx_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        customer_account_ids: CustomerLedgerAccountIds,
-        principal: UsdCents,
-        external_id: String,
-    ) -> Result<(), LedgerError> {
+        LoanApproval {
+            tx_id,
+            tx_ref,
+            loan_account_ids,
+            customer_account_ids,
+            initial_principal,
+        }: LoanApproval,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
             .execute_approve_loan_tx(
                 tx_id,
                 loan_account_ids,
                 customer_account_ids,
-                principal.to_usd(),
-                external_id,
+                initial_principal.to_usd(),
+                tx_ref,
             )
             .await?)
     }

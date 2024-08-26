@@ -197,7 +197,7 @@ wait_for_interest() {
   )
   exec_admin_graphql 'find-loan' "$variables"
   transactions_len=$(graphql_output '.data.loan.transactions' | jq 'length')
-  [[ "$transactions_len" == "4" ]] || exit 1
+  [[ "$transactions_len" == "5" ]] || exit 1
 }
 
 @test "loan: paginated listing" {

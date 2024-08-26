@@ -99,3 +99,12 @@ pub struct LoanInterestAccrual {
     pub tx_id: LedgerTxId,
     pub loan_account_ids: LoanAccountIds,
 }
+
+#[derive(Debug, Clone)]
+pub struct LoanApproval {
+    pub initial_principal: UsdCents,
+    pub tx_ref: String,
+    pub tx_id: LedgerTxId,
+    pub loan_account_ids: LoanAccountIds,
+    pub customer_account_ids: CustomerLedgerAccountIds,
+}

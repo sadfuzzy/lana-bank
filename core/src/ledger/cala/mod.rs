@@ -733,7 +733,7 @@ impl CalaClient {
         user_account_ids: CustomerLedgerAccountIds,
         principal_amount: Decimal,
         external_id: String,
-    ) -> Result<(), CalaError> {
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_approve_loan_transaction::Variables {
             transaction_id: transaction_id.into(),
             loan_principal_receivable_account: loan_account_ids
@@ -750,11 +750,11 @@ impl CalaClient {
         )
         .await?;
 
-        response
+        let created_at = response
             .data
-            .map(|d| d.transaction_post.transaction.transaction_id)
+            .map(|d| d.transaction_post.transaction.created_at)
             .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(())
+        Ok(created_at)
     }
 
     #[allow(clippy::too_many_arguments)]

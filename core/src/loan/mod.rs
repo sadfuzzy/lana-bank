@@ -137,18 +137,12 @@ impl Loans {
             .await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
+
         let mut tx = self.pool.begin().await?;
-        let tx_id = LedgerTxId::new();
-        loan.approve(tx_id, audit_info)?;
-        self.ledger
-            .approve_loan(
-                tx_id,
-                loan.account_ids,
-                loan.customer_account_ids,
-                loan.initial_principal(),
-                format!("{}-approval", loan.id),
-            )
-            .await?;
+        let loan_approval = loan.initiate_approval()?;
+        let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
+        loan.confirm_approval(loan_approval, executed_at, audit_info);
+
         self.loan_repo.persist_in_tx(&mut tx, &mut loan).await?;
         self.jobs()
             .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
