@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-http = ["dep:opentelemetry-http", "dep:http"]
+http = ["dep:opentelemetry-http"]
 
 [dependencies]
 anyhow = { workspace = true }
@@ -22,4 +22,3 @@ opentelemetry = { workspace = true }
 opentelemetry-semantic-conventions = { workspace = true }
 opentelemetry_sdk = { workspace = true }
 opentelemetry-http = { workspace = true, optional = true }
-http = { workspace = true, optional = true }
