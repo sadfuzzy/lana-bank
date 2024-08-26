@@ -79,7 +79,7 @@ pub mod http {
         use opentelemetry_http::HeaderExtractor;
         use opentelemetry_sdk::propagation::TraceContextPropagator;
         use tracing_opentelemetry::OpenTelemetrySpanExt;
-        let extractor = HeaderExtractor(&headers);
+        let extractor = HeaderExtractor(headers);
         let propagator = TraceContextPropagator::new();
         let ctx = propagator.extract(&extractor);
         tracing::Span::current().set_parent(ctx)
