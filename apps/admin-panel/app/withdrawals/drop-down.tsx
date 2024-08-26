@@ -32,6 +32,13 @@ const WithdrawalDropdown: React.FC<WithdrawalDropdownProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="text-sm">
+        <DropdownMenuItem
+          onClick={() => {
+            router.push(`/withdrawals/${withdrawal.withdrawalId}`)
+          }}
+        >
+          View Withdrawal Details
+        </DropdownMenuItem>
         {withdrawal.status === WithdrawalStatus.Initiated && (
           <>
             <DropdownMenuItem onClick={onConfirm}>Confirm Withdraw</DropdownMenuItem>
@@ -39,7 +46,7 @@ const WithdrawalDropdown: React.FC<WithdrawalDropdownProps> = ({
           </>
         )}
         <DropdownMenuItem
-          onClick={() => router.push(`/customer/${withdrawal.customer?.customerId}`)}
+          onClick={() => router.push(`/customers/${withdrawal.customer?.customerId}`)}
         >
           View Customer Details
         </DropdownMenuItem>

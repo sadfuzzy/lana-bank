@@ -2,6 +2,7 @@
 import { gql } from "@apollo/client"
 
 import { useState } from "react"
+import Link from "next/link"
 
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
@@ -28,12 +29,14 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
 import { Card, CardContent } from "@/components/primitive/card"
+import { formatRole } from "@/lib/utils"
 
 gql`
   query Users {
@@ -88,10 +91,10 @@ function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/5">UserId</TableHead>
-                <TableHead className="w-1/5">Email</TableHead>
-                <TableHead className="w-2/5">Roles</TableHead>
-                <TableHead className="w-1/5 text-left pl-4"></TableHead>
+                <TableHead>User ID</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Roles</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -174,6 +177,9 @@ const RolesDropDown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
+        <Link href={`/users/${userId}`}>
+          <DropdownMenuItem>View details</DropdownMenuItem>
+        </Link>
         <DropdownMenuLabel>Roles</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {Object.values(Role).map((role) => (
@@ -190,12 +196,4 @@ const RolesDropDown = ({
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
-
-const formatRole = (role: string) => {
-  return role
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
 }
