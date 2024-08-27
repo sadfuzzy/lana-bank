@@ -188,6 +188,18 @@ type User {
 	userId: UUID!
 	email: String!
 	roles: [Role!]!
+	visibleNavigationItems: VisibleNavigationItems!
+}
+
+type VisibleNavigationItems {
+	loan: Boolean!
+	term: Boolean!
+	user: Boolean!
+	customer: Boolean!
+	deposit: Boolean!
+	withdraw: Boolean!
+	audit: Boolean!
+	financials: Boolean!
 }
 
 type Withdrawal {

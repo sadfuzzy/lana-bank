@@ -1,6 +1,11 @@
 use async_graphql::*;
 
-use crate::{primitives::Role, server::shared_graphql::primitives::UUID};
+use crate::{
+    app::LavaApp,
+    authorization::VisibleNavigationItems,
+    primitives::{Role, Subject, UserId},
+    server::shared_graphql::primitives::UUID,
+};
 
 #[derive(InputObject)]
 pub struct UserCreateInput {
@@ -8,10 +13,24 @@ pub struct UserCreateInput {
 }
 
 #[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct User {
     user_id: UUID,
     email: String,
     roles: Vec<Role>,
+}
+
+#[ComplexObject]
+impl User {
+    async fn visible_navigation_items(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<VisibleNavigationItems> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let sub = Subject::User(UserId::from(&self.user_id));
+        let permissions = app.authz().get_visible_navigation_items(&sub).await?;
+        Ok(permissions)
+    }
 }
 
 #[derive(SimpleObject)]

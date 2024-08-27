@@ -119,4 +119,8 @@ impl LavaApp {
     pub fn users(&self) -> &Users {
         &self.users
     }
+
+    pub fn authz(&self) -> &Authorization {
+        &self.authz
+    }
 }

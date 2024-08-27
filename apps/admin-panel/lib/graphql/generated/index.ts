@@ -763,6 +763,7 @@ export type User = {
   email: Scalars['String']['output'];
   roles: Array<Role>;
   userId: Scalars['UUID']['output'];
+  visibleNavigationItems: VisibleNavigationItems;
 };
 
 export type UserAssignRoleInput = {
@@ -792,6 +793,18 @@ export type UserRevokeRoleInput = {
 export type UserRevokeRolePayload = {
   __typename?: 'UserRevokeRolePayload';
   user: User;
+};
+
+export type VisibleNavigationItems = {
+  __typename?: 'VisibleNavigationItems';
+  audit: Scalars['Boolean']['output'];
+  customer: Scalars['Boolean']['output'];
+  deposit: Scalars['Boolean']['output'];
+  financials: Scalars['Boolean']['output'];
+  loan: Scalars['Boolean']['output'];
+  term: Scalars['Boolean']['output'];
+  user: Scalars['Boolean']['output'];
+  withdraw: Scalars['Boolean']['output'];
 };
 
 export type Withdrawal = {
@@ -1112,6 +1125,11 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type MeQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
 
 export type DefaultTermsUpdateMutationVariables = Exact<{
   input: DefaultTermsUpdateInput;
@@ -2922,6 +2940,52 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+export const MeDocument = gql`
+    query Me {
+  me {
+    userId
+    email
+    roles
+    visibleNavigationItems {
+      loan
+      term
+      user
+      customer
+      deposit
+      withdraw
+      audit
+      financials
+    }
+  }
+}
+    `;
+
+/**
+ * __useMeQuery__
+ *
+ * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMeQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+      }
+export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
+        }
+export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
+export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
+export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const DefaultTermsUpdateDocument = gql`
     mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
   defaultTermsUpdate(input: $input) {
