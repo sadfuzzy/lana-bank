@@ -272,7 +272,7 @@ impl Loan {
                 LoanEvent::Approved {
                     tx_id, recorded_at, ..
                 } => {
-                    transactions.push(LoanTransaction::Payment(IncrementalPayment {
+                    transactions.push(LoanTransaction::Origination(LoanOrigination {
                         cents: self.initial_principal(),
                         recorded_at: *recorded_at,
                         tx_id: *tx_id,
@@ -830,7 +830,7 @@ mod test {
 
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan = Loan::try_from(init_events()).unwrap();
         let res = loan.initiate_approval();
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
