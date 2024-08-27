@@ -10,6 +10,7 @@ resource "cala_big_query_integration" "bq" {
 
 resource "google_bigquery_table" "entities" {
   for_each   = toset(local.bq_tables)
+  project    = local.project_id
   dataset_id = var.dataset_id
   table_id   = each.value
 
