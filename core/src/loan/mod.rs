@@ -1,6 +1,7 @@
+mod config;
 mod entity;
 pub mod error;
-mod job;
+mod jobs;
 mod repo;
 mod terms;
 
@@ -21,9 +22,10 @@ use crate::{
     primitives::*,
 };
 
+pub use config::*;
 pub use entity::*;
 use error::*;
-use job::*;
+use jobs::*;
 use repo::*;
 pub use terms::*;
 
@@ -39,11 +41,14 @@ pub struct Loans {
     jobs: Option<Jobs>,
     authz: Authorization,
     export: Export,
+    config: LoanConfig,
 }
 
 impl Loans {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         pool: &PgPool,
+        config: LoanConfig,
         registry: &mut JobRegistry,
         customers: &Customers,
         ledger: &Ledger,
@@ -53,10 +58,15 @@ impl Loans {
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
-        registry.add_initializer(LoanProcessingJobInitializer::new(
+        registry.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
             audit,
+            export,
+        ));
+        registry.add_initializer(cvl::LoanProcessingJobInitializer::new(
+            loan_repo.clone(),
+            export.clone(),
         ));
         Self {
             loan_repo,
@@ -67,6 +77,7 @@ impl Loans {
             jobs: None,
             authz: authz.clone(),
             export: export.clone(),
+            config,
         }
     }
 
@@ -156,11 +167,11 @@ impl Loans {
 
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.jobs()
-            .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
+            .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
                 loan.id,
-                format!("loan-processing-{}", loan.id),
-                LoanJobConfig { loan_id: loan.id },
+                format!("loan-interest-processing-{}", loan.id),
+                interest::LoanJobConfig { loan_id: loan.id },
             )
             .await?;
         self.export
@@ -182,6 +193,10 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
+        // TODO: Add price service call here (consider checking for stale)
+        #[allow(clippy::inconsistent_digit_grouping)]
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
         let loan_collateral_update = loan.initiate_collateral_update(updated_collateral)?;
@@ -192,7 +207,13 @@ impl Loans {
             .update_collateral(loan_collateral_update.clone())
             .await?;
 
-        loan.confirm_collateral_update(loan_collateral_update, executed_at, audit_info);
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export
             .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
@@ -213,6 +234,10 @@ impl Loans {
             .authz
             .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
             .await?;
+
+        // TODO: Add price service call here (consider checking for stale)
+        #[allow(clippy::inconsistent_digit_grouping)]
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
@@ -235,7 +260,13 @@ impl Loans {
         let repayment = loan.initiate_repayment(amount)?;
 
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
-        loan.confirm_repayment(repayment, executed_at, audit_info);
+        loan.confirm_repayment(
+            repayment,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
 
         let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.export

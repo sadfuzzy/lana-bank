@@ -290,6 +290,14 @@ impl Default for Satoshis {
     }
 }
 
+impl std::ops::Add<Satoshis> for Satoshis {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Satoshis(self.0 + other.0)
+    }
+}
+
 impl std::ops::Sub<Satoshis> for Satoshis {
     type Output = Satoshis;
 
@@ -447,17 +455,22 @@ impl std::ops::Add<UsdCents> for UsdCents {
 pub struct PriceOfOneBTC(UsdCents);
 
 impl PriceOfOneBTC {
+    pub const ZERO: Self = Self::new(UsdCents::ZERO);
+
     pub const fn new(price: UsdCents) -> Self {
         Self(price)
     }
 
-    pub fn try_cents_to_sats(
-        self,
-        cents: UsdCents,
-        rounding_strategy: RoundingStrategy,
-    ) -> Result<Satoshis, ConversionError> {
-        let btc = (cents.to_usd() / self.0.to_usd()).round_dp_with_strategy(8, rounding_strategy);
-        Satoshis::try_from_btc(btc)
+    pub fn cents_to_sats_round_up(self, cents: UsdCents) -> Satoshis {
+        let btc = (cents.to_usd() / self.0.to_usd())
+            .round_dp_with_strategy(8, RoundingStrategy::AwayFromZero);
+        Satoshis::try_from_btc(btc).expect("Decimal should have no fractional component here")
+    }
+
+    pub fn sats_to_cents_round_down(self, sats: Satoshis) -> UsdCents {
+        let usd =
+            (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, RoundingStrategy::ToZero);
+        UsdCents::try_from_usd(usd).expect("Decimal should have no fractional component here")
     }
 }
 
@@ -513,9 +526,7 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
-            price
-                .try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
-                .unwrap()
+            price.cents_to_sats_round_up(cents)
         );
     }
 
@@ -526,10 +537,22 @@ mod test {
         let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
-            price
-                .try_cents_to_sats(cents, rust_decimal::RoundingStrategy::AwayFromZero)
-                .unwrap()
+            price.cents_to_sats_round_up(cents)
         );
+    }
+
+    #[test]
+    fn sats_to_cents_trivial() {
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let sats = Satoshis::from(10_000);
+        assert_eq!(UsdCents::from(500), price.sats_to_cents_round_down(sats));
+    }
+
+    #[test]
+    fn sats_to_cents_complex() {
+        let price = PriceOfOneBTC::new(UsdCents::from(50_000_00));
+        let sats = Satoshis::from(12_345);
+        assert_eq!(UsdCents::from(617), price.sats_to_cents_round_down(sats));
     }
 }
 
