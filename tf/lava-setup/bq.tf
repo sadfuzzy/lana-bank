@@ -34,6 +34,11 @@ resource "google_bigquery_table" "entities" {
     "name": "sequence",
     "type": "INTEGER",
     "description": "The sequence number of the event"
+  },
+  {
+    "name": "recorded_at",
+    "type": "TIMESTAMP",
+    "description": "When the event was recorded"
   }
 ]
 EOF

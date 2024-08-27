@@ -57,9 +57,8 @@ impl LoanRepo {
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         loan: &mut Loan,
-    ) -> Result<(), LoanError> {
-        loan.events.persist(db).await?;
-        Ok(())
+    ) -> Result<usize, LoanError> {
+        Ok(loan.events.persist(db).await?)
     }
 
     pub async fn find_for_customer(&self, customer_id: CustomerId) -> Result<Vec<Loan>, LoanError> {

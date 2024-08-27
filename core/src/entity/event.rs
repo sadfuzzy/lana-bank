@@ -27,9 +27,9 @@ pub trait Entity: TryFrom<EntityEvents<<Self as Entity>::Event>, Error = EntityE
 
 #[derive(Clone)]
 pub struct EntityEvents<T: EntityEvent> {
+    pub entity_id: <T as EntityEvent>::EntityId,
     pub entity_first_persisted_at: Option<chrono::DateTime<chrono::Utc>>,
-    latest_event_persisted_at: Option<chrono::DateTime<chrono::Utc>>,
-    entity_id: <T as EntityEvent>::EntityId,
+    pub latest_event_persisted_at: Option<chrono::DateTime<chrono::Utc>>,
     persisted_events: Vec<T>,
     new_events: Vec<T>,
 }
@@ -53,6 +53,10 @@ where
 
     pub fn push(&mut self, event: T) {
         self.new_events.push(event);
+    }
+
+    pub fn len_persisted(&self) -> usize {
+        self.persisted_events.len()
     }
 
     pub async fn persist(
@@ -213,9 +217,12 @@ where
         Ok((ret, false))
     }
 
-    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &T> {
-        let start = self.persisted_events.len() - n;
-        self.persisted_events[start..].iter()
+    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = (usize, &T)> {
+        let start = self.persisted_events.len() - n + 1;
+        self.persisted_events[start..]
+            .iter()
+            .enumerate()
+            .map(move |(i, e)| (start + i, e))
     }
 
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {

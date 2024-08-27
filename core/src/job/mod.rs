@@ -47,12 +47,12 @@ impl Jobs {
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
-        name: String,
+        job_name: String,
         config: C,
     ) -> Result<Job, JobError> {
         let new_job = NewJob::builder()
             .id(id.into())
-            .name(name)
+            .name(job_name)
             .config(config)?
             .job_type(<I as JobInitializer>::job_type())
             .build()

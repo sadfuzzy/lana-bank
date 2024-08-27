@@ -14,6 +14,7 @@ use crate::{
     audit::Audit,
     authorization::{Authorization, LoanAction, Object, TermAction},
     customer::Customers,
+    data_export::Export,
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
@@ -26,6 +27,8 @@ use job::*;
 use repo::*;
 pub use terms::*;
 
+const BQ_TABLE_NAME: &str = "loan_events";
+
 #[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
@@ -35,6 +38,7 @@ pub struct Loans {
     pool: PgPool,
     jobs: Option<Jobs>,
     authz: Authorization,
+    export: Export,
 }
 
 impl Loans {
@@ -45,6 +49,7 @@ impl Loans {
         ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
+        export: &Export,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
@@ -61,10 +66,12 @@ impl Loans {
             pool: pool.clone(),
             jobs: None,
             authz: authz.clone(),
+            export: export.clone(),
         }
     }
 
     pub fn set_jobs(&mut self, jobs: &Jobs) {
+        self.export.set_jobs(jobs);
         self.jobs = Some(jobs.clone());
     }
 
@@ -84,10 +91,11 @@ impl Loans {
         self.term_repo.update_default(terms).await
     }
 
+    #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
-        customer_id: impl Into<CustomerId>,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         desired_principal: UsdCents,
         terms: TermValues,
     ) -> Result<Loan, LoanError> {
@@ -105,7 +113,7 @@ impl Loans {
         if !customer.may_create_loan() {
             return Err(LoanError::CustomerNotAllowedToCreateLoan(customer_id));
         }
-        let mut tx = self.pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
 
         let new_loan = NewLoan::builder(audit_info)
             .id(LoanId::new())
@@ -117,11 +125,14 @@ impl Loans {
             .build()
             .expect("could not build new loan");
 
-        let loan = self.loan_repo.create_in_tx(&mut tx, new_loan).await?;
+        let loan = self.loan_repo.create_in_tx(&mut db_tx, new_loan).await?;
         self.ledger
             .create_accounts_for_loan(loan.id, loan.account_ids)
             .await?;
-        tx.commit().await?;
+        self.export
+            .export_all(&mut db_tx, BQ_TABLE_NAME, &loan.events)
+            .await?;
+        db_tx.commit().await?;
         Ok(loan)
     }
 
@@ -138,21 +149,24 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
 
-        let mut tx = self.pool.begin().await?;
+        let mut db_tx = self.pool.begin().await?;
         let loan_approval = loan.initiate_approval()?;
         let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 
-        self.loan_repo.persist_in_tx(&mut tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
         self.jobs()
             .create_and_spawn_job::<LoanProcessingJobInitializer, _>(
-                &mut tx,
+                &mut db_tx,
                 loan.id,
                 format!("loan-processing-{}", loan.id),
                 LoanJobConfig { loan_id: loan.id },
             )
             .await?;
-        tx.commit().await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
+        db_tx.commit().await?;
         Ok(loan)
     }
 
@@ -179,7 +193,10 @@ impl Loans {
             .await?;
 
         loan.confirm_collateral_update(loan_collateral_update, executed_at, audit_info);
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
         db_tx.commit().await?;
         Ok(loan)
     }
@@ -220,7 +237,10 @@ impl Loans {
         let executed_at = self.ledger.record_loan_repayment(repayment.clone()).await?;
         loan.confirm_repayment(repayment, executed_at, audit_info);
 
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        let n_events = self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.export
+            .export_last(&mut db_tx, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
 
         db_tx.commit().await?;
 

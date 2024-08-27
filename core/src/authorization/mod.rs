@@ -1,11 +1,5 @@
-use std::{str::FromStr, sync::Arc};
-use tokio::sync::RwLock;
-
 pub mod error;
 
-use error::AuthorizationError;
-
-use crate::primitives::{AuditInfo, Role, Subject};
 use sqlx_adapter::{
     casbin::{
         prelude::{DefaultModel, Enforcer},
@@ -13,8 +7,14 @@ use sqlx_adapter::{
     },
     SqlxAdapter,
 };
+use std::{str::FromStr, sync::Arc};
+use tokio::sync::RwLock;
+use tracing::instrument;
 
 use super::audit::Audit;
+use crate::primitives::{AuditInfo, Role, Subject};
+
+use error::AuthorizationError;
 
 macro_rules! impl_from_for_action {
     ($from_type:ty, $variant:ident) => {
@@ -190,11 +190,12 @@ impl Authorization {
         Ok(())
     }
 
+    #[instrument(name = "lava.authz.check_permission", skip(self))]
     pub async fn check_permission(
         &self,
         sub: &Subject,
         object: Object,
-        action: impl Into<Action>,
+        action: impl Into<Action> + std::fmt::Debug,
     ) -> Result<AuditInfo, AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
         enforcer.load_policy().await?;
@@ -291,6 +292,7 @@ impl Authorization {
     }
 }
 
+#[derive(Debug)]
 pub enum Object {
     Applicant,
     Loan,
@@ -354,6 +356,7 @@ impl FromStr for Object {
     }
 }
 
+#[derive(Debug)]
 pub enum Action {
     Loan(LoanAction),
     Term(TermAction),
@@ -448,6 +451,7 @@ impl FromStr for Action {
 
 impl_deref_to_str!(Action);
 
+#[derive(Debug)]
 pub enum LoanAction {
     List,
     Read,
@@ -485,6 +489,7 @@ impl AsRef<str> for LoanAction {
 impl_deref_to_str!(LoanAction);
 impl_from_for_action!(LoanAction, Loan);
 
+#[derive(Debug)]
 pub enum TermAction {
     Update,
     Read,
@@ -507,6 +512,7 @@ impl AsRef<str> for TermAction {
 impl_deref_to_str!(TermAction);
 impl_from_for_action!(TermAction, Term);
 
+#[derive(Debug)]
 pub enum AuditAction {
     List,
 }
@@ -526,6 +532,7 @@ impl AsRef<str> for AuditAction {
 impl_deref_to_str!(AuditAction);
 impl_from_for_action!(AuditAction, Audit);
 
+#[derive(Debug)]
 pub enum UserAction {
     Create,
     Read,
@@ -575,6 +582,7 @@ impl AsRef<str> for UserAction {
 impl_deref_to_str!(UserAction);
 impl_from_for_action!(UserAction, User);
 
+#[derive(Debug)]
 pub enum CustomerAction {
     Create,
     StartKyc,
@@ -612,6 +620,7 @@ impl AsRef<str> for CustomerAction {
 impl_deref_to_str!(CustomerAction);
 impl_from_for_action!(CustomerAction, Customer);
 
+#[derive(Debug)]
 pub enum DepositAction {
     Record,
     Read,
@@ -637,6 +646,7 @@ impl AsRef<str> for DepositAction {
 impl_deref_to_str!(DepositAction);
 impl_from_for_action!(DepositAction, Deposit);
 
+#[derive(Debug)]
 pub enum WithdrawAction {
     Initiate,
     Confirm,
@@ -668,6 +678,7 @@ impl AsRef<str> for WithdrawAction {
 impl_deref_to_str!(WithdrawAction);
 impl_from_for_action!(WithdrawAction, Withdraw);
 
+#[derive(Debug)]
 pub enum LedgerAction {
     Read,
 }
