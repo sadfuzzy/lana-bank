@@ -158,17 +158,6 @@ impl Loan {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn collateralization_state(&self) -> LoanCollaterizationState {
-        self.events
-            .iter()
-            .rev()
-            .find_map(|event| match event {
-                LoanEvent::CollateralizationChanged { state, .. } => Some(*state),
-                _ => None,
-            })
-            .unwrap_or(LoanCollaterizationState::NoCollateral)
-    }
-
     pub fn initial_principal(&self) -> UsdCents {
         if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
             *principal
@@ -325,7 +314,7 @@ impl Loan {
         }
     }
 
-    fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
+    pub fn collateralization(&self) -> (LoanCollaterizationState, Satoshis) {
         if self.status() == LoanStatus::Closed {
             return (LoanCollaterizationState::NoCollateral, Satoshis::ZERO);
         }
