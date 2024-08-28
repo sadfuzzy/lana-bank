@@ -5,8 +5,10 @@ use uuid::{uuid, Uuid};
 use std::time::Duration;
 
 use crate::{
+    audit::*,
+    authorization::{LoanAction, Object},
     job::*,
-    loan::{repo::*, terms::CVLPct, LoanCursor},
+    loan::{repo::*, terms::CVLPct, LoanCursor, Subject, SystemNode},
     price::Price,
 };
 
@@ -22,14 +24,16 @@ pub struct LoanJobConfig {
 
 pub struct LoanProcessingJobInitializer {
     repo: LoanRepo,
+    audit: Audit,
     price: Price,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(repo: LoanRepo, price: &Price) -> Self {
+    pub fn new(repo: LoanRepo, price: &Price, audit: &Audit) -> Self {
         Self {
             repo,
             price: price.clone(),
+            audit: audit.clone(),
         }
     }
 }
@@ -48,6 +52,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
             config: job.config()?,
             repo: self.repo.clone(),
             price: self.price.clone(),
+            audit: self.audit.clone(),
         }))
     }
 }
@@ -56,6 +61,7 @@ pub struct LoanProcessingJobRunner {
     config: LoanJobConfig,
     repo: LoanRepo,
     price: Price,
+    audit: Audit,
 }
 
 #[async_trait]
@@ -65,6 +71,15 @@ impl JobRunner for LoanProcessingJobRunner {
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
+        let audit_info = self
+            .audit
+            .record_entry(
+                &Subject::System(SystemNode::Core),
+                Object::Loan,
+                LoanAction::UpdateCollateralizationState,
+                true,
+            )
+            .await?;
 
         let mut has_next_page = true;
         let mut after: Option<LoanCursor> = None;
@@ -77,7 +92,11 @@ impl JobRunner for LoanProcessingJobRunner {
 
             for loan in loans.entities.iter_mut() {
                 if loan
-                    .maybe_update_collateralization(price, self.config.upgrade_buffer_cvl_pct)
+                    .maybe_update_collateralization(
+                        price,
+                        self.config.upgrade_buffer_cvl_pct,
+                        audit_info,
+                    )
                     .is_some()
                 {
                     self.repo.persist(loan).await?;

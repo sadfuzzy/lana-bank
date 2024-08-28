@@ -66,6 +66,7 @@ impl Loans {
         jobs.add_initializer(cvl::LoanProcessingJobInitializer::new(
             loan_repo.clone(),
             price,
+            audit,
         ));
         Self {
             loan_repo,

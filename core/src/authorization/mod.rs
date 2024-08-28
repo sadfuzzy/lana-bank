@@ -554,6 +554,7 @@ pub enum LoanAction {
     RecordPayment,
     UpdateCollateral,
     RecordInterest,
+    UpdateCollateralizationState,
 }
 
 impl LoanAction {
@@ -564,6 +565,7 @@ impl LoanAction {
     const RECORD_PAYMENT_STR: &'static str = "loan-record-payment";
     const UPDATE_COLLATERAL_STR: &'static str = "loan-update-collateral";
     const RECORD_INTEREST_STR: &'static str = "loan-record-interest";
+    const UPDATE_COLLATERALIZATION_STATE_STR: &'static str = "loan-update-collateralization-state";
 }
 
 impl AsRef<str> for LoanAction {
@@ -576,6 +578,7 @@ impl AsRef<str> for LoanAction {
             Self::RecordPayment => Self::RECORD_PAYMENT_STR,
             Self::UpdateCollateral => Self::UPDATE_COLLATERAL_STR,
             Self::RecordInterest => Self::RECORD_INTEREST_STR,
+            Self::UpdateCollateralizationState => Self::UPDATE_COLLATERALIZATION_STATE_STR,
         }
     }
 }
