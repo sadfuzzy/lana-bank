@@ -1,4 +1,5 @@
 use sqlx::{PgPool, Postgres, Transaction};
+use tracing::instrument;
 
 use crate::{
     data_export::Export,
@@ -101,6 +102,7 @@ impl LoanRepo {
         Ok(res.0)
     }
 
+    #[instrument(name = "lava.loan.repo.list", skip(self), err)]
     pub async fn list(
         &self,
         query: crate::query::PaginatedQueryArgs<LoanCursor>,

@@ -270,6 +270,7 @@ impl Loans {
         }
     }
 
+    #[instrument(name = "lava.loan.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
         sub: Option<&Subject>,
@@ -295,6 +296,7 @@ impl Loans {
         }
     }
 
+    #[instrument(name = "lava.loan.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
