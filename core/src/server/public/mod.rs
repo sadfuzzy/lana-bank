@@ -8,6 +8,7 @@ use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{routing::get, Extension, Router};
 use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use crate::{app::LavaApp, primitives::CustomerId};
 
@@ -55,6 +56,7 @@ pub struct PublicJwtClaims {
     pub sub: String,
 }
 
+#[instrument(name = "lava.server.public.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,

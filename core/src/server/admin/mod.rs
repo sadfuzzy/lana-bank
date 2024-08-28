@@ -13,6 +13,7 @@ use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
 use sumsub::sumsub_routes;
 use tower_http::cors::CorsLayer;
+use tracing::instrument;
 
 use crate::{
     app::LavaApp,
@@ -86,6 +87,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
+#[instrument(name = "lava.server.admin.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
