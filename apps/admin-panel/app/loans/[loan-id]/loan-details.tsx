@@ -3,6 +3,8 @@
 import { gql } from "@apollo/client"
 import { useState } from "react"
 
+import Link from "next/link"
+
 import Balance from "@/components/balance/balance"
 import { DetailItem } from "@/components/details"
 import { LoanApproveDialog } from "@/components/loan/approve-loan"
@@ -44,6 +46,7 @@ gql`
       status
       customer {
         customerId
+        email
       }
       balance {
         collateral {
@@ -168,8 +171,8 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
               <div className="grid grid-cols-2 gap-6">
                 <div className="grid auto-rows-min ">
                   <DetailItem
-                    label="Customer ID"
-                    value={loanDetails.loan.customer.customerId}
+                    label="Customer Email"
+                    value={loanDetails.loan.customer.email}
                   />
                   <DetailItem
                     label="Created At"
@@ -233,7 +236,12 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
             </CardContent>
             <Separator className="mb-6" />
             <div className="flex justify-between items-center p-6 pt-0 mt-0">
-              <Button>View Customer</Button>
+              <Link
+                href={`/customers/${loanDetails.loan.customer.customerId}`}
+                prefetch={false}
+              >
+                <Button>View Customer</Button>
+              </Link>
               <div className="flex flex-row gap-2">
                 {loanDetails.loan.status !== LoanStatus.Closed && (
                   <Button onClick={() => setOpenCollateralUpdateDialog(true)}>

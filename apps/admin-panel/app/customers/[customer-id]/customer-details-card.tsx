@@ -94,7 +94,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                 <DetailItem label="Email" value={customerDetails.customer.email} />
                 <DetailItem label="Status" value={customerDetails.customer.status} />
                 <DetailItem
-                  label="Applicant Id"
+                  label="Applicant ID"
                   value={customerDetails.customer.applicantId ?? "not yet connected"}
                   valueComponent={
                     customerDetails.customer.applicantId ? (
@@ -144,7 +144,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                   }
                 />
                 <DetailItem
-                  label="Pending withdrawals (USD)"
+                  label="Pending Withdrawals (USD)"
                   valueComponent={
                     <Balance
                       amount={customerDetails.customer.balance.checking.pending}

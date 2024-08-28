@@ -84,10 +84,10 @@ const LoansTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Status</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Outstanding Balance</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -96,11 +96,12 @@ const LoansTable = () => {
               const loan = edge?.node
               return (
                 <TableRow key={loan.loanId}>
-                  <TableCell>
-                    <LoanBadge status={loan.status} className="p-1 px-4" />
-                  </TableCell>
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
-                  <TableCell>{loan.customer.email}</TableCell>
+                  <TableCell className="hover:underline">
+                    <Link href={`/customers/${loan.customer.customerId}`}>
+                      {loan.customer.email}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <Balance
@@ -115,6 +116,9 @@ const LoansTable = () => {
                         />
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <LoanBadge status={loan.status} className="p-1 px-4" />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

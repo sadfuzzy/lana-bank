@@ -4,6 +4,8 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { gql } from "@apollo/client"
 
+import Link from "next/link"
+
 import {
   Table,
   TableBody,
@@ -163,17 +165,21 @@ function DepositsTable() {
                   <TableRow>
                     <TableHead>Customer</TableHead>
                     <TableHead>Deposit ID</TableHead>
-                    <TableHead>Deposit Amount</TableHead>
+                    <TableHead className="text-right">Deposit Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {depositsToDisplay.map((deposit) =>
                     deposit && deposit.customer ? (
                       <TableRow key={deposit.depositId}>
-                        <TableCell>{deposit.customer.email}</TableCell>
+                        <TableCell className="hover:underline">
+                          <Link href={`/customers/${deposit.customer.customerId}`}>
+                            {deposit.customer.email}
+                          </Link>
+                        </TableCell>
                         <TableCell>{deposit.depositId}</TableCell>
                         <TableCell>
-                          <Balance amount={deposit.amount} currency="usd" />
+                          <Balance amount={deposit.amount} currency="usd" align="end" />
                         </TableCell>
                       </TableRow>
                     ) : null,

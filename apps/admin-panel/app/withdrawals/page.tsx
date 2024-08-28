@@ -3,6 +3,8 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { gql } from "@apollo/client"
 
+import Link from "next/link"
+
 import WithdrawalDropdown from "./drop-down"
 
 import {
@@ -187,7 +189,11 @@ function WithdrawalsTable() {
                   {withdrawalsToDisplay.map((withdrawal) =>
                     withdrawal && withdrawal.customer ? (
                       <TableRow key={withdrawal.withdrawalId}>
-                        <TableCell>{withdrawal.customer.email}</TableCell>
+                        <TableCell className="hover:underline">
+                          <Link href={`/customers/${withdrawal.customer.customerId}`}>
+                            {withdrawal.customer.email}
+                          </Link>
+                        </TableCell>
                         <TableCell>{withdrawal.withdrawalId}</TableCell>
                         <TableCell>
                           <Balance amount={withdrawal.amount} currency="usd" />

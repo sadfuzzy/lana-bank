@@ -962,7 +962,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1859,6 +1859,7 @@ export const GetLoanDetailsDocument = gql`
     status
     customer {
       customerId
+      email
     }
     balance {
       collateral {

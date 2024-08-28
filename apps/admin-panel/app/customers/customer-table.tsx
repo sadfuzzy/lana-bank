@@ -151,7 +151,11 @@ function CustomerTable({
                 <TableBody>
                   {customerDetails.map((customer) => (
                     <TableRow key={customer.customerId}>
-                      <TableCell>{customer.email}</TableCell>
+                      <TableCell className="hover:underline">
+                        <Link href={`/customers/${customer.customerId}`}>
+                          {customer.email}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <Balance
                           amount={customer.balance.checking.settled}

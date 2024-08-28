@@ -78,17 +78,15 @@ export const CustomerDepositsTable = ({ customerId }: { customerId: string }) =>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Deposit ID</TableHead>
-                      <TableHead>Customer ID</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {data.customer.deposits.map((deposit) => (
                       <TableRow key={deposit.depositId}>
                         <TableCell>{deposit.depositId}</TableCell>
-                        <TableCell>{deposit.customerId}</TableCell>
                         <TableCell>
-                          <Balance amount={deposit.amount} currency="usd" />
+                          <Balance amount={deposit.amount} currency="usd" align="end" />
                         </TableCell>
                       </TableRow>
                     ))}
