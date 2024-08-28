@@ -80,6 +80,29 @@ impl Loans {
         }
     }
 
+    pub async fn spawn_global_jobs(&self) -> Result<(), LoanError> {
+        let mut db_tx = self.pool.begin().await?;
+        match self
+            .jobs
+            .create_and_spawn_job::<cvl::LoanProcessingJobInitializer, _>(
+                &mut db_tx,
+                jobs::cvl::CVL_JOB_ID,
+                "cvl-update-job".to_string(),
+                cvl::LoanJobConfig {
+                    job_interval: std::time::Duration::from_secs(30),
+                    upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
+                },
+            )
+            .await
+        {
+            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+        db_tx.commit().await?;
+        Ok(())
+    }
+
     pub async fn update_default_terms(
         &self,
         sub: &Subject,

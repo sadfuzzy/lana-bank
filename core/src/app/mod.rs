@@ -64,6 +64,8 @@ impl LavaApp {
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         jobs.start_poll().await?;
 
+        loans.spawn_global_jobs().await?;
+
         Ok(Self {
             _pool: pool,
             _jobs: jobs,
