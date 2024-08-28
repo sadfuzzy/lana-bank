@@ -2,8 +2,8 @@ use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, shareholder_equity::*,
-    terms::*, user::*, withdraw::*,
+    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*,
+    shareholder_equity::*, terms::*, user::*, withdraw::*,
 };
 use crate::{
     app::LavaApp,
@@ -411,6 +411,12 @@ impl Query {
             },
         )
         .await
+    }
+
+    async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
+        Ok(usd_cents_per_btc.into())
     }
 }
 

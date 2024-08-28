@@ -472,6 +472,10 @@ impl PriceOfOneBTC {
             (sats.to_btc() * self.0.to_usd()).round_dp_with_strategy(2, RoundingStrategy::ToZero);
         UsdCents::try_from_usd(usd).expect("Decimal should have no fractional component here")
     }
+
+    pub fn into_inner(self) -> UsdCents {
+        self.0
+    }
 }
 
 #[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]

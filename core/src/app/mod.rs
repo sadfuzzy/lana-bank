@@ -13,6 +13,7 @@ use crate::{
     job::Jobs,
     ledger::Ledger,
     loan::Loans,
+    price::Price,
     primitives::Subject,
     user::Users,
     withdraw::Withdraws,
@@ -34,6 +35,7 @@ pub struct LavaApp {
     ledger: Ledger,
     applicants: Applicants,
     users: Users,
+    price: Price,
 }
 
 impl LavaApp {
@@ -47,6 +49,7 @@ impl LavaApp {
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
+        let price = Price::new();
         let loans = Loans::new(
             &pool,
             config.loan,
@@ -56,6 +59,7 @@ impl LavaApp {
             &authz,
             &audit,
             &export,
+            &price,
         );
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         jobs.start_poll().await?;
@@ -72,6 +76,7 @@ impl LavaApp {
             ledger,
             applicants,
             users,
+            price,
         })
     }
 
@@ -81,6 +86,10 @@ impl LavaApp {
 
     pub fn audit(&self) -> &Audit {
         &self.audit
+    }
+
+    pub fn price(&self) -> &Price {
+        &self.price
     }
 
     pub async fn list_audit(

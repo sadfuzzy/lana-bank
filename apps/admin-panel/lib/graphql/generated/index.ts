@@ -575,6 +575,7 @@ export type Query = {
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
+  realtimePrice: RealtimePrice;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -677,6 +678,11 @@ export type QueryWithdrawalArgs = {
 export type QueryWithdrawalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+export type RealtimePrice = {
+  __typename?: 'RealtimePrice';
+  usdCentsPerBtc: Scalars['UsdCents']['output'];
 };
 
 export enum Role {

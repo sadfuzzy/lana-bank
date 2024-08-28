@@ -501,6 +501,11 @@ type Query {
 	deposits(first: Int!, after: String): DepositConnection!
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
+	realtimePrice: RealtimePrice!
+}
+
+type RealtimePrice {
+	usdCentsPerBtc: UsdCents!
 }
 
 enum Role {

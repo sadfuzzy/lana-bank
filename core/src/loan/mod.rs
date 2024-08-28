@@ -54,10 +54,10 @@ impl Loans {
         authz: &Authorization,
         audit: &Audit,
         export: &Export,
+        price: &Price,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
-        let price = Price::new();
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
@@ -65,7 +65,7 @@ impl Loans {
         ));
         jobs.add_initializer(cvl::LoanProcessingJobInitializer::new(
             loan_repo.clone(),
-            &price,
+            price,
         ));
         Self {
             loan_repo,
@@ -75,7 +75,7 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
-            price,
+            price: price.clone(),
             config,
         }
     }

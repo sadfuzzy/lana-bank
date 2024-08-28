@@ -1,6 +1,4 @@
-use async_graphql::*;
-
-use async_graphql::connection::CursorType;
+use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use crate::{
