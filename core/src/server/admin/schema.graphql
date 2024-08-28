@@ -336,6 +336,7 @@ type Loan {
 	status: LoanStatus!
 	collateral: Satoshis!
 	transactions: [LoanTransaction!]!
+	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
 }
@@ -352,6 +353,13 @@ type LoanBalance {
 	collateral: Collateral!
 	outstanding: LoanOutstanding!
 	interestIncurred: InterestIncome!
+}
+
+enum LoanCollaterizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
 }
 
 type LoanConnection {

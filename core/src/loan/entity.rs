@@ -72,7 +72,7 @@ impl LoanReceivable {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, async_graphql::Enum)]
 pub enum LoanCollaterizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
@@ -156,6 +156,17 @@ impl Loan {
         self.events
             .entity_first_persisted_at
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn collateralization_state(&self) -> LoanCollaterizationState {
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::CollateralizationChanged { state, .. } => Some(*state),
+                _ => None,
+            })
+            .unwrap_or(LoanCollaterizationState::NoCollateral)
     }
 
     pub fn initial_principal(&self) -> UsdCents {

@@ -32,6 +32,7 @@ import {
   useGetLoanDetailsQuery,
   Loan,
   LoanTransaction,
+  LoanCollaterizationState,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatDate } from "@/lib/utils"
@@ -44,6 +45,7 @@ gql`
       loanId
       createdAt
       status
+      collateralizationState
       customer {
         customerId
         email
@@ -231,6 +233,12 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     label="Margin Call CVL"
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
                   />
+                  <DetailItem
+                    label="Collaterization State"
+                    value={formatCollateralizationState(
+                      loanDetails.loan.collateralizationState,
+                    )}
+                  />
                 </div>
               </div>
             </CardContent>
@@ -307,3 +315,13 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 }
 
 export default LoanDetails
+
+const formatCollateralizationState = (
+  collateralizationState: LoanCollaterizationState,
+) => {
+  return collateralizationState
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
