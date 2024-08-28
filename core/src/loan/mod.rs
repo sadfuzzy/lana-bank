@@ -19,6 +19,7 @@ use crate::{
     entity::EntityError,
     job::{JobRegistry, Jobs},
     ledger::{loan::*, Ledger},
+    price::Price,
     primitives::*,
 };
 
@@ -41,6 +42,7 @@ pub struct Loans {
     jobs: Option<Jobs>,
     authz: Authorization,
     export: Export,
+    price: Price,
     config: LoanConfig,
 }
 
@@ -58,6 +60,7 @@ impl Loans {
     ) -> Self {
         let loan_repo = LoanRepo::new(pool);
         let term_repo = TermRepo::new(pool);
+        let price = Price::new();
         registry.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
@@ -67,6 +70,7 @@ impl Loans {
         registry.add_initializer(cvl::LoanProcessingJobInitializer::new(
             loan_repo.clone(),
             export.clone(),
+            price.clone(),
         ));
         Self {
             loan_repo,
@@ -77,6 +81,7 @@ impl Loans {
             jobs: None,
             authz: authz.clone(),
             export: export.clone(),
+            price,
             config,
         }
     }
@@ -193,9 +198,7 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
 
-        // TODO: Add price service call here (consider checking for stale)
-        #[allow(clippy::inconsistent_digit_grouping)]
-        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
@@ -235,9 +238,7 @@ impl Loans {
             .check_permission(sub, Object::Loan, LoanAction::RecordPayment)
             .await?;
 
-        // TODO: Add price service call here (consider checking for stale)
-        #[allow(clippy::inconsistent_digit_grouping)]
-        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 

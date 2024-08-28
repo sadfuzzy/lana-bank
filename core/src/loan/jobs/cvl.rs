@@ -7,7 +7,7 @@ use crate::{
     data_export::Export,
     job::*,
     loan::{repo::*, terms::CVLPct, LoanCursor},
-    primitives::{PriceOfOneBTC, UsdCents},
+    price::Price,
 };
 
 #[serde_with::serde_as]
@@ -21,11 +21,16 @@ pub struct LoanJobConfig {
 pub struct LoanProcessingJobInitializer {
     repo: LoanRepo,
     export: Export,
+    price: Price,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(repo: LoanRepo, export: Export) -> Self {
-        Self { repo, export }
+    pub fn new(repo: LoanRepo, export: Export, price: Price) -> Self {
+        Self {
+            repo,
+            export,
+            price,
+        }
     }
 }
 
@@ -43,6 +48,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
             config: job.config()?,
             repo: self.repo.clone(),
             export: self.export.clone(),
+            price: self.price.clone(),
         }))
     }
 }
@@ -51,6 +57,7 @@ pub struct LoanProcessingJobRunner {
     config: LoanJobConfig,
     repo: LoanRepo,
     export: Export,
+    price: Price,
 }
 
 #[async_trait]
@@ -59,8 +66,7 @@ impl JobRunner for LoanProcessingJobRunner {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        // TODO: Add price service call here (consider checking for stale)
-        let price = PriceOfOneBTC::new(UsdCents::from(5000000));
+        let price = self.price.usd_cents_per_btc().await?;
 
         let mut has_next_page = true;
         let mut after: Option<LoanCursor> = None;

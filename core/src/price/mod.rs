@@ -1,11 +1,12 @@
 mod bfx_client;
-mod error;
+pub mod error;
 
 use crate::primitives::{PriceOfOneBTC, UsdCents};
 
 use bfx_client::BfxClient;
 use error::PriceError;
 
+#[derive(Clone)]
 pub struct Price {
     bfx: BfxClient,
 }
