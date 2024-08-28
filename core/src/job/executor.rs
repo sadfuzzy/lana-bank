@@ -12,7 +12,7 @@ use crate::primitives::JobId;
 pub struct JobExecutor {
     config: JobExecutorConfig,
     pool: PgPool,
-    registry: Arc<JobRegistry>,
+    registry: Arc<RwLock<JobRegistry>>,
     poller_handle: Option<Arc<tokio::task::JoinHandle<()>>>,
     running_jobs: Arc<RwLock<HashMap<JobId, JobHandle>>>,
     jobs: JobRepo,
@@ -22,14 +22,14 @@ impl JobExecutor {
     pub(super) fn new(
         pool: &PgPool,
         config: JobExecutorConfig,
-        registry: JobRegistry,
+        registry: Arc<RwLock<JobRegistry>>,
         jobs: &JobRepo,
     ) -> Self {
         Self {
             pool: pool.clone(),
             poller_handle: None,
             config,
-            registry: Arc::new(registry),
+            registry,
             running_jobs: Arc::new(RwLock::new(HashMap::new())),
             jobs: jobs.clone(),
         }
@@ -47,7 +47,12 @@ impl JobExecutor {
                 I::job_type(),
             ));
         }
-        if !self.registry.initializer_exists(&job.job_type) {
+        if !self
+            .registry
+            .try_read()
+            .expect("Cannot read registry")
+            .initializer_exists(&job.job_type)
+        {
             return Err(JobError::NoInitializerPresent);
         }
         sqlx::query!(
@@ -102,7 +107,7 @@ impl JobExecutor {
     )]
     async fn poll_jobs(
         pool: &PgPool,
-        registry: &Arc<JobRegistry>,
+        registry: &Arc<RwLock<JobRegistry>>,
         keep_alive: &mut bool,
         poll_limit: u32,
         pg_interval: PgInterval,
@@ -176,14 +181,17 @@ impl JobExecutor {
     )]
     async fn start_job(
         pool: &PgPool,
-        registry: &Arc<JobRegistry>,
+        registry: &Arc<RwLock<JobRegistry>>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
         job_payload: Option<serde_json::Value>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
         let id = job.id;
-        let runner = registry.init_job(&job)?;
+        let runner = registry
+            .try_read()
+            .expect("cannot read registry")
+            .init_job(&job)?;
         let all_jobs = Arc::clone(running_jobs);
         let pool = pool.clone();
         let handle = tokio::spawn(async move {

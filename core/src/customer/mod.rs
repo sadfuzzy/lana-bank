@@ -6,10 +6,12 @@ mod kratos;
 mod repo;
 
 use std::collections::HashMap;
+use tracing::instrument;
 
 use crate::{
     audit::Audit,
     authorization::{Action, Authorization, CustomerAction, Object},
+    data_export::Export,
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
 };
@@ -38,8 +40,9 @@ impl Customers {
         ledger: &Ledger,
         authz: &Authorization,
         audit: &Audit,
+        export: &Export,
     ) -> Self {
-        let repo = CustomerRepo::new(pool);
+        let repo = CustomerRepo::new(pool, export);
         let kratos = KratosClient::new(&config.kratos);
         Self {
             pool: pool.clone(),
@@ -55,6 +58,7 @@ impl Customers {
         &self.repo
     }
 
+    #[instrument(name = "lava.customer.create_customer_through_admin", skip(self), err)]
     pub async fn create_customer_through_admin(
         &self,
         sub: &Subject,

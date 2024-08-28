@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use crate::{
     audit::Audit,
     authorization::{Authorization, Object, UserAction},
+    data_export::Export,
     primitives::{Role, Subject, SystemNode, UserId},
 };
 
@@ -30,8 +31,9 @@ impl Users {
         config: UserConfig,
         authz: &Authorization,
         audit: &Audit,
+        export: &Export,
     ) -> Result<Self, UserError> {
-        let repo = UserRepo::new(pool);
+        let repo = UserRepo::new(pool, export);
         let users = Self {
             pool: pool.clone(),
             authz: authz.clone(),

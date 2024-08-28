@@ -16,4 +16,6 @@ pub enum DepositError {
     CouldNotFindById(DepositId),
     #[error("DepositError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("DepositError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
 }

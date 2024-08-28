@@ -6,6 +6,7 @@ mod repo;
 use crate::{
     authorization::{Authorization, DepositAction, Object},
     customer::Customers,
+    data_export::Export,
     ledger::Ledger,
     primitives::{CustomerId, DepositId, Subject, UsdCents},
 };
@@ -30,8 +31,9 @@ impl Deposits {
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
+        export: &Export,
     ) -> Self {
-        let repo = DepositRepo::new(pool);
+        let repo = DepositRepo::new(pool, export);
         Self {
             pool: pool.clone(),
             repo,

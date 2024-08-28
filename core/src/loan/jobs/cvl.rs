@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 use crate::{
-    data_export::Export,
     job::*,
     loan::{repo::*, terms::CVLPct, LoanCursor},
     price::Price,
@@ -20,16 +19,14 @@ pub struct LoanJobConfig {
 
 pub struct LoanProcessingJobInitializer {
     repo: LoanRepo,
-    export: Export,
     price: Price,
 }
 
 impl LoanProcessingJobInitializer {
-    pub fn new(repo: LoanRepo, export: Export, price: Price) -> Self {
+    pub fn new(repo: LoanRepo, price: &Price) -> Self {
         Self {
             repo,
-            export,
-            price,
+            price: price.clone(),
         }
     }
 }
@@ -47,7 +44,6 @@ impl JobInitializer for LoanProcessingJobInitializer {
         Ok(Box::new(LoanProcessingJobRunner {
             config: job.config()?,
             repo: self.repo.clone(),
-            export: self.export.clone(),
             price: self.price.clone(),
         }))
     }
@@ -56,7 +52,6 @@ impl JobInitializer for LoanProcessingJobInitializer {
 pub struct LoanProcessingJobRunner {
     config: LoanJobConfig,
     repo: LoanRepo,
-    export: Export,
     price: Price,
 }
 
@@ -64,7 +59,7 @@ pub struct LoanProcessingJobRunner {
 impl JobRunner for LoanProcessingJobRunner {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -82,18 +77,7 @@ impl JobRunner for LoanProcessingJobRunner {
                     .maybe_update_collateralization(price, self.config.upgrade_buffer_cvl_pct)
                     .is_some()
                 {
-                    let mut db_tx = current_job.pool().begin().await?;
-
-                    let n_events = self.repo.persist_in_tx(&mut db_tx, loan).await?;
-                    self.export
-                        .export_last(
-                            &mut db_tx,
-                            crate::loan::BQ_TABLE_NAME,
-                            n_events,
-                            &loan.events,
-                        )
-                        .await?;
-                    db_tx.commit().await?;
+                    self.repo.persist(loan).await?;
                 }
             }
         }

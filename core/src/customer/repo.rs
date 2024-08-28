@@ -2,17 +2,24 @@ use sqlx::PgPool;
 
 use std::collections::HashMap;
 
+use crate::{data_export::Export, entity::*, primitives::*};
+
 use super::{cursor::*, entity::*, error::*};
-use crate::{entity::*, primitives::*};
+
+const BQ_TABLE_NAME: &str = "customer_events";
 
 #[derive(Clone)]
 pub struct CustomerRepo {
     pool: PgPool,
+    export: Export,
 }
 
 impl CustomerRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
     }
 
     pub(super) async fn create_in_tx(
@@ -29,7 +36,10 @@ impl CustomerRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_customer.initial_events();
-        events.persist(&mut *db).await?;
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
         Ok(Customer::try_from(events)?)
     }
 
@@ -82,7 +92,10 @@ impl CustomerRepo {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer: &mut Customer,
     ) -> Result<(), CustomerError> {
-        customer.events.persist(db).await?;
+        let n_events = customer.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &customer.events)
+            .await?;
         Ok(())
     }
 

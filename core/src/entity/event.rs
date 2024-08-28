@@ -218,11 +218,11 @@ where
     }
 
     pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = (usize, &T)> {
-        let start = self.persisted_events.len() - n + 1;
+        let start = self.persisted_events.len() - n;
         self.persisted_events[start..]
             .iter()
             .enumerate()
-            .map(move |(i, e)| (start + i, e))
+            .map(move |(i, e)| (start + i + 1, e))
     }
 
     pub fn iter(&self) -> impl DoubleEndedIterator<Item = &T> {

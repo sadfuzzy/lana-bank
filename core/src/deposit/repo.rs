@@ -1,19 +1,27 @@
 use sqlx::PgPool;
 
-use super::{entity::*, error::*, DepositCursor};
 use crate::{
+    data_export::Export,
     entity::*,
     primitives::{CustomerId, DepositId},
 };
 
+use super::{entity::*, error::*, DepositCursor};
+
+const BQ_TABLE_NAME: &str = "deposit_events";
+
 #[derive(Clone)]
 pub struct DepositRepo {
     pool: PgPool,
+    export: Export,
 }
 
 impl DepositRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
     }
 
     pub(super) async fn create_in_tx(
@@ -31,7 +39,10 @@ impl DepositRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_deposit.initial_events();
-        events.persist(db).await?;
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
         let deposit = Deposit::try_from(events)?;
         Ok(deposit)
     }

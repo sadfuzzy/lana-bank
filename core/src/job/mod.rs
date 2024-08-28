@@ -10,7 +10,10 @@ pub mod error;
 
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
+use tokio::sync::RwLock;
 use tracing::instrument;
+
+use std::sync::Arc;
 
 use crate::primitives::JobId;
 
@@ -29,17 +32,25 @@ pub struct Jobs {
     _pool: PgPool,
     repo: JobRepo,
     executor: JobExecutor,
+    registry: Arc<RwLock<JobRegistry>>,
 }
 
 impl Jobs {
-    pub fn new(pool: &PgPool, config: JobExecutorConfig, registry: JobRegistry) -> Self {
+    pub fn new(pool: &PgPool, config: JobExecutorConfig) -> Self {
         let repo = JobRepo::new(pool);
-        let executor = JobExecutor::new(pool, config, registry, &repo);
+        let registry = Arc::new(RwLock::new(JobRegistry::new()));
+        let executor = JobExecutor::new(pool, config, Arc::clone(&registry), &repo);
         Self {
             _pool: pool.clone(),
             repo,
             executor,
+            registry,
         }
+    }
+
+    pub fn add_initializer<I: JobInitializer>(&self, initializer: I) {
+        let mut registry = self.registry.try_write().expect("Could not lock registry");
+        registry.add_initializer(initializer);
     }
 
     #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]

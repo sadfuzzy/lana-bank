@@ -22,4 +22,6 @@ pub enum WithdrawError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("WithdrawError - InsufficientBalance: {0} < {1}")]
     InsufficientBalance(UsdCents, UsdCents),
+    #[error("WithdrawError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
 }

@@ -5,6 +5,8 @@ use serial_test::file_serial;
 use lava_core::{
     audit::*,
     authorization::{error::AuthorizationError, *},
+    data_export::Export,
+    job::*,
     primitives::*,
     user::{UserConfig, Users},
 };
@@ -20,6 +22,8 @@ async fn init_users(
     audit: &Audit,
 ) -> anyhow::Result<(Users, Subject)> {
     let superuser_email = "superuser@test.io";
+    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
+    let export = Export::new("".to_string(), &jobs);
     let users = Users::init(
         &pool,
         UserConfig {
@@ -27,6 +31,7 @@ async fn init_users(
         },
         &authz,
         &audit,
+        &export,
     )
     .await?;
     let superuser = users

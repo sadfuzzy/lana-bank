@@ -2,18 +2,24 @@ use std::collections::HashMap;
 
 use sqlx::{PgPool, Postgres, Transaction};
 
-use crate::{entity::*, primitives::UserId};
+use crate::{data_export::Export, entity::*, primitives::UserId};
 
 use super::{error::UserError, NewUser, User};
+
+const BQ_TABLE_NAME: &str = "user_events";
 
 #[derive(Clone)]
 pub struct UserRepo {
     pool: PgPool,
+    export: Export,
 }
 
 impl UserRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
     }
 
     pub async fn create_in_tx(
@@ -31,7 +37,10 @@ impl UserRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_user.initial_events();
-        events.persist(db).await?;
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
         Ok(User::try_from(events)?)
     }
 
@@ -127,7 +136,10 @@ impl UserRepo {
         db: &mut Transaction<'_, Postgres>,
         user: &mut User,
     ) -> Result<(), UserError> {
-        user.events.persist(db).await?;
+        let n_events = user.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &user.events)
+            .await?;
         Ok(())
     }
 }

@@ -1,20 +1,27 @@
 use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{
+    data_export::Export,
     entity::*,
     primitives::{CustomerId, LoanId},
 };
 
 use super::{error::LoanError, Loan, LoanCursor, NewLoan};
 
+const BQ_TABLE_NAME: &str = "loan_events";
+
 #[derive(Clone)]
 pub struct LoanRepo {
     pool: PgPool,
+    export: Export,
 }
 
 impl LoanRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
     }
 
     pub async fn create_in_tx(
@@ -31,7 +38,10 @@ impl LoanRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_loan.initial_events();
-        events.persist(db).await?;
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
         Ok(Loan::try_from(events)?)
     }
 
@@ -53,12 +63,23 @@ impl LoanRepo {
         Ok(res)
     }
 
+    pub async fn persist(&self, loan: &mut Loan) -> Result<(), LoanError> {
+        let mut db = self.pool.begin().await?;
+        self.persist_in_tx(&mut db, loan).await?;
+        db.commit().await?;
+        Ok(())
+    }
+
     pub async fn persist_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         loan: &mut Loan,
-    ) -> Result<usize, LoanError> {
-        Ok(loan.events.persist(db).await?)
+    ) -> Result<(), LoanError> {
+        let n_events = loan.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &loan.events)
+            .await?;
+        Ok(())
     }
 
     pub async fn find_for_customer(&self, customer_id: CustomerId) -> Result<Vec<Loan>, LoanError> {

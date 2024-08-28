@@ -10,7 +10,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     deposit::Deposits,
-    job::{JobRegistry, Jobs},
+    job::Jobs,
     ledger::Ledger,
     loan::Loans,
     primitives::Subject,
@@ -38,28 +38,26 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
-        let mut registry = JobRegistry::new();
-        let export = Export::new(config.ledger.cala_url.clone(), &mut registry);
+        let mut jobs = Jobs::new(&pool, config.job_execution);
+        let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
         let authz = Authorization::init(&pool, &audit).await?;
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit);
+        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
-        let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz);
-        let deposits = Deposits::new(&pool, &customers, &ledger, &authz);
-        let mut loans = Loans::new(
+        let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
+        let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
+        let loans = Loans::new(
             &pool,
             config.loan,
-            &mut registry,
+            &jobs,
             &customers,
             &ledger,
             &authz,
             &audit,
             &export,
         );
-        let mut jobs = Jobs::new(&pool, config.job_execution, registry);
-        loans.set_jobs(&jobs);
-        let users = Users::init(&pool, config.user, &authz, &audit).await?;
+        let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         jobs.start_poll().await?;
 
         Ok(Self {

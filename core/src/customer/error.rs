@@ -22,4 +22,6 @@ pub enum CustomerError {
     CouldNotFindByEmail(String),
     #[error("CustomerError - AuditError: ${0}")]
     AuditError(#[from] crate::audit::error::AuditError),
+    #[error("CustomerError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
 }

@@ -1,19 +1,27 @@
 use sqlx::PgPool;
 
-use super::{cursor::WithdrawCursor, entity::*, error::*};
 use crate::{
+    data_export::Export,
     entity::*,
     primitives::{CustomerId, WithdrawId},
 };
 
+use super::{cursor::WithdrawCursor, entity::*, error::*};
+
+const BQ_TABLE_NAME: &str = "withdraw_events";
+
 #[derive(Clone)]
 pub struct WithdrawRepo {
     pool: PgPool,
+    export: Export,
 }
 
 impl WithdrawRepo {
-    pub(super) fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+        Self {
+            pool: pool.clone(),
+            export: export.clone(),
+        }
     }
 
     pub(super) async fn create_in_tx(
@@ -31,7 +39,10 @@ impl WithdrawRepo {
         .execute(&mut **db)
         .await?;
         let mut events = new_withdraw.initial_events();
-        events.persist(db).await?;
+        let n_events = events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &events)
+            .await?;
         let withdraw = Withdraw::try_from(events)?;
         Ok(withdraw)
     }
@@ -59,7 +70,10 @@ impl WithdrawRepo {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         withdraw: &mut Withdraw,
     ) -> Result<(), WithdrawError> {
-        withdraw.events.persist(db).await?;
+        let n_events = withdraw.events.persist(db).await?;
+        self.export
+            .export_last(db, BQ_TABLE_NAME, n_events, &withdraw.events)
+            .await?;
         Ok(())
     }
 

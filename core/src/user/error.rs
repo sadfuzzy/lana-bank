@@ -16,4 +16,6 @@ pub enum UserError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("UserError - AuditError: {0}")]
     AuditError(#[from] crate::audit::error::AuditError),
+    #[error("UserError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
 }

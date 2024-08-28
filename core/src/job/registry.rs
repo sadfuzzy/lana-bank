@@ -7,7 +7,7 @@ pub struct JobRegistry {
 }
 
 impl JobRegistry {
-    pub(crate) fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             initializers: HashMap::new(),
         }

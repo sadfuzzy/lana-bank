@@ -6,6 +6,7 @@ mod repo;
 use crate::{
     authorization::{Authorization, Object, WithdrawAction},
     customer::Customers,
+    data_export::Export,
     ledger::Ledger,
     primitives::{CustomerId, Subject, UsdCents, WithdrawId},
 };
@@ -30,8 +31,9 @@ impl Withdraws {
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
+        export: &Export,
     ) -> Self {
-        let repo = WithdrawRepo::new(pool);
+        let repo = WithdrawRepo::new(pool, export);
         Self {
             pool: pool.clone(),
             repo,
