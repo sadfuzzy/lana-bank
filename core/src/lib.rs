@@ -13,6 +13,7 @@ pub mod entity;
 pub mod job;
 pub mod ledger;
 pub mod loan;
+pub mod price;
 pub mod primitives;
 pub mod server;
 pub mod user;
