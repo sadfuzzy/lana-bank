@@ -488,6 +488,9 @@ impl FromStr for Action {
             LoanAction::RECORD_PAYMENT_STR => Ok(Self::Loan(LoanAction::RecordPayment)),
             LoanAction::UPDATE_COLLATERAL_STR => Ok(Self::Loan(LoanAction::UpdateCollateral)),
             LoanAction::RECORD_INTEREST_STR => Ok(Self::Loan(LoanAction::RecordInterest)),
+            LoanAction::UPDATE_COLLATERALIZATION_STATE_STR => {
+                Ok(Self::Loan(LoanAction::UpdateCollateralizationState))
+            }
 
             TermAction::UPDATE_STR => Ok(Self::Term(TermAction::Update)),
             TermAction::READ_STR => Ok(Self::Term(TermAction::Read)),

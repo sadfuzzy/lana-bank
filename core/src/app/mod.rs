@@ -2,6 +2,7 @@ mod config;
 mod error;
 
 use sqlx::PgPool;
+use tracing::instrument;
 
 use crate::{
     applicant::Applicants,
@@ -94,6 +95,7 @@ impl LavaApp {
         &self.price
     }
 
+    #[instrument(name = "lava.audit.list_audit", skip(self), err)]
     pub async fn list_audit(
         &self,
         sub: &Subject,
