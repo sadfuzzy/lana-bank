@@ -1,9 +1,3 @@
-import {
-  for_each = local.setup_bq ? toset([var.bq_creds]) : []
-  to       = google_bigquery_dataset.bq_dataset[0]
-  id       = local.dataset_id
-}
-
 locals {
   bq_tables = local.setup_bq ? [
     "user_events",
