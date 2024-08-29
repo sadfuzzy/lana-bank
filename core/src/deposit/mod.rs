@@ -79,7 +79,7 @@ impl Deposits {
                 deposit.id,
                 customer.account_ids,
                 amount,
-                reference.unwrap_or_else(|| deposit.id.to_string()),
+                deposit.reference.clone(),
             )
             .await?;
 

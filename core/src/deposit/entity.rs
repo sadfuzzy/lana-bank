@@ -33,6 +33,7 @@ pub struct Deposit {
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub credit_account_id: LedgerAccountId,
+    pub reference: String,
     pub(super) events: EntityEvents<DepositEvent>,
     pub audit_info: AuditInfo,
 }
@@ -68,6 +69,7 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                     amount,
                     credit_account_id,
                     audit_info,
+                    reference,
                     ..
                 } => {
                     builder = builder
@@ -75,7 +77,8 @@ impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
                         .customer_id(*customer_id)
                         .amount(*amount)
                         .credit_account_id(*credit_account_id)
-                        .audit_info(*audit_info);
+                        .audit_info(*audit_info)
+                        .reference(reference.clone());
                 }
             }
         }
