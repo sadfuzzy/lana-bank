@@ -1,0 +1,10 @@
+mutation CollateralizationStateUpdate(
+  $input: CollateralizationStateUpdateInput!
+) {
+  collateralizationStateUpdate(input: $input) {
+    loan {
+      loanId
+      collateralizationState
+    }
+  }
+}

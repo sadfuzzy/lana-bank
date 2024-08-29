@@ -186,6 +186,15 @@ export type CollateralUpdated = {
   txId: Scalars['UUID']['output'];
 };
 
+export type CollateralizationStateUpdateInput = {
+  loanId: Scalars['UUID']['input'];
+};
+
+export type CollateralizationStateUpdatePayload = {
+  __typename?: 'CollateralizationStateUpdatePayload';
+  loan: Loan;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -445,6 +454,7 @@ export type LoanTransaction = CollateralUpdated | IncrementalPayment | InterestA
 export type Mutation = {
   __typename?: 'Mutation';
   collateralUpdate: CollateralUpdatePayload;
+  collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   customerCreate: CustomerCreatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   depositRecord: DepositRecordPayload;
@@ -464,6 +474,11 @@ export type Mutation = {
 
 export type MutationCollateralUpdateArgs = {
   input: CollateralUpdateInput;
+};
+
+
+export type MutationCollateralizationStateUpdateArgs = {
+  input: CollateralizationStateUpdateInput;
 };
 
 

@@ -162,6 +162,14 @@ type CollateralUpdated {
 	txId: UUID!
 }
 
+input CollateralizationStateUpdateInput {
+	loanId: UUID!
+}
+
+type CollateralizationStateUpdatePayload {
+	loan: Loan!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -439,6 +447,7 @@ type Mutation {
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
+	collateralizationStateUpdate(input: CollateralizationStateUpdateInput!): CollateralizationStateUpdatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!

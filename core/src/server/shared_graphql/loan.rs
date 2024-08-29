@@ -146,7 +146,7 @@ impl From<crate::loan::Loan> for Loan {
             .into_iter()
             .map(LoanTransaction::from)
             .collect();
-        let collateralization_state = loan.collateralization().0;
+        let collateralization_state = loan.collateralization();
 
         Loan {
             id: loan.id.to_global_id(),

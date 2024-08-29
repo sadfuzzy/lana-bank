@@ -547,6 +547,22 @@ impl Mutation {
         Ok(CollateralUpdatePayload::from(loan))
     }
 
+    pub async fn collateralization_state_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CollateralizationStateUpdateInput,
+    ) -> async_graphql::Result<CollateralizationStateUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let CollateralizationStateUpdateInput { loan_id } = input;
+        let loan = app
+            .loans()
+            .update_collateralization_state(sub, loan_id.into())
+            .await?;
+        Ok(CollateralizationStateUpdatePayload::from(loan))
+    }
+
     pub async fn deposit_record(
         &self,
         ctx: &Context<'_>,

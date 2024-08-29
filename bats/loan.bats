@@ -275,3 +275,100 @@ wait_for_interest() {
   loan_id=$(graphql_output '.data.loans.edges[0].node.loanId')
   [[ "$loan_id" != "null" ]] || exit 1
 }
+
+@test "loan: update from liquidation state" {
+  # Setup prerequisites
+  customer_id=$(create_customer)
+
+  revenue_before=$(net_usd_revenue)
+
+  variables=$(
+    jq -n \
+    --arg from "$(from_utc)" \
+    '{ from: $from }'
+  )
+  exec_admin_graphql 'cash-flow' "$variables"
+  cash_flow_net_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.netCredit')
+  cash_flow_debit_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.debit')
+  cash_flow_credit_before=$(graphql_output '.data.cashFlowStatement.total.usd.balancesByLayer.all.credit')
+  [[ "$cash_flow_net_before" != "null" ]] || exit 1
+
+  # Create Loan
+  principal=10000
+  variables=$(
+    jq -n \
+    --arg customerId "$customer_id" \
+    --argjson principal "$principal" \
+    '{
+      input: {
+        customerId: $customerId,
+        desiredPrincipal: $principal,
+        loanTerms: {
+          annualRate: "12",
+          interval: "END_OF_MONTH",
+          duration: { period: "MONTHS", units: 3 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+        }
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-create' "$variables"
+  loan_id=$(graphql_output '.data.loanCreate.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 33334,
+      }
+    }'
+  )
+  exec_admin_graphql 'collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_admin_graphql 'loan-approve' "$variables"
+  collateralization_state=$(graphql_output '.data.loanApprove.loan.collateralizationState')
+  [[ "$collateralization_state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 500000,
+      }
+    }'
+  )
+  exec_admin_graphql 'collateral-update' "$variables"
+  collateralization_state=$(graphql_output '.data.collateralUpdate.loan.collateralizationState')
+  [[ "$collateralization_state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+      }
+    }'
+  )
+  exec_admin_graphql 'collateralization-state-update' "$variables"
+  collateralization_state=$(graphql_output '.data.collateralizationStateUpdate.loan.collateralizationState')
+  [[ "$collateralization_state" == "FULLY_COLLATERALIZED" ]] || exit 1
+}

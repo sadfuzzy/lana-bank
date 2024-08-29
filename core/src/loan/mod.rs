@@ -225,6 +225,35 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
+    pub async fn update_collateralization_state(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+    ) -> Result<Loan, LoanError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::Loan, LoanAction::UpdateCollateralizationState)
+            .await?;
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let mut loan = self.loan_repo.find_by_id(loan_id).await?;
+
+        if loan
+            .maybe_update_collateralization_with_liquidation_override(
+                price,
+                self.config.upgrade_buffer_cvl_pct,
+                audit_info,
+            )
+            .is_some()
+        {
+            self.loan_repo.persist(&mut loan).await?;
+        }
+
+        Ok(loan)
+    }
+
     pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,

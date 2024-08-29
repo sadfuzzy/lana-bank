@@ -1,6 +1,7 @@
 query loan($id: UUID!) {
   loan(id: $id) {
     loanId
+    collateralizationState
     balance {
       collateral {
         btcBalance

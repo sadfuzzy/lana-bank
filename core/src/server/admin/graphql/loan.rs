@@ -123,3 +123,19 @@ impl From<crate::loan::Loan> for CollateralUpdatePayload {
         Self { loan: loan.into() }
     }
 }
+
+#[derive(InputObject)]
+pub struct CollateralizationStateUpdateInput {
+    pub loan_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CollateralizationStateUpdatePayload {
+    loan: Loan,
+}
+
+impl From<crate::loan::Loan> for CollateralizationStateUpdatePayload {
+    fn from(loan: crate::loan::Loan) -> Self {
+        Self { loan: loan.into() }
+    }
+}

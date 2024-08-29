@@ -156,6 +156,12 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Loan, LoanAction::UpdateCollateral)
             .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Loan,
+            LoanAction::UpdateCollateralizationState,
+        )
+        .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Update)
             .await?;
         self.add_permission_to_role(&role, Object::Term, TermAction::Read)
