@@ -170,6 +170,14 @@ type CollateralizationStateUpdatePayload {
 	loan: Loan!
 }
 
+type CollateralizationUpdated {
+	state: LoanCollaterizationState!
+	collateral: Satoshis!
+	outstandingInterest: UsdCents!
+	outstandingPrincipal: UsdCents!
+	price: UsdCents!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -346,7 +354,7 @@ type Loan {
 	status: LoanStatus!
 	collateral: Satoshis!
 	principal: UsdCents!
-	transactions: [LoanTransaction!]!
+	transactions: [LoanHistory!]!
 	collateralizationState: LoanCollaterizationState!
 	balance: LoanBalance!
 	customer: Customer!
@@ -412,6 +420,8 @@ type LoanEdge {
 	cursor: String!
 }
 
+union LoanHistory = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination | CollateralizationUpdated
+
 type LoanOrigination {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -436,8 +446,6 @@ enum LoanStatus {
 	ACTIVE
 	CLOSED
 }
-
-union LoanTransaction = IncrementalPayment | InterestAccrued | CollateralUpdated | LoanOrigination
 
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!

@@ -53,6 +53,8 @@ export function formatCurrency({
 }
 
 export const formatDate = (isoDateString: string): string => {
+  if (isoDateString === "-") return "-"
+
   const date = new Date(isoDateString)
   const options: Intl.DateTimeFormatOptions = {
     year: "numeric",

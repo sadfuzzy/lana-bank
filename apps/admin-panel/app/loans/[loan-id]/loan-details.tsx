@@ -31,9 +31,10 @@ import {
   LoanStatus,
   useGetLoanDetailsQuery,
   Loan,
-  LoanTransaction,
+  LoanHistory,
   LoanCollaterizationState,
   useGetRealtimePriceUpdatesQuery,
+  CollateralAction,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -87,6 +88,13 @@ gql`
           recordedAt
           txId
         }
+        ... on CollateralizationUpdated {
+          state
+          outstandingPrincipal
+          outstandingInterest
+          price
+          collateral
+        }
       }
       loanTerms {
         annualRate
@@ -132,20 +140,65 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
       .replace(/^\w/, (c) => c.toUpperCase())
   }
 
-  const renderTransactionRow = (transaction: LoanTransaction) => {
-    const amount =
-      "cents" in transaction ? (
-        <Balance amount={transaction.cents} currency="usd" align="end" />
-      ) : (
-        <Balance amount={transaction.satoshis} currency="btc" align="end" />
-      )
+  const renderTransactionRow = (transaction: LoanHistory) => {
+    const renderAmount = () => {
+      switch (transaction.__typename) {
+        case "CollateralUpdated":
+          return (
+            <div className="flex justify-end gap-1">
+              <div>{transaction.action === CollateralAction.Add ? "+" : "-"}</div>
+              <Balance amount={transaction.satoshis} currency="btc" align="end" />
+            </div>
+          )
+        case "CollateralizationUpdated":
+          return (
+            <div className="flex flex-col gap-1 justify-end">
+              <Balance amount={transaction.collateral} currency="btc" align="end" />
+            </div>
+          )
+        case "LoanOrigination":
+        case "IncrementalPayment":
+        case "InterestAccrued":
+          return <Balance amount={transaction.cents} currency="usd" align="end" />
+        default:
+          return <span>-</span>
+      }
+    }
+
+    const renderTransactionType = () => {
+      switch (transaction.__typename) {
+        case "CollateralUpdated":
+          return (
+            <div className="flex flex-row gap-1">
+              <div>{formatTransactionType(transaction.__typename)}</div>
+              <div className="text-textColor-secondary text-sm">
+                {formatCollateralAction(transaction.action)}
+              </div>
+            </div>
+          )
+        case "CollateralizationUpdated":
+          return (
+            <div className="flex flex-row gap-1">
+              <div>{formatTransactionType(transaction.__typename)}</div>
+              <div className="text-textColor-secondary text-sm">
+                ({formatCollateralizationState(transaction.state)})
+              </div>
+            </div>
+          )
+        default:
+          return <div>{formatTransactionType(transaction.__typename || "-")}</div>
+      }
+    }
+
+    const recordedAt = "recordedAt" in transaction ? transaction.recordedAt : undefined
+    const txId = "txId" in transaction ? transaction.txId : undefined
 
     return (
-      <TableRow key={transaction.recordedAt}>
-        <TableCell>{formatTransactionType(transaction.__typename || "-")}</TableCell>
-        <TableCell>{transaction.txId}</TableCell>
-        <TableCell>{formatDate(transaction.recordedAt)}</TableCell>
-        <TableCell className="text-right">{amount}</TableCell>
+      <TableRow>
+        <TableCell>{renderTransactionType()}</TableCell>
+        <TableCell>{txId || "-"}</TableCell>
+        <TableCell>{recordedAt ? formatDate(recordedAt) : "-"}</TableCell>
+        <TableCell className="text-right">{renderAmount()}</TableCell>
       </TableRow>
     )
   }
@@ -328,7 +381,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
       </Card>
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle>Loan Transactions</CardTitle>
+          <CardTitle>Loan History</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -368,4 +421,8 @@ const formatCollateralizationState = (
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+}
+
+const formatCollateralAction = (collateralAction: CollateralAction) => {
+  return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
 }

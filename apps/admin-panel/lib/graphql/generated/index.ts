@@ -195,6 +195,15 @@ export type CollateralizationStateUpdatePayload = {
   loan: Loan;
 };
 
+export type CollateralizationUpdated = {
+  __typename?: 'CollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  outstandingInterest: Scalars['UsdCents']['output'];
+  outstandingPrincipal: Scalars['UsdCents']['output'];
+  price: Scalars['UsdCents']['output'];
+  state: LoanCollaterizationState;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -365,7 +374,7 @@ export type Loan = {
   loanTerms: TermValues;
   principal: Scalars['UsdCents']['output'];
   status: LoanStatus;
-  transactions: Array<LoanTransaction>;
+  transactions: Array<LoanHistory>;
 };
 
 export type LoanApproveInput = {
@@ -421,6 +430,8 @@ export type LoanEdge = {
   node: Loan;
 };
 
+export type LoanHistory = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
+
 export type LoanOrigination = {
   __typename?: 'LoanOrigination';
   cents: Scalars['UsdCents']['output'];
@@ -448,8 +459,6 @@ export enum LoanStatus {
   Closed = 'CLOSED',
   New = 'NEW'
 }
-
-export type LoanTransaction = CollateralUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -995,7 +1004,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl: number, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl: number, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1935,6 +1944,13 @@ export const GetLoanDetailsDocument = gql`
         cents
         recordedAt
         txId
+      }
+      ... on CollateralizationUpdated {
+        state
+        outstandingPrincipal
+        outstandingInterest
+        price
+        collateral
       }
     }
     loanTerms {
