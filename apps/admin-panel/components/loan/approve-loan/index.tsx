@@ -11,10 +11,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/primitive/dialog"
-import { Loan, useLoanApproveMutation } from "@/lib/graphql/generated"
+import {
+  Loan,
+  useGetRealtimePriceUpdatesQuery,
+  useLoanApproveMutation,
+} from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import { formatCurrency } from "@/lib/utils"
 
 gql`
   mutation LoanApprove($input: LoanApproveInput!) {
@@ -48,6 +53,7 @@ export const LoanApproveDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
   const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
   const handleLoanApprove = async () => {
@@ -65,6 +71,16 @@ export const LoanApproveDialog = ({
       console.error(err)
     }
   }
+
+  const btcToUsd = priceInfo?.realtimePrice.usdCentsPerBtc / 100
+  const btcToSats = 100_000_000
+  const collateralValue =
+    (btcToUsd * loanDetails.balance.collateral.btcBalance) / btcToSats
+  const currentCvl = (collateralValue / (loanDetails.principal / 100)) * 100
+  const cvlDiff = loanDetails.loanTerms.initialCvl - currentCvl
+  const collateralRequired = ((cvlDiff / 100) * loanDetails.principal) / btcToUsd
+
+  const disallowApproval = loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl
 
   return (
     <Dialog
@@ -120,10 +136,8 @@ export const LoanApproveDialog = ({
             <DialogDescription>Fill in the details to Approve loan.</DialogDescription>
           </DialogHeader>
           <DetailsGroup>
-            <DetailItem label="Loan ID" value={loanDetails.loanId} />
-            <DetailItem label="Created At" value={loanDetails.createdAt} />
             <DetailItem
-              label="Collateral"
+              label="Collateral Balance"
               valueComponent={
                 <Balance
                   amount={loanDetails.balance.collateral.btcBalance}
@@ -132,27 +146,45 @@ export const LoanApproveDialog = ({
               }
             />
             <DetailItem
-              label="Interest Incurred"
+              label={`Current CVL (BTC/USD: ${formatCurrency({
+                amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                currency: "USD",
+              })})`}
+              value={`${loanDetails.currentCvl}%`}
+            />
+            <DetailItem
+              label="Target (Initial) CVL %"
+              value={`${loanDetails.loanTerms.initialCvl}%`}
+            />
+            <DetailItem
+              label="Collateral to meet target CVL"
               valueComponent={
-                <Balance
-                  amount={loanDetails.balance.interestIncurred.usdBalance}
-                  currency="usd"
-                />
+                <span className="font-mono">
+                  {formatCurrency({
+                    amount: collateralRequired,
+                    currency: "BTC",
+                  })}
+                </span>
               }
             />
             <DetailItem
-              label="Outstanding"
-              valueComponent={
-                <Balance
-                  amount={loanDetails.balance.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
+              label="Margin Call CVL %"
+              value={`${loanDetails.loanTerms.marginCallCvl}%`}
             />
           </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
+          {loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl && (
+            <span className="text-destructive">
+              Loan cannot be approved if Current CVL {"<"} Margin Call CVL
+            </span>
+          )}
           <DialogFooter className="mt-4">
-            <Button className="w-32" disabled={loading} onClick={handleLoanApprove}>
+            <Button
+              className={`w-32 ${disallowApproval && "cursor-not-allowed"}`}
+              variant={disallowApproval ? "secondary" : "primary"}
+              disabled={loading || disallowApproval}
+              onClick={handleLoanApprove}
+            >
               Approve Loan
             </Button>
           </DialogFooter>
