@@ -184,8 +184,6 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Audit, AuditAction::List)
-            .await?;
 
         Ok(())
     }

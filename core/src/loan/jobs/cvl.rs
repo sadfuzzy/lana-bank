@@ -8,11 +8,11 @@ use crate::{
     audit::*,
     authorization::{LoanAction, Object},
     job::*,
-    loan::{repo::*, terms::CVLPct, LoanCursor, Subject, SystemNode},
+    loan::{repo::*, terms::CVLPct, LoanByCreatedAtCursor, Subject, SystemNode},
     price::Price,
 };
 
-pub(crate) const CVL_JOB_ID: Uuid = uuid!("f1b3b3b4-0b3b-4b3b-8b3b-0b3b3b3b3b3b");
+pub(crate) const CVL_JOB_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
@@ -82,11 +82,14 @@ impl JobRunner for LoanProcessingJobRunner {
             .await?;
 
         let mut has_next_page = true;
-        let mut after: Option<LoanCursor> = None;
+        let mut after: Option<LoanByCreatedAtCursor> = None;
         while has_next_page {
             let mut loans = self
                 .repo
-                .list(crate::query::PaginatedQueryArgs::<LoanCursor> { first: 100, after })
+                .list(crate::query::PaginatedQueryArgs::<LoanByCreatedAtCursor> {
+                    first: 100,
+                    after,
+                })
                 .await?;
             (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
 

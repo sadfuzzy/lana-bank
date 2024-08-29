@@ -157,7 +157,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<LoanCursor, Loan, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<
+        Connection<LoanByCollateralizationRatioCursor, Loan, EmptyFields, EmptyFields>,
+    > {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         query(
@@ -169,19 +171,16 @@ impl Query {
                 let first = first.expect("First always exists");
                 let res = app
                     .loans()
-                    .list(
+                    .list_by_collateralization_ratio(
                         sub,
-                        crate::query::PaginatedQueryArgs {
-                            first,
-                            after: after.map(crate::loan::LoanCursor::from),
-                        },
+                        crate::query::PaginatedQueryArgs { first, after },
                     )
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|loan| {
-                        let cursor = LoanCursor::from((loan.id, loan.created_at()));
+                        let cursor = LoanByCollateralizationRatioCursor::from(&loan);
                         Edge::new(cursor, Loan::from(loan))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

@@ -39,8 +39,10 @@ CREATE UNIQUE INDEX idx_loan_terms_current ON loan_terms (current) WHERE current
 CREATE TABLE loans (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
+  collateralization_ratio NUMERIC,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE INDEX idx_loans_collateralization_ratio ON loans (collateralization_ratio);
 
 CREATE TABLE loan_events (
   id UUID NOT NULL REFERENCES loans(id),
