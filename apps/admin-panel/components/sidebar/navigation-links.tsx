@@ -68,7 +68,7 @@ const NavigationLinks = () => {
     },
     {
       href: "/loans",
-      label: "Loan",
+      label: "Loans",
       icon: IoReceiptOutline,
       visible: visibleItems?.loan,
     },

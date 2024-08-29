@@ -1,7 +1,8 @@
 import { gql } from "@apollo/client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { PiPencilSimpleLineLight } from "react-icons/pi"
 
 import {
   Dialog,
@@ -18,12 +19,14 @@ import {
   InterestInterval,
   Period,
   useDefaultTermsQuery,
+  useGetRealtimePriceUpdatesQuery,
   useLoanCreateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
-import { currencyConverter } from "@/lib/utils"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/terms/utils"
+import { DetailItem } from "@/components/details"
 
 gql`
   mutation LoanCreate($input: LoanCreateInput!) {
@@ -70,9 +73,18 @@ export const CreateLoanDialog = ({
 }) => {
   const router = useRouter()
 
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
+
   const [customerIdValue, setCustomerIdValue] = useState<string>(customerId)
   const { data: defaultTermsData } = useDefaultTermsQuery()
   const [createLoan, { loading, error, reset }] = useLoanCreateMutation()
+  const [useDefaultTerms, setUseDefaultTerms] = useState(true)
+
+  useEffect(() => {
+    if (!defaultTermsData) setUseDefaultTerms(false)
+  }, [defaultTermsData, setUseDefaultTerms])
 
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "",
@@ -152,6 +164,7 @@ export const CreateLoanDialog = ({
   }
 
   const resetForm = () => {
+    setUseDefaultTerms(!!defaultTermsData?.defaultTerms?.id)
     if (defaultTermsData && defaultTermsData.defaultTerms) {
       const terms = defaultTermsData.defaultTerms.values
       setFormValues({
@@ -191,7 +204,7 @@ export const CreateLoanDialog = ({
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="min-w-max">
         <DialogHeader>
           <DialogTitle>Create Loan</DialogTitle>
           <DialogDescription>Fill in the details to create a loan.</DialogDescription>
@@ -211,101 +224,154 @@ export const CreateLoanDialog = ({
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
+            {formValues.desiredPrincipal && priceInfo && (
+              <div className="mt-2 text-sm">
+                {formatCurrency({
+                  currency: "SATS",
+                  amount:
+                    ((Number(formValues.desiredPrincipal) * 100) /
+                      priceInfo.realtimePrice.usdCentsPerBtc) *
+                    100_000_000,
+                })}{" "}
+                collateral required (BTC/USD:{" "}
+                {formatCurrency({
+                  amount: priceInfo.realtimePrice.usdCentsPerBtc / 100,
+                  currency: "USD",
+                })}
+                )
+              </div>
+            )}
           </div>
-          <div>
-            <Label>Initial CVL (%)</Label>
-            <Input
-              type="number"
-              name="initialCvl"
-              value={formValues.initialCvl}
-              onChange={handleChange}
-              placeholder="Enter the initial CVL"
-              required
-            />
-          </div>
-          <div>
-            <Label>Margin Call CVL (%)</Label>
-            <Input
-              type="number"
-              name="marginCallCvl"
-              value={formValues.marginCallCvl}
-              onChange={handleChange}
-              placeholder="Enter the margin call CVL"
-              required
-            />
-          </div>
+          {useDefaultTerms ? (
+            <>
+              <div className="mt-2 flex items-center space-x-2">
+                <div>Loan Terms</div>
+                <PiPencilSimpleLineLight
+                  className="w-5 h-5 cursor-pointer"
+                  onClick={() => setUseDefaultTerms(false)}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-x-2">
+                <DetailItem
+                  label="Interest Rate (APR)"
+                  value={formValues.annualRate + "%"}
+                />
+                <DetailItem label="Initial CVL %" value={formValues.initialCvl} />
+                <DetailItem
+                  label="Duration"
+                  value={
+                    String(formValues.durationUnits) +
+                    " " +
+                    formatPeriod(formValues.durationPeriod as Period)
+                  }
+                />
+                <DetailItem label="Margin Call CVL %" value={formValues.marginCallCvl} />
+                <DetailItem
+                  label="Payment Schedule"
+                  className="space-x-2"
+                  value={formatInterval(formValues.interval as InterestInterval)}
+                />
+                <DetailItem label="Liquidation CVL %" value={formValues.liquidationCvl} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div>
+                <Label>Initial CVL (%)</Label>
+                <Input
+                  type="number"
+                  name="initialCvl"
+                  value={formValues.initialCvl}
+                  onChange={handleChange}
+                  placeholder="Enter the initial CVL"
+                  required
+                />
+              </div>
+              <div>
+                <Label>Margin Call CVL (%)</Label>
+                <Input
+                  type="number"
+                  name="marginCallCvl"
+                  value={formValues.marginCallCvl}
+                  onChange={handleChange}
+                  placeholder="Enter the margin call CVL"
+                  required
+                />
+              </div>
 
-          <div>
-            <Label>Liquidation CVL (%)</Label>
-            <Input
-              type="number"
-              name="liquidationCvl"
-              value={formValues.liquidationCvl}
-              onChange={handleChange}
-              placeholder="Enter the liquidation CVL"
-              min={0}
-              required
-            />
-          </div>
-          <div>
-            <Label>Duration</Label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                name="durationUnits"
-                value={formValues.durationUnits}
-                onChange={handleChange}
-                placeholder="Duration"
-                min={0}
-                required
-                className="w-1/2"
-              />
-              <Select
-                name="durationPeriod"
-                value={formValues.durationPeriod}
-                onChange={handleChange}
-                required
-              >
-                <option value="" disabled>
-                  Select period
-                </option>
-                {Object.values(Period).map((period) => (
-                  <option key={period} value={period}>
-                    {formatPeriod(period)}
+              <div>
+                <Label>Liquidation CVL (%)</Label>
+                <Input
+                  type="number"
+                  name="liquidationCvl"
+                  value={formValues.liquidationCvl}
+                  onChange={handleChange}
+                  placeholder="Enter the liquidation CVL"
+                  min={0}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Duration</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    name="durationUnits"
+                    value={formValues.durationUnits}
+                    onChange={handleChange}
+                    placeholder="Duration"
+                    min={0}
+                    required
+                    className="w-1/2"
+                  />
+                  <Select
+                    name="durationPeriod"
+                    value={formValues.durationPeriod}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select period
+                    </option>
+                    {Object.values(Period).map((period) => (
+                      <option key={period} value={period}>
+                        {formatPeriod(period)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label>Interest Payment Schedule</Label>
+                <Select
+                  name="interval"
+                  value={formValues.interval}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="" disabled>
+                    Select interval
                   </option>
-                ))}
-              </Select>
-            </div>
-          </div>
-          <div>
-            <Label>Interest Payment Schedule</Label>
-            <Select
-              name="interval"
-              value={formValues.interval}
-              onChange={handleChange}
-              required
-            >
-              <option value="" disabled>
-                Select interval
-              </option>
-              {Object.values(InterestInterval).map((interval) => (
-                <option key={interval} value={interval}>
-                  {formatInterval(interval)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label>Annual Rate (%)</Label>
-            <Input
-              type="number"
-              name="annualRate"
-              value={formValues.annualRate}
-              onChange={handleChange}
-              placeholder="Enter the annual rate"
-              required
-            />
-          </div>
+                  {Object.values(InterestInterval).map((interval) => (
+                    <option key={interval} value={interval}>
+                      {formatInterval(interval)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label>Annual Rate (%)</Label>
+                <Input
+                  type="number"
+                  name="annualRate"
+                  value={formValues.annualRate}
+                  onChange={handleChange}
+                  placeholder="Enter the annual rate"
+                  required
+                />
+              </div>
+            </>
+          )}
           {error && <span className="text-destructive">{error.message}</span>}
           <DialogFooter className="mt-4">
             <Button

@@ -30,6 +30,22 @@ export function formatCurrency({
   amount: number
   currency: string
 }) {
+  if (currency === "SATS" && amount >= 100_000_000)
+    return formatCurrency({ amount: amount / 100_000_000, currency: "BTC" })
+
+  if (currency === "SATS") {
+    return (
+      new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: 0,
+        useGrouping: true,
+      }).format(amount) + " SATS"
+    )
+  }
+
+  if (currency === "BTC") {
+    return `${amount.toFixed(9)} BTC`
+  }
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,

@@ -348,6 +348,7 @@ export type Loan = {
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: LoanCollaterizationState;
   createdAt: Scalars['Timestamp']['output'];
+  currentCvl: Scalars['Float']['output'];
   customer: Customer;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   id: Scalars['ID']['output'];
@@ -979,7 +980,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl: number, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1142,6 +1143,11 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 
 
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: any } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1873,6 +1879,9 @@ export const GetLoanDetailsDocument = gql`
     id
     loanId
     createdAt
+    approvedAt
+    principal
+    expiresAt
     status
     collateralizationState
     customer {
@@ -1924,6 +1933,7 @@ export const GetLoanDetailsDocument = gql`
         units
       }
     }
+    currentCvl @client
   }
 }
     `;
@@ -2959,6 +2969,40 @@ export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookO
 export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+export const GetRealtimePriceUpdatesDocument = gql`
+    query GetRealtimePriceUpdates {
+  realtimePrice {
+    usdCentsPerBtc
+  }
+}
+    `;
+
+/**
+ * __useGetRealtimePriceUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetRealtimePriceUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRealtimePriceUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRealtimePriceUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRealtimePriceUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+      }
+export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+        }
+export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
+export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
+export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
 export const MeDocument = gql`
     query Me {
   me {

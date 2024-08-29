@@ -1,4 +1,5 @@
 "use client"
+
 import { ApolloLink, HttpLink } from "@apollo/client"
 import { relayStylePagination } from "@apollo/client/utilities"
 import {
@@ -7,6 +8,12 @@ import {
   InMemoryCache,
   SSRMultipartLink,
 } from "@apollo/experimental-nextjs-app-support"
+
+import {
+  GetRealtimePriceUpdatesDocument,
+  GetRealtimePriceUpdatesQuery,
+  Loan,
+} from "@/lib/graphql/generated"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const httpLink = new HttpLink({
@@ -37,6 +44,38 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
         },
       },
     }),
+    resolvers: {
+      Loan: {
+        currentCvl: async (loan: Loan, _, { cache }) => {
+          const fetchData = () =>
+            new Promise((resolve) => {
+              const priceInfo = cache.readQuery({
+                query: GetRealtimePriceUpdatesDocument,
+              }) as GetRealtimePriceUpdatesQuery
+
+              if (priceInfo) {
+                resolve(priceInfo)
+              } else {
+                setTimeout(() => resolve(fetchData()), 500) // Try again after 500 ms
+              }
+            })
+
+          const priceInfo = (await fetchData()) as GetRealtimePriceUpdatesQuery
+
+          const collateralValueInSats = loan.balance.collateral.btcBalance
+          const collateralValueInCents =
+            (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / 100_000_000
+          const collateralValueInUsd = collateralValueInCents / 100
+
+          const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / 100
+
+          if (collateralValueInUsd == 0 || outstandingAmountInUsd == 0) return 0
+          const cvl = (collateralValueInUsd / outstandingAmountInUsd) * 100
+
+          return Number(cvl.toFixed(2))
+        },
+      },
+    },
     link:
       typeof window === "undefined"
         ? ApolloLink.from([

@@ -14,6 +14,7 @@ import { authOptions } from "./api/auth/[...nextauth]/options"
 import SideBar from "@/components/sidebar"
 import ApolloServerWrapper from "@/lib/core-admin-client/apollo-server-wrapper"
 import { Toaster } from "@/components/primitive/toast"
+import { RealtimePriceUpdates } from "@/components/realtime-price"
 
 export const metadata: Metadata = {
   description: "lava Bank Admin Panel",
@@ -37,6 +38,7 @@ export default async function RootLayout({
         <AuthSessionProvider session={session}>
           <ApolloServerWrapper>
             <Toaster />
+            <RealtimePriceUpdates />
             <main className="flex flex-col md:flex-row min-h-screen w-full">
               <SideBar />
               <div className="flex-1 p-6 h-screen overflow-y-auto">{children}</div>

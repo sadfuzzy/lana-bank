@@ -33,9 +33,10 @@ import {
   Loan,
   LoanTransaction,
   LoanCollaterizationState,
+  useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
-import { formatDate } from "@/lib/utils"
+import { formatCurrency, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 
 gql`
@@ -44,6 +45,9 @@ gql`
       id
       loanId
       createdAt
+      approvedAt
+      principal
+      expiresAt
       status
       collateralizationState
       customer {
@@ -95,6 +99,7 @@ gql`
           units
         }
       }
+      currentCvl @client
     }
   }
 `
@@ -104,6 +109,10 @@ type LoanDetailsProps = { loanId: string }
 const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     useState<boolean>(false)
+
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
 
   const {
     data: loanDetails,
@@ -177,20 +186,47 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     value={loanDetails.loan.customer.email}
                   />
                   <DetailItem
-                    label="Created At"
+                    label="Date created"
                     value={formatDate(loanDetails.loan.createdAt)}
                   />
                   <DetailItem
-                    label="Collateral balance (BTC)"
-                    valueComponent={
-                      <Balance
-                        amount={loanDetails.loan.balance.collateral.btcBalance}
-                        currency="btc"
-                      />
+                    label="Date approved"
+                    value={
+                      loanDetails.loan.approvedAt
+                        ? formatDate(loanDetails.loan.approvedAt)
+                        : "n/a"
                     }
                   />
                   <DetailItem
-                    label="Outstanding balance (USD)"
+                    label="Term ends"
+                    value={
+                      loanDetails.loan.expiresAt
+                        ? formatDate(loanDetails.loan.expiresAt)
+                        : "n/a"
+                    }
+                  />
+                  <DetailItem
+                    label="Principal"
+                    valueComponent={
+                      <Balance amount={loanDetails.loan.principal} currency="usd" />
+                    }
+                  />
+                  <DetailItem
+                    label="Duration"
+                    value={`${loanDetails.loan.loanTerms.duration.units} ${formatPeriod(loanDetails.loan.loanTerms.duration.period)}`}
+                  />
+                  <DetailItem
+                    label="Interest (APR)"
+                    value={`${loanDetails.loan.loanTerms.annualRate}%`}
+                  />
+                  <DetailItem
+                    label="Interest payment schedule"
+                    value={formatInterval(loanDetails.loan.loanTerms.interval)}
+                  />
+                </div>
+                <div className="grid auto-rows-min">
+                  <DetailItem
+                    label="Outstanding balance"
                     valueComponent={
                       <Balance
                         amount={loanDetails.loan.balance.outstanding.usdBalance}
@@ -199,7 +235,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     }
                   />
                   <DetailItem
-                    label="Interest Incurred (USD)"
+                    label="Interest Incurred"
                     valueComponent={
                       <Balance
                         amount={loanDetails.loan.balance.interestIncurred.usdBalance}
@@ -208,30 +244,33 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     }
                   />
                   <DetailItem
+                    label="Collateral balance"
+                    valueComponent={
+                      <Balance
+                        amount={loanDetails.loan.balance.collateral.btcBalance}
+                        currency="btc"
+                      />
+                    }
+                  />
+
+                  <DetailItem
+                    label={`Current CVL (BTC/USD: ${formatCurrency({
+                      amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                      currency: "USD",
+                    })})`}
+                    value={`${loanDetails.loan.currentCvl}%`}
+                  />
+                  <DetailItem
                     label="Initial CVL"
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}
-                  />
-                </div>
-                <div className="grid auto-rows-min">
-                  <DetailItem
-                    label="Duration"
-                    value={`${loanDetails.loan.loanTerms.duration.units} ${formatPeriod(loanDetails.loan.loanTerms.duration.period)}`}
-                  />
-                  <DetailItem
-                    label="Interval"
-                    value={formatInterval(loanDetails.loan.loanTerms.interval)}
-                  />
-                  <DetailItem
-                    label="Annual Rate"
-                    value={`${loanDetails.loan.loanTerms.annualRate}%`}
-                  />
-                  <DetailItem
-                    label="Liquidation CVL"
-                    value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
                   <DetailItem
                     label="Margin Call CVL"
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
+                  />
+                  <DetailItem
+                    label="Liquidation CVL"
+                    value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
                   <DetailItem
                     label="Collaterization State"
