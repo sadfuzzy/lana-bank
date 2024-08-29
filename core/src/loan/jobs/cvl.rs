@@ -8,7 +8,7 @@ use crate::{
     audit::*,
     authorization::{LoanAction, Object},
     job::*,
-    loan::{repo::*, terms::CVLPct, LoanByCreatedAtCursor, Subject, SystemNode},
+    loan::{repo::*, terms::CVLPct, LoanByCollateralizationRatioCursor, Subject, SystemNode},
     price::Price,
 };
 
@@ -68,30 +68,35 @@ pub struct LoanProcessingJobRunner {
 impl JobRunner for LoanProcessingJobRunner {
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
-        let audit_info = self
-            .audit
-            .record_entry(
-                &Subject::System(SystemNode::Core),
-                Object::Loan,
-                LoanAction::UpdateCollateralizationState,
-                true,
-            )
-            .await?;
-
         let mut has_next_page = true;
-        let mut after: Option<LoanByCreatedAtCursor> = None;
+        let mut after: Option<LoanByCollateralizationRatioCursor> = None;
         while has_next_page {
             let mut loans = self
                 .repo
-                .list(crate::query::PaginatedQueryArgs::<LoanByCreatedAtCursor> {
-                    first: 100,
+                .list_by_collateralization_ratio(crate::query::PaginatedQueryArgs::<
+                    LoanByCollateralizationRatioCursor,
+                > {
+                    first: 10,
                     after,
                 })
                 .await?;
             (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
+            let mut db = current_job.pool().begin().await?;
+            let audit_info = self
+                .audit
+                .record_entry_in_tx(
+                    &mut db,
+                    &Subject::System(SystemNode::Core),
+                    Object::Loan,
+                    LoanAction::UpdateCollateralizationState,
+                    true,
+                )
+                .await?;
+
+            let mut at_least_one = false;
 
             for loan in loans.entities.iter_mut() {
                 if loan
@@ -102,8 +107,15 @@ impl JobRunner for LoanProcessingJobRunner {
                     )
                     .is_some()
                 {
-                    self.repo.persist(loan).await?;
+                    self.repo.persist_in_tx(&mut db, loan).await?;
+                    at_least_one = true;
                 }
+            }
+
+            if at_least_one {
+                db.commit().await?;
+            } else {
+                break;
             }
         }
 
