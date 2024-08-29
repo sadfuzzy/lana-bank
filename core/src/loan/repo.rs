@@ -167,7 +167,7 @@ impl LoanRepo {
             WITH loans AS (
               SELECT id, customer_id, created_at, collateralization_ratio
               FROM loans
-              WHERE ((collateralization_ratio, id) > ($2, $1)) OR ($1 IS NULL)
+              WHERE ((COALESCE(collateralization_ratio, -1::NUMERIC), id) > (COALESCE($2, -1::NUMERIC), $1)) OR ($1 IS NULL)
               ORDER BY collateralization_ratio NULLS FIRST, id
               LIMIT $3
             )
