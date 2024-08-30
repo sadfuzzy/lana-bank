@@ -176,6 +176,7 @@ type CollateralizationUpdated {
 	outstandingInterest: UsdCents!
 	outstandingPrincipal: UsdCents!
 	price: UsdCents!
+	recordedAt: Timestamp!
 }
 
 type Customer {

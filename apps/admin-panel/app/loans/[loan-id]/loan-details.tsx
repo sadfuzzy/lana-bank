@@ -95,6 +95,7 @@ gql`
           outstandingInterest
           price
           collateral
+          recordedAt
         }
       }
       loanTerms {

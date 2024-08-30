@@ -75,6 +75,7 @@ pub struct CollateralizationUpdated {
     pub outstanding_interest: UsdCents,
     pub outstanding_principal: UsdCents,
     pub price: UsdCents,
+    pub recorded_at: Timestamp,
 }
 
 #[ComplexObject]
@@ -239,6 +240,7 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             outstanding_interest: collateralization.outstanding_interest,
             outstanding_principal: collateralization.outstanding_principal,
             price: collateralization.price.into_inner(),
+            recorded_at: collateralization.recorded_at.into(),
         }
     }
 }

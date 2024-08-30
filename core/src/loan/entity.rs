@@ -58,6 +58,7 @@ pub struct CollateralizationUpdated {
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
     pub outstanding_principal: UsdCents,
+    pub recorded_at: DateTime<Utc>,
     pub price: PriceOfOneBTC,
 }
 
@@ -116,6 +117,7 @@ pub enum LoanEvent {
         collateral: Satoshis,
         outstanding: LoanReceivable,
         price: PriceOfOneBTC,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Approved {
@@ -303,6 +305,7 @@ impl Loan {
                     collateral,
                     outstanding,
                     price,
+                    recorded_at,
                     ..
                 } => {
                     history.push(LoanHistory::Collateralization(CollateralizationUpdated {
@@ -311,6 +314,7 @@ impl Loan {
                         outstanding_interest: outstanding.interest,
                         outstanding_principal: outstanding.principal,
                         price: *price,
+                        recorded_at: *recorded_at,
                     }));
                 }
                 _ => {}
@@ -650,6 +654,7 @@ impl Loan {
                 collateral: self.collateral(),
                 outstanding: self.outstanding(),
                 price,
+                recorded_at: Utc::now(),
                 audit_info,
             });
 
@@ -711,6 +716,7 @@ impl Loan {
                         collateral,
                         outstanding: self.outstanding(),
                         price,
+                        recorded_at: Utc::now(),
                         audit_info,
                     });
 
@@ -730,6 +736,7 @@ impl Loan {
                     collateral,
                     outstanding: self.outstanding(),
                     price,
+                    recorded_at: Utc::now(),
                     audit_info,
                 });
 
