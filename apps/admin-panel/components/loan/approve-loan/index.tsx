@@ -170,21 +170,27 @@ export const LoanApproveDialog = ({
             />
           </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
-          {loanDetails.currentCvl &&
+          {loanDetails.currentCvl ? (
             loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl && (
               <span className="text-destructive flex items-center space-x-2">
                 <FaExclamationCircle />
                 <span>Current CVL is less than Margin Call CVL</span>
               </span>
-            )}
-          {loanDetails.currentCvl &&
+            )
+          ) : (
+            <></>
+          )}
+          {loanDetails.currentCvl ? (
             loanDetails.currentCvl > loanDetails.loanTerms.marginCallCvl &&
             loanDetails.currentCvl < loanDetails.loanTerms.initialCvl && (
               <span className="text-warning flex items-center space-x-2">
                 <FaExclamationCircle />
                 <span>Current CVL is less than Target CVL</span>
               </span>
-            )}
+            )
+          ) : (
+            <></>
+          )}
           <DialogFooter className="mt-4">
             <Button disabled={loading} className="w-32" onClick={handleLoanApprove}>
               Approve Loan
