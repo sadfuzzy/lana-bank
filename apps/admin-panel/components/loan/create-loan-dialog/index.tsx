@@ -87,7 +87,7 @@ export const CreateLoanDialog = ({
   }, [defaultTermsData, setUseDefaultTerms])
 
   const [formValues, setFormValues] = useState({
-    desiredPrincipal: "",
+    desiredPrincipal: "0",
     annualRate: "",
     interval: "",
     liquidationCvl: "",
@@ -168,7 +168,7 @@ export const CreateLoanDialog = ({
     if (defaultTermsData && defaultTermsData.defaultTerms) {
       const terms = defaultTermsData.defaultTerms.values
       setFormValues({
-        desiredPrincipal: "",
+        desiredPrincipal: "0",
         annualRate: terms.annualRate.toString(),
         interval: terms.interval,
         liquidationCvl: terms.liquidationCvl.toString(),
@@ -179,7 +179,7 @@ export const CreateLoanDialog = ({
       })
     } else {
       setFormValues({
-        desiredPrincipal: "",
+        desiredPrincipal: "0",
         annualRate: "",
         interval: "",
         liquidationCvl: "",

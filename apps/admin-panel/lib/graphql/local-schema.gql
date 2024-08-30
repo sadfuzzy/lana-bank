@@ -1,3 +1,4 @@
 extend type Loan {
-  currentCvl: Float!
+  currentCvl: Float
+  collateralToMatchInitialCvl: Satoshis
 }

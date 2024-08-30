@@ -30,6 +30,7 @@ const config: Config = {
           },
         },
         success: "var(--green)",
+        warning: "var(--warning)",
         destructive: "var(--error)",
       },
       boxShadow: {

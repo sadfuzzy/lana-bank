@@ -109,6 +109,7 @@ gql`
         }
       }
       currentCvl @client
+      collateralToMatchInitialCvl @client
     }
   }
 `
@@ -326,13 +327,33 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     }
                   />
 
-                  <DetailItem
-                    label={`Current CVL (BTC/USD: ${formatCurrency({
-                      amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
-                      currency: "USD",
-                    })})`}
-                    value={`${loanDetails.loan.currentCvl}%`}
-                  />
+                  {loanDetails.loan.currentCvl === 0 ? (
+                    <DetailItem
+                      label="Required Collateral"
+                      valueComponent={
+                        loanDetails.loan.collateralToMatchInitialCvl ? (
+                          <span className="font-mono">
+                            {formatCurrency({
+                              amount: loanDetails.loan.collateralToMatchInitialCvl,
+                              currency: "BTC",
+                            })}
+                          </span>
+                        ) : (
+                          <>Price not available</>
+                        )
+                      }
+                    />
+                  ) : loanDetails.loan.currentCvl ? (
+                    <DetailItem
+                      label={`Current CVL (BTC/USD: ${formatCurrency({
+                        amount: priceInfo?.realtimePrice.usdCentsPerBtc / 100,
+                        currency: "USD",
+                      })})`}
+                      value={`${loanDetails.loan.currentCvl}%`}
+                    />
+                  ) : (
+                    <DetailItem label="Current CVL" value="Price not available" />
+                  )}
                   <DetailItem
                     label="Initial CVL"
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}

@@ -364,9 +364,10 @@ export type Loan = {
   approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: LoanBalance;
   collateral: Scalars['Satoshis']['output'];
+  collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
   collateralizationState: LoanCollaterizationState;
   createdAt: Scalars['Timestamp']['output'];
-  currentCvl: Scalars['Float']['output'];
+  currentCvl?: Maybe<Scalars['Float']['output']>;
   customer: Customer;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   id: Scalars['ID']['output'];
@@ -1004,7 +1005,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl: number, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1012,7 +1013,7 @@ export type LoansQueryVariables = Exact<{
 }>;
 
 
-export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, principal: any, currentCvl: number, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, principal: any, currentCvl?: number | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type PnlAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -1972,6 +1973,7 @@ export const GetLoanDetailsDocument = gql`
       }
     }
     currentCvl @client
+    collateralToMatchInitialCvl @client
   }
 }
     `;

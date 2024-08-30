@@ -1,4 +1,5 @@
 import { gql } from "@apollo/client"
+import { FaExclamationCircle } from "react-icons/fa"
 
 import { toast } from "sonner"
 
@@ -53,7 +54,9 @@ export const LoanApproveDialog = ({
   children: React.ReactNode
   refetch?: () => void
 }) => {
-  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery()
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
   const [LoanApprove, { data, loading, error, reset }] = useLoanApproveMutation()
 
   const handleLoanApprove = async () => {
@@ -71,16 +74,6 @@ export const LoanApproveDialog = ({
       console.error(err)
     }
   }
-
-  const btcToUsd = priceInfo?.realtimePrice.usdCentsPerBtc / 100
-  const btcToSats = 100_000_000
-  const collateralValue =
-    (btcToUsd * loanDetails.balance.collateral.btcBalance) / btcToSats
-  const currentCvl = (collateralValue / (loanDetails.principal / 100)) * 100
-  const cvlDiff = loanDetails.loanTerms.initialCvl - currentCvl
-  const collateralRequired = ((cvlDiff / 100) * loanDetails.principal) / btcToUsd
-
-  const disallowApproval = loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl
 
   return (
     <Dialog
@@ -159,12 +152,16 @@ export const LoanApproveDialog = ({
             <DetailItem
               label="Collateral to meet target CVL"
               valueComponent={
-                <span className="font-mono">
-                  {formatCurrency({
-                    amount: collateralRequired,
-                    currency: "BTC",
-                  })}
-                </span>
+                loanDetails.collateralToMatchInitialCvl ? (
+                  <span className="font-mono">
+                    {formatCurrency({
+                      amount: loanDetails.collateralToMatchInitialCvl,
+                      currency: "BTC",
+                    })}
+                  </span>
+                ) : (
+                  <>Price not available</>
+                )
               }
             />
             <DetailItem
@@ -173,18 +170,23 @@ export const LoanApproveDialog = ({
             />
           </DetailsGroup>
           {error && <span className="text-destructive">{error.message}</span>}
-          {loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl && (
-            <span className="text-destructive">
-              Loan cannot be approved if Current CVL {"<"} Margin Call CVL
-            </span>
-          )}
+          {loanDetails.currentCvl &&
+            loanDetails.currentCvl < loanDetails.loanTerms.marginCallCvl && (
+              <span className="text-destructive flex items-center space-x-2">
+                <FaExclamationCircle />
+                <span>Current CVL is less than Margin Call CVL</span>
+              </span>
+            )}
+          {loanDetails.currentCvl &&
+            loanDetails.currentCvl > loanDetails.loanTerms.marginCallCvl &&
+            loanDetails.currentCvl < loanDetails.loanTerms.initialCvl && (
+              <span className="text-warning flex items-center space-x-2">
+                <FaExclamationCircle />
+                <span>Current CVL is less than Target CVL</span>
+              </span>
+            )}
           <DialogFooter className="mt-4">
-            <Button
-              className={`w-32 ${disallowApproval && "cursor-not-allowed"}`}
-              variant={disallowApproval ? "secondary" : "primary"}
-              disabled={loading || disallowApproval}
-              onClick={handleLoanApprove}
-            >
+            <Button disabled={loading} className="w-32" onClick={handleLoanApprove}>
               Approve Loan
             </Button>
           </DialogFooter>

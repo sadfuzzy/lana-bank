@@ -54,14 +54,11 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
                 query: GetRealtimePriceUpdatesDocument,
               }) as GetRealtimePriceUpdatesQuery
 
-              if (priceInfo) {
-                resolve(priceInfo)
-              } else {
-                setTimeout(() => resolve(fetchData()), 500) // Try again after 500 ms
-              }
+              resolve(priceInfo)
             })
 
           const priceInfo = (await fetchData()) as GetRealtimePriceUpdatesQuery
+          if (!priceInfo) return null
 
           const principalValueInUsd = loan.principal / 100
 
@@ -79,6 +76,25 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
           const cvl = (collateralValueInUsd / newOutstandingAmount) * 100
 
           return Number(cvl.toFixed(2))
+        },
+        collateralToMatchInitialCvl: async (loan: Loan, _, { cache }) => {
+          const fetchData = () =>
+            new Promise((resolve) => {
+              const priceInfo = cache.readQuery({
+                query: GetRealtimePriceUpdatesDocument,
+              }) as GetRealtimePriceUpdatesQuery
+
+              resolve(priceInfo)
+            })
+
+          const priceInfo = (await fetchData()) as GetRealtimePriceUpdatesQuery
+          if (!priceInfo) return null
+
+          return (
+            (loan.loanTerms.initialCvl * loan.principal) /
+            priceInfo.realtimePrice.usdCentsPerBtc /
+            100
+          )
         },
       },
     },
