@@ -5,7 +5,7 @@ resource "google_bigquery_dataset" "dataform_dev" {
   dataset_id    = "dataform_${each.key}"
   friendly_name = "${each.key} dataform"
   description   = "Dataform playground for ${each.key}"
-  location      = "US"
+  location      = "EU"
 }
 
 resource "google_bigquery_dataset" "dataform_assertions_dev" {
@@ -15,7 +15,7 @@ resource "google_bigquery_dataset" "dataform_assertions_dev" {
   dataset_id    = "dataform_assertions_${each.key}"
   friendly_name = "${each.key} assertions dataform"
   description   = "Dataform assertions for ${each.key}"
-  location      = "US"
+  location      = "EU"
 }
 
 resource "google_bigquery_dataset_iam_member" "dataform_assertions_dev" {
