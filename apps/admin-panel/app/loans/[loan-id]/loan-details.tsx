@@ -37,7 +37,7 @@ import {
   CollateralAction,
 } from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { currencyConverter, formatCurrency, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
 import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"
 
@@ -134,6 +134,17 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
     refetch,
   } = useGetLoanDetailsQuery({ variables: { id: loanId } })
 
+  const MarginCallPrice = calculatePrice({
+    cvlPercentage: loanDetails?.loan?.loanTerms.marginCallCvl,
+    principalInCents: loanDetails?.loan?.principal,
+    collateralInSatoshis: loanDetails?.loan?.balance.collateral.btcBalance,
+  })
+
+  const LiquidationCallPrice = calculatePrice({
+    cvlPercentage: loanDetails?.loan?.loanTerms.liquidationCvl,
+    principalInCents: loanDetails?.loan?.principal,
+    collateralInSatoshis: loanDetails?.loan?.balance.collateral.btcBalance,
+  })
   // If price changes, refetch current CVL
   useEffect(() => {
     refetch()
@@ -360,13 +371,23 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     value={`${loanDetails.loan.loanTerms.initialCvl}%`}
                   />
                   <DetailItem
-                    label="Margin Call CVL"
+                    label={`Margin Call CVL ${
+                      loanDetails.loan.balance.collateral.btcBalance > 0
+                        ? `(${formatCurrency({ amount: MarginCallPrice, currency: "USD" })})`
+                        : ""
+                    }`}
                     value={`${loanDetails.loan.loanTerms.marginCallCvl}%`}
                   />
+
                   <DetailItem
-                    label="Liquidation CVL"
+                    label={`Liquidation CVL ${
+                      loanDetails.loan.balance.collateral.btcBalance > 0
+                        ? `(${formatCurrency({ amount: LiquidationCallPrice, currency: "USD" })})`
+                        : ""
+                    }`}
                     value={`${loanDetails.loan.loanTerms.liquidationCvl}%`}
                   />
+
                   <DetailItem
                     label="Collaterization State"
                     value={formatCollateralizationState(
@@ -469,4 +490,19 @@ export const formatCollateralizationState = (
 
 const formatCollateralAction = (collateralAction: CollateralAction) => {
   return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
+}
+
+const calculatePrice = ({
+  cvlPercentage,
+  principalInCents,
+  collateralInSatoshis,
+}: {
+  cvlPercentage: number
+  principalInCents: number
+  collateralInSatoshis: number
+}) => {
+  return (
+    ((cvlPercentage / 100) * currencyConverter.centsToUsd(principalInCents)) /
+    currencyConverter.satoshiToBtc(collateralInSatoshis)
+  )
 }
