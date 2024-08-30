@@ -31,6 +31,7 @@ gql`
         amount
         customer {
           customerId
+          email
           balance {
             checking {
               settled
@@ -122,8 +123,8 @@ function RecordDepositDialog({
                 value={data.depositRecord.deposit.depositId}
               />
               <DetailItem
-                label="Customer ID"
-                value={data.depositRecord.deposit.customer?.customerId || "N/A"}
+                label="Customer Email"
+                value={data.depositRecord.deposit.customer?.email || "N/A"}
               />
               <DetailItem
                 label="Amount"

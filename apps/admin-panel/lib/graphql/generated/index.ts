@@ -1124,14 +1124,14 @@ export type RecordDepositMutationVariables = Exact<{
 }>;
 
 
-export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } | null } } };
+export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } | null } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
@@ -1153,6 +1153,13 @@ export type CollateralUpdateMutationVariables = Exact<{
 
 
 export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type CollateralizationStateUpdateMutationVariables = Exact<{
+  input: CollateralizationStateUpdateInput;
+}>;
+
+
+export type CollateralizationStateUpdateMutation = { __typename?: 'Mutation', collateralizationStateUpdate: { __typename?: 'CollateralizationStateUpdatePayload', loan: { __typename?: 'Loan', loanId: string, collateralizationState: LoanCollaterizationState } } };
 
 export type LoanCreateMutationVariables = Exact<{
   input: LoanCreateInput;
@@ -2678,6 +2685,7 @@ export const RecordDepositDocument = gql`
       amount
       customer {
         customerId
+        email
         balance {
           checking {
             settled
@@ -2722,6 +2730,7 @@ export const WithdrawalConfirmDocument = gql`
       amount
       customer {
         customerId
+        email
         balance {
           checking {
             settled
@@ -2898,6 +2907,42 @@ export function useCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOpt
 export type CollateralUpdateMutationHookResult = ReturnType<typeof useCollateralUpdateMutation>;
 export type CollateralUpdateMutationResult = Apollo.MutationResult<CollateralUpdateMutation>;
 export type CollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
+export const CollateralizationStateUpdateDocument = gql`
+    mutation CollateralizationStateUpdate($input: CollateralizationStateUpdateInput!) {
+  collateralizationStateUpdate(input: $input) {
+    loan {
+      loanId
+      collateralizationState
+    }
+  }
+}
+    `;
+export type CollateralizationStateUpdateMutationFn = Apollo.MutationFunction<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
+
+/**
+ * __useCollateralizationStateUpdateMutation__
+ *
+ * To run a mutation, you first call `useCollateralizationStateUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCollateralizationStateUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [collateralizationStateUpdateMutation, { data, loading, error }] = useCollateralizationStateUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCollateralizationStateUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>(CollateralizationStateUpdateDocument, options);
+      }
+export type CollateralizationStateUpdateMutationHookResult = ReturnType<typeof useCollateralizationStateUpdateMutation>;
+export type CollateralizationStateUpdateMutationResult = Apollo.MutationResult<CollateralizationStateUpdateMutation>;
+export type CollateralizationStateUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
 export const LoanCreateDocument = gql`
     mutation LoanCreate($input: LoanCreateInput!) {
   loanCreate(input: $input) {

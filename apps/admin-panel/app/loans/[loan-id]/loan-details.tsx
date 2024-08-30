@@ -39,6 +39,7 @@ import {
 import { formatInterval, formatPeriod } from "@/lib/term/utils"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { CollateralUpdateDialog } from "@/components/loan/collateral-update-dialog"
+import { CollateralizationStateUpdateDialog } from "@/components/loan/collateralization-state-update-dialog"
 
 gql`
   query GetLoanDetails($id: UUID!) {
@@ -115,6 +116,8 @@ gql`
 type LoanDetailsProps = { loanId: string }
 
 const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
+  const [openCollateralizationStateDialog, setOpenCollateralizationStateDialog] =
+    useState<boolean>(false)
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     useState<boolean>(false)
 
@@ -206,17 +209,29 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
   return (
     <>
       {loanDetails && loanDetails.loan?.loanId && (
-        <CollateralUpdateDialog
-          setOpenCollateralUpdateDialog={setOpenCollateralUpdateDialog}
-          openCollateralUpdateDialog={openCollateralUpdateDialog}
-          loanData={{
-            loanId: loanDetails.loan?.loanId,
-            existingCollateral: loanDetails.loan?.balance.collateral.btcBalance,
-          }}
-          refetch={refetch}
-        />
+        <>
+          <CollateralUpdateDialog
+            setOpenCollateralUpdateDialog={setOpenCollateralUpdateDialog}
+            openCollateralUpdateDialog={openCollateralUpdateDialog}
+            loanData={{
+              loanId: loanDetails.loan?.loanId,
+              existingCollateral: loanDetails.loan?.balance.collateral.btcBalance,
+            }}
+            refetch={refetch}
+          />
+          <CollateralizationStateUpdateDialog
+            setOpenDialog={setOpenCollateralizationStateDialog}
+            openDialog={openCollateralizationStateDialog}
+            loanData={{
+              loanId: loanDetails.loan?.loanId,
+              currentState: formatCollateralizationState(
+                loanDetails.loan?.collateralizationState,
+              ),
+            }}
+            refetch={refetch}
+          />
+        </>
       )}
-
       <Card>
         {loading ? (
           <CardContent className="pt-6">Loading...</CardContent>
@@ -369,6 +384,13 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
                     <Button>Approve Loan</Button>
                   </LoanApproveDialog>
                 )}
+                {loanDetails.loan.status === LoanStatus.Active &&
+                  loanDetails.loan.collateralizationState ===
+                    LoanCollaterizationState.UnderLiquidationThreshold && (
+                    <Button onClick={() => setOpenCollateralizationStateDialog(true)}>
+                      Update Collateralization
+                    </Button>
+                  )}
               </div>
             </div>
           </>
@@ -413,7 +435,7 @@ const LoanDetails: React.FC<LoanDetailsProps> = ({ loanId }) => {
 
 export default LoanDetails
 
-const formatCollateralizationState = (
+export const formatCollateralizationState = (
   collateralizationState: LoanCollaterizationState,
 ) => {
   return collateralizationState

@@ -29,6 +29,7 @@ gql`
         amount
         customer {
           customerId
+          email
           balance {
             checking {
               settled
@@ -111,8 +112,8 @@ export function WithdrawalConfirmDialog({
                 value={data.withdrawalConfirm.withdrawal.withdrawalId}
               />
               <DetailItem
-                label="Customer ID"
-                value={data.withdrawalConfirm.withdrawal.customer?.customerId || "N/A"}
+                label="Customer Email"
+                value={data.withdrawalConfirm.withdrawal.customer?.email || "N/A"}
               />
               <DetailItem
                 label="Amount"
