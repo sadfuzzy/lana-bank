@@ -28,7 +28,7 @@ pub struct AuditEntry {
     object: String,
     action: String,
     authorized: bool,
-    created_at: Timestamp,
+    recorded_at: Timestamp,
 }
 
 #[ComplexObject]
@@ -70,7 +70,7 @@ impl From<crate::audit::AuditEntry> for AuditEntry {
             object: entry.object.as_ref().into(),
             action: entry.action.as_ref().into(),
             authorized: entry.authorized,
-            created_at: entry.created_at.into(),
+            recorded_at: entry.recorded_at.into(),
         }
     }
 }

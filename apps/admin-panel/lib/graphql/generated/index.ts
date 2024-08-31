@@ -92,9 +92,9 @@ export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
   authorized: Scalars['Boolean']['output'];
-  createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   object: Scalars['String']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
   subject: Subject;
 };
 
@@ -920,7 +920,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, createdAt: any, subject: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -1343,7 +1343,7 @@ export const AuditLogsDocument = gql`
         object
         action
         authorized
-        createdAt
+        recordedAt
       }
     }
     pageInfo {

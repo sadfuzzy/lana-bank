@@ -24,7 +24,7 @@ query AuditLogs($first: Int!, $after: String) {
         object
         action
         authorized
-        createdAt
+        recordedAt
       }
     }
     pageInfo {

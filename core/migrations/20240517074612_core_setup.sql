@@ -128,5 +128,5 @@ CREATE TABLE audit_entries (
   object VARCHAR NOT NULL,
   action VARCHAR NOT NULL,
   authorized BOOLEAN NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

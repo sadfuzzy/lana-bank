@@ -10,7 +10,7 @@ type AuditEntry {
 	object: String!
 	action: String!
 	authorized: Boolean!
-	createdAt: Timestamp!
+	recordedAt: Timestamp!
 	subject: Subject!
 }
 

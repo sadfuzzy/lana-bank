@@ -21,7 +21,7 @@ pub struct AuditEntry {
     pub object: Object,
     pub action: Action,
     pub authorized: bool,
-    pub created_at: DateTime<Utc>,
+    pub recorded_at: DateTime<Utc>,
 }
 
 #[derive(Debug, FromRow)]
@@ -31,7 +31,7 @@ struct RawAuditEntry {
     object: String,
     action: String,
     authorized: bool,
-    created_at: DateTime<Utc>,
+    recorded_at: DateTime<Utc>,
 }
 
 #[derive(Clone)]
@@ -98,7 +98,7 @@ impl Audit {
         let raw_events: Vec<RawAuditEntry> = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject, object, action, authorized, created_at
+            SELECT id, subject, object, action, authorized, recorded_at
             FROM audit_entries
             WHERE ($1::BIGINT IS NULL OR id < $1::BIGINT)
             ORDER BY id DESC
@@ -138,7 +138,7 @@ impl Audit {
                 object: raw_event.object.parse().expect("Could not parse object"),
                 action: raw_event.action.parse().expect("Could not parse action"),
                 authorized: raw_event.authorized,
-                created_at: raw_event.created_at,
+                recorded_at: raw_event.recorded_at,
             })
             .collect();
 
@@ -156,7 +156,7 @@ impl Audit {
         let raw_entries = sqlx::query_as!(
             RawAuditEntry,
             r#"
-            SELECT id, subject, object, action, authorized, created_at
+            SELECT id, subject, object, action, authorized, recorded_at
             FROM audit_entries
             WHERE id = ANY($1)
             "#,
@@ -174,7 +174,7 @@ impl Audit {
                     object: raw_entry.object.parse().expect("Could not parse object"),
                     action: raw_entry.action.parse().expect("Could not parse action"),
                     authorized: raw_entry.authorized,
-                    created_at: raw_entry.created_at,
+                    recorded_at: raw_entry.recorded_at,
                 };
                 (raw_entry.id, T::from(audit_entry))
             })

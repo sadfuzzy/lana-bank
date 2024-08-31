@@ -22,7 +22,7 @@ query CustomerAuditLog($id: UUID!) {
       object
       action
       authorized
-      createdAt
+      recordedAt
     }
   }
 }
