@@ -134,6 +134,12 @@ impl Authorization {
             UserAction::RevokeRole(Role::BankManager),
         )
         .await?;
+
+        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
+            .await?;
+        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
+            .await?;
+
         self.add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)
             .await?;
         self.add_permission_to_role(&role, Object::Audit, AuditAction::List)

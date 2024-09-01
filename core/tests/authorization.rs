@@ -138,17 +138,15 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .await
         .is_ok());
 
-    // Admin cannot assign Admin role
-    assert!(matches!(
-        authz
-            .check_permission(
-                &admin_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole(Role::Admin))
-            )
-            .await,
-        Err(AuthorizationError::NotAuthorized)
-    ));
+    // Admin can assign Admin role
+    assert!(authz
+        .check_permission(
+            &admin_subject,
+            Object::User,
+            Action::User(UserAction::AssignRole(Role::Admin))
+        )
+        .await
+        .is_ok());
 
     // Admin cannot assign Superuser role
     assert!(matches!(
