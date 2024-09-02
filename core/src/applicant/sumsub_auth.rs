@@ -9,6 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::primitives::CustomerId;
 
+use super::error::ApplicantError;
 use super::SumsubConfig;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
@@ -20,14 +21,27 @@ pub struct SumsubClient {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CreateAccessTokenResponse {
+struct ApiError {
+    description: String,
+    code: u16,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum SumsubResponse<T> {
+    Success(T),
+    Error(ApiError),
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct AccessTokenResponse {
     pub token: String,
-    #[serde(rename = "userId")]
     pub user_id: String,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct CreatePermalinkResponse {
+pub struct PermalinkResponse {
     pub url: String,
 }
 
@@ -44,7 +58,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
+    ) -> Result<AccessTokenResponse, ApplicantError> {
         let method = "POST";
         let url = format!(
             "/resources/accessTokens?levelName={}&userId={}",
@@ -74,11 +88,14 @@ impl SumsubClient {
             .send()
             .await?;
 
-        let response_text = response.text().await?;
-        println!("Raw response: {}", response_text);
-
-        let response_json = serde_json::from_str(&response_text)?;
-        Ok(response_json)
+        match response.json().await? {
+            SumsubResponse::Success(AccessTokenResponse { token, user_id }) => {
+                Ok(AccessTokenResponse { token, user_id })
+            }
+            SumsubResponse::Error(ApiError { description, code }) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
+        }
     }
 
     pub async fn create_permalink(
@@ -86,7 +103,7 @@ impl SumsubClient {
         client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
-    ) -> Result<CreatePermalinkResponse, anyhow::Error> {
+    ) -> Result<PermalinkResponse, ApplicantError> {
         let method = "POST";
         let url =
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
@@ -114,11 +131,12 @@ impl SumsubClient {
             .send()
             .await?;
 
-        let response_text = response.text().await?;
-        println!("Raw response permalink: {}", response_text);
-
-        let response_json = serde_json::from_str(&response_text)?;
-        Ok(response_json)
+        match response.json().await? {
+            SumsubResponse::Success(PermalinkResponse { url }) => Ok(PermalinkResponse { url }),
+            SumsubResponse::Error(ApiError { description, code }) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
+        }
     }
 
     fn sign(
@@ -127,7 +145,7 @@ impl SumsubClient {
         url: &str,
         body: Option<&str>,
         timestamp: u64,
-    ) -> Result<String, anyhow::Error> {
+    ) -> Result<String, ApplicantError> {
         type HmacSha256 = Hmac<Sha256>;
         let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())
             .expect("HMAC can take key of any size");
@@ -205,7 +223,7 @@ mod tests {
         let res = v.create_access_token(&client, user_id, level).await;
 
         match res {
-            Ok(CreateAccessTokenResponse { token, user_id }) => {
+            Ok(AccessTokenResponse { token, user_id }) => {
                 println!("Success response: token: {token}, user_id: {user_id}");
             }
             Err(e) => {
@@ -237,7 +255,7 @@ mod tests {
         let res = v.create_permalink(&client, user_id, level).await;
 
         match res {
-            Ok(CreatePermalinkResponse { url }) => {
+            Ok(PermalinkResponse { url }) => {
                 println!("Success response: url: {url}");
             }
             Err(e) => {

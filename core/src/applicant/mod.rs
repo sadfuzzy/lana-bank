@@ -183,7 +183,7 @@ impl Applicants {
     pub async fn create_access_token(
         &self,
         user_id: CustomerId,
-    ) -> Result<CreateAccessTokenResponse, anyhow::Error> {
+    ) -> Result<AccessTokenResponse, ApplicantError> {
         let client = reqwest::Client::new();
 
         let level_name = SumsubKycLevel::BasicKycLevel;
@@ -196,7 +196,7 @@ impl Applicants {
     pub async fn create_permalink(
         &self,
         user_id: CustomerId,
-    ) -> Result<CreatePermalinkResponse, anyhow::Error> {
+    ) -> Result<PermalinkResponse, ApplicantError> {
         let client = reqwest::Client::new();
 
         let level_name = SumsubKycLevel::BasicKycLevel;
