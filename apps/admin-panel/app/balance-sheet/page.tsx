@@ -105,9 +105,11 @@ const BalanceSheet = ({
   if (!data?.balance) return <div>No data</div>
 
   const assets = data.categories?.filter((category) => category.name === "Assets")
-  const liabilitiesAndEquity = data.categories?.filter(
-    (category) => category.name === "Liabilities" || category.name === "Equity",
-  )
+
+  const liabilitiesAndEquity = [
+    data.categories?.find((category) => category.name === "Liabilities"),
+    data.categories?.find((category) => category.name === "Equity"),
+  ] as StatementCategory[]
 
   const totalLiabilitiesAndEquity = calculateTotalLiabilitiesAndEquity(
     liabilitiesAndEquity,
