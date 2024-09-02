@@ -19,9 +19,7 @@ import {
   GetCustomerByCustomerIdDocument,
   useRecordDepositMutation,
 } from "@/lib/graphql/generated"
-import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
-import Balance from "@/components/balance/balance"
 
 gql`
   mutation RecordDeposit($input: DepositRecordInput!) {
@@ -54,11 +52,10 @@ function RecordDepositDialog({
   customerId: string
   refetch?: () => void
 }) {
-  const [recordDeposit, { loading, reset, data }] = useRecordDepositMutation()
+  const [recordDeposit, { loading, reset }] = useRecordDepositMutation()
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
-  const [isSubmitted, setIsSubmitted] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -80,8 +77,8 @@ function RecordDepositDialog({
       })
       if (result.data) {
         toast.success("Deposit recorded successfully")
-        setIsSubmitted(true)
         if (refetch) refetch()
+        handleCloseDialog()
       } else {
         throw new Error("No data returned from mutation")
       }
@@ -99,7 +96,6 @@ function RecordDepositDialog({
     setAmount("")
     setReference("")
     setError(null)
-    setIsSubmitted(false)
     reset()
   }
 
@@ -111,74 +107,44 @@ function RecordDepositDialog({
   return (
     <Dialog open={openRecordDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        {isSubmitted && data ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Deposit Recorded</DialogTitle>
-              <DialogDescription>Details of the recorded deposit.</DialogDescription>
-            </DialogHeader>
-            <DetailsGroup>
-              <DetailItem
-                label="Deposit ID"
-                value={data.depositRecord.deposit.depositId}
+        <DialogHeader>
+          <DialogTitle>Record Deposit</DialogTitle>
+          <DialogDescription>
+            Provide the required details to record a deposit.
+          </DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <div>
+            <Label htmlFor="amount">Amount</Label>
+            <div className="flex items-center gap-1">
+              <Input
+                id="amount"
+                type="number"
+                required
+                placeholder="Enter the deposit amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
               />
-              <DetailItem
-                label="Customer Email"
-                value={data.depositRecord.deposit.customer?.email || "N/A"}
-              />
-              <DetailItem
-                label="Amount"
-                valueComponent={
-                  <Balance amount={data.depositRecord.deposit.amount} currency="usd" />
-                }
-              />
-            </DetailsGroup>
-            <DialogFooter>
-              <Button onClick={handleCloseDialog}>Close</Button>
-            </DialogFooter>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>Record Deposit</DialogTitle>
-              <DialogDescription>
-                Provide the required details to record a deposit.
-              </DialogDescription>
-            </DialogHeader>
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <div>
-                <Label htmlFor="amount">Amount</Label>
-                <div className="flex items-center gap-1">
-                  <Input
-                    id="amount"
-                    type="number"
-                    required
-                    placeholder="Enter the deposit amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="reference">Reference</Label>
-                <Input
-                  id="reference"
-                  type="text"
-                  placeholder="Enter a reference (optional)"
-                  value={reference}
-                  onChange={(e) => setReference(e.target.value)}
-                />
-              </div>
-              {error && <p className="text-destructive">{error}</p>}
-              <DialogFooter>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Submitting..." : "Submit"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </>
-        )}
+              <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="reference">Reference</Label>
+            <Input
+              id="reference"
+              type="text"
+              placeholder="Enter a reference (optional)"
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
+            />
+          </div>
+          {error && <p className="text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

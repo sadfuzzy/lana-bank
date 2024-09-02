@@ -53,10 +53,9 @@ export function CollateralUpdateDialog({
   }
   refetch?: () => void
 }) {
-  const [updateCollateral, { loading, data, reset }] = useCollateralUpdateMutation()
+  const [updateCollateral, { loading, reset }] = useCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
   const [newCollateral, setNewCollateral] = useState(
     currencyConverter.satoshiToBtc(loanData.existingCollateral),
   )
@@ -79,7 +78,7 @@ export function CollateralUpdateDialog({
       })
       if (result.data) {
         toast.success("Collateral updated successfully")
-        setIsSubmitted(true)
+        handleCloseDialog()
         if (refetch) refetch()
       } else {
         throw new Error("No data returned from mutation")
@@ -99,12 +98,10 @@ export function CollateralUpdateDialog({
   }
 
   const handleCloseDialog = () => {
-    setOpenCollateralUpdateDialog(false)
     setError(null)
     setIsConfirmed(false)
-    setIsSubmitted(false)
-    setNewCollateral(currencyConverter.satoshiToBtc(loanData.existingCollateral))
     reset()
+    setOpenCollateralUpdateDialog(false)
   }
 
   return (
@@ -114,41 +111,12 @@ export function CollateralUpdateDialog({
         if (!isOpen) {
           handleCloseDialog()
         }
+        setNewCollateral(currencyConverter.satoshiToBtc(loanData.existingCollateral))
       }}
     >
       <DialogContent>
-        {isSubmitted && data ? (
+        {isConfirmed ? (
           <>
-            <DialogHeader>
-              <DialogTitle>Collateral Updated</DialogTitle>
-              <DialogDescription>
-                The collateral for the loan has been successfully updated.
-              </DialogDescription>
-            </DialogHeader>
-            <DetailsGroup>
-              <DetailItem
-                className="text-sm"
-                label="Loan ID"
-                value={data.collateralUpdate.loan.loanId}
-              />
-              <DetailItem
-                className="text-sm"
-                label="New Collateral"
-                valueComponent={
-                  <Balance
-                    amount={data.collateralUpdate.loan.balance.collateral.btcBalance}
-                    currency="btc"
-                  />
-                }
-              />
-            </DetailsGroup>
-            <DialogFooter>
-              <Button onClick={handleCloseDialog}>Close</Button>
-            </DialogFooter>
-          </>
-        ) : isConfirmed ? (
-          <>
-            {console.log(newCollateral)}
             <DialogHeader>
               <DialogTitle>Confirm Update</DialogTitle>
               <DialogDescription>
