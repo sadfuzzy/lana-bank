@@ -172,7 +172,8 @@ impl Loans {
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
 
         let mut db_tx = self.pool.begin().await?;
-        let loan_approval = loan.initiate_approval()?;
+        let price = self.price.usd_cents_per_btc().await?;
+        let loan_approval = loan.initiate_approval(price)?;
         let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
         loan.confirm_approval(loan_approval, executed_at, audit_info);
 

@@ -325,7 +325,7 @@ wait_for_interest() {
     '{
       input: {
         loanId: $loanId,
-        collateral: 33334,
+        collateral: 500000,
       }
     }'
   )
@@ -344,7 +344,23 @@ wait_for_interest() {
   )
   exec_admin_graphql 'loan-approve' "$variables"
   collateralization_state=$(graphql_output '.data.loanApprove.loan.collateralizationState')
-  [[ "$collateralization_state" == "UNDER_LIQUIDATION_THRESHOLD" ]] || exit 1
+  [[ "$collateralization_state" == "FULLY_COLLATERALIZED" ]] || exit 1
+
+
+  variables=$(
+    jq -n \
+      --arg loanId "$loan_id" \
+    '{
+      input: {
+        loanId: $loanId,
+        collateral: 33334,
+      }
+    }'
+  )
+  exec_admin_graphql 'collateral-update' "$variables"
+  loan_id=$(graphql_output '.data.collateralUpdate.loan.loanId')
+  [[ "$loan_id" != "null" ]] || exit 1
+
 
   variables=$(
     jq -n \
