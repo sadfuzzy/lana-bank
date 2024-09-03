@@ -43,7 +43,7 @@ export function formatCurrency({
   }
 
   if (currency === "BTC") {
-    return `${amount.toFixed(9)} BTC`
+    return `${amount.toFixed(8)} BTC`
   }
 
   return new Intl.NumberFormat("en-US", {

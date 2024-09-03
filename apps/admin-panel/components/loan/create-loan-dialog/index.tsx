@@ -243,12 +243,12 @@ export const CreateLoanDialog = ({
           </div>
           {useDefaultTerms ? (
             <>
-              <div className="mt-2 flex items-center space-x-2">
+              <div
+                onClick={() => setUseDefaultTerms(false)}
+                className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
+              >
                 <div>Loan Terms</div>
-                <PiPencilSimpleLineLight
-                  className="w-5 h-5 cursor-pointer"
-                  onClick={() => setUseDefaultTerms(false)}
-                />
+                <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer" />
               </div>
               <div className="grid grid-cols-2 gap-x-2">
                 <DetailItem
@@ -267,7 +267,7 @@ export const CreateLoanDialog = ({
                 <DetailItem label="Margin Call CVL %" value={formValues.marginCallCvl} />
                 <DetailItem
                   label="Payment Schedule"
-                  className="space-x-2"
+                  className="space-x-7"
                   value={formatInterval(formValues.interval as InterestInterval)}
                 />
                 <DetailItem label="Liquidation CVL %" value={formValues.liquidationCvl} />
@@ -372,7 +372,15 @@ export const CreateLoanDialog = ({
             </>
           )}
           {error && <span className="text-destructive">{error.message}</span>}
-          <DialogFooter className="mt-4">
+          <DialogFooter className={!useDefaultTerms ? "sm:justify-between" : ""}>
+            {!useDefaultTerms && (
+              <div
+                onClick={() => setUseDefaultTerms(true)}
+                className="flex items-center space-x-2 cursor-pointer text-sm hover:underline"
+              >
+                Show less...
+              </div>
+            )}
             <Button
               onClick={handleCreateLoan}
               className="w-32"

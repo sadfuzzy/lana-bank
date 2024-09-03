@@ -12,9 +12,12 @@ import {
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
-import { useCollateralUpdateMutation } from "@/lib/graphql/generated"
+import {
+  useCollateralUpdateMutation,
+  useGetLoanDetailsQuery,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter } from "@/lib/utils"
+import { currencyConverter, formatCurrency } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Label } from "@/components/primitive/label"
 
@@ -59,6 +62,10 @@ export function CollateralUpdateDialog({
   const [newCollateral, setNewCollateral] = useState(
     currencyConverter.satoshiToBtc(loanData.existingCollateral),
   )
+
+  const { data: loanDetails } = useGetLoanDetailsQuery({
+    variables: { id: loanData.loanId },
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -168,6 +175,21 @@ export function CollateralUpdateDialog({
                     label="Current Collateral"
                     valueComponent={
                       <Balance amount={loanData.existingCollateral} currency="btc" />
+                    }
+                  />
+                  <DetailItem
+                    label="Expected Collateral"
+                    valueComponent={
+                      loanDetails?.loan?.collateralToMatchInitialCvl ? (
+                        <span className="font-mono">
+                          {formatCurrency({
+                            amount: loanDetails.loan.collateralToMatchInitialCvl,
+                            currency: "BTC",
+                          })}
+                        </span>
+                      ) : (
+                        <>Price not available</>
+                      )
                     }
                   />
                 </DetailsGroup>
