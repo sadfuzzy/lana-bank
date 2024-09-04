@@ -21,6 +21,7 @@ gql`
       withdrawalId
       amount
       status
+      reference
       customer {
         email
         customerId
@@ -87,6 +88,15 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                       amount={withdrawalDetails.withdrawal.amount}
                       currency="usd"
                     />
+                  }
+                />
+                <DetailItem
+                  label="Withdrawal Reference"
+                  value={
+                    withdrawalDetails.withdrawal.reference ===
+                    withdrawalDetails.withdrawal.withdrawalId
+                      ? "n/a"
+                      : withdrawalDetails.withdrawal.reference
                   }
                 />
               </div>

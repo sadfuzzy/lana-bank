@@ -250,6 +250,7 @@ type Deposit {
 	customerId: UUID!
 	depositId: UUID!
 	amount: UsdCents!
+	reference: String!
 	customer: Customer
 }
 
@@ -669,6 +670,7 @@ type Withdrawal {
 	withdrawalId: UUID!
 	amount: UsdCents!
 	status: WithdrawalStatus!
+	reference: String!
 	customer: Customer
 }
 

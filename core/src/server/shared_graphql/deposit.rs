@@ -14,6 +14,7 @@ pub struct Deposit {
     customer_id: UUID,
     deposit_id: UUID,
     amount: UsdCents,
+    reference: String,
 }
 
 #[ComplexObject]
@@ -35,6 +36,7 @@ impl From<crate::deposit::Deposit> for Deposit {
             deposit_id: UUID::from(deposit.id),
             customer_id: UUID::from(deposit.customer_id),
             amount: deposit.amount,
+            reference: deposit.reference,
         }
     }
 }

@@ -17,6 +17,7 @@ pub struct Withdrawal {
     withdrawal_id: UUID,
     amount: UsdCents,
     status: WithdrawalStatus,
+    reference: String,
 }
 
 #[ComplexObject]
@@ -39,6 +40,7 @@ impl From<crate::withdraw::Withdraw> for Withdrawal {
             customer_id: UUID::from(withdraw.customer_id),
             amount: withdraw.amount,
             status: withdraw.status(),
+            reference: withdraw.reference,
         }
     }
 }

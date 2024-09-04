@@ -47,6 +47,7 @@ impl EntityEvent for WithdrawEvent {
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
+    pub reference: String,
     pub customer_id: CustomerId,
     pub amount: UsdCents,
     pub debit_account_id: LedgerAccountId,
@@ -142,6 +143,7 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                     customer_id,
                     amount,
                     debit_account_id,
+                    reference,
                     ..
                 } => {
                     builder = builder
@@ -149,6 +151,7 @@ impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
                         .customer_id(*customer_id)
                         .amount(*amount)
                         .debit_account_id(*debit_account_id)
+                        .reference(reference.clone())
                 }
                 WithdrawEvent::Confirmed { .. } => {}
                 WithdrawEvent::Cancelled { .. } => {}

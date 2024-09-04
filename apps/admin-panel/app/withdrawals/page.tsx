@@ -41,6 +41,7 @@ gql`
         withdrawalId
         amount
         status
+        reference
         customer {
           customerId
           email
@@ -55,6 +56,7 @@ gql`
       withdrawalId
       amount
       status
+      reference
       customer {
         customerId
         email

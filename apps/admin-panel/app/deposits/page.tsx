@@ -34,6 +34,7 @@ gql`
         customerId
         depositId
         amount
+        reference
         customer {
           customerId
           email
@@ -47,6 +48,7 @@ gql`
       customerId
       depositId
       amount
+      reference
       customer {
         customerId
         email
@@ -165,6 +167,7 @@ function DepositsTable() {
                   <TableRow>
                     <TableHead>Customer</TableHead>
                     <TableHead>Deposit ID</TableHead>
+                    <TableHead>Reference</TableHead>
                     <TableHead className="text-right">Deposit Amount</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -178,6 +181,11 @@ function DepositsTable() {
                           </Link>
                         </TableCell>
                         <TableCell>{deposit.depositId}</TableCell>
+                        <TableCell>
+                          {deposit.reference === deposit.depositId
+                            ? "n/a"
+                            : deposit.reference}
+                        </TableCell>
                         <TableCell>
                           <Balance amount={deposit.amount} currency="usd" align="end" />
                         </TableCell>

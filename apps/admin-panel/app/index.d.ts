@@ -6,6 +6,7 @@ type WithdrawalWithCustomer = {
   status: WithdrawalStatus
   customerId: string
   withdrawalId: string
+  reference: string
   amount: number
   customer?: {
     __typename?: "Customer"

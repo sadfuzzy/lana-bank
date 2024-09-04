@@ -272,6 +272,7 @@ export type Deposit = {
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
   depositId: Scalars['UUID']['output'];
+  reference: Scalars['String']['output'];
 };
 
 export type DepositConnection = {
@@ -856,6 +857,7 @@ export type Withdrawal = {
   amount: Scalars['UsdCents']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
+  reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
 };
@@ -977,7 +979,7 @@ export type GetWithdrawalsForCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
 
 export type GetCustomerByCustomerEmailQueryVariables = Exact<{
   email: Scalars['String']['input'];
@@ -992,14 +994,14 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
 
 export type DepositQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
+export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
 
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1097,7 +1099,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1105,14 +1107,14 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
 
 export type WithdrawalQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
+export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
@@ -1133,7 +1135,7 @@ export type WithdrawalConfirmMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
@@ -1730,6 +1732,7 @@ export const GetWithdrawalsForCustomerDocument = gql`
     customerId
     withdrawals {
       status
+      reference
       customerId
       withdrawalId
       amount
@@ -1827,6 +1830,7 @@ export const DepositsDocument = gql`
       customerId
       depositId
       amount
+      reference
       customer {
         customerId
         email
@@ -1870,6 +1874,7 @@ export const DepositDocument = gql`
     customerId
     depositId
     amount
+    reference
     customer {
       customerId
       email
@@ -2512,6 +2517,7 @@ export const GetWithdrawalDetailsDocument = gql`
     withdrawalId
     amount
     status
+    reference
     customer {
       email
       customerId
@@ -2562,6 +2568,7 @@ export const WithdrawalsDocument = gql`
       withdrawalId
       amount
       status
+      reference
       customer {
         customerId
         email
@@ -2606,6 +2613,7 @@ export const WithdrawalDocument = gql`
     withdrawalId
     amount
     status
+    reference
     customer {
       customerId
       email
@@ -2732,6 +2740,7 @@ export const WithdrawalConfirmDocument = gql`
     withdrawal {
       withdrawalId
       amount
+      reference
       customer {
         customerId
         email

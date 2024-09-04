@@ -34,6 +34,7 @@ gql`
       customerId
       withdrawals {
         status
+        reference
         customerId
         withdrawalId
         amount

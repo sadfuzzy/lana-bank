@@ -148,6 +148,14 @@ export function WithdrawalCancelDialog({
                     />
                   }
                 />
+                <DetailItem
+                  label="Withdrawal Reference"
+                  value={
+                    withdrawalData.reference === withdrawalData.withdrawalId
+                      ? "n/a"
+                      : withdrawalData.reference
+                  }
+                />
               </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
