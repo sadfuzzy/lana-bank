@@ -1,5 +1,6 @@
 pub mod account;
 pub mod account_set;
+pub mod bank;
 mod cala;
 mod config;
 mod constants;
@@ -24,6 +25,7 @@ use account_set::{
     LedgerChartOfAccounts, LedgerProfitAndLossStatement, LedgerSubAccountCursor,
     LedgerTrialBalance, PaginatedLedgerAccountSetSubAccountWithBalance,
 };
+use bank::*;
 use cala::*;
 pub use config::*;
 use customer::*;
@@ -44,6 +46,16 @@ impl Ledger {
             cala,
             authz: authz.clone(),
         })
+    }
+
+    #[instrument(name = "lava.ledger.get_bank_deposits_balance", skip(self), err)]
+    async fn get_bank_deposits_balance(&self) -> Result<BankDepositsBalance, LedgerError> {
+        self.cala
+            .find_account_with_balance_by_code::<BankDepositsBalance, LedgerError>(
+                constants::BANK_DEPOSITS_OMNIBUS_CODE.into(),
+            )
+            .await?
+            .ok_or(LedgerError::AccountNotFound)
     }
 
     #[instrument(name = "lava.ledger.get_customer_balance", skip(self), err)]
@@ -108,6 +120,10 @@ impl Ledger {
         amount: UsdCents,
         external_id: String,
     ) -> Result<WithdrawId, LedgerError> {
+        self.get_bank_deposits_balance()
+            .await?
+            .check_withdrawal_amount(amount)?;
+
         self.cala
             .execute_initiate_withdraw_tx(
                 LedgerTxId::from(uuid::Uuid::from(withdrawal_id)),
