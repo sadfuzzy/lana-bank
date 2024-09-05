@@ -76,13 +76,6 @@ pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum Subject {
-    Customer(CustomerId),
-    User(UserId),
-    System(SystemNode),
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum SystemNode {
     Init,
     Core,
@@ -106,35 +99,54 @@ impl std::fmt::Display for SystemNode {
     }
 }
 
+#[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
+#[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
+pub enum Subject {
+    Customer(CustomerId),
+    User(UserId),
+    System(SystemNode),
+}
+
 impl FromStr for Subject {
     type Err = ParseSubjectError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let parts: Vec<&str> = s.split(':').collect();
         if parts.len() != 2 {
-            return Err(ParseSubjectError("Invalid subject format".to_string()));
+            return Err(ParseSubjectError::InvalidSubjectFormat);
         }
-        let id = parts[1]
-            .parse()
-            .map_err(|err| ParseSubjectError(format!("Failed to parse UUID: {}", err)))?;
-        match parts[0] {
-            "customer" => Ok(Subject::Customer(CustomerId(id))),
-            "user" => Ok(Subject::User(UserId(id))),
-            "system" => match id {
-                SYSTEM_INIT => Ok(Subject::System(SystemNode::Init)),
-                SYSTEM_CORE => Ok(Subject::System(SystemNode::Core)),
-                SYSTEM_KRATOS => Ok(Subject::System(SystemNode::Kratos)),
-                SYSTEM_SUMSUB => Ok(Subject::System(SystemNode::Sumsub)),
-                _ => Err(ParseSubjectError("Unknown system node".to_string())),
+
+        let id = parts[1].parse()?;
+        use SubjectDiscriminants::*;
+        let res = match SubjectDiscriminants::from_str(parts[0])? {
+            Customer => Subject::Customer(CustomerId::from(id)),
+            User => Subject::User(UserId::from(id)),
+            System => match id {
+                SYSTEM_INIT => Subject::System(SystemNode::Init),
+                SYSTEM_CORE => Subject::System(SystemNode::Core),
+                SYSTEM_KRATOS => Subject::System(SystemNode::Kratos),
+                SYSTEM_SUMSUB => Subject::System(SystemNode::Sumsub),
+                _ => {
+                    return Err(ParseSubjectError::UnknownSystemNodeId(id));
+                }
             },
-            _ => Err(ParseSubjectError("Unknown subject type".to_string())),
-        }
+        };
+        Ok(res)
     }
 }
 
 #[derive(Error, Debug)]
-#[error("ParseSubjectError: {0}")]
-pub struct ParseSubjectError(String);
+pub enum ParseSubjectError {
+    #[error("ParseSubjectError - Strum: {0}")]
+    Strum(#[from] strum::ParseError),
+    #[error("ParseSubjectError - Uuid: {0}")]
+    Uuid(#[from] uuid::Error),
+    #[error("ParseSubjectError - UnknownSystemNodeId: {0}")]
+    UnknownSystemNodeId(uuid::Uuid),
+    #[error("ParseSubjectError - InvalidSubjectFormat")]
+    InvalidSubjectFormat,
+}
 
 impl From<UserId> for Subject {
     fn from(s: UserId) -> Self {
@@ -150,61 +162,40 @@ impl From<CustomerId> for Subject {
 
 impl std::fmt::Display for Subject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Subject::Customer(id) => write!(f, "customer:{}", id),
-            Subject::User(id) => write!(f, "user:{}", id),
-            Subject::System(id) => write!(f, "system:{}", id),
-        }
+        let id: uuid::Uuid = match self {
+            Subject::Customer(id) => id.into(),
+            Subject::User(id) => id.into(),
+            Subject::System(id) => match id {
+                SystemNode::Init => SYSTEM_INIT,
+                SystemNode::Core => SYSTEM_CORE,
+                SystemNode::Kratos => SYSTEM_KRATOS,
+                SystemNode::Sumsub => SYSTEM_SUMSUB,
+            },
+        };
+        write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), id)?;
+        Ok(())
     }
 }
 
-impl From<String> for Subject {
-    fn from(s: String) -> Self {
-        s.parse().expect("cannot parse subject from String")
-    }
-}
-
-#[derive(async_graphql::Enum, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(
+    async_graphql::Enum,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::IntoStaticStr,
+    strum::EnumString,
+    strum::Display,
+)]
+#[strum(serialize_all = "kebab-case")]
 pub enum Role {
     Superuser,
     Admin,
     BankManager,
-}
-
-impl AsRef<str> for Role {
-    fn as_ref(&self) -> &str {
-        match self {
-            Role::Superuser => "superuser",
-            Role::BankManager => "bank-manager",
-            Role::Admin => "admin",
-        }
-    }
-}
-
-#[derive(Error, Debug)]
-#[error("ParseRoleError: {0}")]
-pub struct ParseRoleError(String);
-
-impl FromStr for Role {
-    type Err = ParseRoleError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let res = match s {
-            "superuser" => Role::Superuser,
-            "bank-manager" => Role::BankManager,
-            "admin" => Role::Admin,
-            _ => return Err(ParseRoleError(format!("Unknown role: {}", s))),
-        };
-        Ok(res)
-    }
-}
-
-impl std::ops::Deref for Role {
-    type Target = str;
-
-    fn deref(&self) -> &Self::Target {
-        self.as_ref()
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
