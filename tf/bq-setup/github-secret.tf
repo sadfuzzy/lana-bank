@@ -12,7 +12,7 @@ resource "google_secret_manager_secret" "git_token" {
   }
 }
 
-resource "google_secret_manager_secret_version" "secret_version" {
+resource "google_secret_manager_secret_version" "version" {
   provider = google-beta
   secret   = google_secret_manager_secret.git_token.id
 

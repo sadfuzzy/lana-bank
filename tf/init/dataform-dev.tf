@@ -2,7 +2,7 @@ resource "google_bigquery_dataset" "dataform_dev" {
   for_each = local.lava_dev
   project  = local.project
 
-  dataset_id    = "dataform_${each.key}_dev"
+  dataset_id    = "dataform_${each.key}"
   friendly_name = "${each.key} dataform"
   description   = "Dataform playground for ${each.key}"
   location      = "EU"

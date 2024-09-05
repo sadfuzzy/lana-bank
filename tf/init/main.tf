@@ -3,9 +3,13 @@ variable "git_token" {
   sensitive = true
 }
 
+variable "gcp_region" {
+  type    = string
+  default = "europe-west6"
+}
+
 locals {
   project                = "cala-enterprise"
-  location               = "EU"
   tf_state_bucket_name   = "lava-bank-tf-state"
   objects_list_role_name = "lava_objects_list"
 
@@ -19,7 +23,7 @@ locals {
 }
 
 module "setup" {
-  source = "../setup"
+  source = "../bq-setup"
 
   for_each = local.lava_dev
 
@@ -27,18 +31,18 @@ module "setup" {
 
   additional_owners = [each.value]
   gcp_project       = local.project
-  gcp_region        = local.location
+  gcp_region        = var.gcp_region
   git_token         = var.git_token
 }
 
 module "gha_setup" {
-  source = "../setup"
+  source = "../bq-setup"
 
   name_prefix = "gha"
 
   additional_owners = [local.justin]
   gcp_project       = local.project
-  gcp_region        = local.location
+  gcp_region        = var.gcp_region
   git_token         = var.git_token
 }
 

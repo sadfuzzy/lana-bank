@@ -30,7 +30,7 @@ provider "cala" {
 }
 
 module "setup" {
-  source = "./lava"
+  source = "./cala-setup"
 
   name_prefix = var.name_prefix
   bq_creds    = var.bq_creds

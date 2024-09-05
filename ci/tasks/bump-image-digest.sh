@@ -19,8 +19,8 @@ yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
 
 rm -rf ./charts/${CHARTS_SUBDIR}/tf || true
 mkdir -p ./charts/${CHARTS_SUBDIR}/tf
-cp -r ../repo/tf/lava-setup ./charts/${CHARTS_SUBDIR}/tf/lava-setup
-cp -r ../repo/bq-setup/source-dataset ./charts/${CHARTS_SUBDIR}/tf/source-dataset
+cp -r ../repo/tf/cala-setup ./charts/${CHARTS_SUBDIR}/tf/cala-setup
+cp -r ../repo/tf/bq-setup ./charts/${CHARTS_SUBDIR}/tf/bq-setup
 
 if [[ -z $(git config --global user.email) ]]; then
   git config --global user.email "bot@galoy.io"
