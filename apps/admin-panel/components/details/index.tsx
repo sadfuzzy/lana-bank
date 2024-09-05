@@ -12,16 +12,27 @@ const DetailItem = ({
   className,
   labelComponent,
   valueComponent,
+  onClick = null,
 }: {
   label?: string
   value?: string
   className?: string
   labelComponent?: React.ReactNode
   valueComponent?: React.ReactNode
+  onClick?: null | (() => void)
 }) => {
+  const onClickHoverClass = onClick
+    ? "hover:cursor-pointer hover:bg-secondary-foreground"
+    : ""
+
   return (
     <div
-      className={cn("flex justify-between items-center p-1 px-2 rounded-md", className)}
+      className={cn(
+        "flex justify-between items-center p-1 px-2 rounded-md",
+        className,
+        onClickHoverClass,
+      )}
+      onClick={onClick || undefined}
     >
       {labelComponent ? (
         labelComponent

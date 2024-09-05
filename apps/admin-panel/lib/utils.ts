@@ -1,7 +1,12 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
-import { InterestInterval, Period } from "./graphql/generated"
+import {
+  CollateralAction,
+  InterestInterval,
+  LoanCollaterizationState,
+  Period,
+} from "./graphql/generated"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -68,6 +73,26 @@ export const formatInterval = (interval: InterestInterval) => {
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ")
+}
+
+export const formatCollateralizationState = (
+  collateralizationState: LoanCollaterizationState,
+) => {
+  return collateralizationState
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
+export const formatCollateralAction = (collateralAction: CollateralAction) => {
+  return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
+}
+
+export const formatTransactionType = (typename: string) => {
+  return typename
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/^\w/, (c) => c.toUpperCase())
 }
 
 export const isUUID = (str: string) => {
