@@ -15,6 +15,7 @@ pub struct Deposit {
     deposit_id: UUID,
     amount: UsdCents,
     reference: String,
+    created_at: Timestamp,
 }
 
 #[ComplexObject]
@@ -33,6 +34,7 @@ impl Deposit {
 impl From<crate::deposit::Deposit> for Deposit {
     fn from(deposit: crate::deposit::Deposit) -> Self {
         Deposit {
+            created_at: deposit.created_at().into(),
             deposit_id: UUID::from(deposit.id),
             customer_id: UUID::from(deposit.customer_id),
             amount: deposit.amount,

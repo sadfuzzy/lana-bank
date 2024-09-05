@@ -10,6 +10,7 @@ import {
 } from "@apollo/experimental-nextjs-app-support"
 
 import {
+  Customer,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
   Loan,
@@ -81,6 +82,16 @@ const resolvers: Resolvers = {
           CENTS_PER_USD) *
           SATS_PER_BTC,
       )
+    },
+  },
+  Customer: {
+    transactions: async (customer: Customer) => {
+      const deposits = customer.deposits
+      const withdrawals = customer.withdrawals
+
+      return [...deposits, ...withdrawals].sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      })
     },
   },
 }

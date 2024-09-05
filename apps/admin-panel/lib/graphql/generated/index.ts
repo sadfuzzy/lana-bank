@@ -216,6 +216,7 @@ export type Customer = {
   level: KycLevel;
   loans: Array<Loan>;
   status: AccountStatus;
+  transactions: Array<Transaction>;
   withdrawals: Array<Withdrawal>;
 };
 
@@ -269,6 +270,7 @@ export type DefaultTermsUpdatePayload = {
 export type Deposit = {
   __typename?: 'Deposit';
   amount: Scalars['UsdCents']['output'];
+  createdAt: Scalars['Timestamp']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
   depositId: Scalars['UUID']['output'];
@@ -781,6 +783,8 @@ export type TermsInput = {
   marginCallCvl: Scalars['CVLPct']['input'];
 };
 
+export type Transaction = Deposit | Withdrawal;
+
 export type TrialBalance = {
   __typename?: 'TrialBalance';
   name: Scalars['String']['output'];
@@ -855,6 +859,7 @@ export type VisibleNavigationItems = {
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   amount: Scalars['UsdCents']['output'];
+  createdAt: Scalars['Timestamp']['output'];
   customer?: Maybe<Customer>;
   customerId: Scalars['UUID']['output'];
   reference: Scalars['String']['output'];
@@ -953,12 +958,26 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
-export type GetDepositsForCustomerQueryVariables = Exact<{
+export type GetCustomerBalancesQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDepositsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, deposits: Array<{ __typename?: 'Deposit', customerId: string, depositId: string, amount: any }> } | null };
+export type GetCustomerBalancesQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+
+export type GetCustomerDetailsByCustomerIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
+
+export type GetKycStatusForCustomerQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -967,19 +986,19 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type GetCustomerByCustomerIdQueryVariables = Exact<{
+export type GetTransactionsForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+export type GetTransactionsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
 
-export type GetWithdrawalsForCustomerQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+export type CustomerCreateMutationVariables = Exact<{
+  input: CustomerCreateInput;
 }>;
 
 
-export type GetWithdrawalsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type GetCustomerByCustomerEmailQueryVariables = Exact<{
   email: Scalars['String']['input'];
@@ -987,6 +1006,13 @@ export type GetCustomerByCustomerEmailQueryVariables = Exact<{
 
 
 export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+
+export type GetCustomerByCustomerIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1003,12 +1029,33 @@ export type DepositQueryVariables = Exact<{
 
 export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
 
+export type RecordDepositMutationVariables = Exact<{
+  input: DepositRecordInput;
+}>;
+
+
+export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } | null } } };
+
 export type GetLoanDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
 export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
+export type LoanApproveMutationVariables = Exact<{
+  input: LoanApproveInput;
+}>;
+
+
+export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type LoanCreateMutationVariables = Exact<{
+  input: LoanCreateInput;
+}>;
+
+
+export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type LoansQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1017,6 +1064,27 @@ export type LoansQueryVariables = Exact<{
 
 
 export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, principal: any, currentCvl?: number | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type LoanPartialPaymentMutationVariables = Exact<{
+  input: LoanPartialPaymentInput;
+}>;
+
+
+export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type CollateralUpdateMutationVariables = Exact<{
+  input: CollateralUpdateInput;
+}>;
+
+
+export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+
+export type CollateralizationStateUpdateMutationVariables = Exact<{
+  input: CollateralizationStateUpdateInput;
+}>;
+
+
+export type CollateralizationStateUpdateMutation = { __typename?: 'Mutation', collateralizationStateUpdate: { __typename?: 'CollateralizationStateUpdatePayload', loan: { __typename?: 'Loan', loanId: string, collateralizationState: LoanCollaterizationState } } };
 
 export type PnlAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
@@ -1041,6 +1109,13 @@ export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type DefaultTermsQuery = { __typename?: 'Query', defaultTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
+export type DefaultTermsUpdateMutationVariables = Exact<{
+  input: DefaultTermsUpdateInput;
+}>;
+
+
+export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -1075,6 +1150,13 @@ export type GetUserDetailsQueryVariables = Exact<{
 
 export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } | null };
 
+export type UserCreateMutationVariables = Exact<{
+  input: UserCreateInput;
+}>;
+
+
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1101,34 +1183,12 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 
 export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
 
-export type WithdrawalsQueryVariables = Exact<{
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
+export type WithdrawalCancelMutationVariables = Exact<{
+  input: WithdrawalCancelInput;
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
-
-export type WithdrawalQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
-
-export type CustomerCreateMutationVariables = Exact<{
-  input: CustomerCreateInput;
-}>;
-
-
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
-
-export type RecordDepositMutationVariables = Exact<{
-  input: DepositRecordInput;
-}>;
-
-
-export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } | null } } };
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
@@ -1144,40 +1204,20 @@ export type WithdrawalInitiateMutationVariables = Exact<{
 
 export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
-export type LoanApproveMutationVariables = Exact<{
-  input: LoanApproveInput;
+export type WithdrawalsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, nodes: Array<{ __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } };
 
-export type CollateralUpdateMutationVariables = Exact<{
-  input: CollateralUpdateInput;
+export type WithdrawalQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
 }>;
 
 
-export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
-
-export type CollateralizationStateUpdateMutationVariables = Exact<{
-  input: CollateralizationStateUpdateInput;
-}>;
-
-
-export type CollateralizationStateUpdateMutation = { __typename?: 'Mutation', collateralizationStateUpdate: { __typename?: 'CollateralizationStateUpdatePayload', loan: { __typename?: 'Loan', loanId: string, collateralizationState: LoanCollaterizationState } } };
-
-export type LoanCreateMutationVariables = Exact<{
-  input: LoanCreateInput;
-}>;
-
-
-export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-
-export type LoanPartialPaymentMutationVariables = Exact<{
-  input: LoanPartialPaymentInput;
-}>;
-
-
-export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type WithdrawalQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, customer?: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } | null } | null };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1188,27 +1228,6 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
-
-export type DefaultTermsUpdateMutationVariables = Exact<{
-  input: DefaultTermsUpdateInput;
-}>;
-
-
-export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-
-export type UserCreateMutationVariables = Exact<{
-  input: UserCreateInput;
-}>;
-
-
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
-
-export type WithdrawalCancelMutationVariables = Exact<{
-  input: WithdrawalCancelInput;
-}>;
-
-
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null } } };
 
 export type GetLoansForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1608,46 +1627,138 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
-export const GetDepositsForCustomerDocument = gql`
-    query GetDepositsForCustomer($id: UUID!) {
+export const GetCustomerBalancesDocument = gql`
+    query GetCustomerBalances($id: UUID!) {
   customer(id: $id) {
     customerId
-    deposits {
-      customerId
-      depositId
-      amount
+    balance {
+      checking {
+        settled
+        pending
+      }
     }
   }
 }
     `;
 
 /**
- * __useGetDepositsForCustomerQuery__
+ * __useGetCustomerBalancesQuery__
  *
- * To run a query within a React component, call `useGetDepositsForCustomerQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetDepositsForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCustomerBalancesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerBalancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetDepositsForCustomerQuery({
+ * const { data, loading, error } = useGetCustomerBalancesQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetDepositsForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetDepositsForCustomerQuery, GetDepositsForCustomerQueryVariables>) {
+export function useGetCustomerBalancesQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetDepositsForCustomerQuery, GetDepositsForCustomerQueryVariables>(GetDepositsForCustomerDocument, options);
+        return Apollo.useQuery<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>(GetCustomerBalancesDocument, options);
       }
-export function useGetDepositsForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDepositsForCustomerQuery, GetDepositsForCustomerQueryVariables>) {
+export function useGetCustomerBalancesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetDepositsForCustomerQuery, GetDepositsForCustomerQueryVariables>(GetDepositsForCustomerDocument, options);
+          return Apollo.useLazyQuery<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>(GetCustomerBalancesDocument, options);
         }
-export type GetDepositsForCustomerQueryHookResult = ReturnType<typeof useGetDepositsForCustomerQuery>;
-export type GetDepositsForCustomerLazyQueryHookResult = ReturnType<typeof useGetDepositsForCustomerLazyQuery>;
-export type GetDepositsForCustomerQueryResult = Apollo.QueryResult<GetDepositsForCustomerQuery, GetDepositsForCustomerQueryVariables>;
+export type GetCustomerBalancesQueryHookResult = ReturnType<typeof useGetCustomerBalancesQuery>;
+export type GetCustomerBalancesLazyQueryHookResult = ReturnType<typeof useGetCustomerBalancesLazyQuery>;
+export type GetCustomerBalancesQueryResult = Apollo.QueryResult<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>;
+export const GetCustomerDetailsByCustomerIdDocument = gql`
+    query getCustomerDetailsByCustomerId($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    loans {
+      loanId
+    }
+    deposits {
+      depositId
+    }
+    withdrawals {
+      withdrawalId
+    }
+    transactions @client {
+      ... on Deposit {
+        depositId
+      }
+      ... on Withdrawal {
+        withdrawalId
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerDetailsByCustomerIdQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerDetailsByCustomerIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerDetailsByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerDetailsByCustomerIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerDetailsByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>(GetCustomerDetailsByCustomerIdDocument, options);
+      }
+export function useGetCustomerDetailsByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>(GetCustomerDetailsByCustomerIdDocument, options);
+        }
+export type GetCustomerDetailsByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerDetailsByCustomerIdQuery>;
+export type GetCustomerDetailsByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerDetailsByCustomerIdLazyQuery>;
+export type GetCustomerDetailsByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>;
+export const GetKycStatusForCustomerDocument = gql`
+    query GetKycStatusForCustomer($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    status
+    level
+    applicantId
+  }
+}
+    `;
+
+/**
+ * __useGetKycStatusForCustomerQuery__
+ *
+ * To run a query within a React component, call `useGetKycStatusForCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetKycStatusForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetKycStatusForCustomerQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetKycStatusForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
+      }
+export function useGetKycStatusForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>(GetKycStatusForCustomerDocument, options);
+        }
+export type GetKycStatusForCustomerQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerQuery>;
+export type GetKycStatusForCustomerLazyQueryHookResult = ReturnType<typeof useGetKycStatusForCustomerLazyQuery>;
+export type GetKycStatusForCustomerQueryResult = Apollo.QueryResult<GetKycStatusForCustomerQuery, GetKycStatusForCustomerQueryVariables>;
 export const SumsubPermalinkCreateDocument = gql`
     mutation sumsubPermalinkCreate($input: SumsubPermalinkCreateInput!) {
   sumsubPermalinkCreate(input: $input) {
@@ -1681,59 +1792,22 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-export const GetCustomerByCustomerIdDocument = gql`
-    query getCustomerByCustomerId($id: UUID!) {
+export const GetTransactionsForCustomerDocument = gql`
+    query GetTransactionsForCustomer($id: UUID!) {
   customer(id: $id) {
     customerId
-    email
-    status
-    level
-    applicantId
-    balance {
-      checking {
-        settled
-        pending
-      }
+    deposits {
+      createdAt
+      customerId
+      depositId
+      reference
+      amount
     }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerByCustomerIdQuery__
- *
- * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-      }
-export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-        }
-export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
-export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
-export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
-export const GetWithdrawalsForCustomerDocument = gql`
-    query GetWithdrawalsForCustomer($id: UUID!) {
-  customer(id: $id) {
-    customerId
     withdrawals {
       status
       reference
       customerId
+      createdAt
       withdrawalId
       amount
       customer {
@@ -1741,37 +1815,97 @@ export const GetWithdrawalsForCustomerDocument = gql`
         email
       }
     }
+    transactions @client {
+      ... on Deposit {
+        createdAt
+        customerId
+        depositId
+        reference
+        amount
+      }
+      ... on Withdrawal {
+        status
+        reference
+        customerId
+        withdrawalId
+        createdAt
+        amount
+        customer {
+          customerId
+          email
+        }
+      }
+    }
   }
 }
     `;
 
 /**
- * __useGetWithdrawalsForCustomerQuery__
+ * __useGetTransactionsForCustomerQuery__
  *
- * To run a query within a React component, call `useGetWithdrawalsForCustomerQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWithdrawalsForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetTransactionsForCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTransactionsForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetWithdrawalsForCustomerQuery({
+ * const { data, loading, error } = useGetTransactionsForCustomerQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetWithdrawalsForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetWithdrawalsForCustomerQuery, GetWithdrawalsForCustomerQueryVariables>) {
+export function useGetTransactionsForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWithdrawalsForCustomerQuery, GetWithdrawalsForCustomerQueryVariables>(GetWithdrawalsForCustomerDocument, options);
+        return Apollo.useQuery<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>(GetTransactionsForCustomerDocument, options);
       }
-export function useGetWithdrawalsForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWithdrawalsForCustomerQuery, GetWithdrawalsForCustomerQueryVariables>) {
+export function useGetTransactionsForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWithdrawalsForCustomerQuery, GetWithdrawalsForCustomerQueryVariables>(GetWithdrawalsForCustomerDocument, options);
+          return Apollo.useLazyQuery<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>(GetTransactionsForCustomerDocument, options);
         }
-export type GetWithdrawalsForCustomerQueryHookResult = ReturnType<typeof useGetWithdrawalsForCustomerQuery>;
-export type GetWithdrawalsForCustomerLazyQueryHookResult = ReturnType<typeof useGetWithdrawalsForCustomerLazyQuery>;
-export type GetWithdrawalsForCustomerQueryResult = Apollo.QueryResult<GetWithdrawalsForCustomerQuery, GetWithdrawalsForCustomerQueryVariables>;
+export type GetTransactionsForCustomerQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerQuery>;
+export type GetTransactionsForCustomerLazyQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerLazyQuery>;
+export type GetTransactionsForCustomerQueryResult = Apollo.QueryResult<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>;
+export const CustomerCreateDocument = gql`
+    mutation CustomerCreate($input: CustomerCreateInput!) {
+  customerCreate(input: $input) {
+    customer {
+      customerId
+      email
+      status
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
+
+/**
+ * __useCustomerCreateMutation__
+ *
+ * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
+      }
+export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
+export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
+export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
 export const GetCustomerByCustomerEmailDocument = gql`
     query getCustomerByCustomerEmail($email: String!) {
   customerByEmail(email: $email) {
@@ -1817,6 +1951,51 @@ export function useGetCustomerByCustomerEmailLazyQuery(baseOptions?: Apollo.Lazy
 export type GetCustomerByCustomerEmailQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailQuery>;
 export type GetCustomerByCustomerEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailLazyQuery>;
 export type GetCustomerByCustomerEmailQueryResult = Apollo.QueryResult<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>;
+export const GetCustomerByCustomerIdDocument = gql`
+    query getCustomerByCustomerId($id: UUID!) {
+  customer(id: $id) {
+    customerId
+    email
+    status
+    level
+    applicantId
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerByCustomerIdQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+      }
+export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
+        }
+export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
+export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
+export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
 export const DepositsDocument = gql`
     query Deposits($first: Int!, $after: String) {
   deposits(first: $first, after: $after) {
@@ -1911,6 +2090,51 @@ export function useDepositLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<De
 export type DepositQueryHookResult = ReturnType<typeof useDepositQuery>;
 export type DepositLazyQueryHookResult = ReturnType<typeof useDepositLazyQuery>;
 export type DepositQueryResult = Apollo.QueryResult<DepositQuery, DepositQueryVariables>;
+export const RecordDepositDocument = gql`
+    mutation RecordDeposit($input: DepositRecordInput!) {
+  depositRecord(input: $input) {
+    deposit {
+      depositId
+      amount
+      customer {
+        customerId
+        email
+        balance {
+          checking {
+            settled
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type RecordDepositMutationFn = Apollo.MutationFunction<RecordDepositMutation, RecordDepositMutationVariables>;
+
+/**
+ * __useRecordDepositMutation__
+ *
+ * To run a mutation, you first call `useRecordDepositMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRecordDepositMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [recordDepositMutation, { data, loading, error }] = useRecordDepositMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRecordDepositMutation(baseOptions?: Apollo.MutationHookOptions<RecordDepositMutation, RecordDepositMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RecordDepositMutation, RecordDepositMutationVariables>(RecordDepositDocument, options);
+      }
+export type RecordDepositMutationHookResult = ReturnType<typeof useRecordDepositMutation>;
+export type RecordDepositMutationResult = Apollo.MutationResult<RecordDepositMutation>;
+export type RecordDepositMutationOptions = Apollo.BaseMutationOptions<RecordDepositMutation, RecordDepositMutationVariables>;
 export const GetLoanDetailsDocument = gql`
     query GetLoanDetails($id: UUID!) {
   loan(id: $id) {
@@ -2012,6 +2236,113 @@ export function useGetLoanDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type GetLoanDetailsQueryHookResult = ReturnType<typeof useGetLoanDetailsQuery>;
 export type GetLoanDetailsLazyQueryHookResult = ReturnType<typeof useGetLoanDetailsLazyQuery>;
 export type GetLoanDetailsQueryResult = Apollo.QueryResult<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>;
+export const LoanApproveDocument = gql`
+    mutation LoanApprove($input: LoanApproveInput!) {
+  loanApprove(input: $input) {
+    loan {
+      id
+      loanId
+      createdAt
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanApproveMutationFn = Apollo.MutationFunction<LoanApproveMutation, LoanApproveMutationVariables>;
+
+/**
+ * __useLoanApproveMutation__
+ *
+ * To run a mutation, you first call `useLoanApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanApproveMutation, { data, loading, error }] = useLoanApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanApproveMutation(baseOptions?: Apollo.MutationHookOptions<LoanApproveMutation, LoanApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanApproveMutation, LoanApproveMutationVariables>(LoanApproveDocument, options);
+      }
+export type LoanApproveMutationHookResult = ReturnType<typeof useLoanApproveMutation>;
+export type LoanApproveMutationResult = Apollo.MutationResult<LoanApproveMutation>;
+export type LoanApproveMutationOptions = Apollo.BaseMutationOptions<LoanApproveMutation, LoanApproveMutationVariables>;
+export const LoanCreateDocument = gql`
+    mutation LoanCreate($input: LoanCreateInput!) {
+  loanCreate(input: $input) {
+    loan {
+      id
+      loanId
+      createdAt
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+      loanTerms {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanCreateMutationFn = Apollo.MutationFunction<LoanCreateMutation, LoanCreateMutationVariables>;
+
+/**
+ * __useLoanCreateMutation__
+ *
+ * To run a mutation, you first call `useLoanCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanCreateMutation, { data, loading, error }] = useLoanCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanCreateMutation(baseOptions?: Apollo.MutationHookOptions<LoanCreateMutation, LoanCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanCreateMutation, LoanCreateMutationVariables>(LoanCreateDocument, options);
+      }
+export type LoanCreateMutationHookResult = ReturnType<typeof useLoanCreateMutation>;
+export type LoanCreateMutationResult = Apollo.MutationResult<LoanCreateMutation>;
+export type LoanCreateMutationOptions = Apollo.BaseMutationOptions<LoanCreateMutation, LoanCreateMutationVariables>;
 export const LoansDocument = gql`
     query Loans($first: Int!, $after: String) {
   loans(first: $first, after: $after) {
@@ -2076,6 +2407,136 @@ export function useLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<Loan
 export type LoansQueryHookResult = ReturnType<typeof useLoansQuery>;
 export type LoansLazyQueryHookResult = ReturnType<typeof useLoansLazyQuery>;
 export type LoansQueryResult = Apollo.QueryResult<LoansQuery, LoansQueryVariables>;
+export const LoanPartialPaymentDocument = gql`
+    mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
+  loanPartialPayment(input: $input) {
+    loan {
+      id
+      loanId
+      createdAt
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type LoanPartialPaymentMutationFn = Apollo.MutationFunction<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+
+/**
+ * __useLoanPartialPaymentMutation__
+ *
+ * To run a mutation, you first call `useLoanPartialPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanPartialPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanPartialPaymentMutation, { data, loading, error }] = useLoanPartialPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>(LoanPartialPaymentDocument, options);
+      }
+export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
+export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
+export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
+export const CollateralUpdateDocument = gql`
+    mutation CollateralUpdate($input: CollateralUpdateInput!) {
+  collateralUpdate(input: $input) {
+    loan {
+      loanId
+      balance {
+        collateral {
+          btcBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        interestIncurred {
+          usdBalance
+        }
+      }
+    }
+  }
+}
+    `;
+export type CollateralUpdateMutationFn = Apollo.MutationFunction<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
+
+/**
+ * __useCollateralUpdateMutation__
+ *
+ * To run a mutation, you first call `useCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCollateralUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [collateralUpdateMutation, { data, loading, error }] = useCollateralUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CollateralUpdateMutation, CollateralUpdateMutationVariables>(CollateralUpdateDocument, options);
+      }
+export type CollateralUpdateMutationHookResult = ReturnType<typeof useCollateralUpdateMutation>;
+export type CollateralUpdateMutationResult = Apollo.MutationResult<CollateralUpdateMutation>;
+export type CollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
+export const CollateralizationStateUpdateDocument = gql`
+    mutation CollateralizationStateUpdate($input: CollateralizationStateUpdateInput!) {
+  collateralizationStateUpdate(input: $input) {
+    loan {
+      loanId
+      collateralizationState
+    }
+  }
+}
+    `;
+export type CollateralizationStateUpdateMutationFn = Apollo.MutationFunction<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
+
+/**
+ * __useCollateralizationStateUpdateMutation__
+ *
+ * To run a mutation, you first call `useCollateralizationStateUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCollateralizationStateUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [collateralizationStateUpdateMutation, { data, loading, error }] = useCollateralizationStateUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCollateralizationStateUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>(CollateralizationStateUpdateDocument, options);
+      }
+export type CollateralizationStateUpdateMutationHookResult = ReturnType<typeof useCollateralizationStateUpdateMutation>;
+export type CollateralizationStateUpdateMutationResult = Apollo.MutationResult<CollateralizationStateUpdateMutation>;
+export type CollateralizationStateUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
 export const PnlAccountSetDocument = gql`
     query PnlAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
   accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
@@ -2257,6 +2718,53 @@ export function useDefaultTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptio
 export type DefaultTermsQueryHookResult = ReturnType<typeof useDefaultTermsQuery>;
 export type DefaultTermsLazyQueryHookResult = ReturnType<typeof useDefaultTermsLazyQuery>;
 export type DefaultTermsQueryResult = Apollo.QueryResult<DefaultTermsQuery, DefaultTermsQueryVariables>;
+export const DefaultTermsUpdateDocument = gql`
+    mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
+  defaultTermsUpdate(input: $input) {
+    terms {
+      id
+      termsId
+      values {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type DefaultTermsUpdateMutationFn = Apollo.MutationFunction<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
+
+/**
+ * __useDefaultTermsUpdateMutation__
+ *
+ * To run a mutation, you first call `useDefaultTermsUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDefaultTermsUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [defaultTermsUpdateMutation, { data, loading, error }] = useDefaultTermsUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>(DefaultTermsUpdateDocument, options);
+      }
+export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
+export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
 export const GetOnBalanceSheetTrialBalanceDocument = gql`
     query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
   trialBalance(from: $from, until: $until) {
@@ -2400,6 +2908,43 @@ export function useGetUserDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOpt
 export type GetUserDetailsQueryHookResult = ReturnType<typeof useGetUserDetailsQuery>;
 export type GetUserDetailsLazyQueryHookResult = ReturnType<typeof useGetUserDetailsLazyQuery>;
 export type GetUserDetailsQueryResult = Apollo.QueryResult<GetUserDetailsQuery, GetUserDetailsQueryVariables>;
+export const UserCreateDocument = gql`
+    mutation UserCreate($input: UserCreateInput!) {
+  userCreate(input: $input) {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+export type UserCreateMutationFn = Apollo.MutationFunction<UserCreateMutation, UserCreateMutationVariables>;
+
+/**
+ * __useUserCreateMutation__
+ *
+ * To run a mutation, you first call `useUserCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [userCreateMutation, { data, loading, error }] = useUserCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUserCreateMutation(baseOptions?: Apollo.MutationHookOptions<UserCreateMutation, UserCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UserCreateMutation, UserCreateMutationVariables>(UserCreateDocument, options);
+      }
+export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutation>;
+export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
+export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
 export const UsersDocument = gql`
     query Users {
   users {
@@ -2554,6 +3099,143 @@ export function useGetWithdrawalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryH
 export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsQuery>;
 export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
 export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
+export const WithdrawalCancelDocument = gql`
+    mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
+  withdrawalCancel(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalCancelMutationFn = Apollo.MutationFunction<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
+
+/**
+ * __useWithdrawalCancelMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalCancelMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalCancelMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalCancelMutation, { data, loading, error }] = useWithdrawalCancelMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalCancelMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>(WithdrawalCancelDocument, options);
+      }
+export type WithdrawalCancelMutationHookResult = ReturnType<typeof useWithdrawalCancelMutation>;
+export type WithdrawalCancelMutationResult = Apollo.MutationResult<WithdrawalCancelMutation>;
+export type WithdrawalCancelMutationOptions = Apollo.BaseMutationOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
+export const WithdrawalConfirmDocument = gql`
+    mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
+  withdrawalConfirm(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      reference
+      customer {
+        customerId
+        email
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalConfirmMutationFn = Apollo.MutationFunction<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+
+/**
+ * __useWithdrawalConfirmMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalConfirmMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalConfirmMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalConfirmMutation, { data, loading, error }] = useWithdrawalConfirmMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>(WithdrawalConfirmDocument, options);
+      }
+export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawalConfirmMutation>;
+export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
+export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+export const WithdrawalInitiateDocument = gql`
+    mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+  withdrawalInitiate(input: $input) {
+    withdrawal {
+      withdrawalId
+      amount
+      customer {
+        customerId
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type WithdrawalInitiateMutationFn = Apollo.MutationFunction<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
+
+/**
+ * __useWithdrawalInitiateMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalInitiateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalInitiateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalInitiateMutation, { data, loading, error }] = useWithdrawalInitiateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>(WithdrawalInitiateDocument, options);
+      }
+export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdrawalInitiateMutation>;
+export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
+export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
 export const WithdrawalsDocument = gql`
     query Withdrawals($first: Int!, $after: String) {
   withdrawals(first: $first, after: $after) {
@@ -2650,419 +3332,6 @@ export function useWithdrawalLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type WithdrawalQueryHookResult = ReturnType<typeof useWithdrawalQuery>;
 export type WithdrawalLazyQueryHookResult = ReturnType<typeof useWithdrawalLazyQuery>;
 export type WithdrawalQueryResult = Apollo.QueryResult<WithdrawalQuery, WithdrawalQueryVariables>;
-export const CustomerCreateDocument = gql`
-    mutation CustomerCreate($input: CustomerCreateInput!) {
-  customerCreate(input: $input) {
-    customer {
-      customerId
-      email
-      status
-      level
-      applicantId
-    }
-  }
-}
-    `;
-export type CustomerCreateMutationFn = Apollo.MutationFunction<CustomerCreateMutation, CustomerCreateMutationVariables>;
-
-/**
- * __useCustomerCreateMutation__
- *
- * To run a mutation, you first call `useCustomerCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [customerCreateMutation, { data, loading, error }] = useCustomerCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerCreateMutation, CustomerCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerCreateMutation, CustomerCreateMutationVariables>(CustomerCreateDocument, options);
-      }
-export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
-export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
-export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
-export const RecordDepositDocument = gql`
-    mutation RecordDeposit($input: DepositRecordInput!) {
-  depositRecord(input: $input) {
-    deposit {
-      depositId
-      amount
-      customer {
-        customerId
-        email
-        balance {
-          checking {
-            settled
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-export type RecordDepositMutationFn = Apollo.MutationFunction<RecordDepositMutation, RecordDepositMutationVariables>;
-
-/**
- * __useRecordDepositMutation__
- *
- * To run a mutation, you first call `useRecordDepositMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRecordDepositMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [recordDepositMutation, { data, loading, error }] = useRecordDepositMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useRecordDepositMutation(baseOptions?: Apollo.MutationHookOptions<RecordDepositMutation, RecordDepositMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RecordDepositMutation, RecordDepositMutationVariables>(RecordDepositDocument, options);
-      }
-export type RecordDepositMutationHookResult = ReturnType<typeof useRecordDepositMutation>;
-export type RecordDepositMutationResult = Apollo.MutationResult<RecordDepositMutation>;
-export type RecordDepositMutationOptions = Apollo.BaseMutationOptions<RecordDepositMutation, RecordDepositMutationVariables>;
-export const WithdrawalConfirmDocument = gql`
-    mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
-  withdrawalConfirm(input: $input) {
-    withdrawal {
-      withdrawalId
-      amount
-      reference
-      customer {
-        customerId
-        email
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-export type WithdrawalConfirmMutationFn = Apollo.MutationFunction<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
-
-/**
- * __useWithdrawalConfirmMutation__
- *
- * To run a mutation, you first call `useWithdrawalConfirmMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalConfirmMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [withdrawalConfirmMutation, { data, loading, error }] = useWithdrawalConfirmMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useWithdrawalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>(WithdrawalConfirmDocument, options);
-      }
-export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawalConfirmMutation>;
-export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
-export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
-export const WithdrawalInitiateDocument = gql`
-    mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
-  withdrawalInitiate(input: $input) {
-    withdrawal {
-      withdrawalId
-      amount
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-export type WithdrawalInitiateMutationFn = Apollo.MutationFunction<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
-
-/**
- * __useWithdrawalInitiateMutation__
- *
- * To run a mutation, you first call `useWithdrawalInitiateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalInitiateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [withdrawalInitiateMutation, { data, loading, error }] = useWithdrawalInitiateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useWithdrawalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>(WithdrawalInitiateDocument, options);
-      }
-export type WithdrawalInitiateMutationHookResult = ReturnType<typeof useWithdrawalInitiateMutation>;
-export type WithdrawalInitiateMutationResult = Apollo.MutationResult<WithdrawalInitiateMutation>;
-export type WithdrawalInitiateMutationOptions = Apollo.BaseMutationOptions<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
-export const LoanApproveDocument = gql`
-    mutation LoanApprove($input: LoanApproveInput!) {
-  loanApprove(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanApproveMutationFn = Apollo.MutationFunction<LoanApproveMutation, LoanApproveMutationVariables>;
-
-/**
- * __useLoanApproveMutation__
- *
- * To run a mutation, you first call `useLoanApproveMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanApproveMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanApproveMutation, { data, loading, error }] = useLoanApproveMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanApproveMutation(baseOptions?: Apollo.MutationHookOptions<LoanApproveMutation, LoanApproveMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanApproveMutation, LoanApproveMutationVariables>(LoanApproveDocument, options);
-      }
-export type LoanApproveMutationHookResult = ReturnType<typeof useLoanApproveMutation>;
-export type LoanApproveMutationResult = Apollo.MutationResult<LoanApproveMutation>;
-export type LoanApproveMutationOptions = Apollo.BaseMutationOptions<LoanApproveMutation, LoanApproveMutationVariables>;
-export const CollateralUpdateDocument = gql`
-    mutation CollateralUpdate($input: CollateralUpdateInput!) {
-  collateralUpdate(input: $input) {
-    loan {
-      loanId
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type CollateralUpdateMutationFn = Apollo.MutationFunction<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
-
-/**
- * __useCollateralUpdateMutation__
- *
- * To run a mutation, you first call `useCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCollateralUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [collateralUpdateMutation, { data, loading, error }] = useCollateralUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CollateralUpdateMutation, CollateralUpdateMutationVariables>(CollateralUpdateDocument, options);
-      }
-export type CollateralUpdateMutationHookResult = ReturnType<typeof useCollateralUpdateMutation>;
-export type CollateralUpdateMutationResult = Apollo.MutationResult<CollateralUpdateMutation>;
-export type CollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
-export const CollateralizationStateUpdateDocument = gql`
-    mutation CollateralizationStateUpdate($input: CollateralizationStateUpdateInput!) {
-  collateralizationStateUpdate(input: $input) {
-    loan {
-      loanId
-      collateralizationState
-    }
-  }
-}
-    `;
-export type CollateralizationStateUpdateMutationFn = Apollo.MutationFunction<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
-
-/**
- * __useCollateralizationStateUpdateMutation__
- *
- * To run a mutation, you first call `useCollateralizationStateUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCollateralizationStateUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [collateralizationStateUpdateMutation, { data, loading, error }] = useCollateralizationStateUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCollateralizationStateUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>(CollateralizationStateUpdateDocument, options);
-      }
-export type CollateralizationStateUpdateMutationHookResult = ReturnType<typeof useCollateralizationStateUpdateMutation>;
-export type CollateralizationStateUpdateMutationResult = Apollo.MutationResult<CollateralizationStateUpdateMutation>;
-export type CollateralizationStateUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
-export const LoanCreateDocument = gql`
-    mutation LoanCreate($input: LoanCreateInput!) {
-  loanCreate(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-      loanTerms {
-        annualRate
-        interval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanCreateMutationFn = Apollo.MutationFunction<LoanCreateMutation, LoanCreateMutationVariables>;
-
-/**
- * __useLoanCreateMutation__
- *
- * To run a mutation, you first call `useLoanCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanCreateMutation, { data, loading, error }] = useLoanCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanCreateMutation(baseOptions?: Apollo.MutationHookOptions<LoanCreateMutation, LoanCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanCreateMutation, LoanCreateMutationVariables>(LoanCreateDocument, options);
-      }
-export type LoanCreateMutationHookResult = ReturnType<typeof useLoanCreateMutation>;
-export type LoanCreateMutationResult = Apollo.MutationResult<LoanCreateMutation>;
-export type LoanCreateMutationOptions = Apollo.BaseMutationOptions<LoanCreateMutation, LoanCreateMutationVariables>;
-export const LoanPartialPaymentDocument = gql`
-    mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
-  loanPartialPayment(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanPartialPaymentMutationFn = Apollo.MutationFunction<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-
-/**
- * __useLoanPartialPaymentMutation__
- *
- * To run a mutation, you first call `useLoanPartialPaymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanPartialPaymentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanPartialPaymentMutation, { data, loading, error }] = useLoanPartialPaymentMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>(LoanPartialPaymentDocument, options);
-      }
-export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
-export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
-export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
 export const GetRealtimePriceUpdatesDocument = gql`
     query GetRealtimePriceUpdates {
   realtimePrice {
@@ -3143,135 +3412,6 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
-export const DefaultTermsUpdateDocument = gql`
-    mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
-  defaultTermsUpdate(input: $input) {
-    terms {
-      id
-      termsId
-      values {
-        annualRate
-        interval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
-    }
-  }
-}
-    `;
-export type DefaultTermsUpdateMutationFn = Apollo.MutationFunction<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
-
-/**
- * __useDefaultTermsUpdateMutation__
- *
- * To run a mutation, you first call `useDefaultTermsUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDefaultTermsUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [defaultTermsUpdateMutation, { data, loading, error }] = useDefaultTermsUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>(DefaultTermsUpdateDocument, options);
-      }
-export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
-export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
-export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
-export const UserCreateDocument = gql`
-    mutation UserCreate($input: UserCreateInput!) {
-  userCreate(input: $input) {
-    user {
-      userId
-      email
-      roles
-    }
-  }
-}
-    `;
-export type UserCreateMutationFn = Apollo.MutationFunction<UserCreateMutation, UserCreateMutationVariables>;
-
-/**
- * __useUserCreateMutation__
- *
- * To run a mutation, you first call `useUserCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [userCreateMutation, { data, loading, error }] = useUserCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUserCreateMutation(baseOptions?: Apollo.MutationHookOptions<UserCreateMutation, UserCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserCreateMutation, UserCreateMutationVariables>(UserCreateDocument, options);
-      }
-export type UserCreateMutationHookResult = ReturnType<typeof useUserCreateMutation>;
-export type UserCreateMutationResult = Apollo.MutationResult<UserCreateMutation>;
-export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMutation, UserCreateMutationVariables>;
-export const WithdrawalCancelDocument = gql`
-    mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
-  withdrawalCancel(input: $input) {
-    withdrawal {
-      withdrawalId
-      amount
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-export type WithdrawalCancelMutationFn = Apollo.MutationFunction<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
-
-/**
- * __useWithdrawalCancelMutation__
- *
- * To run a mutation, you first call `useWithdrawalCancelMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useWithdrawalCancelMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [withdrawalCancelMutation, { data, loading, error }] = useWithdrawalCancelMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useWithdrawalCancelMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>(WithdrawalCancelDocument, options);
-      }
-export type WithdrawalCancelMutationHookResult = ReturnType<typeof useWithdrawalCancelMutation>;
-export type WithdrawalCancelMutationResult = Apollo.MutationResult<WithdrawalCancelMutation>;
-export type WithdrawalCancelMutationOptions = Apollo.BaseMutationOptions<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
 export const GetLoansForCustomerDocument = gql`
     query GetLoansForCustomer($id: UUID!) {
   customer(id: $id) {
