@@ -11,7 +11,7 @@ resource "google_project_iam_custom_role" "list_objects" {
 resource "google_storage_bucket" "tf_state" {
   name                        = local.tf_state_bucket_name
   project                     = local.project
-  location                    = local.location
+  location                    = "us-east1"
   uniform_bucket_level_access = true
   versioning {
     enabled = true
@@ -21,7 +21,7 @@ resource "google_storage_bucket" "tf_state" {
 data "google_iam_policy" "tf_state_access" {
   binding {
     role    = "roles/storage.admin"
-    members = [local.justin]
+    members = ["user:${local.justin}"]
   }
 }
 

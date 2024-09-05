@@ -29,4 +29,4 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
-          TF_VAR_name_prefix: "lava_gha_ci"
+          TF_VAR_name_prefix: "gha"

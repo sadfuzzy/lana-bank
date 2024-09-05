@@ -1,7 +1,7 @@
 const dev = {
   name: "volcano-dev",
   database: "cala-enterprise",
-  importSchema: dataform.projectConfig.vars.devUser + "_dev_dataset",
+  importSchema: dataform.projectConfig.vars.devUser + "_dataset",
 }
 
 const staging = {

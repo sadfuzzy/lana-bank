@@ -17,4 +17,4 @@ target/
 .env
 tilt.log
 
-dataform/node_modules/
+node_modules/
