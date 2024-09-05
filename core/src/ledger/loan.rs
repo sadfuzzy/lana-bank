@@ -101,7 +101,7 @@ pub struct LoanInterestAccrual {
 }
 
 #[derive(Debug, Clone)]
-pub struct LoanApproval {
+pub struct LoanApprovalData {
     pub initial_principal: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,

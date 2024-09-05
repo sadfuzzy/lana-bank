@@ -9,7 +9,7 @@ mod price;
 mod schema;
 mod shareholder_equity;
 mod terms;
-mod user;
+pub mod user;
 mod withdraw;
 
 use async_graphql::{dataloader::*, *};

@@ -229,46 +229,13 @@ generate_email() {
   echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]'
 }
 
-create_user() {
-  email=$(echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]')
-
-  flowId=$(curl -s -X GET \
-    -H "Accept: application/json" \
-    "$KRATOS_PUBLIC_ENDPOINT/self-service/registration/api" | jq -r '.id')
-
-  response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-    -H "Content-Type: application/json" \
-    -d '{
-    "method": "code",
-    "traits": {
-      "email": "'"$email"'"
-    }
-  }')
-
-  code=$(getEmailCode "$email")
-
-  verification_response=$(curl -s -X POST "$KRATOS_PUBLIC_ENDPOINT/self-service/registration?flow=$flowId" \
-    -H "Content-Type: application/json" \
-    -d '{
-    "code": "'"$code"'",
-    "method": "code",
-    "traits": {
-      "email": "'"$email"'"
-    }
-  }')
-
-  # Extract and print the session token if needed
-  token=$(echo $verification_response | jq -r '.session_token')
-  echo $token
-}
-
 create_customer() {
   customer_email=$(generate_email)
 
   variables=$(
     jq -n \
-    --arg email "$customer_email" \
-    '{
+      --arg email "$customer_email" \
+      '{
       input: {
         email: $email
         }
@@ -301,8 +268,8 @@ sub() {
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'balance-sheet' "$variables"
   echo $(graphql_output)
@@ -323,8 +290,8 @@ assert_balance_sheet_balanced() {
 assert_trial_balance() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'trial-balance' "$variables"
 
@@ -343,8 +310,8 @@ assert_accounts_balanced() {
 net_usd_revenue() {
   variables=$(
     jq -n \
-    --arg from "$(from_utc)" \
-    '{ from: $from }'
+      --arg from "$(from_utc)" \
+      '{ from: $from }'
   )
   exec_admin_graphql 'profit-and-loss' "$variables"
 

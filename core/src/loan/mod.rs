@@ -21,6 +21,7 @@ use crate::{
     ledger::{loan::*, Ledger},
     price::Price,
     primitives::*,
+    user::*,
 };
 
 pub use config::*;
@@ -39,6 +40,7 @@ pub struct Loans {
     pool: PgPool,
     jobs: Jobs,
     authz: Authorization,
+    user_repo: UserRepo,
     price: Price,
     config: LoanConfig,
 }
@@ -55,6 +57,7 @@ impl Loans {
         audit: &Audit,
         export: &Export,
         price: &Price,
+        users: &Users,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
         let term_repo = TermRepo::new(pool);
@@ -76,6 +79,7 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
+            user_repo: users.repo().clone(),
             price: price.clone(),
             config,
         }
@@ -158,8 +162,8 @@ impl Loans {
         Ok(loan)
     }
 
-    #[instrument(name = "lava.loan.approve_loan", skip(self), err)]
-    pub async fn approve_loan(
+    #[instrument(name = "lava.loan.add_approval", skip(self), err)]
+    pub async fn add_approval(
         &self,
         sub: &Subject,
         loan_id: impl Into<LoanId> + std::fmt::Debug,
@@ -171,22 +175,29 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id.into()).await?;
 
+        let subject_id = uuid::Uuid::from(sub);
+        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
+
         let mut db_tx = self.pool.begin().await?;
         let price = self.price.usd_cents_per_btc().await?;
-        let loan_approval = loan.initiate_approval(price)?;
-        let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
-        loan.confirm_approval(loan_approval, executed_at, audit_info);
 
+        if let Some(loan_approval) =
+            loan.add_approval(user.id, user.current_roles(), audit_info, price)?
+        {
+            let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
+            loan.confirm_approval(loan_approval, executed_at, audit_info);
+            self.jobs
+                .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
+                    &mut db_tx,
+                    loan.id,
+                    format!("loan-interest-processing-{}", loan.id),
+                    interest::LoanJobConfig { loan_id: loan.id },
+                )
+                .await?;
+        }
         self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
-        self.jobs
-            .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
-                &mut db_tx,
-                loan.id,
-                format!("loan-interest-processing-{}", loan.id),
-                interest::LoanJobConfig { loan_id: loan.id },
-            )
-            .await?;
         db_tx.commit().await?;
+
         Ok(loan)
     }
 

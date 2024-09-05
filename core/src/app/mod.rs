@@ -51,6 +51,7 @@ impl LavaApp {
         let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new();
+        let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let loans = Loans::new(
             &pool,
             config.loan,
@@ -61,8 +62,8 @@ impl LavaApp {
             &audit,
             &export,
             &price,
+            &users,
         );
-        let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         jobs.start_poll().await?;
 
         loans.spawn_global_jobs().await?;

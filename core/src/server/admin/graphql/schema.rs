@@ -509,7 +509,7 @@ impl Mutation {
 
         let AdminAuthContext { sub } = ctx.data()?;
 
-        let loan = app.loans().approve_loan(sub, input.loan_id).await?;
+        let loan = app.loans().add_approval(sub, input.loan_id).await?;
         Ok(LoanApprovePayload::from(loan))
     }
 

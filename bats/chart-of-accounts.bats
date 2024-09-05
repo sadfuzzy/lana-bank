@@ -11,7 +11,7 @@ teardown_file() {
 }
 
 @test "chart-of-accounts: can traverse chart of accounts" {
-  for i in {1..2}; do create_user; done
+  for i in {1..2}; do create_customer; done
 
   # Fetch Chart of Accounts
   exec_admin_graphql 'chart-of-accounts'

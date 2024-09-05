@@ -3,6 +3,8 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
+use std::collections::HashSet;
+
 use crate::{
     entity::*,
     ledger::{
@@ -12,7 +14,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, CVLPct, LoanApproval, LoanInterestAccrual};
+use super::{error::LoanError, terms::TermValues, CVLPct, LoanApprovalData, LoanInterestAccrual};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
@@ -60,6 +62,11 @@ pub struct CollateralizationUpdated {
     pub outstanding_principal: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub price: PriceOfOneBTC,
+}
+
+pub struct LoanApproval {
+    pub user_id: UserId,
+    pub approved_at: DateTime<Utc>,
 }
 
 impl LoanReceivable {
@@ -119,6 +126,12 @@ pub enum LoanEvent {
         price: PriceOfOneBTC,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+    },
+    ApprovalAdded {
+        approving_user_id: UserId,
+        approving_user_roles: HashSet<Role>,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     Approved {
         tx_id: LedgerTxId,
@@ -368,10 +381,32 @@ impl Loan {
         }
     }
 
-    pub(super) fn initiate_approval(
+    fn has_user_previously_approved(&self, user_id: UserId) -> bool {
+        for event in self.events.iter() {
+            match event {
+                LoanEvent::ApprovalAdded {
+                    approving_user_id, ..
+                } => {
+                    if user_id == *approving_user_id {
+                        return true;
+                    }
+                }
+                _ => continue,
+            }
+        }
+        false
+    }
+
+    pub(super) fn add_approval(
         &mut self,
+        approving_user_id: UserId,
+        approving_user_roles: HashSet<Role>,
+        audit_info: AuditInfo,
         price: PriceOfOneBTC,
-    ) -> Result<LoanApproval, LoanError> {
+    ) -> Result<Option<LoanApprovalData>, LoanError> {
+        if self.has_user_previously_approved(approving_user_id) {
+            return Err(LoanError::UserCannotApproveTwice);
+        }
         if self.is_approved() {
             return Err(LoanError::AlreadyApproved);
         }
@@ -387,19 +422,73 @@ impl Loan {
             return Err(LoanError::BelowMarginLimit);
         }
 
-        let tx_ref = format!("{}-approval", self.id);
-        Ok(LoanApproval {
-            initial_principal: self.initial_principal(),
-            tx_ref,
-            tx_id: LedgerTxId::new(),
-            loan_account_ids: self.account_ids,
-            customer_account_ids: self.customer_account_ids,
-        })
+        self.events.push(LoanEvent::ApprovalAdded {
+            approving_user_id,
+            approving_user_roles,
+            audit_info,
+            recorded_at: Utc::now(),
+        });
+
+        if self.approval_threshold_met() {
+            let tx_ref = format!("{}-approval", self.id);
+            Ok(Some(LoanApprovalData {
+                initial_principal: self.initial_principal(),
+                tx_ref,
+                tx_id: LedgerTxId::new(),
+                loan_account_ids: self.account_ids,
+                customer_account_ids: self.customer_account_ids,
+            }))
+        } else {
+            Ok(None)
+        }
+    }
+
+    fn approval_threshold_met(&self) -> bool {
+        let mut n_admin = 0;
+        let mut n_bank_manager = 0;
+
+        for event in self.events.iter() {
+            if let LoanEvent::ApprovalAdded {
+                approving_user_roles,
+                ..
+            } = event
+            {
+                if approving_user_roles.contains(&Role::Superuser) {
+                    return true;
+                } else if approving_user_roles.contains(&Role::Admin) {
+                    n_admin += 1;
+                } else {
+                    n_bank_manager += 1;
+                }
+            }
+        }
+
+        n_admin >= 1 && n_admin + n_bank_manager >= 2
+    }
+
+    pub fn approvals(&self) -> Vec<LoanApproval> {
+        let mut loan_approvals = vec![];
+
+        for event in self.events.iter().rev() {
+            if let LoanEvent::ApprovalAdded {
+                approving_user_id,
+                recorded_at,
+                ..
+            } = event
+            {
+                loan_approvals.push(LoanApproval {
+                    user_id: *approving_user_id,
+                    approved_at: *recorded_at,
+                });
+            }
+        }
+
+        loan_approvals
     }
 
     pub(super) fn confirm_approval(
         &mut self,
-        LoanApproval { tx_id, .. }: LoanApproval,
+        LoanApprovalData { tx_id, .. }: LoanApprovalData,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
@@ -873,6 +962,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                 LoanEvent::PaymentRecorded { .. } => (),
                 LoanEvent::Completed { .. } => (),
                 LoanEvent::CollateralUpdated { .. } => (),
+                LoanEvent::ApprovalAdded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -941,6 +1031,18 @@ mod test {
             audit_entry_id: AuditEntryId::from(1),
             sub: Subject::from(UserId::new()),
         }
+    }
+
+    fn bank_manager_role() -> HashSet<Role> {
+        let mut roles = HashSet::new();
+        roles.insert(Role::BankManager);
+        roles
+    }
+
+    fn admin_role() -> HashSet<Role> {
+        let mut roles = HashSet::new();
+        roles.insert(Role::Admin);
+        roles
     }
 
     fn init_events() -> EntityEvents<LoanEvent> {
@@ -1055,12 +1157,16 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval(default_price());
-        assert!(loan_approval.is_ok());
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        let loan_approval = add_approvals(&mut loan);
+        loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
 
-        let loan_approval = loan.initiate_approval(default_price());
-        assert!(loan_approval.is_err())
+        let third_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        assert!(matches!(third_approval, Err(LoanError::AlreadyApproved)));
     }
 
     #[test]
@@ -1079,11 +1185,10 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-
         let approval_time = Utc::now();
-        let loan_approval = loan.initiate_approval(default_price());
-        assert!(loan_approval.is_ok());
-        loan.confirm_approval(loan_approval.unwrap(), approval_time, dummy_audit_info());
+
+        let loan_approval = add_approvals(&mut loan);
+        loan.confirm_approval(loan_approval, approval_time, dummy_audit_info());
         assert_eq!(loan.approved_at(), Some(approval_time));
         assert!(loan.expires_at().is_some())
     }
@@ -1102,7 +1207,7 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval(default_price()).unwrap();
+        let loan_approval = add_approvals(&mut loan);
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         assert_eq!(loan.status(), LoanStatus::Active);
         let amount = UsdCents::from(105);
@@ -1151,7 +1256,12 @@ mod test {
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        let res = loan.initiate_approval(default_price());
+        let res = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
         assert!(matches!(res, Err(LoanError::NoCollateral)));
     }
 
@@ -1174,8 +1284,8 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval(default_price());
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        let loan_approval = add_approvals(&mut loan);
+        loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
         loan.maybe_update_collateralization(
             default_price(),
             default_upgrade_buffer_cvl_pct(),
@@ -1201,8 +1311,8 @@ mod test {
             default_price(),
             default_upgrade_buffer_cvl_pct(),
         );
-        let loan_approval = loan.initiate_approval(default_price());
-        loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+        let loan_approval = add_approvals(&mut loan);
+        loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
         let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
@@ -1255,8 +1365,8 @@ mod test {
             let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            let loan_approval = loan.initiate_approval(default_price());
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            let loan_approval = add_approvals(&mut loan);
+            loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             // FullyCollateralized -> None
@@ -1378,8 +1488,8 @@ mod test {
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
             // LoanStatus::Active
-            let loan_approval = loan.initiate_approval(default_price());
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            let loan_approval = add_approvals(&mut loan);
+            loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             assert_eq!(
@@ -1436,8 +1546,8 @@ mod test {
             let c = loan.collateralization();
             assert_eq!(c, LoanCollaterizationState::FullyCollateralized);
 
-            let loan_approval = loan.initiate_approval(default_price());
-            loan.confirm_approval(loan_approval.unwrap(), Utc::now(), dummy_audit_info());
+            let loan_approval = add_approvals(&mut loan);
+            loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
             assert_eq!(loan.status(), LoanStatus::Active);
 
             // Check allowed changes from Liquidation state
@@ -1494,7 +1604,185 @@ mod test {
             default_upgrade_buffer_cvl_pct(),
         );
 
-        let loan_approval = loan.initiate_approval(default_price());
-        assert!(matches!(loan_approval, Err(LoanError::BelowMarginLimit)));
+        let first_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        assert!(matches!(first_approval, Err(LoanError::BelowMarginLimit)));
+    }
+
+    fn add_approvals(loan: &mut Loan) -> LoanApprovalData {
+        let first_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        assert!(first_approval.is_ok());
+
+        let second_approval = loan.add_approval(
+            UserId::new(),
+            admin_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        assert!(second_approval.is_ok());
+
+        second_approval
+            .unwrap()
+            .expect("should return a loan approval")
+    }
+
+    #[test]
+    fn two_admins_can_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let _first_admin_approval = loan.add_approval(
+            UserId::new(),
+            admin_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        let _second_admin_approval = loan.add_approval(
+            UserId::new(),
+            admin_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(loan.approval_threshold_met());
+    }
+
+    #[test]
+    fn admin_and_bank_manager_can_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let _admin_approval = loan.add_approval(
+            UserId::new(),
+            admin_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        let _bank_manager_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(loan.approval_threshold_met());
+    }
+
+    #[test]
+    fn user_with_both_admin_and_bank_manager_role_cannot_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let admin_and_bank_manager = admin_role().union(&bank_manager_role()).cloned().collect();
+        let _approval = loan.add_approval(
+            UserId::new(),
+            admin_and_bank_manager,
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(!loan.approval_threshold_met());
+    }
+
+    #[test]
+    fn two_bank_managers_cannot_approve() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        let _first_bank_manager_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+        let _second_bank_manager_approval = loan.add_approval(
+            UserId::new(),
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(!loan.approval_threshold_met());
+    }
+
+    #[test]
+    fn same_user_cannot_approve_twice() {
+        let mut loan = Loan::try_from(init_events()).unwrap();
+        let loan_collateral_update = loan
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        loan.confirm_collateral_update(
+            loan_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+
+        let user_id = UserId::new();
+
+        let first_approval = loan.add_approval(
+            user_id,
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(first_approval.is_ok());
+
+        let second_approval = loan.add_approval(
+            user_id,
+            bank_manager_role(),
+            dummy_audit_info(),
+            default_price(),
+        );
+
+        assert!(matches!(
+            second_approval,
+            Err(LoanError::UserCannotApproveTwice)
+        ));
     }
 }

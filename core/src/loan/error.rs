@@ -10,6 +10,8 @@ pub enum LoanError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("LoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("LoanError - UserError: {0}")]
+    UserError(#[from] crate::user::error::UserError),
     #[error("LoanError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
     #[error("LoanError - LoanTermsError: {0}")]
@@ -30,6 +32,8 @@ pub enum LoanError {
     AlreadyCompleted,
     #[error("LoanError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("LoanError - UserCannotApproveTwice")]
+    UserCannotApproveTwice,
     #[error("LoanError - PaymentExceedsOutstandingLoanAmount: {0} > {1}")]
     PaymentExceedsOutstandingLoanAmount(UsdCents, UsdCents),
     #[error("LoanError - UnexpectedZeroPrincipalAmount: totalAmount({0}), interestAmount({1})")]

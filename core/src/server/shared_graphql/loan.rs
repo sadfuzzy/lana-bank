@@ -4,7 +4,8 @@ use crate::{
     app::LavaApp,
     ledger,
     loan::LoanCollaterizationState,
-    primitives::{CollateralAction, CustomerId, LoanStatus},
+    primitives::{CollateralAction, CustomerId, LoanStatus, UserId},
+    server::admin::graphql::user::User,
     server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
 };
 
@@ -27,6 +28,7 @@ pub struct Loan {
     collateral: Satoshis,
     principal: UsdCents,
     transactions: Vec<LoanHistory>,
+    approvals: Vec<LoanApproval>,
     collateralization_state: LoanCollaterizationState,
 }
 
@@ -78,6 +80,13 @@ pub struct CollateralizationUpdated {
     pub recorded_at: Timestamp,
 }
 
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct LoanApproval {
+    user_id: UUID,
+    approved_at: Timestamp,
+}
+
 #[ComplexObject]
 impl Loan {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LoanBalance> {
@@ -97,6 +106,19 @@ impl Loan {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+}
+
+#[ComplexObject]
+impl LoanApproval {
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app
+            .users()
+            .find_by_id_internal(UserId::from(&self.user_id))
+            .await?
+            .expect("should always find user for a given UserId");
+        Ok(User::from(user))
     }
 }
 
@@ -154,6 +176,11 @@ impl From<crate::loan::Loan> for Loan {
         let principal = loan.initial_principal();
         let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
         let collateralization_state = loan.collateralization();
+        let approvals = loan
+            .approvals()
+            .into_iter()
+            .map(LoanApproval::from)
+            .collect();
 
         Loan {
             id: loan.id.to_global_id(),
@@ -168,6 +195,7 @@ impl From<crate::loan::Loan> for Loan {
             collateral,
             principal,
             transactions,
+            approvals,
             collateralization_state,
         }
     }
@@ -241,6 +269,15 @@ impl From<crate::loan::CollateralizationUpdated> for CollateralizationUpdated {
             outstanding_principal: collateralization.outstanding_principal,
             price: collateralization.price.into_inner(),
             recorded_at: collateralization.recorded_at.into(),
+        }
+    }
+}
+
+impl From<crate::loan::LoanApproval> for LoanApproval {
+    fn from(approver: crate::loan::LoanApproval) -> Self {
+        LoanApproval {
+            user_id: UUID::from(approver.user_id),
+            approved_at: approver.approved_at.into(),
         }
     }
 }
