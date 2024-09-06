@@ -21,6 +21,7 @@ rm -rf ./charts/${CHARTS_SUBDIR}/tf || true
 mkdir -p ./charts/${CHARTS_SUBDIR}/tf
 cp -r ../repo/tf/cala-setup ./charts/${CHARTS_SUBDIR}/tf/cala-setup
 cp -r ../repo/tf/bq-setup ./charts/${CHARTS_SUBDIR}/tf/bq-setup
+cat ../repo/.git/ref > .charts/${CHARTS_SUBDIR}/tf/repo-ref
 
 if [[ -z $(git config --global user.email) ]]; then
   git config --global user.email "bot@galoy.io"
