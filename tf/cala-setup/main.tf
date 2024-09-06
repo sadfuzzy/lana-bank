@@ -8,7 +8,7 @@ variable "gcp_region" {
   default = "europe-west6"
 }
 
-variable "bq_setup" {
+variable "setup_bq" {
   default = false
 }
 
@@ -20,7 +20,7 @@ variable "bq_creds" {
 locals {
   name_prefix           = var.name_prefix
   gcp_region            = var.gcp_region
-  setup_bq              = var.bq_setup || var.bq_creds != "dummy"
+  setup_bq              = var.setup_bq
   git_token_secret_name = "${local.name_prefix}-git-token"
   dataset_id            = "${replace(local.name_prefix, "-", "_")}_dataset"
   bq_tables = local.setup_bq ? [
