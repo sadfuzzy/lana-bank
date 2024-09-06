@@ -8,7 +8,7 @@ use response::{BfxErrorResponse, BtcUsdTick};
 
 const BASE_URL: &str = "https://api-pub.bitfinex.com/v2/";
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct BfxClient {
     client: ReqwestClient,
 }
