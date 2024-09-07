@@ -85,9 +85,9 @@ impl Authorization {
     async fn add_permissions_for_superuser(&mut self) -> Result<(), AuthorizationError> {
         let role = Role::Superuser;
 
-        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
+        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole)
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
+        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole)
             .await?;
         Ok(())
     }
@@ -105,22 +105,9 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::User, UserAction::Delete)
             .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::User,
-            UserAction::AssignRole(Role::BankManager),
-        )
-        .await?;
-        self.add_permission_to_role(
-            &role,
-            Object::User,
-            UserAction::RevokeRole(Role::BankManager),
-        )
-        .await?;
-
-        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole(Role::Admin))
+        self.add_permission_to_role(&role, Object::User, UserAction::AssignRole)
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole(Role::Admin))
+        self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole)
             .await?;
 
         self.add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)

@@ -78,7 +78,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::Admin))
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
@@ -88,22 +88,10 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::BankManager))
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
-
-    // Superuser cannot assign Superuser role
-    assert!(matches!(
-        authz
-            .check_permission(
-                &superuser_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole(Role::Superuser))
-            )
-            .await,
-        Err(AuthorizationError::NotAuthorized)
-    ));
 
     Ok(())
 }
@@ -133,32 +121,20 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .check_permission(
             &admin_subject,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::BankManager))
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
 
-    // Admin can assign Admin role
+    // Admin can assign roles
     assert!(authz
         .check_permission(
             &admin_subject,
             Object::User,
-            Action::User(UserAction::AssignRole(Role::Admin))
+            Action::User(UserAction::AssignRole)
         )
         .await
         .is_ok());
-
-    // Admin cannot assign Superuser role
-    assert!(matches!(
-        authz
-            .check_permission(
-                &admin_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole(Role::Superuser))
-            )
-            .await,
-        Err(AuthorizationError::NotAuthorized)
-    ));
 
     Ok(())
 }
@@ -192,29 +168,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .check_permission(
                 &bank_manager_subject,
                 Object::User,
-                Action::User(UserAction::AssignRole(Role::BankManager))
-            )
-            .await,
-        Err(AuthorizationError::NotAuthorized)
-    ));
-
-    assert!(matches!(
-        authz
-            .check_permission(
-                &bank_manager_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole(Role::Admin))
-            )
-            .await,
-        Err(AuthorizationError::NotAuthorized)
-    ));
-
-    assert!(matches!(
-        authz
-            .check_permission(
-                &bank_manager_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole(Role::Superuser))
+                Action::User(UserAction::AssignRole)
             )
             .await,
         Err(AuthorizationError::NotAuthorized)

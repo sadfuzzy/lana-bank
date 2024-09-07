@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use crate::{
     audit::Audit,
-    authorization::{Authorization, Object, UserAction},
+    authorization::{error::AuthorizationError, Authorization, Object, UserAction},
     data_export::Export,
     primitives::{Role, Subject, SystemNode, UserId},
 };
@@ -144,9 +144,14 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
+        if role == Role::Superuser {
+            return Err(UserError::AuthorizationError(
+                AuthorizationError::NotAuthorized,
+            ));
+        }
         let audit_info = self
             .authz
-            .check_permission(sub, Object::User, UserAction::AssignRole(role))
+            .check_permission(sub, Object::User, UserAction::AssignRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
@@ -164,9 +169,14 @@ impl Users {
         id: UserId,
         role: Role,
     ) -> Result<User, UserError> {
+        if role == Role::Superuser {
+            return Err(UserError::AuthorizationError(
+                AuthorizationError::NotAuthorized,
+            ));
+        }
         let audit_role = self
             .authz
-            .check_permission(sub, Object::User, UserAction::RevokeRole(role))
+            .check_permission(sub, Object::User, UserAction::RevokeRole)
             .await?;
 
         let mut user = self.repo.find_by_id(id).await?;
