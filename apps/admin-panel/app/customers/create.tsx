@@ -45,6 +45,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 
   const [createCustomer, { loading, reset }] = useCustomerCreateMutation()
   const [email, setEmail] = useState<string>("")
+  const [telegramId, setTelegramId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,6 +55,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         variables: {
           input: {
             email,
+            telegramId,
           },
         },
       })
@@ -72,6 +74,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 
   const resetStates = () => {
     setEmail("")
+    setTelegramId("")
     setError(null)
     reset()
   }
@@ -102,6 +105,16 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
               placeholder="Please enter the email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label>Telegram ID</Label>
+            <Input
+              type="text"
+              required
+              placeholder="Please enter the Telegram ID"
+              value={telegramId}
+              onChange={(e) => setTelegramId(e.target.value)}
             />
           </div>
           {error && <p className="text-destructive">{error}</p>}

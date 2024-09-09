@@ -50,6 +50,7 @@ type CollateralizationUpdated {
 type Customer {
 	customerId: UUID!
 	email: String!
+	telegramId: String!
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String

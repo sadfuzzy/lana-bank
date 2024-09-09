@@ -6,6 +6,7 @@ use crate::{primitives::CustomerId, server::shared_graphql::customer::Customer};
 #[derive(InputObject)]
 pub struct CustomerCreateInput {
     pub email: String,
+    pub telegram_id: String,
 }
 
 #[derive(SimpleObject)]

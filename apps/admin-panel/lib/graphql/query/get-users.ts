@@ -6,6 +6,7 @@ gql`
       nodes {
         customerId
         email
+        telegramId
         balance {
           checking {
             settled

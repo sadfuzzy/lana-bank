@@ -28,10 +28,11 @@ impl CustomerRepo {
         new_customer: NewCustomer,
     ) -> Result<Customer, CustomerError> {
         sqlx::query!(
-            r#"INSERT INTO customers (id, email)
-            VALUES ($1, $2)"#,
+            r#"INSERT INTO customers (id, email, telegram_id)
+            VALUES ($1, $2, $3)"#,
             new_customer.id as CustomerId,
             new_customer.email,
+            new_customer.telegram_id,
         )
         .execute(&mut **db)
         .await?;

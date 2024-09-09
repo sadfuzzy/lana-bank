@@ -630,7 +630,7 @@ impl Mutation {
         let AdminAuthContext { sub } = ctx.data()?;
         let customer = app
             .customers()
-            .create_customer_through_admin(sub, input.email)
+            .create_customer_through_admin(sub, input.email, input.telegram_id)
             .await?;
         Ok(CustomerCreatePayload::from(customer))
     }

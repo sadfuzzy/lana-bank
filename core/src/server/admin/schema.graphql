@@ -182,6 +182,7 @@ type CollateralizationUpdated {
 type Customer {
 	customerId: UUID!
 	email: String!
+	telegramId: String!
 	status: AccountStatus!
 	level: KycLevel!
 	applicantId: String
@@ -213,6 +214,7 @@ type CustomerConnection {
 
 input CustomerCreateInput {
 	email: String!
+	telegramId: String!
 }
 
 type CustomerCreatePayload {

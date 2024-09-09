@@ -63,6 +63,7 @@ impl Customers {
         &self,
         sub: &Subject,
         email: String,
+        telegram_id: String,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
@@ -77,6 +78,7 @@ impl Customers {
         let new_customer = NewCustomer::builder()
             .id(customer_id)
             .email(email)
+            .telegram_id(telegram_id)
             .account_ids(ledger_account_ids)
             .audit_info(audit_info)
             .build()

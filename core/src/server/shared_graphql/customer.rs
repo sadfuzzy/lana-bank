@@ -34,6 +34,7 @@ pub enum AccountStatus {
 pub struct Customer {
     customer_id: UUID,
     email: String,
+    telegram_id: String,
     status: AccountStatus,
     level: KycLevel,
     applicant_id: Option<String>,
@@ -127,6 +128,7 @@ impl From<crate::customer::Customer> for Customer {
             customer_id: UUID::from(customer.id),
             applicant_id: customer.applicant_id,
             email: customer.email,
+            telegram_id: customer.telegram_id,
             account_ids: customer.account_ids,
             status: AccountStatus::from(customer.status),
             level: KycLevel::from(customer.level),

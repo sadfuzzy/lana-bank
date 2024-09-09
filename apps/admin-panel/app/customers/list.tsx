@@ -144,6 +144,7 @@ function CustomerTable({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Customer</TableHead>
+                    <TableHead>Telegram</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
                     <TableHead>USD Balance (Withdrawals)</TableHead>
                     <TableHead></TableHead>
@@ -155,6 +156,11 @@ function CustomerTable({
                       <TableCell className="hover:underline">
                         <Link href={`/customers/${customer.customerId}`}>
                           {customer.email}
+                        </Link>
+                      </TableCell>
+                      <TableCell className="hover:underline">
+                        <Link href={`/customers/${customer.customerId}`}>
+                          {customer.telegramId}
                         </Link>
                       </TableCell>
                       <TableCell>

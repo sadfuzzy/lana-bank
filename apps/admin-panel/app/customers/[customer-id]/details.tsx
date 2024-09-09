@@ -23,6 +23,7 @@ gql`
     customer(id: $id) {
       customerId
       email
+      telegramId
       loans {
         loanId
       }
@@ -83,6 +84,10 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                     value={customerDetails.customer.customerId}
                   />
                   <DetailItem label="Email" value={customerDetails.customer.email} />
+                  <DetailItem
+                    label="Telegram"
+                    value={customerDetails.customer.telegramId}
+                  />
                 </DetailsGroup>
               </CardContent>
               <CardFooter className="flex space-x-4 justify-end">

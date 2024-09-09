@@ -9,6 +9,7 @@ pub enum CustomerEvent {
     Initialized {
         id: CustomerId,
         email: String,
+        telegram_id: String,
         account_ids: CustomerLedgerAccountIds,
         audit_info: AuditInfo,
     },
@@ -50,6 +51,7 @@ impl EntityEvent for CustomerEvent {
 pub struct Customer {
     pub id: CustomerId,
     pub email: String,
+    pub telegram_id: String,
     pub account_ids: CustomerLedgerAccountIds,
     pub status: AccountStatus,
     pub level: KycLevel,
@@ -118,6 +120,7 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                 CustomerEvent::Initialized {
                     id,
                     email,
+                    telegram_id,
                     account_ids,
                     ..
                 } => {
@@ -125,6 +128,7 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                         .id(*id)
                         .account_ids(*account_ids)
                         .email(email.clone())
+                        .telegram_id(telegram_id.clone())
                         .account_ids(*account_ids)
                         .level(KycLevel::NotKyced)
                         .status(AccountStatus::Inactive);
@@ -160,6 +164,8 @@ pub struct NewCustomer {
     pub(super) id: CustomerId,
     #[builder(setter(into))]
     pub(super) email: String,
+    #[builder(setter(into))]
+    pub(super) telegram_id: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
@@ -176,6 +182,7 @@ impl NewCustomer {
             [CustomerEvent::Initialized {
                 id: self.id,
                 email: self.email,
+                telegram_id: self.telegram_id,
                 account_ids: self.account_ids,
                 audit_info: self.audit_info,
             }],

@@ -46,17 +46,20 @@ teardown_file() {
 
 @test "superuser: can create customer" {
   customer_email=$(generate_email)
+  telegramId=$(generate_email)
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
+    --arg telegramId "$telegramId" \
     '{
       input: {
-        email: $email
-        }
-      }'
+        email: $email,
+        telegramId: $telegramId
+      }
+    }'
   )
-
+  
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1

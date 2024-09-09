@@ -1,6 +1,7 @@
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
+  telegram_id VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
