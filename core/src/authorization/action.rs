@@ -49,15 +49,15 @@ impl FromStr for Action {
         let entity = elems.next().expect("missing first element");
         let action = elems.next().expect("missing second element");
         use ActionDiscriminants::*;
-        let res = match ActionDiscriminants::from_str(entity)? {
-            Loan => Action::from(LoanAction::try_from(action)?),
-            Term => Action::from(TermAction::try_from(action)?),
-            User => Action::from(UserAction::try_from(action)?),
-            Customer => Action::from(CustomerAction::try_from(action)?),
-            Deposit => Action::from(DepositAction::try_from(action)?),
-            Withdraw => Action::from(WithdrawAction::try_from(action)?),
-            Audit => Action::from(AuditAction::try_from(action)?),
-            Ledger => Action::from(LedgerAction::try_from(action)?),
+        let res = match entity.parse()? {
+            Loan => Action::from(action.parse::<LoanAction>()?),
+            Term => Action::from(action.parse::<TermAction>()?),
+            User => Action::from(action.parse::<UserAction>()?),
+            Customer => Action::from(action.parse::<CustomerAction>()?),
+            Deposit => Action::from(action.parse::<DepositAction>()?),
+            Withdraw => Action::from(action.parse::<WithdrawAction>()?),
+            Audit => Action::from(action.parse::<AuditAction>()?),
+            Ledger => Action::from(action.parse::<LedgerAction>()?),
         };
         Ok(res)
     }
