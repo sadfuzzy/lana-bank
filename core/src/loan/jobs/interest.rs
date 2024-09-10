@@ -80,7 +80,10 @@ impl JobRunner for LoanProcessingJobRunner {
                 return Ok(JobCompletion::Complete);
             }
             Ok(tx_ref) => tx_ref,
-            Err(_) => unreachable!(),
+            Err(e) => {
+                dbg!(e);
+                unreachable!()
+            }
         };
 
         let executed_at = self
@@ -91,10 +94,8 @@ impl JobRunner for LoanProcessingJobRunner {
         loan.confirm_interest(interest_accrual, executed_at, audit_info);
         self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
 
-        match loan.next_interest_at() {
-            Some(next_interest_at) => {
-                Ok(JobCompletion::RescheduleAtWithTx(db_tx, next_interest_at))
-            }
+        match loan.next_interest_period()? {
+            Some(period) => Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end)),
             None => {
                 println!("Loan interest job completed for loan: {:?}", loan.id);
                 Ok(JobCompletion::CompleteWithTx(db_tx))

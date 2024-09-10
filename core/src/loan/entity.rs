@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, Utc};
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -14,54 +14,15 @@ use crate::{
     primitives::*,
 };
 
-use super::{error::LoanError, terms::TermValues, CVLPct, LoanApprovalData, LoanInterestAccrual};
+use super::{
+    error::LoanError, history, repayment_plan, terms::TermValues, CVLPct, InterestPeriod,
+    LoanApprovalData, LoanInterestAccrual,
+};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoanReceivable {
     pub principal: UsdCents,
     pub interest: UsdCents,
-}
-
-pub enum LoanHistory {
-    Payment(IncrementalPayment),
-    Interest(InterestAccrued),
-    Collateral(CollateralUpdated),
-    Origination(LoanOrigination),
-    Collateralization(CollateralizationUpdated),
-}
-
-pub struct IncrementalPayment {
-    pub cents: UsdCents,
-    pub recorded_at: DateTime<Utc>,
-    pub tx_id: LedgerTxId,
-}
-
-pub struct InterestAccrued {
-    pub cents: UsdCents,
-    pub recorded_at: DateTime<Utc>,
-    pub tx_id: LedgerTxId,
-}
-
-pub struct CollateralUpdated {
-    pub satoshis: Satoshis,
-    pub recorded_at: DateTime<Utc>,
-    pub action: CollateralAction,
-    pub tx_id: LedgerTxId,
-}
-
-pub struct LoanOrigination {
-    pub cents: UsdCents,
-    pub recorded_at: DateTime<Utc>,
-    pub tx_id: LedgerTxId,
-}
-
-pub struct CollateralizationUpdated {
-    pub state: LoanCollaterizationState,
-    pub collateral: Satoshis,
-    pub outstanding_interest: UsdCents,
-    pub outstanding_principal: UsdCents,
-    pub recorded_at: DateTime<Utc>,
-    pub price: PriceOfOneBTC,
 }
 
 pub struct LoanApproval {
@@ -174,6 +135,10 @@ pub struct Loan {
     pub terms: TermValues,
     pub account_ids: LoanAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
+    #[builder(setter(strip_option), default)]
+    pub approved_at: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
+    pub expires_at: Option<DateTime<Utc>>,
     pub(super) events: EntityEvents<LoanEvent>,
 }
 
@@ -246,95 +211,12 @@ impl Loan {
             .unwrap_or(Satoshis::ZERO)
     }
 
-    pub fn history(&self) -> Vec<LoanHistory> {
-        let mut history = vec![];
+    pub fn history(&self) -> Vec<history::LoanHistoryEntry> {
+        history::project(self.events.iter())
+    }
 
-        for event in self.events.iter().rev() {
-            match event {
-                LoanEvent::CollateralUpdated {
-                    abs_diff,
-                    action,
-                    recorded_at,
-                    tx_id,
-                    ..
-                } => match action {
-                    CollateralAction::Add => {
-                        history.push(LoanHistory::Collateral(CollateralUpdated {
-                            satoshis: *abs_diff,
-                            action: *action,
-                            recorded_at: *recorded_at,
-                            tx_id: *tx_id,
-                        }));
-                    }
-                    CollateralAction::Remove => {
-                        history.push(LoanHistory::Collateral(CollateralUpdated {
-                            satoshis: *abs_diff,
-                            action: *action,
-                            recorded_at: *recorded_at,
-                            tx_id: *tx_id,
-                        }));
-                    }
-                },
-
-                LoanEvent::InterestIncurred {
-                    amount,
-                    recorded_at,
-                    tx_id,
-                    ..
-                } => {
-                    history.push(LoanHistory::Interest(InterestAccrued {
-                        cents: *amount,
-                        recorded_at: *recorded_at,
-                        tx_id: *tx_id,
-                    }));
-                }
-
-                LoanEvent::PaymentRecorded {
-                    principal_amount,
-                    interest_amount,
-                    recorded_at: transaction_recorded_at,
-                    tx_id,
-                    ..
-                } => {
-                    history.push(LoanHistory::Payment(IncrementalPayment {
-                        cents: *principal_amount + *interest_amount,
-                        recorded_at: *transaction_recorded_at,
-                        tx_id: *tx_id,
-                    }));
-                }
-
-                LoanEvent::Approved {
-                    tx_id, recorded_at, ..
-                } => {
-                    history.push(LoanHistory::Origination(LoanOrigination {
-                        cents: self.initial_principal(),
-                        recorded_at: *recorded_at,
-                        tx_id: *tx_id,
-                    }));
-                }
-
-                LoanEvent::CollateralizationChanged {
-                    state,
-                    collateral,
-                    outstanding,
-                    price,
-                    recorded_at,
-                    ..
-                } => {
-                    history.push(LoanHistory::Collateralization(CollateralizationUpdated {
-                        state: *state,
-                        collateral: *collateral,
-                        outstanding_interest: outstanding.interest,
-                        outstanding_principal: outstanding.principal,
-                        price: *price,
-                        recorded_at: *recorded_at,
-                    }));
-                }
-                _ => {}
-            }
-        }
-
-        history
+    pub fn repayment_plan(&self) -> Vec<repayment_plan::LoanRepaymentInPlan> {
+        repayment_plan::project(self.events.iter())
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -492,6 +374,8 @@ impl Loan {
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
+        self.approved_at = Some(executed_at);
+        self.expires_at = Some(self.terms.duration.expiration_date(executed_at));
         self.events.push(LoanEvent::Approved {
             tx_id,
             audit_info,
@@ -499,35 +383,32 @@ impl Loan {
         });
     }
 
-    pub fn approved_at(&self) -> Option<DateTime<Utc>> {
-        self.events.iter().find_map(|event| match event {
-            LoanEvent::Approved { recorded_at, .. } => Some(*recorded_at),
-            _ => None,
-        })
-    }
-
-    pub fn next_interest_at(&self) -> Option<DateTime<Utc>> {
-        if !self.is_completed() && !self.is_expired() {
-            Some(
-                self.terms
-                    .interval
-                    .next_interest_payment(chrono::Utc::now()),
-            )
+    pub fn next_interest_period(&self) -> Result<Option<InterestPeriod>, LoanError> {
+        let expiry_date = if let Some(expires_at) = self.expires_at {
+            expires_at
         } else {
-            None
+            return Err(LoanError::NotApprovedYet);
+        };
+        if self.is_completed() {
+            return Err(LoanError::AlreadyCompleted);
         }
-    }
 
-    fn is_expired(&self) -> bool {
-        match self.expires_at() {
-            Some(expiration_date) => Utc::now() > expiration_date,
-            None => false,
-        }
-    }
+        let last_interest_payment = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
+                _ => None,
+            })
+            .unwrap_or(self.approved_at.expect("already approved"));
 
-    pub fn expires_at(&self) -> Option<DateTime<Utc>> {
-        self.approved_at()
-            .map(|a| self.terms.duration.expiration_date(a))
+        Ok(self
+            .terms
+            .interval
+            .period_from(last_interest_payment)
+            .next()
+            .truncate(expiry_date))
     }
 
     fn count_interest_incurred(&self) -> usize {
@@ -543,29 +424,39 @@ impl Loan {
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
-    fn days_for_interest_calculation(&self) -> u32 {
-        if self.count_interest_incurred() == 0 {
-            self.terms
-                .interval
-                .next_interest_payment(self.created_at())
-                .day()
-                - self.created_at().day()
-                + 1 // 1 is added to account for the day when the loan was
-                    // approved
-        } else {
-            self.terms.interval.next_interest_payment(Utc::now()).day()
-        }
-    }
-
     pub fn initiate_interest(&self) -> Result<LoanInterestAccrual, LoanError> {
+        let expiry_date = if let Some(expires_at) = self.expires_at {
+            expires_at
+        } else {
+            return Err(LoanError::NotApprovedYet);
+        };
         if self.is_completed() {
             return Err(LoanError::AlreadyCompleted);
         }
 
-        let interest = self.terms.calculate_interest(
-            self.initial_principal(),
-            self.days_for_interest_calculation(),
-        );
+        let last_interest_payment = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
+                _ => None,
+            })
+            .unwrap_or(self.approved_at.expect("already approved"));
+
+        let days_in_interest_period = self
+            .terms
+            .interval
+            .period_from(last_interest_payment)
+            .next()
+            .truncate(expiry_date)
+            .ok_or(LoanError::InterestPeriodStartDateInFuture)?
+            .days();
+
+        let interest_for_period = self
+            .terms
+            .annual_rate
+            .interest_for_time_period(self.initial_principal(), days_in_interest_period);
 
         let tx_ref = format!(
             "{}-interest-{}",
@@ -573,7 +464,7 @@ impl Loan {
             self.count_interest_incurred() + 1
         );
         Ok(LoanInterestAccrual {
-            interest,
+            interest: interest_for_period,
             tx_ref,
             tx_id: LedgerTxId::new(),
             loan_account_ids: self.account_ids,
@@ -939,6 +830,7 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
 
     fn try_from(events: EntityEvents<LoanEvent>) -> Result<Self, Self::Error> {
         let mut builder = LoanBuilder::default();
+        let mut terms = None;
         for event in events.iter() {
             match event {
                 LoanEvent::Initialized {
@@ -946,17 +838,25 @@ impl TryFrom<EntityEvents<LoanEvent>> for Loan {
                     customer_id,
                     account_ids,
                     customer_account_ids,
-                    terms,
+                    terms: t,
                     ..
                 } => {
+                    terms = Some(t);
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
-                        .terms(terms.clone())
+                        .terms(*t)
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                LoanEvent::Approved { .. } => (),
+                LoanEvent::Approved { recorded_at, .. } => {
+                    builder = builder.approved_at(*recorded_at).expires_at(
+                        terms
+                            .expect("no terms")
+                            .duration
+                            .expiration_date(*recorded_at),
+                    );
+                }
                 LoanEvent::CollateralizationChanged { .. } => (),
                 LoanEvent::InterestIncurred { .. } => (),
                 LoanEvent::PaymentRecorded { .. } => (),
@@ -1010,7 +910,7 @@ impl NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::{Duration, InterestInterval};
+    use crate::loan::*;
 
     use super::*;
 
@@ -1172,8 +1072,8 @@ mod test {
     #[test]
     fn check_approved_at() {
         let mut loan = Loan::try_from(init_events()).unwrap();
-        assert_eq!(loan.approved_at(), None);
-        assert_eq!(loan.expires_at(), None);
+        assert_eq!(loan.approved_at, None);
+        assert_eq!(loan.expires_at, None);
 
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
@@ -1189,8 +1089,8 @@ mod test {
 
         let loan_approval = add_approvals(&mut loan);
         loan.confirm_approval(loan_approval, approval_time, dummy_audit_info());
-        assert_eq!(loan.approved_at(), Some(approval_time));
-        assert!(loan.expires_at().is_some())
+        assert_eq!(loan.approved_at, Some(approval_time));
+        assert!(loan.expires_at.is_some())
     }
 
     #[test]

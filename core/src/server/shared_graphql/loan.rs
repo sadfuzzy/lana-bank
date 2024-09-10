@@ -27,13 +27,72 @@ pub struct Loan {
     status: LoanStatus,
     collateral: Satoshis,
     principal: UsdCents,
-    transactions: Vec<LoanHistory>,
+    transactions: Vec<LoanHistoryEntry>,
     approvals: Vec<LoanApproval>,
+    repayment_plan: Vec<LoanRepaymentInPlan>,
     collateralization_state: LoanCollaterizationState,
 }
 
+#[derive(SimpleObject)]
+pub struct LoanRepaymentInPlan {
+    pub repayment_type: LoanRepaymentType,
+    pub status: LoanRepaymentStatus,
+    pub initial: UsdCents,
+    pub outstanding: UsdCents,
+    pub accrual_at: Timestamp,
+    pub due_at: Timestamp,
+}
+
+impl From<crate::loan::LoanRepaymentInPlan> for LoanRepaymentInPlan {
+    fn from(repayment: crate::loan::LoanRepaymentInPlan) -> Self {
+        match repayment {
+            crate::loan::LoanRepaymentInPlan::Interest(interest) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Interest,
+                status: interest.status.into(),
+                initial: interest.initial,
+                outstanding: interest.outstanding,
+                accrual_at: interest.accrual_at.into(),
+                due_at: interest.due_at.into(),
+            },
+            crate::loan::LoanRepaymentInPlan::Principal(interest) => LoanRepaymentInPlan {
+                repayment_type: LoanRepaymentType::Principal,
+                status: interest.status.into(),
+                initial: interest.initial,
+                outstanding: interest.outstanding,
+                accrual_at: interest.accrual_at.into(),
+                due_at: interest.due_at.into(),
+            },
+        }
+    }
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum LoanRepaymentType {
+    Principal,
+    Interest,
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum LoanRepaymentStatus {
+    Upcoming,
+    Due,
+    Overdue,
+    Paid,
+}
+
+impl From<crate::loan::RepaymentStatus> for LoanRepaymentStatus {
+    fn from(status: crate::loan::RepaymentStatus) -> Self {
+        match status {
+            crate::loan::RepaymentStatus::Paid => LoanRepaymentStatus::Paid,
+            crate::loan::RepaymentStatus::Due => LoanRepaymentStatus::Due,
+            crate::loan::RepaymentStatus::Overdue => LoanRepaymentStatus::Overdue,
+            crate::loan::RepaymentStatus::Upcoming => LoanRepaymentStatus::Upcoming,
+        }
+    }
+}
+
 #[derive(async_graphql::Union)]
-pub enum LoanHistory {
+pub enum LoanHistoryEntry {
     Payment(IncrementalPayment),
     Interest(InterestAccrued),
     Collateral(CollateralUpdated),
@@ -169,12 +228,21 @@ impl ToGlobalId for crate::primitives::LoanId {
 impl From<crate::loan::Loan> for Loan {
     fn from(loan: crate::loan::Loan) -> Self {
         let created_at = loan.created_at().into();
-        let approved_at: Option<Timestamp> = loan.approved_at().map(|a| a.into());
-        let expires_at: Option<Timestamp> = loan.expires_at().map(|e| e.into());
+        let approved_at: Option<Timestamp> = loan.approved_at.map(|a| a.into());
+        let expires_at: Option<Timestamp> = loan.expires_at.map(|e| e.into());
 
         let collateral = loan.collateral();
         let principal = loan.initial_principal();
-        let transactions = loan.history().into_iter().map(LoanHistory::from).collect();
+        let transactions = loan
+            .history()
+            .into_iter()
+            .map(LoanHistoryEntry::from)
+            .collect();
+        let repayment_plan = loan
+            .repayment_plan()
+            .into_iter()
+            .map(LoanRepaymentInPlan::from)
+            .collect();
         let collateralization_state = loan.collateralization();
         let approvals = loan
             .approvals()
@@ -196,24 +264,29 @@ impl From<crate::loan::Loan> for Loan {
             principal,
             transactions,
             approvals,
+            repayment_plan,
             collateralization_state,
         }
     }
 }
 
-impl From<crate::loan::LoanHistory> for LoanHistory {
-    fn from(transaction: crate::loan::LoanHistory) -> Self {
+impl From<crate::loan::LoanHistoryEntry> for LoanHistoryEntry {
+    fn from(transaction: crate::loan::LoanHistoryEntry) -> Self {
         match transaction {
-            crate::loan::LoanHistory::Payment(payment) => LoanHistory::Payment(payment.into()),
-            crate::loan::LoanHistory::Interest(interest) => LoanHistory::Interest(interest.into()),
-            crate::loan::LoanHistory::Collateral(collateral) => {
-                LoanHistory::Collateral(collateral.into())
+            crate::loan::LoanHistoryEntry::Payment(payment) => {
+                LoanHistoryEntry::Payment(payment.into())
             }
-            crate::loan::LoanHistory::Origination(origination) => {
-                LoanHistory::Origination(origination.into())
+            crate::loan::LoanHistoryEntry::Interest(interest) => {
+                LoanHistoryEntry::Interest(interest.into())
             }
-            crate::loan::LoanHistory::Collateralization(collateralization) => {
-                LoanHistory::Collateralization(collateralization.into())
+            crate::loan::LoanHistoryEntry::Collateral(collateral) => {
+                LoanHistoryEntry::Collateral(collateral.into())
+            }
+            crate::loan::LoanHistoryEntry::Origination(origination) => {
+                LoanHistoryEntry::Origination(origination.into())
+            }
+            crate::loan::LoanHistoryEntry::Collateralization(collateralization) => {
+                LoanHistoryEntry::Collateralization(collateralization.into())
             }
         }
     }

@@ -381,8 +381,9 @@ export type Loan = {
   loanId: Scalars['UUID']['output'];
   loanTerms: TermValues;
   principal: Scalars['UsdCents']['output'];
+  repaymentPlan: Array<LoanRepaymentInPlan>;
   status: LoanStatus;
-  transactions: Array<LoanHistory>;
+  transactions: Array<LoanHistoryEntry>;
 };
 
 export type LoanApproval = {
@@ -445,7 +446,7 @@ export type LoanEdge = {
   node: Loan;
 };
 
-export type LoanHistory = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
+export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
 
 export type LoanOrigination = {
   __typename?: 'LoanOrigination';
@@ -468,6 +469,28 @@ export type LoanPartialPaymentPayload = {
   __typename?: 'LoanPartialPaymentPayload';
   loan: Loan;
 };
+
+export type LoanRepaymentInPlan = {
+  __typename?: 'LoanRepaymentInPlan';
+  accrualAt: Scalars['Timestamp']['output'];
+  dueAt: Scalars['Timestamp']['output'];
+  initial: Scalars['UsdCents']['output'];
+  outstanding: Scalars['UsdCents']['output'];
+  repaymentType: LoanRepaymentType;
+  status: LoanRepaymentStatus;
+};
+
+export enum LoanRepaymentStatus {
+  Due = 'DUE',
+  Overdue = 'OVERDUE',
+  Paid = 'PAID',
+  Upcoming = 'UPCOMING'
+}
+
+export enum LoanRepaymentType {
+  Interest = 'INTEREST',
+  Principal = 'PRINCIPAL'
+}
 
 export enum LoanStatus {
   Active = 'ACTIVE',

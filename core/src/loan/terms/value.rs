@@ -8,12 +8,12 @@ use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct AnnualRatePct(Decimal);
 
 impl AnnualRatePct {
-    fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
+    pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
         let cents = principal.to_usd() * Decimal::from(days) * self.0 / NUMBER_OF_DAYS_IN_YEAR;
 
         UsdCents::from(
@@ -82,7 +82,7 @@ impl From<Decimal> for CVLPct {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Duration {
     Months(u32),
@@ -98,14 +98,56 @@ impl Duration {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct InterestPeriod {
+    pub interval: InterestInterval,
+    pub start: DateTime<Utc>,
+    pub end: DateTime<Utc>,
+}
+
+impl InterestPeriod {
+    fn new(interval: InterestInterval, start: DateTime<Utc>) -> Self {
+        let end = interval.end_date_starting_at(start);
+        Self {
+            interval,
+            start,
+            end,
+        }
+    }
+
+    pub fn next(&self) -> Self {
+        Self::new(self.interval, self.end + chrono::Duration::days(1))
+    }
+
+    pub fn truncate(&self, latest_possible_end_date: DateTime<Utc>) -> Option<Self> {
+        if self.start > latest_possible_end_date {
+            return None;
+        }
+
+        Some(Self {
+            interval: self.interval,
+            start: self.start,
+            end: self.end.min(latest_possible_end_date),
+        })
+    }
+
+    pub fn days(&self) -> u32 {
+        self.end.day() - self.start.day() + 1
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,
 }
 
 impl InterestInterval {
-    pub fn next_interest_payment(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
+    pub fn period_from(&self, start_date: DateTime<Utc>) -> InterestPeriod {
+        InterestPeriod::new(*self, start_date)
+    }
+
+    fn end_date_starting_at(&self, current_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             InterestInterval::EndOfMonth => {
                 let current_year = current_date.year();
@@ -126,7 +168,7 @@ impl InterestInterval {
     }
 }
 
-#[derive(Builder, Debug, Serialize, Deserialize, Clone)]
+#[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) annual_rate: AnnualRatePct,
@@ -155,10 +197,6 @@ impl TermValues {
     ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
         price.cents_to_sats_round_up(collateral_value)
-    }
-
-    pub fn calculate_interest(&self, principal: UsdCents, days: u32) -> UsdCents {
-        self.annual_rate.interest_for_time_period(principal, days)
     }
 }
 
@@ -246,12 +284,43 @@ mod test {
     }
 
     #[test]
-    fn next_interest_payment() {
-        let interval = InterestInterval::EndOfMonth;
-        let current_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let next_payment = "2024-12-31T23:59:59Z".parse::<DateTime<Utc>>().unwrap();
+    fn days() {
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfMonth.period_from(start_date).days(),
+            29
+        );
 
-        assert_eq!(interval.next_interest_payment(current_date), next_payment);
+        let start_date = "2024-12-01T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            InterestInterval::EndOfMonth.period_from(start_date).days(),
+            31
+        );
+    }
+
+    #[test]
+    fn truncate() {
+        let start_date = "2024-12-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        let period = InterestInterval::EndOfMonth.period_from(start_date);
+
+        let latest_before_start_date = "2024-12-02T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(period.truncate(latest_before_start_date), None);
+
+        let latest_after_start_date_before_end_date =
+            "2024-12-20T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert!(
+            period
+                .truncate(latest_after_start_date_before_end_date)
+                .unwrap()
+                .end
+                < period.end
+        );
+
+        let latest_after_end_date = "2025-01-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
+        assert_eq!(
+            period.truncate(latest_after_end_date).unwrap().end,
+            period.end
+        );
     }
 
     #[test]
@@ -259,12 +328,12 @@ mod test {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
         let days = 366;
-        let interest = terms.calculate_interest(principal, days);
+        let interest = terms.annual_rate.interest_for_time_period(principal, days);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
-        let interest = terms.calculate_interest(principal, days);
+        let interest = terms.annual_rate.interest_for_time_period(principal, days);
         assert_eq!(interest, UsdCents::from(755));
     }
 
