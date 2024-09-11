@@ -1,6 +1,6 @@
 config {
   type: "table",
-  description: "Regulatory Report 'referencia.xml' of norm 'NPB4-17'",
+  description: "Regulatory Report referencia.xml of norm NPB4-17",
 }
 
 WITH loans AS (

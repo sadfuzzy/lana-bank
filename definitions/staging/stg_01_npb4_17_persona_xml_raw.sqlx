@@ -1,6 +1,6 @@
 config {
   type: "table",
-  description: "Data ingestion for Regulatory Report 'persona.xml' of norm 'NPB4-17'"
+  description: "Data ingestion for Regulatory Report persona.xml of norm NPB4-17"
 }
 
 WITH
