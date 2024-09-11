@@ -19,14 +19,22 @@ WITH loans AS (
 
 SELECT
     CAST(NULL AS STRING) AS `nit_deudor`
-  , '33' AS `cod_cartera` -- Anexo B, Tabla 1: Cartera propia Ley Acceso al Crédito
-  , 'PD' AS `cod_activo` -- Anexo B, Tabla 2: Préstamos
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+	WHERE description = "Cartera propia Ley Acceso al Crédito (19)"
+  ) AS `cod_cartera`
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+	WHERE description = "Préstamos"
+  ) AS `cod_activo`
   , loan_id AS `num_referencia`
   , principal AS `monto_referencia` -- Original loan amount
-  , principal + total_interest_incurred - total_paid AS `saldo_referencia` -- Remaining balance
-  , CAST(NULL AS NUMERIC) AS `saldo_vigente_k`
+  , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
+  , principal - total_principal_paid AS `saldo_vigente_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
-  , CAST(NULL AS NUMERIC) AS `saldo_vigente_i`
+  , total_interest_incurred - total_principal_paid AS `saldo_vigente_i`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
   , DATE(start_timestamp) AS `fecha_otorgamiento`
@@ -41,29 +49,52 @@ SELECT
   , CAST(NULL AS DATE) AS `fecha_inicio_mora_i`
   , CASE
       WHEN payment_interval = "end_of_month"
-      THEN "M"
-    END AS `pago_capital` -- Anexo B, Tabla 8
-  , CAST(NULL AS STRING) AS `pago_interes`
+      THEN (
+	SELECT code
+	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+	WHERE description = "Mensual"
+      )
+  END AS `pago_capital`
+  , CASE
+      WHEN payment_interval = "end_of_month"
+      THEN (
+	SELECT code
+	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+	WHERE description = "Mensual"
+      )
+  END AS `pago_interes`
   , CAST(NULL AS NUMERIC) AS `periodo_gracia_k`
   , CAST(NULL AS NUMERIC) AS `periodo_gracia_i`
   , CAST(NULL AS STRING) AS `garante`
   , CAST(NULL AS STRING) AS `emisión`
   , CAST(NULL AS NUMERIC) AS `pais_destino_credito`
   , CAST(NULL AS STRING) AS `destino`
-  , '1' AS `codigo_moneda`-- Anexo B, Tabla 17: Monedas
-  , CAST(NULL AS NUMERIC) AS `tasa_interes`
-  , CAST(NULL AS NUMERIC) AS `tasa_contractual`
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_17_npb4_17_monedas")}
+	WHERE description = "Dólares"
+  ) AS `codigo_moneda`
+  , annual_rate AS `tasa_interes`
+  , annual_rate AS `tasa_contractual`
   , CAST(NULL AS NUMERIC) AS `tasa_referencia`
   , CAST(NULL AS NUMERIC) AS `tasa_efectiva`
-  , CAST(NULL AS STRING) AS `tipo_tasa_interes`
-  , CAST(NULL AS STRING) AS `tipo_prestamo`
-  , CAST(NULL AS STRING) AS `codigo_recurso`
+  , "F" AS `tipo_tasa_interes` -- "A" for adjustable, "F" for fixed
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_18_npb4_17_tipos_de_prestamos")}
+	WHERE description = "Crédito decreciente"
+  ) AS `tipo_prestamo`
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_21_npb4_17_fuentes_de_recursos")}
+	WHERE description = "Recursos propios de la entidad"
+  ) AS `codigo_recurso`
   , CAST(NULL AS DATE) AS `ultima_fecha_venc`
   , CAST(NULL AS NUMERIC) AS `dias_prorroga`
   , CAST(NULL AS NUMERIC) AS `monto_desembolsado`
   , CAST(NULL AS STRING) AS `tipo_credito`
-  , DATE(most_recent_payment_timestamp) AS `fecha_ultimo_pago_k`
-  , DATE(most_recent_payment_timestamp) AS `fecha_ultimo_pago_i`
+  , DATE(most_recent_interest_payment_timestamp) AS `fecha_ultimo_pago_k`
+  , DATE(most_recent_principal_payment_timestamp) AS `fecha_ultimo_pago_i`
   , CAST(NULL AS NUMERIC) AS `dia_pago_k`
   , CAST(NULL AS NUMERIC) AS `dia_pago_i`
   , CAST(NULL AS NUMERIC) AS `cuota_mora_k`
@@ -86,7 +117,11 @@ SELECT
   , CAST(NULL AS DATE) AS `fecha_demanda`
   , CAST(NULL AS NUMERIC) AS `plazo_credito`
   , CAST(NULL AS STRING) AS `orden_descuento`
-  , CAST(NULL AS STRING) AS `categoria_riesgo_ref`
+  , (
+	SELECT code
+	FROM ${ref("stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo")}
+	WHERE description = "Deudores normales"
+  ) AS `categoria_riesgo_ref`
   , CAST(NULL AS NUMERIC) AS `reserva_constituir`
   , CAST(NULL AS NUMERIC) AS `porcentaje_reserva`
   , CAST(NULL AS NUMERIC) AS `pago_cuota`
