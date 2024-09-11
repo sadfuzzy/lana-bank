@@ -4,105 +4,105 @@ config {
 
 WITH lista_de_ocupaciones AS (
 
-    SELECT '1' AS code, 'Administrador' AS description UNION ALL
-    SELECT '2', 'Agente de aduana' UNION ALL
-    SELECT '3', 'Agente de ventas' UNION ALL
-    SELECT '4', 'Agricultor' UNION ALL
-    SELECT '5', 'Agrónomo' UNION ALL
-    SELECT '6', 'Albañil' UNION ALL
-    SELECT '7', 'Ama de casa' UNION ALL
-    SELECT '8', 'Analista de computación' UNION ALL
-    SELECT '9', 'Apicultor' UNION ALL
-    SELECT '10', 'Arquitecto' UNION ALL
-    SELECT '11', 'Artesano' UNION ALL
-    SELECT '12', 'Ascensorista' UNION ALL
-    SELECT '13', 'Asistente de abogacía' UNION ALL
-    SELECT '14', 'Asistente de auditoría' UNION ALL
-    SELECT '15', 'Asistente de consultorio médico' UNION ALL
-    SELECT '16', 'Asesor' UNION ALL
-    SELECT '17', 'Auditor' UNION ALL
-    SELECT '18', 'Auxiliar de contabilidad' UNION ALL
-    SELECT '19', 'Auxiliar dental' UNION ALL
-    SELECT '20', 'Auxiliar de cocina' UNION ALL
-    SELECT '21', 'Ayudante de mecánico general' UNION ALL
-    SELECT '22', 'Ayudante operario, construcción' UNION ALL
-    SELECT '23', 'Bachiller' UNION ALL
-    SELECT '24', 'Barbero' UNION ALL
-    SELECT '25', 'Bartender' UNION ALL
-    SELECT '26', 'Bodeguero' UNION ALL
-    SELECT '27', 'Bombero' UNION ALL
-    SELECT '28', 'Botones' UNION ALL
-    SELECT '29', 'Cajero' UNION ALL
-    SELECT '30', 'Camarógrafo de prensa' UNION ALL
-    SELECT '31', 'Cantante de música' UNION ALL
-    SELECT '32', 'Carnicero (destazador)' UNION ALL
-    SELECT '33', 'Carpintero' UNION ALL
-    SELECT '34', 'Catedrático' UNION ALL
-    SELECT '35', 'Cerrajero' UNION ALL
-    SELECT '36', 'Chequeador de buses' UNION ALL
-    SELECT '37', 'Chofer de bus' UNION ALL
-    SELECT '38', 'Chofer de tráiler' UNION ALL
-    SELECT '39', 'Chofer de vehículo' UNION ALL
-    SELECT '40', 'Cobrador' UNION ALL
-    SELECT '41', 'Cocinero' UNION ALL
-    SELECT '42', 'Comerciante' UNION ALL
-    SELECT '43', 'Constructor' UNION ALL
-    SELECT '44', 'Consultor' UNION ALL
-    SELECT '45', 'Contador' UNION ALL
-    SELECT '46', 'Corredor de seguros' UNION ALL
-    SELECT '47', 'Cosmetóloga' UNION ALL
-    SELECT '48', 'Costurera (modista)' UNION ALL
-    SELECT '49', 'Dependiente de mostrador' UNION ALL
-    SELECT '50', 'Despachador agencia de aduana' UNION ALL
-    SELECT '51', 'Dibujante de artes gráficas' UNION ALL
-    SELECT '52', 'Dibujante ingeniería, arquitectura' UNION ALL
-    SELECT '53', 'Digitador' UNION ALL
-    SELECT '54', 'Diputado' UNION ALL
-    SELECT '55', 'Director centro educativo' UNION ALL
-    SELECT '56', 'Diseñador' UNION ALL
-    SELECT '57', 'Ebanista' UNION ALL
-    SELECT '58', 'Electricista' UNION ALL
-    SELECT '59', 'Empacador, etiquetador' UNION ALL
-    SELECT '60', 'Empleada doméstica' UNION ALL
-    SELECT '61', 'Empleado de despacho' UNION ALL
-    SELECT '62', 'Empleado sector público' UNION ALL
-    SELECT '63', 'Empresario' UNION ALL
-    SELECT '64', 'Encargado indicar acomodo parqueo' UNION ALL
-    SELECT '65', 'Encargado de limpieza en general' UNION ALL
-    SELECT '66', 'Encargado limpieza en piscinas' UNION ALL
-    SELECT '67', 'Encargado mantenimiento correctivo cómputo' UNION ALL
-    SELECT '68', 'Encargado mantenimiento preventivo cómputo' UNION ALL
-    SELECT '69', 'Encargado de poner discos (discjockey)' UNION ALL
-    SELECT '70', 'Encargado de fotocopiadora' UNION ALL
-    SELECT '71', 'Encargado mantenimiento edificio' UNION ALL
-    SELECT '72', 'Encuadernador-empastador' UNION ALL
-    SELECT '73', 'Encuestador' UNION ALL
-    SELECT '74', 'Enderezador automotriz' UNION ALL
-    SELECT '75', 'Engrasador de autos' UNION ALL
-    SELECT '76', 'Ensamblador de computadoras' UNION ALL
-    SELECT '77', 'Estampador en textil (serigrafía)' UNION ALL
-    SELECT '78', 'Estilista' UNION ALL
-    SELECT '79', 'Florista' UNION ALL
-    SELECT '80', 'Fontanero' UNION ALL
-    SELECT '81', 'Fotógrafo' UNION ALL
-    SELECT '82', 'Fumigador' UNION ALL
-    SELECT '83', 'Fundidor' UNION ALL
-    SELECT '84', 'Guía turístico' UNION ALL
-    SELECT '85', 'Hojalatero' UNION ALL
-    SELECT '86', 'Horneador' UNION ALL
-    SELECT '87', 'Ingeniero' UNION ALL
-    SELECT '88', 'Instructor de bailes' UNION ALL
-    SELECT '89', 'Jardinero' UNION ALL
-    SELECT '90', 'Jefe de cocina (chef)' UNION ALL
-    SELECT '91', 'Joyero' UNION ALL
-    SELECT '92', 'Laboratorista clínico' UNION ALL
-    SELECT '93', 'Lavador de baños, pisos, etc.' UNION ALL
-    SELECT '94', 'Lavador de cabellos' UNION ALL
-    SELECT '95', 'Lavador de carros' UNION ALL
-    SELECT '96', 'Levantador de textos (artes gráficas)' UNION ALL
-    SELECT '97', 'Locutor de radioemisora' UNION ALL
-    SELECT '98', 'Locutor de televisión' UNION ALL
-    SELECT '99', 'Llanteros' UNION ALL
+    SELECT '001' AS code, 'Administrador' AS description UNION ALL
+    SELECT '002', 'Agente de aduana' UNION ALL
+    SELECT '003', 'Agente de ventas' UNION ALL
+    SELECT '004', 'Agricultor' UNION ALL
+    SELECT '005', 'Agrónomo' UNION ALL
+    SELECT '006', 'Albañil' UNION ALL
+    SELECT '007', 'Ama de casa' UNION ALL
+    SELECT '008', 'Analista de computación' UNION ALL
+    SELECT '009', 'Apicultor' UNION ALL
+    SELECT '010', 'Arquitecto' UNION ALL
+    SELECT '011', 'Artesano' UNION ALL
+    SELECT '012', 'Ascensorista' UNION ALL
+    SELECT '013', 'Asistente de abogacía' UNION ALL
+    SELECT '014', 'Asistente de auditoría' UNION ALL
+    SELECT '015', 'Asistente de consultorio médico' UNION ALL
+    SELECT '016', 'Asesor' UNION ALL
+    SELECT '017', 'Auditor' UNION ALL
+    SELECT '018', 'Auxiliar de contabilidad' UNION ALL
+    SELECT '019', 'Auxiliar dental' UNION ALL
+    SELECT '020', 'Auxiliar de cocina' UNION ALL
+    SELECT '021', 'Ayudante de mecánico general' UNION ALL
+    SELECT '022', 'Ayudante operario, construcción' UNION ALL
+    SELECT '023', 'Bachiller' UNION ALL
+    SELECT '024', 'Barbero' UNION ALL
+    SELECT '025', 'Bartender' UNION ALL
+    SELECT '026', 'Bodeguero' UNION ALL
+    SELECT '027', 'Bombero' UNION ALL
+    SELECT '028', 'Botones' UNION ALL
+    SELECT '029', 'Cajero' UNION ALL
+    SELECT '030', 'Camarógrafo de prensa' UNION ALL
+    SELECT '031', 'Cantante de música' UNION ALL
+    SELECT '032', 'Carnicero (destazador)' UNION ALL
+    SELECT '033', 'Carpintero' UNION ALL
+    SELECT '034', 'Catedrático' UNION ALL
+    SELECT '035', 'Cerrajero' UNION ALL
+    SELECT '036', 'Chequeador de buses' UNION ALL
+    SELECT '037', 'Chofer de bus' UNION ALL
+    SELECT '038', 'Chofer de tráiler' UNION ALL
+    SELECT '039', 'Chofer de vehículo' UNION ALL
+    SELECT '040', 'Cobrador' UNION ALL
+    SELECT '041', 'Cocinero' UNION ALL
+    SELECT '042', 'Comerciante' UNION ALL
+    SELECT '043', 'Constructor' UNION ALL
+    SELECT '044', 'Consultor' UNION ALL
+    SELECT '045', 'Contador' UNION ALL
+    SELECT '046', 'Corredor de seguros' UNION ALL
+    SELECT '047', 'Cosmetóloga' UNION ALL
+    SELECT '048', 'Costurera (modista)' UNION ALL
+    SELECT '049', 'Dependiente de mostrador' UNION ALL
+    SELECT '050', 'Despachador agencia de aduana' UNION ALL
+    SELECT '051', 'Dibujante de artes gráficas' UNION ALL
+    SELECT '052', 'Dibujante ingeniería, arquitectura' UNION ALL
+    SELECT '053', 'Digitador' UNION ALL
+    SELECT '054', 'Diputado' UNION ALL
+    SELECT '055', 'Director centro educativo' UNION ALL
+    SELECT '056', 'Diseñador' UNION ALL
+    SELECT '057', 'Ebanista' UNION ALL
+    SELECT '058', 'Electricista' UNION ALL
+    SELECT '059', 'Empacador, etiquetador' UNION ALL
+    SELECT '060', 'Empleada doméstica' UNION ALL
+    SELECT '061', 'Empleado de despacho' UNION ALL
+    SELECT '062', 'Empleado sector público' UNION ALL
+    SELECT '063', 'Empresario' UNION ALL
+    SELECT '064', 'Encargado indicar acomodo parqueo' UNION ALL
+    SELECT '065', 'Encargado de limpieza en general' UNION ALL
+    SELECT '066', 'Encargado limpieza en piscinas' UNION ALL
+    SELECT '067', 'Encargado mantenimiento correctivo cómputo' UNION ALL
+    SELECT '068', 'Encargado mantenimiento preventivo cómputo' UNION ALL
+    SELECT '069', 'Encargado de poner discos (discjockey)' UNION ALL
+    SELECT '070', 'Encargado de fotocopiadora' UNION ALL
+    SELECT '071', 'Encargado mantenimiento edificio' UNION ALL
+    SELECT '072', 'Encuadernador-empastador' UNION ALL
+    SELECT '073', 'Encuestador' UNION ALL
+    SELECT '074', 'Enderezador automotriz' UNION ALL
+    SELECT '075', 'Engrasador de autos' UNION ALL
+    SELECT '076', 'Ensamblador de computadoras' UNION ALL
+    SELECT '077', 'Estampador en textil (serigrafía)' UNION ALL
+    SELECT '078', 'Estilista' UNION ALL
+    SELECT '079', 'Florista' UNION ALL
+    SELECT '080', 'Fontanero' UNION ALL
+    SELECT '081', 'Fotógrafo' UNION ALL
+    SELECT '082', 'Fumigador' UNION ALL
+    SELECT '083', 'Fundidor' UNION ALL
+    SELECT '084', 'Guía turístico' UNION ALL
+    SELECT '085', 'Hojalatero' UNION ALL
+    SELECT '086', 'Horneador' UNION ALL
+    SELECT '087', 'Ingeniero' UNION ALL
+    SELECT '088', 'Instructor de bailes' UNION ALL
+    SELECT '089', 'Jardinero' UNION ALL
+    SELECT '090', 'Jefe de cocina (chef)' UNION ALL
+    SELECT '091', 'Joyero' UNION ALL
+    SELECT '092', 'Laboratorista clínico' UNION ALL
+    SELECT '093', 'Lavador de baños, pisos, etc.' UNION ALL
+    SELECT '094', 'Lavador de cabellos' UNION ALL
+    SELECT '095', 'Lavador de carros' UNION ALL
+    SELECT '096', 'Levantador de textos (artes gráficas)' UNION ALL
+    SELECT '097', 'Locutor de radioemisora' UNION ALL
+    SELECT '098', 'Locutor de televisión' UNION ALL
+    SELECT '099', 'Llanteros' UNION ALL
     SELECT '100', 'Maestro' UNION ALL
     SELECT '101', 'Maestro de obras' UNION ALL
     SELECT '102', 'Mecánico' UNION ALL

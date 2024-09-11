@@ -1,0 +1,101 @@
+config {
+  type: "table",
+  description: "Errors found in Regulatory Report 'persona.xml' of norm 'NPB4-17'"
+}
+
+SELECT
+    `nit_persona`
+  , NOT(CASE WHEN `tipo_identificador` = 'N' THEN LENGTH(`nit_persona`) != 14 OR REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^0-9]+') WHEN `tipo_identificador` = 'U' THEN REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+') WHEN `tipo_identificador` = 'D' THEN LENGTH(`nit_persona`) != 9 OR REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^0-9]+') ELSE FALSE END) AS `error_nit_persona`
+  , `dui`
+  , NOT(CASE WHEN `tipo_persona` = '1' AND `nacionalidad` = 9300 AND `residente` = 'R' AND DATE_DIFF(CURRENT_DATE(), CAST(`fecha_nacimiento` AS DATE), YEAR) >= 18 THEN LENGTH(`dui`) != 9 OR REGEXP_CONTAINS(COALESCE(`dui`, '~'), '[^0-9]+') ELSE FALSE END) AS `error_dui`
+  , `primer_apellido`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`primer_apellido`, '~'), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_primer_apellido`
+  , `segundo_apellido`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`segundo_apellido`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_segundo_apellido`
+  , `apellido_casada`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`apellido_casada`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_apellido_casada`
+  , `primer_nombre`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`primer_nombre`, '~'), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_primer_nombre`
+  , `segundo_nombre`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`segundo_nombre`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_segundo_nombre`
+  , `nombre_sociedad`
+  , NOT(CASE WHEN `tipo_persona` = '2' THEN REGEXP_CONTAINS(COALESCE(`nombre_sociedad`, '~'), '[^-,.\'& 0-9A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_nombre_sociedad`
+  , `tipo_persona`
+  , NOT(COALESCE(`tipo_persona`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_04_npb4_17_tipos_de_persona')})) AS `error_tipo_persona`
+  , `tipo_relacion`
+  , NOT(COALESCE(`tipo_relacion`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_05_npb4_17_tipos_de_deudores_relacionados')})) AS `error_tipo_relacion`
+  , `tipo_identificador`
+  , NOT(COALESCE(`tipo_identificador`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_06_npb4_17_tipos_de_identificador')})) AS `error_tipo_identificador`
+  , `nit_desactualizado`
+  , NOT(CASE WHEN `tipo_persona` = '1' AND `nit_desactualizado` IS NOT NULL THEN REGEXP_CONTAINS(`nit_desactualizado`, '[^0-9]+') ELSE FALSE END) AS `error_nit_desactualizado`
+  , `residente`
+  , NOT(CASE WHEN `tipo_persona` = '1' THEN COALESCE(`residente`, '~') NOT IN ('R', 'N') ELSE FALSE END) AS `error_residente`
+  , `giro_persona`
+  , NOT(COALESCE(`giro_persona`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_19_npb4_17_actividades_economicas')})) AS `error_giro_persona`
+  , `tamano_empresa`
+  , NOT(CASE WHEN `tipo_persona` = '2' THEN COALESCE(`tamano_empresa`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_20_npb4_17_tamano_de_empresa')}) ELSE FALSE END) AS `error_tamano_empresa`
+  , `tipo_empresa`
+  , NOT(CASE WHEN `tipo_persona` = '1' then `tipo_empresa` IS NOT NULL WHEN `tipo_persona` = '2' then COALESCE(`tipo_empresa`, '~') NOT IN ('N', 'E') ELSE FALSE END) AS `error_tipo_empresa`
+  , `reserva`
+  , NOT((LENGTH(CAST(`reserva` AS STRING)) > 13 OR REGEXP_CONTAINS(COALESCE(CAST(`reserva` AS STRING), '~'), '[^.0-9]+'))) AS `error_reserva`
+  , `categoria_riesgo`
+  , NOT(COALESCE(`categoria_riesgo`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo')})) AS `error_categoria_riesgo`
+  , `numero_cliente`
+  , NOT(LENGTH(`numero_cliente`) > 17 OR REGEXP_CONTAINS(COALESCE(`numero_cliente`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+')) AS `error_numero_cliente`
+  , `id_alterno`
+  , NOT(LENGTH(`id_alterno`) > 20 OR REGEXP_CONTAINS(COALESCE(`id_alterno`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+')) AS `error_id_alterno`
+  , `tipo_id_alterno`
+  , NOT(COALESCE(`tipo_id_alterno`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_27_npb4_17_identificador_alterno')})) AS `error_tipo_id_alterno`
+  , `fecha_nacimiento`
+  , NOT(REGEXP_CONTAINS(COALESCE(`fecha_nacimiento`, '~'), '[^-0-9]+')) AS `error_fecha_nacimiento`
+  , `pais_residencia`
+  , NOT(COALESCE(`pais_residencia`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')})) AS `error_pais_residencia`
+  , `riesgo_consolidado`
+  , NOT((LENGTH(CAST(`riesgo_consolidado` AS STRING)) > 13 OR REGEXP_CONTAINS(COALESCE(CAST(`riesgo_consolidado` AS STRING), '~'), '[^.0-9]+'))) AS `error_riesgo_consolidado`
+  , `sexo_persona`
+  , NOT(COALESCE(`sexo_persona`, '~') NOT IN ('M', 'F')) AS `error_sexo_persona`
+  , `ocupación`
+  , NOT(COALESCE(`ocupación`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_25_npb4_17_lista_de_ocupaciones')})) AS `error_ocupación`
+  , `id_pais_origen`
+  , NOT(REGEXP_CONTAINS(COALESCE(`id_pais_origen`, '~'), '[^0-9A-ZÑÁÉÍÓÚÜ]+')) AS `error_id_pais_origen`
+  , `nacionalidad`
+  , NOT(COALESCE(`nacionalidad`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')})) AS `error_nacionalidad`
+  , `nit_anterior`
+  , NOT((`nit_anterior` IS NOT NULL AND LENGTH(`nit_anterior`) != 14) OR REGEXP_CONTAINS(COALESCE(`nit_anterior`, ''), '[^0-9]+')) AS `error_nit_anterior`
+  , `tipo_ident_anterior`
+  , NOT(COALESCE(`tipo_ident_anterior`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_06_npb4_17_tipos_de_identificador')})) AS `error_tipo_ident_anterior`
+  , `municipio_residencia`
+  , NOT(COALESCE(`municipio_residencia`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_14_npb4_17_municipios')})) AS `error_municipio_residencia`
+FROM
+  ${ref("stg_01_npb4_17_persona_xml_raw")}
+WHERE NOT(CASE WHEN `tipo_identificador` = 'N' THEN LENGTH(`nit_persona`) != 14 OR REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^0-9]+') WHEN `tipo_identificador` = 'U' THEN REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+') WHEN `tipo_identificador` = 'D' THEN LENGTH(`nit_persona`) != 9 OR REGEXP_CONTAINS(COALESCE(`nit_persona`, '~'), '[^0-9]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' AND `nacionalidad` = 9300 AND `residente` = 'R' AND DATE_DIFF(CURRENT_DATE(), CAST(`fecha_nacimiento` AS DATE), YEAR) >= 18 THEN LENGTH(`dui`) != 9 OR REGEXP_CONTAINS(COALESCE(`dui`, '~'), '[^0-9]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`primer_apellido`, '~'), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`segundo_apellido`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`apellido_casada`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`primer_nombre`, '~'), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN REGEXP_CONTAINS(COALESCE(`segundo_nombre`, ''), '[^ -.\'A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '2' THEN REGEXP_CONTAINS(COALESCE(`nombre_sociedad`, '~'), '[^-,.\'& 0-9A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+  OR NOT(COALESCE(`tipo_persona`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_04_npb4_17_tipos_de_persona')}))
+  OR NOT(COALESCE(`tipo_relacion`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_05_npb4_17_tipos_de_deudores_relacionados')}))
+  OR NOT(COALESCE(`tipo_identificador`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_06_npb4_17_tipos_de_identificador')}))
+  OR NOT(CASE WHEN `tipo_persona` = '1' AND `nit_desactualizado` IS NOT NULL THEN REGEXP_CONTAINS(`nit_desactualizado`, '[^0-9]+') ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' THEN COALESCE(`residente`, '~') NOT IN ('R', 'N') ELSE FALSE END)
+  OR NOT(COALESCE(`giro_persona`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_19_npb4_17_actividades_economicas')}))
+  OR NOT(CASE WHEN `tipo_persona` = '2' THEN COALESCE(`tamano_empresa`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_20_npb4_17_tamano_de_empresa')}) ELSE FALSE END)
+  OR NOT(CASE WHEN `tipo_persona` = '1' then `tipo_empresa` IS NOT NULL WHEN `tipo_persona` = '2' then COALESCE(`tipo_empresa`, '~') NOT IN ('N', 'E') ELSE FALSE END)
+  OR NOT((LENGTH(CAST(`reserva` AS STRING)) > 13 OR REGEXP_CONTAINS(COALESCE(CAST(`reserva` AS STRING), '~'), '[^.0-9]+')))
+  OR NOT(COALESCE(`categoria_riesgo`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo')}))
+  OR NOT(LENGTH(`numero_cliente`) > 17 OR REGEXP_CONTAINS(COALESCE(`numero_cliente`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+'))
+  OR NOT(LENGTH(`id_alterno`) > 20 OR REGEXP_CONTAINS(COALESCE(`id_alterno`, '~'), '[^#%&/0-9a-zñáéíóúüA-ZÑÁÉÍÓÚÜ]+'))
+  OR NOT(COALESCE(`tipo_id_alterno`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_27_npb4_17_identificador_alterno')}))
+  OR NOT(REGEXP_CONTAINS(COALESCE(`fecha_nacimiento`, '~'), '[^-0-9]+'))
+  OR NOT(COALESCE(`pais_residencia`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')}))
+  OR NOT((LENGTH(CAST(`riesgo_consolidado` AS STRING)) > 13 OR REGEXP_CONTAINS(COALESCE(CAST(`riesgo_consolidado` AS STRING), '~'), '[^.0-9]+')))
+  OR NOT(COALESCE(`sexo_persona`, '~') NOT IN ('M', 'F'))
+  OR NOT(COALESCE(`ocupación`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_25_npb4_17_lista_de_ocupaciones')}))
+  OR NOT(REGEXP_CONTAINS(COALESCE(`id_pais_origen`, '~'), '[^0-9A-ZÑÁÉÍÓÚÜ]+'))
+  OR NOT(COALESCE(`nacionalidad`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')}))
+  OR NOT((`nit_anterior` IS NOT NULL AND LENGTH(`nit_anterior`) != 14) OR REGEXP_CONTAINS(COALESCE(`nit_anterior`, ''), '[^0-9]+'))
+  OR NOT(COALESCE(`tipo_ident_anterior`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_06_npb4_17_tipos_de_identificador')}))
+  OR NOT(COALESCE(`municipio_residencia`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_14_npb4_17_municipios')}))
