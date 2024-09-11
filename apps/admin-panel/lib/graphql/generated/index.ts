@@ -255,6 +255,16 @@ export type CustomerEdge = {
   node: Customer;
 };
 
+export type CustomerUpdateInput = {
+  customerId: Scalars['UUID']['input'];
+  telegramId: Scalars['String']['input'];
+};
+
+export type CustomerUpdatePayload = {
+  __typename?: 'CustomerUpdatePayload';
+  customer: Customer;
+};
+
 export type DefaultTermsUpdateInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
@@ -503,6 +513,7 @@ export type Mutation = {
   collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   customerCreate: CustomerCreatePayload;
+  customerUpdate: CustomerUpdatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
@@ -531,6 +542,11 @@ export type MutationCollateralizationStateUpdateArgs = {
 
 export type MutationCustomerCreateArgs = {
   input: CustomerCreateInput;
+};
+
+
+export type MutationCustomerUpdateArgs = {
+  input: CustomerUpdateInput;
 };
 
 
@@ -1025,6 +1041,13 @@ export type GetTransactionsForCustomerQueryVariables = Exact<{
 
 
 export type GetTransactionsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+
+export type CustomerUpdateMutationVariables = Exact<{
+  input: CustomerUpdateInput;
+}>;
+
+
+export type CustomerUpdateMutation = { __typename?: 'Mutation', customerUpdate: { __typename?: 'CustomerUpdatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
@@ -1901,6 +1924,45 @@ export function useGetTransactionsForCustomerLazyQuery(baseOptions?: Apollo.Lazy
 export type GetTransactionsForCustomerQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerQuery>;
 export type GetTransactionsForCustomerLazyQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerLazyQuery>;
 export type GetTransactionsForCustomerQueryResult = Apollo.QueryResult<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>;
+export const CustomerUpdateDocument = gql`
+    mutation CustomerUpdate($input: CustomerUpdateInput!) {
+  customerUpdate(input: $input) {
+    customer {
+      customerId
+      email
+      status
+      level
+      applicantId
+    }
+  }
+}
+    `;
+export type CustomerUpdateMutationFn = Apollo.MutationFunction<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
+
+/**
+ * __useCustomerUpdateMutation__
+ *
+ * To run a mutation, you first call `useCustomerUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerUpdateMutation, { data, loading, error }] = useCustomerUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerUpdateMutation, CustomerUpdateMutationVariables>(CustomerUpdateDocument, options);
+      }
+export type CustomerUpdateMutationHookResult = ReturnType<typeof useCustomerUpdateMutation>;
+export type CustomerUpdateMutationResult = Apollo.MutationResult<CustomerUpdateMutation>;
+export type CustomerUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
 export const CustomerCreateDocument = gql`
     mutation CustomerCreate($input: CustomerCreateInput!) {
   customerCreate(input: $input) {

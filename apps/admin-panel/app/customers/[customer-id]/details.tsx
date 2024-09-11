@@ -3,6 +3,10 @@
 import { useState } from "react"
 import { gql } from "@apollo/client"
 
+import { PiPencilSimpleLineLight } from "react-icons/pi"
+
+import UpdateTelegramIdDialog from "./update-telegram-id"
+
 import { DetailItem, DetailsGroup } from "@/components/details"
 import {
   Card,
@@ -48,6 +52,7 @@ gql`
 export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
+  const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
   const {
     loading,
@@ -87,6 +92,15 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                   <DetailItem
                     label="Telegram"
                     value={customerDetails.customer.telegramId}
+                    valueComponent={
+                      <div className="flex items-center gap-2">
+                        {customerDetails.customer.telegramId}
+                        <PiPencilSimpleLineLight
+                          onClick={() => setOpenUpdateTelegramIdDialog(true)}
+                          className="w-5 h-5 cursor-pointer"
+                        />
+                      </div>
+                    }
                   />
                 </DetailsGroup>
               </CardContent>
@@ -119,6 +133,14 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
           setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(false)}
         />
       )}
+      {
+        <UpdateTelegramIdDialog
+          customerId={customerId}
+          openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
+          setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
+          refetch={refetch}
+        />
+      }
     </>
   )
 }

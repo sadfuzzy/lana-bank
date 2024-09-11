@@ -93,6 +93,13 @@ impl CustomerRepo {
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer: &mut Customer,
     ) -> Result<(), CustomerError> {
+        sqlx::query!(
+            r#"UPDATE customers SET telegram_id = $2 WHERE id = $1"#,
+            customer.id as CustomerId,
+            customer.telegram_id,
+        )
+        .execute(&mut **db)
+        .await?;
         let n_events = customer.events.persist(db).await?;
         self.export
             .export_last(db, BQ_TABLE_NAME, n_events, &customer.events)

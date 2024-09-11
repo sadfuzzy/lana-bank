@@ -635,6 +635,20 @@ impl Mutation {
         Ok(CustomerCreatePayload::from(customer))
     }
 
+    async fn customer_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerUpdateInput,
+    ) -> async_graphql::Result<CustomerUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let customer = app
+            .customers()
+            .update(sub, CustomerId::from(input.customer_id), input.telegram_id)
+            .await?;
+        Ok(CustomerUpdatePayload::from(customer))
+    }
+
     async fn user_create(
         &self,
         ctx: &Context<'_>,

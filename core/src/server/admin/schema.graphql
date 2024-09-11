@@ -235,6 +235,15 @@ type CustomerEdge {
 	cursor: String!
 }
 
+input CustomerUpdateInput {
+	customerId: UUID!
+	telegramId: String!
+}
+
+type CustomerUpdatePayload {
+	customer: Customer!
+}
+
 input DefaultTermsUpdateInput {
 	annualRate: AnnualRatePct!
 	interval: InterestInterval!
@@ -495,6 +504,7 @@ type Mutation {
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
+	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!

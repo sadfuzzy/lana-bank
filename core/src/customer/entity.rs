@@ -26,6 +26,10 @@ pub enum CustomerEvent {
         applicant_id: String,
         audit_info: AuditInfo,
     },
+    TelegramIdUpdated {
+        telegram_id: String,
+        audit_info: AuditInfo,
+    },
 }
 
 impl CustomerEvent {
@@ -35,6 +39,7 @@ impl CustomerEvent {
             CustomerEvent::KycStarted { audit_info, .. } => *audit_info,
             CustomerEvent::KycApproved { audit_info, .. } => *audit_info,
             CustomerEvent::KycDeclined { audit_info, .. } => *audit_info,
+            CustomerEvent::TelegramIdUpdated { audit_info, .. } => *audit_info,
         }
     }
 }
@@ -107,6 +112,14 @@ impl Customer {
         self.level = KycLevel::NotKyced;
         self.status = AccountStatus::Inactive;
     }
+
+    pub fn update_telegram_id(&mut self, new_telegram_id: String, audit_info: AuditInfo) {
+        self.events.push(CustomerEvent::TelegramIdUpdated {
+            telegram_id: new_telegram_id.clone(),
+            audit_info,
+        });
+        self.telegram_id = new_telegram_id;
+    }
 }
 
 impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
@@ -150,6 +163,9 @@ impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
                     builder = builder
                         .applicant_id(applicant_id.clone())
                         .status(AccountStatus::Inactive);
+                }
+                CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
+                    builder = builder.telegram_id(telegram_id.clone());
                 }
             }
         }
