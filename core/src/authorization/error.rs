@@ -15,6 +15,8 @@ pub enum AuthorizationError {
     ObjectParseError { value: String },
     #[error("AuthorizationError - ActionParseError: {value}")]
     ActionParseError { value: String },
+    #[error("AuthorizationError - ParseError: {0}")]
+    ParseError(#[from] strum::ParseError),
 }
 
 impl From<CasbinError> for AuthorizationError {

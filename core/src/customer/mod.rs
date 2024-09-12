@@ -10,7 +10,7 @@ use tracing::instrument;
 
 use crate::{
     audit::Audit,
-    authorization::{Action, Authorization, CustomerAction, Object},
+    authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
     primitives::{CustomerId, KycLevel, Subject},
@@ -67,7 +67,11 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Customer, CustomerAction::Create)
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::Create,
+            )
             .await?;
         let customer_id = self.kratos.create_identity(&email).await?.into();
 
@@ -103,7 +107,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db,
                 &Subject::System(crate::primitives::SystemNode::Kratos),
-                Object::Customer,
+                Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
                 true,
             )
@@ -129,12 +133,18 @@ impl Customers {
         sub: Option<&Subject>,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
+        let id = id.into();
+
         if let Some(sub) = sub {
             self.authz
-                .check_permission(sub, Object::Customer, CustomerAction::Read)
+                .check_permission(
+                    sub,
+                    Object::Customer(CustomerAllOrOne::ById(id)),
+                    CustomerAction::Read,
+                )
                 .await?;
         }
-        match self.repo.find_by_id(id.into()).await {
+        match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),
@@ -147,7 +157,11 @@ impl Customers {
         email: String,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
-            .check_permission(sub, Object::Customer, CustomerAction::Read)
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::Read,
+            )
             .await?;
 
         match self.repo.find_by_email(&email).await {
@@ -175,7 +189,11 @@ impl Customers {
     ) -> Result<crate::query::PaginatedQueryRet<Customer, CustomerByNameCursor>, CustomerError>
     {
         self.authz
-            .check_permission(sub, Object::Customer, CustomerAction::List)
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::All),
+                CustomerAction::List,
+            )
             .await?;
         self.repo.list(query).await
     }
@@ -194,7 +212,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
                 true,
             )
@@ -222,7 +240,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
                 true,
             )
@@ -250,7 +268,7 @@ impl Customers {
             .record_entry_in_tx(
                 &mut db_tx,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
-                Object::Customer,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
                 true,
             )
@@ -279,7 +297,11 @@ impl Customers {
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
             .authz
-            .check_permission(sub, Object::Customer, CustomerAction::Update)
+            .check_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                CustomerAction::Update,
+            )
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;

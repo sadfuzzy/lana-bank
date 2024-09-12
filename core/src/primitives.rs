@@ -127,9 +127,7 @@ impl FromStr for Subject {
                 SYSTEM_CORE => Subject::System(SystemNode::Core),
                 SYSTEM_KRATOS => Subject::System(SystemNode::Kratos),
                 SYSTEM_SUMSUB => Subject::System(SystemNode::Sumsub),
-                _ => {
-                    return Err(ParseSubjectError::UnknownSystemNodeId(id));
-                }
+                _ => return Err(ParseSubjectError::UnknownSystemNodeId(id)),
             },
         };
         Ok(res)
@@ -202,7 +200,6 @@ impl From<&Subject> for uuid::Uuid {
     PartialEq,
     Eq,
     Hash,
-    strum::IntoStaticStr,
     strum::EnumString,
     strum::Display,
 )]
