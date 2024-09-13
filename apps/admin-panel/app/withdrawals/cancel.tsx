@@ -49,9 +49,8 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   withdrawalData,
   refetch,
 }) => {
-  const [cancelWithdrawal, { loading, data, reset }] = useWithdrawalCancelMutation()
+  const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation()
   const [error, setError] = useState<string | null>(null)
-  const [isCanceled, setIsCanceled] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -66,7 +65,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
       })
       if (result.data) {
         toast.success("Withdrawal canceled successfully")
-        setIsCanceled(true)
+        handleCloseDialog()
         if (refetch) refetch()
       } else {
         throw new Error("No data returned from mutation")
@@ -84,90 +83,58 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   const handleCloseDialog = () => {
     setOpenWithdrawalCancelDialog(false)
     setError(null)
-    setIsCanceled(false)
     reset()
   }
 
   return (
     <Dialog open={openWithdrawalCancelDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        {isCanceled && data ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Withdrawal Canceled</DialogTitle>
-              <DialogDescription>Details of the canceled withdrawal.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-2">
+        <>
+          <DialogHeader>
+            <DialogTitle>Cancel Withdrawal</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to cancel this withdrawal?
+            </DialogDescription>
+          </DialogHeader>
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <DetailsGroup>
               <DetailItem
+                className="text-sm"
                 label="Withdrawal ID"
-                value={data.withdrawalCancel.withdrawal.withdrawalId}
+                value={withdrawalData.withdrawalId}
               />
               <DetailItem
-                label="Customer ID"
-                value={data.withdrawalCancel.withdrawal.customer?.customerId || "N/A"}
+                className="text-sm"
+                label="Customer Email"
+                value={withdrawalData.customer?.email || "N/A"}
               />
               <DetailItem
+                className="text-sm"
                 label="Amount"
                 valueComponent={
                   <Balance
-                    amount={data.withdrawalCancel.withdrawal.amount}
+                    amount={currencyConverter.centsToUsd(withdrawalData.amount)}
                     currency="usd"
                   />
                 }
               />
-            </div>
+              <DetailItem
+                label="Withdrawal Reference"
+                value={
+                  withdrawalData.reference === withdrawalData.withdrawalId
+                    ? "n/a"
+                    : withdrawalData.reference
+                }
+              />
+            </DetailsGroup>
+            {error && <p className="text-destructive">{error}</p>}
             <DialogFooter>
-              <Button onClick={handleCloseDialog}>Close</Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Canceling..." : "Confirm"}
+              </Button>
             </DialogFooter>
-          </>
-        ) : (
-          <>
-            <DialogHeader>
-              <DialogTitle>Cancel Withdrawal</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to cancel this withdrawal?
-              </DialogDescription>
-            </DialogHeader>
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <DetailsGroup>
-                <DetailItem
-                  className="text-sm"
-                  label="Withdrawal ID"
-                  value={withdrawalData.withdrawalId}
-                />
-                <DetailItem
-                  className="text-sm"
-                  label="Customer Email"
-                  value={withdrawalData.customer?.email || "N/A"}
-                />
-                <DetailItem
-                  className="text-sm"
-                  label="Amount"
-                  valueComponent={
-                    <Balance
-                      amount={currencyConverter.centsToUsd(withdrawalData.amount)}
-                      currency="usd"
-                    />
-                  }
-                />
-                <DetailItem
-                  label="Withdrawal Reference"
-                  value={
-                    withdrawalData.reference === withdrawalData.withdrawalId
-                      ? "n/a"
-                      : withdrawalData.reference
-                  }
-                />
-              </DetailsGroup>
-              {error && <p className="text-destructive">{error}</p>}
-              <DialogFooter>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Canceling..." : "Confirm"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </>
-        )}
+          </form>
+        </>
       </DialogContent>
     </Dialog>
   )
