@@ -1,29 +1,9 @@
 import React from "react"
 
 import { Bar } from "react-chartjs-2"
-import {
-  Chart,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ChartData,
-} from "chart.js"
+import { Chart, ChartData, registerables } from "chart.js"
 
-Chart.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-)
+Chart.register(...registerables)
 
 import { GetLoanDetailsQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
