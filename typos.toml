@@ -35,6 +35,7 @@ extend-exclude = [
 	"definitions/staging/stg_dim_31_npb4_17_codigos_de_paises_o_territorios.sqlx",
 	"definitions/staging/stg_dim_32_npb4_17_programa_de_asistencia_tecnica.sqlx",
 	"definitions/staging/stg_02_npb4_17_referencia_xml_raw.sqlx",
+	"definitions/staging/stg_02_npb4_17_referencia_xml.sqlx",
 	"definitions/staging/stg_01_npb4_17_persona_xml_error.sqlx",
 	"definitions/staging/stg_01_npb4_17_persona_xml_raw.sqlx",
 	"definitions/staging/stg_01_npb4_17_persona_xml.sqlx",

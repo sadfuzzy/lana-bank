@@ -1,6 +1,6 @@
 config {
   type: "table",
-  description: "Ready for export Regulatory Report persona.xml of norm NPB4-17"
+  description: "Ready for export Regulatory Report 'persona.xml' of norm 'NPB4-17'"
 }
 
 SELECT
@@ -20,14 +20,14 @@ SELECT
   , LEFT(`giro_persona`, 6) AS `giro_persona`
   , LEFT(`tamano_empresa`, 2) AS `tamano_empresa`
   , LEFT(`tipo_empresa`, 1) AS `tipo_empresa`
-  , CAST(ROUND(`reserva`, 2) AS STRING) AS `reserva`
+  , FORMAT('%.2f', ROUND(`reserva`, 2)) AS `reserva`
   , LEFT(`categoria_riesgo`, 2) AS `categoria_riesgo`
   , LEFT(`numero_cliente`, 17) AS `numero_cliente`
   , LEFT(`id_alterno`, 20) AS `id_alterno`
   , LEFT(`tipo_id_alterno`, 2) AS `tipo_id_alterno`
-  , FORMAT_DATE('%Y%m%d', CAST(`fecha_nacimiento` AS DATE)) AS `fecha_nacimiento`
+  , FORMAT_DATE('%Y-%m-%d', CAST(`fecha_nacimiento` AS DATE)) AS `fecha_nacimiento`
   , CAST(`pais_residencia` AS STRING) AS `pais_residencia`
-  , CAST(ROUND(`riesgo_consolidado`, 2) AS STRING) AS `riesgo_consolidado`
+  , FORMAT('%.2f', ROUND(`riesgo_consolidado`, 2)) AS `riesgo_consolidado`
   , LEFT(`sexo_persona`, 1) AS `sexo_persona`
   , LEFT(`ocupación`, 3) AS `ocupación`
   , LEFT(`id_pais_origen`, 20) AS `id_pais_origen`

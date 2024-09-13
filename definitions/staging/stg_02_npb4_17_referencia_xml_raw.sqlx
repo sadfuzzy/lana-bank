@@ -74,8 +74,8 @@ SELECT
 	FROM ${ref("stg_dim_17_npb4_17_monedas")}
 	WHERE description = "Dólares"
   ) AS `codigo_moneda`
-  , annual_rate AS `tasa_interes`
-  , annual_rate AS `tasa_contractual`
+  , CAST(annual_rate AS NUMERIC) AS `tasa_interes`
+  , CAST(annual_rate AS NUMERIC) AS `tasa_contractual`
   , CAST(NULL AS NUMERIC) AS `tasa_referencia`
   , CAST(NULL AS NUMERIC) AS `tasa_efectiva`
   , "F" AS `tipo_tasa_interes` -- "A" for adjustable, "F" for fixed
@@ -133,5 +133,6 @@ SELECT
   , CAST(NULL AS NUMERIC) AS `calculo_brecha`
   , CAST(NULL AS NUMERIC) AS `ajuste_brecha`
   , CAST(NULL AS STRING) AS `programa_asist_cafe`
+  , CAST(NULL AS DATE) AS `fecha_comp_cafe`
 
 FROM ${ref("stg_approved_loans")}
