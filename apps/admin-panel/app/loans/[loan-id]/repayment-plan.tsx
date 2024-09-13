@@ -34,7 +34,7 @@ export const RepaymentPlan: React.FC<RepaymentPlanProps> = ({ loan }) => {
               <TableRow>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Accural At</TableHead>
+                <TableHead>Accrual At</TableHead>
                 <TableHead>Due At</TableHead>
                 <TableHead>
                   <span className="flex justify-end">Initial</span>
