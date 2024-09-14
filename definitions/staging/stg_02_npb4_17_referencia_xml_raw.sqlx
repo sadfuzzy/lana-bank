@@ -1,21 +1,87 @@
 config {
   type: "table",
   description: "Regulatory Report referencia.xml of norm NPB4-17",
+  columns: {
+    "nit_deudor": "NIT del deudor",
+    "cod_cartera": "Código del tipo de cartera",
+    "cod_activo": "Código del tipo de activo de riesgo",
+    "num_referencia": "Número de la referencia",
+    "monto_referencia": "Monto de la referencia",
+    "saldo_referencia": "Saldo de la referencia",
+    "saldo_vigente_k": "Saldo vigente de capital",
+    "saldo_vencido_k": "Saldo vencido de capital",
+    "saldo_vigente_i": "Saldo vigente de intereses",
+    "saldo_vencido_i": "Saldo vencido de intereses",
+    "abono_deposito": "Abonos sin aplicar al préstamo/ depósito sin aplicar a carta de crédito",
+    "fecha_otorgamiento": "Fecha de otorgamiento ",
+    "fecha_vencimiento": "Fecha de vencimiento ",
+    "fecha_castigo": "Fecha de castigo ",
+    "estado_credito": "Código del estado del crédito",
+    "saldo_mora_k": "Saldo en mora de capital",
+    "saldo_mora_i": "Saldo en mora de intereses",
+    "dias_mora_k": "Días de mora de capital",
+    "dias_mora_i": "Días de mora de intereses",
+    "fecha_inicio_mora_k": "Fecha de inicio de mora de capital",
+    "fecha_inicio_mora_i": "Fecha de inicio de mora de intereses",
+    "pago_capital": "Código de forma de pago de capital",
+    "pago_interes": "Código de forma de pago de intereses",
+    "periodo_gracia_k": "Periodo de gracia para el pago de capital",
+    "periodo_gracia_i": "Periodo de gracia para el pago de intereses",
+    "garante": "Código de garantes de créditos pignorados",
+    "emisión": "Denominación de la emisión",
+    "pais_destino_credito": "Código de país de destino del crédito (21)",
+    "destino": "Código de destino de los préstamos por sector económico",
+    "codigo_moneda": "Código de moneda",
+    "tasa_interes": "Tasa de interés actual",
+    "tasa_contractual": "Tasa contractual o nominal",
+    "tasa_referencia": "Tasa de referencia publicada",
+    "tasa_efectiva": "Tasa efectiva",
+    "tipo_tasa_interes": "Tipo de tasa nominal",
+    "tipo_prestamo": "Código del tipo de prestamos",
+    "codigo_recurso": "Código de fuente de recursos",
+    "ultima_fecha_venc": "Última fecha de vencimiento",
+    "dias_prorroga": "Días de prorroga",
+    "monto_desembolsado": "Monto desembolsado en el mes",
+    "tipo_credito": "Tipo de crédito",
+    "fecha_ultimo_pago_k": "Fecha del último pago de capital cubierto",
+    "fecha_ultimo_pago_i": "Fecha del último pago de intereses cubierto",
+    "dia_pago_k": "Día del pago del capital",
+    "dia_pago_i": "Día del pago de intereses",
+    "cuota_mora_k": "Número de cuotas en mora de capital",
+    "cuota_mora_i": "Número de cuotas en mora de intereses",
+    "monto_cuota": "Monto de la cuota de la referencia incluyendo capital más intereses",
+    "cuenta_contable_k": "Cuenta contable de capital",
+    "cuenta_contable_i": "Cuenta contable de intereses",
+    "fecha_cancelacion": "Fecha de cancelación de la referencia",
+    "adelanto_capital": "Pagos adelantados de capital",
+    "riesgo_neto": "Riesgo neto",
+    "saldo_seguro": "Saldo del seguro del crédito",
+    "saldo_costas_procesales": "Saldo por costas procesales",
+    "tipo_tarjeta_credito": "Tipo de tarjeta de crédito",
+    "clase_tarjeta_credito": "Código de la clase de tarjeta de crédito",
+    "producto_tarjeta_credito": "Producto de la tarjeta de crédito",
+    "valor_garantia_cons": "Valor consolidado de la garantía",
+    "municipio_otorgamiento": "Código del municipio destino del crédito",
+    "reserva_referencia": "Reserva por referencia ",
+    "etapa_judicial": "Código de la etapa del crédito en vía judicial",
+    "fecha_demanda": "Fecha de la demanda",
+    "plazo_credito": "Plazo del crédito",
+    "orden_descuento": "Con o sin orden de descuento",
+    "categoria_riesgo_ref": "Código de la categoría de riesgo de la referencia (20)",
+    "reserva_constituir": "Reserva acumulada a constituir créditos COVID (20)",
+    "porcentaje_reserva": "Porcentaje de reserva constituida de acuerdo con la gradualidad créditos COVID (20)",
+    "pago_cuota": "Monto pagado de la cuota de la referencia (20) (21)",
+    "fecha_pago": "Fecha en que realizó el pago de la cuota (20) (21)",
+    "porcenta_reserva_descon": "Porcentaje de reserva a descontar créditos agropecuarios (20)",
+    "porcenta_adiciona_descon": "Porcentaje de reserva adicional a descontar agropecuarios",
+    "depto_destino_credito": "Código de departamento de destino del crédito (21)",
+    "porc_reserva_referencia": "Porcentaje de reserva por referencia (21)",
+    "calculo_brecha": "Cálculo de brecha de reserva de saneamiento de la referencia (21)",
+    "ajuste_brecha": "Cálculo de ajuste mensual de brecha de la referencia (21)",
+    "programa_asist_cafe": "Programa de asistencia suscrito créditos destino café (21)",
+    "fecha_cump_cafe": "Fecha de última carta de cumplimiento del programa de asistencia créditos destino café (21)",
+  },
 }
-
-WITH loans AS (
-
-	SELECT
-		id AS loan_id,
-
-	FROM ${ref({
-		name: "loan_events",
-		schema: envs.currentImportSchema
-	})}
-
-	GROUP BY loan_id
-
-)
 
 SELECT
     CAST(NULL AS STRING) AS `nit_deudor`
@@ -133,6 +199,6 @@ SELECT
   , CAST(NULL AS NUMERIC) AS `calculo_brecha`
   , CAST(NULL AS NUMERIC) AS `ajuste_brecha`
   , CAST(NULL AS STRING) AS `programa_asist_cafe`
-  , CAST(NULL AS DATE) AS `fecha_comp_cafe`
+  , CAST(NULL AS DATE) AS `fecha_cump_cafe`
 
 FROM ${ref("stg_approved_loans")}

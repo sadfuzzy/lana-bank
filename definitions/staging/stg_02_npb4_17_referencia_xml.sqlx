@@ -81,7 +81,7 @@ SELECT
   , FORMAT('%.2f', ROUND(`calculo_brecha`, 2)) AS `calculo_brecha`
   , FORMAT('%.2f', ROUND(`ajuste_brecha`, 2)) AS `ajuste_brecha`
   , LEFT(`programa_asist_cafe`, 2) AS `programa_asist_cafe`
-  , FORMAT_DATE('%Y-%m-%d', CAST(`fecha_comp_cafe` AS DATE)) AS `fecha_comp_cafe`
+  , FORMAT_DATE('%Y-%m-%d', CAST(`fecha_cump_cafe` AS DATE)) AS `fecha_cump_cafe`
   , CURRENT_TIMESTAMP() AS created_at
 FROM
   ${ref("stg_02_npb4_17_referencia_xml_raw")}

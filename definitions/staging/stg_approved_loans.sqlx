@@ -34,7 +34,7 @@ WITH approved AS (
 				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
 			)
 		END AS end_date
-		, JSON_VALUE(event, "$.terms.annual_rate") AS annual_rate
+		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
 		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
 
 	FROM ${ref({
