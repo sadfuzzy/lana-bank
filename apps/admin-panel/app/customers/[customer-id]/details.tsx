@@ -97,7 +97,7 @@ export const CustomerDetailsCard = ({ customerId }: { customerId: string }) => {
                         {customerDetails.customer.telegramId}
                         <PiPencilSimpleLineLight
                           onClick={() => setOpenUpdateTelegramIdDialog(true)}
-                          className="w-5 h-5 cursor-pointer"
+                          className="w-5 h-5 cursor-pointer text-primary"
                         />
                       </div>
                     }

@@ -43,13 +43,15 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 }) => {
   const router = useRouter()
 
-  const [createCustomer, { loading, reset }] = useCustomerCreateMutation()
+  const [createCustomer, { loading, reset, error: createCustomerError }] =
+    useCustomerCreateMutation()
   const [email, setEmail] = useState<string>("")
   const [telegramId, setTelegramId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
     try {
       const { data } = await createCustomer({
         variables: {
@@ -59,17 +61,25 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
           },
         },
       })
-      toast.success("customer created successfully")
-      if (refetch) refetch()
-      setOpenCreateCustomerDialog(false)
-      router.push(`/customers/${data?.customerCreate.customer.customerId}`)
+      if (data?.customerCreate.customer) {
+        toast.success("Customer created successfully")
+        if (refetch) refetch()
+        setOpenCreateCustomerDialog(false)
+        router.push(`/customers/${data.customerCreate.customer.customerId}`)
+      } else {
+        throw new Error("Failed to create customer. Please try again.")
+      }
     } catch (error) {
-      console.error(error)
+      console.error("Error creating customer:", error)
       if (error instanceof Error) {
         setError(error.message)
+      } else if (createCustomerError?.message) {
+        setError(createCustomerError.message)
+      } else {
+        setError("An unexpected error occurred. Please try again.")
       }
+      toast.error("Failed to create customer")
     }
-    resetStates()
   }
 
   const resetStates = () => {
@@ -93,13 +103,14 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Add new customer</DialogTitle>
           <DialogDescription>
-            Add a new Customer by providing their email address
+            Add a new Customer by providing their email address and Telegram ID
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label>Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
+              id="email"
               type="email"
               required
               placeholder="Please enter the email address"
@@ -108,8 +119,9 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
             />
           </div>
           <div>
-            <Label>Telegram ID</Label>
+            <Label htmlFor="telegramId">Telegram ID</Label>
             <Input
+              id="telegramId"
               type="text"
               required
               placeholder="Please enter the Telegram ID"
@@ -119,7 +131,9 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button loading={loading}>Submit</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Submitting..." : "Submit"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

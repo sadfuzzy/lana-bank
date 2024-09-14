@@ -5,6 +5,8 @@ import { IoMdArrowDropdown, IoMdArrowDropup } from "react-icons/io"
 import Link from "next/link"
 import { useState } from "react"
 
+import { gql } from "@apollo/client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
   Table,
@@ -51,6 +53,60 @@ type LoanRowProps = {
   status: LoanStatus
   loanTerms: Loan["loanTerms"]
 }
+
+gql`
+  query GetLoansForCustomer($id: UUID!) {
+    customer(id: $id) {
+      customerId
+      loans {
+        id
+        loanId
+        createdAt
+        approvedAt
+        principal
+        expiresAt
+        collateral
+        status
+        collateralizationState
+        customer {
+          customerId
+          email
+        }
+        balance {
+          collateral {
+            btcBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          interestIncurred {
+            usdBalance
+          }
+        }
+        loanTerms {
+          annualRate
+          interval
+          liquidationCvl
+          marginCallCvl
+          initialCvl
+          duration {
+            period
+            units
+          }
+        }
+        approvals {
+          user {
+            email
+            roles
+          }
+          approvedAt
+        }
+        currentCvl @client
+        collateralToMatchInitialCvl @client
+      }
+    }
+  }
+`
 
 export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
   const {

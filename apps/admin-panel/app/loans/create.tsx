@@ -250,7 +250,7 @@ export const CreateLoanDialog: React.FC<
                 className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
               >
                 <div>Loan Terms</div>
-                <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer" />
+                <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
               </div>
               <div className="grid grid-cols-2 gap-x-2">
                 <DetailItem

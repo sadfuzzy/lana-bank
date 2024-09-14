@@ -91,10 +91,10 @@ function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User ID</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Roles</TableHead>
-                <TableHead></TableHead>
+                <TableHead className="w-1/4">User ID</TableHead>
+                <TableHead className="w-1/4">Email</TableHead>
+                <TableHead className="w-1/4">Roles</TableHead>
+                <TableHead className="w-1/4"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -113,7 +113,7 @@ function UsersPage() {
                         : "No roles Assigned"}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right pr-8">
                     <RolesDropDown
                       refetch={refetch}
                       userId={user.userId}
@@ -182,16 +182,18 @@ const RolesDropDown = ({
         </Link>
         <DropdownMenuLabel>Roles</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {Object.values(Role).map((role) => (
-          <DropdownMenuCheckboxItem
-            key={role}
-            checked={checkedRoles.includes(role)}
-            onCheckedChange={() => handleRoleChange(role)}
-            disabled={assigning || revoking}
-          >
-            {formatRole(role)}
-          </DropdownMenuCheckboxItem>
-        ))}
+        {Object.values(Role)
+          .filter((role) => role !== Role.Superuser)
+          .map((role) => (
+            <DropdownMenuCheckboxItem
+              key={role}
+              checked={checkedRoles.includes(role)}
+              onCheckedChange={() => handleRoleChange(role)}
+              disabled={assigning || revoking}
+            >
+              {formatRole(role)}
+            </DropdownMenuCheckboxItem>
+          ))}
         {(assigning || revoking) && <div>Loading...</div>}
       </DropdownMenuContent>
     </DropdownMenu>
