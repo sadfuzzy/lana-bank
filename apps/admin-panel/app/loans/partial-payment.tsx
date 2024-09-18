@@ -50,16 +50,23 @@ export const LoanPartialPaymentDialog: React.FC<
   React.PropsWithChildren<LoanPartialPaymentDialogProps>
 > = ({ loanId, refetch, children }) => {
   const [loanIdValue, setLoanIdValue] = useState<string>(loanId)
-  const [amount, setAmount] = useState<number>(0)
+  const [amount, setAmount] = useState<string>("")
   const [open, setOpen] = useState<boolean>(false)
   const [loanPartialPayment, { loading, error, reset }] = useLoanPartialPaymentMutation()
 
   const handlePartialPaymentSubmit = async () => {
+    const numericAmount = parseFloat(amount)
+
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      toast.error("Please enter a valid positive number")
+      return
+    }
+
     try {
       await loanPartialPayment({
         variables: {
           input: {
-            amount: currencyConverter.usdToCents(amount),
+            amount: currencyConverter.usdToCents(numericAmount),
             loanId,
           },
         },
@@ -71,12 +78,13 @@ export const LoanPartialPaymentDialog: React.FC<
       handleClose()
     } catch (error) {
       console.error(error)
+      toast.error("Payment failed. Please try again.")
     }
   }
 
   const handleClose = () => {
     setLoanIdValue(loanIdValue)
-    setAmount(0)
+    setAmount("")
     reset()
   }
 
@@ -102,7 +110,7 @@ export const LoanPartialPaymentDialog: React.FC<
             <Input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
+              onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter the desired principal amount"
               min={0}
             />

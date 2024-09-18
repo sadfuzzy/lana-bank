@@ -62,9 +62,9 @@ export const CollateralUpdateDialog: React.FC<
 }) => {
   const [updateCollateral, { loading, reset }] = useCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
-  const [isConfirmed, setIsConfirmed] = useState(false)
-  const [newCollateral, setNewCollateral] = useState(
-    currencyConverter.satoshiToBtc(loanData.existingCollateral),
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
+  const [newCollateral, setNewCollateral] = useState<string>(
+    String(currencyConverter.satoshiToBtc(loanData.existingCollateral)),
   )
 
   const { data: loanDetails } = useGetLoanDetailsQuery({
@@ -83,7 +83,7 @@ export const CollateralUpdateDialog: React.FC<
         variables: {
           input: {
             loanId: loanData.loanId,
-            collateral: currencyConverter.btcToSatoshi(newCollateral),
+            collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
           },
         },
       })
@@ -122,7 +122,9 @@ export const CollateralUpdateDialog: React.FC<
         if (!isOpen) {
           handleCloseDialog()
         }
-        setNewCollateral(currencyConverter.satoshiToBtc(loanData.existingCollateral))
+        setNewCollateral(
+          String(currencyConverter.satoshiToBtc(loanData.existingCollateral)),
+        )
       }}
     >
       <DialogContent>
@@ -149,7 +151,7 @@ export const CollateralUpdateDialog: React.FC<
                   label="New Collateral"
                   valueComponent={
                     <Balance
-                      amount={currencyConverter.btcToSatoshi(newCollateral)}
+                      amount={currencyConverter.btcToSatoshi(Number(newCollateral))}
                       currency="btc"
                     />
                   }
@@ -198,7 +200,7 @@ export const CollateralUpdateDialog: React.FC<
                   <Input
                     type="number"
                     value={newCollateral !== null ? newCollateral : ""}
-                    onChange={(e) => setNewCollateral(parseFloat(e.target.value))}
+                    onChange={(e) => setNewCollateral(e.target.value)}
                     placeholder="Enter new collateral amount"
                   />
                   <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
