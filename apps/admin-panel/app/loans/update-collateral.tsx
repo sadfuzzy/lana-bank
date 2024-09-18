@@ -159,7 +159,15 @@ export const CollateralUpdateDialog: React.FC<
               </DetailsGroup>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
-                <Button type="submit" disabled={loading}>
+                <Button
+                  onClick={() => setIsConfirmed(false)}
+                  variant="ghost"
+                  className="text-primary"
+                  disabled={loading}
+                >
+                  Back
+                </Button>
+                <Button type="submit" loading={loading}>
                   {loading ? "Updating..." : "Confirm"}
                 </Button>
               </DialogFooter>
