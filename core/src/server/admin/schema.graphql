@@ -508,6 +508,8 @@ type Mutation {
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+	reportCreate: ReportCreatePayload!
+	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 }
 
 """
@@ -566,10 +568,40 @@ type Query {
 	withdrawal(id: UUID!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	realtimePrice: RealtimePrice!
+	report(id: UUID!): Report
 }
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type Report {
+	reportId: UUID!
+	lastError: String
+	progress: ReportProgress!
+}
+
+type ReportCreatePayload {
+	report: Report!
+}
+
+type ReportDownloadLink {
+	reportName: String!
+	url: String!
+}
+
+input ReportDownloadLinksGenerateInput {
+	reportId: UUID!
+}
+
+type ReportDownloadLinksGeneratePayload {
+	reportId: UUID!
+	links: [ReportDownloadLink!]!
+}
+
+enum ReportProgress {
+	RUNNING
+	COMPLETE
 }
 
 enum Role {

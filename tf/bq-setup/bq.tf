@@ -7,16 +7,6 @@ resource "google_bigquery_dataset" "dataset" {
   delete_contents_on_destroy = true
 }
 
-resource "google_service_account" "bq_access_sa" {
-  project      = local.gcp_project
-  account_id   = local.sa_account_id
-  display_name = "Serviae Account for lava-bank BigQuery access"
-}
-
-resource "google_service_account_key" "bq_access_sa_key" {
-  service_account_id = google_service_account.bq_access_sa.name
-}
-
 resource "google_bigquery_dataset_iam_member" "dataset_owner_sa" {
   project    = local.gcp_project
   dataset_id = google_bigquery_dataset.dataset.dataset_id
@@ -24,10 +14,56 @@ resource "google_bigquery_dataset_iam_member" "dataset_owner_sa" {
   member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
 
-resource "google_bigquery_dataset_iam_member" "dataform_additional_owners" {
+resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
   for_each   = toset(local.additional_owners)
   project    = local.gcp_project
   dataset_id = google_bigquery_dataset.dataset.dataset_id
+  role       = "roles/bigquery.dataOwner"
+  member     = "user:${each.value}"
+}
+
+resource "google_bigquery_dataset" "dataform" {
+  project       = local.gcp_project
+  dataset_id    = local.dataform_dataset_name
+  friendly_name = "${local.name_prefix} dataform"
+  description   = "Dataform for ${local.name_prefix}"
+  location      = local.dataform_location
+}
+
+resource "google_bigquery_dataset_iam_member" "dataform_owner" {
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dataform.dataset_id
+  role       = "roles/bigquery.dataOwner"
+  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_bigquery_dataset_iam_member" "dataform_additional_owners" {
+  for_each   = toset(local.additional_owners)
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dataform.dataset_id
+  role       = "roles/bigquery.dataOwner"
+  member     = "user:${each.value}"
+}
+
+resource "google_bigquery_dataset" "dataform_assertions" {
+  project       = local.gcp_project
+  dataset_id    = local.dataform_assertions_dataset_name
+  friendly_name = "${local.name_prefix} assertions dataform"
+  description   = "Dataform assertions for ${local.name_prefix}"
+  location      = local.dataform_location
+}
+
+resource "google_bigquery_dataset_iam_member" "dataform_assertions_owner" {
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dataform_assertions.dataset_id
+  role       = "roles/bigquery.dataOwner"
+  member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_bigquery_dataset_iam_member" "dataform_assertions_additional_owners" {
+  for_each   = toset(local.additional_owners)
+  project    = local.gcp_project
+  dataset_id = google_bigquery_dataset.dataform_assertions.dataset_id
   role       = "roles/bigquery.dataOwner"
   member     = "user:${each.value}"
 }

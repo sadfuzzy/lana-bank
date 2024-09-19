@@ -2,13 +2,14 @@ use async_graphql::{types::connection::*, Context, Object};
 use uuid::Uuid;
 
 use super::{
-    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*,
+    account_set::*, audit::AuditEntry, customer::*, deposit::*, loan::*, price::*, report::*,
     shareholder_equity::*, terms::*, user::*, withdraw::*,
 };
+
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, UserId},
+    primitives::{CustomerId, LoanId, ReportId, UserId},
     server::{
         admin::AdminAuthContext,
         shared_graphql::{
@@ -417,6 +418,15 @@ impl Query {
         let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
         Ok(usd_cents_per_btc.into())
     }
+
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let report = app.reports().find_by_id(sub, ReportId::from(id)).await?;
+        Ok(report.map(Report::from))
+    }
 }
 
 pub struct Mutation;
@@ -688,5 +698,26 @@ impl Mutation {
             .revoke_role_from_user(sub, id.into(), role)
             .await?;
         Ok(UserRevokeRolePayload::from(user))
+    }
+
+    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<ReportCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let report = app.reports().create(sub).await?;
+        Ok(ReportCreatePayload::from(report))
+    }
+
+    async fn report_download_links_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: ReportDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let links = app
+            .reports()
+            .generate_download_links(sub, input.report_id.into())
+            .await?;
+        Ok(ReportDownloadLinksGeneratePayload::from(links))
     }
 }

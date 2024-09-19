@@ -16,9 +16,14 @@ locals {
   justin = "justin@galoy.io"
 
   lava_dev = {
-    jireva  = "jir@galoy.io",
-    jcarter = "justin@galoy.io"
-    sv      = "sv@galoy.io"
+    jireva     = "jir@galoy.io",
+    jcarter    = "justin@galoy.io"
+    sv         = "sv@galoy.io"
+    sandipndev = "sandipan@galoy.io"
+    vaibhav    = "vaibhav@galoy.io"
+    siddharth  = "siddharth@galoy.io"
+    vindard    = "arvin@galoy.io"
+    n          = "nb@galoy.io"
   }
 }
 
@@ -29,7 +34,8 @@ module "setup" {
 
   name_prefix = each.key
 
-  additional_owners = [each.value]
+  additional_owners = [each.value, local.justin]
+  dataform_dev_user = each.key
   gcp_project       = local.project
   gcp_region        = var.gcp_region
   git_token         = var.git_token
@@ -40,6 +46,7 @@ module "gha_setup" {
 
   name_prefix = "gha"
 
+  dataform_dev_user = "gha"
   additional_owners = [local.justin]
   gcp_project       = local.project
   gcp_region        = var.gcp_region

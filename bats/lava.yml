@@ -3,3 +3,11 @@ app:
     poll_interval: 1
   user:
     superuser_email: "admin@galoy.io"
+  report:
+    download_link_duration: 600
+    gcp_location: europe-west6
+    dataform_repo: "gha-repo"
+    dataform_output_dataset: "dataform_gha"
+    dataform_release_config: "gha-release"
+    reports_root_folder: "gha"
+    bucket_name: "gha-volcano-docs"

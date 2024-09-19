@@ -77,16 +77,16 @@ pub enum LoanEvent {
         total_collateral: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     CollateralizationChanged {
         state: LoanCollaterizationState,
         collateral: Satoshis,
         outstanding: LoanReceivable,
         price: PriceOfOneBTC,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     ApprovalAdded {
         approving_user_id: UserId,
@@ -103,20 +103,20 @@ pub enum LoanEvent {
         tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
         principal_amount: UsdCents,
         interest_amount: UsdCents,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     Completed {
-        completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        completed_at: DateTime<Utc>,
     },
 }
 
@@ -884,10 +884,8 @@ pub struct NewLoan {
 }
 
 impl NewLoan {
-    pub fn builder(audit_info: AuditInfo) -> NewLoanBuilder {
-        let mut builder = NewLoanBuilder::default();
-        builder.audit_info(audit_info);
-        builder
+    pub fn builder() -> NewLoanBuilder {
+        NewLoanBuilder::default()
     }
 
     pub(super) fn initial_events(self) -> EntityEvents<LoanEvent> {

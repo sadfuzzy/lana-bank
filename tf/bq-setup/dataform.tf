@@ -10,7 +10,7 @@ resource "google_service_account_iam_member" "service_account_impersonation_targ
   member             = "serviceAccount:service-${data.google_project.project.number}@gcp-sa-dataform.iam.gserviceaccount.com"
 }
 
-resource "google_project_iam_member" "dev_jobuser" {
+resource "google_project_iam_member" "jobuser" {
   project = local.gcp_project
   role    = "roles/bigquery.jobUser"
   member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
@@ -42,6 +42,17 @@ resource "google_dataform_repository_iam_member" "member" {
   member     = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
 
+resource "google_dataform_repository_iam_member" "dataform_additional_owners" {
+  provider = google-beta
+
+  for_each   = toset(local.additional_owners)
+  project    = google_dataform_repository.repository.project
+  region     = google_dataform_repository.repository.region
+  repository = google_dataform_repository.repository.name
+  role       = "roles/owner"
+  member     = "user:${each.value}"
+}
+
 resource "google_dataform_repository_release_config" "release" {
   provider = google-beta
 
@@ -55,11 +66,12 @@ resource "google_dataform_repository_release_config" "release" {
   code_compilation_config {
     default_database = local.gcp_project
     default_schema   = "dataform"
-    default_location = local.gcp_region
+    default_location = local.dataform_location
     assertion_schema = "dataform_assertions"
     schema_suffix    = local.name_prefix
     vars = {
-      executionEnv = "volcano-dev"
+      executionEnv = local.dataform_execution_env
+      devUser      = local.dataform_dev_user
     }
   }
 }

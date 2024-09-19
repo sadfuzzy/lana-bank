@@ -519,6 +519,8 @@ export type Mutation = {
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
+  reportCreate: ReportCreatePayload;
+  reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   userAssignRole: UserAssignRolePayload;
@@ -572,6 +574,11 @@ export type MutationLoanCreateArgs = {
 
 export type MutationLoanPartialPaymentArgs = {
   input: LoanPartialPaymentInput;
+};
+
+
+export type MutationReportDownloadLinksGenerateArgs = {
+  input: ReportDownloadLinksGenerateInput;
 };
 
 
@@ -658,6 +665,7 @@ export type Query = {
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   realtimePrice: RealtimePrice;
+  report?: Maybe<Report>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -741,6 +749,11 @@ export type QueryProfitAndLossStatementArgs = {
 };
 
 
+export type QueryReportArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryTrialBalanceArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
@@ -766,6 +779,39 @@ export type RealtimePrice = {
   __typename?: 'RealtimePrice';
   usdCentsPerBtc: Scalars['UsdCents']['output'];
 };
+
+export type Report = {
+  __typename?: 'Report';
+  lastError?: Maybe<Scalars['String']['output']>;
+  progress: ReportProgress;
+  reportId: Scalars['UUID']['output'];
+};
+
+export type ReportCreatePayload = {
+  __typename?: 'ReportCreatePayload';
+  report: Report;
+};
+
+export type ReportDownloadLink = {
+  __typename?: 'ReportDownloadLink';
+  reportName: Scalars['String']['output'];
+  url: Scalars['String']['output'];
+};
+
+export type ReportDownloadLinksGenerateInput = {
+  reportId: Scalars['UUID']['input'];
+};
+
+export type ReportDownloadLinksGeneratePayload = {
+  __typename?: 'ReportDownloadLinksGeneratePayload';
+  links: Array<ReportDownloadLink>;
+  reportId: Scalars['UUID']['output'];
+};
+
+export enum ReportProgress {
+  Complete = 'COMPLETE',
+  Running = 'RUNNING'
+}
 
 export enum Role {
   Admin = 'ADMIN',
