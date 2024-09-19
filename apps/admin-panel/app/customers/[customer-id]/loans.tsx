@@ -1,11 +1,10 @@
 "use client"
 
+import { useState } from "react"
+import Link from "next/link"
+
 import { IoEllipsisHorizontal } from "react-icons/io5"
 import { IoMdArrowDropdown, IoMdArrowDropup } from "react-icons/io"
-import Link from "next/link"
-import { useState } from "react"
-
-import { gql } from "@apollo/client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
@@ -15,7 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { Loan, LoanStatus, useGetLoansForCustomerQuery } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import {
   DropdownMenu,
@@ -29,13 +27,55 @@ import {
   CollapsibleContent,
 } from "@/components/primitive/collapsible"
 import { DetailItem } from "@/components/details"
-import { formatInterval, formatPeriod } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 
 import { CollateralUpdateDialog } from "@/app/loans/update-collateral"
 import { LoanStatusBadge } from "@/app/loans/status-badge"
 import { LoanPartialPaymentDialog } from "@/app/loans/partial-payment"
 import { LoanApproveDialog } from "@/app/loans/approve"
+
+import { formatInterval, formatPeriod } from "@/lib/utils"
+import { GetCustomerQuery, Loan, LoanStatus } from "@/lib/graphql/generated"
+
+type CustomerLoansTableProps = {
+  loans: NonNullable<GetCustomerQuery["customer"]>["loans"]
+  refetch: () => void
+}
+export const CustomerLoansTable: React.FC<CustomerLoansTableProps> = ({
+  loans,
+  refetch,
+}) => (
+  <Card className="mt-4">
+    <CardHeader className="flex flex-row justify-between items-center">
+      <div className="flex flex-col space-y-1.5">
+        <CardTitle>Loans</CardTitle>
+      </div>
+    </CardHeader>
+    {loans.length === 0 ? (
+      <CardContent>No loans found for this customer</CardContent>
+    ) : (
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableCell>Loan ID</TableCell>
+              <TableCell>Collateral (BTC)</TableCell>
+              <TableCell>Interest Incurred (USD)</TableCell>
+              <TableCell>Outstanding (USD)</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loans.map((loan) => (
+              <LoanRow key={loan.loanId} loan={loan} refetch={refetch} />
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    )}
+  </Card>
+)
 
 type LoanRowProps = {
   loanId: string
@@ -53,117 +93,6 @@ type LoanRowProps = {
   status: LoanStatus
   loanTerms: Loan["loanTerms"]
 }
-
-gql`
-  query GetLoansForCustomer($id: UUID!) {
-    customer(id: $id) {
-      customerId
-      loans {
-        id
-        loanId
-        createdAt
-        approvedAt
-        principal
-        expiresAt
-        collateral
-        status
-        collateralizationState
-        customer {
-          customerId
-          email
-        }
-        balance {
-          collateral {
-            btcBalance
-          }
-          outstanding {
-            usdBalance
-          }
-          interestIncurred {
-            usdBalance
-          }
-        }
-        loanTerms {
-          annualRate
-          interval
-          liquidationCvl
-          marginCallCvl
-          initialCvl
-          duration {
-            period
-            units
-          }
-        }
-        approvals {
-          user {
-            email
-            roles
-          }
-          approvedAt
-        }
-        currentCvl @client
-        collateralToMatchInitialCvl @client
-      }
-    }
-  }
-`
-
-export const CustomerLoansTable = ({ customerId }: { customerId: string }) => {
-  const {
-    loading,
-    error,
-    data: customerLoans,
-    refetch,
-  } = useGetLoansForCustomerQuery({
-    variables: {
-      id: customerId,
-    },
-  })
-
-  return (
-    <Card className="mt-4">
-      {loading ? (
-        <CardContent className="p-6">Loading...</CardContent>
-      ) : error ? (
-        <CardContent className="p-6 text-destructive">{error.message}</CardContent>
-      ) : (
-        <>
-          <CardHeader className="flex flex-row justify-between items-center">
-            <div className="flex flex-col space-y-1.5">
-              <CardTitle>Loans</CardTitle>
-            </div>
-          </CardHeader>
-          {!customerLoans ||
-          !customerLoans.customer?.loans ||
-          customerLoans.customer?.loans.length === 0 ? (
-            <CardContent>No loans found for this customer</CardContent>
-          ) : (
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableCell>Loan ID</TableCell>
-                    <TableCell>Collateral (BTC)</TableCell>
-                    <TableCell>Interest Incurred (USD)</TableCell>
-                    <TableCell>Outstanding (USD)</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {customerLoans.customer.loans.map((loan) => (
-                    <LoanRow key={loan.loanId} loan={loan} refetch={refetch} />
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          )}
-        </>
-      )}
-    </Card>
-  )
-}
-
 const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] = useState<{

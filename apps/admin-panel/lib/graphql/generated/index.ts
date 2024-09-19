@@ -1007,20 +1007,6 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
 
-export type GetCustomerBalancesQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetCustomerBalancesQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
-
-export type GetCustomerDetailsByCustomerIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetCustomerDetailsByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, loans: Array<{ __typename?: 'Loan', loanId: string }>, deposits: Array<{ __typename?: 'Deposit', depositId: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', withdrawalId: string }>, transactions: Array<{ __typename?: 'Deposit', depositId: string } | { __typename?: 'Withdrawal', withdrawalId: string }> } | null };
-
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -1035,19 +1021,12 @@ export type SumsubPermalinkCreateMutationVariables = Exact<{
 
 export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
 
-export type GetLoansForCustomerQueryVariables = Exact<{
+export type GetCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetLoansForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }> } | null };
-
-export type GetTransactionsForCustomerQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetTransactionsForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -1683,101 +1662,6 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
-export const GetCustomerBalancesDocument = gql`
-    query GetCustomerBalances($id: UUID!) {
-  customer(id: $id) {
-    customerId
-    balance {
-      checking {
-        settled
-        pending
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerBalancesQuery__
- *
- * To run a query within a React component, call `useGetCustomerBalancesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerBalancesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerBalancesQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerBalancesQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>(GetCustomerBalancesDocument, options);
-      }
-export function useGetCustomerBalancesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>(GetCustomerBalancesDocument, options);
-        }
-export type GetCustomerBalancesQueryHookResult = ReturnType<typeof useGetCustomerBalancesQuery>;
-export type GetCustomerBalancesLazyQueryHookResult = ReturnType<typeof useGetCustomerBalancesLazyQuery>;
-export type GetCustomerBalancesQueryResult = Apollo.QueryResult<GetCustomerBalancesQuery, GetCustomerBalancesQueryVariables>;
-export const GetCustomerDetailsByCustomerIdDocument = gql`
-    query getCustomerDetailsByCustomerId($id: UUID!) {
-  customer(id: $id) {
-    customerId
-    email
-    telegramId
-    loans {
-      loanId
-    }
-    deposits {
-      depositId
-    }
-    withdrawals {
-      withdrawalId
-    }
-    transactions @client {
-      ... on Deposit {
-        depositId
-      }
-      ... on Withdrawal {
-        withdrawalId
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerDetailsByCustomerIdQuery__
- *
- * To run a query within a React component, call `useGetCustomerDetailsByCustomerIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerDetailsByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerDetailsByCustomerIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerDetailsByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>(GetCustomerDetailsByCustomerIdDocument, options);
-      }
-export function useGetCustomerDetailsByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>(GetCustomerDetailsByCustomerIdDocument, options);
-        }
-export type GetCustomerDetailsByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerDetailsByCustomerIdQuery>;
-export type GetCustomerDetailsByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerDetailsByCustomerIdLazyQuery>;
-export type GetCustomerDetailsByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerDetailsByCustomerIdQuery, GetCustomerDetailsByCustomerIdQueryVariables>;
 export const GetKycStatusForCustomerDocument = gql`
     query GetKycStatusForCustomer($id: UUID!) {
   customer(id: $id) {
@@ -1849,10 +1733,21 @@ export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHo
 export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
 export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-export const GetLoansForCustomerDocument = gql`
-    query GetLoansForCustomer($id: UUID!) {
+export const GetCustomerDocument = gql`
+    query GetCustomer($id: UUID!) {
   customer(id: $id) {
     customerId
+    email
+    telegramId
+    status
+    level
+    applicantId
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
     loans {
       id
       loanId
@@ -1899,41 +1794,6 @@ export const GetLoansForCustomerDocument = gql`
       currentCvl @client
       collateralToMatchInitialCvl @client
     }
-  }
-}
-    `;
-
-/**
- * __useGetLoansForCustomerQuery__
- *
- * To run a query within a React component, call `useGetLoansForCustomerQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLoansForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetLoansForCustomerQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetLoansForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>(GetLoansForCustomerDocument, options);
-      }
-export function useGetLoansForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>(GetLoansForCustomerDocument, options);
-        }
-export type GetLoansForCustomerQueryHookResult = ReturnType<typeof useGetLoansForCustomerQuery>;
-export type GetLoansForCustomerLazyQueryHookResult = ReturnType<typeof useGetLoansForCustomerLazyQuery>;
-export type GetLoansForCustomerQueryResult = Apollo.QueryResult<GetLoansForCustomerQuery, GetLoansForCustomerQueryVariables>;
-export const GetTransactionsForCustomerDocument = gql`
-    query GetTransactionsForCustomer($id: UUID!) {
-  customer(id: $id) {
-    customerId
     deposits {
       createdAt
       customerId
@@ -1979,32 +1839,32 @@ export const GetTransactionsForCustomerDocument = gql`
     `;
 
 /**
- * __useGetTransactionsForCustomerQuery__
+ * __useGetCustomerQuery__
  *
- * To run a query within a React component, call `useGetTransactionsForCustomerQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTransactionsForCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCustomerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetTransactionsForCustomerQuery({
+ * const { data, loading, error } = useGetCustomerQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetTransactionsForCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>) {
+export function useGetCustomerQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerQuery, GetCustomerQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>(GetTransactionsForCustomerDocument, options);
+        return Apollo.useQuery<GetCustomerQuery, GetCustomerQueryVariables>(GetCustomerDocument, options);
       }
-export function useGetTransactionsForCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>) {
+export function useGetCustomerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerQuery, GetCustomerQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>(GetTransactionsForCustomerDocument, options);
+          return Apollo.useLazyQuery<GetCustomerQuery, GetCustomerQueryVariables>(GetCustomerDocument, options);
         }
-export type GetTransactionsForCustomerQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerQuery>;
-export type GetTransactionsForCustomerLazyQueryHookResult = ReturnType<typeof useGetTransactionsForCustomerLazyQuery>;
-export type GetTransactionsForCustomerQueryResult = Apollo.QueryResult<GetTransactionsForCustomerQuery, GetTransactionsForCustomerQueryVariables>;
+export type GetCustomerQueryHookResult = ReturnType<typeof useGetCustomerQuery>;
+export type GetCustomerLazyQueryHookResult = ReturnType<typeof useGetCustomerLazyQuery>;
+export type GetCustomerQueryResult = Apollo.QueryResult<GetCustomerQuery, GetCustomerQueryVariables>;
 export const CustomerUpdateDocument = gql`
     mutation CustomerUpdate($input: CustomerUpdateInput!) {
   customerUpdate(input: $input) {
