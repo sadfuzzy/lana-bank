@@ -27,7 +27,7 @@ struct Cli {
     lava_home: String,
     #[clap(env = "PG_CON")]
     pg_con: String,
-    #[clap(env = "BITFINEX_KEY", default_value = "")]
+    #[clap(env = "SUMSUB_KEY", default_value = "")]
     sumsub_key: String,
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
