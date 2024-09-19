@@ -61,5 +61,5 @@ fi
 kill "${tunnel_pid}"
 
 gcloud_ssh "gcloud config set account galoy-staging-cluster@galoy-staging.iam.gserviceaccount.com"
-gcloud_ssh "cd ${REPO_PATH}; cd ${PACKAGE_DIR}; nix develop -c ${CMD} 2>&1"
+gcloud_ssh "cd ${REPO_PATH}; cd ${PACKAGE_DIR}; export BQ_SERVICE_ACCOUNT_BASE64=dummy; nix develop -c ${CMD} 2>&1"
 

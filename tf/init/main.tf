@@ -53,6 +53,18 @@ module "gha_setup" {
   git_token         = var.git_token
 }
 
+module "concourse_setup" {
+  source = "../bq-setup"
+
+  name_prefix = "concourse"
+
+  dataform_dev_user = "concourse"
+  additional_owners = [local.justin]
+  gcp_project       = local.project
+  gcp_region        = var.gcp_region
+  git_token         = var.git_token
+}
+
 output "bq_dev_sa_keys_base64" {
   value     = { for key, value in module.setup : key => value.service_account_key_base64 }
   sensitive = true
@@ -64,6 +76,11 @@ output "bq_dev_sa_emails" {
 
 output "gha_sa_keys_base64" {
   value     = module.gha_setup.service_account_key_base64
+  sensitive = true
+}
+
+output "concourse_sa_keys_base64" {
+  value     = module.concourse_setup.service_account_key_base64
   sensitive = true
 }
 
