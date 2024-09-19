@@ -55,7 +55,8 @@ build:
 e2e: clean-deps start-deps build run-tf
 	bats -t bats
 
-e2e-in-ci: bump-cala-docker-image e2e
+e2e-in-ci: bump-cala-docker-image clean-deps start-deps build run-tf
+	BQ_SERVICE_ACCOUNT_BASE64=$(cat ./dev/fake-service-account.json | tr -d '\n' | base64) bats -t bats
 
 public-sdl:
 	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/src/server/public/schema.graphql
