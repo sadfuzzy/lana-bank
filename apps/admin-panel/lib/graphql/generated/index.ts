@@ -666,6 +666,7 @@ export type Query = {
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
+  reports: Array<Report>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -782,6 +783,7 @@ export type RealtimePrice = {
 
 export type Report = {
   __typename?: 'Report';
+  createdAt: Scalars['Timestamp']['output'];
   lastError?: Maybe<Scalars['String']['output']>;
   progress: ReportProgress;
   reportId: Scalars['UUID']['output'];
