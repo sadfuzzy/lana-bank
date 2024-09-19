@@ -40,8 +40,8 @@ locals {
   dataform_git_commitish = var.dataform_git_commitish != "" ? var.dataform_git_commitish : "${var.name_prefix}-dataform"
 
 
-  dataform_dataset_name            = "dataform_${local.name_prefix}"
-  dataform_assertions_dataset_name = "dataform_assertions_${local.name_prefix}"
+  dataform_dataset_name            = replace("dataform_${local.name_prefix}", "-", "_")
+  dataform_assertions_dataset_name = replace("dataform_assertions_${local.name_prefix}", "-", "_")
   dataform_repo_name               = "${local.name_prefix}-repo"
   dataform_release_config_name     = "${var.name_prefix}-release"
   dataform_workflow_config_name    = "${var.name_prefix}-workflow"
