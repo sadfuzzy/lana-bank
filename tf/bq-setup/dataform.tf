@@ -68,7 +68,7 @@ resource "google_dataform_repository_release_config" "release" {
     default_schema   = "dataform"
     default_location = local.dataform_location
     assertion_schema = "dataform_assertions"
-    schema_suffix    = local.name_prefix
+    schema_suffix    = replace(local.name_prefix, "-", "_")
     vars = {
       executionEnv = local.dataform_execution_env
       devUser      = local.dataform_dev_user

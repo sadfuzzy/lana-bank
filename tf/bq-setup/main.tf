@@ -8,7 +8,7 @@ variable "dataform_git_commitish" {
 }
 variable "dataform_dev_user" {
   type    = string
-  default = ""
+  default = "prod"
 }
 
 variable "git_token" {
@@ -25,7 +25,7 @@ locals {
   gcp_project            = var.gcp_project
   gcp_region             = var.gcp_region
   dataform_dev_user      = var.dataform_dev_user
-  dataform_execution_env = local.dataform_dev_user == "" ? local.name_prefix : "volcano-dev"
+  dataform_execution_env = local.dataform_dev_user == "prod" ? local.name_prefix : "volcano-dev"
   dataform_location      = "EU"
 
   additional_owners = var.additional_owners
