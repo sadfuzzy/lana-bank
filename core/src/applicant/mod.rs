@@ -1,21 +1,34 @@
 mod config;
 pub mod error;
+mod job;
+mod repo;
 mod sumsub_auth;
 pub mod sumsub_public;
 
+use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
+use sqlx::{Postgres, Transaction};
 
-use crate::{customer::Customers, primitives::CustomerId};
+use crate::{
+    customer::Customers,
+    data_export::Export,
+    job::Jobs,
+    primitives::{CustomerId, JobId},
+};
 
 pub use config::*;
 use error::ApplicantError;
 use sumsub_auth::*;
 
+use repo::ApplicantRepo;
+
 #[derive(Clone)]
 pub struct Applicants {
-    _pool: sqlx::PgPool,
+    pool: sqlx::PgPool,
     sumsub_client: SumsubClient,
     users: Customers,
+    repo: ApplicantRepo,
+    jobs: Jobs,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -108,25 +121,74 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &sqlx::PgPool, config: &SumsubConfig, users: &Customers) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        config: &SumsubConfig,
+        users: &Customers,
+        jobs: &Jobs,
+        export: &Export,
+    ) -> Self {
         let sumsub_client = SumsubClient::new(config);
+        jobs.add_initializer(SumsubExportInitializer::new(
+            export.clone(),
+            sumsub_client.clone(),
+            pool,
+        ));
+
         Self {
-            _pool: pool.clone(),
+            repo: ApplicantRepo::new(pool),
+            pool: pool.clone(),
             sumsub_client,
             users: users.clone(),
+            jobs: jobs.clone(),
         }
     }
 
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
-        println!("handle sumsub callback");
+        let customer_id: CustomerId = payload["externalUserId"]
+            .as_str()
+            .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
+            .parse()?;
 
+        let mut db = self.pool.begin().await?;
+
+        let callback_id = &self
+            .repo
+            .persist_webhook_data(&mut db, customer_id, payload.clone())
+            .await?;
+
+        self.jobs
+            .create_and_spawn_job::<SumsubExportInitializer, _>(
+                &mut db,
+                JobId::new(),
+                format!("sumsub-export:{}", callback_id),
+                SumsubExportConfig::Webhook {
+                    callback_id: *callback_id,
+                },
+            )
+            .await?;
+
+        self.process_payload(&mut db, payload).await?;
+
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    async fn process_payload(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        payload: serde_json::Value,
+    ) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload)? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
                 ..
             } => {
-                self.users.start_kyc(external_user_id, applicant_id).await?;
+                self.users
+                    .start_kyc(db, external_user_id, applicant_id)
+                    .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
                 external_user_id,
@@ -139,7 +201,7 @@ impl Applicants {
                 ..
             } => {
                 self.users
-                    .deactivate(external_user_id, applicant_id)
+                    .deactivate(db, external_user_id, applicant_id)
                     .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -154,7 +216,18 @@ impl Applicants {
                 ..
             } => {
                 self.users
-                    .approve_basic(external_user_id, applicant_id)
+                    .approve_basic(db, external_user_id, applicant_id)
+                    .await?;
+
+                self.jobs
+                    .create_and_spawn_job::<SumsubExportInitializer, _>(
+                        db,
+                        JobId::new(),
+                        format!("sumsub-export:{}", external_user_id),
+                        SumsubExportConfig::SensitiveInfo {
+                            customer_id: external_user_id,
+                        },
+                    )
                     .await?;
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -166,7 +239,9 @@ impl Applicants {
                 level_name: SumsubKycLevel::AdvancedKycLevel,
                 ..
             } => {
-                todo!("approve advanced kyc");
+                return Err(ApplicantError::UnhandledCallbackType(
+                    "Advanced KYC level is not supported".to_string(),
+                ));
             }
             SumsubCallbackPayload::ApplicantOnHold {
                 external_user_id, ..
@@ -174,7 +249,9 @@ impl Applicants {
             | SumsubCallbackPayload::ApplicantPending {
                 external_user_id, ..
             } => {
-                println!("unprocessed event for : {}", external_user_id);
+                return Err(ApplicantError::UnhandledCallbackType(format!(
+                    "callback event not processed for {external_user_id}"
+                )));
             }
         }
         Ok(())
@@ -184,12 +261,10 @@ impl Applicants {
         &self,
         user_id: CustomerId,
     ) -> Result<AccessTokenResponse, ApplicantError> {
-        let client = reqwest::Client::new();
-
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_access_token(&client, user_id, &level_name.to_string())
+            .create_access_token(user_id, &level_name.to_string())
             .await
     }
 
@@ -197,12 +272,10 @@ impl Applicants {
         &self,
         user_id: CustomerId,
     ) -> Result<PermalinkResponse, ApplicantError> {
-        let client = reqwest::Client::new();
-
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_permalink(&client, user_id, &level_name.to_string())
+            .create_permalink(user_id, &level_name.to_string())
             .await
     }
 }

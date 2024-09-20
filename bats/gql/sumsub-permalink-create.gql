@@ -1,5 +1,0 @@
-mutation sumsubPermalinkCreate {
-  sumsubPermalinkCreate {
-    url
-  }
-}

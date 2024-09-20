@@ -9,7 +9,7 @@ resource "cala_big_query_integration" "bq" {
 
 
 resource "google_bigquery_table" "entities" {
-  for_each   = toset(local.bq_tables)
+  for_each   = toset(local.bq_entity_tables)
   project    = local.project_id
   dataset_id = local.dataset_id
   table_id   = each.value
@@ -43,14 +43,55 @@ resource "google_bigquery_table" "entities" {
   }
 ]
 EOF
-
 }
 
 resource "google_bigquery_table_iam_member" "entities_owner_sa" {
-  for_each   = toset(local.bq_tables)
+  for_each   = toset(local.bq_entity_tables)
   project    = local.project_id
   dataset_id = local.dataset_id
   table_id   = google_bigquery_table.entities[each.value].table_id
+  role       = "roles/bigquery.dataOwner"
+  member     = local.sa_member
+}
+
+resource "google_bigquery_table" "sumsub_applicants" {
+  count = local.setup_bq ? 1 : 0
+
+  project    = local.project_id
+  dataset_id = local.dataset_id
+  table_id   = local.bq_applicant_table
+
+  schema = <<EOF
+[
+  {
+    "name": "customer_id",
+    "type": "STRING",
+    "description": "The ID the customer entity"
+  },
+{
+  "name": "content_type",
+  "type": "STRING",
+  "description": "The type of the content"
+},
+  {
+    "name": "content",
+    "type": "JSON",
+    "description": "content JSON from Sum Sub"
+  },
+  {
+    "name": "uploaded_at",
+    "type": "TIMESTAMP",
+    "description": "When the data was synced"
+  }
+]
+EOF
+}
+
+resource "google_bigquery_table_iam_member" "applicants_owner_sa" {
+  count = local.setup_bq ? 1 : 0
+  project    = local.project_id
+  dataset_id = local.dataset_id
+  table_id   = google_bigquery_table.sumsub_applicants[0].table_id
   role       = "roles/bigquery.dataOwner"
   member     = local.sa_member
 }

@@ -4,7 +4,7 @@ mod graphql;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 
-use super::ExportData;
+use super::{ExportEntityEventData, ExportSumsubApplicantData};
 
 use error::*;
 use graphql::*;
@@ -21,10 +21,26 @@ impl CalaClient {
         CalaClient { client, url }
     }
 
-    pub async fn insert_bq_row(
+    pub async fn export_applicant_data(
         &self,
         table_name: &str,
-        data: &ExportData,
+        data: ExportSumsubApplicantData,
+    ) -> Result<(), CalaError> {
+        let insert_id = uuid::Uuid::new_v4().to_string();
+        tracing::Span::current().record("insert_id", &insert_id);
+        let variables = row_insert::Variables {
+            insert_id,
+            table_name: table_name.to_string(),
+            row_data: serde_json::to_value(data).expect("Could not serialize event"),
+        };
+        Self::traced_gql_request::<RowInsert, _>(&self.client, &self.url, variables).await?;
+        Ok(())
+    }
+
+    pub async fn export_entity_event_to_bq(
+        &self,
+        table_name: &str,
+        data: &ExportEntityEventData,
     ) -> Result<(), CalaError> {
         let insert_id = format!("{}:{}", data.id, data.sequence);
         tracing::Span::current().record("insert_id", &insert_id);

@@ -200,17 +200,16 @@ impl Customers {
 
     pub async fn start_kyc(
         &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let mut db_tx = self.pool.begin().await?;
-
         let audit_info = self
             .audit
             .record_entry_in_tx(
-                &mut db_tx,
+                db,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
@@ -220,25 +219,23 @@ impl Customers {
 
         customer.start_kyc(applicant_id, audit_info);
 
-        self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
-        db_tx.commit().await?;
+        self.repo.persist_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }
 
     pub async fn approve_basic(
         &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let mut db_tx = self.pool.begin().await?;
-
         let audit_info = self
             .audit
             .record_entry_in_tx(
-                &mut db_tx,
+                db,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
@@ -248,25 +245,23 @@ impl Customers {
 
         customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
 
-        self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
-        db_tx.commit().await?;
+        self.repo.persist_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }
 
     pub async fn deactivate(
         &self,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let mut db_tx = self.pool.begin().await?;
-
         let audit_info = self
             .audit
             .record_entry_in_tx(
-                &mut db_tx,
+                db,
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
@@ -275,9 +270,7 @@ impl Customers {
             .await?;
 
         customer.deactivate(applicant_id, audit_info);
-
-        self.repo.persist_in_tx(&mut db_tx, &mut customer).await?;
-        db_tx.commit().await?;
+        self.repo.persist_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }

@@ -1,4 +1,5 @@
 mod cala;
+pub mod error;
 mod job;
 
 use chrono::{DateTime, Utc};
@@ -9,19 +10,37 @@ use tracing::instrument;
 use crate::{
     entity::{EntityEvent, EntityEvents},
     job::{error::JobError, Jobs},
-    primitives::JobId,
+    primitives::{CustomerId, JobId},
 };
 
+use cala::*;
+use error::ExportError;
 use job::{DataExportConfig, DataExportInitializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ExportData {
+pub struct ExportEntityEventData {
     id: uuid::Uuid,
     event_type: String,
     event: String,
     sequence: usize,
     recorded_at: DateTime<Utc>,
 }
+
+#[derive(Clone, Serialize, Deserialize)]
+pub enum SumsubContentType {
+    Webhook,
+    SensitiveInfo,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ExportSumsubApplicantData {
+    pub customer_id: CustomerId,
+    pub content_type: SumsubContentType,
+    pub content: String,
+    pub uploaded_at: DateTime<Utc>,
+}
+
+const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicants";
 
 #[derive(Clone)]
 pub struct Export {
@@ -36,6 +55,16 @@ impl Export {
             cala_url,
             jobs: jobs.clone(),
         }
+    }
+
+    pub async fn export_sum_sub_applicant_data(
+        &self,
+        data: ExportSumsubApplicantData,
+    ) -> Result<(), ExportError> {
+        let cala = CalaClient::new(self.cala_url.clone());
+        cala.export_applicant_data(SUMSUB_EXPORT_TABLE_NAME, data)
+            .await?;
+        Ok(())
     }
 
     #[instrument(name = "lava.export.export_last", skip(self, db, events), err)]
@@ -59,7 +88,7 @@ impl Export {
                 .expect("Type must be a string")
                 .to_string();
             let event = serde_json::to_string(&event).expect("Couldn't serialize event");
-            let data = ExportData {
+            let data = ExportEntityEventData {
                 id,
                 event,
                 event_type,

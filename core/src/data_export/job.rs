@@ -6,13 +6,13 @@ use std::borrow::Cow;
 
 use crate::job::*;
 
-use super::{cala::CalaClient, ExportData};
+use super::{cala::CalaClient, ExportEntityEventData};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DataExportConfig {
     pub(super) cala_url: String,
     pub(super) table_name: Cow<'static, str>,
-    pub(super) data: ExportData,
+    pub(super) data: ExportEntityEventData,
 }
 
 pub struct DataExportInitializer {}
@@ -48,7 +48,7 @@ impl JobRunner for DataExportJobRunner {
     #[tracing::instrument(name = "lava.data_export.job.run", skip_all, fields(insert_id), err)]
     async fn run(&self, _: CurrentJob) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let cala = CalaClient::new(self.config.cala_url.clone());
-        cala.insert_bq_row(&self.config.table_name, &self.config.data)
+        cala.export_entity_event_to_bq(&self.config.table_name, &self.config.data)
             .await?;
         Ok(JobCompletion::Complete)
     }

@@ -186,7 +186,6 @@ enum LoanStatus {
 
 type Mutation {
 	sumsubTokenCreate: SumsubTokenCreatePayload!
-	sumsubPermalinkCreate: SumsubPermalinkCreatePayload!
 }
 
 enum Period {
@@ -208,10 +207,6 @@ scalar Satoshis
 
 
 union Subject = User | Customer | System
-
-type SumsubPermalinkCreatePayload {
-	url: String!
-}
 
 type SumsubTokenCreatePayload {
 	token: String!

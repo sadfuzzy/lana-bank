@@ -1,6 +1,9 @@
 query Customer($id: UUID!) {
   customer(id: $id) {
     customerId
+    applicantId
+    level
+    status
     email
     balance {
       checking {

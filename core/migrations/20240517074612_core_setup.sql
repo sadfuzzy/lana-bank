@@ -146,3 +146,10 @@ CREATE TABLE audit_entries (
   authorized BOOLEAN NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE sumsub_callbacks (
+  id BIGSERIAL PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  content JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -23,13 +23,14 @@ locals {
   setup_bq              = var.setup_bq
   git_token_secret_name = "${local.name_prefix}-git-token"
   dataset_id            = "${replace(local.name_prefix, "-", "_")}_dataset"
-  bq_tables = local.setup_bq ? [
+  bq_entity_tables = local.setup_bq ? [
     "user_events",
     "customer_events",
     "loan_events",
     "withdraw_events",
     "deposit_events"
   ] : []
+  bq_applicant_table = local.setup_bq ? "sumsub_applicants" : ""
 
   service_account_creds = local.setup_bq ? jsondecode(base64decode(var.bq_creds)) : null
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null

@@ -1,7 +1,9 @@
 use anyhow::Result;
 use hmac::{Hmac, Mac};
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client as ReqwestClient,
+};
 use serde::Deserialize;
 use serde_json::json;
 use sha2::Sha256;
@@ -16,6 +18,7 @@ const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
 #[derive(Clone, Debug)]
 pub struct SumsubClient {
+    client: ReqwestClient,
     pub sumsub_key: String,
     pub sumsub_secret: String,
 }
@@ -48,6 +51,10 @@ pub struct PermalinkResponse {
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
         Self {
+            client: ReqwestClient::builder()
+                .use_rustls_tls()
+                .build()
+                .expect("should always build BfxClient"),
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
         }
@@ -55,7 +62,6 @@ impl SumsubClient {
 
     pub async fn create_access_token(
         &self,
-        client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<AccessTokenResponse, ApplicantError> {
@@ -67,21 +73,10 @@ impl SumsubClient {
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let body = json!({}).to_string();
+        let headers = self.get_headers(method, &url, Some(&body))?;
 
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let signature = self.sign(method, &url, Some(&body), timestamp)?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert("Accept", HeaderValue::from_static("application/json"));
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-        headers.insert("X-App-Token", HeaderValue::from_str(&self.sumsub_key)?);
-        headers.insert(
-            "X-App-Access-Ts",
-            HeaderValue::from_str(&timestamp.to_string())?,
-        );
-        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
-
-        let response = client
+        let response = self
+            .client
             .post(&full_url)
             .headers(headers)
             .body(body)
@@ -100,7 +95,6 @@ impl SumsubClient {
 
     pub async fn create_permalink(
         &self,
-        client: &Client,
         external_user_id: CustomerId,
         level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {
@@ -109,22 +103,14 @@ impl SumsubClient {
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
+        println!("full_url: {:?}", full_url);
+        println!("{}, self.sumsub_key: {:?}", line!(), self.sumsub_key);
+
         let body = json!({}).to_string();
+        let headers = self.get_headers(method, &url, Some(&body))?;
 
-        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
-        let signature = self.sign(method, &url, Some(&body), timestamp)?;
-
-        let mut headers = HeaderMap::new();
-        headers.insert("Accept", HeaderValue::from_static("application/json"));
-        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
-        headers.insert("X-App-Token", HeaderValue::from_str(&self.sumsub_key)?);
-        headers.insert(
-            "X-App-Access-Ts",
-            HeaderValue::from_str(&timestamp.to_string())?,
-        );
-        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
-
-        let response = client
+        let response = self
+            .client
             .post(&full_url)
             .headers(headers)
             .body(body)
@@ -137,6 +123,57 @@ impl SumsubClient {
                 Err(ApplicantError::Sumsub { description, code })
             }
         }
+    }
+
+    pub async fn get_applicant_details(
+        &self,
+        external_user_id: CustomerId,
+    ) -> Result<String, ApplicantError> {
+        let method = "GET";
+        let url = format!(
+            "/resources/applicants/-;externalUserId={}/one",
+            external_user_id
+        );
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let headers = self.get_headers(method, &url, None)?;
+        let response = self.client.get(&full_url).headers(headers).send().await?;
+
+        let response_text = response.text().await?;
+
+        match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
+            Ok(SumsubResponse::Success(_)) => Ok(response_text),
+            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+                Err(ApplicantError::Sumsub { description, code })
+            }
+            Err(e) => Err(ApplicantError::Serde(e)),
+        }
+    }
+
+    fn get_headers(
+        &self,
+        method: &str,
+        url: &str,
+        body: Option<&str>,
+    ) -> Result<HeaderMap, ApplicantError> {
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let signature = self.sign(method, url, body, timestamp)?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
+        headers.insert(
+            "X-App-Token",
+            HeaderValue::from_str(&self.sumsub_key).expect("Invalid sumsub key"),
+        );
+
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string()).expect("Invalid timestamp"),
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+
+        Ok(headers)
     }
 
     fn sign(
@@ -165,12 +202,12 @@ mod tests {
 
     use std::env;
     use tokio;
-    // use uuid::uuid;
     use uuid::Uuid;
 
     fn load_config_from_env() -> Option<SumsubConfig> {
         let sumsub_key = env::var("SUMSUB_KEY").ok()?;
         let sumsub_secret = env::var("SUMSUB_SECRET").ok()?;
+
         Some(SumsubConfig {
             sumsub_key,
             sumsub_secret,
@@ -219,8 +256,7 @@ mod tests {
 
         let level = "basic-kyc-level";
 
-        let client = Client::new();
-        let res = v.create_access_token(&client, user_id, level).await;
+        let res = v.create_access_token(user_id, level).await;
 
         match res {
             Ok(AccessTokenResponse { token, user_id }) => {
@@ -251,8 +287,7 @@ mod tests {
 
         let level = "basic-kyc-level";
 
-        let client = Client::new();
-        let res = v.create_permalink(&client, user_id, level).await;
+        let res = v.create_permalink(user_id, level).await;
 
         match res {
             Ok(PermalinkResponse { url }) => {

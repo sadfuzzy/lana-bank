@@ -18,4 +18,14 @@ pub enum ApplicantError {
     Reqwest(#[from] reqwest::Error),
     #[error("ApplicantError - Sumsub Error: {code}, {description}")]
     Sumsub { code: u16, description: String },
+    #[error("ApplicantError - UnhandledCallbackType: {0}")]
+    UnhandledCallbackType(String),
+    #[error("ApplicantError - MissingExternalUserId: {0}")]
+    MissingExternalUserId(String),
+    #[error("ApplicantError - UuidError: {0}")]
+    UuidError(#[from] uuid::Error),
+    #[error("ApplicantError - JobError: {0}")]
+    JobError(#[from] crate::job::error::JobError),
+    #[error("ApplicantError - CalaError: {0}")]
+    ExportError(#[from] crate::data_export::error::ExportError),
 }
