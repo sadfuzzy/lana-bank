@@ -15,6 +15,7 @@ import { usePathname } from "next/navigation"
 import { RiAdminLine } from "react-icons/ri"
 
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi"
+import { HiOutlineDocumentReport } from "react-icons/hi"
 
 import { gql } from "@apollo/client"
 
@@ -49,7 +50,6 @@ const NavigationLinks = () => {
   const { data, loading, error } = useMeQuery()
   const pathname = usePathname()
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
-
   const toggleSubmenu = (label: string) => {
     setOpenSubmenu(openSubmenu === label ? null : label)
   }
@@ -97,7 +97,12 @@ const NavigationLinks = () => {
       icon: PiHandWithdraw,
       visible: visibleItems?.withdraw,
     },
-
+    {
+      href: "/regulatory-reporting",
+      label: "Regulatory Reporting",
+      icon: HiOutlineDocumentReport,
+      visible: true,
+    },
     {
       label: "Financials",
       icon: IoCashOutline,

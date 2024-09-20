@@ -2,8 +2,14 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-const DetailsGroup = ({ children }: { children: React.ReactNode }) => {
-  return <div className="flex flex-col">{children}</div>
+const DetailsGroup = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) => {
+  return <div className={cn("flex flex-col", className)}>{children}</div>
 }
 
 const DetailItem = ({
