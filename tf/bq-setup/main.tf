@@ -73,7 +73,7 @@ output "dataform_output_dataset" {
 }
 
 output "dataform_release_config" {
-  value = google_dataform_repository_release_config.release.id
+  value = local.dataform_release_config_name
 }
 
 output "reports_root_folder" {
