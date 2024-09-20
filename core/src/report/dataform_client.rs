@@ -37,19 +37,24 @@ impl DataformClient {
     }
 
     pub async fn compile(&mut self) -> Result<CompilationResult, ReportError> {
-        let res: serde_json::Value= self
+        let res: DataformResponse<CompilationResult> = self
             .make_post_request("compilationResults", serde_json::json!({
                 "releaseConfig": format!("projects/{}/locations/{}/repositories/{}/releaseConfigs/{}", self.config.gcp_project, self.config.gcp_location, self.config.dataform_repo, self.config.dataform_release_config)
             }))
         .await?;
-        Ok(serde_json::from_value(res)?)
+        match res {
+            DataformResponse::Success(res) => Ok(res),
+            DataformResponse::Error(err) => Err(ReportError::DataformCompilation(
+                serde_json::to_string(&err),
+            )),
+        }
     }
 
     pub async fn invoke(
         &mut self,
         compilation: &CompilationResult,
     ) -> Result<WorkflowInvocation, ReportError> {
-        let res: serde_json::Value = self
+        let res: DataformResponse<WorkflowInvocation> = self
             .make_post_request(
                 "workflowInvocations",
                 serde_json::json!({
@@ -60,7 +65,12 @@ impl DataformClient {
                 }),
             )
             .await?;
-        Ok(serde_json::from_value(res)?)
+        match res {
+            DataformResponse::Success(res) => Ok(res),
+            DataformResponse::Error(err) => {
+                Err(ReportError::DataformInvocation(serde_json::to_string(&err)))
+            }
+        }
     }
 
     async fn make_post_request<T: serde::de::DeserializeOwned>(
@@ -100,6 +110,13 @@ impl DataformClient {
         let res: T = res.json().await?;
         Ok(res)
     }
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+enum DataformResponse<T> {
+    Success(T),
+    Error(serde_json::Value),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Default)]
