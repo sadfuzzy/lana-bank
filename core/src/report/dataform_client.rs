@@ -45,7 +45,7 @@ impl DataformClient {
         match res {
             DataformResponse::Success(res) => Ok(res),
             DataformResponse::Error(err) => Err(ReportError::DataformCompilation(
-                serde_json::to_string(&err),
+                serde_json::to_string(&err).expect("Could not stringify error"),
             )),
         }
     }
@@ -67,9 +67,9 @@ impl DataformClient {
             .await?;
         match res {
             DataformResponse::Success(res) => Ok(res),
-            DataformResponse::Error(err) => {
-                Err(ReportError::DataformInvocation(serde_json::to_string(&err)))
-            }
+            DataformResponse::Error(err) => Err(ReportError::DataformInvocation(
+                serde_json::to_string(&err).expect("Could not stringify error"),
+            )),
         }
     }
 
