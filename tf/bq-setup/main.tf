@@ -59,3 +59,27 @@ output "service_account_email" {
 output "dataset_id" {
   value = google_bigquery_dataset.dataset.dataset_id
 }
+
+output "gcp_location" {
+  value = local.gcp_region
+}
+
+output "dataform_repo_name" {
+  value = local.dataform_repo_name
+}
+
+output "dataform_output_dataset" {
+  value = local.dataform_dataset_name
+}
+
+output "dataform_release_config" {
+  value = google_dataform_repository_release_config.release.id
+}
+
+output "reports_root_folder" {
+  value = "reports"
+}
+
+output "bucket_name" {
+  value = local.docs_bucket_name
+}
