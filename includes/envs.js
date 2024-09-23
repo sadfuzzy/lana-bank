@@ -16,7 +16,7 @@ const paramsByName = {
 }
 
 module.exports = {
-  all: [dev],
+  all: [dev, staging],
   current: dataform.projectConfig.vars.executionEnv,
   currentDatabase: paramsByName[dataform.projectConfig.vars.executionEnv].database,
   currentImportSchema: paramsByName[dataform.projectConfig.vars.executionEnv].importSchema
