@@ -26,10 +26,13 @@ reset-tf-provider:
 	rm -rf tf/.terraform
 	rm -rf tf/.terraform.lock.hcl
 
+delete-bq-tables:
+	cd tf && tofu state list | grep 'module\.setup\.google_bigquery_table\.' | awk '{print "-target='\''" $$1 "'\''"}' | xargs tofu destroy -auto-approve
+
 run-tf:
 	cd tf && tofu init && tofu apply -auto-approve
 
-init-bq: reset-tf-state clean-deps start-deps setup-db
+init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 	rm tf/import.tf || true
 	cd tf && tofu init && tofu apply -auto-approve || true
 	sleep 5

@@ -9,10 +9,11 @@ resource "cala_big_query_integration" "bq" {
 
 
 resource "google_bigquery_table" "entities" {
-  for_each   = toset(local.bq_entity_tables)
-  project    = local.project_id
-  dataset_id = local.dataset_id
-  table_id   = each.value
+  for_each            = toset(local.bq_entity_tables)
+  project             = local.project_id
+  dataset_id          = local.dataset_id
+  table_id            = each.value
+  deletion_protection = local.deletion_protection
 
   schema = <<EOF
 [
@@ -57,9 +58,10 @@ resource "google_bigquery_table_iam_member" "entities_owner_sa" {
 resource "google_bigquery_table" "sumsub_applicants" {
   count = local.setup_bq ? 1 : 0
 
-  project    = local.project_id
-  dataset_id = local.dataset_id
-  table_id   = local.bq_applicant_table
+  project             = local.project_id
+  dataset_id          = local.dataset_id
+  table_id            = local.bq_applicant_table
+  deletion_protection = local.deletion_protection
 
   schema = <<EOF
 [
@@ -88,7 +90,7 @@ EOF
 }
 
 resource "google_bigquery_table_iam_member" "applicants_owner_sa" {
-  count = local.setup_bq ? 1 : 0
+  count      = local.setup_bq ? 1 : 0
   project    = local.project_id
   dataset_id = local.dataset_id
   table_id   = google_bigquery_table.sumsub_applicants[0].table_id

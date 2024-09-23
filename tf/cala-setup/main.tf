@@ -3,6 +3,11 @@ variable "name_prefix" {
   default = "dev_"
 }
 
+variable "deletion_protection" {
+  type    = bool
+  default = true
+}
+
 variable "gcp_region" {
   type    = string
   default = "europe-west6"
@@ -30,7 +35,8 @@ locals {
     "withdraw_events",
     "deposit_events"
   ] : []
-  bq_applicant_table = local.setup_bq ? "sumsub_applicants" : ""
+  deletion_protection = var.deletion_protection
+  bq_applicant_table  = local.setup_bq ? "sumsub_applicants" : ""
 
   service_account_creds = local.setup_bq ? jsondecode(base64decode(var.bq_creds)) : null
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null

@@ -48,3 +48,12 @@ connect to http://0.0.0.0:8025/
 app: http://localhost:4455/
 
 - if you see a cookie error, delete the cookie and reload the page (for now)
+
+# To setup BQ dev
+
+Also needs re-running when adding tables:
+```
+make init-bq
+```
+
+If you are doing work that requires adding a new big query table you need to add it to `./tf/cala-setup/bq.tf`

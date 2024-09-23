@@ -32,10 +32,11 @@ provider "cala" {
 module "setup" {
   source = "./cala-setup"
 
-  name_prefix = var.name_prefix
-  bq_creds    = var.bq_creds
-  gcp_region  = local.gcp_region
-  setup_bq    = local.setup_bq
+  name_prefix         = var.name_prefix
+  bq_creds            = var.bq_creds
+  gcp_region          = local.gcp_region
+  setup_bq            = local.setup_bq
+  deletion_protection = false
 }
 
 terraform {
