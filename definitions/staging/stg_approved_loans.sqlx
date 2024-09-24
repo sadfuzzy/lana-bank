@@ -1,15 +1,9 @@
 config {
-	type: "table",
-	assertions: {
-		uniqueKey: ["loan_id"],
-		nonNull: ["loan_id"
-			, "principal"
-			, "total_interest_paid"
-			, "total_principal_paid"
-			, "payment_interval"
-		],
-	},
+	type: "operations",
+	hasOutput: true,
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH approved AS (
 
@@ -20,7 +14,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "approved"
+	WHERE recorded_at < asof
+		AND event_type = "approved"
 
 ), initial AS (
 
@@ -42,7 +37,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "initialized"
+	WHERE recorded_at < asof
+		AND event_type = "initialized"
 
 ), payments AS (
 
@@ -57,7 +53,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "payment_recorded"
+	WHERE recorded_at < asof
+		AND event_type = "payment_recorded"
 
 	GROUP BY loan_id
 
@@ -71,7 +68,27 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "interest_incurred"
+	WHERE recorded_at < asof
+		AND event_type = "interest_incurred"
+
+	GROUP BY loan_id
+
+), collateral AS (
+
+	SELECT id AS loan_id
+		, CAST(
+			JSON_VALUE(
+				ANY_VALUE(event HAVING MAX recorded_at),
+				"$.total_collateral"
+			)
+		AS NUMERIC) AS total_collateral
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE event_type = "collateral_updated"
 
 	GROUP BY loan_id
 
@@ -88,8 +105,12 @@ SELECT loan_id
 	, COALESCE(total_interest_paid, 0) AS total_interest_paid
 	, COALESCE(total_principal_paid, 0) AS total_principal_paid
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
+	, COALESCE(total_collateral, 0) AS total_collateral
 
 FROM approved
 	JOIN initial USING (loan_id)
 	JOIN payments USING (loan_id)
 	JOIN interest USING (loan_id)
+	JOIN collateral USING (loan_id)
+
+);

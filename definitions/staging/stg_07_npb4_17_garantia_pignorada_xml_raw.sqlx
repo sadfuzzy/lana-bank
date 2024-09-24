@@ -1,0 +1,27 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Este archivo almacena la información general de las garantías de depósitos pignorados, que respaldan una o más referencias crediticias.",
+	columns: {
+		"identificacion_garantia": "Número del certificado de depósito o número de cuenta",
+		"nit_depositante": "NIT de la persona propietaria del depósito",
+		"fecha_deposito": "Fecha de apertura del depósito",
+		"fecha_vencimiento": "Fecha de vencimiento del depósito",
+		"valor_deposito": "Valor del depósito",
+		"tipo_deposito": "Tipo de depósito",
+		"cod_banco": "Código de banco emisor de la garantía",
+	},
+}
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+
+	SELECT
+		loan_id AS `identificacion_garantia`
+		, CAST(NULL AS STRING) AS `nit_depositante`
+		, CAST(NULL AS DATE) AS `fecha_deposito`
+		, CAST(NULL AS DATE) AS `fecha_vencimiento`
+		, CAST(NULL AS NUMERIC) AS `valor_deposito`
+
+	FROM ${ref("stg_approved_loans")}(asof)
+
+)

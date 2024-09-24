@@ -1,0 +1,39 @@
+config {
+	type: "operations",
+	hasOutput: true,
+	description: "Este archivo almacena la asociatividad entre las referencias y garantías, ya que una referencia puede poseer varias garantías y una garantía puede respaldar varias referencias.",
+	columns: {
+		"num_referencia": "Número de la referencia ",
+		"cod_cartera": "Código del tipo de cartera ",
+		"cod_activo": "Código del tipo de activo de riesgo ",
+		"identificacion_garantia": "Identificación única de la garantía ",
+		"tipo_garantia": "Código del tipo de garantía ",
+		"valor_garantia_proporcional": "Valor proporcional de la garantía que cubre a la referencia ",
+	},
+}
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+
+	SELECT
+		loan_id AS num_referencia,
+		(
+			SELECT code
+			FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+			WHERE description = "Cartera propia Ley Acceso al Crédito (19)"
+		) cod_cartera,
+		(
+			SELECT code
+			FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
+			WHERE description = "Préstamos"
+		) AS cod_activo,
+		"1" AS identificacion_garantia,
+		(
+			SELECT code
+			FROM ${ref("stg_dim_09_npb4_17_tipos_de_garantias")}
+			WHERE description = "Pignorada - Depósito de dinero"
+		) AS tipo_garantia,
+		(total_collateral * 58000) / principal AS valor_garantia_proporcional,
+
+	FROM ${ref("stg_approved_loans")}(asof)
+
+)

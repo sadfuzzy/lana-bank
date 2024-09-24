@@ -1,7 +1,10 @@
 config {
-  type: "table",
-  description: "Ready for export Regulatory Report referencia.xml of norm NPB4-17"
+  type: "operations",
+  hasOutput: true,
+  description: "Ready for export Regulatory Report 'referencia.xml' of norm 'NPB4-17'"
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
     LEFT(`nit_deudor`, 14) AS `nit_deudor`
@@ -84,4 +87,6 @@ SELECT
   , FORMAT_DATE('%Y-%m-%d', CAST(`fecha_cump_cafe` AS DATE)) AS `fecha_cump_cafe`
   , CURRENT_TIMESTAMP() AS created_at
 FROM
-  ${ref("stg_02_npb4_17_referencia_xml_raw")}
+  ${ref("stg_02_npb4_17_referencia_xml_raw")}(asof)
+
+)

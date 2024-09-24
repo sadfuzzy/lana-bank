@@ -26,12 +26,13 @@ pub struct QueryRow(HashMap<String, serde_json::Value>);
 pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, ReportError> {
     let mut res = Vec::new();
     for report_name in bq::find_report_outputs(config).await? {
+        let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
         let location = ReportLocationInCloud {
             report_name: report_name.clone(),
             bucket: config.bucket_name.clone(),
-            path_in_bucket: path_to_report(&config.reports_root_folder, &report_name),
+            path_in_bucket: path_to_report(&config.reports_root_folder, &report_name, &day),
         };
-        let rows = match bq::query_report(config, &report_name).await {
+        let rows = match bq::query_report(config, &report_name, &day).await {
             Ok(rows) => rows,
             Err(e) => {
                 res.push(ReportFileUpload::Failure {
@@ -45,7 +46,7 @@ pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, Rep
         match upload_xml_file(&location, xml_bytes.to_vec()).await {
             Ok(_) => {
                 res.push(ReportFileUpload::Success {
-                    path_in_bucket: path_to_report(&config.reports_root_folder, &report_name),
+                    path_in_bucket: path_to_report(&config.reports_root_folder, &report_name, &day),
                     report_name,
                     bucket: config.bucket_name.clone(),
                 });
@@ -60,8 +61,7 @@ pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, Rep
     Ok(res)
 }
 
-fn path_to_report(reports_root_folder: &str, report: &str) -> String {
-    let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
+fn path_to_report(reports_root_folder: &str, report: &str, day: &str) -> String {
     format!("{}/reports/{}/{}.xml", reports_root_folder, day, report)
 }
 
@@ -121,12 +121,13 @@ pub(super) mod bq {
     pub(super) async fn query_report(
         config: &ReportConfig,
         report: &str,
+        day: &str,
     ) -> Result<Vec<QueryRow>, ReportError> {
         let client = Client::from_service_account_key(config.service_account_key(), false).await?;
         let gcp_project = &config.gcp_project;
         let query = format!(
-            "SELECT * FROM `{}.{}.{}`",
-            gcp_project, config.dataform_output_dataset, report
+            "SELECT * FROM `{}.{}.{}`('{}')",
+            gcp_project, config.dataform_output_dataset, report, day
         );
         let res = client
             .job()

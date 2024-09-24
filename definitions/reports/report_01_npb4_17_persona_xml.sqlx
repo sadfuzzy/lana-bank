@@ -1,7 +1,10 @@
 config {
-  type: "table",
+  type: "operations",
+  hasOutput: true,
   description: "Ready for export Regulatory Report persona.xml of norm NPB4-17"
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
     LEFT(`nit_persona`, 14) AS `nit_persona`
@@ -38,3 +41,5 @@ SELECT
   , CURRENT_TIMESTAMP() AS created_at
 FROM
   ${ref("stg_01_npb4_17_persona_xml_raw")}
+
+)

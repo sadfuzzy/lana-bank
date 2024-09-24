@@ -1,5 +1,6 @@
 config {
-  type: "table",
+  type: "operations",
+  hasOutput: true,
   description: "Regulatory Report referencia.xml of norm NPB4-17",
   columns: {
     "nit_deudor": "NIT del deudor",
@@ -82,6 +83,8 @@ config {
     "fecha_cump_cafe": "Fecha de última carta de cumplimiento del programa de asistencia créditos destino café (21)",
   },
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
     CAST(NULL AS STRING) AS `nit_deudor`
@@ -201,4 +204,6 @@ SELECT
   , CAST(NULL AS STRING) AS `programa_asist_cafe`
   , CAST(NULL AS DATE) AS `fecha_cump_cafe`
 
-FROM ${ref("stg_approved_loans")}
+FROM ${ref("stg_approved_loans")}(asof)
+
+)
