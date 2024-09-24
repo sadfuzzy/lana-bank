@@ -91,6 +91,45 @@ teardown_file() {
     status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1
 
+  # should ignore intermadiary call without returning 500
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/sumsub/callback \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "66f1f52c27a518786597c113",
+      "inspectionId": "66f1f52c27a518786597c113",
+      "applicantType": "individual",
+      "correlationId": "feb6317b2f13441784668eaa87dd14ef",
+      "levelName": "basic-kyc-level",
+      "sandboxMode": true,
+      "externalUserId": "'"$customer_id"'",
+      "type": "applicantPending",
+      "reviewStatus": "pending",
+      "createdAt": "2024-09-23 23:10:24+0000",
+      "createdAtMs": "2024-09-23 23:10:24.704",
+      "clientId": "galoy.io"
+  }')
+
+  [[ "$status_code" -eq 200 ]] || exit 1
+
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/sumsub/callback \
+    -H "Content-Type: application/json" \
+    -d '{
+    "applicantId": "66f1f52c27a518786597c113",
+    "inspectionId": "66f1f52c27a518786597c113",
+    "applicantType": "individual",
+    "correlationId": "feb6317b2f13441784668eaa87dd14ef",
+    "levelName": "basic-kyc-level",
+    "sandboxMode": true,
+    "externalUserId": "'"$customer_id"'",
+    "type": "applicantPersonalInfoChanged",
+    "reviewStatus": "pending",
+    "createdAt": "2024-09-23 23:10:24+0000",
+    "createdAtMs": "2024-09-23 23:10:24.763",
+    "clientId": "galoy.io"
+  }')
+
+  [[ "$status_code" -eq 200 ]] || exit 1
+
   # accepted
   curl -v -X POST http://localhost:5253/sumsub/callback \
       -H "Content-Type: application/json" \

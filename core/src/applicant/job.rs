@@ -81,7 +81,7 @@ impl JobRunner for SumsubExportJobRunner {
                 Ok(JobCompletion::Complete)
             }
             SumsubExportConfig::SensitiveInfo { customer_id } => {
-                let res = self
+                let content = self
                     .sumsub_client
                     .get_applicant_details(*customer_id)
                     .await?;
@@ -89,7 +89,7 @@ impl JobRunner for SumsubExportJobRunner {
                 self.export
                     .export_sum_sub_applicant_data(ExportSumsubApplicantData {
                         customer_id: *customer_id,
-                        content: serde_json::to_string(&res).expect("Could not serialize res"),
+                        content,
                         content_type: SumsubContentType::SensitiveInfo,
                         uploaded_at: chrono::Utc::now(),
                     })

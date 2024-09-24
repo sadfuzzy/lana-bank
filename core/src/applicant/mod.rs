@@ -69,19 +69,6 @@ pub enum SumsubCallbackPayload {
         created_at_ms: String,
         client_id: Option<String>,
     },
-    #[serde(rename = "applicantPending")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantPending {
-        applicant_id: String,
-        inspection_id: String,
-        applicant_type: Option<String>,
-        correlation_id: String,
-        level_name: SumsubKycLevel,
-        external_user_id: CustomerId,
-        review_status: String,
-        created_at_ms: String,
-        client_id: Option<String>,
-    },
     #[serde(rename = "applicantReviewed")]
     #[serde(rename_all = "camelCase")]
     ApplicantReviewed {
@@ -94,20 +81,8 @@ pub enum SumsubCallbackPayload {
         review_status: String,
         created_at_ms: String,
     },
-    #[serde(rename = "applicantOnHold")]
-    #[serde(rename_all = "camelCase")]
-    ApplicantOnHold {
-        applicant_id: String,
-        inspection_id: String,
-        applicant_type: Option<String>,
-        correlation_id: String,
-        level_name: SumsubKycLevel,
-        external_user_id: CustomerId,
-        review_result: ReviewResult,
-        review_status: String,
-        created_at_ms: String,
-        client_id: Option<String>,
-    },
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Deserialize, Debug, Serialize)]
@@ -168,7 +143,11 @@ impl Applicants {
             )
             .await?;
 
-        self.process_payload(&mut db, payload).await?;
+        match self.process_payload(&mut db, payload).await {
+            Ok(_) => (),
+            Err(ApplicantError::UnhandledCallbackType(_)) => (),
+            Err(e) => return Err(e),
+        }
 
         db.commit().await?;
 
@@ -180,7 +159,7 @@ impl Applicants {
         db: &mut Transaction<'_, Postgres>,
         payload: serde_json::Value,
     ) -> Result<(), ApplicantError> {
-        match serde_json::from_value(payload)? {
+        match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
@@ -243,14 +222,9 @@ impl Applicants {
                     "Advanced KYC level is not supported".to_string(),
                 ));
             }
-            SumsubCallbackPayload::ApplicantOnHold {
-                external_user_id, ..
-            }
-            | SumsubCallbackPayload::ApplicantPending {
-                external_user_id, ..
-            } => {
+            SumsubCallbackPayload::Unknown => {
                 return Err(ApplicantError::UnhandledCallbackType(format!(
-                    "callback event not processed for {external_user_id}"
+                    "callback event not processed for payload {payload}",
                 )));
             }
         }
