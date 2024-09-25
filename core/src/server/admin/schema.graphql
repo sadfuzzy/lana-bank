@@ -179,6 +179,20 @@ type CollateralizationUpdated {
 	recordedAt: Timestamp!
 }
 
+type CreditFacility {
+	id: ID!
+	creditFacilityId: UUID!
+}
+
+input CreditFacilityCreateInput {
+	customerId: UUID!
+	facility: UsdCents!
+}
+
+type CreditFacilityCreatePayload {
+	creditFacility: CreditFacility!
+}
+
 type Customer {
 	customerId: UUID!
 	email: String!
@@ -499,6 +513,7 @@ type Mutation {
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
 	collateralUpdate(input: CollateralUpdateInput!): CollateralUpdatePayload!
 	collateralizationStateUpdate(input: CollateralizationStateUpdateInput!): CollateralizationStateUpdatePayload!
+	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!

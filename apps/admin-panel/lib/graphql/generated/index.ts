@@ -205,6 +205,22 @@ export type CollateralizationUpdated = {
   state: LoanCollaterizationState;
 };
 
+export type CreditFacility = {
+  __typename?: 'CreditFacility';
+  creditFacilityId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+};
+
+export type CreditFacilityCreateInput = {
+  customerId: Scalars['UUID']['input'];
+  facility: Scalars['UsdCents']['input'];
+};
+
+export type CreditFacilityCreatePayload = {
+  __typename?: 'CreditFacilityCreatePayload';
+  creditFacility: CreditFacility;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -512,6 +528,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  creditFacilityCreate: CreditFacilityCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
@@ -539,6 +556,11 @@ export type MutationCollateralUpdateArgs = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCreditFacilityCreateArgs = {
+  input: CreditFacilityCreateInput;
 };
 
 
