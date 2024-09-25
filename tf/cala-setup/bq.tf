@@ -97,3 +97,37 @@ resource "google_bigquery_table_iam_member" "applicants_owner_sa" {
   role       = "roles/bigquery.dataOwner"
   member     = local.sa_member
 }
+
+
+resource "google_bigquery_table" "price_cents_btc" {
+  count = local.setup_bq ? 1 : 0
+
+  project             = local.project_id
+  dataset_id          = local.dataset_id
+  table_id            = local.bq_price_cents_btc
+  deletion_protection = local.deletion_protection
+
+  schema = <<EOF
+[
+  {
+    "name": "usd_cents_per_btc",
+    "type": "NUMERIC",
+    "description": "The price of BTC in USD cents"
+  },
+  {
+    "name": "uploaded_at",
+    "type": "TIMESTAMP",
+    "description": "When the price was recorded"
+  }
+]
+EOF
+}
+
+resource "google_bigquery_table_iam_member" "price_cents_btc_owner_sa" {
+  count      = local.setup_bq ? 1 : 0
+  project    = local.project_id
+  dataset_id = local.dataset_id
+  table_id   = google_bigquery_table.price_cents_btc[0].table_id
+  role       = "roles/bigquery.dataOwner"
+  member     = local.sa_member
+}

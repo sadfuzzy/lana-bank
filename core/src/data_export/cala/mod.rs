@@ -4,7 +4,7 @@ mod graphql;
 use graphql_client::{GraphQLQuery, Response};
 use reqwest::{Client as ReqwestClient, Method};
 
-use super::{ExportEntityEventData, ExportSumsubApplicantData};
+use super::{ExportEntityEventData, ExportPriceData, ExportSumsubApplicantData};
 
 use error::*;
 use graphql::*;
@@ -19,6 +19,22 @@ impl CalaClient {
     pub fn new(url: String) -> Self {
         let client = ReqwestClient::new();
         CalaClient { client, url }
+    }
+
+    pub async fn export_price_data(
+        &self,
+        table_name: &str,
+        data: ExportPriceData,
+    ) -> Result<(), CalaError> {
+        let insert_id = uuid::Uuid::new_v4().to_string();
+        tracing::Span::current().record("insert_id", &insert_id);
+        let variables = row_insert::Variables {
+            insert_id,
+            table_name: table_name.to_string(),
+            row_data: serde_json::to_value(data).expect("Could not serialize price data"),
+        };
+        Self::traced_gql_request::<RowInsert, _>(&self.client, &self.url, variables).await?;
+        Ok(())
     }
 
     pub async fn export_applicant_data(

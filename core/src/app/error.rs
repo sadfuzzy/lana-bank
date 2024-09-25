@@ -20,4 +20,6 @@ pub enum ApplicationError {
     LoanError(#[from] crate::loan::error::LoanError),
     #[error("ApplicationError - ReportError: {0}")]
     ReportError(#[from] crate::report::error::ReportError),
+    #[error("ApplicationError - PriceError: {0}")]
+    PriceError(#[from] crate::price::error::PriceError),
 }

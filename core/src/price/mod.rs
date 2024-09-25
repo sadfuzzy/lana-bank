@@ -1,27 +1,59 @@
 mod bfx_client;
 pub mod error;
-
 use cached::proc_macro::cached;
+mod job;
 
-use crate::primitives::{PriceOfOneBTC, UsdCents};
+use crate::{
+    constants::PRICE_JOB_ID,
+    data_export::Export,
+    job::Jobs,
+    primitives::{PriceOfOneBTC, UsdCents},
+};
 
 use bfx_client::BfxClient;
 use error::PriceError;
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct Price {
     bfx: BfxClient,
+    pool: sqlx::PgPool,
+    jobs: Jobs,
 }
 
 impl Price {
-    pub fn new() -> Self {
-        Self {
+    pub fn new(pool: &sqlx::PgPool, jobs: &Jobs, export: &Export) -> Self {
+        let price = Self {
             bfx: BfxClient::new(),
-        }
+            pool: pool.clone(),
+            jobs: jobs.clone(),
+        };
+
+        jobs.add_initializer(job::ExportPriceInitializer::new(&price, export));
+        price
     }
 
     pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
         usd_cents_per_btc_cached(&self.bfx).await
+    }
+
+    pub async fn spawn_global_jobs(&self) -> Result<(), PriceError> {
+        let mut db_tx = self.pool.begin().await?;
+        match self
+            .jobs
+            .create_and_spawn_job::<job::ExportPriceInitializer, _>(
+                &mut db_tx,
+                PRICE_JOB_ID,
+                "export-price-job".to_string(),
+                job::ExportPriceJobConfig::default(),
+            )
+            .await
+        {
+            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+        db_tx.commit().await?;
+        Ok(())
     }
 }
 

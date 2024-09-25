@@ -10,7 +10,7 @@ use tracing::instrument;
 use crate::{
     entity::{EntityEvent, EntityEvents},
     job::{error::JobError, Jobs},
-    primitives::{CustomerId, JobId},
+    primitives::{CustomerId, JobId, PriceOfOneBTC},
 };
 
 use cala::*;
@@ -40,7 +40,14 @@ pub struct ExportSumsubApplicantData {
     pub uploaded_at: DateTime<Utc>,
 }
 
+#[derive(Clone, Serialize, Deserialize)]
+pub struct ExportPriceData {
+    pub usd_cents_per_btc: PriceOfOneBTC,
+    pub uploaded_at: DateTime<Utc>,
+}
+
 const SUMSUB_EXPORT_TABLE_NAME: &str = "sumsub_applicants";
+const PRICE_EXPORT_TABLE_NAME: &str = "price_cents_btc";
 
 #[derive(Clone)]
 pub struct Export {
@@ -55,6 +62,13 @@ impl Export {
             cala_url,
             jobs: jobs.clone(),
         }
+    }
+
+    pub async fn export_price_data(&self, data: ExportPriceData) -> Result<(), ExportError> {
+        let cala = CalaClient::new(self.cala_url.clone());
+        cala.export_price_data(PRICE_EXPORT_TABLE_NAME, data)
+            .await?;
+        Ok(())
     }
 
     pub async fn export_sum_sub_applicant_data(
