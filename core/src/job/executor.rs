@@ -149,7 +149,7 @@ impl JobExecutor {
               SET state = 'running', reschedule_after = NOW() + $2::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
-              RETURNING je.id AS "id!: JobId", je.payload_json
+              RETURNING je.id AS "id!: JobId"
               "#,
             poll_limit as i32,
             pg_interval
@@ -160,15 +160,7 @@ impl JobExecutor {
         if !rows.is_empty() {
             for row in rows {
                 let job = jobs.find_by_id(row.id).await?;
-                let _ = Self::start_job(
-                    pool,
-                    registry,
-                    running_jobs,
-                    job,
-                    row.payload_json,
-                    jobs.clone(),
-                )
-                .await;
+                let _ = Self::start_job(pool, registry, running_jobs, job, jobs.clone()).await;
             }
         }
         Ok(())
@@ -184,7 +176,6 @@ impl JobExecutor {
         registry: &Arc<RwLock<JobRegistry>>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
-        job_payload: Option<serde_json::Value>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
         let id = job.id;
@@ -196,7 +187,7 @@ impl JobExecutor {
         let pool = pool.clone();
         let handle = tokio::spawn(async move {
             {
-                let _ = Self::execute_job(id, pool, job_payload, runner, repo).await;
+                let _ = Self::execute_job(id, pool, runner, repo).await;
             }
             all_jobs.write().await.remove(&id);
         });
@@ -210,12 +201,11 @@ impl JobExecutor {
     async fn execute_job(
         id: JobId,
         pool: PgPool,
-        payload: Option<serde_json::Value>,
         runner: Box<dyn JobRunner>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
         let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id, current_job_pool, payload);
+        let current_job = CurrentJob::new(id, current_job_pool);
         match runner
             .run(current_job)
             .await

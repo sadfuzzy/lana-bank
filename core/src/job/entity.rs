@@ -28,7 +28,6 @@ pub enum JobEvent {
         id: JobId,
         job_type: JobType,
         name: String,
-        description: Option<String>,
         config: serde_json::Value,
     },
     Completed,
@@ -47,7 +46,6 @@ pub struct Job {
     pub id: JobId,
     pub name: String,
     pub job_type: JobType,
-    pub description: Option<String>,
     config: serde_json::Value,
     pub(super) events: EntityEvents<JobEvent>,
 }
@@ -77,14 +75,12 @@ impl TryFrom<EntityEvents<JobEvent>> for Job {
                     id,
                     name,
                     job_type,
-                    description,
                     config,
                 } => {
                     builder = builder
                         .id(*id)
                         .name(name.clone())
                         .job_type(job_type.clone())
-                        .description(description.clone())
                         .config(config.clone());
                 }
                 JobEvent::Completed => {}
@@ -102,8 +98,6 @@ pub struct NewJob {
     pub(super) name: String,
     #[builder(setter(into))]
     pub(super) job_type: JobType,
-    #[builder(setter(into), default)]
-    pub(super) description: Option<String>,
     #[builder(setter(custom))]
     pub(super) config: serde_json::Value,
 }
@@ -120,7 +114,6 @@ impl NewJob {
                 id: self.id,
                 name: self.name,
                 job_type: self.job_type,
-                description: self.description,
                 config: self.config,
             }],
         )
