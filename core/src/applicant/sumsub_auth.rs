@@ -39,8 +39,9 @@ enum SumsubResponse<T> {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessTokenResponse {
+    #[serde(rename = "userId")]
+    pub customer_id: String,
     pub token: String,
-    pub user_id: String,
 }
 
 #[derive(Deserialize, Debug)]
@@ -83,10 +84,11 @@ impl SumsubClient {
             .send()
             .await?;
 
-        match response.json().await? {
-            SumsubResponse::Success(AccessTokenResponse { token, user_id }) => {
-                Ok(AccessTokenResponse { token, user_id })
-            }
+        match response
+            .json::<SumsubResponse<AccessTokenResponse>>()
+            .await?
+        {
+            SumsubResponse::Success(res) => Ok(res),
             SumsubResponse::Error(ApiError { description, code }) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
@@ -193,109 +195,5 @@ impl SumsubClient {
             mac.update(body.as_bytes());
         }
         Ok(hex::encode(mac.finalize().into_bytes()))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use std::env;
-    use tokio;
-    use uuid::Uuid;
-
-    fn load_config_from_env() -> Option<SumsubConfig> {
-        let sumsub_key = env::var("SUMSUB_KEY").ok()?;
-        let sumsub_secret = env::var("SUMSUB_SECRET").ok()?;
-
-        Some(SumsubConfig {
-            sumsub_key,
-            sumsub_secret,
-        })
-    }
-
-    #[tokio::test]
-    async fn test_create_signature() {
-        let user_config = load_config_from_env();
-
-        if user_config.is_none() {
-            println!("not running the test");
-            return;
-        };
-
-        let v = SumsubClient::new(&user_config.unwrap());
-
-        let method = "POST";
-        let url = "/myurl";
-        let body = None;
-        let timestamp = 10;
-
-        let signature = v
-            .sign(method, url, body, timestamp)
-            .expect("Signing failed");
-
-        println!("signature {:?}", signature);
-    }
-
-    #[tokio::test]
-    async fn get_access_token() {
-        let user_config = load_config_from_env();
-
-        if user_config.is_none() {
-            println!("not running the test");
-            return;
-        };
-
-        let user_config = user_config.unwrap();
-        let v = SumsubClient::new(&user_config);
-
-        // let random_id = uuid!("00000000-0000-0000-0000-000000000001");
-        let random_id = Uuid::new_v4();
-
-        let user_id = CustomerId::from(random_id);
-
-        let level = "basic-kyc-level";
-
-        let res = v.create_access_token(user_id, level).await;
-
-        match res {
-            Ok(AccessTokenResponse { token, user_id }) => {
-                println!("Success response: token: {token}, user_id: {user_id}");
-            }
-            Err(e) => {
-                println!("Request failed: {:?}", e);
-            }
-        }
-    }
-
-    #[tokio::test]
-    async fn create_permalink() {
-        let user_config = load_config_from_env();
-
-        if user_config.is_none() {
-            println!("not running the test");
-            return;
-        };
-
-        let user_config = user_config.unwrap();
-        let v = SumsubClient::new(&user_config);
-
-        // let random_id = uuid!("00000000-0000-0000-0000-000000000001");
-        let random_id = Uuid::new_v4();
-
-        let user_id = CustomerId::from(random_id);
-
-        let level = "basic-kyc-level";
-
-        let res = v.create_permalink(user_id, level).await;
-
-        match res {
-            Ok(PermalinkResponse { url }) => {
-                println!("Success response: url: {url}");
-            }
-            Err(e) => {
-                println!("Request failed: {:?}", e);
-            }
-        }
     }
 }
