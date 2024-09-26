@@ -20,8 +20,6 @@ pub enum JobError {
     NoInitializerPresent,
     #[error("JobError - JobExecutionError: {0}")]
     JobExecutionError(String),
-    #[error("JobError - CouldNotResumeJob")]
-    CouldNotResumeJob,
     #[error("JobError - DuplicateId")]
     DuplicateId,
 }
