@@ -5,7 +5,7 @@ use anyhow::Context;
 use clap::Parser;
 use std::{fs, path::PathBuf};
 
-use self::config::{Config, EnvOverride};
+use self::config::{Config, EnvSecrets};
 
 #[derive(Parser)]
 #[clap(long_about = None)]
@@ -17,7 +17,7 @@ struct Cli {
         default_value = "lava.yml",
         value_name = "FILE"
     )]
-    config: PathBuf,
+    yaml_path: PathBuf,
     #[clap(
         long,
         env = "LAVA_HOME",
@@ -40,10 +40,10 @@ struct Cli {
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let config = Config::from_path(
-        cli.config,
-        EnvOverride {
-            db_con: cli.pg_con,
+    let config = Config::init(
+        cli.yaml_path,
+        EnvSecrets {
+            pg_con: cli.pg_con,
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
             sa_creds_base64: cli.sa_creds_base64,

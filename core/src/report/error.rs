@@ -32,4 +32,8 @@ pub enum ReportError {
     JobError(#[from] crate::job::error::JobError),
     #[error("ReportError - CouldNotFindById: {0}")]
     CouldNotFindById(ReportId),
+    #[error("ReportError - Utf8Error: {0}")]
+    Utf8Error(#[from] std::str::Utf8Error),
+    #[error("ReportError - ProjectIdMissing")]
+    ProjectIdMissing,
 }

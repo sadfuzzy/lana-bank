@@ -1,6 +1,8 @@
 use gcp_bigquery_client::yup_oauth2::ServiceAccountKey;
 use serde::{Deserialize, Serialize};
 
+use super::ReportError;
+
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ReportConfig {
     #[serde(skip)]
@@ -32,7 +34,7 @@ impl ReportConfig {
         name_prefix: String,
         gcp_location: String,
         download_link_duration: u32,
-    ) -> anyhow::Result<Self> {
+    ) -> Result<Self, ReportError> {
         let mut cfg = Self {
             dataform_repo: format!("{}-repo", name_prefix),
             dataform_output_dataset: format!("dataform_{}", name_prefix),
@@ -47,20 +49,18 @@ impl ReportConfig {
         Ok(cfg)
     }
 
-    pub fn set_sa_creds_base64(&mut self, sa_creds_base64: String) -> anyhow::Result<String> {
-        use base64::{engine::general_purpose, Engine as _};
+    pub fn set_sa_creds_base64(&mut self, sa_creds_base64: String) -> Result<String, ReportError> {
+        self.sa_creds_base64 = sa_creds_base64;
 
-        let creds =
-            std::str::from_utf8(&general_purpose::STANDARD.decode(sa_creds_base64.as_bytes())?)?
-                .to_string();
+        let creds = self.get_json_creds()?;
+
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
 
         self.gcp_project = service_account_key
             .project_id
             .clone()
-            .ok_or(anyhow::anyhow!("project_id missing"))?;
+            .ok_or(ReportError::ProjectIdMissing)?;
         self.service_account_key = Some(service_account_key);
-        self.sa_creds_base64 = sa_creds_base64;
 
         Ok(creds)
     }
@@ -69,5 +69,14 @@ impl ReportConfig {
         self.service_account_key
             .clone()
             .expect("Service Account not set")
+    }
+
+    pub fn get_json_creds(&self) -> Result<String, ReportError> {
+        use base64::{engine::general_purpose, Engine as _};
+
+        Ok(std::str::from_utf8(
+            &general_purpose::STANDARD.decode(self.sa_creds_base64.as_bytes())?,
+        )?
+        .to_string())
     }
 }
