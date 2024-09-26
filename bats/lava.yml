@@ -10,4 +10,4 @@ app:
     dataform_output_dataset: "dataform_gha"
     dataform_release_config: "gha-release"
     reports_root_folder: "gha"
-    bucket_name: "gha-volcano-docs"
+    bucket_name: "gha-volcano-documents"

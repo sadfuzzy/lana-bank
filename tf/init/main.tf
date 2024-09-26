@@ -9,8 +9,8 @@ variable "gcp_region" {
 }
 
 locals {
-  project                = "cala-enterprise"
-  tf_state_bucket_name   = "lava-bank-tf-state"
+  project                = "lava-dev-436720"
+  tf_state_bucket_name   = "lava-dev-tf-state"
   objects_list_role_name = "lava_objects_list"
 
   justin = "justin@galoy.io"
@@ -86,8 +86,8 @@ output "concourse_sa_keys_base64" {
 
 terraform {
   backend "gcs" {
-    bucket = "lava-bank-tf-state"
-    prefix = "lava-bank/setup"
+    bucket = "lava-dev-tf-state"
+    prefix = "lava-dev/setup"
   }
 }
 

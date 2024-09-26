@@ -37,7 +37,7 @@ impl ReportConfig {
             dataform_repo: format!("{}-repo", name_prefix),
             dataform_output_dataset: format!("dataform_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
-            bucket_name: format!("{}-volcano-docs", name_prefix),
+            bucket_name: format!("{}-volcano-documents", name_prefix),
             gcp_location,
             reports_root_folder: name_prefix,
             download_link_duration,
