@@ -1,4 +1,3 @@
-use anyhow::Result;
 use hmac::{Hmac, Mac};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
