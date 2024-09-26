@@ -43,6 +43,14 @@ impl std::ops::Add for CVLPct {
     }
 }
 
+impl std::ops::Sub for CVLPct {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self {
+        CVLPct(self.0 - other.0)
+    }
+}
+
 impl CVLPct {
     pub const ZERO: Self = Self(dec!(0));
 
@@ -73,6 +81,17 @@ impl CVLPct {
 
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
         other > *self + buffer
+    }
+
+    #[cfg(test)]
+    pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
+        let target_in_usd = self.0 / dec!(100) * outstanding.to_usd();
+        UsdCents::from(
+            (target_in_usd * dec!(100))
+                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                .to_u64()
+                .expect("should return a valid integer"),
+        )
     }
 }
 
