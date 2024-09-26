@@ -33,7 +33,7 @@ jobs:
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_bq_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
-          BQ_SERVICE_ACCOUNT_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"

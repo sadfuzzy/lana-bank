@@ -4,7 +4,7 @@ resource "cala_big_query_integration" "bq" {
   name                         = "bq-integration"
   project_id                   = local.project_id
   dataset_id                   = local.dataset_id
-  service_account_creds_base64 = var.bq_creds
+  service_account_creds_base64 = var.sa_creds
 }
 
 

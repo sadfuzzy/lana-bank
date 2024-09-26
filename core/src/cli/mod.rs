@@ -31,8 +31,8 @@ struct Cli {
     sumsub_key: String,
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
-    #[clap(env = "BQ_SERVICE_ACCOUNT_BASE64", default_value = "")]
-    bq_service_account_base64: String,
+    #[clap(env = "SA_CREDS_BASE64", default_value = "")]
+    sa_creds_base64: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
 }
@@ -46,7 +46,7 @@ pub async fn run() -> anyhow::Result<()> {
             db_con: cli.pg_con,
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
-            sa_creds_base64: cli.bq_service_account_base64,
+            sa_creds_base64: cli.sa_creds_base64,
         },
         cli.dev_env_name_prefix,
     )?;

@@ -26,7 +26,7 @@ wait_for_complete() {
 
 @test "report: create" {
   # fake service account used in concourse
-  if echo "${BQ_SERVICE_ACCOUNT_BASE64}" | base64 -d | grep -q "abc_app"; then
+  if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
     skip
   fi
   exec_admin_graphql 'report-create'

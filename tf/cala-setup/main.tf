@@ -17,7 +17,7 @@ variable "setup_bq" {
   default = false
 }
 
-variable "bq_creds" {
+variable "sa_creds" {
   type    = string
   default = "dummy"
 }
@@ -40,7 +40,7 @@ locals {
   bq_applicant_table  = local.setup_bq ? "sumsub_applicants" : ""
   bq_price_cents_btc    = local.setup_bq ? "price_cents_btc" : ""
 
-  service_account_creds = local.setup_bq ? jsondecode(base64decode(var.bq_creds)) : null
+  service_account_creds = local.setup_bq ? jsondecode(base64decode(var.sa_creds)) : null
   project_id            = local.setup_bq ? local.service_account_creds.project_id : null
   sa_email              = local.setup_bq ? local.service_account_creds.client_email : null
   sa_member             = local.setup_bq ? "serviceAccount:${local.sa_email}" : null
