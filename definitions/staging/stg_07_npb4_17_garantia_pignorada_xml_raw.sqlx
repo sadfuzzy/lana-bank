@@ -17,8 +17,8 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 	SELECT
 		loan_id AS `identificacion_garantia`
-		, CAST(NULL AS STRING) AS `nit_depositante`
-		, CAST(NULL AS DATE) AS `fecha_deposito`
+		, customer_id AS `nit_depositante`
+		, DATE(most_recent_collateral_deposit) AS `fecha_deposito`
 		, CAST(NULL AS DATE) AS `fecha_vencimiento`
 		, CAST(NULL AS NUMERIC) AS `valor_deposito`
 

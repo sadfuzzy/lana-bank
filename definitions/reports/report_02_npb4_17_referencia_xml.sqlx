@@ -7,7 +7,7 @@ config {
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
-    LEFT(`nit_deudor`, 14) AS `nit_deudor`
+    LEFT(REPLACE(nit_deudor, '-', ''), 14) AS `nit_deudor`
   , LEFT(`cod_cartera`, 2) AS `cod_cartera`
   , LEFT(`cod_activo`, 2) AS `cod_activo`
   , LEFT(`num_referencia`, 20) AS `num_referencia`

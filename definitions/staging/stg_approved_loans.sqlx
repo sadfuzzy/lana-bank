@@ -31,6 +31,7 @@ WITH approved AS (
 		END AS end_date
 		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
 		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
+		, JSON_VALUE(event, "$.customer_id") AS customer_id
 
 	FROM ${ref({
 		name: "loan_events",
@@ -92,6 +93,26 @@ WITH approved AS (
 
 	GROUP BY loan_id
 
+), collateral_deposits AS (
+
+	SELECT id AS loan_id
+		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6S',
+			JSON_VALUE(
+				ANY_VALUE(event HAVING MAX recorded_at),
+				"$.recorded_at"
+			)
+		) AS most_recent_collateral_deposit
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE event_type = "collateral_updated"
+		AND JSON_VALUE(event, "$.action") = "Add"
+
+	GROUP BY loan_id
+
 )
 
 SELECT loan_id
@@ -106,11 +127,13 @@ SELECT loan_id
 	, COALESCE(total_principal_paid, 0) AS total_principal_paid
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
 	, COALESCE(total_collateral, 0) AS total_collateral
+	, customer_id
+	, most_recent_collateral_deposit
 
 FROM approved
 	JOIN initial USING (loan_id)
-	JOIN payments USING (loan_id)
-	JOIN interest USING (loan_id)
-	JOIN collateral USING (loan_id)
-
+	LEFT JOIN payments USING (loan_id)
+	LEFT JOIN interest USING (loan_id)
+	LEFT JOIN collateral USING (loan_id)
+	LEFT JOIN collateral_deposits USING (loan_id)
 );

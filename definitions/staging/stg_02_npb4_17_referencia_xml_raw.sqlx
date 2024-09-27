@@ -87,7 +87,7 @@ config {
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
-    CAST(NULL AS STRING) AS `nit_deudor`
+    customer_id AS `nit_deudor`
   , (
 	SELECT code
 	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
