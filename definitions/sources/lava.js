@@ -1,4 +1,4 @@
-const tables = ["loans", "loan_events", "customer_events"]
+const tables = ["loans", "loan_events", "customer_events", "price_cents_btc"]
 
 envs.all.forEach((env) => {
   tables.forEach((table) => {

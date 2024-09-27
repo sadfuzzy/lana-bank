@@ -32,7 +32,13 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 			FROM ${ref("stg_dim_09_npb4_17_tipos_de_garantias")}
 			WHERE description = "Pignorada - Depósito de dinero"
 		) AS tipo_garantia,
-		(total_collateral * 58000) / principal AS valor_garantia_proporcional,
+		COALESCE(SAFE_DIVIDE(total_collateral * (
+			SELECT ANY_VALUE(usd_cents_per_btc HAVING MAX uploaded_at)
+			FROM ${ref({
+				name: "price_cents_btc",
+				schema: envs.currentImportSchema
+			})}
+		), principal*100), 1) AS valor_garantia_proporcional,
 
 	FROM ${ref("stg_approved_loans")}(asof)
 
