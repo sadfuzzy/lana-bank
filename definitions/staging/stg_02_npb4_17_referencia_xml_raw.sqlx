@@ -82,6 +82,7 @@ config {
     "programa_asist_cafe": "Programa de asistencia suscrito créditos destino café (21)",
     "fecha_cump_cafe": "Fecha de última carta de cumplimiento del programa de asistencia créditos destino café (21)",
   },
+  dependencies: ["report_01_npb4_17_persona_xml"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (

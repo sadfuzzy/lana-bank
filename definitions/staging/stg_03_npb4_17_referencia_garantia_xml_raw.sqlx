@@ -10,6 +10,7 @@ config {
 		"tipo_garantia": "Código del tipo de garantía ",
 		"valor_garantia_proporcional": "Valor proporcional de la garantía que cubre a la referencia ",
 	},
+	dependencies: ["report_02_npb4_17_referencia_xml"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (

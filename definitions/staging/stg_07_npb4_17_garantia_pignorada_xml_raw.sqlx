@@ -11,6 +11,7 @@ config {
 		"tipo_deposito": "Tipo de depósito",
 		"cod_banco": "Código de banco emisor de la garantía",
 	},
+	dependencies: ["report_03_npb4_17_referencia_garantia_xml"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
