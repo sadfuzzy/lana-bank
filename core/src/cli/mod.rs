@@ -17,7 +17,7 @@ struct Cli {
         default_value = "lava.yml",
         value_name = "FILE"
     )]
-    yaml_path: PathBuf,
+    config: PathBuf,
     #[clap(
         long,
         env = "LAVA_HOME",
@@ -41,7 +41,7 @@ pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     let config = Config::init(
-        cli.yaml_path,
+        cli.config,
         EnvSecrets {
             pg_con: cli.pg_con,
             sumsub_key: cli.sumsub_key,
