@@ -35,14 +35,6 @@ pub enum LedgerAccountSetMemberType {
     AccountSet,
 }
 
-crate::entity_id! { BfxIntegrationId }
-
-#[derive(Debug)]
-pub enum BfxAddressType {
-    Bitcoin,
-    Tron,
-}
-
 #[derive(Debug, Deserialize, Clone, Copy, Serialize)]
 pub enum KycLevel {
     NotKyced,
