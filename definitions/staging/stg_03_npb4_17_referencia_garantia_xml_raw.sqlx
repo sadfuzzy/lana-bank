@@ -2,14 +2,6 @@ config {
 	type: "operations",
 	hasOutput: true,
 	description: "Este archivo almacena la asociatividad entre las referencias y garantías, ya que una referencia puede poseer varias garantías y una garantía puede respaldar varias referencias.",
-	columns: {
-		"num_referencia": "Número de la referencia ",
-		"cod_cartera": "Código del tipo de cartera ",
-		"cod_activo": "Código del tipo de activo de riesgo ",
-		"identificacion_garantia": "Identificación única de la garantía ",
-		"tipo_garantia": "Código del tipo de garantía ",
-		"valor_garantia_proporcional": "Valor proporcional de la garantía que cubre a la referencia ",
-	},
 	dependencies: ["report_02_npb4_17_referencia_xml"],
 }
 

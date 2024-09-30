@@ -89,18 +89,20 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "collateral_updated"
+	WHERE recorded_at < asof
+		AND event_type = "collateral_updated"
 
 	GROUP BY loan_id
 
 ), collateral_deposits AS (
 
 	SELECT id AS loan_id
-		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6S',
+		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6SZ',
 			JSON_VALUE(
 				ANY_VALUE(event HAVING MAX recorded_at),
 				"$.recorded_at"
-			)
+			),
+			"UTC"
 		) AS most_recent_collateral_deposit
 
 	FROM ${ref({
@@ -108,7 +110,8 @@ WITH approved AS (
 		schema: envs.currentImportSchema
 	})}
 
-	WHERE event_type = "collateral_updated"
+	WHERE recorded_at < asof
+		AND event_type = "collateral_updated"
 		AND JSON_VALUE(event, "$.action") = "Add"
 
 	GROUP BY loan_id

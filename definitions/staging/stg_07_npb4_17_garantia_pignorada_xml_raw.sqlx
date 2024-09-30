@@ -2,15 +2,6 @@ config {
 	type: "operations",
 	hasOutput: true,
 	description: "Este archivo almacena la información general de las garantías de depósitos pignorados, que respaldan una o más referencias crediticias.",
-	columns: {
-		"identificacion_garantia": "Número del certificado de depósito o número de cuenta",
-		"nit_depositante": "NIT de la persona propietaria del depósito",
-		"fecha_deposito": "Fecha de apertura del depósito",
-		"fecha_vencimiento": "Fecha de vencimiento del depósito",
-		"valor_deposito": "Valor del depósito",
-		"tipo_deposito": "Tipo de depósito",
-		"cod_banco": "Código de banco emisor de la garantía",
-	},
 	dependencies: ["report_03_npb4_17_referencia_garantia_xml"],
 }
 
