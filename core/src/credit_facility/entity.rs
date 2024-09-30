@@ -13,7 +13,7 @@ use crate::{
     primitives::*,
 };
 
-use super::CreditFacilityError;
+use super::{disbursement::*, CreditFacilityError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -36,6 +36,17 @@ pub enum CreditFacilityEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+    },
+    DisbursementInitiated {
+        idx: DisbursementIdx,
+        amount: UsdCents,
+        audit_info: AuditInfo,
+    },
+    DisbursementConcluded {
+        idx: DisbursementIdx,
+        tx_id: LedgerTxId,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
 }
 
@@ -61,7 +72,7 @@ impl Entity for CreditFacility {
 }
 
 impl CreditFacility {
-    fn facility(&self) -> UsdCents {
+    fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter() {
             match event {
                 CreditFacilityEvent::Initialized { facility, .. } => return *facility,
@@ -79,6 +90,10 @@ impl CreditFacility {
             }
         }
         false
+    }
+
+    pub(super) fn _is_expired(&self) -> bool {
+        unimplemented!()
     }
 
     fn approval_threshold_met(&self) -> bool {
@@ -144,7 +159,7 @@ impl CreditFacility {
         if self.approval_threshold_met() {
             let tx_ref = format!("{}-approval", self.id);
             Ok(Some(CreditFacilityApprovalData {
-                facility: self.facility(),
+                facility: self.initial_facility(),
                 tx_ref,
                 tx_id: LedgerTxId::new(),
                 credit_facility_account_ids: self.account_ids,
@@ -166,6 +181,73 @@ impl CreditFacility {
             audit_info,
             recorded_at: executed_at,
         });
+    }
+
+    pub(super) fn initiate_disbursement(
+        &mut self,
+        audit_info: AuditInfo,
+        amount: UsdCents,
+    ) -> Result<NewDisbursement, CreditFacilityError> {
+        if self.disbursement_in_progress() {
+            return Err(CreditFacilityError::DisbursementInProgress);
+        }
+
+        let idx = self
+            .events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(DisbursementIdx::FIRST);
+
+        self.events
+            .push(CreditFacilityEvent::DisbursementInitiated {
+                idx,
+                amount,
+                audit_info,
+            });
+
+        Ok(NewDisbursement::builder()
+            .id(DisbursementId::new())
+            .facility_id(self.id)
+            .idx(idx)
+            .amount(amount)
+            .account_ids(self.account_ids)
+            .customer_account_ids(self.customer_account_ids)
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new disbursement"))
+    }
+
+    pub(super) fn confirm_disbursement(
+        &mut self,
+        disbursement: &Disbursement,
+        tx_id: LedgerTxId,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    ) {
+        self.events
+            .push(CreditFacilityEvent::DisbursementConcluded {
+                idx: disbursement.idx,
+                recorded_at: executed_at,
+                tx_id,
+                audit_info,
+            });
+    }
+
+    fn disbursement_in_progress(&self) -> bool {
+        for event in self.events.iter().rev() {
+            if let CreditFacilityEvent::DisbursementInitiated { .. } = event {
+                return true;
+            }
+            if let CreditFacilityEvent::DisbursementConcluded { .. } = event {
+                return false;
+            }
+        }
+
+        false
     }
 }
 
@@ -191,6 +273,8 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 }
                 CreditFacilityEvent::Approved { .. } => (),
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
+                CreditFacilityEvent::DisbursementInitiated { .. } => (),
+                CreditFacilityEvent::DisbursementConcluded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -227,5 +311,56 @@ impl NewCreditFacility {
                 customer_account_ids: self.customer_account_ids,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: Subject::from(UserId::new()),
+        }
+    }
+
+    fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
+        CreditFacility::try_from(EntityEvents::init(CreditFacilityId::new(), events.clone()))
+            .unwrap()
+    }
+
+    #[test]
+    fn disbursement_in_progress() {
+        let mut events = vec![CreditFacilityEvent::Initialized {
+            id: CreditFacilityId::new(),
+            audit_info: dummy_audit_info(),
+            customer_id: CustomerId::new(),
+            facility: UsdCents::from(10000),
+            account_ids: CreditFacilityAccountIds::new(),
+            customer_account_ids: CustomerLedgerAccountIds::new(),
+        }];
+
+        let first_idx = DisbursementIdx::FIRST;
+        events.push(CreditFacilityEvent::DisbursementInitiated {
+            idx: first_idx,
+            amount: UsdCents::ONE,
+            audit_info: dummy_audit_info(),
+        });
+        assert!(matches!(
+            facility_from(&events).initiate_disbursement(dummy_audit_info(), UsdCents::ONE),
+            Err(CreditFacilityError::DisbursementInProgress)
+        ));
+
+        events.push(CreditFacilityEvent::DisbursementConcluded {
+            idx: first_idx,
+            tx_id: LedgerTxId::new(),
+            recorded_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        assert!(facility_from(&events)
+            .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
+            .is_ok());
     }
 }

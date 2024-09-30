@@ -1,0 +1,14 @@
+query CreditFacilityBalance($journalId: UUID!, $facilityId: UUID!) {
+  facility: balance(
+    journalId: $journalId
+    accountId: $facilityId
+    currency: "USD"
+  ) {
+    settled {
+      normalBalance {
+        units
+        currency
+      }
+    }
+  }
+}
