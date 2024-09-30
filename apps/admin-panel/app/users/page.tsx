@@ -105,7 +105,7 @@ function UsersPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
                       {user.roles.length > 0
-                        ? user.roles.map((role) => (
+                        ? user.roles.sort().map((role) => (
                             <Badge variant="secondary" key={role}>
                               {formatRole(role)}
                             </Badge>
