@@ -8,77 +8,43 @@ config {
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
-    customer_id AS `nit_deudor`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Cartera propia Ley Acceso al Crédito (19)"
-  ) AS `cod_cartera`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Préstamos"
-  ) AS `cod_activo`
-  , loan_id AS `num_referencia`
+    LEFT(REPLACE(customer_id, '-', ''), 14) AS `nit_deudor`         -- use NIU type which uses the 14 leftmost no-hyphen characters from backend customer_id
+  , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)" ) AS `cod_cartera`
+  , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Préstamos" ) AS `cod_activo`
+  , LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  -- uses the 20 leftmost no-hyphen characters from backend loan_id
   , principal AS `monto_referencia` -- Original loan amount
   , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
   , principal - total_principal_paid AS `saldo_vigente_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
-  , total_interest_incurred - total_principal_paid AS `saldo_vigente_i`
+  , GREATEST(total_interest_incurred - total_principal_paid, 0) AS `saldo_vigente_i` -- yeilds a negative, TODO: review
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
   , DATE(start_timestamp) AS `fecha_otorgamiento`
-  , end_date AS `fecha_vencimiento`
+  , DATE(end_date) AS `fecha_vencimiento`
   , CAST(NULL AS DATE) AS `fecha_castigo`
-  , CAST(NULL AS STRING) AS `estado_credito`
+  , (SELECT code FROM ${ref("stg_dim_07_npb4_17_estados_de_la_referencia")} WHERE description = "Vigente") AS `estado_credito`
   , CAST(NULL AS NUMERIC) AS `saldo_mora_k`
   , CAST(NULL AS NUMERIC) AS `saldo_mora_i`
-  , CAST(NULL AS NUMERIC) AS `dias_mora_k`
-  , CAST(NULL AS NUMERIC) AS `dias_mora_i`
+  , CAST(NULL AS INT64) AS `dias_mora_k`
+  , CAST(NULL AS INT64) AS `dias_mora_i`
   , CAST(NULL AS DATE) AS `fecha_inicio_mora_k`
   , CAST(NULL AS DATE) AS `fecha_inicio_mora_i`
-  , CASE
-      WHEN payment_interval = "end_of_month"
-      THEN (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Mensual"
-      )
-  END AS `pago_capital`
-  , CASE
-      WHEN payment_interval = "end_of_month"
-      THEN (
-	SELECT code
-	FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-	WHERE description = "Mensual"
-      )
-  END AS `pago_interes`
-  , CAST(NULL AS NUMERIC) AS `periodo_gracia_k`
-  , CAST(NULL AS NUMERIC) AS `periodo_gracia_i`
+  , CASE WHEN payment_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_capital`
+  , CASE WHEN payment_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_interes`
+  , CAST(NULL AS INT64) AS `periodo_gracia_k`
+  , CAST(NULL AS INT64) AS `periodo_gracia_i`
   , CAST(NULL AS STRING) AS `garante`
   , CAST(NULL AS STRING) AS `emisión`
-  , CAST(NULL AS NUMERIC) AS `pais_destino_credito`
-  , CAST(NULL AS STRING) AS `destino`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_17_npb4_17_monedas")}
-	WHERE description = "Dólares"
-  ) AS `codigo_moneda`
-  , CAST(annual_rate AS NUMERIC) AS `tasa_interes`
-  , CAST(annual_rate AS NUMERIC) AS `tasa_contractual`
-  , CAST(NULL AS NUMERIC) AS `tasa_referencia`
-  , CAST(NULL AS NUMERIC) AS `tasa_efectiva`
-  , "F" AS `tipo_tasa_interes` -- "A" for adjustable, "F" for fixed
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_18_npb4_17_tipos_de_prestamos")}
-	WHERE description = "Crédito decreciente"
-  ) AS `tipo_prestamo`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_21_npb4_17_fuentes_de_recursos")}
-	WHERE description = "Recursos propios de la entidad"
-  ) AS `codigo_recurso`
+  , 9300 AS `pais_destino_credito`                        -- join to customer identities's country_of_residence_code?
+  , "010101" AS `destino`                                 -- join to customer identities's economic_activity_code or new loan_destination_economic_sector field? required!
+  , (SELECT code FROM ${ref("stg_dim_17_npb4_17_monedas")} WHERE description = "Dólares") AS `codigo_moneda`
+  , CAST(annual_rate AS NUMERIC) AS `tasa_interes`        -- Interest rate in effect for the reported month.
+  , CAST(annual_rate AS NUMERIC) AS `tasa_contractual`    -- Nominal interest rate agreed in the contract. Calculated in relation to the reference rate.
+  , CAST(annual_rate AS NUMERIC) AS `tasa_referencia`     -- Reference rate published in the month in which the loan is contracted.
+  , CAST(annual_rate AS NUMERIC) AS `tasa_efectiva`       -- Specifies the effective rate charged to the client. Monthly effective rate charged must be calculated in accordance with Annex 3 of (NBP4-16)
+  , "F" AS `tipo_tasa_interes`                            -- "A" for adjustable, "F" for fixed
+  , (SELECT code FROM ${ref("stg_dim_18_npb4_17_tipos_de_prestamos")} WHERE description = "Crédito decreciente") AS `tipo_prestamo`
+  , (SELECT code FROM ${ref("stg_dim_21_npb4_17_fuentes_de_recursos")} WHERE description = "Recursos propios de la entidad") AS `codigo_recurso`
   , CAST(NULL AS DATE) AS `ultima_fecha_venc`
   , CAST(NULL AS NUMERIC) AS `dias_prorroga`
   , CAST(NULL AS NUMERIC) AS `monto_desembolsado`
@@ -87,31 +53,27 @@ SELECT
   , DATE(most_recent_principal_payment_timestamp) AS `fecha_ultimo_pago_i`
   , CAST(NULL AS NUMERIC) AS `dia_pago_k`
   , CAST(NULL AS NUMERIC) AS `dia_pago_i`
-  , CAST(NULL AS NUMERIC) AS `cuota_mora_k`
-  , CAST(NULL AS NUMERIC) AS `cuota_mora_i`
+  , CAST(NULL AS INT64) AS `cuota_mora_k`
+  , CAST(NULL AS INT64) AS `cuota_mora_i`
   , CAST(NULL AS NUMERIC) AS `monto_cuota`
-  , CAST(NULL AS STRING) AS `cuenta_contable_k`
-  , CAST(NULL AS STRING) AS `cuenta_contable_i`
+  , "114" AS `cuenta_contable_k`                          -- For bank loans, field must be equal to <<114>>
+  , "114" AS `cuenta_contable_i`                          -- For bank loans, field must be equal to <<114>>
   , CAST(NULL AS DATE) AS `fecha_cancelacion`
   , CAST(NULL AS NUMERIC) AS `adelanto_capital`
-  , CAST(NULL AS NUMERIC) AS `riesgo_neto` -- Corresponde al saldo de la referencia (2.6. saldo_referencia) menos el valor proporcional de las garantías que cubren esa referencia (3.6. valor_garantia_proporcional).
+  , CAST(NULL AS NUMERIC) AS `riesgo_neto`                -- Corresponds to the reference balance[2.6] less the proportional value of the guarantees[3.6 / 2.59] (saldo_referencia - valor_garantia_proporcional)
   , CAST(NULL AS NUMERIC) AS `saldo_seguro`
   , CAST(NULL AS NUMERIC) AS `saldo_costas_procesales`
   , CAST(NULL AS STRING) AS `tipo_tarjeta_credito`
   , CAST(NULL AS STRING) AS `clase_tarjeta_credito`
   , CAST(NULL AS STRING) AS `producto_tarjeta_credito`
-  , CAST(NULL AS NUMERIC) AS `valor_garantia_cons`
+  , CAST(NULL AS NUMERIC) AS `valor_garantia_cons`        -- Sum of the proportional values ​​of each guarantee[3.6]
   , CAST(NULL AS STRING) AS `municipio_otorgamiento`
   , CAST(NULL AS NUMERIC) AS `reserva_referencia`
   , CAST(NULL AS STRING) AS `etapa_judicial`
   , CAST(NULL AS DATE) AS `fecha_demanda`
   , CAST(NULL AS NUMERIC) AS `plazo_credito`
-  , CAST(NULL AS STRING) AS `orden_descuento`
-  , (
-	SELECT code
-	FROM ${ref("stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo")}
-	WHERE description = "Deudores normales"
-  ) AS `categoria_riesgo_ref`
+  , "SO" AS `orden_descuento`
+  , (SELECT code FROM ${ref("stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo")} WHERE description = "Deudores normales" ) AS `categoria_riesgo_ref`
   , CAST(NULL AS NUMERIC) AS `reserva_constituir`
   , CAST(NULL AS NUMERIC) AS `porcentaje_reserva`
   , CAST(NULL AS NUMERIC) AS `pago_cuota`

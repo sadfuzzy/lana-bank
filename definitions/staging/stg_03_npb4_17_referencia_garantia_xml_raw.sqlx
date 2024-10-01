@@ -8,30 +8,18 @@ config {
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 	SELECT
-		loan_id AS num_referencia,
-		(
-			SELECT code
-			FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-			WHERE description = "Cartera propia Ley Acceso al Crédito (19)"
-		) cod_cartera,
-		(
-			SELECT code
-			FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")}
-			WHERE description = "Préstamos"
-		) AS cod_activo,
-		"1" AS identificacion_garantia,
-		(
-			SELECT code
-			FROM ${ref("stg_dim_09_npb4_17_tipos_de_garantias")}
-			WHERE description = "Pignorada - Depósito de dinero"
-		) AS tipo_garantia,
-		COALESCE(SAFE_DIVIDE(total_collateral * (
+		LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  			-- uses the 20 leftmost no-hyphen characters from backend loan_id
+		, (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)") AS `cod_cartera`
+		, (SELECT code FROM ${ref("stg_dim_02_npb4_17_tipos_de_activos_de_riesgo")} WHERE description = "Préstamos") AS `cod_activo`
+		, LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `identificacion_garantia`	-- uses the 20 leftmost no-hyphen characters from backend loan_id - ref-to-garanty is 1-to-1
+		, (SELECT code FROM ${ref("stg_dim_09_npb4_17_tipos_de_garantias")} WHERE description = "Pignorada - Depósito de dinero") AS `tipo_garantia`
+		, COALESCE(SAFE_DIVIDE(total_collateral * (
 			SELECT ANY_VALUE(usd_cents_per_btc HAVING MAX uploaded_at)
 			FROM ${ref({
 				name: "price_cents_btc",
 				schema: envs.currentImportSchema
 			})}
-		), principal*100), 1) AS valor_garantia_proporcional,
+		), principal*100), 1) AS `valor_garantia_proporcional`,
 
 	FROM ${ref("stg_approved_loans")}(asof)
 
