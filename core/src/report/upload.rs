@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-use super::{
-    cloud_storage::upload_xml_file, config::ReportConfig, ReportError, ReportLocationInCloud,
-};
+use crate::storage::Storage;
+
+use super::{config::ReportConfig, ReportError};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -23,15 +23,14 @@ pub enum ReportFileUpload {
 #[derive(Debug, Default)]
 pub struct QueryRow(HashMap<String, serde_json::Value>);
 
-pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, ReportError> {
+pub async fn execute(
+    config: &ReportConfig,
+    storage: &Storage,
+) -> Result<Vec<ReportFileUpload>, ReportError> {
     let mut res = Vec::new();
     for report_name in bq::find_report_outputs(config).await? {
         let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
-        let location = ReportLocationInCloud {
-            report_name: report_name.clone(),
-            bucket: config.bucket_name.clone(),
-            path_in_bucket: path_to_report(&config.reports_root_folder, &report_name, &day),
-        };
+
         let rows = match bq::query_report(config, &report_name, &day).await {
             Ok(rows) => rows,
             Err(e) => {
@@ -43,12 +42,18 @@ pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, Rep
             }
         };
         let xml_bytes = convert_to_xml_data(rows);
-        match upload_xml_file(&location, xml_bytes.to_vec()).await {
+
+        let path_in_bucket = path_to_report(&report_name, &day);
+
+        match storage
+            .upload(xml_bytes.to_vec(), &path_in_bucket, "application/xml")
+            .await
+        {
             Ok(_) => {
                 res.push(ReportFileUpload::Success {
-                    path_in_bucket: path_to_report(&config.reports_root_folder, &report_name, &day),
+                    path_in_bucket,
                     report_name,
-                    bucket: config.bucket_name.clone(),
+                    bucket: storage.bucket_name(),
                 });
             }
             Err(e) => res.push(ReportFileUpload::Failure {
@@ -61,8 +66,8 @@ pub async fn execute(config: &ReportConfig) -> Result<Vec<ReportFileUpload>, Rep
     Ok(res)
 }
 
-fn path_to_report(reports_root_folder: &str, report: &str, day: &str) -> String {
-    format!("{}/reports/{}/{}.xml", reports_root_folder, day, report)
+fn path_to_report(report: &str, day: &str) -> String {
+    format!("reports/{}/{}.xml", day, report)
 }
 
 pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
@@ -95,11 +100,13 @@ pub(super) mod bq {
     pub(super) async fn find_report_outputs(
         config: &ReportConfig,
     ) -> Result<Vec<String>, ReportError> {
-        let client = Client::from_service_account_key(config.service_account_key(), false).await?;
+        let client =
+            Client::from_service_account_key(config.service_account().service_account_key(), false)
+                .await?;
         let tables = client
             .table()
             .list(
-                &config.gcp_project,
+                &config.service_account().gcp_project,
                 &config.dataform_output_dataset,
                 ListOptions::default(),
             )
@@ -123,8 +130,10 @@ pub(super) mod bq {
         report: &str,
         day: &str,
     ) -> Result<Vec<QueryRow>, ReportError> {
-        let client = Client::from_service_account_key(config.service_account_key(), false).await?;
-        let gcp_project = &config.gcp_project;
+        let client =
+            Client::from_service_account_key(config.service_account().service_account_key(), false)
+                .await?;
+        let gcp_project = &config.service_account().gcp_project;
         let query = format!(
             "SELECT * FROM `{}.{}.{}`('{}')",
             gcp_project, config.dataform_output_dataset, report, day

@@ -1,4 +1,3 @@
-mod cloud_storage;
 mod config;
 pub mod dataform_client;
 mod entity;
@@ -14,9 +13,9 @@ use crate::{
     entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
+    storage::Storage,
 };
 
-use cloud_storage::generate_download_link;
 pub use config::*;
 pub use entity::*;
 use error::*;
@@ -29,6 +28,7 @@ pub struct Reports {
     authz: Authorization,
     repo: ReportRepo,
     jobs: Jobs,
+    storage: Storage,
 }
 
 impl Reports {
@@ -38,10 +38,11 @@ impl Reports {
         authz: &Authorization,
         audit: &Audit,
         jobs: &Jobs,
+        storage: &Storage,
     ) -> Self {
         let repo = ReportRepo::new(pool);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
-            &repo, config, audit,
+            &repo, config, audit, storage,
         ));
         jobs.add_initializer(report_jobs::create::CreateReportInitializer::new(
             &repo, jobs, audit,
@@ -52,6 +53,7 @@ impl Reports {
             pool: pool.clone(),
             authz: authz.clone(),
             jobs: jobs.clone(),
+            storage: storage.clone(),
         }
     }
 
@@ -144,7 +146,7 @@ impl Reports {
 
         let mut download_links = vec![];
         for location in report.download_links() {
-            let url = generate_download_link(&location).await?;
+            let url = self.storage.generate_download_link(&location).await?;
 
             download_links.push(ReportDownloadLink {
                 report_name: location.report_name.clone(),

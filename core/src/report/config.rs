@@ -1,78 +1,36 @@
-use gcp_bigquery_client::yup_oauth2::ServiceAccountKey;
 use serde::{Deserialize, Serialize};
 
-use super::ReportError;
+use crate::service_account::ServiceAccountConfig;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct ReportConfig {
-    #[serde(skip)]
-    pub gcp_project: String,
-    #[serde(skip)]
-    pub sa_creds_base64: String,
-    #[serde(skip)]
-    service_account_key: Option<ServiceAccountKey>,
-
-    pub gcp_location: String,
-
     #[serde(default)]
     pub dataform_repo: String,
     #[serde(default)]
     pub dataform_output_dataset: String,
     #[serde(default)]
     pub dataform_release_config: String,
-    #[serde(default)]
-    pub bucket_name: String,
-    #[serde(default)]
-    pub reports_root_folder: String,
+
+    #[serde(skip)]
+    pub service_account: Option<ServiceAccountConfig>,
 }
 
 impl ReportConfig {
-    pub fn init(
-        sa_creds_base64: String,
+    pub fn new_dev_mode(
         name_prefix: String,
-        gcp_location: String,
-    ) -> Result<Self, ReportError> {
-        let mut cfg = Self {
+        service_account: ServiceAccountConfig,
+    ) -> ReportConfig {
+        Self {
             dataform_repo: format!("{}-repo", name_prefix),
             dataform_output_dataset: format!("dataform_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
-            bucket_name: format!("{}-volcano-documents", name_prefix),
-            gcp_location,
-            reports_root_folder: name_prefix,
-            ..Default::default()
-        };
-        cfg.set_sa_creds_base64(sa_creds_base64)?;
-        Ok(cfg)
+            service_account: Some(service_account),
+        }
     }
 
-    pub fn set_sa_creds_base64(&mut self, sa_creds_base64: String) -> Result<String, ReportError> {
-        self.sa_creds_base64 = sa_creds_base64;
-
-        let creds = self.get_json_creds()?;
-
-        let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
-
-        self.gcp_project = service_account_key
-            .project_id
-            .clone()
-            .ok_or(ReportError::ProjectIdMissing)?;
-        self.service_account_key = Some(service_account_key);
-
-        Ok(creds)
-    }
-
-    pub fn service_account_key(&self) -> ServiceAccountKey {
-        self.service_account_key
-            .clone()
+    pub(super) fn service_account(&self) -> &ServiceAccountConfig {
+        self.service_account
+            .as_ref()
             .expect("Service Account not set")
-    }
-
-    pub fn get_json_creds(&self) -> Result<String, ReportError> {
-        use base64::{engine::general_purpose, Engine as _};
-
-        Ok(std::str::from_utf8(
-            &general_purpose::STANDARD.decode(self.sa_creds_base64.as_bytes())?,
-        )?
-        .to_string())
     }
 }

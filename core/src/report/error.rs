@@ -16,8 +16,6 @@ pub enum ReportError {
     Reqwest(#[from] reqwest::Error),
     #[error("ReportError - GCPAuth: {0}")]
     GCPAuth(#[from] gcp_auth::Error),
-    #[error("ReportError - CloudStorage: {0}")]
-    CloudStorage(#[from] cloud_storage::Error),
     #[error("ReportError - BigQuery: {0}")]
     BigQuery(#[from] gcp_bigquery_client::error::BQError),
     #[error("ReportError - Base64Decode: {0}")]
@@ -32,8 +30,6 @@ pub enum ReportError {
     JobError(#[from] crate::job::error::JobError),
     #[error("ReportError - CouldNotFindById: {0}")]
     CouldNotFindById(ReportId),
-    #[error("ReportError - Utf8Error: {0}")]
-    Utf8Error(#[from] std::str::Utf8Error),
-    #[error("ReportError - ProjectIdMissing")]
-    ProjectIdMissing,
+    #[error("ReportError - StorageError: {0}")]
+    StorageError(#[from] crate::storage::StorageError),
 }
