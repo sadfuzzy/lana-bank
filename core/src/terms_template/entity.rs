@@ -1,15 +1,13 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*};
-
-use super::value::*;
+use crate::{entity::*, primitives::*, terms::TermValues};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum TermsTemplateEvent {
     Initialized {
-        id: LoanTermsId,
+        id: TermsTemplateId,
         name: String,
         values: TermValues,
         audit_info: AuditInfo,
@@ -17,7 +15,7 @@ pub enum TermsTemplateEvent {
 }
 
 impl EntityEvent for TermsTemplateEvent {
-    type EntityId = LoanTermsId;
+    type EntityId = TermsTemplateId;
     fn event_table_name() -> &'static str {
         "terms_template_events"
     }
@@ -26,7 +24,7 @@ impl EntityEvent for TermsTemplateEvent {
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct TermsTemplate {
-    pub id: LoanTermsId,
+    pub id: TermsTemplateId,
     pub name: String,
     pub values: TermValues,
     pub(super) events: EntityEvents<TermsTemplateEvent>,
@@ -66,7 +64,7 @@ impl TryFrom<EntityEvents<TermsTemplateEvent>> for TermsTemplate {
 #[derive(Builder)]
 pub struct NewTermsTemplate {
     #[builder(setter(into))]
-    pub id: LoanTermsId,
+    pub id: TermsTemplateId,
     #[builder(setter(into))]
     pub name: String,
     #[builder(setter(into))]

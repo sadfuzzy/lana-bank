@@ -9,6 +9,12 @@ use crate::{
     terms::{AnnualRatePct, CVLPct},
 };
 
+impl ToGlobalId for crate::primitives::TermsTemplateId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("loan_terms:{}", self))
+    }
+}
+
 #[derive(InputObject)]
 pub(super) struct TermsTemplateCreateInput {
     pub name: String,
@@ -25,8 +31,8 @@ pub struct TermsTemplateCreatePayload {
     pub terms_template: TermsTemplate,
 }
 
-impl From<crate::terms::TermsTemplate> for TermsTemplateCreatePayload {
-    fn from(terms_template: crate::terms::TermsTemplate) -> Self {
+impl From<crate::terms_template::TermsTemplate> for TermsTemplateCreatePayload {
+    fn from(terms_template: crate::terms_template::TermsTemplate) -> Self {
         Self {
             terms_template: terms_template.into(),
         }
@@ -41,8 +47,8 @@ pub struct TermsTemplate {
     values: TermValues,
 }
 
-impl From<crate::terms::TermsTemplate> for TermsTemplate {
-    fn from(terms: crate::terms::TermsTemplate) -> Self {
+impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
+    fn from(terms: crate::terms_template::TermsTemplate) -> Self {
         Self {
             id: terms.id.to_global_id(),
             name: terms.name,

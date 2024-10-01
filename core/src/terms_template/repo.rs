@@ -1,10 +1,10 @@
 use sqlx::{PgPool, Postgres, Transaction};
 
-use crate::{data_export::Export, entity::*, primitives::LoanTermsId};
+use crate::{data_export::Export, entity::*, primitives::TermsTemplateId};
 
 use super::{
+    entity::{NewTermsTemplate, TermsTemplate},
     error::TermsTemplateError,
-    template::{NewTermsTemplate, TermsTemplate},
 };
 
 const BQ_TABLE_NAME: &str = "terms_template_events";
@@ -32,7 +32,7 @@ impl TermsTemplateRepo {
             r#"INSERT INTO terms_templates (id, name)
             VALUES ($1, $2)
             "#,
-            new_template.id as LoanTermsId,
+            new_template.id as TermsTemplateId,
             new_template.name,
         )
         .execute(&mut **db)
@@ -45,7 +45,10 @@ impl TermsTemplateRepo {
         Ok(TermsTemplate::try_from(events)?)
     }
 
-    pub async fn find_by_id(&self, id: LoanTermsId) -> Result<TermsTemplate, TermsTemplateError> {
+    pub async fn find_by_id(
+        &self,
+        id: TermsTemplateId,
+    ) -> Result<TermsTemplate, TermsTemplateError> {
         let rows = sqlx::query_as!(
             GenericEvent,
             r#"SELECT a.id, e.sequence, e.event,
@@ -54,7 +57,7 @@ impl TermsTemplateRepo {
             JOIN terms_template_events e
             ON a.id = e.id
             WHERE a.id = $1"#,
-            id as LoanTermsId
+            id as TermsTemplateId
         )
         .fetch_all(&self.pool)
         .await?;

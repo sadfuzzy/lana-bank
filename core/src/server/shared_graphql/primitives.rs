@@ -89,7 +89,7 @@ impl From<UUID> for CreditFacilityId {
         Self::from(uuid.0)
     }
 }
-impl From<UUID> for LoanTermsId {
+impl From<UUID> for TermsTemplateId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)
     }

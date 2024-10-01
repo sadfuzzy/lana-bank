@@ -22,6 +22,7 @@ pub mod server;
 pub mod service_account;
 pub mod storage;
 pub mod terms;
+pub mod terms_template;
 pub mod user;
 pub mod withdraw;
 

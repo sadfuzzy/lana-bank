@@ -10,7 +10,7 @@ use super::{
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, LoanTermsId, ReportId, UserId},
+    primitives::{CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
     server::{
         admin::{
             graphql::terms_template::{TermsTemplateCreateInput, TermsTemplateCreatePayload},
@@ -452,7 +452,7 @@ impl Query {
         let AdminAuthContext { sub } = ctx.data()?;
         let terms_template = app
             .terms_templates()
-            .find_by_id(sub, LoanTermsId::from(id))
+            .find_by_id(sub, TermsTemplateId::from(id))
             .await?;
         Ok(terms_template.map(TermsTemplate::from))
     }

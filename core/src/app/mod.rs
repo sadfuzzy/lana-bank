@@ -19,7 +19,7 @@ use crate::{
     primitives::Subject,
     report::Reports,
     storage::Storage,
-    terms::TermsTemplates,
+    terms_template::TermsTemplates,
     user::Users,
     withdraw::Withdraws,
 };

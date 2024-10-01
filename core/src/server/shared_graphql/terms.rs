@@ -1,7 +1,5 @@
 use async_graphql::*;
 
-use crate::server::shared_graphql::convert::*;
-
 pub use crate::terms::{AnnualRatePct, CVLPct, InterestInterval};
 
 scalar!(AnnualRatePct);
@@ -32,12 +30,6 @@ pub enum Period {
 pub struct DurationInput {
     pub period: Period,
     pub units: u32,
-}
-
-impl ToGlobalId for crate::primitives::LoanTermsId {
-    fn to_global_id(&self) -> async_graphql::types::ID {
-        async_graphql::types::ID::from(format!("loan_terms:{}", self))
-    }
 }
 
 impl From<crate::terms::TermValues> for TermValues {
