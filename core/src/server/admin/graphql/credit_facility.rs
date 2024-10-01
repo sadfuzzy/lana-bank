@@ -77,7 +77,7 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
     fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
         Self {
             id: disbursement.id.to_global_id(),
-            index: disbursement.idx.into(),
+            index: disbursement.idx,
         }
     }
 }
