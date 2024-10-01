@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  DisbursementIdx: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -228,6 +229,32 @@ export type CreditFacilityCreateInput = {
 export type CreditFacilityCreatePayload = {
   __typename?: 'CreditFacilityCreatePayload';
   creditFacility: CreditFacility;
+};
+
+export type CreditFacilityDisbursement = {
+  __typename?: 'CreditFacilityDisbursement';
+  id: Scalars['ID']['output'];
+  index: Scalars['DisbursementIdx']['output'];
+};
+
+export type CreditFacilityDisbursementApproveInput = {
+  creditFacilityId: Scalars['UUID']['input'];
+  disbursementIdx: Scalars['DisbursementIdx']['input'];
+};
+
+export type CreditFacilityDisbursementApprovePayload = {
+  __typename?: 'CreditFacilityDisbursementApprovePayload';
+  disbursement: CreditFacilityDisbursement;
+};
+
+export type CreditFacilityDisbursementInitiateInput = {
+  amount: Scalars['UsdCents']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityDisbursementInitiatePayload = {
+  __typename?: 'CreditFacilityDisbursementInitiatePayload';
+  disbursement: CreditFacilityDisbursement;
 };
 
 export type Customer = {
@@ -539,6 +566,8 @@ export type Mutation = {
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
+  creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
+  creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   defaultTermsUpdate: DefaultTermsUpdatePayload;
@@ -576,6 +605,16 @@ export type MutationCreditFacilityApproveArgs = {
 
 export type MutationCreditFacilityCreateArgs = {
   input: CreditFacilityCreateInput;
+};
+
+
+export type MutationCreditFacilityDisbursementApproveArgs = {
+  input: CreditFacilityDisbursementApproveInput;
+};
+
+
+export type MutationCreditFacilityDisbursementInitiateArgs = {
+  input: CreditFacilityDisbursementInitiateInput;
 };
 
 

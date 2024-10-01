@@ -5,6 +5,10 @@ use crate::{
     server::shared_graphql::{convert::ToGlobalId, primitives::UUID},
 };
 
+pub use crate::primitives::DisbursementIdx;
+
+scalar!(DisbursementIdx);
+
 #[derive(InputObject)]
 pub struct CreditFacilityCreateInput {
     pub customer_id: UUID,
@@ -59,6 +63,64 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCreatePayloa
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
         Self {
             credit_facility: CreditFacility::from(credit_facility),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursement {
+    id: ID,
+    index: DisbursementIdx,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            id: disbursement.id.to_global_id(),
+            index: disbursement.idx.into(),
+        }
+    }
+}
+
+impl ToGlobalId for crate::primitives::DisbursementId {
+    fn to_global_id(&self) -> async_graphql::types::ID {
+        async_graphql::types::ID::from(format!("disbursement:{}", self))
+    }
+}
+#[derive(InputObject)]
+pub struct CreditFacilityDisbursementInitiateInput {
+    pub credit_facility_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursementInitiatePayload {
+    disbursement: CreditFacilityDisbursement,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementInitiatePayload {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            disbursement: CreditFacilityDisbursement::from(disbursement),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityDisbursementApproveInput {
+    pub credit_facility_id: UUID,
+    pub disbursement_idx: DisbursementIdx,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityDisbursementApprovePayload {
+    disbursement: CreditFacilityDisbursement,
+}
+
+impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementApprovePayload {
+    fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        Self {
+            disbursement: CreditFacilityDisbursement::from(disbursement),
         }
     }
 }
