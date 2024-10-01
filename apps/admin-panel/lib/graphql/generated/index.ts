@@ -317,20 +317,6 @@ export type CustomerUpdatePayload = {
   customer: Customer;
 };
 
-export type DefaultTermsUpdateInput = {
-  annualRate: Scalars['AnnualRatePct']['input'];
-  duration: DurationInput;
-  initialCvl: Scalars['CVLPct']['input'];
-  interval: InterestInterval;
-  liquidationCvl: Scalars['CVLPct']['input'];
-  marginCallCvl: Scalars['CVLPct']['input'];
-};
-
-export type DefaultTermsUpdatePayload = {
-  __typename?: 'DefaultTermsUpdatePayload';
-  terms: Terms;
-};
-
 export type Deposit = {
   __typename?: 'Deposit';
   amount: Scalars['UsdCents']['output'];
@@ -570,7 +556,6 @@ export type Mutation = {
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
   customerCreate: CustomerCreatePayload;
   customerUpdate: CustomerUpdatePayload;
-  defaultTermsUpdate: DefaultTermsUpdatePayload;
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
   loanCreate: LoanCreatePayload;
@@ -579,6 +564,7 @@ export type Mutation = {
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  termsTemplateCreate: TermsTemplateCreatePayload;
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
@@ -628,11 +614,6 @@ export type MutationCustomerUpdateArgs = {
 };
 
 
-export type MutationDefaultTermsUpdateArgs = {
-  input: DefaultTermsUpdateInput;
-};
-
-
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
 };
@@ -665,6 +646,11 @@ export type MutationShareholderEquityAddArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationTermsTemplateCreateArgs = {
+  input: TermsTemplateCreateInput;
 };
 
 
@@ -731,7 +717,6 @@ export type Query = {
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
-  defaultTerms?: Maybe<Terms>;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   loan?: Maybe<Loan>;
@@ -743,6 +728,8 @@ export type Query = {
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
+  termsTemplate?: Maybe<TermsTemplate>;
+  termsTemplates: Array<TermsTemplate>;
   trialBalance?: Maybe<TrialBalance>;
   user?: Maybe<User>;
   users: Array<User>;
@@ -827,6 +814,11 @@ export type QueryProfitAndLossStatementArgs = {
 
 
 export type QueryReportArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryTermsTemplateArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -940,13 +932,6 @@ export type TermValues = {
   marginCallCvl: Scalars['CVLPct']['output'];
 };
 
-export type Terms = {
-  __typename?: 'Terms';
-  id: Scalars['ID']['output'];
-  termsId: Scalars['UUID']['output'];
-  values: TermValues;
-};
-
 export type TermsInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
@@ -954,6 +939,29 @@ export type TermsInput = {
   interval: InterestInterval;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+};
+
+export type TermsTemplate = {
+  __typename?: 'TermsTemplate';
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  termsId: Scalars['UUID']['output'];
+  values: TermValues;
+};
+
+export type TermsTemplateCreateInput = {
+  annualRate: Scalars['AnnualRatePct']['input'];
+  duration: DurationInput;
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+  name: Scalars['String']['input'];
+};
+
+export type TermsTemplateCreatePayload = {
+  __typename?: 'TermsTemplateCreatePayload';
+  termsTemplate: TermsTemplate;
 };
 
 export type Transaction = Deposit | Withdrawal;
@@ -1288,17 +1296,24 @@ export type ReportDownloadLinksMutationVariables = Exact<{
 
 export type ReportDownloadLinksMutation = { __typename?: 'Mutation', reportDownloadLinksGenerate: { __typename?: 'ReportDownloadLinksGeneratePayload', reportId: string, links: Array<{ __typename?: 'ReportDownloadLink', reportName: string, url: string }> } };
 
-export type DefaultTermsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type DefaultTermsQuery = { __typename?: 'Query', defaultTerms?: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
-
-export type DefaultTermsUpdateMutationVariables = Exact<{
-  input: DefaultTermsUpdateInput;
+export type TermsTemplateQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
 }>;
 
 
-export type DefaultTermsUpdateMutation = { __typename?: 'Mutation', defaultTermsUpdate: { __typename?: 'DefaultTermsUpdatePayload', terms: { __typename?: 'Terms', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, values: { __typename?: 'TermValues', interval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
+
+export type CreateTermsTemplateMutationVariables = Exact<{
+  input: TermsTemplateCreateInput;
+}>;
+
+
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+
+export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
 
 export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -2979,56 +2994,58 @@ export function useReportDownloadLinksMutation(baseOptions?: Apollo.MutationHook
 export type ReportDownloadLinksMutationHookResult = ReturnType<typeof useReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationResult = Apollo.MutationResult<ReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
-export const DefaultTermsDocument = gql`
-    query defaultTerms {
-  defaultTerms {
+export const TermsTemplateDocument = gql`
+    query TermsTemplate($id: UUID!) {
+  termsTemplate(id: $id) {
     id
+    name
     termsId
     values {
-      annualRate
-      interval
-      liquidationCvl
-      marginCallCvl
-      initialCvl
       duration {
-        period
         units
+        period
       }
+      interval
+      annualRate
+      initialCvl
+      marginCallCvl
+      liquidationCvl
     }
   }
 }
     `;
 
 /**
- * __useDefaultTermsQuery__
+ * __useTermsTemplateQuery__
  *
- * To run a query within a React component, call `useDefaultTermsQuery` and pass it any options that fit your needs.
- * When your component renders, `useDefaultTermsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useTermsTemplateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTermsTemplateQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useDefaultTermsQuery({
+ * const { data, loading, error } = useTermsTemplateQuery({
  *   variables: {
+ *      id: // value for 'id'
  *   },
  * });
  */
-export function useDefaultTermsQuery(baseOptions?: Apollo.QueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
+export function useTermsTemplateQuery(baseOptions: Apollo.QueryHookOptions<TermsTemplateQuery, TermsTemplateQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
+        return Apollo.useQuery<TermsTemplateQuery, TermsTemplateQueryVariables>(TermsTemplateDocument, options);
       }
-export function useDefaultTermsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DefaultTermsQuery, DefaultTermsQueryVariables>) {
+export function useTermsTemplateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TermsTemplateQuery, TermsTemplateQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<DefaultTermsQuery, DefaultTermsQueryVariables>(DefaultTermsDocument, options);
+          return Apollo.useLazyQuery<TermsTemplateQuery, TermsTemplateQueryVariables>(TermsTemplateDocument, options);
         }
-export type DefaultTermsQueryHookResult = ReturnType<typeof useDefaultTermsQuery>;
-export type DefaultTermsLazyQueryHookResult = ReturnType<typeof useDefaultTermsLazyQuery>;
-export type DefaultTermsQueryResult = Apollo.QueryResult<DefaultTermsQuery, DefaultTermsQueryVariables>;
-export const DefaultTermsUpdateDocument = gql`
-    mutation DefaultTermsUpdate($input: DefaultTermsUpdateInput!) {
-  defaultTermsUpdate(input: $input) {
-    terms {
+export type TermsTemplateQueryHookResult = ReturnType<typeof useTermsTemplateQuery>;
+export type TermsTemplateLazyQueryHookResult = ReturnType<typeof useTermsTemplateLazyQuery>;
+export type TermsTemplateQueryResult = Apollo.QueryResult<TermsTemplateQuery, TermsTemplateQueryVariables>;
+export const CreateTermsTemplateDocument = gql`
+    mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
+  termsTemplateCreate(input: $input) {
+    termsTemplate {
       id
       termsId
       values {
@@ -3046,32 +3063,79 @@ export const DefaultTermsUpdateDocument = gql`
   }
 }
     `;
-export type DefaultTermsUpdateMutationFn = Apollo.MutationFunction<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
+export type CreateTermsTemplateMutationFn = Apollo.MutationFunction<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>;
 
 /**
- * __useDefaultTermsUpdateMutation__
+ * __useCreateTermsTemplateMutation__
  *
- * To run a mutation, you first call `useDefaultTermsUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDefaultTermsUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTermsTemplateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [defaultTermsUpdateMutation, { data, loading, error }] = useDefaultTermsUpdateMutation({
+ * const [createTermsTemplateMutation, { data, loading, error }] = useCreateTermsTemplateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDefaultTermsUpdateMutation(baseOptions?: Apollo.MutationHookOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>) {
+export function useCreateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>(DefaultTermsUpdateDocument, options);
+        return Apollo.useMutation<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>(CreateTermsTemplateDocument, options);
       }
-export type DefaultTermsUpdateMutationHookResult = ReturnType<typeof useDefaultTermsUpdateMutation>;
-export type DefaultTermsUpdateMutationResult = Apollo.MutationResult<DefaultTermsUpdateMutation>;
-export type DefaultTermsUpdateMutationOptions = Apollo.BaseMutationOptions<DefaultTermsUpdateMutation, DefaultTermsUpdateMutationVariables>;
+export type CreateTermsTemplateMutationHookResult = ReturnType<typeof useCreateTermsTemplateMutation>;
+export type CreateTermsTemplateMutationResult = Apollo.MutationResult<CreateTermsTemplateMutation>;
+export type CreateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>;
+export const TermsTemplatesDocument = gql`
+    query TermsTemplates {
+  termsTemplates {
+    id
+    name
+    termsId
+    values {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useTermsTemplatesQuery__
+ *
+ * To run a query within a React component, call `useTermsTemplatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useTermsTemplatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useTermsTemplatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useTermsTemplatesQuery(baseOptions?: Apollo.QueryHookOptions<TermsTemplatesQuery, TermsTemplatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<TermsTemplatesQuery, TermsTemplatesQueryVariables>(TermsTemplatesDocument, options);
+      }
+export function useTermsTemplatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<TermsTemplatesQuery, TermsTemplatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<TermsTemplatesQuery, TermsTemplatesQueryVariables>(TermsTemplatesDocument, options);
+        }
+export type TermsTemplatesQueryHookResult = ReturnType<typeof useTermsTemplatesQuery>;
+export type TermsTemplatesLazyQueryHookResult = ReturnType<typeof useTermsTemplatesLazyQuery>;
+export type TermsTemplatesQueryResult = Apollo.QueryResult<TermsTemplatesQuery, TermsTemplatesQueryVariables>;
 export const GetOnBalanceSheetTrialBalanceDocument = gql`
     query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
   trialBalance(from: $from, until: $until) {

@@ -289,19 +289,6 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
-input DefaultTermsUpdateInput {
-	annualRate: AnnualRatePct!
-	interval: InterestInterval!
-	liquidationCvl: CVLPct!
-	duration: DurationInput!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
-}
-
-type DefaultTermsUpdatePayload {
-	terms: Terms!
-}
-
 type Deposit {
 	customerId: UUID!
 	depositId: UUID!
@@ -540,7 +527,6 @@ enum LoanStatus {
 type Mutation {
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	defaultTermsUpdate(input: DefaultTermsUpdateInput!): DefaultTermsUpdatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
 	loanApprove(input: LoanApproveInput!): LoanApprovePayload!
 	loanPartialPayment(input: LoanPartialPaymentInput!): LoanPartialPaymentPayload!
@@ -561,6 +547,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 }
 
 """
@@ -602,10 +589,10 @@ type Query {
 	customerByEmail(email: String!): Customer
 	me: User!
 	users: [User!]!
+	termsTemplates: [TermsTemplate!]!
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
 	loans(first: Int!, after: String): LoanConnection!
-	defaultTerms: Terms
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	chartOfAccounts: ChartOfAccounts
@@ -621,6 +608,7 @@ type Query {
 	realtimePrice: RealtimePrice!
 	reports: [Report!]!
 	report(id: UUID!): Report
+	termsTemplate(id: UUID!): TermsTemplate
 }
 
 type RealtimePrice {
@@ -708,12 +696,6 @@ type TermValues {
 	initialCvl: CVLPct!
 }
 
-type Terms {
-	id: ID!
-	termsId: UUID!
-	values: TermValues!
-}
-
 input TermsInput {
 	annualRate: AnnualRatePct!
 	interval: InterestInterval!
@@ -721,6 +703,27 @@ input TermsInput {
 	duration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
+}
+
+type TermsTemplate {
+	id: ID!
+	termsId: UUID!
+	name: String!
+	values: TermValues!
+}
+
+input TermsTemplateCreateInput {
+	name: String!
+	annualRate: AnnualRatePct!
+	interval: InterestInterval!
+	duration: DurationInput!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplateCreatePayload {
+	termsTemplate: TermsTemplate!
 }
 
 scalar Timestamp

@@ -3,15 +3,19 @@ use uuid::Uuid;
 
 use super::{
     account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
-    price::*, report::*, shareholder_equity::*, terms::*, user::*, withdraw::*,
+    price::*, report::*, shareholder_equity::*, terms_template::TermsTemplate, user::*,
+    withdraw::*,
 };
 
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, ReportId, UserId},
+    primitives::{CustomerId, LoanId, LoanTermsId, ReportId, UserId},
     server::{
-        admin::AdminAuthContext,
+        admin::{
+            graphql::terms_template::{TermsTemplateCreateInput, TermsTemplateCreatePayload},
+            AdminAuthContext,
+        },
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
@@ -19,7 +23,6 @@ use crate::{
             objects::SuccessPayload,
             primitives::{Timestamp, UUID},
             sumsub::SumsubPermalinkCreatePayload,
-            terms::Terms,
             withdraw::Withdrawal,
         },
     },
@@ -107,6 +110,19 @@ impl Query {
         Ok(users.into_iter().map(User::from).collect())
     }
 
+    async fn terms_templates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<TermsTemplate>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let terms_templates = app.terms_templates().list_terms_templates(sub).await?;
+        Ok(terms_templates
+            .into_iter()
+            .map(TermsTemplate::from)
+            .collect())
+    }
+
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
@@ -188,14 +204,6 @@ impl Query {
             },
         )
         .await
-    }
-
-    async fn default_terms(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Terms>> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-
-        let terms = app.loans().find_default_terms(sub).await?;
-        Ok(terms.map(Terms::from))
     }
 
     async fn trial_balance(
@@ -434,6 +442,20 @@ impl Query {
         let report = app.reports().find_by_id(sub, ReportId::from(id)).await?;
         Ok(report.map(Report::from))
     }
+
+    async fn terms_template(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<TermsTemplate>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let terms_template = app
+            .terms_templates()
+            .find_by_id(sub, LoanTermsId::from(id))
+            .await?;
+        Ok(terms_template.map(TermsTemplate::from))
+    }
 }
 
 pub struct Mutation;
@@ -469,26 +491,6 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url })
     }
 
-    async fn default_terms_update(
-        &self,
-        ctx: &Context<'_>,
-        input: DefaultTermsUpdateInput,
-    ) -> async_graphql::Result<DefaultTermsUpdatePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let AdminAuthContext { sub } = ctx.data()?;
-
-        let term_values = crate::loan::TermValues::builder()
-            .annual_rate(input.annual_rate)
-            .interval(input.interval)
-            .duration(input.duration)
-            .liquidation_cvl(input.liquidation_cvl)
-            .margin_call_cvl(input.margin_call_cvl)
-            .initial_cvl(input.initial_cvl)
-            .build()?;
-        let terms = app.loans().update_default_terms(sub, term_values).await?;
-        Ok(DefaultTermsUpdatePayload::from(terms))
-    }
-
     async fn loan_create(
         &self,
         ctx: &Context<'_>,
@@ -502,7 +504,7 @@ impl Mutation {
             desired_principal,
             loan_terms,
         } = input;
-        let term_values = crate::loan::TermValues::builder()
+        let term_values = crate::terms::TermValues::builder()
             .annual_rate(loan_terms.annual_rate)
             .interval(loan_terms.interval)
             .duration(loan_terms.duration)
@@ -794,5 +796,28 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn terms_template_create(
+        &self,
+        ctx: &Context<'_>,
+        input: TermsTemplateCreateInput,
+    ) -> async_graphql::Result<TermsTemplateCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let term_values = crate::terms::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .interval(input.interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+
+        let terms_template = app
+            .terms_templates()
+            .create_terms_template(sub, input.name, term_values)
+            .await?;
+        Ok(TermsTemplateCreatePayload::from(terms_template))
     }
 }

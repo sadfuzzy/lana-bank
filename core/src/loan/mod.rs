@@ -6,16 +6,13 @@ mod history;
 mod jobs;
 mod repayment_plan;
 mod repo;
-mod terms;
 
 use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
     audit::Audit,
-    authorization::{
-        Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object, TermAction,
-    },
+    authorization::{Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object},
     constants::CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
@@ -24,6 +21,7 @@ use crate::{
     ledger::{loan::*, Ledger},
     price::Price,
     primitives::*,
+    terms::*,
     user::*,
 };
 
@@ -35,12 +33,10 @@ pub use history::*;
 use jobs::*;
 pub use repayment_plan::*;
 use repo::*;
-pub use terms::*;
 
 #[derive(Clone)]
 pub struct Loans {
     loan_repo: LoanRepo,
-    term_repo: TermRepo,
     customers: Customers,
     ledger: Ledger,
     pool: PgPool,
@@ -66,7 +62,6 @@ impl Loans {
         users: &Users,
     ) -> Self {
         let loan_repo = LoanRepo::new(pool, export);
-        let term_repo = TermRepo::new(pool);
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
@@ -79,7 +74,6 @@ impl Loans {
         ));
         Self {
             loan_repo,
-            term_repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
             pool: pool.clone(),
@@ -112,18 +106,6 @@ impl Loans {
         }
         db_tx.commit().await?;
         Ok(())
-    }
-
-    pub async fn update_default_terms(
-        &self,
-        sub: &Subject,
-        terms: TermValues,
-    ) -> Result<Terms, LoanError> {
-        self.authz
-            .check_permission(sub, Object::Term, TermAction::Update)
-            .await?;
-
-        self.term_repo.update_default(terms).await
     }
 
     #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
@@ -382,17 +364,6 @@ impl Loans {
         }
 
         self.loan_repo.find_for_customer(customer_id).await
-    }
-
-    pub async fn find_default_terms(&self, sub: &Subject) -> Result<Option<Terms>, LoanError> {
-        self.authz
-            .check_permission(sub, Object::Term, TermAction::Read)
-            .await?;
-        match self.term_repo.find_default().await {
-            Ok(terms) => Ok(Some(terms)),
-            Err(LoanError::TermsNotSet) => Ok(None),
-            Err(e) => Err(e),
-        }
     }
 
     #[instrument(name = "lava.loan.list", skip(self), err)]

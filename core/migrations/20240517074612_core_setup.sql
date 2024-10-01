@@ -14,6 +14,21 @@ CREATE TABLE customer_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE terms_templates (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE terms_template_events (
+  id UUID NOT NULL REFERENCES terms_templates(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
@@ -28,14 +43,6 @@ CREATE TABLE user_events (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(id, sequence)
 );
-
-CREATE TABLE loan_terms (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  current BOOLEAN NOT NULL,
-  values JSONB NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE UNIQUE INDEX idx_loan_terms_current ON loan_terms (current) WHERE current IS TRUE;
 
 CREATE TABLE loans (
   id UUID PRIMARY KEY,
