@@ -1,22 +1,23 @@
 config {
-	type: "operations",
-	hasOutput: true,
-  description: "Errors found in Regulatory Report referencia_garantia.xml of norm NPB4-17"
+	type: "table",
+	description: "Errors found in Regulatory Report referencia_garantia.xml of norm NPB4-17"
 }
 
-CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+SELECT num_referencia, identificacion_garantia,
+	"uppercase_alphanum num_referencia" AS error
+FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE ${ref('udf_nbp4_17_assert_uppercase_alphanum')}(num_referencia)
 
-SELECT
-    `num_referencia`
-  , (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`num_referencia`)) AS `error_num_referencia`
-  , `identificacion_garantia`
-  , (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`identificacion_garantia`)) AS `error_identificacion_garantia`
-  , `valor_garantia_proporcional`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`valor_garantia_proporcional` AS STRING), 13)) AS `error_valor_garantia_proporcional`
-FROM
-  ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(asof)
-WHERE (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`num_referencia`))
-  OR (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`identificacion_garantia`))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`valor_garantia_proporcional` AS STRING), 13))
+UNION ALL
 
-)
+SELECT num_referencia, identificacion_garantia,
+	"uppercase_alphanum identificacion_garantia" AS error
+FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE ${ref('udf_nbp4_17_assert_uppercase_alphanum')}(identificacion_garantia)
+
+UNION ALL
+
+SELECT num_referencia, identificacion_garantia,
+	"assert_nullable_dollar_number valor_garantia_proporcional" AS error
+FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(valor_garantia_proporcional AS STRING), 13)
