@@ -2,19 +2,9 @@ config {
 	type: "table",
 }
 
-WITH etapas_del_credito_en_via_judicial AS (
-
-    SELECT '1' AS code, 'Demanda' AS description UNION ALL
-    SELECT '2', 'Emplazamiento' UNION ALL
-    SELECT '3', 'Contestación de demanda' UNION ALL
-    SELECT '4', 'Apertura de pruebas' UNION ALL
-    SELECT '5', 'Sentencia' UNION ALL
-    SELECT '6', 'Apelación'
-
-)
-
-
-SELECT
-    code,
-    description
-FROM etapas_del_credito_en_via_judicial
+SELECT '1' AS code, 'Demanda' AS description UNION ALL
+SELECT '2', 'Emplazamiento' UNION ALL
+SELECT '3', 'Contestación de demanda' UNION ALL
+SELECT '4', 'Apertura de pruebas' UNION ALL
+SELECT '5', 'Sentencia' UNION ALL
+SELECT '6', 'Apelación'

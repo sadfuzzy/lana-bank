@@ -14,16 +14,6 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
       , email
     FROM
   ${ref("stg_customers")}
-  ),
-  customers_identities AS (
-    SELECT *
-    FROM
-    ${ref("stg_customers_identities")}
-  ),
-  approved_loans AS (
-    SELECT *
-    FROM
-    ${ref("stg_approved_loans")}(asof)
   )
 
   SELECT
@@ -61,5 +51,5 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
     , CAST(NULL AS STRING) AS `tipo_ident_anterior`                 -- NULL for natural person
     , CAST(NULL AS STRING) AS `municipio_residencia`                -- NULL for non-Salvadoran
   FROM customers
-  LEFT JOIN customers_identities USING (sequence_id)
+  LEFT JOIN ${ref("stg_customers_identities")} USING (sequence_id)
 )

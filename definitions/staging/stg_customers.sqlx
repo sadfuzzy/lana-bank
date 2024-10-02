@@ -2,20 +2,13 @@ config {
 	type: "table",
 }
 
-WITH customers AS (
+SELECT DISTINCT
+	  JSON_VALUE(event, "$.id") AS id
+	, JSON_VALUE(event, "$.email") AS email
 
-	SELECT DISTINCT
-		  JSON_VALUE(event, "$.id") AS id
-		, JSON_VALUE(event, "$.email") AS email
+FROM ${ref({
+	name: "customer_events",
+	schema: envs.currentImportSchema
+})}
 
-	FROM ${ref({
-		name: "customer_events",
-		schema: envs.currentImportSchema
-	})}
-
-	WHERE event_type = "initialized"
-)
-
-SELECT
-	*
-FROM customers
+WHERE event_type = "initialized"

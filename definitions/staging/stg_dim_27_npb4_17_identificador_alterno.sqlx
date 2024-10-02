@@ -2,18 +2,8 @@ config {
 	type: "table",
 }
 
-WITH identificador_alterno AS (
-
-    SELECT 'PS' AS code, 'Pasaporte' AS description UNION ALL
-    SELECT 'SS', 'Seguro social' UNION ALL
-    SELECT 'CI', 'Cedula de identidad' UNION ALL
-    SELECT 'CR', 'Carné de residente' UNION ALL
-    SELECT 'LI', 'Licencia de conducir'
-
-)
-
-
-SELECT
-    code,
-    description
-FROM identificador_alterno
+SELECT 'PS' AS code, 'Pasaporte' AS description UNION ALL
+SELECT 'SS', 'Seguro social' UNION ALL
+SELECT 'CI', 'Cedula de identidad' UNION ALL
+SELECT 'CR', 'Carné de residente' UNION ALL
+SELECT 'LI', 'Licencia de conducir'
