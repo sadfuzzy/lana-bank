@@ -1,0 +1,19 @@
+mutation TermsTemplateCreate($input: TermsTemplateCreateInput!) {
+  termsTemplateCreate(input: $input) {
+    termsTemplate {
+      termsId
+      name
+      values {
+        annualRate
+        interval
+        duration {
+          period
+          units
+        }
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+      }
+    }
+  }
+}

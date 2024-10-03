@@ -549,6 +549,7 @@ type Mutation {
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
+	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 }
 
 """
@@ -725,6 +726,20 @@ input TermsTemplateCreateInput {
 }
 
 type TermsTemplateCreatePayload {
+	termsTemplate: TermsTemplate!
+}
+
+input TermsTemplateUpdateInput {
+	id: UUID!
+	annualRate: AnnualRatePct!
+	interval: InterestInterval!
+	liquidationCvl: CVLPct!
+	duration: DurationInput!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+}
+
+type TermsTemplateUpdatePayload {
 	termsTemplate: TermsTemplate!
 }
 

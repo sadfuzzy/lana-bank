@@ -12,7 +12,7 @@ function TermsTemplate({
   const { "terms-template-id": termsTemplateId } = params
 
   return (
-    <main>
+    <main className="max-w-[70rem] m-auto">
       <PageHeading>Terms Template Details</PageHeading>
       <TermsTemplateDetails id={termsTemplateId} />
     </main>

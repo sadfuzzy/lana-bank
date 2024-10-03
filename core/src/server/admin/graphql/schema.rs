@@ -13,7 +13,10 @@ use crate::{
     primitives::{CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
     server::{
         admin::{
-            graphql::terms_template::{TermsTemplateCreateInput, TermsTemplateCreatePayload},
+            graphql::terms_template::{
+                TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput,
+                TermsTemplateUpdatePayload,
+            },
             AdminAuthContext,
         },
         shared_graphql::{
@@ -833,5 +836,28 @@ impl Mutation {
             .create_terms_template(sub, input.name, term_values)
             .await?;
         Ok(TermsTemplateCreatePayload::from(terms_template))
+    }
+
+    async fn terms_template_update(
+        &self,
+        ctx: &Context<'_>,
+        input: TermsTemplateUpdateInput,
+    ) -> async_graphql::Result<TermsTemplateUpdatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let term_values = crate::terms::TermValues::builder()
+            .annual_rate(input.annual_rate)
+            .interval(input.interval)
+            .duration(input.duration)
+            .liquidation_cvl(input.liquidation_cvl)
+            .margin_call_cvl(input.margin_call_cvl)
+            .initial_cvl(input.initial_cvl)
+            .build()?;
+        let terms = app
+            .terms_templates()
+            .update_term_values(sub, TermsTemplateId::from(input.id), term_values)
+            .await?;
+        Ok(TermsTemplateUpdatePayload::from(terms))
     }
 }

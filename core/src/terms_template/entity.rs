@@ -12,6 +12,10 @@ pub enum TermsTemplateEvent {
         values: TermValues,
         audit_info: AuditInfo,
     },
+    TermValuesUpdated {
+        values: TermValues,
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for TermsTemplateEvent {
@@ -40,6 +44,14 @@ impl TermsTemplate {
             .entity_first_persisted_at
             .expect("No events for terms template")
     }
+
+    pub fn update_values(&mut self, new_values: TermValues, audit_info: AuditInfo) {
+        self.events.push(TermsTemplateEvent::TermValuesUpdated {
+            values: new_values,
+            audit_info,
+        });
+        self.values = new_values;
+    }
 }
 
 impl TryFrom<EntityEvents<TermsTemplateEvent>> for TermsTemplate {
@@ -54,6 +66,9 @@ impl TryFrom<EntityEvents<TermsTemplateEvent>> for TermsTemplate {
                     id, name, values, ..
                 } => {
                     builder = builder.id(*id).name(name.clone()).values(*values);
+                }
+                TermsTemplateEvent::TermValuesUpdated { values, .. } => {
+                    builder = builder.values(*values);
                 }
             }
         }

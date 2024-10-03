@@ -78,4 +78,28 @@ impl TermsTemplates {
             .await?;
         self.repo.list().await
     }
+
+    pub async fn update_term_values(
+        &self,
+        sub: &Subject,
+        id: TermsTemplateId,
+        values: TermValues,
+    ) -> Result<TermsTemplate, TermsTemplateError> {
+        let audit_info = self
+            .authz
+            .check_permission(sub, Object::TermsTemplate, TermsTemplateAction::Update)
+            .await?;
+
+        let mut terms_template = self.repo.find_by_id(id).await?;
+        terms_template.update_values(values, audit_info);
+
+        let mut db = self.pool.begin().await?;
+        self.repo
+            .persist_in_tx(&mut db, &mut terms_template)
+            .await?;
+
+        db.commit().await?;
+
+        Ok(terms_template)
+    }
 }

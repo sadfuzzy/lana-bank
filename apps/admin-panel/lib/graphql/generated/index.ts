@@ -566,6 +566,7 @@ export type Mutation = {
   shareholderEquityAdd: SuccessPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
+  termsTemplateUpdate: TermsTemplateUpdatePayload;
   userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
@@ -652,6 +653,11 @@ export type MutationSumsubPermalinkCreateArgs = {
 
 export type MutationTermsTemplateCreateArgs = {
   input: TermsTemplateCreateInput;
+};
+
+
+export type MutationTermsTemplateUpdateArgs = {
+  input: TermsTemplateUpdateInput;
 };
 
 
@@ -963,6 +969,21 @@ export type TermsTemplateCreateInput = {
 
 export type TermsTemplateCreatePayload = {
   __typename?: 'TermsTemplateCreatePayload';
+  termsTemplate: TermsTemplate;
+};
+
+export type TermsTemplateUpdateInput = {
+  annualRate: Scalars['AnnualRatePct']['input'];
+  duration: DurationInput;
+  id: Scalars['UUID']['input'];
+  initialCvl: Scalars['CVLPct']['input'];
+  interval: InterestInterval;
+  liquidationCvl: Scalars['CVLPct']['input'];
+  marginCallCvl: Scalars['CVLPct']['input'];
+};
+
+export type TermsTemplateUpdatePayload = {
+  __typename?: 'TermsTemplateUpdatePayload';
   termsTemplate: TermsTemplate;
 };
 
@@ -1428,6 +1449,13 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
+
+export type UpdateTermsTemplateMutationVariables = Exact<{
+  input: TermsTemplateUpdateInput;
+}>;
+
+
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, name: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3785,6 +3813,54 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const UpdateTermsTemplateDocument = gql`
+    mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
+  termsTemplateUpdate(input: $input) {
+    termsTemplate {
+      id
+      termsId
+      name
+      values {
+        annualRate
+        interval
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+        duration {
+          period
+          units
+        }
+      }
+    }
+  }
+}
+    `;
+export type UpdateTermsTemplateMutationFn = Apollo.MutationFunction<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
+
+/**
+ * __useUpdateTermsTemplateMutation__
+ *
+ * To run a mutation, you first call `useUpdateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTermsTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTermsTemplateMutation, { data, loading, error }] = useUpdateTermsTemplateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>(UpdateTermsTemplateDocument, options);
+      }
+export type UpdateTermsTemplateMutationHookResult = ReturnType<typeof useUpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationResult = Apollo.MutationResult<UpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String) {
   customers(first: $first, after: $after) {

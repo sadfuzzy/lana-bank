@@ -1,0 +1,17 @@
+query TermsTemplateGet ($id: UUID!) {
+  termsTemplate(id: $id) {
+    termsId
+    name
+    values {
+      annualRate
+      interval
+      duration {
+        period          
+        units
+      }
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+    }
+  }
+}

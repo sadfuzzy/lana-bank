@@ -57,3 +57,27 @@ impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
         }
     }
 }
+
+#[derive(InputObject)]
+pub(super) struct TermsTemplateUpdateInput {
+    pub id: UUID,
+    pub annual_rate: AnnualRatePct,
+    pub interval: InterestInterval,
+    pub liquidation_cvl: CVLPct,
+    pub duration: DurationInput,
+    pub margin_call_cvl: CVLPct,
+    pub initial_cvl: CVLPct,
+}
+
+#[derive(SimpleObject)]
+pub struct TermsTemplateUpdatePayload {
+    pub terms_template: TermsTemplate,
+}
+
+impl From<crate::terms_template::TermsTemplate> for TermsTemplateUpdatePayload {
+    fn from(terms_template: crate::terms_template::TermsTemplate) -> Self {
+        Self {
+            terms_template: terms_template.into(),
+        }
+    }
+}

@@ -1,0 +1,19 @@
+mutation TermsTemplateUpdate($input: TermsTemplateUpdateInput!) {
+  termsTemplateUpdate(input: $input) {
+    termsTemplate {
+      termsId
+      name
+      values {
+        annualRate
+        interval
+        duration {
+          period
+          units
+        }
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+      }
+    }
+  }
+}
