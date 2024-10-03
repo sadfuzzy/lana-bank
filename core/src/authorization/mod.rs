@@ -235,7 +235,7 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
-        self.add_permission_to_role(&role, Object::Term, TermAction::Read)
+        self.add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Read)
             .await?;
         self.add_permission_to_role(
             &role,
