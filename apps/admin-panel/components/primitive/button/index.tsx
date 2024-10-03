@@ -7,7 +7,7 @@ import { LoadingSpinner } from "../loading-spinner"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap p-2 px-4 rounded-xl text-sm font-medium transition focus:outline-none",
+  "inline-flex items-center justify-center whitespace-nowrap p-2 px-4 rounded-xl text-sm font-medium transition focus:outline-none disabled:cursor-not-allowed",
   {
     variants: {
       variant: {
