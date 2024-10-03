@@ -885,6 +885,7 @@ export enum ReportProgress {
 }
 
 export enum Role {
+  Accountant = 'ACCOUNTANT',
   Admin = 'ADMIN',
   BankManager = 'BANK_MANAGER',
   Superuser = 'SUPERUSER'
