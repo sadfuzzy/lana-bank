@@ -68,7 +68,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .check_permission(
             &superuser_subject,
             Object::User,
-            Action::User(UserAction::Create),
+            Action::User(UserAction::Create)
         )
         .await
         .is_ok());
