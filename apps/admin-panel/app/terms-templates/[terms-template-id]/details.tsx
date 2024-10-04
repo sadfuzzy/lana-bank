@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
-import { formatInterval, formatPeriod } from "@/lib/utils"
+import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { Separator } from "@/components/primitive/separator"
 import { Button } from "@/components/primitive/button"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
@@ -23,6 +23,7 @@ gql`
       id
       name
       termsId
+      createdAt
       values {
         duration {
           units
@@ -80,6 +81,10 @@ function TermsTemplateDetails({ id }: { id: string }) {
 
             <CardContent>
               <DetailsGroup>
+                <DetailItem
+                  label="Created At"
+                  value={formatDate(data.termsTemplate.createdAt)}
+                />
                 <DetailItem
                   label="Duration"
                   value={`${data.termsTemplate.values.duration.units} ${formatPeriod(data.termsTemplate.values.duration.period)}`}

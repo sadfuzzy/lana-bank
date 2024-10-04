@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::{
     server::shared_graphql::{
         convert::ToGlobalId,
-        primitives::UUID,
+        primitives::{Timestamp, UUID},
         terms::{DurationInput, InterestInterval, TermValues},
     },
     terms::{AnnualRatePct, CVLPct},
@@ -45,15 +45,19 @@ pub struct TermsTemplate {
     terms_id: UUID,
     name: String,
     values: TermValues,
+    created_at: Timestamp,
 }
 
 impl From<crate::terms_template::TermsTemplate> for TermsTemplate {
     fn from(terms: crate::terms_template::TermsTemplate) -> Self {
+        let created_at = terms.created_at().into();
+
         Self {
             id: terms.id.to_global_id(),
             name: terms.name,
             terms_id: terms.id.into(),
             values: terms.values.into(),
+            created_at,
         }
     }
 }

@@ -951,6 +951,7 @@ export type TermsInput = {
 
 export type TermsTemplate = {
   __typename?: 'TermsTemplate';
+  createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   termsId: Scalars['UUID']['output'];
@@ -1324,7 +1325,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, values: { __typename?: 'TermValues', interval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', interval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
 
 export type CreateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateCreateInput;
@@ -1336,7 +1337,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, values: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
 
 export type GetOnBalanceSheetTrialBalanceQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -3030,6 +3031,7 @@ export const TermsTemplateDocument = gql`
     id
     name
     termsId
+    createdAt
     values {
       duration {
         units
@@ -3125,6 +3127,7 @@ export const TermsTemplatesDocument = gql`
     id
     name
     termsId
+    createdAt
     values {
       annualRate
       interval

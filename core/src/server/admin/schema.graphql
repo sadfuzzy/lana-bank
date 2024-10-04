@@ -713,6 +713,7 @@ type TermsTemplate {
 	termsId: UUID!
 	name: String!
 	values: TermValues!
+	createdAt: Timestamp!
 }
 
 input TermsTemplateCreateInput {

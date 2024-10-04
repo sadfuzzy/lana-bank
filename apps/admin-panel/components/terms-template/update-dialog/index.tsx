@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -59,8 +58,6 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   refetch,
   termsTemplate,
 }) => {
-  const router = useRouter()
-
   const [updateTermsTemplate, { loading, reset, error: updateTermsTemplateError }] =
     useUpdateTermsTemplateMutation()
 
@@ -126,7 +123,6 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         toast.success("Terms Template updated successfully")
         if (refetch) refetch()
         setOpenUpdateTermsTemplateDialog(false)
-        router.push(`/terms-templates/${data.termsTemplateUpdate.termsTemplate.termsId}`)
       } else {
         throw new Error("Failed to update Terms Template. Please try again.")
       }

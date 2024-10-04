@@ -4,11 +4,13 @@ import { gql } from "@apollo/client"
 
 import Link from "next/link"
 
+import { IoEllipsisHorizontal } from "react-icons/io5"
+
 import { CreateTermsTemplateDialog } from "./create"
 
 import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
-import { useTermsTemplatesQuery } from "@/lib/graphql/generated"
+import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import { Card, CardContent } from "@/components/primitive/card"
 import {
   Table,
@@ -19,6 +21,13 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { formatPeriod } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/primitive/dropdown-menu"
+import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
 
 gql`
   query TermsTemplates {
@@ -26,6 +35,7 @@ gql`
       id
       name
       termsId
+      createdAt
       values {
         annualRate
         interval
@@ -44,9 +54,19 @@ gql`
 function TermPage() {
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
   const [openCreateUserDialog, setOpenCreateUserDialog] = useState<boolean>(false)
+  const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
+    useState<TermsTemplate | null>(null)
 
   return (
     <main>
+      {openUpdateTermsTemplateDialog && (
+        <UpdateTermsTemplateDialog
+          termsTemplate={openUpdateTermsTemplateDialog}
+          openUpdateTermsTemplateDialog={Boolean(openUpdateTermsTemplateDialog)}
+          setOpenUpdateTermsTemplateDialog={() => setOpenUpdateTermsTemplateDialog(null)}
+          refetch={refetch}
+        />
+      )}
       <CreateTermsTemplateDialog
         openCreateTermsTemplateDialog={openCreateUserDialog}
         setOpenCreateTermsTemplateDialog={setOpenCreateUserDialog}
@@ -72,6 +92,7 @@ function TermPage() {
                   <TableHead>Initial CVL</TableHead>
                   <TableHead>MarginCall CVL</TableHead>
                   <TableHead>Liquidation CVL</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -91,6 +112,29 @@ function TermPage() {
                     <TableCell>{termsTemplate.values.initialCvl}%</TableCell>
                     <TableCell>{termsTemplate.values.marginCallCvl}%</TableCell>
                     <TableCell>{termsTemplate.values.liquidationCvl}%</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <Button variant="ghost">
+                            <IoEllipsisHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="text-sm">
+                          <DropdownMenuItem>
+                            <Link href={`/terms-templates/${termsTemplate.termsId}`}>
+                              View details
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setOpenUpdateTermsTemplateDialog(termsTemplate)
+                            }
+                          >
+                            Update
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
