@@ -2,7 +2,7 @@ pub mod error;
 mod graphql;
 
 use graphql_client::{GraphQLQuery, Response};
-use reqwest::{Client as ReqwestClient, Method};
+use reqwest::Client as ReqwestClient;
 
 use super::{ExportEntityEventData, ExportPriceData, ExportSumsubApplicantData};
 
@@ -80,7 +80,7 @@ impl CalaClient {
         let trace_headers = lava_tracing::http::inject_trace();
         let body = Q::build_query(variables);
         let response = client
-            .request(Method::POST, url)
+            .post(url)
             .headers(trace_headers)
             .json(&body)
             .send()

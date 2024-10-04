@@ -54,7 +54,7 @@ impl SumsubClient {
             client: ReqwestClient::builder()
                 .use_rustls_tls()
                 .build()
-                .expect("should always build BfxClient"),
+                .expect("should always build SumsubClient"),
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
         }

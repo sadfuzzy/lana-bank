@@ -5,7 +5,7 @@ pub(super) mod graphql;
 use cala_types::primitives::TxTemplateId;
 use chrono::{DateTime, Utc};
 use graphql_client::{GraphQLQuery, Response};
-use reqwest::{Client as ReqwestClient, Method};
+use reqwest::Client as ReqwestClient;
 use rust_decimal::Decimal;
 use tracing::instrument;
 use uuid::Uuid;
@@ -1566,7 +1566,7 @@ impl CalaClient {
         let trace_headers = lava_tracing::http::inject_trace();
         let body = Q::build_query(variables);
         let response = client
-            .request(Method::POST, url)
+            .post(url)
             .headers(trace_headers)
             .json(&body)
             .send()
