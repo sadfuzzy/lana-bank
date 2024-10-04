@@ -219,10 +219,22 @@ impl CalaClient {
         CreditFacilityAccountIds {
             facility_account_id,
             disbursed_receivable_account_id,
+            collateral_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
         let variables = create_credit_facility_accounts::Variables {
+            facility_collateral_account_id: Uuid::from(collateral_account_id),
+            facility_collateral_account_code: format!(
+                "CREDIT_FACILITY.COLLATERAL.{}",
+                credit_facility_id
+            ),
+            facility_collateral_account_name: format!(
+                "Credit Facility Collateral Account for {}",
+                credit_facility_id
+            ),
+            facilities_collateral_control_account_set_id:
+                super::constants::CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             facility_account_id: Uuid::from(facility_account_id),
             facility_account_code: format!("CREDIT_FACILITY.OBS_FACILITY.{}", credit_facility_id),
             facility_account_name: format!(
@@ -1053,6 +1065,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
+    #[instrument(name = "lava.ledger.cala.add_loan_collateral", skip(self), err)]
     pub async fn add_loan_collateral(
         &self,
         transaction_id: LedgerTxId,
@@ -1063,6 +1076,38 @@ impl CalaClient {
         let variables = post_add_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
             collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostAddCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.add_credit_facility_collateral",
+        skip(self),
+        err
+    )]
+    pub async fn add_credit_facility_collateral(
+        &self,
+        transaction_id: LedgerTxId,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_add_collateral_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            collateral_account: credit_facility_account_ids.collateral_account_id.into(),
             collateral_amount,
             external_id,
         };
@@ -1119,6 +1164,7 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
+    #[instrument(name = "lava.ledger.cala.remove_loan_collateral", skip(self), err)]
     pub async fn remove_loan_collateral(
         &self,
         transaction_id: LedgerTxId,
@@ -1129,6 +1175,38 @@ impl CalaClient {
         let variables = post_remove_collateral_transaction::Variables {
             transaction_id: transaction_id.into(),
             collateral_account: loan_account_ids.collateral_account_id.into(),
+            collateral_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostRemoveCollateralTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.remove_credit_facility_collateral",
+        skip(self),
+        err
+    )]
+    pub async fn remove_credit_facility_collateral(
+        &self,
+        transaction_id: LedgerTxId,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        collateral_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_remove_collateral_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            collateral_account: credit_facility_account_ids.collateral_account_id.into(),
             collateral_amount,
             external_id,
         };

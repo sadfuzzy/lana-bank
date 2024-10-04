@@ -8,6 +8,14 @@ use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, async_graphql::Enum)]
+pub enum CollateralizationState {
+    FullyCollateralized,
+    UnderMarginCallThreshold,
+    UnderLiquidationThreshold,
+    NoCollateral,
+}
+
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct AnnualRatePct(Decimal);
@@ -72,6 +80,10 @@ impl CVLPct {
         collateral_value: UsdCents,
         total_outstanding_amount: UsdCents,
     ) -> Self {
+        if collateral_value == UsdCents::ZERO || total_outstanding_amount == UsdCents::ZERO {
+            return CVLPct::ZERO;
+        }
+
         let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
             .round_dp_with_strategy(2, RoundingStrategy::ToZero)
             * dec!(100);
@@ -81,6 +93,82 @@ impl CVLPct {
 
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
         other > *self + buffer
+    }
+
+    pub fn collateralization(self, terms: TermValues) -> CollateralizationState {
+        let margin_call_cvl = terms.margin_call_cvl;
+        let liquidation_cvl = terms.liquidation_cvl;
+
+        if self == CVLPct::ZERO {
+            CollateralizationState::NoCollateral
+        } else if self >= margin_call_cvl {
+            CollateralizationState::FullyCollateralized
+        } else if self >= liquidation_cvl {
+            CollateralizationState::UnderMarginCallThreshold
+        } else {
+            CollateralizationState::UnderLiquidationThreshold
+        }
+    }
+
+    pub fn collateralization_update(
+        self,
+        terms: TermValues,
+        last_collateralization_state: CollateralizationState,
+        upgrade_buffer_cvl_pct: Option<CVLPct>,
+        liquidation_upgrade_blocked: bool,
+    ) -> Option<CollateralizationState> {
+        let calculated_collateralization = &self.collateralization(terms);
+
+        match (last_collateralization_state, *calculated_collateralization) {
+            // Redundant same state changes
+            (CollateralizationState::NoCollateral, CollateralizationState::NoCollateral)
+            | (
+                CollateralizationState::FullyCollateralized,
+                CollateralizationState::FullyCollateralized,
+            )
+            | (
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::UnderMarginCallThreshold,
+            )
+            | (
+                CollateralizationState::UnderLiquidationThreshold,
+                CollateralizationState::UnderLiquidationThreshold,
+            ) => None,
+
+            // Validated liquidation changes
+            (CollateralizationState::UnderLiquidationThreshold, _) => {
+                if liquidation_upgrade_blocked {
+                    None
+                } else {
+                    Some(*calculated_collateralization)
+                }
+            }
+
+            // Optionally buffered collateral upgraded change
+            (
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::FullyCollateralized,
+            ) => match upgrade_buffer_cvl_pct {
+                Some(buffer) => {
+                    if terms
+                        .margin_call_cvl
+                        .is_significantly_lower_than(self, buffer)
+                    {
+                        Some(*calculated_collateralization)
+                    } else {
+                        None
+                    }
+                }
+                _ => Some(*calculated_collateralization),
+            },
+
+            // Valid other collateral changes
+            (CollateralizationState::NoCollateral, _)
+            | (CollateralizationState::FullyCollateralized, _)
+            | (CollateralizationState::UnderMarginCallThreshold, _) => {
+                Some(*calculated_collateralization)
+            }
+        }
     }
 
     #[cfg(test)]
@@ -256,6 +344,21 @@ mod test {
     }
 
     #[test]
+    fn current_cvl_for_zero_amounts() {
+        let expected_cvl = CVLPct::ZERO;
+        let collateral_value = UsdCents::ZERO;
+        let outstanding_amount = UsdCents::from(100000);
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+
+        let expected_cvl = CVLPct::ZERO;
+        let collateral_value = UsdCents::from(75000);
+        let outstanding_amount = UsdCents::ZERO;
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+    }
+
+    #[test]
     fn cvl_is_significantly_higher() {
         let buffer = CVLPct::new(5);
 
@@ -364,5 +467,202 @@ mod test {
         let duration = Duration::Months(3);
         let expiration_date = "2025-03-03T14:00:00Z".parse::<DateTime<Utc>>().unwrap();
         assert_eq!(duration.expiration_date(start_date), expiration_date);
+    }
+
+    mod collateralization_update {
+        use super::*;
+
+        fn default_upgrade_buffer_cvl_pct() -> CVLPct {
+            CVLPct::new(5)
+        }
+
+        fn default_terms() -> TermValues {
+            TermValues::builder()
+                .annual_rate(dec!(12))
+                .duration(Duration::Months(3))
+                .interval(InterestInterval::EndOfMonth)
+                .liquidation_cvl(dec!(105))
+                .margin_call_cvl(dec!(125))
+                .initial_cvl(dec!(140))
+                .build()
+                .expect("should build a valid term")
+        }
+
+        struct TestCVL {
+            above_fully_collateralized: CVLPct,
+            above_margin_called_and_buffer: CVLPct,
+            above_margin_called_and_below_buffer: CVLPct,
+            below_margin_called: CVLPct,
+            below_liquidation: CVLPct,
+        }
+        fn cvl_test_values() -> TestCVL {
+            let terms = default_terms();
+            let upgrade_buffer_cvl = default_upgrade_buffer_cvl_pct();
+
+            TestCVL {
+                above_fully_collateralized: terms.initial_cvl + CVLPct::new(1),
+                above_margin_called_and_buffer: terms.margin_call_cvl
+                    + upgrade_buffer_cvl
+                    + CVLPct::new(1),
+                above_margin_called_and_below_buffer: terms.margin_call_cvl + upgrade_buffer_cvl
+                    - CVLPct::new(1),
+                below_margin_called: terms.margin_call_cvl - CVLPct::new(1),
+                below_liquidation: terms.liquidation_cvl - CVLPct::new(1),
+            }
+        }
+
+        fn collateralization_update(
+            last_state: CollateralizationState,
+            cvl: CVLPct,
+        ) -> Option<CollateralizationState> {
+            cvl.collateralization_update(default_terms(), last_state, None, false)
+        }
+
+        fn collateralization_update_with_buffer(
+            last_state: CollateralizationState,
+            cvl: CVLPct,
+        ) -> Option<CollateralizationState> {
+            cvl.collateralization_update(
+                default_terms(),
+                last_state,
+                Some(default_upgrade_buffer_cvl_pct()),
+                false,
+            )
+        }
+
+        fn collateralization_update_with_liquidation_limit(
+            last_state: CollateralizationState,
+            cvl: CVLPct,
+        ) -> Option<CollateralizationState> {
+            cvl.collateralization_update(default_terms(), last_state, None, true)
+        }
+
+        fn all_collaterization_update_fns(
+        ) -> Vec<fn(CollateralizationState, CVLPct) -> Option<CollateralizationState>> {
+            vec![
+                collateralization_update,
+                collateralization_update_with_buffer,
+                collateralization_update_with_liquidation_limit,
+            ]
+        }
+
+        #[test]
+        fn fully_collateralized_to_fully_collateralized() {
+            for collateralization_update in all_collaterization_update_fns() {
+                assert_eq!(
+                    collateralization_update(
+                        CollateralizationState::FullyCollateralized,
+                        cvl_test_values().above_fully_collateralized + CVLPct::new(1),
+                    ),
+                    None
+                );
+            }
+        }
+
+        #[test]
+        fn fully_collateralized_to_under_margin_called() {
+            for collateralization_update in all_collaterization_update_fns() {
+                assert_eq!(
+                    collateralization_update(
+                        CollateralizationState::FullyCollateralized,
+                        cvl_test_values().below_margin_called,
+                    ),
+                    Some(CollateralizationState::UnderMarginCallThreshold)
+                );
+            }
+        }
+
+        #[test]
+        fn fully_collateralized_to_under_liquidation() {
+            for collateralization_update in all_collaterization_update_fns() {
+                assert_eq!(
+                    collateralization_update(
+                        CollateralizationState::FullyCollateralized,
+                        cvl_test_values().below_liquidation,
+                    ),
+                    Some(CollateralizationState::UnderLiquidationThreshold)
+                );
+            }
+        }
+
+        #[test]
+        fn under_margin_called_to_above_margin_called_and_below_buffer() {
+            assert_eq!(
+                collateralization_update(
+                    CollateralizationState::UnderMarginCallThreshold,
+                    cvl_test_values().above_margin_called_and_below_buffer,
+                ),
+                Some(CollateralizationState::FullyCollateralized)
+            );
+
+            assert_eq!(
+                collateralization_update_with_buffer(
+                    CollateralizationState::UnderMarginCallThreshold,
+                    cvl_test_values().above_margin_called_and_below_buffer,
+                ),
+                None
+            );
+
+            assert_eq!(
+                collateralization_update_with_liquidation_limit(
+                    CollateralizationState::UnderMarginCallThreshold,
+                    cvl_test_values().above_margin_called_and_below_buffer,
+                ),
+                Some(CollateralizationState::FullyCollateralized)
+            );
+        }
+
+        #[test]
+        fn under_margin_called_to_fully_collateralized() {
+            for collateralization_update in all_collaterization_update_fns() {
+                assert_eq!(
+                    collateralization_update(
+                        CollateralizationState::UnderMarginCallThreshold,
+                        cvl_test_values().above_margin_called_and_buffer,
+                    ),
+                    Some(CollateralizationState::FullyCollateralized),
+                );
+            }
+        }
+
+        #[test]
+        fn under_margin_called_to_under_liquidation() {
+            for collateralization_update in all_collaterization_update_fns() {
+                assert_eq!(
+                    collateralization_update(
+                        CollateralizationState::UnderMarginCallThreshold,
+                        cvl_test_values().below_liquidation,
+                    ),
+                    Some(CollateralizationState::UnderLiquidationThreshold),
+                );
+            }
+        }
+
+        #[test]
+        fn under_liquidation_to_fully_collateralized() {
+            assert_eq!(
+                collateralization_update(
+                    CollateralizationState::UnderLiquidationThreshold,
+                    cvl_test_values().above_fully_collateralized,
+                ),
+                Some(CollateralizationState::FullyCollateralized),
+            );
+
+            assert_eq!(
+                collateralization_update_with_buffer(
+                    CollateralizationState::UnderLiquidationThreshold,
+                    cvl_test_values().above_fully_collateralized,
+                ),
+                Some(CollateralizationState::FullyCollateralized),
+            );
+
+            assert_eq!(
+                collateralization_update_with_liquidation_limit(
+                    CollateralizationState::UnderLiquidationThreshold,
+                    cvl_test_values().above_fully_collateralized,
+                ),
+                None,
+            );
+        }
     }
 }

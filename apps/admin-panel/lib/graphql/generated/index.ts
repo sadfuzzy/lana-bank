@@ -169,16 +169,6 @@ export enum CollateralAction {
   Remove = 'REMOVE'
 }
 
-export type CollateralUpdateInput = {
-  collateral: Scalars['Satoshis']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type CollateralUpdatePayload = {
-  __typename?: 'CollateralUpdatePayload';
-  loan: Loan;
-};
-
 export type CollateralUpdated = {
   __typename?: 'CollateralUpdated';
   action: CollateralAction;
@@ -218,6 +208,16 @@ export type CreditFacilityApproveInput = {
 
 export type CreditFacilityApprovePayload = {
   __typename?: 'CreditFacilityApprovePayload';
+  creditFacility: CreditFacility;
+};
+
+export type CreditFacilityCollateralUpdateInput = {
+  collateral: Scalars['Satoshis']['input'];
+  creditFacilityId: Scalars['UUID']['input'];
+};
+
+export type CreditFacilityCollateralUpdatePayload = {
+  __typename?: 'CreditFacilityCollateralUpdatePayload';
   creditFacility: CreditFacility;
 };
 
@@ -458,6 +458,16 @@ export type LoanBalance = {
   outstanding: LoanOutstanding;
 };
 
+export type LoanCollateralUpdateInput = {
+  collateral: Scalars['Satoshis']['input'];
+  loanId: Scalars['UUID']['input'];
+};
+
+export type LoanCollateralUpdatePayload = {
+  __typename?: 'LoanCollateralUpdatePayload';
+  loan: Loan;
+};
+
 export enum LoanCollaterizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
@@ -549,9 +559,9 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  collateralUpdate: CollateralUpdatePayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
+  creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursementApprove: CreditFacilityDisbursementApprovePayload;
   creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
@@ -559,6 +569,7 @@ export type Mutation = {
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
   loanApprove: LoanApprovePayload;
+  loanCollateralUpdate: LoanCollateralUpdatePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
   reportCreate: ReportCreatePayload;
@@ -576,11 +587,6 @@ export type Mutation = {
 };
 
 
-export type MutationCollateralUpdateArgs = {
-  input: CollateralUpdateInput;
-};
-
-
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
 };
@@ -588,6 +594,11 @@ export type MutationCollateralizationStateUpdateArgs = {
 
 export type MutationCreditFacilityApproveArgs = {
   input: CreditFacilityApproveInput;
+};
+
+
+export type MutationCreditFacilityCollateralUpdateArgs = {
+  input: CreditFacilityCollateralUpdateInput;
 };
 
 
@@ -623,6 +634,11 @@ export type MutationDepositRecordArgs = {
 
 export type MutationLoanApproveArgs = {
   input: LoanApproveInput;
+};
+
+
+export type MutationLoanCollateralUpdateArgs = {
+  input: LoanCollateralUpdateInput;
 };
 
 
@@ -1271,11 +1287,11 @@ export type LoanPartialPaymentMutationVariables = Exact<{
 export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
 export type CollateralUpdateMutationVariables = Exact<{
-  input: CollateralUpdateInput;
+  input: LoanCollateralUpdateInput;
 }>;
 
 
-export type CollateralUpdateMutation = { __typename?: 'Mutation', collateralUpdate: { __typename?: 'CollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
+export type CollateralUpdateMutation = { __typename?: 'Mutation', loanCollateralUpdate: { __typename?: 'LoanCollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
 
 export type CollateralizationStateUpdateMutationVariables = Exact<{
   input: CollateralizationStateUpdateInput;
@@ -2698,8 +2714,8 @@ export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPart
 export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
 export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
 export const CollateralUpdateDocument = gql`
-    mutation CollateralUpdate($input: CollateralUpdateInput!) {
-  collateralUpdate(input: $input) {
+    mutation CollateralUpdate($input: LoanCollateralUpdateInput!) {
+  loanCollateralUpdate(input: $input) {
     loan {
       loanId
       balance {

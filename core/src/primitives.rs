@@ -29,7 +29,7 @@ impl From<ReportId> for JobId {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct DisbursementIdx(i32);
@@ -63,6 +63,13 @@ pub enum KycLevel {
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LoanStatus {
+    New,
+    Active,
+    Closed,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+pub enum CreditFacilityStatus {
     New,
     Active,
     Closed,

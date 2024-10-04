@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::primitives::CustomerId;
+use crate::primitives::{CustomerId, Satoshis};
 
 #[derive(Error, Debug)]
 pub enum CreditFacilityError {
@@ -12,8 +12,12 @@ pub enum CreditFacilityError {
     JobError(#[from] crate::job::error::JobError),
     #[error("CreditFacilityError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("LoanError - PriceError: {0}")]
+    PriceError(#[from] crate::price::error::PriceError),
     #[error("CreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    #[error("CreditFacilityError - ConversionError: {0}")]
+    ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursementError: {0}")]
     DisbursementError(#[from] super::disbursement::error::DisbursementError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
@@ -32,4 +36,10 @@ pub enum CreditFacilityError {
     NoDisbursementInProgress,
     #[error("CreditFacilityError - DisbursementInProgress")]
     DisbursementInProgress,
+    #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
+    CollateralNotUpdated(Satoshis, Satoshis),
+    #[error("CreditFacilityError - NoCollateral")]
+    NoCollateral,
+    #[error("CreditFacilityError - BelowMarginLimit")]
+    BelowMarginLimit,
 }

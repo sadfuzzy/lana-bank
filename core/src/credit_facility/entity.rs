@@ -11,10 +11,10 @@ use crate::{
         customer::CustomerLedgerAccountIds,
     },
     primitives::*,
-    terms::TermValues,
+    terms::{CVLPct, CollateralizationState, TermValues},
 };
 
-use super::{disbursement::*, CreditFacilityError};
+use super::{disbursement::*, CreditFacilityCollateralUpdate, CreditFacilityError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -50,12 +50,60 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
+    CollateralUpdated {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        total_collateral: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+        audit_info: AuditInfo,
+        recorded_in_ledger_at: DateTime<Utc>,
+    },
+    CollateralizationChanged {
+        state: CollateralizationState,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
+        audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
+    },
 }
 
 impl EntityEvent for CreditFacilityEvent {
     type EntityId = CreditFacilityId;
     fn event_table_name() -> &'static str {
         "credit_facility_events"
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct CreditFacilityReceivable {
+    pub disbursed: UsdCents,
+    pub interest: UsdCents,
+}
+
+impl CreditFacilityReceivable {
+    pub fn total(&self) -> UsdCents {
+        self.interest + self.disbursed
+    }
+}
+
+pub struct FacilityCVL {
+    total: CVLPct,
+    disbursed: CVLPct,
+}
+
+impl FacilityCVL {
+    pub const ZERO: Self = Self {
+        total: CVLPct::ZERO,
+        disbursed: CVLPct::ZERO,
+    };
+
+    fn is_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
+        if self.total < terms.margin_call_cvl {
+            return Err(CreditFacilityError::BelowMarginLimit);
+        }
+        Ok(())
     }
 }
 
@@ -89,6 +137,45 @@ impl CreditFacility {
         UsdCents::ZERO
     }
 
+    fn total_disbursed(&self) -> UsdCents {
+        let mut amounts = std::collections::HashMap::new();
+        self.events
+            .iter()
+            .fold(UsdCents::from(0), |mut total_sum, event| {
+                match event {
+                    CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
+                        amounts.insert(*idx, *amount);
+                    }
+                    CreditFacilityEvent::DisbursementConcluded { idx, .. } => {
+                        if let Some(amount) = amounts.remove(idx) {
+                            total_sum += amount;
+                        }
+                    }
+                    _ => (),
+                }
+                total_sum
+            })
+    }
+
+    fn facility_remaining(&self) -> UsdCents {
+        self.initial_facility() - self.total_disbursed()
+    }
+
+    fn interest_accrued(&self) -> UsdCents {
+        // TODO: implement
+        UsdCents::ZERO
+    }
+
+    fn disbursed_payments(&self) -> UsdCents {
+        // TODO: implement
+        UsdCents::ZERO
+    }
+
+    fn interest_payments(&self) -> UsdCents {
+        // TODO: implement
+        UsdCents::ZERO
+    }
+
     pub(super) fn is_approved(&self) -> bool {
         for event in self.events.iter() {
             match event {
@@ -102,6 +189,16 @@ impl CreditFacility {
     pub(super) fn is_expired(&self) -> bool {
         self.expires_at
             .map_or(false, |expires_at| Utc::now() > expires_at)
+    }
+
+    pub fn status(&self) -> CreditFacilityStatus {
+        if self.is_expired() {
+            CreditFacilityStatus::Closed
+        } else if self.is_approved() {
+            CreditFacilityStatus::Active
+        } else {
+            CreditFacilityStatus::New
+        }
     }
 
     fn approval_threshold_met(&self) -> bool {
@@ -148,6 +245,7 @@ impl CreditFacility {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
+        price: PriceOfOneBTC,
     ) -> Result<Option<CreditFacilityApprovalData>, CreditFacilityError> {
         if self.has_user_previously_approved(approving_user_id) {
             return Err(CreditFacilityError::UserCannotApproveTwice);
@@ -156,6 +254,12 @@ impl CreditFacility {
         if self.is_approved() {
             return Err(CreditFacilityError::AlreadyApproved);
         }
+
+        if self.collateral() == Satoshis::ZERO {
+            return Err(CreditFacilityError::NoCollateral);
+        }
+
+        self.facility_cvl(price).is_approval_allowed(self.terms)?;
 
         self.events.push(CreditFacilityEvent::ApprovalAdded {
             approving_user_id,
@@ -184,6 +288,8 @@ impl CreditFacility {
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
+        self.approved_at = Some(executed_at);
+        self.expires_at = Some(self.terms.duration.expiration_date(executed_at));
         self.events.push(CreditFacilityEvent::Approved {
             tx_id,
             audit_info,
@@ -261,6 +367,180 @@ impl CreditFacility {
 
         false
     }
+
+    pub fn outstanding(&self) -> CreditFacilityReceivable {
+        CreditFacilityReceivable {
+            disbursed: self.total_disbursed() - self.disbursed_payments(),
+            interest: self.interest_accrued() - self.interest_payments(),
+        }
+    }
+
+    pub fn collateral(&self) -> Satoshis {
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralUpdated {
+                    total_collateral, ..
+                } => Some(*total_collateral),
+                _ => None,
+            })
+            .unwrap_or(Satoshis::ZERO)
+    }
+
+    pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral());
+
+        FacilityCVL {
+            total: CVLPct::from_loan_amounts(
+                collateral_value,
+                self.outstanding().total() + self.facility_remaining(),
+            ),
+            disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
+        }
+    }
+
+    pub fn last_collateralization_state(&self) -> CollateralizationState {
+        if self.status() == CreditFacilityStatus::Closed {
+            return CollateralizationState::NoCollateral;
+        }
+
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                _ => None,
+            })
+            .unwrap_or(CollateralizationState::NoCollateral)
+    }
+
+    pub fn maybe_update_collateralization(
+        &mut self,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+        audit_info: AuditInfo,
+    ) -> Option<CollateralizationState> {
+        let facility_cvl = self.facility_cvl(price);
+        let last_collateralization_state = self.last_collateralization_state();
+
+        let collateralization_update = match self.status() {
+            CreditFacilityStatus::New => facility_cvl.total.collateralization_update(
+                self.terms,
+                last_collateralization_state,
+                None,
+                true,
+            ),
+            CreditFacilityStatus::Active => {
+                let cvl = if self.total_disbursed() == UsdCents::ZERO {
+                    facility_cvl.total
+                } else {
+                    facility_cvl.disbursed
+                };
+
+                cvl.collateralization_update(
+                    self.terms,
+                    last_collateralization_state,
+                    Some(upgrade_buffer_cvl_pct),
+                    false,
+                )
+            }
+            CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
+        };
+
+        if let Some(calculated_collateralization) = collateralization_update {
+            self.events
+                .push(CreditFacilityEvent::CollateralizationChanged {
+                    state: calculated_collateralization,
+                    collateral: self.collateral(),
+                    outstanding: self.outstanding(),
+                    price,
+                    recorded_at: Utc::now(),
+                    audit_info,
+                });
+
+            return Some(calculated_collateralization);
+        }
+
+        None
+    }
+
+    fn count_collateral_adjustments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, CreditFacilityEvent::CollateralUpdated { .. }))
+            .count()
+    }
+
+    pub(super) fn initiate_collateral_update(
+        &self,
+        updated_collateral: Satoshis,
+    ) -> Result<CreditFacilityCollateralUpdate, CreditFacilityError> {
+        let current_collateral = self.collateral();
+        let diff =
+            SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
+
+        if diff == SignedSatoshis::ZERO {
+            return Err(CreditFacilityError::CollateralNotUpdated(
+                current_collateral,
+                updated_collateral,
+            ));
+        }
+
+        let (collateral, action) = if diff > SignedSatoshis::ZERO {
+            (Satoshis::try_from(diff)?, CollateralAction::Add)
+        } else {
+            (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
+        };
+
+        let tx_ref = format!(
+            "{}-collateral-{}",
+            self.id,
+            self.count_collateral_adjustments() + 1
+        );
+
+        let tx_id = LedgerTxId::new();
+
+        Ok(CreditFacilityCollateralUpdate {
+            abs_diff: collateral,
+            credit_facility_account_ids: self.account_ids,
+            tx_ref,
+            tx_id,
+            action,
+        })
+    }
+
+    pub(super) fn confirm_collateral_update(
+        &mut self,
+        CreditFacilityCollateralUpdate {
+            tx_id,
+            tx_ref,
+            abs_diff,
+            action,
+            ..
+        }: CreditFacilityCollateralUpdate,
+        executed_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) -> Option<CollateralizationState> {
+        let mut total_collateral = self.collateral();
+        total_collateral = match action {
+            CollateralAction::Add => total_collateral + abs_diff,
+            CollateralAction::Remove => total_collateral - abs_diff,
+        };
+        self.events.push(CreditFacilityEvent::CollateralUpdated {
+            tx_id,
+            tx_ref,
+            total_collateral,
+            abs_diff,
+            action,
+            recorded_in_ledger_at: executed_at,
+            audit_info,
+        });
+
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+    }
 }
 
 impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
@@ -298,6 +578,8 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::ApprovalAdded { .. } => (),
                 CreditFacilityEvent::DisbursementInitiated { .. } => (),
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
+                CreditFacilityEvent::CollateralUpdated { .. } => (),
+                CreditFacilityEvent::CollateralizationChanged { .. } => (),
             }
         }
         builder.events(events).build()
@@ -350,7 +632,7 @@ mod test {
 
     use super::*;
 
-    fn terms() -> TermValues {
+    fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(Duration::Months(3))
@@ -369,22 +651,34 @@ mod test {
         }
     }
 
+    fn default_price() -> PriceOfOneBTC {
+        PriceOfOneBTC::new(UsdCents::from(5000000))
+    }
+
+    fn default_upgrade_buffer_cvl_pct() -> CVLPct {
+        CVLPct::new(5)
+    }
+
     fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
         CreditFacility::try_from(EntityEvents::init(CreditFacilityId::new(), events.clone()))
             .unwrap()
     }
 
-    #[test]
-    fn is_disbursement_in_progress() {
-        let mut events = vec![CreditFacilityEvent::Initialized {
+    fn initial_events() -> Vec<CreditFacilityEvent> {
+        vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
-            facility: UsdCents::from(10000),
-            terms: terms(),
+            facility: UsdCents::from(100),
+            terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
             customer_account_ids: CustomerLedgerAccountIds::new(),
-        }];
+        }]
+    }
+
+    #[test]
+    fn is_disbursement_in_progress() {
+        let mut events = initial_events();
 
         let first_idx = DisbursementIdx::FIRST;
         events.push(CreditFacilityEvent::DisbursementInitiated {
@@ -406,5 +700,409 @@ mod test {
         assert!(facility_from(&events)
             .initiate_disbursement(dummy_audit_info(), UsdCents::ONE)
             .is_ok());
+    }
+
+    #[test]
+    fn outstanding() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let credit_facility = facility_from(&events);
+
+        assert_eq!(
+            credit_facility.outstanding(),
+            CreditFacilityReceivable {
+                disbursed: UsdCents::from(100),
+                interest: UsdCents::ZERO
+            }
+        );
+    }
+
+    #[test]
+    fn collateral() {
+        let mut credit_facility = facility_from(&initial_events());
+        assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
+
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(10000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
+
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(5000))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(credit_facility.collateral(), Satoshis::from(5000));
+    }
+
+    mod approve {
+        use super::*;
+
+        fn bank_manager_role() -> HashSet<Role> {
+            let mut roles = HashSet::new();
+            roles.insert(Role::BankManager);
+            roles
+        }
+
+        fn admin_role() -> HashSet<Role> {
+            let mut roles = HashSet::new();
+            roles.insert(Role::Admin);
+            roles
+        }
+
+        fn add_approvals(credit_facility: &mut CreditFacility) -> CreditFacilityApprovalData {
+            let first_approval = credit_facility.add_approval(
+                UserId::new(),
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+            assert!(first_approval.is_ok());
+
+            let second_approval = credit_facility.add_approval(
+                UserId::new(),
+                admin_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+            assert!(second_approval.is_ok());
+
+            second_approval
+                .unwrap()
+                .expect("should return a credit facility approval")
+        }
+
+        #[test]
+        fn cvl_is_approval_allowed() {
+            let terms = default_terms();
+
+            let facility_cvl = FacilityCVL {
+                total: terms.margin_call_cvl - CVLPct::from(dec!(1)),
+                disbursed: CVLPct::ZERO,
+            };
+            assert!(matches!(
+                facility_cvl.is_approval_allowed(terms),
+                Err(CreditFacilityError::BelowMarginLimit),
+            ));
+
+            let facility_cvl = FacilityCVL {
+                total: terms.margin_call_cvl,
+                disbursed: CVLPct::ZERO,
+            };
+            assert!(matches!(facility_cvl.is_approval_allowed(terms), Ok(())));
+        }
+
+        #[test]
+        fn prevent_double_approve() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let credit_facility_approval = add_approvals(&mut credit_facility);
+            credit_facility.confirm_approval(
+                credit_facility_approval,
+                Utc::now(),
+                dummy_audit_info(),
+            );
+
+            let third_approval = credit_facility.add_approval(
+                UserId::new(),
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+            assert!(matches!(
+                third_approval,
+                Err(CreditFacilityError::AlreadyApproved)
+            ));
+        }
+
+        #[test]
+        fn check_approved_at() {
+            let mut credit_facility = facility_from(&initial_events());
+            assert_eq!(credit_facility.approved_at, None);
+            assert_eq!(credit_facility.expires_at, None);
+
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let approval_time = Utc::now();
+
+            let credit_facility_approval = add_approvals(&mut credit_facility);
+            credit_facility.confirm_approval(
+                credit_facility_approval,
+                approval_time,
+                dummy_audit_info(),
+            );
+            assert_eq!(credit_facility.approved_at, Some(approval_time));
+            assert!(credit_facility.expires_at.is_some())
+        }
+
+        #[test]
+        fn cannot_approve_if_credit_facility_has_no_collateral() {
+            let mut credit_facility = facility_from(&initial_events());
+            let res = credit_facility.add_approval(
+                UserId::new(),
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+            assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
+        }
+
+        #[test]
+        fn reject_credit_facility_approval_below_margin_limit() {
+            let mut credit_facility = facility_from(&initial_events());
+
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(100))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+
+            let first_approval = credit_facility.add_approval(
+                UserId::new(),
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+            assert!(matches!(
+                first_approval,
+                Err(CreditFacilityError::BelowMarginLimit)
+            ));
+        }
+
+        #[test]
+        fn two_admins_can_approve() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let _first_admin_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    admin_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            let _second_admin_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    admin_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            assert!(credit_facility.approval_threshold_met());
+        }
+
+        #[test]
+        fn admin_and_bank_manager_can_approve() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let _admin_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    admin_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            let _bank_manager_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    bank_manager_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            assert!(credit_facility.approval_threshold_met());
+        }
+
+        #[test]
+        fn user_with_both_admin_and_bank_manager_role_cannot_approve() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let admin_and_bank_manager =
+                admin_role().union(&bank_manager_role()).cloned().collect();
+            let _approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    admin_and_bank_manager,
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            assert!(!credit_facility.approval_threshold_met());
+        }
+
+        #[test]
+        fn two_bank_managers_cannot_approve() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let _first_bank_manager_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    bank_manager_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+            let _second_bank_manager_approval = credit_facility
+                .add_approval(
+                    UserId::new(),
+                    bank_manager_role(),
+                    dummy_audit_info(),
+                    default_price(),
+                )
+                .unwrap();
+
+            assert!(!credit_facility.approval_threshold_met());
+        }
+
+        #[test]
+        fn same_user_cannot_approve_twice() {
+            let mut credit_facility = facility_from(&initial_events());
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+
+            let user_id = UserId::new();
+
+            let first_approval = credit_facility.add_approval(
+                user_id,
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+
+            assert!(first_approval.is_ok());
+
+            let second_approval = credit_facility.add_approval(
+                user_id,
+                bank_manager_role(),
+                dummy_audit_info(),
+                default_price(),
+            );
+
+            assert!(matches!(
+                second_approval,
+                Err(CreditFacilityError::UserCannotApproveTwice)
+            ));
+        }
+
+        #[test]
+        fn status() {
+            let mut credit_facility = facility_from(&initial_events());
+            assert_eq!(credit_facility.status(), CreditFacilityStatus::New);
+
+            let credit_facility_collateral_update = credit_facility
+                .initiate_collateral_update(Satoshis::from(10000))
+                .unwrap();
+            credit_facility.confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            );
+            let credit_facility_approval = add_approvals(&mut credit_facility);
+            credit_facility.confirm_approval(
+                credit_facility_approval,
+                Utc::now(),
+                dummy_audit_info(),
+            );
+            assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
+        }
     }
 }
