@@ -2,7 +2,7 @@ use crate::primitives::CustomerId;
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
 
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::PgPool;
 
 use super::error::ApplicantError;
 
@@ -26,7 +26,6 @@ impl ApplicantRepo {
 
     pub async fn persist_webhook_data(
         &self,
-        db: &mut Transaction<'_, Postgres>,
         customer_id: CustomerId,
         webhook_data: serde_json::Value,
     ) -> Result<i64, ApplicantError> {
@@ -39,7 +38,7 @@ impl ApplicantRepo {
             customer_id as CustomerId,
             webhook_data
         )
-        .fetch_one(&mut **db)
+        .fetch_one(&self.pool)
         .await?;
 
         Ok(row.id)

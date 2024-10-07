@@ -67,7 +67,7 @@ teardown_file() {
         "levelName": "basic-kyc-level",
         "externalUserId": "'"$customer_id"'",
         "type": "applicantCreated",
-        "sandboxMode": "false",
+        "sandboxMode": false,
         "reviewStatus": "init",
         "createdAtMs": "2020-02-21 13:23:19.002",
         "clientId": "coolClientId"
@@ -181,6 +181,50 @@ teardown_file() {
   level=$(graphql_output '.data.customer.level')
   [[ "$level" == "ONE" ]] || exit 1
 
-    status=$(graphql_output '.data.customer.status')
+  status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1
+}
+
+@test "sumsub: sandbox mode with random customer ID should return 200" {
+  random_customer_id=$(uuidgen)
+
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/sumsub/callback \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "random_applicant_id",
+      "inspectionId": "random_inspection_id",
+      "correlationId": "random_correlation_id",
+      "levelName": "basic-kyc-level",
+      "externalUserId": "'"$random_customer_id"'",
+      "type": "applicantCreated",
+      "sandboxMode": true,
+      "reviewStatus": "init",
+      "createdAtMs": "2024-10-05 13:23:19.002",
+      "clientId": "testClientId"
+    }')
+
+  echo "Status code: $status_code"
+  [[ "$status_code" -eq 200 ]] || exit 1
+}
+
+@test "sumsub: non-sandbox mode with random customer ID should return 500" {
+  random_customer_id=$(uuidgen)
+
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5253/sumsub/callback \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "random_applicant_id",
+      "inspectionId": "random_inspection_id",
+      "correlationId": "random_correlation_id",
+      "levelName": "basic-kyc-level",
+      "externalUserId": "'"$random_customer_id"'",
+      "type": "applicantCreated",
+      "sandboxMode": false,
+      "reviewStatus": "init",
+      "createdAtMs": "2024-10-05 13:23:19.002",
+      "clientId": "testClientId"
+    }')
+
+  echo "Status code: $status_code"
+  [[ "$status_code" -eq 500 ]] || exit 1
 }
