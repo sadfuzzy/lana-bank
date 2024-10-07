@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import Link from "next/link"
 
 import { IoEllipsisHorizontal } from "react-icons/io5"
@@ -78,22 +78,29 @@ export const CustomerLoansTable: React.FC<CustomerLoansTableProps> = ({
 )
 
 type LoanRowProps = {
-  loanId: string
-  balance: {
-    collateral: {
-      btcBalance: number
+  loan: {
+    loanId: string
+    balance: {
+      collateral: {
+        btcBalance: number
+      }
+      interestIncurred: {
+        usdBalance: number
+      }
+      outstanding: {
+        usdBalance: number
+      }
     }
-    interestIncurred: {
-      usdBalance: number
-    }
-    outstanding: {
-      usdBalance: number
-    }
+    status: LoanStatus
+    loanTerms: Loan["loanTerms"]
+    userCanApprove: boolean
+    userCanUpdateCollateral: boolean
+    userCanUpdateCollateralizationState: boolean
+    userCanRecordPaymentOrCompleteLoan: boolean
   }
-  status: LoanStatus
-  loanTerms: Loan["loanTerms"]
+  refetch: () => void
 }
-const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void }) => {
+const LoanRow: React.FC<LoanRowProps> = ({ loan, refetch }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] = useState<{
     loanId: string
@@ -157,21 +164,22 @@ const LoanRow = ({ loan, refetch }: { loan: LoanRowProps; refetch: () => void })
                       <span>View Details</span>
                     </Link>
                   </DropdownMenuItem>
-                  {loan.status === LoanStatus.Active && (
-                    <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                      <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
-                        <span>Repayment</span>
-                      </LoanPartialPaymentDialog>
-                    </DropdownMenuItem>
-                  )}
-                  {loan.status === LoanStatus.New && (
+                  {loan.userCanRecordPaymentOrCompleteLoan &&
+                    loan.status === LoanStatus.Active && (
+                      <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                        <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
+                          <span>Repayment</span>
+                        </LoanPartialPaymentDialog>
+                      </DropdownMenuItem>
+                    )}
+                  {loan.userCanApprove && loan.status === LoanStatus.New && (
                     <DropdownMenuItem onClick={(e) => e.preventDefault()}>
                       <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
                         <span>Approve Loan</span>
                       </LoanApproveDialog>
                     </DropdownMenuItem>
                   )}
-                  {loan.status !== LoanStatus.Closed && (
+                  {loan.userCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
                     <DropdownMenuItem
                       onClick={(e) => {
                         e.preventDefault()

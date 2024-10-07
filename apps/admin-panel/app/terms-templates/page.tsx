@@ -10,7 +10,11 @@ import { CreateTermsTemplateDialog } from "./create"
 
 import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
-import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
+import {
+  TermsTemplate,
+  useMeQuery,
+  useTermsTemplatesQuery,
+} from "@/lib/graphql/generated"
 import { Card, CardContent } from "@/components/primitive/card"
 import {
   Table,
@@ -57,6 +61,8 @@ function TermPage() {
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
 
+  const { data: me } = useMeQuery()
+
   return (
     <main>
       {openUpdateTermsTemplateDialog && (
@@ -74,7 +80,9 @@ function TermPage() {
       />
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Terms Template</PageHeading>
-        <Button onClick={() => setOpenCreateUserDialog(true)}>Create New</Button>
+        {me?.me.canCreateTermsTemplate && (
+          <Button onClick={() => setOpenCreateUserDialog(true)}>Create New</Button>
+        )}
       </div>
       <Card>
         <CardContent>
@@ -125,13 +133,15 @@ function TermPage() {
                               View details
                             </Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setOpenUpdateTermsTemplateDialog(termsTemplate)
-                            }
-                          >
-                            Update
-                          </DropdownMenuItem>
+                          {me?.me.canUpdateTermsTemplate && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setOpenUpdateTermsTemplateDialog(termsTemplate)
+                              }
+                            >
+                              Update
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>

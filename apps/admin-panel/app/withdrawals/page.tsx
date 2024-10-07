@@ -40,6 +40,8 @@ gql`
         amount
         status
         reference
+        userCanConfirm
+        userCanCancel
         customer {
           customerId
           email

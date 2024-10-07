@@ -186,25 +186,31 @@ function CustomerTable({
                             <Link href={`/customers/${customer.customerId}`}>
                               <DropdownMenuItem>View details</DropdownMenuItem>
                             </Link>
-                            <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                              <CreateLoanDialog customerId={customer.customerId}>
-                                <span>Create Loan</span>
-                              </CreateLoanDialog>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setOpenRecordDepositDialog(customer.customerId)
-                              }
-                            >
-                              Record Deposit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setOpenWithdrawalInitiateDialog(customer.customerId)
-                              }
-                            >
-                              Record Withdrawal
-                            </DropdownMenuItem>
+                            {customer.userCanCreateLoan && (
+                              <DropdownMenuItem onClick={(e) => e.preventDefault()}>
+                                <CreateLoanDialog customerId={customer.customerId}>
+                                  <span>Create Loan</span>
+                                </CreateLoanDialog>
+                              </DropdownMenuItem>
+                            )}
+                            {customer.userCanRecordDeposit && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setOpenRecordDepositDialog(customer.customerId)
+                                }
+                              >
+                                Record Deposit
+                              </DropdownMenuItem>
+                            )}
+                            {customer.userCanInitiateWithdrawal && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setOpenWithdrawalInitiateDialog(customer.customerId)
+                                }
+                              >
+                                Record Withdrawal
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

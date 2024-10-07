@@ -11,6 +11,7 @@ import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { PageHeading } from "@/components/page-heading"
 import { isEmail, isUUID } from "@/lib/utils"
+import { useMeQuery } from "@/lib/graphql/generated"
 
 gql`
   query getCustomerByCustomerEmail($email: String!) {
@@ -21,6 +22,9 @@ gql`
       status
       level
       applicantId
+      userCanCreateLoan
+      userCanRecordDeposit
+      userCanInitiateWithdrawal
       balance {
         checking {
           settled
@@ -38,6 +42,9 @@ gql`
       status
       level
       applicantId
+      userCanCreateLoan
+      userCanRecordDeposit
+      userCanInitiateWithdrawal
       balance {
         checking {
           settled
@@ -53,6 +60,8 @@ function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
   const [searchInput, setSearchInput] = useState(search || "")
   const [openCreateCustomerDialog, setOpenCreateCustomerDialog] = useState(false)
   const router = useRouter()
+
+  const { data: me } = useMeQuery()
 
   const handleOpenCreateCustomerDialog = (e: React.FormEvent) => {
     e.preventDefault()
@@ -110,7 +119,9 @@ function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
               X Clear
             </Button>
           )}
-          <Button onClick={handleOpenCreateCustomerDialog}>Create New</Button>
+          {me?.me.canCreateCustomer && (
+            <Button onClick={handleOpenCreateCustomerDialog}>Create New</Button>
+          )}
         </div>
       </form>
       <CustomerTable

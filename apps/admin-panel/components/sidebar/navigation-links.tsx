@@ -32,6 +32,12 @@ gql`
       userId
       email
       roles
+      canCreateUser
+      canCreateCustomer
+      canAssignRoleToUser
+      canRevokeRoleFromUser
+      canCreateTermsTemplate
+      canUpdateTermsTemplate
       visibleNavigationItems {
         loan
         term

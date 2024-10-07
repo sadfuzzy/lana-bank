@@ -7,6 +7,9 @@ gql`
         customerId
         email
         telegramId
+        userCanCreateLoan
+        userCanRecordDeposit
+        userCanInitiateWithdrawal
         balance {
           checking {
             settled

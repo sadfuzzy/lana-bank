@@ -21,6 +21,9 @@ gql`
       status
       level
       applicantId
+      userCanCreateLoan
+      userCanRecordDeposit
+      userCanInitiateWithdrawal
       balance {
         checking {
           settled
@@ -37,6 +40,10 @@ gql`
         collateral
         status
         collateralizationState
+        userCanApprove
+        userCanUpdateCollateral
+        userCanUpdateCollateralizationState
+        userCanRecordPaymentOrCompleteLoan
         customer {
           customerId
           email

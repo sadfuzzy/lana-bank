@@ -10,6 +10,7 @@ import { CreateUserDialog } from "./create"
 
 import {
   Role,
+  useMeQuery,
   useUserAssignRoleMutation,
   useUserRevokeRoleMutation,
   useUsersQuery,
@@ -70,15 +71,18 @@ gql`
 
 function UsersPage() {
   const { data: usersList, refetch } = useUsersQuery()
+  const { data: me } = useMeQuery()
   const [openCreateUserDialog, setOpenCreateUserDialog] = useState<boolean>(false)
 
   return (
     <div>
-      <CreateUserDialog
-        setOpenCreateUserDialog={setOpenCreateUserDialog}
-        openCreateUserDialog={openCreateUserDialog}
-        refetch={refetch}
-      />
+      {me?.me.canCreateUser && (
+        <CreateUserDialog
+          setOpenCreateUserDialog={setOpenCreateUserDialog}
+          openCreateUserDialog={openCreateUserDialog}
+          refetch={refetch}
+        />
+      )}
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Users</PageHeading>
         <Button onClick={() => setOpenCreateUserDialog(true)} variant="primary">
