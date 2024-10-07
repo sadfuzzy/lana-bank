@@ -10,7 +10,7 @@ use super::{
 use crate::{
     app::LavaApp,
     audit::AuditCursor,
-    primitives::{CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
+    primitives::{CreditFacilityId, CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
     server::{
         admin::{
             graphql::terms_template::{
@@ -72,6 +72,22 @@ impl Query {
 
         let loan = app.loans().find_by_id(Some(sub), LoanId::from(id)).await?;
         Ok(loan.map(Loan::from))
+    }
+
+    async fn credit_facility(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacility>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .find_by_id(Some(sub), CreditFacilityId::from(id))
+            .await?;
+        Ok(credit_facility.map(CreditFacility::from))
     }
 
     async fn customer(
@@ -648,6 +664,21 @@ impl Mutation {
             .update_collateral(sub, credit_facility_id.into(), collateral)
             .await?;
         Ok(CreditFacilityCollateralUpdatePayload::from(credit_facility))
+    }
+
+    pub async fn credit_facility_partial_payment(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityPartialPaymentInput,
+    ) -> async_graphql::Result<CreditFacilityPartialPaymentPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let credit_facility = app
+            .credit_facilities()
+            .record_payment(sub, input.credit_facility_id.into(), input.amount)
+            .await?;
+        Ok(CreditFacilityPartialPaymentPayload::from(credit_facility))
     }
 
     pub async fn deposit_record(

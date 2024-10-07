@@ -175,7 +175,7 @@ impl CalaClient {
             loan_collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
             loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
             loans_collateral_control_account_set_id:
-                super::constants::LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
+                super::constants::OBS_LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
             loan_principal_receivable_account_code: format!(
                 "LOANS.PRINCIPAL_RECEIVABLE.{}",
@@ -220,6 +220,7 @@ impl CalaClient {
             facility_account_id,
             disbursed_receivable_account_id,
             collateral_account_id,
+            interest_receivable_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
@@ -234,7 +235,7 @@ impl CalaClient {
                 credit_facility_id
             ),
             facilities_collateral_control_account_set_id:
-                super::constants::CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
+                super::constants::OBS_CREDIT_FACILITIES_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
             facility_account_id: Uuid::from(facility_account_id),
             facility_account_code: format!("CREDIT_FACILITY.OBS_FACILITY.{}", credit_facility_id),
             facility_account_name: format!(
@@ -254,6 +255,17 @@ impl CalaClient {
             ),
             facilities_disbursed_receivable_control_account_set_id:
                 super::constants::CREDIT_FACILITIES_DISBURSED_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
+            facility_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
+            facility_interest_receivable_account_code: format!(
+                "CREDIT_FACILITY.INTEREST_RECEIVABLE.{}",
+                credit_facility_id
+            ),
+            facility_interest_receivable_account_name: format!(
+                "Interest Receivable Account for Credit Facility {}",
+                credit_facility_id
+            ),
+            facilities_interest_receivable_control_account_set_id:
+                super::constants::CREDIT_FACILITIES_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
         };
         let response = Self::traced_gql_request::<CreateCreditFacilityAccounts, _>(
             &self.client,
@@ -388,6 +400,8 @@ impl CalaClient {
         let variables = credit_facility_balance::Variables {
             journal_id: super::constants::CORE_JOURNAL_ID,
             facility_id: Uuid::from(account_ids.facility_account_id),
+            disbursed_receivable_id: Uuid::from(account_ids.disbursed_receivable_account_id),
+            interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
         };
         let response = Self::traced_gql_request::<CreditFacilityBalance, _>(
             &self.client,
@@ -1307,6 +1321,27 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
+    pub async fn create_record_credit_facility_payment_tx_template(
+        &self,
+        template_id: TxTemplateId,
+    ) -> Result<TxTemplateId, CalaError> {
+        let variables = record_credit_facility_payment_template_create::Variables {
+            template_id: Uuid::from(template_id),
+            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
+        };
+        let response = Self::traced_gql_request::<RecordCreditFacilityPaymentTemplateCreate, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        response
+            .data
+            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
+            .ok_or_else(|| CalaError::MissingDataField)
+    }
+
     #[instrument(name = "lava.ledger.cala.execute_repay_loan_tx", skip(self), err)]
     pub async fn execute_repay_loan_tx(
         &self,
@@ -1331,6 +1366,47 @@ impl CalaClient {
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
+            &self.client,
+            &self.url,
+            variables,
+        )
+        .await?;
+
+        let created_at = response
+            .data
+            .map(|d| d.transaction_post.transaction.created_at)
+            .ok_or_else(|| CalaError::MissingDataField)?;
+        Ok(created_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.cala.execute_repay_credit_facility_tx",
+        skip(self),
+        err
+    )]
+    pub async fn execute_repay_credit_facility_tx(
+        &self,
+        transaction_id: LedgerTxId,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
+        interest_payment_amount: Decimal,
+        disbursement_payment_amount: Decimal,
+        external_id: String,
+    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
+        let variables = post_record_credit_facility_payment_transaction::Variables {
+            transaction_id: transaction_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
+            facility_interest_receivable_account: credit_facility_account_ids
+                .interest_receivable_account_id
+                .into(),
+            facility_disbursed_receivable_account: credit_facility_account_ids
+                .disbursed_receivable_account_id
+                .into(),
+            interest_payment_amount,
+            disbursement_payment_amount,
+            external_id,
+        };
+        let response = Self::traced_gql_request::<PostRecordCreditFacilityPaymentTransaction, _>(
             &self.client,
             &self.url,
             variables,

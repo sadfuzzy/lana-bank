@@ -413,6 +413,34 @@ impl Ledger {
         Ok(created_at)
     }
 
+    #[instrument(name = "lava.ledger.record_credit_facility_repayment", skip(self), err)]
+    pub async fn record_credit_facility_repayment(
+        &self,
+        CreditFacilityRepayment {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            customer_account_ids,
+            amounts:
+                CreditFacilityPaymentAmounts {
+                    interest,
+                    disbursement,
+                },
+        }: CreditFacilityRepayment,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_repay_credit_facility_tx(
+                tx_id,
+                credit_facility_account_ids,
+                customer_account_ids,
+                interest.to_usd(),
+                disbursement.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
     pub async fn create_accounts_for_loan(
         &self,
@@ -640,6 +668,11 @@ impl Ledger {
 
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
+        Self::assert_record_credit_facility_payment_tx_template_exists(
+            cala,
+            constants::RECORD_CREDIT_FACILITY_PAYMENT_CODE,
+        )
+        .await?;
 
         Ok(())
     }
@@ -938,6 +971,34 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_record_payment_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_record_credit_facility_payment_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_record_credit_facility_payment_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }

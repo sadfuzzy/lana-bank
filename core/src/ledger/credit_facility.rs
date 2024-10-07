@@ -9,6 +9,7 @@ pub struct CreditFacilityAccountIds {
     pub facility_account_id: LedgerAccountId,
     pub disbursed_receivable_account_id: LedgerAccountId,
     pub collateral_account_id: LedgerAccountId,
+    pub interest_receivable_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
@@ -18,12 +19,15 @@ impl CreditFacilityAccountIds {
             facility_account_id: LedgerAccountId::new(),
             disbursed_receivable_account_id: LedgerAccountId::new(),
             collateral_account_id: LedgerAccountId::new(),
+            interest_receivable_account_id: LedgerAccountId::new(),
         }
     }
 }
 
 pub struct CreditFacilityBalance {
     pub facility: UsdCents,
+    pub disbursed_receivable: UsdCents,
+    pub interest_receivable: UsdCents,
 }
 
 impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
@@ -33,6 +37,14 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
         Ok(CreditFacilityBalance {
             facility: data
                 .facility
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            disbursed_receivable: data
+                .disbursed_receivable
+                .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
+                .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
+            interest_receivable: data
+                .interest_receivable
                 .map(|b| UsdCents::try_from_usd(b.settled.normal_balance.units))
                 .unwrap_or_else(|| Ok(UsdCents::ZERO))?,
         })
@@ -67,4 +79,19 @@ pub struct CreditFacilityApprovalData {
     pub tx_id: LedgerTxId,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
     pub customer_account_ids: CustomerLedgerAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityRepayment {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub customer_account_ids: CustomerLedgerAccountIds,
+    pub amounts: CreditFacilityPaymentAmounts,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct CreditFacilityPaymentAmounts {
+    pub interest: UsdCents,
+    pub disbursement: UsdCents,
 }

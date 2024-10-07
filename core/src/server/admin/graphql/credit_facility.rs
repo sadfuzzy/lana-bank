@@ -1,13 +1,33 @@
 use async_graphql::*;
 
 use crate::{
+    app::LavaApp,
+    ledger,
     primitives::{Satoshis, UsdCents},
-    server::shared_graphql::{convert::ToGlobalId, primitives::UUID, terms::*},
+    server::shared_graphql::{
+        convert::ToGlobalId, objects::Outstanding, primitives::UUID, terms::*,
+    },
+    terms::CollateralizationState,
 };
 
 pub use crate::primitives::DisbursementIdx;
 
 scalar!(DisbursementIdx);
+
+#[derive(SimpleObject)]
+pub(super) struct CreditFacilityBalance {
+    outstanding: Outstanding,
+}
+
+impl From<ledger::credit_facility::CreditFacilityBalance> for CreditFacilityBalance {
+    fn from(balance: ledger::credit_facility::CreditFacilityBalance) -> Self {
+        Self {
+            outstanding: Outstanding {
+                usd_balance: balance.disbursed_receivable + balance.interest_receivable,
+            },
+        }
+    }
+}
 
 #[derive(InputObject)]
 pub struct CreditFacilityCreateInput {
@@ -17,9 +37,25 @@ pub struct CreditFacilityCreateInput {
 }
 
 #[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
+    collateralization_state: CollateralizationState,
+    #[graphql(skip)]
+    account_ids: crate::ledger::credit_facility::CreditFacilityAccountIds,
+}
+
+#[ComplexObject]
+impl CreditFacility {
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let balance = app
+            .ledger()
+            .get_credit_facility_balance(self.account_ids)
+            .await?;
+        Ok(CreditFacilityBalance::from(balance))
+    }
 }
 
 #[derive(SimpleObject)]
@@ -56,6 +92,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
+            account_ids: credit_facility.account_ids,
+            collateralization_state: credit_facility.collateralization(),
         }
     }
 }
@@ -64,6 +102,25 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityCreatePayloa
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
         Self {
             credit_facility: CreditFacility::from(credit_facility),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilityPartialPaymentInput {
+    pub credit_facility_id: UUID,
+    pub amount: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityPartialPaymentPayload {
+    credit_facility: CreditFacility,
+}
+
+impl From<crate::credit_facility::CreditFacility> for CreditFacilityPartialPaymentPayload {
+    fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        Self {
+            credit_facility: credit_facility.into(),
         }
     }
 }

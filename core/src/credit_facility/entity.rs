@@ -6,10 +6,7 @@ use std::collections::HashSet;
 
 use crate::{
     entity::*,
-    ledger::{
-        credit_facility::{CreditFacilityAccountIds, CreditFacilityApprovalData},
-        customer::CustomerLedgerAccountIds,
-    },
+    ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLPct, CollateralizationState, TermValues},
 };
@@ -31,13 +28,13 @@ pub enum CreditFacilityEvent {
     ApprovalAdded {
         approving_user_id: UserId,
         approving_user_roles: HashSet<Role>,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     Approved {
         tx_id: LedgerTxId,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     DisbursementInitiated {
         idx: DisbursementIdx,
@@ -47,8 +44,8 @@ pub enum CreditFacilityEvent {
     DisbursementConcluded {
         idx: DisbursementIdx,
         tx_id: LedgerTxId,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
+        recorded_at: DateTime<Utc>,
     },
     CollateralUpdated {
         tx_id: LedgerTxId,
@@ -56,16 +53,24 @@ pub enum CreditFacilityEvent {
         total_collateral: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
-        audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
+        audit_info: AuditInfo,
     },
     CollateralizationChanged {
         state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    PaymentRecorded {
+        tx_id: LedgerTxId,
+        tx_ref: String,
+        disbursement_amount: UsdCents,
+        interest_amount: UsdCents,
+        audit_info: AuditInfo,
+        recorded_in_ledger_at: DateTime<Utc>,
     },
 }
 
@@ -82,9 +87,45 @@ pub struct CreditFacilityReceivable {
     pub interest: UsdCents,
 }
 
+impl From<CreditFacilityBalance> for CreditFacilityReceivable {
+    fn from(balance: CreditFacilityBalance) -> Self {
+        Self {
+            disbursed: balance.disbursed_receivable,
+            interest: balance.interest_receivable,
+        }
+    }
+}
+
 impl CreditFacilityReceivable {
     pub fn total(&self) -> UsdCents {
         self.interest + self.disbursed
+    }
+
+    fn allocate_payment(
+        &self,
+        amount: UsdCents,
+    ) -> Result<CreditFacilityPaymentAmounts, CreditFacilityError> {
+        if self.total() < amount {
+            return Err(
+                CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
+                    amount,
+                    self.total(),
+                ),
+            );
+        }
+
+        let mut remaining = amount;
+
+        let interest = std::cmp::min(amount, self.interest);
+        remaining -= interest;
+
+        let disbursement = std::cmp::min(remaining, self.disbursed);
+        remaining -= disbursement;
+
+        Ok(CreditFacilityPaymentAmounts {
+            interest,
+            disbursement,
+        })
     }
 }
 
@@ -167,13 +208,28 @@ impl CreditFacility {
     }
 
     fn disbursed_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    disbursement_amount,
+                    ..
+                } => Some(*disbursement_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     fn interest_payments(&self) -> UsdCents {
-        // TODO: implement
-        UsdCents::ZERO
+        self.events
+            .iter()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::PaymentRecorded {
+                    interest_amount, ..
+                } => Some(*interest_amount),
+                _ => None,
+            })
+            .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
     pub(super) fn is_approved(&self) -> bool {
@@ -388,6 +444,21 @@ impl CreditFacility {
             .unwrap_or(Satoshis::ZERO)
     }
 
+    pub fn collateralization(&self) -> CollateralizationState {
+        if self.status() == CreditFacilityStatus::Closed {
+            return CollateralizationState::NoCollateral;
+        }
+
+        self.events
+            .iter()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                _ => None,
+            })
+            .unwrap_or(CollateralizationState::NoCollateral)
+    }
+
     pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
         let collateral_value = price.sats_to_cents_round_down(self.collateral());
 
@@ -398,6 +469,52 @@ impl CreditFacility {
             ),
             disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
         }
+    }
+
+    pub(super) fn initiate_repayment(
+        &self,
+        amount: UsdCents,
+    ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
+        let amounts = self.outstanding().allocate_payment(amount)?;
+
+        let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
+
+        let res = CreditFacilityRepayment {
+            tx_id: LedgerTxId::new(),
+            tx_ref,
+            credit_facility_account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+            amounts,
+        };
+
+        Ok(res)
+    }
+
+    pub fn confirm_repayment(
+        &mut self,
+        repayment: CreditFacilityRepayment,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) {
+        self.events.push(CreditFacilityEvent::PaymentRecorded {
+            tx_id: repayment.tx_id,
+            tx_ref: repayment.tx_ref,
+            disbursement_amount: repayment.amounts.disbursement,
+            interest_amount: repayment.amounts.interest,
+            audit_info,
+            recorded_in_ledger_at: recorded_at,
+        });
+
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
+    }
+
+    fn count_recorded_payments(&self) -> usize {
+        self.events
+            .iter()
+            .filter(|event| matches!(event, CreditFacilityEvent::PaymentRecorded { .. }))
+            .count()
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
@@ -580,6 +697,7 @@ impl TryFrom<EntityEvents<CreditFacilityEvent>> for CreditFacility {
                 CreditFacilityEvent::DisbursementConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
+                CreditFacilityEvent::PaymentRecorded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -674,6 +792,16 @@ mod test {
             account_ids: CreditFacilityAccountIds::new(),
             customer_account_ids: CustomerLedgerAccountIds::new(),
         }]
+    }
+
+    #[test]
+    fn allocate_payment() {
+        let outstanding = CreditFacilityReceivable {
+            disbursed: UsdCents::from(100),
+            interest: UsdCents::from(2),
+        };
+        assert!(outstanding.allocate_payment(UsdCents::from(200)).is_err());
+        assert!(outstanding.allocate_payment(UsdCents::from(100)).is_ok());
     }
 
     #[test]
@@ -1104,5 +1232,42 @@ mod test {
             );
             assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
         }
+    }
+
+    #[test]
+    fn confirm_repayment() {
+        let mut events = initial_events();
+        events.extend([
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(100),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut credit_facility = facility_from(&events);
+
+        let repayment_amount = UsdCents::from(5);
+        let repayment = credit_facility
+            .initiate_repayment(repayment_amount)
+            .unwrap();
+        let outstanding_before_repayment = credit_facility.outstanding();
+
+        credit_facility.confirm_repayment(
+            repayment,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(
+            outstanding_before_repayment.total() - credit_facility.outstanding().total(),
+            repayment_amount
+        );
     }
 }
