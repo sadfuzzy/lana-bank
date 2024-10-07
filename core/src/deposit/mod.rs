@@ -8,7 +8,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     ledger::Ledger,
-    primitives::{CustomerId, DepositId, Subject, UsdCents},
+    primitives::{AuditInfo, CustomerId, DepositId, Subject, UsdCents},
 };
 
 pub use cursor::*;
@@ -47,6 +47,17 @@ impl Deposits {
         &self.repo
     }
 
+    pub async fn user_can_record(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, DepositError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::Deposit, DepositAction::Record, enforce)
+            .await?)
+    }
+
     pub async fn record(
         &self,
         sub: &Subject,
@@ -55,9 +66,9 @@ impl Deposits {
         reference: Option<String>,
     ) -> Result<Deposit, DepositError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::Deposit, DepositAction::Record)
-            .await?;
+            .user_can_record(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;

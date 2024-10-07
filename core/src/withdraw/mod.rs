@@ -8,7 +8,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     ledger::Ledger,
-    primitives::{CustomerId, Subject, UsdCents, WithdrawId},
+    primitives::{AuditInfo, CustomerId, Subject, UsdCents, WithdrawId},
 };
 
 pub use cursor::*;
@@ -47,6 +47,17 @@ impl Withdraws {
         &self.repo
     }
 
+    pub async fn user_can_initiate(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, WithdrawError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Initiate, enforce)
+            .await?)
+    }
+
     pub async fn initiate(
         &self,
         sub: &Subject,
@@ -55,9 +66,9 @@ impl Withdraws {
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Initiate)
-            .await?;
+            .user_can_initiate(sub, true)
+            .await?
+            .expect("audit info missing");
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;
         let new_withdraw = NewWithdraw::builder()
@@ -98,15 +109,26 @@ impl Withdraws {
         Ok(withdraw)
     }
 
+    pub async fn user_can_confirm(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, WithdrawError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Confirm, enforce)
+            .await?)
+    }
+
     pub async fn confirm(
         &self,
         sub: &Subject,
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Confirm)
-            .await?;
+            .user_can_confirm(sub, true)
+            .await?
+            .expect("audit info missing");
         let id = withdrawal_id.into();
         let mut withdrawal = self.repo.find_by_id(id).await?;
         let tx_id = withdrawal.confirm(audit_info)?;
@@ -129,15 +151,26 @@ impl Withdraws {
         Ok(withdrawal)
     }
 
+    pub async fn user_can_cancel(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, WithdrawError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::Withdraw, WithdrawAction::Cancel, enforce)
+            .await?)
+    }
+
     pub async fn cancel(
         &self,
         sub: &Subject,
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::Withdraw, WithdrawAction::Cancel)
-            .await?;
+            .user_can_cancel(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let id = withdrawal_id.into();
         let mut withdrawal = self.repo.find_by_id(id).await?;

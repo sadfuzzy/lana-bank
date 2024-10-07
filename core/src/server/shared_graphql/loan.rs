@@ -4,9 +4,11 @@ use crate::{
     app::LavaApp,
     ledger,
     loan::LoanCollaterizationState,
-    primitives::{CollateralAction, CustomerId, LoanStatus, UserId},
-    server::admin::graphql::user::User,
-    server::shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
+    primitives::{CollateralAction, CustomerId, LoanId, LoanStatus, UserId},
+    server::{
+        admin::{graphql::user::User, AdminAuthContext},
+        shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
+    },
 };
 
 use super::convert::ToGlobalId;
@@ -165,6 +167,56 @@ impl Loan {
             Some(user) => Ok(Customer::from(user)),
             None => panic!("user not found for a loan. should not be possible"),
         }
+    }
+
+    async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let loan_id = LoanId::from(&self.loan_id);
+        Ok(app
+            .loans()
+            .user_can_approve(sub, loan_id, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let loan_id = LoanId::from(&self.loan_id);
+        Ok(app
+            .loans()
+            .user_can_update_collateral(sub, loan_id, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_update_collateralization_state(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let loan_id = LoanId::from(&self.loan_id);
+        Ok(app
+            .loans()
+            .user_can_update_collateralization_state(sub, loan_id, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_record_payment_or_complete_loan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let loan_id = LoanId::from(&self.loan_id);
+        Ok(app
+            .loans()
+            .user_can_record_payment_or_complete_loan(sub, loan_id, false)
+            .await
+            .is_ok())
     }
 }
 

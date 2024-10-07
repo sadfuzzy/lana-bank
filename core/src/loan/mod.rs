@@ -108,6 +108,23 @@ impl Loans {
         Ok(())
     }
 
+    pub async fn user_can_create_loan_for_customer(
+        &self,
+        sub: &Subject,
+        customer_id: CustomerId,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, LoanError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                LoanAction::Create,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
@@ -119,13 +136,9 @@ impl Loans {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                LoanAction::Create,
-            )
-            .await?;
+            .user_can_create_loan_for_customer(sub, customer_id, true)
+            .await?
+            .expect("audit info missing");
 
         let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,
@@ -156,6 +169,23 @@ impl Loans {
         Ok(loan)
     }
 
+    pub async fn user_can_approve(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, LoanError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
+                LoanAction::Approve,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.loan.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
@@ -165,13 +195,9 @@ impl Loans {
         let loan_id = loan_id.into();
 
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::Loan(LoanAllOrOne::ById(loan_id)),
-                LoanAction::Approve,
-            )
-            .await?;
+            .user_can_approve(sub, loan_id, true)
+            .await?
+            .expect("audit info missing");
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
@@ -201,6 +227,23 @@ impl Loans {
         Ok(loan)
     }
 
+    pub async fn user_can_update_collateral(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, LoanError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
+                LoanAction::UpdateCollateral,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
@@ -209,13 +252,9 @@ impl Loans {
         updated_collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::Loan(LoanAllOrOne::ById(loan_id)),
-                LoanAction::UpdateCollateral,
-            )
-            .await?;
+            .user_can_update_collateral(sub, loan_id, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -241,6 +280,23 @@ impl Loans {
         Ok(loan)
     }
 
+    pub async fn user_can_update_collateralization_state(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, LoanError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
+                LoanAction::UpdateCollateralizationState,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
     pub async fn update_collateralization_state(
         &self,
@@ -248,13 +304,9 @@ impl Loans {
         loan_id: LoanId,
     ) -> Result<Loan, LoanError> {
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::Loan(LoanAllOrOne::ById(loan_id)),
-                LoanAction::UpdateCollateralizationState,
-            )
-            .await?;
+            .user_can_update_collateralization_state(sub, loan_id, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -274,6 +326,23 @@ impl Loans {
         Ok(loan)
     }
 
+    pub async fn user_can_record_payment_or_complete_loan(
+        &self,
+        sub: &Subject,
+        loan_id: LoanId,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, LoanError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::Loan(LoanAllOrOne::ById(loan_id)),
+                LoanAction::RecordPayment,
+                enforce,
+            )
+            .await?)
+    }
+
     pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,
@@ -283,13 +352,9 @@ impl Loans {
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::Loan(LoanAllOrOne::ById(loan_id)),
-                LoanAction::RecordPayment,
-            )
-            .await?;
+            .user_can_record_payment_or_complete_loan(sub, loan_id, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 

@@ -32,6 +32,18 @@ impl Withdrawal {
             .await?;
         Ok(customer.map(Customer::from))
     }
+
+    async fn user_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.withdraws().user_can_confirm(sub, false).await.is_ok())
+    }
+
+    async fn user_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app.withdraws().user_can_cancel(sub, false).await.is_ok())
+    }
 }
 
 impl From<crate::withdraw::Withdraw> for Withdrawal {

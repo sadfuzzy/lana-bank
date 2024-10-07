@@ -9,7 +9,7 @@ use crate::{
     audit::Audit,
     authorization::{error::AuthorizationError, Authorization, Object, UserAction},
     data_export::Export,
-    primitives::{Role, Subject, SystemNode, UserId},
+    primitives::{AuditInfo, Role, Subject, SystemNode, UserId},
 };
 
 pub use config::*;
@@ -77,15 +77,27 @@ impl Users {
         &self.repo
     }
 
+    pub async fn can_create_user(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, UserError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::User, UserAction::Create, enforce)
+            .await?)
+    }
+
     pub async fn create_user(
         &self,
         sub: &Subject,
         email: impl Into<String>,
     ) -> Result<User, UserError> {
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::User, UserAction::Create)
-            .await?;
+            .can_create_user(sub, true)
+            .await?
+            .expect("audit info missing");
+
         let new_user = NewUser::builder()
             .email(email)
             .audit_info(audit_info)
@@ -138,6 +150,17 @@ impl Users {
         self.repo.list().await
     }
 
+    pub async fn can_assign_role_to_user(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, UserError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::User, UserAction::AssignRole, enforce)
+            .await?)
+    }
+
     pub async fn assign_role_to_user(
         &self,
         sub: &Subject,
@@ -150,9 +173,9 @@ impl Users {
             ));
         }
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::User, UserAction::AssignRole)
-            .await?;
+            .can_assign_role_to_user(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
         if user.assign_role(role, audit_info) {
@@ -161,6 +184,17 @@ impl Users {
         }
 
         Ok(user)
+    }
+
+    pub async fn can_revoke_role_from_user(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, UserError> {
+        Ok(self
+            .authz
+            .evaluate_permission(sub, Object::User, UserAction::RevokeRole, enforce)
+            .await?)
     }
 
     pub async fn revoke_role_from_user(
@@ -175,9 +209,9 @@ impl Users {
             ));
         }
         let audit_role = self
-            .authz
-            .enforce_permission(sub, Object::User, UserAction::RevokeRole)
-            .await?;
+            .can_revoke_role_from_user(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
         if user.revoke_role(role, audit_role) {

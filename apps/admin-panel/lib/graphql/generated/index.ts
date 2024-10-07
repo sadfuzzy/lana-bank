@@ -271,6 +271,9 @@ export type Customer = {
   status: AccountStatus;
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
+  userCanCreateLoan: Scalars['Boolean']['output'];
+  userCanInitiateWithdrawal: Scalars['Boolean']['output'];
+  userCanRecordDeposit: Scalars['Boolean']['output'];
   withdrawals: Array<Withdrawal>;
 };
 
@@ -433,6 +436,10 @@ export type Loan = {
   repaymentPlan: Array<LoanRepaymentInPlan>;
   status: LoanStatus;
   transactions: Array<LoanHistoryEntry>;
+  userCanApprove: Scalars['Boolean']['output'];
+  userCanRecordPaymentOrCompleteLoan: Scalars['Boolean']['output'];
+  userCanUpdateCollateral: Scalars['Boolean']['output'];
+  userCanUpdateCollateralizationState: Scalars['Boolean']['output'];
 };
 
 export type LoanApproval = {
@@ -1030,6 +1037,12 @@ export type UsdAccountAmountsInPeriod = {
 
 export type User = {
   __typename?: 'User';
+  canAssignRoleToUser: Scalars['Boolean']['output'];
+  canCreateCustomer: Scalars['Boolean']['output'];
+  canCreateTermsTemplate: Scalars['Boolean']['output'];
+  canCreateUser: Scalars['Boolean']['output'];
+  canRevokeRoleFromUser: Scalars['Boolean']['output'];
+  canUpdateTermsTemplate: Scalars['Boolean']['output'];
   email: Scalars['String']['output'];
   roles: Array<Role>;
   userId: Scalars['UUID']['output'];
@@ -1085,6 +1098,8 @@ export type Withdrawal = {
   customerId: Scalars['UUID']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
+  userCanCancel: Scalars['Boolean']['output'];
+  userCanConfirm: Scalars['Boolean']['output'];
   withdrawalId: Scalars['UUID']['output'];
 };
 

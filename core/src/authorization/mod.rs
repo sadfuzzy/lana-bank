@@ -303,6 +303,22 @@ impl Authorization {
         }
     }
 
+    pub async fn evaluate_permission(
+        &self,
+        sub: &Subject,
+        object: Object,
+        action: impl Into<Action> + std::fmt::Debug + std::marker::Copy,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, AuthorizationError> {
+        if enforce {
+            Ok(Some(self.enforce_permission(sub, object, action).await?))
+        } else {
+            self.inspect_permission(sub, object, action)
+                .await
+                .map(|_| None)
+        }
+    }
+
     pub async fn add_permission_to_role(
         &self,
         role: &Role,
