@@ -168,6 +168,11 @@ impl Entity for CreditFacility {
 }
 
 impl CreditFacility {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at
+            .expect("entity_first_persisted_at not found")
+    }
     fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter() {
             match event {

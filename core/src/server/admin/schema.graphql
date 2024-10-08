@@ -205,6 +205,21 @@ type CreditFacilityCollateralUpdatePayload {
 	creditFacility: CreditFacility!
 }
 
+type CreditFacilityConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CreditFacilityEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CreditFacility!]!
+}
+
 input CreditFacilityCreateInput {
 	customerId: UUID!
 	facility: UsdCents!
@@ -238,6 +253,20 @@ type CreditFacilityDisbursementInitiatePayload {
 	disbursement: CreditFacilityDisbursement!
 }
 
+"""
+An edge in a connection.
+"""
+type CreditFacilityEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacility!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 input CreditFacilityPartialPaymentInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
@@ -262,6 +291,7 @@ type Customer {
 	userCanCreateLoan: Boolean!
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
+	creditFacilities: [CreditFacility!]!
 }
 
 type CustomerBalance {
@@ -636,6 +666,7 @@ type Query {
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
 	loans(first: Int!, after: String): LoanConnection!
+	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance
 	chartOfAccounts: ChartOfAccounts

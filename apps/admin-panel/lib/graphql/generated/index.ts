@@ -235,6 +235,16 @@ export type CreditFacilityCollateralUpdatePayload = {
   creditFacility: CreditFacility;
 };
 
+export type CreditFacilityConnection = {
+  __typename?: 'CreditFacilityConnection';
+  /** A list of edges. */
+  edges: Array<CreditFacilityEdge>;
+  /** A list of nodes. */
+  nodes: Array<CreditFacility>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
@@ -272,6 +282,15 @@ export type CreditFacilityDisbursementInitiatePayload = {
   disbursement: CreditFacilityDisbursement;
 };
 
+/** An edge in a connection. */
+export type CreditFacilityEdge = {
+  __typename?: 'CreditFacilityEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: CreditFacility;
+};
+
 export type CreditFacilityPartialPaymentInput = {
   amount: Scalars['UsdCents']['input'];
   creditFacilityId: Scalars['UUID']['input'];
@@ -287,6 +306,7 @@ export type Customer = {
   applicantId?: Maybe<Scalars['String']['output']>;
   audit: Array<AuditEntry>;
   balance: CustomerBalance;
+  creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
   email: Scalars['String']['output'];
@@ -774,6 +794,7 @@ export type Query = {
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
+  creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
@@ -821,6 +842,12 @@ export type QueryBalanceSheetArgs = {
 export type QueryCashFlowStatementArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryCreditFacilitiesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 

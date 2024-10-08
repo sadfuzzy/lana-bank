@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH credit_facilities AS (\n            SELECT id, created_at\n            FROM credit_facilities\n            WHERE ((created_at, id) < ($2, $1)) OR ($1 IS NULL AND $2 IS NULL)\n            ORDER BY created_at DESC, id DESC\n            LIMIT $3\n            )\n            SELECT l.id, e.sequence, e.event,\n            l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM credit_facilities l\n            JOIN credit_facility_events e ON l.id = e.id\n            ORDER BY l.created_at DESC, l.id DESC, e.sequence;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "entity_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "event_recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Timestamptz",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "be9e6ea4ea7e5254916ffd65eb8b7c94dffa0ebe68ad0e8ac6ffdecf6f581a67"
+}

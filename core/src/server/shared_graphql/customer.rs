@@ -7,7 +7,7 @@ use crate::{
     primitives::{self, CustomerId},
     server::{
         admin::{
-            graphql::{audit::AuditEntry, loader::LavaDataLoader},
+            graphql::{audit::AuditEntry, credit_facility::CreditFacility, loader::LavaDataLoader},
             AdminAuthContext,
         },
         shared_graphql::{deposit::*, loan::Loan, primitives::UUID, withdraw::*},
@@ -122,6 +122,23 @@ impl Customer {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         Ok(app.withdraws().user_can_initiate(sub, false).await.is_ok())
+    }
+
+    async fn credit_facilities(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacility>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+
+        let credit_facilities: Vec<CreditFacility> = app
+            .credit_facilities()
+            .list_for_customer(None, primitives::CustomerId::from(&self.customer_id))
+            .await?
+            .into_iter()
+            .map(CreditFacility::from)
+            .collect();
+
+        Ok(credit_facilities)
     }
 }
 

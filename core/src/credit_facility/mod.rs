@@ -1,11 +1,12 @@
 mod config;
+mod cursor;
 mod disbursement;
 mod entity;
 pub mod error;
 mod repo;
 
 use crate::{
-    authorization::{Authorization, CreditFacilityAction, Object},
+    authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -19,6 +20,7 @@ use crate::{
 };
 
 pub use config::*;
+pub use cursor::*;
 pub use disbursement::*;
 pub use entity::*;
 use error::*;
@@ -389,5 +391,41 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(credit_facility)
+    }
+
+    #[instrument(name = "lava.credit_facility.list_for_customer", skip(self), err)]
+    pub async fn list_for_customer(
+        &self,
+        sub: Option<&Subject>,
+        customer_id: CustomerId,
+    ) -> Result<Vec<CreditFacility>, CreditFacilityError> {
+        if let Some(sub) = sub {
+            self.authz
+                .enforce_permission(
+                    sub,
+                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
+                    CreditFacilityAction::List,
+                )
+                .await?;
+        }
+
+        self.credit_facility_repo
+            .find_for_customer(customer_id)
+            .await
+    }
+
+    #[instrument(name = "lava.credit_facility.list", skip(self), err)]
+    pub async fn list(
+        &self,
+        sub: &Subject,
+        query: crate::query::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+    ) -> Result<
+        crate::query::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        CreditFacilityError,
+    > {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .await?;
+        self.credit_facility_repo.list(query).await
     }
 }
