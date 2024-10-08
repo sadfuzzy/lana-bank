@@ -115,3 +115,6 @@ dataform-install:
 
 dataform-run:
 	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS}
+
+dataform-run-staging:
+	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars="executionEnv=volcano-staging,devUser=${TF_VAR_name_prefix}"
