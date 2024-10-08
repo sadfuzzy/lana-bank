@@ -10,7 +10,12 @@ teardown_file() {
   stop_server
 }
 
-@test "customer: can upload a file and retrieve documents" {
+@test "documents: can upload a file and retrieve documents" {
+  # fake service account used in concourse
+  if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
+    skip
+  fi
+
   # Create a customer
   customer_email=$(generate_email)
   telegramId=$(generate_email)
