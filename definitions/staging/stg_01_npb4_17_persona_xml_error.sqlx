@@ -1,106 +1,1211 @@
 config {
-	type: "operations",
-	hasOutput: true,
+	type: "table",
   description: "Errors found in Regulatory Report persona.xml of norm NPB4-17"
 }
 
-CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nit_number nit_persona" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_identificador` = 'N' THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_persona`) WHEN `tipo_identificador` = 'U' THEN ${ref('udf_nbp4_17_assert_niu_number')}(`nit_persona`) WHEN `tipo_identificador` = 'D' THEN ${ref('udf_nbp4_17_assert_dui_number')}(`nit_persona`) ELSE FALSE END)
+
+UNION ALL
 
 SELECT
     `nit_persona`
-  , (CASE WHEN `tipo_identificador` = 'N' THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_persona`) WHEN `tipo_identificador` = 'U' THEN ${ref('udf_nbp4_17_assert_niu_number')}(`nit_persona`) WHEN `tipo_identificador` = 'D' THEN ${ref('udf_nbp4_17_assert_dui_number')}(`nit_persona`) ELSE FALSE END) AS `error_nit_persona`
   , `dui`
-  , (CASE WHEN `tipo_persona` = '1' AND `nacionalidad` = 9300 AND `residente` = 'R' AND DATE_DIFF(CURRENT_DATE(), CAST(`fecha_nacimiento` AS DATE), YEAR) >= 18 THEN ${ref('udf_nbp4_17_assert_dui_number')}(`dui`) ELSE FALSE END) AS `error_dui`
   , `primer_apellido`
-  , (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_apellido`) ELSE FALSE END) AS `error_primer_apellido`
   , `segundo_apellido`
-  , (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_apellido`) ELSE FALSE END) AS `error_segundo_apellido`
   , `apellido_casada`
-  , (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`apellido_casada`) ELSE FALSE END) AS `error_apellido_casada`
   , `primer_nombre`
-  , (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_nombre`) ELSE FALSE END) AS `error_primer_nombre`
   , `segundo_nombre`
-  , (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_nombre`) ELSE FALSE END) AS `error_segundo_nombre`
   , `nombre_sociedad`
-  , (CASE WHEN `tipo_persona` = '2' THEN REGEXP_CONTAINS(COALESCE(`nombre_sociedad`, '~'), '[^-,.\'& 0-9A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END) AS `error_nombre_sociedad`
   , `tipo_persona`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_persona`, 'stg_dim_04_npb4_17_tipos_de_persona')) AS `error_tipo_persona`
   , `tipo_relacion`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_relacion`, 'stg_dim_05_npb4_17_tipos_de_deudores_relacionados')) AS `error_tipo_relacion`
   , `tipo_identificador`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_identificador`, 'stg_dim_06_npb4_17_tipos_de_identificador')) AS `error_tipo_identificador`
   , `nit_desactualizado`
-  , (CASE WHEN `tipo_persona` = '1' AND `nit_desactualizado` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_desactualizado`) ELSE FALSE END) AS `error_nit_desactualizado`
   , `residente`
-  , (CASE WHEN `tipo_persona` = '1' THEN COALESCE(`residente`, '~') NOT IN ('R', 'N') ELSE FALSE END) AS `error_residente`
   , `giro_persona`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`giro_persona`, 'stg_dim_19_npb4_17_actividades_economicas')) AS `error_giro_persona`
   , `tamano_empresa`
-  , (CASE WHEN `tipo_persona` = '2' THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tamano_empresa`, 'stg_dim_20_npb4_17_tamano_de_empresa') ELSE FALSE END) AS `error_tamano_empresa`
   , `tipo_empresa`
-  , (CASE WHEN `tipo_persona` = '1' THEN `tipo_empresa` IS NOT NULL WHEN `tipo_persona` = '2' THEN COALESCE(`tipo_empresa`, '~') NOT IN ('N', 'E') ELSE FALSE END) AS `error_tipo_empresa`
   , `reserva`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`reserva` AS STRING), 13)) AS `error_reserva`
   , `categoria_riesgo`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`categoria_riesgo`, 'stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo')) AS `error_categoria_riesgo`
   , `numero_cliente`
-  , (LENGTH(`numero_cliente`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`numero_cliente`)) AS `error_numero_cliente`
   , `id_alterno`
-  , (LENGTH(`id_alterno`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`id_alterno`)) AS `error_id_alterno`
   , `tipo_id_alterno`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_id_alterno`, 'stg_dim_27_npb4_17_identificador_alterno')) AS `error_tipo_id_alterno`
   , `fecha_nacimiento`
-  , (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_nacimiento` AS STRING))) AS `error_fecha_nacimiento`
   , `pais_residencia`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`pais_residencia` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios')) AS `error_pais_residencia`
   , `riesgo_consolidado`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`riesgo_consolidado` AS STRING), 13)) AS `error_riesgo_consolidado`
   , `sexo_persona`
-  , (COALESCE(`sexo_persona`, '~') NOT IN ('M', 'F')) AS `error_sexo_persona`
   , `ocupación`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(`ocupación`, 'stg_dim_25_npb4_17_lista_de_ocupaciones')) AS `error_ocupación`
   , `id_pais_origen`
-  , (${ref('udf_nbp4_17_assert_tin_number')}(`id_pais_origen`)) AS `error_id_pais_origen`
   , `nacionalidad`
-  , (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`nacionalidad` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios')) AS `error_nacionalidad`
   , `nit_anterior`
-  , (${ref('udf_nbp4_17_assert_nullable_nit_number')}(`nit_anterior`)) AS `error_nit_anterior`
   , `tipo_ident_anterior`
-  , (CASE WHEN `nit_anterior` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_ident_anterior`, 'stg_dim_06_npb4_17_tipos_de_identificador') ELSE FALSE END) AS `error_tipo_ident_anterior`
   , `municipio_residencia`
-  , (CASE WHEN `municipio_residencia` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`municipio_residencia`, 'stg_dim_14_npb4_17_municipios') ELSE FALSE END) AS `error_municipio_residencia`
-FROM
-  ${ref("stg_01_npb4_17_persona_xml_raw")}(asof)
-WHERE (CASE WHEN `tipo_identificador` = 'N' THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_persona`) WHEN `tipo_identificador` = 'U' THEN ${ref('udf_nbp4_17_assert_niu_number')}(`nit_persona`) WHEN `tipo_identificador` = 'D' THEN ${ref('udf_nbp4_17_assert_dui_number')}(`nit_persona`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' AND `nacionalidad` = 9300 AND `residente` = 'R' AND DATE_DIFF(CURRENT_DATE(), CAST(`fecha_nacimiento` AS DATE), YEAR) >= 18 THEN ${ref('udf_nbp4_17_assert_dui_number')}(`dui`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_apellido`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_apellido`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`apellido_casada`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_nombre`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_nombre`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '2' THEN REGEXP_CONTAINS(COALESCE(`nombre_sociedad`, '~'), '[^-,.\'& 0-9A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_persona`, 'stg_dim_04_npb4_17_tipos_de_persona'))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_relacion`, 'stg_dim_05_npb4_17_tipos_de_deudores_relacionados'))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_identificador`, 'stg_dim_06_npb4_17_tipos_de_identificador'))
-  OR (CASE WHEN `tipo_persona` = '1' AND `nit_desactualizado` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_desactualizado`) ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN COALESCE(`residente`, '~') NOT IN ('R', 'N') ELSE FALSE END)
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`giro_persona`, 'stg_dim_19_npb4_17_actividades_economicas'))
-  OR (CASE WHEN `tipo_persona` = '2' THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tamano_empresa`, 'stg_dim_20_npb4_17_tamano_de_empresa') ELSE FALSE END)
-  OR (CASE WHEN `tipo_persona` = '1' THEN `tipo_empresa` IS NOT NULL WHEN `tipo_persona` = '2' THEN COALESCE(`tipo_empresa`, '~') NOT IN ('N', 'E') ELSE FALSE END)
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`reserva` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`categoria_riesgo`, 'stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo'))
-  OR (LENGTH(`numero_cliente`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`numero_cliente`))
-  OR (LENGTH(`id_alterno`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`id_alterno`))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_id_alterno`, 'stg_dim_27_npb4_17_identificador_alterno'))
-  OR (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_nacimiento` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`pais_residencia` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios'))
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`riesgo_consolidado` AS STRING), 13))
-  OR (COALESCE(`sexo_persona`, '~') NOT IN ('M', 'F'))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(`ocupación`, 'stg_dim_25_npb4_17_lista_de_ocupaciones'))
-  OR (${ref('udf_nbp4_17_assert_tin_number')}(`id_pais_origen`))
-  OR (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`nacionalidad` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios'))
-  OR (${ref('udf_nbp4_17_assert_nullable_nit_number')}(`nit_anterior`))
-  OR (CASE WHEN `nit_anterior` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_ident_anterior`, 'stg_dim_06_npb4_17_tipos_de_identificador') ELSE FALSE END)
-  OR (CASE WHEN `municipio_residencia` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`municipio_residencia`, 'stg_dim_14_npb4_17_municipios') ELSE FALSE END)
 
-)
+  , "assert_dui_number dui" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' AND `nacionalidad` = 9300 AND `residente` = 'R' AND DATE_DIFF(CURRENT_DATE(), CAST(`fecha_nacimiento` AS DATE), YEAR) >= 18 THEN ${ref('udf_nbp4_17_assert_dui_number')}(`dui`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_name primer_apellido" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_apellido`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nullable_name segundo_apellido" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_apellido`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nullable_name apellido_casada" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`apellido_casada`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_name primer_nombre" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_name')}(`primer_nombre`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nullable_name segundo_nombre" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN ${ref('udf_nbp4_17_assert_nullable_name')}(`segundo_nombre`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert nombre_sociedad" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '2' THEN REGEXP_CONTAINS(COALESCE(`nombre_sociedad`, '~'), '[^-,.\'& 0-9A-ZÑÁÉÍÓÚÜ]+') ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tipo_persona stg_dim_04_npb4_17_tipos_de_persona" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_persona`, 'stg_dim_04_npb4_17_tipos_de_persona'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tipo_relacion stg_dim_05_npb4_17_tipos_de_deudores_relacionados" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_relacion`, 'stg_dim_05_npb4_17_tipos_de_deudores_relacionados'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tipo_identificador stg_dim_06_npb4_17_tipos_de_identificador" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_identificador`, 'stg_dim_06_npb4_17_tipos_de_identificador'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nit_number nit_desactualizado" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' AND `nit_desactualizado` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_nit_number')}(`nit_desactualizado`) ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert residente" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN COALESCE(`residente`, '~') NOT IN ('R', 'N') ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table giro_persona stg_dim_19_npb4_17_actividades_economicas" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`giro_persona`, 'stg_dim_19_npb4_17_actividades_economicas'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tamano_empresa stg_dim_20_npb4_17_tamano_de_empresa" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '2' THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tamano_empresa`, 'stg_dim_20_npb4_17_tamano_de_empresa') ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert tipo_empresa" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `tipo_persona` = '1' THEN `tipo_empresa` IS NOT NULL WHEN `tipo_persona` = '2' THEN COALESCE(`tipo_empresa`, '~') NOT IN ('N', 'E') ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_dollar_number reserva" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`reserva` AS STRING), 13))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table categoria_riesgo stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`categoria_riesgo`, 'stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_niu_number numero_cliente" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (LENGTH(`numero_cliente`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`numero_cliente`))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_niu_number id_alterno" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (LENGTH(`id_alterno`) > 17 OR ${ref('udf_nbp4_17_assert_niu_number')}(`id_alterno`))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tipo_id_alterno stg_dim_27_npb4_17_identificador_alterno" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_id_alterno`, 'stg_dim_27_npb4_17_identificador_alterno'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_date fecha_nacimiento" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_nacimiento` AS STRING)))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table pais_residencia stg_dim_31_npb4_17_codigos_de_paises_o_territorios" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`pais_residencia` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_dollar_number riesgo_consolidado" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`riesgo_consolidado` AS STRING), 13))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert sexo_persona" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (COALESCE(`sexo_persona`, '~') NOT IN ('M', 'F'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table ocupación stg_dim_25_npb4_17_lista_de_ocupaciones" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`ocupación`, 'stg_dim_25_npb4_17_lista_de_ocupaciones'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_tin_number id_pais_origen" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_tin_number')}(`id_pais_origen`))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table nacionalidad stg_dim_31_npb4_17_codigos_de_paises_o_territorios" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(CAST(`nacionalidad` AS STRING), 'stg_dim_31_npb4_17_codigos_de_paises_o_territorios'))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_nullable_nit_number nit_anterior" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_nullable_nit_number')}(`nit_anterior`))
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table tipo_ident_anterior stg_dim_06_npb4_17_tipos_de_identificador" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `nit_anterior` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`tipo_ident_anterior`, 'stg_dim_06_npb4_17_tipos_de_identificador') ELSE FALSE END)
+
+UNION ALL
+
+SELECT
+    `nit_persona`
+  , `dui`
+  , `primer_apellido`
+  , `segundo_apellido`
+  , `apellido_casada`
+  , `primer_nombre`
+  , `segundo_nombre`
+  , `nombre_sociedad`
+  , `tipo_persona`
+  , `tipo_relacion`
+  , `tipo_identificador`
+  , `nit_desactualizado`
+  , `residente`
+  , `giro_persona`
+  , `tamano_empresa`
+  , `tipo_empresa`
+  , `reserva`
+  , `categoria_riesgo`
+  , `numero_cliente`
+  , `id_alterno`
+  , `tipo_id_alterno`
+  , `fecha_nacimiento`
+  , `pais_residencia`
+  , `riesgo_consolidado`
+  , `sexo_persona`
+  , `ocupación`
+  , `id_pais_origen`
+  , `nacionalidad`
+  , `nit_anterior`
+  , `tipo_ident_anterior`
+  , `municipio_residencia`
+
+  , "assert_in_dim_table municipio_residencia stg_dim_14_npb4_17_municipios" AS error
+FROM ${ref("stg_01_npb4_17_persona_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (CASE WHEN `municipio_residencia` IS NOT NULL THEN ${ref('udf_nbp4_17_assert_in_dim_table')}(`municipio_residencia`, 'stg_dim_14_npb4_17_municipios') ELSE FALSE END)
