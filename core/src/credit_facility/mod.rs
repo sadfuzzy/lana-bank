@@ -428,4 +428,47 @@ impl CreditFacilities {
             .await?;
         self.credit_facility_repo.list(query).await
     }
+
+    #[instrument(name = "lava.credit_facility.complete", skip(self), err)]
+    pub async fn complete_facility(
+        &self,
+        sub: &Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        let credit_facility_id = credit_facility_id.into();
+
+        let audit_info = self
+            .authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Complete)
+            .await?;
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let mut credit_facility = self
+            .credit_facility_repo
+            .find_by_id(credit_facility_id)
+            .await?;
+
+        let completion = credit_facility.initiate_completion()?;
+
+        let executed_at = self
+            .ledger
+            .complete_credit_facility(completion.clone())
+            .await?;
+        credit_facility.confirm_completion(
+            completion,
+            executed_at,
+            audit_info,
+            price,
+            self.config.upgrade_buffer_cvl_pct,
+        );
+
+        let mut db_tx = self.pool.begin().await?;
+        self.credit_facility_repo
+            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .await?;
+        db_tx.commit().await?;
+
+        Ok(credit_facility)
+    }
 }
