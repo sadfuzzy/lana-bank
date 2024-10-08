@@ -12,6 +12,8 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		, FORMAT_DATE('%Y-%m-%d', CAST(`fecha_deposito` AS DATE)) AS `fecha_deposito`
 		, FORMAT_DATE('%Y-%m-%d', CAST(`fecha_vencimiento` AS DATE)) AS `fecha_vencimiento`
 		, FORMAT('%.2f', ROUND(`valor_deposito`, 2)) AS `valor_deposito`
+		, `tipo_deposito`
+		, `cod_banco`
 
 	FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(asof)
 
