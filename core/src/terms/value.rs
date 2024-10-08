@@ -369,19 +369,13 @@ mod test {
         let collateral_value = UsdCents::from(130999);
         let outstanding_amount = UsdCents::from(100000);
         let slightly_higher_cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(
-            false,
-            cvl.is_significantly_lower_than(slightly_higher_cvl, buffer)
-        );
+        assert!(!cvl.is_significantly_lower_than(slightly_higher_cvl, buffer));
 
         let collateral_value = UsdCents::from(131000);
         let outstanding_amount = UsdCents::from(100000);
         let significantly_higher_cvl =
             CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(
-            true,
-            cvl.is_significantly_lower_than(significantly_higher_cvl, buffer)
-        );
+        assert!(cvl.is_significantly_lower_than(significantly_higher_cvl, buffer));
     }
 
     fn terms() -> TermValues {

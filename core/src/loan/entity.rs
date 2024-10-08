@@ -1275,11 +1275,11 @@ mod test {
         fn test_prices() -> TestPrices {
             // FIXME: Values coupled to 3,000 sat collateral in fully_collateralized_loan
             TestPrices {
-                above_fully_collateralized: price_from(100_000_00),
-                above_margin_called_and_buffer: price_from(46_000_00),
-                above_margin_called_and_below_buffer: price_from(45_500_00),
-                below_margin_called: price_from(43_500_00),
-                below_liquidation: price_from(30_000_00),
+                above_fully_collateralized: price_from(10_000_000),
+                above_margin_called_and_buffer: price_from(4_600_000),
+                above_margin_called_and_below_buffer: price_from(4_550_000),
+                below_margin_called: price_from(4_350_000),
+                below_liquidation: price_from(3_000_000),
             }
         }
 

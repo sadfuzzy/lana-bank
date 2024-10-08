@@ -11,6 +11,7 @@ pub mod credit_facility;
 pub mod customer;
 pub mod data_export;
 pub mod deposit;
+pub mod document;
 pub mod entity;
 pub mod job;
 pub mod ledger;

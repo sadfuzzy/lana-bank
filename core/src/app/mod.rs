@@ -12,6 +12,7 @@ use crate::{
     customer::Customers,
     data_export::Export,
     deposit::Deposits,
+    document::Documents,
     job::Jobs,
     ledger::Ledger,
     loan::Loans,
@@ -44,6 +45,7 @@ pub struct LavaApp {
     price: Price,
     report: Reports,
     terms_templates: TermsTemplates,
+    documents: Documents,
 }
 
 impl LavaApp {
@@ -59,6 +61,7 @@ impl LavaApp {
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new(&pool, &jobs, &export);
         let storage = Storage::new(&config.storage);
+        let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs, &storage);
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
         let credit_facilities = CreditFacilities::new(
@@ -106,6 +109,7 @@ impl LavaApp {
             report,
             credit_facilities,
             terms_templates,
+            documents,
         })
     }
 
@@ -172,5 +176,9 @@ impl LavaApp {
 
     pub fn terms_templates(&self) -> &TermsTemplates {
         &self.terms_templates
+    }
+
+    pub fn documents(&self) -> &Documents {
+        &self.documents
     }
 }

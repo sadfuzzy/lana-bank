@@ -138,6 +138,20 @@ exec_admin_graphql() {
     "${GQL_ADMIN_ENDPOINT}"
 }
 
+exec_admin_graphql_upload() {
+  local query_name=$1
+  local variables=$2
+  local file_path=$3
+  local file_var_name=${4:-"file"}
+
+  curl -s -X POST \
+    -H "Content-Type: multipart/form-data" \
+    -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
+    -F "map={\"0\":[\"variables.$file_var_name\"]}" \
+    -F "0=@$file_path" \
+    "${GQL_ADMIN_ENDPOINT}"
+}
+
 exec_cala_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}

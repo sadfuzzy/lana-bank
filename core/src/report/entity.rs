@@ -2,12 +2,28 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, storage::ReportLocationInCloud};
+use crate::{entity::*, primitives::*, storage::LocationInCloud};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},
     upload::ReportFileUpload,
 };
+
+#[derive(Debug, Clone)]
+pub struct ReportLocationInCloud {
+    pub report_name: String,
+    pub bucket: String,
+    pub path_in_bucket: String,
+}
+
+impl From<ReportLocationInCloud> for LocationInCloud {
+    fn from(meta: ReportLocationInCloud) -> Self {
+        LocationInCloud {
+            bucket: meta.bucket,
+            path_in_bucket: meta.path_in_bucket,
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct ReportDownloadLink {

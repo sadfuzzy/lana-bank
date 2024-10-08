@@ -242,7 +242,7 @@ mod test {
                 id: DisbursementId::new(),
                 facility_id: CreditFacilityId::new(),
                 idx: DisbursementIdx::FIRST,
-                amount: UsdCents::from(1000_00),
+                amount: UsdCents::from(100_000),
                 account_ids: CreditFacilityAccountIds::new(),
                 customer_account_ids: CustomerLedgerAccountIds::new(),
                 audit_info: dummy_audit_info(),

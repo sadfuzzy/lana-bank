@@ -3,7 +3,6 @@ mod helpers;
 use lava_core::{app::*, applicant::*, primitives::CustomerId};
 
 use std::env;
-use tokio;
 
 fn load_config_from_env() -> Option<SumsubConfig> {
     let sumsub_key = env::var("SUMSUB_KEY").ok()?;

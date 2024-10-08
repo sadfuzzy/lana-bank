@@ -276,12 +276,12 @@ impl Applicants {
 
     pub async fn create_permalink(
         &self,
-        customer_id: CustomerId,
+        customer_id: impl Into<CustomerId>,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let level_name = SumsubKycLevel::BasicKycLevel;
 
         self.sumsub_client
-            .create_permalink(customer_id, &level_name.to_string())
+            .create_permalink(customer_id.into(), &level_name.to_string())
             .await
     }
 }

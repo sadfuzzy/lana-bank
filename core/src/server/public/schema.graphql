@@ -81,6 +81,7 @@ type Customer {
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
 	creditFacilities: [CreditFacility!]!
+	documents: [Document!]!
 }
 
 type CustomerBalance {
@@ -94,6 +95,12 @@ type Deposit {
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+}
+
+type Document {
+	id: UUID!
+	customerId: UUID!
+	filename: String!
 }
 
 type Duration {

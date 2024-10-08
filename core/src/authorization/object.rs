@@ -13,6 +13,7 @@ pub enum Object {
     TermsTemplate,
     User,
     Customer(CustomerAllOrOne),
+    Document,
     Deposit,
     Withdraw,
     Report,
@@ -76,6 +77,7 @@ impl FromStr for Object {
             Audit => Object::Audit,
             Ledger => Object::Ledger,
             CreditFacility => Object::CreditFacility,
+            Document => Object::Document,
         };
         Ok(res)
     }

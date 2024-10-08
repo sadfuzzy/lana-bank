@@ -61,7 +61,7 @@ impl Deposits {
     pub async fn record(
         &self,
         sub: &Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        customer_id: impl Into<CustomerId>,
         amount: UsdCents,
         reference: Option<String>,
     ) -> Result<Deposit, DepositError> {

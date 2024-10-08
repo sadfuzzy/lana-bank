@@ -1,17 +1,17 @@
 mod account;
 mod account_set;
-pub mod audit;
-pub mod credit_facility;
+pub(in crate::server) mod audit;
+pub(in crate::server) mod credit_facility;
 mod customer;
 mod deposit;
-pub mod loader;
+pub(in crate::server) mod loader;
 mod loan;
 mod price;
 mod report;
 mod schema;
 mod shareholder_equity;
 mod terms_template;
-pub mod user;
+pub(in crate::server) mod user;
 mod withdraw;
 
 use async_graphql::{dataloader::*, *};

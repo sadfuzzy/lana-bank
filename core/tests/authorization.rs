@@ -13,7 +13,7 @@ use lava_core::{
 use uuid::Uuid;
 
 fn random_email() -> String {
-    format!("{}@integrationtest.com", Uuid::new_v4().to_string())
+    format!("{}@integrationtest.com", Uuid::new_v4())
 }
 
 async fn init_users(
@@ -22,15 +22,15 @@ async fn init_users(
     audit: &Audit,
 ) -> anyhow::Result<(Users, Subject)> {
     let superuser_email = "superuser@test.io";
-    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
+    let jobs = Jobs::new(pool, JobExecutorConfig::default());
     let export = Export::new("".to_string(), &jobs);
     let users = Users::init(
-        &pool,
+        pool,
         UserConfig {
             superuser_email: Some("superuser@test.io".to_string()),
         },
-        &authz,
-        &audit,
+        authz,
+        audit,
         &export,
     )
     .await?;
@@ -46,11 +46,9 @@ async fn create_user_with_role(
     superuser_subject: &Subject,
     role: Role,
 ) -> anyhow::Result<Subject> {
+    let user = users.create_user(superuser_subject, random_email()).await?;
     let user = users
-        .create_user(&superuser_subject, random_email())
-        .await?;
-    let user = users
-        .assign_role_to_user(&superuser_subject, user.id, role)
+        .assign_role_to_user(superuser_subject, user.id, role)
         .await?;
     Ok(Subject::from(user.id))
 }

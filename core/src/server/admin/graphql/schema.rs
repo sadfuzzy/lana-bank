@@ -1,5 +1,4 @@
 use async_graphql::{types::connection::*, Context, Object};
-use uuid::Uuid;
 
 use super::{
     account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
@@ -11,7 +10,9 @@ use crate::{
     app::LavaApp,
     audit::AuditCursor,
     credit_facility::CreditFacilityByCreatedAtCursor,
-    primitives::{CreditFacilityId, CustomerId, LoanId, ReportId, TermsTemplateId, UserId},
+    primitives::{
+        CreditFacilityId, CustomerId, DocumentId, LoanId, ReportId, TermsTemplateId, UserId,
+    },
     server::{
         admin::{
             graphql::terms_template::{
@@ -23,6 +24,10 @@ use crate::{
         shared_graphql::{
             customer::Customer,
             deposit::Deposit,
+            document::{
+                Document, DocumentCreateInput, DocumentCreatePayload,
+                DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload,
+            },
             loan::Loan,
             objects::SuccessPayload,
             primitives::{Timestamp, UUID},
@@ -510,12 +515,39 @@ impl Query {
             .await?;
         Ok(terms_template.map(TermsTemplate::from))
     }
+
+    async fn document(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Document> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let document = app
+            .documents()
+            .find_by_id(sub, DocumentId::from(id))
+            .await?;
+        Ok(Document::from(document))
+    }
 }
 
 pub struct Mutation;
 
 #[Object]
 impl Mutation {
+    pub async fn customer_document_attach(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentCreateInput,
+    ) -> async_graphql::Result<DocumentCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let file = input.file.value(ctx)?;
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let document = app
+            .documents()
+            .create(sub, file.content.to_vec(), input.customer_id, file.filename)
+            .await?;
+
+        Ok(DocumentCreatePayload::from(document))
+    }
+
     pub async fn shareholder_equity_add(
         &self,
         ctx: &Context<'_>,
@@ -534,12 +566,8 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let customer_id = Uuid::parse_str(&input.customer_id);
-        let customer_id = customer_id.map_err(|_| "Invalid user id")?;
-        let customer_id = CustomerId::from(customer_id);
-
         let app = ctx.data_unchecked::<LavaApp>();
-        let res = app.applicants().create_permalink(customer_id).await?;
+        let res = app.applicants().create_permalink(input.customer_id).await?;
 
         let url = res.url;
         Ok(SumsubPermalinkCreatePayload { url })
@@ -898,6 +926,20 @@ impl Mutation {
             .generate_download_links(sub, input.report_id.into())
             .await?;
         Ok(ReportDownloadLinksGeneratePayload::from(links))
+    }
+
+    async fn document_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: DocumentDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<DocumentDownloadLinksGeneratePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let doc = app
+            .documents()
+            .generate_download_link(sub, input.document_id.into())
+            .await?;
+        Ok(DocumentDownloadLinksGeneratePayload::from(doc))
     }
 
     async fn terms_template_create(

@@ -1,0 +1,9 @@
+mutation customerDocumentAttach($file: Upload!, $customerId: String!) {
+  customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
+    document {
+      id
+      customerId
+      filename
+    }
+  }
+}

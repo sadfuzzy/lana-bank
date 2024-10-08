@@ -1,0 +1,7 @@
+query Document($id: UUID!) {
+  document(id: $id) {
+    id
+    customerId
+    filename
+  }
+}

@@ -1,6 +1,6 @@
 use lava_core::{
     service_account::ServiceAccountConfig,
-    storage::{config::StorageConfig, Storage},
+    storage::{config::StorageConfig, LocationInCloud, Storage},
 };
 
 #[tokio::test]
@@ -25,14 +25,36 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     let storage = Storage::new(&config);
 
-    let file = "test".as_bytes().to_vec();
-    let filename = format!("test-{}.txt", uuid::Uuid::new_v4());
+    let content_str = "test";
+    let content = content_str.as_bytes().to_vec();
+    let filename = "test.txt";
 
-    let _ = storage.upload(file, &filename, "application/txt").await;
-
+    let _ = storage.upload(content, filename, "application/txt").await;
     let res = storage._list("".to_string()).await?;
 
-    assert!(res.iter().any(|x| x == &filename));
+    assert!(res.first().is_some());
+    let count = res.len();
+
+    // generate link
+    let location = LocationInCloud {
+        bucket: storage.bucket_name(),
+        path_in_bucket: filename.to_owned(),
+    };
+    let link = storage.generate_download_link(location).await?;
+
+    // download and verify the link
+    let res = reqwest::get(link).await?;
+    assert!(res.status().is_success());
+
+    let return_content = res.text().await?;
+    assert_eq!(return_content, content_str);
+
+    // remove docs
+    let _ = storage.remove(filename).await;
+
+    // verify list is now empty
+    let res = storage._list("".to_string()).await?;
+    assert_eq!(res.len(), count - 1);
 
     Ok(())
 }

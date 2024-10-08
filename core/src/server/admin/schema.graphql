@@ -292,6 +292,7 @@ type Customer {
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
 	creditFacilities: [CreditFacility!]!
+	documents: [Document!]!
 }
 
 type CustomerBalance {
@@ -394,6 +395,30 @@ type DepositRecordPayload {
 }
 
 scalar DisbursementIdx
+
+type Document {
+	id: UUID!
+	customerId: UUID!
+	filename: String!
+}
+
+input DocumentCreateInput {
+	file: Upload!
+	customerId: UUID!
+}
+
+type DocumentCreatePayload {
+	document: Document!
+}
+
+input DocumentDownloadLinksGenerateInput {
+	documentId: UUID!
+}
+
+type DocumentDownloadLinksGeneratePayload {
+	documentId: UUID!
+	link: String!
+}
 
 type Duration {
 	period: Period!
@@ -590,6 +615,7 @@ enum LoanStatus {
 }
 
 type Mutation {
+	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	loanCreate(input: LoanCreateInput!): LoanCreatePayload!
@@ -614,6 +640,7 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
+	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 }
@@ -683,6 +710,7 @@ type Query {
 	reports: [Report!]!
 	report(id: UUID!): Report
 	termsTemplate(id: UUID!): TermsTemplate
+	document(id: UUID!): Document!
 }
 
 type RealtimePrice {
@@ -751,7 +779,7 @@ type SuccessPayload {
 }
 
 input SumsubPermalinkCreateInput {
-	customerId: String!
+	customerId: UUID!
 }
 
 type SumsubPermalinkCreatePayload {
@@ -825,6 +853,8 @@ type TrialBalance {
 }
 
 scalar UUID
+
+scalar Upload
 
 type UsdAccountAmounts {
 	debit: UsdCents!
@@ -966,6 +996,7 @@ enum WithdrawalStatus {
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @specifiedBy(url: String!) on SCALAR
 schema {
 	query: Query
 	mutation: Mutation

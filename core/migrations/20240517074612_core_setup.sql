@@ -125,6 +125,21 @@ CREATE TABLE deposit_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE documents (
+  id UUID PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES customers(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE document_events (
+  id UUID NOT NULL REFERENCES documents(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE reports (
   id UUID PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -191,5 +206,4 @@ CREATE TABLE sumsub_callbacks (
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-
 CREATE INDEX idx_sumsub_callbacks_customer_id ON sumsub_callbacks(customer_id);

@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::balance::CustomerBalance;
+use super::{balance::CustomerBalance, document::Document};
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum KycLevel {
@@ -139,6 +139,16 @@ impl Customer {
             .collect();
 
         Ok(credit_facilities)
+    }
+
+    async fn documents(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Document>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let documents = app
+            .documents()
+            .list_by_customer_id(sub, primitives::CustomerId::from(&self.customer_id))
+            .await?;
+        Ok(documents.into_iter().map(Document::from).collect())
     }
 }
 
