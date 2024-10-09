@@ -1,184 +1,392 @@
 config {
-	type: "operations",
-	hasOutput: true,
-  description: "Errors found in Regulatory Report referencia.xml of norm NPB4-17"
+	type: "table",
+	description: "Errors found in Regulatory Report referencia.xml of norm NPB4-17"
 }
 
-CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
-
-SELECT
-    `nit_deudor`
-  , (${ref('udf_nbp4_17_assert_niu_number')}(`nit_deudor`)) AS `error_nit_deudor`
-  , `num_referencia`
-  , (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`num_referencia`)) AS `error_num_referencia`
-  , `monto_referencia`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`monto_referencia` AS STRING), 13)) AS `error_monto_referencia`
-  , `saldo_referencia`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_referencia` AS STRING), 13)) AS `error_saldo_referencia`
-  , `saldo_vigente_k`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_vigente_k` AS STRING), 13)) AS `error_saldo_vigente_k`
-  , `saldo_vencido_k`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_vencido_k` AS STRING), 13)) AS `error_saldo_vencido_k`
-  , `saldo_vigente_i`
-  , (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_vigente_i` AS STRING), 13)) AS `error_saldo_vigente_i`
-  , `saldo_vencido_i`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_vencido_i` AS STRING), 13)) AS `error_saldo_vencido_i`
-  , `abono_deposito`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`abono_deposito` AS STRING), 13)) AS `error_abono_deposito`
-  , `fecha_otorgamiento`
-  , (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_otorgamiento` AS STRING))) AS `error_fecha_otorgamiento`
-  , `fecha_vencimiento`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_vencimiento` AS STRING))) AS `error_fecha_vencimiento`
-  , `fecha_castigo`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_castigo` AS STRING))) AS `error_fecha_castigo`
-  , `saldo_mora_k`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_mora_k` AS STRING), 13)) AS `error_saldo_mora_k`
-  , `saldo_mora_i`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_mora_i` AS STRING), 13)) AS `error_saldo_mora_i`
-  , `dias_mora_k`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_mora_k` AS STRING))) AS `error_dias_mora_k`
-  , `dias_mora_i`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_mora_i` AS STRING))) AS `error_dias_mora_i`
-  , `fecha_inicio_mora_k`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_inicio_mora_k` AS STRING))) AS `error_fecha_inicio_mora_k`
-  , `fecha_inicio_mora_i`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_inicio_mora_i` AS STRING))) AS `error_fecha_inicio_mora_i`
-  , `periodo_gracia_k`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`periodo_gracia_k` AS STRING))) AS `error_periodo_gracia_k`
-  , `periodo_gracia_i`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`periodo_gracia_i` AS STRING))) AS `error_periodo_gracia_i`
-  , `pais_destino_credito`
-  , (COALESCE(`pais_destino_credito`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')})) AS `error_pais_destino_credito`
-  , `destino`
-  , (COALESCE(`destino`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_24_npb4_17_sector_de_destino')})) AS `error_destino`
-  , `tasa_interes`
-  , (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_interes` AS STRING), 6)) AS `error_tasa_interes`
-  , `tasa_contractual`
-  , (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_contractual` AS STRING), 6)) AS `error_tasa_contractual`
-  , `tasa_referencia`
-  , (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_referencia` AS STRING), 6)) AS `error_tasa_referencia`
-  , `tasa_efectiva`
-  , (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_efectiva` AS STRING), 6)) AS `error_tasa_efectiva`
-  , `ultima_fecha_venc`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`ultima_fecha_venc` AS STRING))) AS `error_ultima_fecha_venc`
-  , `dias_prorroga`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_prorroga` AS STRING))) AS `error_dias_prorroga`
-  , `monto_desembolsado`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`monto_desembolsado` AS STRING), 13)) AS `error_monto_desembolsado`
-  , `fecha_ultimo_pago_k`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_ultimo_pago_k` AS STRING))) AS `error_fecha_ultimo_pago_k`
-  , `fecha_ultimo_pago_i`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_ultimo_pago_i` AS STRING))) AS `error_fecha_ultimo_pago_i`
-  , `dia_pago_k`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dia_pago_k` AS STRING))) AS `error_dia_pago_k`
-  , `dia_pago_i`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dia_pago_i` AS STRING))) AS `error_dia_pago_i`
-  , `cuota_mora_k`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuota_mora_k` AS STRING))) AS `error_cuota_mora_k`
-  , `cuota_mora_i`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuota_mora_i` AS STRING))) AS `error_cuota_mora_i`
-  , `monto_cuota`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`monto_cuota` AS STRING), 13)) AS `error_monto_cuota`
-  , `cuenta_contable_k`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuenta_contable_k` AS STRING))) AS `error_cuenta_contable_k`
-  , `cuenta_contable_i`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuenta_contable_i` AS STRING))) AS `error_cuenta_contable_i`
-  , `fecha_cancelacion`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_cancelacion` AS STRING))) AS `error_fecha_cancelacion`
-  , `adelanto_capital`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`adelanto_capital` AS STRING), 13)) AS `error_adelanto_capital`
-  , `riesgo_neto`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`riesgo_neto` AS STRING), 13)) AS `error_riesgo_neto`
-  , `saldo_seguro`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_seguro` AS STRING), 13)) AS `error_saldo_seguro`
-  , `saldo_costas_procesales`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_costas_procesales` AS STRING), 13)) AS `error_saldo_costas_procesales`
-  , `valor_garantia_cons`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`valor_garantia_cons` AS STRING), 13)) AS `error_valor_garantia_cons`
-  , `reserva_referencia`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`reserva_referencia` AS STRING), 13)) AS `error_reserva_referencia`
-  , `fecha_demanda`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_demanda` AS STRING))) AS `error_fecha_demanda`
-  , `plazo_credito`
-  , (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`plazo_credito` AS STRING))) AS `error_plazo_credito`
-  , `reserva_constituir`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`reserva_constituir` AS STRING), 13)) AS `error_reserva_constituir`
-  , `porcentaje_reserva`
-  , (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcentaje_reserva` AS STRING), 6)) AS `error_porcentaje_reserva`
-  , `pago_cuota`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`pago_cuota` AS STRING), 13)) AS `error_pago_cuota`
-  , `fecha_pago`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_pago` AS STRING))) AS `error_fecha_pago`
-  , `porcenta_reserva_descon`
-  , (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcenta_reserva_descon` AS STRING), 6)) AS `error_porcenta_reserva_descon`
-  , `porcenta_adiciona_descon`
-  , (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcenta_adiciona_descon` AS STRING), 6)) AS `error_porcenta_adiciona_descon`
-  , `porc_reserva_referencia`
-  , (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porc_reserva_referencia` AS STRING), 6)) AS `error_porc_reserva_referencia`
-  , `calculo_brecha`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`calculo_brecha` AS STRING), 13)) AS `error_calculo_brecha`
-  , `ajuste_brecha`
-  , (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`ajuste_brecha` AS STRING), 13)) AS `error_ajuste_brecha`
-  , `fecha_cump_cafe`
-  , (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_cump_cafe` AS STRING))) AS `error_fecha_cump_cafe`
-FROM
-  ${ref("stg_02_npb4_17_referencia_xml_raw")}(asof)
-WHERE (${ref('udf_nbp4_17_assert_niu_number')}(`nit_deudor`))
-  OR (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`num_referencia`))
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`monto_referencia` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_referencia` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_vigente_k` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_vencido_k` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_dollar_number')}(CAST(`saldo_vigente_i` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_vencido_i` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`abono_deposito` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_otorgamiento` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_vencimiento` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_castigo` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_mora_k` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_mora_i` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_mora_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_mora_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_inicio_mora_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_inicio_mora_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`periodo_gracia_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`periodo_gracia_i` AS STRING)))
-  OR (COALESCE(`pais_destino_credito`, -1) NOT IN (SELECT `code` FROM ${ref('stg_dim_31_npb4_17_codigos_de_paises_o_territorios')}))
-  OR (COALESCE(`destino`, '~') NOT IN (SELECT `code` FROM ${ref('stg_dim_24_npb4_17_sector_de_destino')}))
-  OR (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_interes` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_contractual` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_referencia` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_percent_number')}(CAST(`tasa_efectiva` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`ultima_fecha_venc` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dias_prorroga` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`monto_desembolsado` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_ultimo_pago_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_ultimo_pago_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dia_pago_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`dia_pago_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuota_mora_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuota_mora_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`monto_cuota` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuenta_contable_k` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`cuenta_contable_i` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_cancelacion` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`adelanto_capital` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`riesgo_neto` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_seguro` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`saldo_costas_procesales` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`valor_garantia_cons` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`reserva_referencia` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_demanda` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_integer')}(CAST(`plazo_credito` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`reserva_constituir` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcentaje_reserva` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`pago_cuota` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_pago` AS STRING)))
-  OR (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcenta_reserva_descon` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porcenta_adiciona_descon` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_nullable_percent_number')}(CAST(`porc_reserva_referencia` AS STRING), 6))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`calculo_brecha` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`ajuste_brecha` AS STRING), 13))
-  OR (${ref('udf_nbp4_17_assert_nullable_date')}(CAST(`fecha_cump_cafe` AS STRING)))
-
+WITH latest AS (
+	SELECT *
+	FROM ${ref("report_02_npb4_17_referencia_xml")}(CURRENT_TIMESTAMP())
 )
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_niu_number" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_niu_number')}(`nit_deudor`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_uppercase_alphanum num_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`num_referencia`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number monto_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`num_referencia`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number saldo_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`saldo_referencia`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number saldo_vigente_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`saldo_vigente_k`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number saldo_vencido_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`saldo_vencido_k`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number saldo_vigente_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`saldo_vigente_i`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number saldo_vencido_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`saldo_vencido_i`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_dollar_number abono_deposito" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_dollar_number')}(`abono_deposito`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_date fecha_otorgamiento" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_date')}(`fecha_otorgamiento`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_vencimiento" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_vencimiento`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_castigo" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_castigo`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number saldo_mora_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`saldo_mora_k`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number saldo_mora_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`saldo_mora_i`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer dias_mora_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`dias_mora_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer dias_mora_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`dias_mora_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_inicio_mora_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_inicio_mora_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_inicio_mora_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_inicio_mora_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer periodo_gracia_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`periodo_gracia_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer periodo_gracia_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`periodo_gracia_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_percent_number tasa_interes" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_percent_number')}(`tasa_interes`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_percent_number tasa_contractual" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_percent_number')}(`tasa_contractual`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_percent_number tasa_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_percent_number')}(`tasa_referencia`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_percent_number tasa_efectiva" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_percent_number')}(`tasa_efectiva`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date ultima_fecha_venc" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`ultima_fecha_venc`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer dias_prorroga" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`dias_prorroga`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number monto_desembolsado" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`monto_desembolsado`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_ultimo_pago_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_ultimo_pago_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_ultimo_pago_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_ultimo_pago_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer dia_pago_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`dia_pago_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer dia_pago_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`dia_pago_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer cuota_mora_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`cuota_mora_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer cuota_mora_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`cuota_mora_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number monto_cuota" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`monto_cuota`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer cuenta_contable_k" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`cuenta_contable_k`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer cuenta_contable_i" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`cuenta_contable_i`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_cancelacion" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_cancelacion`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number adelanto_capital" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`adelanto_capital`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number riesgo_neto" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`riesgo_neto`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number saldo_seguro" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`saldo_seguro`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number saldo_costas_procesales" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`saldo_costas_procesales`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number valor_garantia_cons" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`valor_garantia_cons`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number reserva_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`reserva_referencia`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_demanda" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_demanda`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_integer plazo_credito" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_integer')}(`plazo_credito`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number reserva_constituir" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`reserva_constituir`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_percent_number porcentaje_reserva" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_percent_number')}(`porcentaje_reserva`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number pago_cuota" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`pago_cuota`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date fecha_pago" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_pago`)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_percent_number porcenta_reserva_descon" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_percent_number')}(`porcenta_reserva_descon`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_percent_number porcenta_adiciona_descon" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_percent_number')}(`porcenta_adiciona_descon`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_percent_number porc_reserva_referencia" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_percent_number')}(`porc_reserva_referencia`, 6)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number calculo_brecha" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`calculo_brecha`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_dollar_number ajuste_brecha" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(`ajuste_brecha`, 13)
+
+UNION ALL
+
+SELECT num_referencia,
+	"udf_nbp4_17_assert_nullable_date ajuste_brecha" AS error
+FROM latest
+WHERE ${ref('udf_nbp4_17_assert_nullable_date')}(`fecha_cump_cafe`)
