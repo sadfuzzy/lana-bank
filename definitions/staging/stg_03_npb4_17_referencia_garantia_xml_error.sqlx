@@ -5,19 +5,19 @@ config {
 
 SELECT num_referencia, identificacion_garantia, valor_garantia_proporcional,
 	"uppercase_alphanum num_referencia" AS error
-FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+FROM ${ref("report_03_npb4_17_referencia_garantia_xml")}(CURRENT_TIMESTAMP())
 WHERE ${ref('udf_nbp4_17_assert_uppercase_alphanum')}(num_referencia)
 
 UNION ALL
 
 SELECT num_referencia, identificacion_garantia, valor_garantia_proporcional,
 	"uppercase_alphanum identificacion_garantia" AS error
-FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+FROM ${ref("report_03_npb4_17_referencia_garantia_xml")}(CURRENT_TIMESTAMP())
 WHERE ${ref('udf_nbp4_17_assert_uppercase_alphanum')}(identificacion_garantia)
 
 UNION ALL
 
 SELECT num_referencia, identificacion_garantia, valor_garantia_proporcional,
 	"assert_nullable_dollar_number valor_garantia_proporcional" AS error
-FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(CURRENT_TIMESTAMP())
+FROM ${ref("report_03_npb4_17_referencia_garantia_xml")}(CURRENT_TIMESTAMP())
 WHERE ${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(valor_garantia_proporcional AS STRING), 13)
