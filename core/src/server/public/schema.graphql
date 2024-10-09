@@ -59,6 +59,7 @@ type CreditFacility {
 	creditFacilityId: UUID!
 	approvedAt: Timestamp
 	expiresAt: Timestamp
+	createdAt: Timestamp!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!
@@ -73,6 +74,7 @@ type CreditFacility {
 	userCanInitiateDisbursement: Boolean!
 	userCanApproveDisbursement: Boolean!
 	userCanRecordPayment: Boolean!
+	userCanComplete: Boolean!
 }
 
 type CreditFacilityApproval {

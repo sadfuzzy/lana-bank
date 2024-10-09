@@ -11,7 +11,10 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import { useCreditFacilityDisbursementApproveMutation } from "@/lib/graphql/generated"
+import {
+  GetCreditFacilityDetailsDocument,
+  useCreditFacilityDisbursementApproveMutation,
+} from "@/lib/graphql/generated"
 
 gql`
   mutation CreditFacilityDisbursementApprove(
@@ -38,7 +41,9 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
   CreditFacilityDisbursementApproveDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId, disbursementIdx, onSuccess }) => {
   const [approveDisbursement, { loading, reset }] =
-    useCreditFacilityDisbursementApproveMutation()
+    useCreditFacilityDisbursementApproveMutation({
+      refetchQueries: [GetCreditFacilityDetailsDocument],
+    })
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,7 +93,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         <form onSubmit={handleSubmit}>
           {error && <p className="text-destructive mb-4">{error}</p>}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCloseDialog}>
+            <Button type="button" variant="ghost" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>

@@ -510,6 +510,22 @@ impl CreditFacilities {
         self.credit_facility_repo.list(query).await
     }
 
+    pub async fn user_can_complete(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::Complete,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.complete", skip(self), err)]
     pub async fn complete_facility(
         &self,
@@ -519,9 +535,9 @@ impl CreditFacilities {
         let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Complete)
-            .await?;
+            .user_can_complete(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 

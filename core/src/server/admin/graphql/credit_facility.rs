@@ -58,6 +58,7 @@ pub struct CreditFacility {
     credit_facility_id: UUID,
     approved_at: Option<Timestamp>,
     expires_at: Option<Timestamp>,
+    created_at: Timestamp,
     credit_facility_terms: TermValues,
     status: CreditFacilityStatus,
     approvals: Vec<CreditFacilityApproval>,
@@ -186,6 +187,16 @@ impl CreditFacility {
             .await
             .is_ok())
     }
+
+    async fn user_can_complete(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_complete(sub, false)
+            .await
+            .is_ok())
+    }
 }
 
 #[derive(SimpleObject)]
@@ -250,6 +261,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             credit_facility_id: UUID::from(credit_facility.id),
             approved_at,
             expires_at,
+            created_at: credit_facility.created_at().into(),
             account_ids: credit_facility.account_ids,
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),

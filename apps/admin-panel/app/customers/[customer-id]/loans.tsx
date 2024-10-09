@@ -30,7 +30,7 @@ import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
 import { CollateralUpdateDialog } from "@/app/loans/update-collateral"
-import { LoanStatusBadge } from "@/app/loans/status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 import { LoanPartialPaymentDialog } from "@/app/loans/partial-payment"
 import { LoanApproveDialog } from "@/app/loans/approve"
 
@@ -149,7 +149,7 @@ const LoanRow: React.FC<LoanRowProps> = ({ loan, refetch }) => {
               <Balance amount={loan.balance.outstanding.usdBalance} currency="usd" />
             </TableCell>
             <TableCell>
-              <LoanStatusBadge status={loan.status} />
+              <LoanAndCreditFacilityStatusBadge status={loan.status} />
             </TableCell>
             <TableCell>
               <DropdownMenu>

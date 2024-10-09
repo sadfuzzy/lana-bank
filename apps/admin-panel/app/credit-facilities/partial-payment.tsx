@@ -10,66 +10,71 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
+import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import {
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityDisbursementInitiateMutation,
+  useCreditFacilityPartialPaymentMutation,
 } from "@/lib/graphql/generated"
-import { currencyConverter } from "@/lib/utils"
 
 gql`
-  mutation CreditFacilityDisbursementInitiate(
-    $input: CreditFacilityDisbursementInitiateInput!
-  ) {
-    creditFacilityDisbursementInitiate(input: $input) {
-      disbursement {
+  mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
+    creditFacilityPartialPayment(input: $input) {
+      creditFacility {
         id
-        index
+        creditFacilityId
       }
     }
   }
 `
 
-type CreditFacilityDisbursementInitiateDialogProps = {
+type CreditFacilityPartialPaymentDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
   onSuccess?: () => void
 }
 
-export const CreditFacilityDisbursementInitiateDialog: React.FC<
-  CreditFacilityDisbursementInitiateDialogProps
+export const CreditFacilityPartialPaymentDialog: React.FC<
+  CreditFacilityPartialPaymentDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
-  const [initiateDisbursement, { loading, reset }] =
-    useCreditFacilityDisbursementInitiateMutation({
+  const [partialPaymentCreditFacility, { loading, reset }] =
+    useCreditFacilityPartialPaymentMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
     })
-  const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
+  const [amount, setAmount] = useState<string>("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    const amountInCents = Math.round(parseFloat(amount) * 100)
+
+    if (isNaN(amountInCents) || amountInCents <= 0) {
+      setError("Please enter a valid amount")
+      return
+    }
+
     try {
-      await initiateDisbursement({
+      await partialPaymentCreditFacility({
         variables: {
           input: {
             creditFacilityId,
-            amount: currencyConverter.usdToCents(parseFloat(amount)),
+            amount: amountInCents,
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityDisbursementInitiate) {
-            toast.success("Disbursement initiated successfully")
+          if (data.creditFacilityPartialPayment) {
+            toast.success("Partial payment processed successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },
       })
     } catch (error) {
-      console.error("Error initiating disbursement:", error)
+      console.error("Error processing partial payment:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -80,8 +85,8 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
 
   const handleCloseDialog = () => {
     setOpenDialog(false)
-    setAmount("")
     setError(null)
+    setAmount("")
     reset()
   }
 
@@ -89,33 +94,32 @@ export const CreditFacilityDisbursementInitiateDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Initiate Credit Facility Disbursement</DialogTitle>
+          <DialogTitle>Process Partial Payment</DialogTitle>
           <DialogDescription>
-            Enter the amount you want to disburse from this credit facility.
+            Enter the amount you wish to pay towards this credit facility.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <Label htmlFor="amount">Amount (USD)</Label>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <Label>Amount</Label>
             <div className="flex items-center gap-1">
               <Input
-                id="amount"
                 type="number"
-                required
-                placeholder="Enter amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                placeholder="Enter the desired principal amount"
+                min={0}
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
-          {error && <p className="text-destructive mb-4">{error}</p>}
+          {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
               Cancel
             </Button>
             <Button type="submit" loading={loading}>
-              Initiate Disbursement
+              Process Payment
             </Button>
           </DialogFooter>
         </form>

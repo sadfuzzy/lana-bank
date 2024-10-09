@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { LoanStatusBadge } from "../status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "../status-badge"
 import { LoanPartialPaymentDialog } from "../partial-payment"
 import { LoanApproveDialog } from "../approve"
 import { CollateralUpdateDialog } from "../update-collateral"
@@ -45,7 +45,7 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
         <CardHeader className="pb-4">
           <div className="flex justify-between items-center">
             <CardTitle>Loan Overview</CardTitle>
-            <LoanStatusBadge status={loan.status} />
+            <LoanAndCreditFacilityStatusBadge status={loan.status} />
           </div>
         </CardHeader>
         <div className="flex w-full items-center justify-between">

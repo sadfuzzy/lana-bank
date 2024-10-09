@@ -4,7 +4,7 @@ import { gql } from "@apollo/client"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 import Link from "next/link"
 
-import { LoanStatusBadge } from "./status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import {
   DropdownMenu,
@@ -129,7 +129,10 @@ const LoansTable = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <LoanStatusBadge status={loan.status} className="p-1 px-4" />
+                    <LoanAndCreditFacilityStatusBadge
+                      status={loan.status}
+                      className="p-1 px-4"
+                    />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

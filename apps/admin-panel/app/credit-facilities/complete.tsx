@@ -10,15 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
+
 import { Button } from "@/components/primitive/button"
 import {
   GetCreditFacilityDetailsDocument,
-  useCreditFacilityApproveMutation,
+  useCreditFacilityCompleteMutation,
 } from "@/lib/graphql/generated"
 
 gql`
-  mutation CreditFacilityApprove($input: CreditFacilityApproveInput!) {
-    creditFacilityApprove(input: $input) {
+  mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
+    creditFacilityComplete(input: $input) {
       creditFacility {
         id
         creditFacilityId
@@ -27,20 +28,17 @@ gql`
   }
 `
 
-type CreditFacilityApproveDialogProps = {
+type CreditFacilityCompleteDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
   onSuccess?: () => void
 }
 
-export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogProps> = ({
-  setOpenDialog,
-  openDialog,
-  creditFacilityId,
-  onSuccess,
-}) => {
-  const [approveCreditFacility, { loading, reset }] = useCreditFacilityApproveMutation({
+export const CreditFacilityCompleteDialog: React.FC<
+  CreditFacilityCompleteDialogProps
+> = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+  const [completeCreditFacility, { loading, reset }] = useCreditFacilityCompleteMutation({
     refetchQueries: [GetCreditFacilityDetailsDocument],
   })
   const [error, setError] = useState<string | null>(null)
@@ -49,22 +47,22 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
     e.preventDefault()
     setError(null)
     try {
-      await approveCreditFacility({
+      await completeCreditFacility({
         variables: {
           input: {
             creditFacilityId,
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityApprove) {
-            toast.success("Credit facility approved successfully")
+          if (data.creditFacilityComplete) {
+            toast.success("Credit facility completed successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },
       })
     } catch (error) {
-      console.error("Error approving credit facility:", error)
+      console.error("Error completing credit facility:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -83,9 +81,10 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Approve Credit Facility</DialogTitle>
+          <DialogTitle>Complete Credit Facility</DialogTitle>
           <DialogDescription>
-            Are you sure you want to approve this credit facility?
+            Are you sure you want to complete this credit facility? This action cannot be
+            undone.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -95,7 +94,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
               Cancel
             </Button>
             <Button type="submit" loading={loading}>
-              Approve
+              Complete
             </Button>
           </DialogFooter>
         </form>

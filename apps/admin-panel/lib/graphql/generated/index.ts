@@ -211,6 +211,7 @@ export type CreditFacility = {
   balance: CreditFacilityBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
+  createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   customer: Customer;
@@ -221,6 +222,7 @@ export type CreditFacility = {
   status: CreditFacilityStatus;
   userCanApprove: Scalars['Boolean']['output'];
   userCanApproveDisbursement: Scalars['Boolean']['output'];
+  userCanComplete: Scalars['Boolean']['output'];
   userCanInitiateDisbursement: Scalars['Boolean']['output'];
   userCanRecordPayment: Scalars['Boolean']['output'];
   userCanUpdateCollateral: Scalars['Boolean']['output'];
@@ -1361,7 +1363,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus }> } | null };
 
 export type CreditFacilityApproveMutationVariables = Exact<{
   input: CreditFacilityApproveInput;
@@ -1376,6 +1378,13 @@ export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
 
 
 export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+
+export type CreditFacilityCompleteMutationVariables = Exact<{
+  input: CreditFacilityCompleteInput;
+}>;
+
+
+export type CreditFacilityCompleteMutation = { __typename?: 'Mutation', creditFacilityComplete: { __typename?: 'CreditFacilityCompletePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
 
 export type CreditFacilityCreateMutationVariables = Exact<{
   input: CreditFacilityCreateInput;
@@ -1404,7 +1413,14 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type CreditFacilityPartialPaymentMutationVariables = Exact<{
+  input: CreditFacilityPartialPaymentInput;
+}>;
+
+
+export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
 
 export type DocumentDownloadLinkGenerateMutationVariables = Exact<{
   input: DocumentDownloadLinksGenerateInput;
@@ -1715,7 +1731,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -2113,9 +2129,17 @@ export const GetCreditFacilityDetailsDocument = gql`
     id
     creditFacilityId
     collateralizationState
+    status
+    faciiltyAmount
+    collateral
+    createdAt
+    expiresAt
     balance {
       outstanding {
         usdBalance
+      }
+      collateral {
+        btcBalance
       }
     }
     customer {
@@ -2126,11 +2150,37 @@ export const GetCreditFacilityDetailsDocument = gql`
       level
       applicantId
     }
+    creditFacilityTerms {
+      annualRate
+      interval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      duration {
+        period
+        units
+      }
+    }
+    approvals {
+      user {
+        roles
+        email
+        userId
+      }
+      approvedAt
+    }
+    disbursements {
+      id
+      index
+      amount
+      status
+    }
     userCanApprove
     userCanUpdateCollateral
     userCanInitiateDisbursement
     userCanApproveDisbursement
     userCanRecordPayment
+    userCanComplete
   }
 }
     `;
@@ -2234,6 +2284,42 @@ export function useCreditFacilityCollateralUpdateMutation(baseOptions?: Apollo.M
 export type CreditFacilityCollateralUpdateMutationHookResult = ReturnType<typeof useCreditFacilityCollateralUpdateMutation>;
 export type CreditFacilityCollateralUpdateMutationResult = Apollo.MutationResult<CreditFacilityCollateralUpdateMutation>;
 export type CreditFacilityCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCollateralUpdateMutation, CreditFacilityCollateralUpdateMutationVariables>;
+export const CreditFacilityCompleteDocument = gql`
+    mutation CreditFacilityComplete($input: CreditFacilityCompleteInput!) {
+  creditFacilityComplete(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityCompleteMutationFn = Apollo.MutationFunction<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
+
+/**
+ * __useCreditFacilityCompleteMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityCompleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityCompleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityCompleteMutation, { data, loading, error }] = useCreditFacilityCompleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityCompleteMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>(CreditFacilityCompleteDocument, options);
+      }
+export type CreditFacilityCompleteMutationHookResult = ReturnType<typeof useCreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationResult = Apollo.MutationResult<CreditFacilityCompleteMutation>;
+export type CreditFacilityCompleteMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCompleteMutation, CreditFacilityCompleteMutationVariables>;
 export const CreditFacilityCreateDocument = gql`
     mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
   creditFacilityCreate(input: $input) {
@@ -2351,6 +2437,14 @@ export const CreditFacilitiesDocument = gql`
         id
         creditFacilityId
         collateralizationState
+        createdAt
+        status
+        faciiltyAmount
+        collateral
+        customer {
+          customerId
+          email
+        }
         balance {
           outstanding {
             usdBalance
@@ -2394,6 +2488,42 @@ export function useCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookO
 export type CreditFacilitiesQueryHookResult = ReturnType<typeof useCreditFacilitiesQuery>;
 export type CreditFacilitiesLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesLazyQuery>;
 export type CreditFacilitiesQueryResult = Apollo.QueryResult<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>;
+export const CreditFacilityPartialPaymentDocument = gql`
+    mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
+  creditFacilityPartialPayment(input: $input) {
+    creditFacility {
+      id
+      creditFacilityId
+    }
+  }
+}
+    `;
+export type CreditFacilityPartialPaymentMutationFn = Apollo.MutationFunction<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
+
+/**
+ * __useCreditFacilityPartialPaymentMutation__
+ *
+ * To run a mutation, you first call `useCreditFacilityPartialPaymentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityPartialPaymentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditFacilityPartialPaymentMutation, { data, loading, error }] = useCreditFacilityPartialPaymentMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditFacilityPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>(CreditFacilityPartialPaymentDocument, options);
+      }
+export type CreditFacilityPartialPaymentMutationHookResult = ReturnType<typeof useCreditFacilityPartialPaymentMutation>;
+export type CreditFacilityPartialPaymentMutationResult = Apollo.MutationResult<CreditFacilityPartialPaymentMutation>;
+export type CreditFacilityPartialPaymentMutationOptions = Apollo.BaseMutationOptions<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
 export const DocumentDownloadLinkGenerateDocument = gql`
     mutation DocumentDownloadLinkGenerate($input: DocumentDownloadLinksGenerateInput!) {
   documentDownloadLinkGenerate(input: $input) {
@@ -4501,6 +4631,7 @@ export const MeDocument = gql`
       withdraw
       audit
       financials
+      creditFacilities
     }
   }
 }

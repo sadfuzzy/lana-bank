@@ -1,22 +1,25 @@
 "use client"
 
 import React from "react"
-
 import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
-
 import { CreditFacilityApproveDialog } from "../approve"
-
 import { CreditFacilityDisbursementInitiateDialog } from "../disbursement-Initiate"
+import { CreditFacilityCompleteDialog } from "../complete"
+import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
-import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
+import {
+  CreditFacilityStatus,
+  GetCreditFacilityDetailsQuery,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 
 import { Button } from "@/components/primitive/button"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -32,16 +35,27 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openDisbursementInitiateDialog, setOpenDisbursementInitiateDialog] =
     React.useState(false)
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
+  const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
+  const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
+
+  const isExpired = React.useMemo(() => {
+    return new Date(creditFacilityDetails.expiresAt) < new Date()
+  }, [creditFacilityDetails.expiresAt])
 
   return (
-    <div className="flex gap-4">
-      <Card className="w-11/12">
+    <div className="flex">
+      <Card className="w-full">
         <>
-          <CardHeader>
+          <CardHeader className="flex-row justify-between items-center">
             <CardTitle>Credit Facility Overview</CardTitle>
+            <LoanAndCreditFacilityStatusBadge status={creditFacilityDetails.status} />
           </CardHeader>
           <CardContent>
             <DetailsGroup>
+              <DetailItem
+                label="Credit Facility ID"
+                value={creditFacilityDetails.creditFacilityId}
+              />
               <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
                 <DetailItem
                   hover={true}
@@ -50,16 +64,9 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 />
               </Link>
               <DetailItem
-                label="Credit Facility ID"
-                value={creditFacilityDetails.creditFacilityId}
-              />
-              <DetailItem
-                label="Outstanding Balance"
+                label="Faciilty Amount"
                 valueComponent={
-                  <Balance
-                    amount={creditFacilityDetails.balance.outstanding.usdBalance}
-                    currency="usd"
-                  />
+                  <Balance amount={creditFacilityDetails.faciiltyAmount} currency="usd" />
                 }
               />
               <DetailItem
@@ -72,50 +79,86 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           </CardContent>
         </>
       </Card>
-      <div className="flex flex-col space-y-2 mt-1">
-        {creditFacilityDetails.userCanApprove && (
-          <Button
-            variant="primary"
-            className="w-full"
-            onClick={() => setOpenApproveDialog(true)}
-          >
-            Approve
-          </Button>
-        )}
-        {creditFacilityDetails.userCanUpdateCollateral && (
-          <Button
-            variant="primary"
-            className="w-full"
-            onClick={() => setOpenCollateralUpdateDialog(true)}
-          >
-            Collateral Update
-          </Button>
-        )}
-        {creditFacilityDetails.userCanInitiateDisbursement && (
-          <Button
-            variant="primary"
-            className="w-full"
-            onClick={() => setOpenDisbursementInitiateDialog(true)}
-          >
-            Disbursement Initiate
-          </Button>
-        )}
-      </div>
+      {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
+        <div className="flex flex-col space-y-2 mt-1 ml-4">
+          {creditFacilityDetails.userCanApprove &&
+            creditFacilityDetails.status === CreditFacilityStatus.New &&
+            creditFacilityDetails.collateral > 0 && (
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setOpenApproveDialog(true)}
+              >
+                Approve
+              </Button>
+            )}
+          {creditFacilityDetails.userCanUpdateCollateral && (
+            <Button
+              variant="primary"
+              className="w-full"
+              onClick={() => setOpenCollateralUpdateDialog(true)}
+            >
+              Collateral Update
+            </Button>
+          )}
+          {creditFacilityDetails.userCanInitiateDisbursement &&
+            creditFacilityDetails.status === CreditFacilityStatus.Active && (
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setOpenDisbursementInitiateDialog(true)}
+              >
+                Disbursement Initiate
+              </Button>
+            )}
+          {creditFacilityDetails.userCanComplete &&
+            isExpired &&
+            creditFacilityDetails.status === CreditFacilityStatus.Active && (
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setOpenCompleteDialog(true)}
+              >
+                Complete Credit Facility
+              </Button>
+            )}
+          {creditFacilityDetails.userCanRecordPayment &&
+            creditFacilityDetails.status === CreditFacilityStatus.Active && (
+              <Button
+                variant="primary"
+                className="w-full"
+                onClick={() => setOpenPartialPaymentDialog(true)}
+              >
+                Make Partial Payment
+              </Button>
+            )}
+        </div>
+      )}
 
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
         openDialog={openCollateralUpdateDialog}
-        setOpenDialog={() => setOpenCollateralUpdateDialog(false)}
+        setOpenDialog={setOpenCollateralUpdateDialog}
       />
       <CreditFacilityDisbursementInitiateDialog
         creditFacilityId={creditFacilityId}
         openDialog={openDisbursementInitiateDialog}
-        setOpenDialog={() => setOpenDisbursementInitiateDialog(false)}
+        setOpenDialog={setOpenDisbursementInitiateDialog}
       />
       <CreditFacilityApproveDialog
         creditFacilityId={creditFacilityId}
         openDialog={openApproveDialog}
-        setOpenDialog={() => setOpenApproveDialog(false)}
+        setOpenDialog={setOpenApproveDialog}
+      />
+      <CreditFacilityCompleteDialog
+        creditFacilityId={creditFacilityId}
+        openDialog={openCompleteDialog}
+        setOpenDialog={setOpenCompleteDialog}
+      />
+      <CreditFacilityPartialPaymentDialog
+        creditFacilityId={creditFacilityId}
+        openDialog={openPartialPaymentDialog}
+        setOpenDialog={setOpenPartialPaymentDialog}
       />
     </div>
   )

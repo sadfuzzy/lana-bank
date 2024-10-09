@@ -7,6 +7,8 @@ import { IoEllipsisHorizontal } from "react-icons/io5"
 
 import Link from "next/link"
 
+import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
+
 import { Button } from "@/components/primitive/button"
 import { Input } from "@/components/primitive/input"
 import { PageHeading } from "@/components/page-heading"
@@ -27,7 +29,7 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import Balance from "@/components/balance/balance"
 import { useCreditFacilitiesQuery } from "@/lib/graphql/generated"
-import { formatCollateralizationState } from "@/lib/utils"
+import { formatCollateralizationState, formatDate } from "@/lib/utils"
 
 gql`
   query CreditFacilities($first: Int!, $after: String) {
@@ -38,6 +40,14 @@ gql`
           id
           creditFacilityId
           collateralizationState
+          createdAt
+          status
+          faciiltyAmount
+          collateral
+          customer {
+            customerId
+            email
+          }
           balance {
             outstanding {
               usdBalance
@@ -78,9 +88,11 @@ const CreditFacilitiesTable = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Credit Facility ID</TableHead>
+              <TableHead>Created At</TableHead>
+              <TableHead>Customer</TableHead>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead>Collateralization State</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
@@ -89,12 +101,22 @@ const CreditFacilitiesTable = () => {
               const facility = edge?.node
               return (
                 <TableRow key={facility.creditFacilityId}>
-                  <Link
-                    href={`/credit-facilities/${facility.creditFacilityId}`}
-                    className="flex items-center hover:underline"
-                  >
-                    <TableCell>{facility.creditFacilityId}</TableCell>
-                  </Link>
+                  <TableCell>
+                    <Link
+                      href={`/credit-facilities/${facility.creditFacilityId}`}
+                      className="flex items-center hover:underline"
+                    >
+                      {formatDate(facility.createdAt)}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    <Link
+                      href={`/customers/${facility.customer.customerId}`}
+                      className="flex items-center hover:underline"
+                    >
+                      {facility.customer.email}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <Balance
                       amount={facility.balance.outstanding.usdBalance}
@@ -103,6 +125,9 @@ const CreditFacilitiesTable = () => {
                   </TableCell>
                   <TableCell>
                     {formatCollateralizationState(facility.collateralizationState)}
+                  </TableCell>
+                  <TableCell>
+                    <LoanAndCreditFacilityStatusBadge status={facility.status} />
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

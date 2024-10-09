@@ -1,12 +1,12 @@
 import { Badge, BadgeProps } from "@/components/primitive/badge"
-import { LoanStatus } from "@/lib/graphql/generated"
+import { CreditFacilityStatus, LoanStatus } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
 
-interface LoanStatusBadgeProps extends BadgeProps {
-  status: LoanStatus
+interface LoanAndCreditFacilityStatusBadgeProps extends BadgeProps {
+  status: LoanStatus | CreditFacilityStatus
 }
 
-const getVariant = (status: LoanStatus) => {
+const getVariant = (status: LoanStatus | CreditFacilityStatus) => {
   switch (status) {
     case LoanStatus.Active:
       return "success"
@@ -17,11 +17,11 @@ const getVariant = (status: LoanStatus) => {
   }
 }
 
-export const LoanStatusBadge = ({
+export const LoanAndCreditFacilityStatusBadge = ({
   status,
   className,
   ...otherProps
-}: LoanStatusBadgeProps) => {
+}: LoanAndCreditFacilityStatusBadgeProps) => {
   const variant = getVariant(status)
 
   return (

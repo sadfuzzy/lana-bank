@@ -47,6 +47,7 @@ gql`
         withdraw
         audit
         financials
+        creditFacilities
       }
     }
   }
@@ -82,7 +83,7 @@ const NavigationLinks = () => {
       href: "/credit-facilities",
       label: "Credit Facilities",
       icon: IoReceiptOutline,
-      visible: visibleItems?.loan,
+      visible: visibleItems?.creditFacilities,
     },
     {
       href: "/terms-templates",
