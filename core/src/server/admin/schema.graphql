@@ -180,6 +180,8 @@ type CollateralizationUpdated {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
+	approvedAt: Timestamp
+	expiresAt: Timestamp
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	approvals: [CreditFacilityApproval!]!
@@ -199,6 +201,7 @@ type CreditFacility {
 type CreditFacilityApproval {
 	userId: UUID!
 	approvedAt: Timestamp!
+	user: User!
 }
 
 input CreditFacilityApproveInput {
@@ -259,6 +262,8 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
+	amount: UsdCents!
+	status: DisbursementStatus!
 }
 
 input CreditFacilityDisbursementApproveInput {
@@ -428,6 +433,11 @@ type DepositRecordPayload {
 }
 
 scalar DisbursementIdx
+
+enum DisbursementStatus {
+	NEW
+	APPROVED
+}
 
 type Document {
 	id: UUID!

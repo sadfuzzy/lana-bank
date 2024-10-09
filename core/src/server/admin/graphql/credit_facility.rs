@@ -4,9 +4,12 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{CreditFacilityId, CreditFacilityStatus, CustomerId, Satoshis, UsdCents},
+    primitives::{
+        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursementStatus, Satoshis, UsdCents,
+        UserId,
+    },
     server::{
-        admin::AdminAuthContext,
+        admin::{graphql::user::User, AdminAuthContext},
         shared_graphql::{
             convert::ToGlobalId,
             customer::Customer,
@@ -53,6 +56,8 @@ pub struct CreditFacilityCreateInput {
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
+    approved_at: Option<Timestamp>,
+    expires_at: Option<Timestamp>,
     credit_facility_terms: TermValues,
     status: CreditFacilityStatus,
     approvals: Vec<CreditFacilityApproval>,
@@ -66,9 +71,23 @@ pub struct CreditFacility {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityApproval {
     user_id: UUID,
     approved_at: Timestamp,
+}
+
+#[ComplexObject]
+impl CreditFacilityApproval {
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app
+            .users()
+            .find_by_id_internal(UserId::from(&self.user_id))
+            .await?
+            .expect("should always find user for a given UserId");
+        Ok(User::from(user))
+    }
 }
 
 #[ComplexObject]
@@ -218,6 +237,8 @@ impl ToGlobalId for crate::primitives::CreditFacilityId {
 
 impl From<crate::credit_facility::CreditFacility> for CreditFacility {
     fn from(credit_facility: crate::credit_facility::CreditFacility) -> Self {
+        let approved_at: Option<Timestamp> = credit_facility.approved_at.map(|t| t.into());
+        let expires_at: Option<Timestamp> = credit_facility.expires_at.map(|t| t.into());
         let approvals = credit_facility
             .approvals()
             .into_iter()
@@ -227,6 +248,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
+            approved_at,
+            expires_at,
             account_ids: credit_facility.account_ids,
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),
@@ -270,6 +293,8 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacilityPartialPayme
 pub struct CreditFacilityDisbursement {
     id: ID,
     index: DisbursementIdx,
+    amount: UsdCents,
+    status: DisbursementStatus,
 }
 
 impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
@@ -277,6 +302,8 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
         Self {
             id: disbursement.id.to_global_id(),
             index: disbursement.idx,
+            amount: disbursement.amount,
+            status: disbursement.status(),
         }
     }
 }

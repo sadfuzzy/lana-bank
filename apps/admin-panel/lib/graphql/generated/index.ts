@@ -207,6 +207,7 @@ export type CollateralizationUpdated = {
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   approvals: Array<CreditFacilityApproval>;
+  approvedAt?: Maybe<Scalars['Timestamp']['output']>;
   balance: CreditFacilityBalance;
   collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
@@ -214,6 +215,7 @@ export type CreditFacility = {
   creditFacilityTerms: TermValues;
   customer: Customer;
   disbursements: Array<CreditFacilityDisbursement>;
+  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
@@ -227,6 +229,7 @@ export type CreditFacility = {
 export type CreditFacilityApproval = {
   __typename?: 'CreditFacilityApproval';
   approvedAt: Scalars['Timestamp']['output'];
+  user: User;
   userId: Scalars['UUID']['output'];
 };
 
@@ -287,8 +290,10 @@ export type CreditFacilityCreatePayload = {
 
 export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
+  amount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursementIdx']['output'];
+  status: DisbursementStatus;
 };
 
 export type CreditFacilityDisbursementApproveInput = {
@@ -441,6 +446,11 @@ export type DepositRecordPayload = {
   __typename?: 'DepositRecordPayload';
   deposit: Deposit;
 };
+
+export enum DisbursementStatus {
+  Approved = 'APPROVED',
+  New = 'NEW'
+}
 
 export type Document = {
   __typename?: 'Document';
