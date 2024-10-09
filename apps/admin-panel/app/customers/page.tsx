@@ -25,6 +25,7 @@ gql`
       userCanCreateLoan
       userCanRecordDeposit
       userCanInitiateWithdrawal
+      userCanCreateCreditFacility
       balance {
         checking {
           settled
@@ -45,11 +46,38 @@ gql`
       userCanCreateLoan
       userCanRecordDeposit
       userCanInitiateWithdrawal
+      userCanCreateCreditFacility
       balance {
         checking {
           settled
           pending
         }
+      }
+    }
+  }
+
+  query Customers($first: Int!, $after: String) {
+    customers(first: $first, after: $after) {
+      nodes {
+        customerId
+        email
+        telegramId
+        userCanCreateLoan
+        userCanRecordDeposit
+        userCanInitiateWithdrawal
+        userCanCreateCreditFacility
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
       }
     }
   }

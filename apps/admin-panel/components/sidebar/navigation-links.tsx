@@ -79,6 +79,12 @@ const NavigationLinks = () => {
       visible: visibleItems?.loan,
     },
     {
+      href: "/credit-facilities",
+      label: "Credit Facilities",
+      icon: IoReceiptOutline,
+      visible: visibleItems?.loan,
+    },
+    {
       href: "/terms-templates",
       label: "Terms Templates",
       icon: IoDocumentOutline,

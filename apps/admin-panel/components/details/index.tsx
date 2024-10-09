@@ -19,6 +19,7 @@ const DetailItem = ({
   labelComponent,
   valueComponent,
   onClick = null,
+  hover = false,
 }: {
   label?: string
   value?: string
@@ -26,10 +27,13 @@ const DetailItem = ({
   labelComponent?: React.ReactNode
   valueComponent?: React.ReactNode
   onClick?: null | (() => void)
+  hover?: boolean
 }) => {
   const onClickHoverClass = onClick
     ? "hover:cursor-pointer hover:bg-secondary-foreground"
     : ""
+
+  const hoverClass = hover ? "hover:bg-secondary-foreground" : ""
 
   return (
     <div
@@ -37,6 +41,7 @@ const DetailItem = ({
         "flex justify-between items-center p-1 px-2 rounded-md",
         className,
         onClickHoverClass,
+        hoverClass,
       )}
       onClick={onClick || undefined}
     >

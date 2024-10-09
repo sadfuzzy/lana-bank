@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
+import { CreateCreditFacilityDialog } from "../credit-facilities/create"
+
 import {
   CustomersQuery,
   useCustomersQuery,
@@ -49,6 +51,10 @@ function CustomerTable({
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState<string | null>(
     null,
   )
+
+  const [openCreateCreditFacilityDialog, setOpenCreateCreditFacilityDialog] = useState<
+    string | null
+  >(null)
 
   const pageSize = 100
 
@@ -211,6 +217,15 @@ function CustomerTable({
                                 Record Withdrawal
                               </DropdownMenuItem>
                             )}
+                            {customer.userCanCreateCreditFacility && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  setOpenCreateCreditFacilityDialog(customer.customerId)
+                                }
+                              >
+                                Create Credit Facility
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -243,6 +258,15 @@ function CustomerTable({
           customerId={openRecordDepositDialog}
           openRecordDepositDialog={Boolean(openRecordDepositDialog)}
           setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(null)}
+        />
+      )}
+      {openCreateCreditFacilityDialog && (
+        <CreateCreditFacilityDialog
+          customerId={openCreateCreditFacilityDialog}
+          openCreateCreditFacilityDialog={Boolean(openCreateCreditFacilityDialog)}
+          setOpenCreateCreditFacilityDialog={() =>
+            setOpenCreateCreditFacilityDialog(null)
+          }
         />
       )}
     </>

@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge"
 
 import {
   CollateralAction,
+  CollateralizationState,
   InterestInterval,
   LoanCollaterizationState,
   Period,
@@ -76,7 +77,7 @@ export const formatInterval = (interval: InterestInterval) => {
 }
 
 export const formatCollateralizationState = (
-  collateralizationState: LoanCollaterizationState,
+  collateralizationState: LoanCollaterizationState | CollateralizationState,
 ) => {
   return collateralizationState
     .toLowerCase()

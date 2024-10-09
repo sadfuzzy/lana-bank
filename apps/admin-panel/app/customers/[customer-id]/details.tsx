@@ -6,13 +6,7 @@ import { PiPencilSimpleLineLight } from "react-icons/pi"
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailItem, DetailsGroup } from "@/components/details"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
 import { CreateLoanDialog } from "@/app/loans/create"
 import { Button } from "@/components/primitive/button"
@@ -20,6 +14,7 @@ import { RecordDepositDialog } from "@/app/deposits/record"
 import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"
+import { CreateCreditFacilityDialog } from "@/app/credit-facilities/create"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerQuery["customer"]>
@@ -33,10 +28,12 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
   const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
+  const [openCreateCreditFacilityDialog, setOpenCreateCreditFacilityDialog] =
+    useState(false)
 
   return (
-    <>
-      <Card>
+    <div className="flex gap-4">
+      <Card className="w-11/12">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-center">
             <CardTitle>Customer Overview</CardTitle>
@@ -62,25 +59,31 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
               />
             </DetailsGroup>
           </CardContent>
-          <CardFooter className="flex space-x-4 justify-end">
-            {customer.userCanCreateLoan && (
-              <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
-                <Button>New Loan</Button>
-              </CreateLoanDialog>
-            )}
-            {customer.userCanRecordDeposit && (
-              <Button onClick={() => setOpenRecordDepositDialog(true)}>
-                Record Deposit
-              </Button>
-            )}
-            {customer.userCanInitiateWithdrawal && (
-              <Button onClick={() => setOpenWithdrawalInitiateDialog(true)}>
-                Initiate Withdrawal
-              </Button>
-            )}
-          </CardFooter>
         </div>
       </Card>
+      <div className="flex flex-col space-y-2 mt-1">
+        {customer.userCanCreateLoan && (
+          <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
+            <Button>New Loan</Button>
+          </CreateLoanDialog>
+        )}
+        {customer.userCanRecordDeposit && (
+          <Button onClick={() => setOpenRecordDepositDialog(true)}>Record Deposit</Button>
+        )}
+        {customer.userCanInitiateWithdrawal && (
+          <Button onClick={() => setOpenWithdrawalInitiateDialog(true)}>
+            Initiate Withdrawal
+          </Button>
+        )}
+        {customer.userCanCreateCreditFacility && (
+          <Button
+            className="w-full"
+            onClick={() => setOpenCreateCreditFacilityDialog(true)}
+          >
+            Create Credit Facility
+          </Button>
+        )}
+      </div>
       {openWithdrawalInitiateDialog && (
         <WithdrawalInitiateDialog
           customerId={customer.customerId}
@@ -95,14 +98,17 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
           setOpenRecordDepositDialog={() => setOpenRecordDepositDialog(false)}
         />
       )}
-      {
-        <UpdateTelegramIdDialog
-          customerId={customer.customerId}
-          openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
-          setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
-          refetch={refetch}
-        />
-      }
-    </>
+      <UpdateTelegramIdDialog
+        customerId={customer.customerId}
+        openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
+        setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
+        refetch={refetch}
+      />
+      <CreateCreditFacilityDialog
+        customerId={customer.customerId}
+        openCreateCreditFacilityDialog={openCreateCreditFacilityDialog}
+        setOpenCreateCreditFacilityDialog={setOpenCreateCreditFacilityDialog}
+      />
+    </div>
   )
 }
