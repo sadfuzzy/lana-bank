@@ -1406,6 +1406,21 @@ export type CreditFacilitiesQueryVariables = Exact<{
 
 export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
+export type DocumentDownloadLinkGenerateMutationVariables = Exact<{
+  input: DocumentDownloadLinksGenerateInput;
+}>;
+
+
+export type DocumentDownloadLinkGenerateMutation = { __typename?: 'Mutation', documentDownloadLinkGenerate: { __typename?: 'DocumentDownloadLinksGeneratePayload', link: string } };
+
+export type CustomerDocumentAttachMutationVariables = Exact<{
+  file: Scalars['Upload']['input'];
+  customerId: Scalars['UUID']['input'];
+}>;
+
+
+export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'DocumentCreatePayload', document: { __typename?: 'Document', id: string, customerId: string, filename: string } } };
+
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -1425,7 +1440,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -2379,6 +2394,77 @@ export function useCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookO
 export type CreditFacilitiesQueryHookResult = ReturnType<typeof useCreditFacilitiesQuery>;
 export type CreditFacilitiesLazyQueryHookResult = ReturnType<typeof useCreditFacilitiesLazyQuery>;
 export type CreditFacilitiesQueryResult = Apollo.QueryResult<CreditFacilitiesQuery, CreditFacilitiesQueryVariables>;
+export const DocumentDownloadLinkGenerateDocument = gql`
+    mutation DocumentDownloadLinkGenerate($input: DocumentDownloadLinksGenerateInput!) {
+  documentDownloadLinkGenerate(input: $input) {
+    link
+  }
+}
+    `;
+export type DocumentDownloadLinkGenerateMutationFn = Apollo.MutationFunction<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+
+/**
+ * __useDocumentDownloadLinkGenerateMutation__
+ *
+ * To run a mutation, you first call `useDocumentDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDocumentDownloadLinkGenerateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [documentDownloadLinkGenerateMutation, { data, loading, error }] = useDocumentDownloadLinkGenerateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDocumentDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>(DocumentDownloadLinkGenerateDocument, options);
+      }
+export type DocumentDownloadLinkGenerateMutationHookResult = ReturnType<typeof useDocumentDownloadLinkGenerateMutation>;
+export type DocumentDownloadLinkGenerateMutationResult = Apollo.MutationResult<DocumentDownloadLinkGenerateMutation>;
+export type DocumentDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+export const CustomerDocumentAttachDocument = gql`
+    mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
+  customerDocumentAttach(input: {file: $file, customerId: $customerId}) {
+    document {
+      id
+      customerId
+      filename
+    }
+  }
+}
+    `;
+export type CustomerDocumentAttachMutationFn = Apollo.MutationFunction<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
+
+/**
+ * __useCustomerDocumentAttachMutation__
+ *
+ * To run a mutation, you first call `useCustomerDocumentAttachMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerDocumentAttachMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerDocumentAttachMutation, { data, loading, error }] = useCustomerDocumentAttachMutation({
+ *   variables: {
+ *      file: // value for 'file'
+ *      customerId: // value for 'customerId'
+ *   },
+ * });
+ */
+export function useCustomerDocumentAttachMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>(CustomerDocumentAttachDocument, options);
+      }
+export type CustomerDocumentAttachMutationHookResult = ReturnType<typeof useCustomerDocumentAttachMutation>;
+export type CustomerDocumentAttachMutationResult = Apollo.MutationResult<CustomerDocumentAttachMutation>;
+export type CustomerDocumentAttachMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentAttachMutation, CustomerDocumentAttachMutationVariables>;
 export const GetKycStatusForCustomerDocument = gql`
     query GetKycStatusForCustomer($id: UUID!) {
   customer(id: $id) {
@@ -2568,6 +2654,10 @@ export const GetCustomerDocument = gql`
           email
         }
       }
+    }
+    documents {
+      id
+      filename
     }
   }
 }

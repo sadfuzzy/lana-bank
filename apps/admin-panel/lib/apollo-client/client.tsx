@@ -1,7 +1,8 @@
 "use client"
 
-import { ApolloLink, HttpLink, Resolvers } from "@apollo/client"
+import { Resolvers } from "@apollo/client"
 import { relayStylePagination } from "@apollo/client/utilities"
+import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
 
 import {
   ApolloClient,
@@ -21,10 +22,16 @@ import {
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
-  const httpLink = new HttpLink({
+  const uploadLink = createUploadLink({
     uri: coreAdminGqlUrl,
+    credentials: "include",
     fetchOptions: { cache: "no-store" },
   })
+  const ssrMultipartLink = new SSRMultipartLink({
+    stripDefer: true,
+  })
+  const link =
+    typeof window === "undefined" ? ssrMultipartLink.concat(uploadLink) : uploadLink
 
   const cache = new InMemoryCache({
     typePolicies: {
@@ -109,15 +116,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
     },
     cache,
     resolvers,
-    link:
-      typeof window === "undefined"
-        ? ApolloLink.from([
-            new SSRMultipartLink({
-              stripDefer: true,
-            }),
-            httpLink,
-          ])
-        : httpLink,
+    link,
   })
 }
 

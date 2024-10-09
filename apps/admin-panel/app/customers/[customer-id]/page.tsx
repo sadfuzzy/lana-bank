@@ -9,6 +9,7 @@ import { CustomerAccountBalances } from "./balances"
 import { CustomerLoansTable } from "./loans"
 import { CustomerTransactionsTable } from "./transactions"
 import { KycStatus } from "./kyc-status"
+import { Documents } from "./documents"
 
 import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
@@ -135,6 +136,10 @@ gql`
           }
         }
       }
+      documents {
+        id
+        filename
+      }
     }
   }
 `
@@ -168,6 +173,7 @@ const Customer = ({
               <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="kyc">KYC Status</TabsTrigger>
+              <TabsTrigger value="docs">Documents</TabsTrigger>
             </TabsList>
             <TabsContent value="overview">
               <CustomerAccountBalances balance={data.customer.balance} />
@@ -191,6 +197,9 @@ const Customer = ({
             </TabsContent>
             <TabsContent value="kyc">
               <KycStatus customerId={customerId} />
+            </TabsContent>
+            <TabsContent value="docs">
+              <Documents customer={data.customer} refetch={refetch} />
             </TabsContent>
           </Tabs>
         </>

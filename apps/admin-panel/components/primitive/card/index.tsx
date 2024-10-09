@@ -10,6 +10,7 @@ const cardVariants = cva("rounded-xl shadow border", {
       primary: "bg-primary-foreground",
       secondary: "bg-secondary-foreground",
       transparent: "bg-inherit shadow-none border-none",
+      dashed: "border-dashed",
     },
   },
   defaultVariants: {
