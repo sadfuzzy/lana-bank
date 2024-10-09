@@ -206,16 +206,27 @@ export type CollateralizationUpdated = {
 
 export type CreditFacility = {
   __typename?: 'CreditFacility';
+  approvals: Array<CreditFacilityApproval>;
   balance: CreditFacilityBalance;
+  collateral: Scalars['Satoshis']['output'];
   collateralizationState: CollateralizationState;
   creditFacilityId: Scalars['UUID']['output'];
+  creditFacilityTerms: TermValues;
   customer: Customer;
+  faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
+  status: CreditFacilityStatus;
   userCanApprove: Scalars['Boolean']['output'];
   userCanApproveDisbursement: Scalars['Boolean']['output'];
   userCanInitiateDisbursement: Scalars['Boolean']['output'];
   userCanRecordPayment: Scalars['Boolean']['output'];
   userCanUpdateCollateral: Scalars['Boolean']['output'];
+};
+
+export type CreditFacilityApproval = {
+  __typename?: 'CreditFacilityApproval';
+  approvedAt: Scalars['Timestamp']['output'];
+  userId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityApproveInput = {
@@ -317,6 +328,12 @@ export type CreditFacilityPartialPaymentPayload = {
   __typename?: 'CreditFacilityPartialPaymentPayload';
   creditFacility: CreditFacility;
 };
+
+export enum CreditFacilityStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  New = 'NEW'
+}
 
 export type Customer = {
   __typename?: 'Customer';
