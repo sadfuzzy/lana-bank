@@ -4,12 +4,16 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{Satoshis, UsdCents},
-    server::shared_graphql::{
-        convert::ToGlobalId,
-        objects::{Collateral, Outstanding},
-        primitives::UUID,
-        terms::*,
+    primitives::{CustomerId, Satoshis, UsdCents},
+    server::{
+        admin::AdminAuthContext,
+        shared_graphql::{
+            convert::ToGlobalId,
+            customer::Customer,
+            objects::{Collateral, Outstanding},
+            primitives::UUID,
+            terms::*,
+        },
     },
     terms::CollateralizationState,
 };
@@ -51,6 +55,8 @@ pub struct CreditFacility {
     credit_facility_id: UUID,
     collateralization_state: CollateralizationState,
     #[graphql(skip)]
+    customer_id: UUID,
+    #[graphql(skip)]
     account_ids: crate::ledger::credit_facility::CreditFacilityAccountIds,
 }
 
@@ -63,6 +69,75 @@ impl CreditFacility {
             .get_credit_facility_balance(self.account_ids)
             .await?;
         Ok(CreditFacilityBalance::from(balance))
+    }
+
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app
+            .customers()
+            .find_by_id(None, CustomerId::from(&self.customer_id))
+            .await?;
+
+        match user {
+            Some(user) => Ok(Customer::from(user)),
+            None => panic!("user not found for a loan. should not be possible"),
+        }
+    }
+
+    async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_approve(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_update_collateral(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_initiate_disbursement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_initiate_disbursement(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_approve_disbursement(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_approve_disbursement(sub, false)
+            .await
+            .is_ok())
+    }
+
+    async fn user_can_record_payment(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_record_payment(sub, false)
+            .await
+            .is_ok())
     }
 }
 
@@ -120,6 +195,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             credit_facility_id: UUID::from(credit_facility.id),
             account_ids: credit_facility.account_ids,
             collateralization_state: credit_facility.collateralization(),
+            customer_id: UUID::from(credit_facility.customer_id),
         }
     }
 }

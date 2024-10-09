@@ -209,7 +209,13 @@ export type CreditFacility = {
   balance: CreditFacilityBalance;
   collateralizationState: CollateralizationState;
   creditFacilityId: Scalars['UUID']['output'];
+  customer: Customer;
   id: Scalars['ID']['output'];
+  userCanApprove: Scalars['Boolean']['output'];
+  userCanApproveDisbursement: Scalars['Boolean']['output'];
+  userCanInitiateDisbursement: Scalars['Boolean']['output'];
+  userCanRecordPayment: Scalars['Boolean']['output'];
+  userCanUpdateCollateral: Scalars['Boolean']['output'];
 };
 
 export type CreditFacilityApproveInput = {
@@ -327,6 +333,7 @@ export type Customer = {
   status: AccountStatus;
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
+  userCanCreateCreditFacility: Scalars['Boolean']['output'];
   userCanCreateLoan: Scalars['Boolean']['output'];
   userCanInitiateWithdrawal: Scalars['Boolean']['output'];
   userCanRecordDeposit: Scalars['Boolean']['output'];
@@ -1207,6 +1214,7 @@ export type UserRevokeRolePayload = {
 export type VisibleNavigationItems = {
   __typename?: 'VisibleNavigationItems';
   audit: Scalars['Boolean']['output'];
+  creditFacilities: Scalars['Boolean']['output'];
   customer: Scalars['Boolean']['output'];
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];

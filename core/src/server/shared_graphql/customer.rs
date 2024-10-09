@@ -112,6 +112,19 @@ impl Customer {
             .is_ok())
     }
 
+    async fn user_can_create_credit_facility(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        Ok(app
+            .credit_facilities()
+            .user_can_create(sub, false)
+            .await
+            .is_ok())
+    }
+
     async fn user_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;

@@ -13,7 +13,8 @@ use crate::{
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
+        AuditInfo, CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents,
+        UserId,
     },
     terms::TermValues,
     user::{UserRepo, Users},
@@ -68,6 +69,22 @@ impl CreditFacilities {
         }
     }
 
+    pub async fn user_can_create(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::Create,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.create", skip(self), err)]
     pub async fn create(
         &self,
@@ -79,9 +96,9 @@ impl CreditFacilities {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Create)
-            .await?;
+            .user_can_create(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
             Some(customer) => customer,
@@ -132,6 +149,22 @@ impl CreditFacilities {
         }
     }
 
+    pub async fn user_can_approve(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::Approve,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
@@ -141,9 +174,9 @@ impl CreditFacilities {
         let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
-            .authz
-            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Approve)
-            .await?;
+            .user_can_approve(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -174,6 +207,22 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
+    pub async fn user_can_initiate_disbursement(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::InitiateDisbursement,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.initiate_disbursement", skip(self), err)]
     pub async fn initiate_disbursement(
         &self,
@@ -182,13 +231,9 @@ impl CreditFacilities {
         amount: UsdCents,
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::InitiateDisbursement,
-            )
-            .await?;
+            .user_can_initiate_disbursement(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -214,6 +259,22 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
+    pub async fn user_can_approve_disbursement(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::ApproveDisbursement,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(
         name = "lava.credit_facility.add_disbursement_approval",
         skip(self),
@@ -226,13 +287,9 @@ impl CreditFacilities {
         disbursement_idx: DisbursementIdx,
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::ApproveDisbursement,
-            )
-            .await?;
+            .user_can_approve_disbursement(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -277,6 +334,22 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
+    pub async fn user_can_update_collateral(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::UpdateCollateral,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
@@ -285,13 +358,9 @@ impl CreditFacilities {
         updated_collateral: Satoshis,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::UpdateCollateral,
-            )
-            .await?;
+            .user_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -323,6 +392,22 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
+    pub async fn user_can_record_payment(
+        &self,
+        sub: &Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                Object::CreditFacility,
+                CreditFacilityAction::RecordPayment,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "lava.credit_facility.record_payment", skip(self), err)]
     pub async fn record_payment(
         &self,
@@ -333,13 +418,9 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::RecordPayment,
-            )
-            .await?;
+            .user_can_record_payment(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let price = self.price.usd_cents_per_btc().await?;
 

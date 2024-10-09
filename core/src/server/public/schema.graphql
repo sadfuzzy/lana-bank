@@ -59,6 +59,12 @@ type CreditFacility {
 	creditFacilityId: UUID!
 	collateralizationState: CollateralizationState!
 	balance: CreditFacilityBalance!
+	customer: Customer!
+	userCanApprove: Boolean!
+	userCanUpdateCollateral: Boolean!
+	userCanInitiateDisbursement: Boolean!
+	userCanApproveDisbursement: Boolean!
+	userCanRecordPayment: Boolean!
 }
 
 type CreditFacilityBalance {
@@ -79,6 +85,7 @@ type Customer {
 	withdrawals: [Withdrawal!]!
 	audit: [AuditEntry!]!
 	userCanCreateLoan: Boolean!
+	userCanCreateCreditFacility: Boolean!
 	userCanRecordDeposit: Boolean!
 	userCanInitiateWithdrawal: Boolean!
 	creditFacilities: [CreditFacility!]!
@@ -288,6 +295,7 @@ type VisibleNavigationItems {
 	withdraw: Boolean!
 	audit: Boolean!
 	financials: Boolean!
+	creditFacilities: Boolean!
 }
 
 type Withdrawal {

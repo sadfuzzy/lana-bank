@@ -514,6 +514,16 @@ impl Authorization {
             financials: self
                 .check_all_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
                 .await?,
+            credit_facilities: self
+                .check_all_permissions(
+                    sub,
+                    Object::CreditFacility,
+                    &[
+                        Action::CreditFacility(CreditFacilityAction::Read),
+                        Action::CreditFacility(CreditFacilityAction::List),
+                    ],
+                )
+                .await?,
         })
     }
 }
@@ -528,4 +538,5 @@ pub struct VisibleNavigationItems {
     pub withdraw: bool,
     pub audit: bool,
     pub financials: bool,
+    pub credit_facilities: bool,
 }
