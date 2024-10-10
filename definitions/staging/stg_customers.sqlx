@@ -3,7 +3,7 @@ config {
 }
 
 SELECT DISTINCT
-	  JSON_VALUE(event, "$.id") AS id
+	  JSON_VALUE(event, "$.id") AS customer_id
 	, JSON_VALUE(event, "$.email") AS email
 
 FROM ${ref({

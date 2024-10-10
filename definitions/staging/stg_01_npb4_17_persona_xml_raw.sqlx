@@ -6,16 +6,6 @@ config {
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
-  WITH
-  customers AS (
-    SELECT
-        ROW_NUMBER() OVER(ORDER BY id) sequence_id
-      , id as customer_id
-      , email
-    FROM
-  ${ref("stg_customers")}
-  )
-
   SELECT
       LEFT(REPLACE(customer_id, '-', ''), 14) AS `nit_persona`      -- use NIU type (`tipo_identificador` = 'N') with use 14 leftmost no-hyphen characters from backend customer_id
     , CAST(NULL AS STRING) AS `dui`                                 -- NULL for non-Salvadoran (`nacionalidad` != '9300')
@@ -50,6 +40,6 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
     , CAST(NULL AS STRING) AS `nit_anterior`                        -- NULL for natural person
     , CAST(NULL AS STRING) AS `tipo_ident_anterior`                 -- NULL for natural person
     , CAST(NULL AS STRING) AS `municipio_residencia`                -- NULL for non-Salvadoran
-  FROM customers
-  LEFT JOIN ${ref("stg_customers_identities")} USING (sequence_id)
+  FROM ${ref("stg_customers")}
+  LEFT JOIN ${ref("stg_customers_identities")} USING (customer_id)
 )
