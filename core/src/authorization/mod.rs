@@ -297,6 +297,16 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
             .await?;
+        self.add_permission_to_role(&role, Object::Document, DocumentAction::Read)
+            .await?;
+        self.add_permission_to_role(&role, Object::Document, DocumentAction::List)
+            .await?;
+        self.add_permission_to_role(
+            &role,
+            Object::Document,
+            DocumentAction::GenerateDownloadLink,
+        )
+        .await?;
 
         Ok(())
     }
