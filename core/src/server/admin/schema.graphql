@@ -190,6 +190,7 @@ type CreditFacility {
 	faciiltyAmount: UsdCents!
 	collateral: Satoshis!
 	canBeCompleted: Boolean!
+	transactions: [CreditFacilityHistoryEntry!]!
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
@@ -227,6 +228,22 @@ input CreditFacilityCollateralUpdateInput {
 
 type CreditFacilityCollateralUpdatePayload {
 	creditFacility: CreditFacility!
+}
+
+type CreditFacilityCollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: Timestamp!
+	action: CollateralAction!
+	txId: UUID!
+}
+
+type CreditFacilityCollateralizationUpdated {
+	state: CollateralizationState!
+	collateral: Satoshis!
+	outstandingInterest: UsdCents!
+	outstandingDisbursement: UsdCents!
+	recordedAt: Timestamp!
+	price: UsdCents!
 }
 
 input CreditFacilityCompleteInput {
@@ -299,6 +316,20 @@ type CreditFacilityEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated
+
+type CreditFacilityIncrementalPayment {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityOrigination {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 input CreditFacilityPartialPaymentInput {

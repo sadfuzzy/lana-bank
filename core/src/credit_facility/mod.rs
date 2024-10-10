@@ -3,6 +3,7 @@ mod cursor;
 mod disbursement;
 mod entity;
 pub mod error;
+mod history;
 mod repo;
 
 use crate::{
@@ -25,6 +26,7 @@ pub use cursor::*;
 pub use disbursement::*;
 pub use entity::*;
 use error::*;
+pub use history::*;
 use repo::*;
 use tracing::instrument;
 

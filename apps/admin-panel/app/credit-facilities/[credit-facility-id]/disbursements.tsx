@@ -40,9 +40,9 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Index</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead className="w-2/4">ID</TableHead>
+                <TableHead className="w-1/4">Index</TableHead>
+                <TableHead className="w-1/4"> Amount</TableHead>
                 <TableHead className="text-right"></TableHead>
               </TableRow>
             </TableHeader>

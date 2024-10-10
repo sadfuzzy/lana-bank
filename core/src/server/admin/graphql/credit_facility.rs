@@ -4,10 +4,7 @@ use connection::CursorType;
 use crate::{
     app::LavaApp,
     ledger,
-    primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursementStatus, Satoshis, UsdCents,
-        UserId,
-    },
+    primitives::*,
     server::{
         admin::{graphql::user::User, AdminAuthContext},
         shared_graphql::{
@@ -66,10 +63,51 @@ pub struct CreditFacility {
     faciilty_amount: UsdCents,
     collateral: Satoshis,
     can_be_completed: bool,
+    transactions: Vec<CreditFacilityHistoryEntry>,
     #[graphql(skip)]
     customer_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::credit_facility::CreditFacilityAccountIds,
+}
+
+#[derive(async_graphql::Union)]
+pub enum CreditFacilityHistoryEntry {
+    Payment(CreditFacilityIncrementalPayment),
+    Collateral(CreditFacilityCollateralUpdated),
+    Origination(CreditFacilityOrigination),
+    Collateralization(CreditFacilityCollateralizationUpdated),
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityIncrementalPayment {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityCollateralUpdated {
+    pub satoshis: Satoshis,
+    pub recorded_at: Timestamp,
+    pub action: CollateralAction,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityOrigination {
+    pub cents: UsdCents,
+    pub recorded_at: Timestamp,
+    pub tx_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct CreditFacilityCollateralizationUpdated {
+    pub state: CollateralizationState,
+    pub collateral: Satoshis,
+    pub outstanding_interest: UsdCents,
+    pub outstanding_disbursement: UsdCents,
+    pub recorded_at: Timestamp,
+    pub price: UsdCents,
 }
 
 #[derive(SimpleObject)]
@@ -256,6 +294,11 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             .into_iter()
             .map(CreditFacilityApproval::from)
             .collect();
+        let transactions = credit_facility
+            .history()
+            .into_iter()
+            .map(CreditFacilityHistoryEntry::from)
+            .collect();
 
         Self {
             id: credit_facility.id.to_global_id(),
@@ -268,6 +311,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             status: credit_facility.status(),
             approvals,
             can_be_completed: credit_facility.can_be_completed(),
+            transactions,
             faciilty_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.collateralization(),
@@ -409,6 +453,71 @@ impl From<crate::credit_facility::CreditFacilityApproval> for CreditFacilityAppr
         CreditFacilityApproval {
             user_id: UUID::from(approver.user_id),
             approved_at: approver.approved_at.into(),
+        }
+    }
+}
+
+impl From<crate::credit_facility::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {
+    fn from(transaction: crate::credit_facility::CreditFacilityHistoryEntry) -> Self {
+        match transaction {
+            crate::credit_facility::CreditFacilityHistoryEntry::Payment(payment) => {
+                CreditFacilityHistoryEntry::Payment(payment.into())
+            }
+            crate::credit_facility::CreditFacilityHistoryEntry::Collateral(collateral) => {
+                CreditFacilityHistoryEntry::Collateral(collateral.into())
+            }
+            crate::credit_facility::CreditFacilityHistoryEntry::Origination(origination) => {
+                CreditFacilityHistoryEntry::Origination(origination.into())
+            }
+            crate::credit_facility::CreditFacilityHistoryEntry::Collateralization(
+                collateralization,
+            ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
+        }
+    }
+}
+
+impl From<crate::credit_facility::IncrementalPayment> for CreditFacilityIncrementalPayment {
+    fn from(payment: crate::credit_facility::IncrementalPayment) -> Self {
+        Self {
+            cents: payment.cents,
+            recorded_at: payment.recorded_at.into(),
+            tx_id: UUID::from(payment.tx_id),
+        }
+    }
+}
+
+impl From<crate::credit_facility::CollateralUpdated> for CreditFacilityCollateralUpdated {
+    fn from(collateral: crate::credit_facility::CollateralUpdated) -> Self {
+        Self {
+            satoshis: collateral.satoshis,
+            recorded_at: collateral.recorded_at.into(),
+            action: collateral.action,
+            tx_id: UUID::from(collateral.tx_id),
+        }
+    }
+}
+
+impl From<crate::credit_facility::CreditFacilityOrigination> for CreditFacilityOrigination {
+    fn from(origination: crate::credit_facility::CreditFacilityOrigination) -> Self {
+        Self {
+            cents: origination.cents,
+            recorded_at: origination.recorded_at.into(),
+            tx_id: UUID::from(origination.tx_id),
+        }
+    }
+}
+
+impl From<crate::credit_facility::CollateralizationUpdated>
+    for CreditFacilityCollateralizationUpdated
+{
+    fn from(collateralization: crate::credit_facility::CollateralizationUpdated) -> Self {
+        Self {
+            state: collateralization.state,
+            collateral: collateralization.collateral,
+            outstanding_interest: collateralization.outstanding_interest,
+            outstanding_disbursement: collateralization.outstanding_disbursement,
+            recorded_at: collateralization.recorded_at.into(),
+            price: collateralization.price.into_inner(),
         }
     }
 }

@@ -67,6 +67,7 @@ type CreditFacility {
 	faciiltyAmount: UsdCents!
 	collateral: Satoshis!
 	canBeCompleted: Boolean!
+	transactions: [CreditFacilityHistoryEntry!]!
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
@@ -89,11 +90,41 @@ type CreditFacilityBalance {
 	collateral: Collateral!
 }
 
+type CreditFacilityCollateralUpdated {
+	satoshis: Satoshis!
+	recordedAt: Timestamp!
+	action: CollateralAction!
+	txId: UUID!
+}
+
+type CreditFacilityCollateralizationUpdated {
+	state: CollateralizationState!
+	collateral: Satoshis!
+	outstandingInterest: UsdCents!
+	outstandingDisbursement: UsdCents!
+	recordedAt: Timestamp!
+	price: UsdCents!
+}
+
 type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
 	amount: UsdCents!
 	status: DisbursementStatus!
+}
+
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated
+
+type CreditFacilityIncrementalPayment {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
+}
+
+type CreditFacilityOrigination {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	txId: UUID!
 }
 
 enum CreditFacilityStatus {

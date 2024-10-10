@@ -13,6 +13,8 @@ import { CreditFacilityApprovers } from "./approvers"
 
 import { CreditFacilityDisbursements } from "./disbursements"
 
+import { CreditFacilityTransactions } from "./transactions"
+
 import { PageHeading } from "@/components/page-heading"
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
@@ -70,6 +72,32 @@ gql`
         amount
         status
       }
+      transactions {
+        ... on CreditFacilityIncrementalPayment {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralUpdated {
+          satoshis
+          recordedAt
+          action
+          txId
+        }
+        ... on CreditFacilityOrigination {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralizationUpdated {
+          state
+          collateral
+          outstandingInterest
+          outstandingDisbursement
+          recordedAt
+          price
+        }
+      }
       userCanApprove
       userCanUpdateCollateral
       userCanInitiateDisbursement
@@ -110,6 +138,7 @@ function CreditFacilityPage({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
           {data.creditFacility.disbursements.length > 0 && (
             <TabsTrigger value="disbursements">Disbursements</TabsTrigger>
           )}
@@ -121,12 +150,16 @@ function CreditFacilityPage({
           {data.creditFacility.disbursements.length > 0 && (
             <CreditFacilityDisbursements creditFacility={data.creditFacility} />
           )}
+          <CreditFacilityTransactions creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="snapshot">
           <CreditFacilitySnapshot creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="terms">
           <CreditFacilityTerms creditFacility={data.creditFacility} />
+        </TabsContent>
+        <TabsContent value="transactions">
+          <CreditFacilityTransactions creditFacility={data.creditFacility} />
         </TabsContent>
         {data.creditFacility.disbursements.length > 0 && (
           <TabsContent value="disbursements">

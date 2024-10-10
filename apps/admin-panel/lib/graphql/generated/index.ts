@@ -221,6 +221,7 @@ export type CreditFacility = {
   faciiltyAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
+  transactions: Array<CreditFacilityHistoryEntry>;
   userCanApprove: Scalars['Boolean']['output'];
   userCanApproveDisbursement: Scalars['Boolean']['output'];
   userCanComplete: Scalars['Boolean']['output'];
@@ -259,6 +260,24 @@ export type CreditFacilityCollateralUpdateInput = {
 export type CreditFacilityCollateralUpdatePayload = {
   __typename?: 'CreditFacilityCollateralUpdatePayload';
   creditFacility: CreditFacility;
+};
+
+export type CreditFacilityCollateralUpdated = {
+  __typename?: 'CreditFacilityCollateralUpdated';
+  action: CollateralAction;
+  recordedAt: Scalars['Timestamp']['output'];
+  satoshis: Scalars['Satoshis']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityCollateralizationUpdated = {
+  __typename?: 'CreditFacilityCollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  outstandingDisbursement: Scalars['UsdCents']['output'];
+  outstandingInterest: Scalars['UsdCents']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: CollateralizationState;
 };
 
 export type CreditFacilityCompleteInput = {
@@ -326,6 +345,22 @@ export type CreditFacilityEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: CreditFacility;
+};
+
+export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
+
+export type CreditFacilityIncrementalPayment = {
+  __typename?: 'CreditFacilityIncrementalPayment';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityOrigination = {
+  __typename?: 'CreditFacilityOrigination';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityPartialPaymentInput = {
@@ -1364,7 +1399,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus }> } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
 
 export type CreditFacilityApproveMutationVariables = Exact<{
   input: CreditFacilityApproveInput;
@@ -2176,6 +2211,32 @@ export const GetCreditFacilityDetailsDocument = gql`
       index
       amount
       status
+    }
+    transactions {
+      ... on CreditFacilityIncrementalPayment {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralUpdated {
+        satoshis
+        recordedAt
+        action
+        txId
+      }
+      ... on CreditFacilityOrigination {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralizationUpdated {
+        state
+        collateral
+        outstandingInterest
+        outstandingDisbursement
+        recordedAt
+        price
+      }
     }
     userCanApprove
     userCanUpdateCollateral

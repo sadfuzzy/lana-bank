@@ -11,7 +11,7 @@ use crate::{
     terms::{CVLPct, CollateralizationState, TermValues},
 };
 
-use super::{disbursement::*, CreditFacilityCollateralUpdate, CreditFacilityError};
+use super::{disbursement::*, history, CreditFacilityCollateralUpdate, CreditFacilityError};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -245,6 +245,10 @@ impl CreditFacility {
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
+    }
+
+    pub fn history(&self) -> Vec<history::CreditFacilityHistoryEntry> {
+        history::project(self.events.iter())
     }
 
     pub(super) fn is_approved(&self) -> bool {
