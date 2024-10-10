@@ -66,6 +66,7 @@ type CreditFacility {
 	collateralizationState: CollateralizationState!
 	faciiltyAmount: UsdCents!
 	collateral: Satoshis!
+	canBeCompleted: Boolean!
 	balance: CreditFacilityBalance!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!

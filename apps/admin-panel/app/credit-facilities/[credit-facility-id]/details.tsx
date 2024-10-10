@@ -38,10 +38,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
-  const isExpired = React.useMemo(() => {
-    return new Date(creditFacilityDetails.expiresAt) < new Date()
-  }, [creditFacilityDetails.expiresAt])
-
   return (
     <div className="flex">
       <Card className="w-full">
@@ -112,8 +108,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               </Button>
             )}
           {creditFacilityDetails.userCanComplete &&
-            isExpired &&
-            creditFacilityDetails.status === CreditFacilityStatus.Active && (
+            creditFacilityDetails.canBeCompleted && (
               <Button
                 variant="primary"
                 className="w-full"

@@ -466,6 +466,10 @@ impl CreditFacility {
         }
     }
 
+    pub fn can_be_completed(&self) -> bool {
+        self.outstanding().total().is_zero()
+    }
+
     pub fn collateral(&self) -> Satoshis {
         self.events
             .iter()

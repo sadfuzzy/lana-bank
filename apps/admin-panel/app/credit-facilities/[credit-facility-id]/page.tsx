@@ -28,6 +28,7 @@ gql`
       collateral
       createdAt
       expiresAt
+      canBeCompleted
       balance {
         outstanding {
           usdBalance

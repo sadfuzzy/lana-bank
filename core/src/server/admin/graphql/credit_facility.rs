@@ -65,6 +65,7 @@ pub struct CreditFacility {
     collateralization_state: CollateralizationState,
     faciilty_amount: UsdCents,
     collateral: Satoshis,
+    can_be_completed: bool,
     #[graphql(skip)]
     customer_id: UUID,
     #[graphql(skip)]
@@ -266,6 +267,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             credit_facility_terms: TermValues::from(credit_facility.terms),
             status: credit_facility.status(),
             approvals,
+            can_be_completed: credit_facility.can_be_completed(),
             faciilty_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.collateralization(),
