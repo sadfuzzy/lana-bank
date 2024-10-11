@@ -90,7 +90,11 @@ gql`
         id
         creditFacilityId
         collateralizationState
+        status
         balance {
+          collateral {
+            btcBalance
+          }
           outstanding {
             usdBalance
           }

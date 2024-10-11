@@ -156,33 +156,37 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             />
           </div>
           <div>
-            <Label htmlFor="annualRate">Annual Rate (%)</Label>
+            <Label htmlFor="initialCvl">Initial CVL (%)</Label>
             <Input
-              id="annualRate"
+              id="initialCvl"
               type="number"
               required
-              placeholder="Enter the annual rate"
-              value={annualRate}
-              onChange={(e) => setAnnualRate(e.target.value)}
+              placeholder="Enter the initial CVL"
+              value={initialCvl}
+              onChange={(e) => setInitialCvl(e.target.value)}
             />
           </div>
           <div>
-            <Label htmlFor="interval">Interval</Label>
-            <Select
-              id="interval"
-              value={interval}
-              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+            <Label htmlFor="marginCallCvl">Margin Call CVL (%)</Label>
+            <Input
+              id="marginCallCvl"
+              type="number"
               required
-            >
-              <option value="" disabled>
-                Select interval
-              </option>
-              {Object.values(InterestInterval).map((int) => (
-                <option key={int} value={int}>
-                  {formatInterval(int)}
-                </option>
-              ))}
-            </Select>
+              placeholder="Enter the margin call CVL"
+              value={marginCallCvl}
+              onChange={(e) => setMarginCallCvl(e.target.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="liquidationCvl">Liquidation CVL (%)</Label>
+            <Input
+              id="liquidationCvl"
+              type="number"
+              required
+              placeholder="Enter the liquidation CVL"
+              value={liquidationCvl}
+              onChange={(e) => setLiquidationCvl(e.target.value)}
+            />
           </div>
           <div>
             <Label>Duration</Label>
@@ -214,36 +218,32 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             </div>
           </div>
           <div>
-            <Label htmlFor="liquidationCvl">Liquidation CVL (%)</Label>
-            <Input
-              id="liquidationCvl"
-              type="number"
+            <Label htmlFor="interval">Interval</Label>
+            <Select
+              id="interval"
+              value={interval}
+              onChange={(e) => setInterval(e.target.value as InterestInterval)}
               required
-              placeholder="Enter the liquidation CVL"
-              value={liquidationCvl}
-              onChange={(e) => setLiquidationCvl(e.target.value)}
-            />
+            >
+              <option value="" disabled>
+                Select interval
+              </option>
+              {Object.values(InterestInterval).map((int) => (
+                <option key={int} value={int}>
+                  {formatInterval(int)}
+                </option>
+              ))}
+            </Select>
           </div>
           <div>
-            <Label htmlFor="marginCallCvl">Margin Call CVL (%)</Label>
+            <Label htmlFor="annualRate">Annual Rate (%)</Label>
             <Input
-              id="marginCallCvl"
+              id="annualRate"
               type="number"
               required
-              placeholder="Enter the margin call CVL"
-              value={marginCallCvl}
-              onChange={(e) => setMarginCallCvl(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="initialCvl">Initial CVL (%)</Label>
-            <Input
-              id="initialCvl"
-              type="number"
-              required
-              placeholder="Enter the initial CVL"
-              value={initialCvl}
-              onChange={(e) => setInitialCvl(e.target.value)}
+              placeholder="Enter the annual rate"
+              value={annualRate}
+              onChange={(e) => setAnnualRate(e.target.value)}
             />
           </div>
           {error && <p className="text-destructive">{error}</p>}

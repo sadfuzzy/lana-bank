@@ -10,6 +10,7 @@ import { CreditFacilityCompleteDialog } from "../complete"
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import {
+  CreditFacility,
   CreditFacilityStatus,
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -141,7 +142,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         setOpenDialog={setOpenDisbursementInitiateDialog}
       />
       <CreditFacilityApproveDialog
-        creditFacilityId={creditFacilityId}
+        creditFacilityDetails={creditFacilityDetails as CreditFacility}
         openDialog={openApproveDialog}
         setOpenDialog={setOpenApproveDialog}
       />

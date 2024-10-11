@@ -16,6 +16,7 @@ import Balance from "@/components/balance/balance"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"
 import { formatCollateralizationState } from "@/lib/utils"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
 type CustomerCreditFacilitiesTableProps = {
   creditFacilities: NonNullable<GetCustomerQuery["customer"]>["creditFacilities"]
@@ -36,8 +37,10 @@ export const CustomerCreditFacilitiesTable: React.FC<
           <TableHeader>
             <TableRow>
               <TableHead>Credit Facility ID</TableHead>
+              <TableCell>Collateral (BTC)</TableCell>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead>Collateralization State</TableHead>
+              <TableCell>Status</TableCell>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -47,9 +50,18 @@ export const CustomerCreditFacilitiesTable: React.FC<
                 <TableCell>{facility.creditFacilityId}</TableCell>
                 <TableCell>
                   <Balance
+                    amount={facility.balance.collateral.btcBalance}
+                    currency="btc"
+                  />
+                </TableCell>
+                <TableCell>
+                  <Balance
                     amount={facility.balance.outstanding.usdBalance}
                     currency="usd"
                   />
+                </TableCell>
+                <TableCell>
+                  <LoanAndCreditFacilityStatusBadge status={facility.status} />
                 </TableCell>
                 <TableCell>
                   {formatCollateralizationState(facility.collateralizationState)}
