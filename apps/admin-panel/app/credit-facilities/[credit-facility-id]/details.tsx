@@ -60,7 +60,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 />
               </Link>
               <DetailItem
-                label="Faciilty Amount"
+                label="Facility Amount"
                 valueComponent={
                   <Balance amount={creditFacilityDetails.faciiltyAmount} currency="usd" />
                 }

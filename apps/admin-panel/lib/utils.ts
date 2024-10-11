@@ -4,6 +4,7 @@ import { twMerge } from "tailwind-merge"
 import {
   CollateralAction,
   CollateralizationState,
+  GetRealtimePriceUpdatesQuery,
   InterestInterval,
   LoanCollaterizationState,
   Period,
@@ -105,4 +106,25 @@ export const isUUID = (str: string) => {
 export const isEmail = (str: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   return emailRegex.test(str)
+}
+
+export const calculateInitialCollateralRequired = ({
+  amount,
+  initialCvl,
+  priceInfo,
+}: {
+  amount: number
+  initialCvl: number
+  priceInfo: GetRealtimePriceUpdatesQuery | undefined
+}) => {
+  if (!priceInfo) return 0
+
+  const basisAmountInUsd = amount
+  const initialCvlDecimal = initialCvl / 100
+
+  const requiredCollateralInSats =
+    (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
+    (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
+
+  return Math.floor(requiredCollateralInSats)
 }

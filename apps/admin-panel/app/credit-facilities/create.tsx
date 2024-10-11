@@ -23,7 +23,12 @@ import {
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { Select } from "@/components/primitive/select"
-import { formatInterval, formatPeriod, currencyConverter } from "@/lib/utils"
+import {
+  formatInterval,
+  formatPeriod,
+  currencyConverter,
+  calculateInitialCollateralRequired,
+} from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
@@ -233,10 +238,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCreateCreditFacilityDialog])
 
-  const collateralRequiredForDesiredFacility = currencyConverter.btcToSatoshi(
-    currencyConverter.usdToCents(Number(formValues.facility || 0)) /
-      priceInfo?.realtimePrice.usdCentsPerBtc,
-  )
+  const collateralRequiredForDesiredFacility = calculateInitialCollateralRequired({
+    amount: Number(formValues.facility) || 0,
+    initialCvl: Number(formValues.initialCvl) || 0,
+    priceInfo: priceInfo,
+  })
 
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
