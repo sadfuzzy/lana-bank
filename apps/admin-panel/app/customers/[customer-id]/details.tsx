@@ -36,7 +36,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
       <Card className="w-11/12">
         <CardHeader className="pb-4">
           <div className="flex justify-between items-center">
-            <CardTitle>Customer Overview</CardTitle>
+            <CardTitle>Customer</CardTitle>
           </div>
         </CardHeader>
         <div className="flex w-full items-center justify-between">
@@ -80,7 +80,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
             className="w-full"
             onClick={() => setOpenCreateCreditFacilityDialog(true)}
           >
-            Create Credit Facility
+            New Credit Facility
           </Button>
         )}
       </div>

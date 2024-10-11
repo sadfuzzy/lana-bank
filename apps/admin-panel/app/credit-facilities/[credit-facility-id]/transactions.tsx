@@ -23,6 +23,11 @@ import {
   formatTransactionType,
 } from "@/lib/utils"
 
+const formatTransactionTypeWithoutPrefix = (type: string) => {
+  const formattedType = formatTransactionType(type)
+  return formattedType.replace("Credit Facility", "").trim()
+}
+
 type CreditFacilityTransactionsProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
 }
@@ -93,7 +98,7 @@ const renderTransactionRow = (transaction: CreditFacilityHistoryEntry, index: nu
       case "CreditFacilityCollateralUpdated":
         return (
           <div className="flex flex-row gap-1">
-            <div>{formatTransactionType(transaction.__typename)}</div>
+            <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
             <div className="text-textColor-secondary text-sm">
               {formatCollateralAction(transaction.action)}
             </div>
@@ -102,14 +107,14 @@ const renderTransactionRow = (transaction: CreditFacilityHistoryEntry, index: nu
       case "CreditFacilityCollateralizationUpdated":
         return (
           <div className="flex flex-row gap-1">
-            <div>{formatTransactionType(transaction.__typename)}</div>
+            <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
             <div className="text-textColor-secondary text-sm">
               ({formatCollateralizationState(transaction.state)})
             </div>
           </div>
         )
       default:
-        return <div>{formatTransactionType(transaction.__typename)}</div>
+        return <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
     }
   }
 

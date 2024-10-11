@@ -64,6 +64,7 @@ gql`
 `
 
 const CreditFacilitiesTable = () => {
+  const router = useRouter()
   const { data, loading, error, fetchMore } = useCreditFacilitiesQuery({
     variables: {
       first: 10,
@@ -100,22 +101,22 @@ const CreditFacilitiesTable = () => {
             {data?.creditFacilities.edges.map((edge) => {
               const facility = edge?.node
               return (
-                <TableRow key={facility.creditFacilityId}>
-                  <TableCell>
-                    <Link
-                      href={`/credit-facilities/${facility.creditFacilityId}`}
-                      className="flex items-center hover:underline"
-                    >
-                      {formatDate(facility.createdAt)}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Link
-                      href={`/customers/${facility.customer.customerId}`}
-                      className="flex items-center hover:underline"
-                    >
-                      {facility.customer.email}
-                    </Link>
+                <TableRow
+                  key={facility.creditFacilityId}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    router.push(`/credit-facilities/${facility.creditFacilityId}`)
+                  }
+                >
+                  <TableCell>{formatDate(facility.createdAt)}</TableCell>
+                  <TableCell
+                    className="hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/customers/${facility.customer.customerId}`)
+                    }}
+                  >
+                    {facility.customer.email}
                   </TableCell>
                   <TableCell>
                     <Balance

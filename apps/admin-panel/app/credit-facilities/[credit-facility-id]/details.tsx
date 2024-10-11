@@ -43,7 +43,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       <Card className="w-full">
         <>
           <CardHeader className="flex-row justify-between items-center">
-            <CardTitle>Credit Facility Overview</CardTitle>
+            <CardTitle>Credit Facility</CardTitle>
             <LoanAndCreditFacilityStatusBadge status={creditFacilityDetails.status} />
           </CardHeader>
           <CardContent>
@@ -94,7 +94,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               className="w-full"
               onClick={() => setOpenCollateralUpdateDialog(true)}
             >
-              Collateral Update
+              Update Collateral
             </Button>
           )}
           {creditFacilityDetails.userCanInitiateDisbursement &&
@@ -104,7 +104,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 className="w-full"
                 onClick={() => setOpenDisbursementInitiateDialog(true)}
               >
-                Disbursement Initiate
+                Initiate Disbursement
               </Button>
             )}
           {creditFacilityDetails.userCanComplete &&
@@ -124,7 +124,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 className="w-full"
                 onClick={() => setOpenPartialPaymentDialog(true)}
               >
-                Make Partial Payment
+                Make Payment
               </Button>
             )}
         </div>

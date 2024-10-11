@@ -129,6 +129,12 @@ const NavigationLinks = () => {
     },
   ]
 
+  const isActiveLink = (href: string) => {
+    if (pathname === href) return true
+    if (href !== "/" && pathname.startsWith(href)) return true
+    return false
+  }
+
   return (
     <nav className="flex flex-col gap-4 text-textColor-secondary pr-4">
       {navLinks
@@ -141,7 +147,9 @@ const NavigationLinks = () => {
                 onOpenChange={() => toggleSubmenu(link.label)}
               >
                 <CollapsibleTrigger className="flex items-center justify-between w-full hover:text-textColor-primary pr-2">
-                  <div className="flex items-center gap-4">
+                  <div
+                    className={`flex items-center gap-4 ${link.subMenu.some((subItem) => isActiveLink(subItem.href)) ? "text-primary" : ""}`}
+                  >
                     <link.icon className="w-4 h-4" />
                     {link.label}
                   </div>
@@ -158,7 +166,7 @@ const NavigationLinks = () => {
                       href={subItem.href}
                       prefetch={false}
                       className={`block p-1.5 px-2 hover:text-textColor-primary ${
-                        pathname === subItem.href && "text-primary"
+                        isActiveLink(subItem.href) ? "text-primary" : ""
                       }`}
                     >
                       <div className="flex items-center gap-4">{subItem.label}</div>
@@ -171,7 +179,7 @@ const NavigationLinks = () => {
                 href={link.href}
                 prefetch={false}
                 className={`hover:text-textColor-primary ${
-                  pathname === link.href && "text-primary"
+                  isActiveLink(link.href) ? "text-primary" : ""
                 }`}
               >
                 <div className="flex items-center gap-4 rounded-md">

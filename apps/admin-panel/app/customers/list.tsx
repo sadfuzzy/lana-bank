@@ -4,6 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 
+import { useRouter } from "next/navigation"
+
 import { CreateCreditFacilityDialog } from "../credit-facilities/create"
 
 import {
@@ -45,6 +47,7 @@ function CustomerTable({
   searchType?: "customerId" | "email" | "unknown"
   renderCreateCustomerDialog: (refetch: () => void) => React.ReactNode
 }) {
+  const router = useRouter()
   const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState<
     string | null
   >(null)
@@ -158,16 +161,16 @@ function CustomerTable({
                 </TableHeader>
                 <TableBody>
                   {customerDetails.map((customer) => (
-                    <TableRow key={customer.customerId}>
+                    <TableRow
+                      key={customer.customerId}
+                      className="cursor-pointer"
+                      onClick={() => {
+                        router.push(`/customers/${customer.customerId}`)
+                      }}
+                    >
+                      <TableCell className="hover:underline">{customer.email}</TableCell>
                       <TableCell className="hover:underline">
-                        <Link href={`/customers/${customer.customerId}`}>
-                          {customer.email}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="hover:underline">
-                        <Link href={`/customers/${customer.customerId}`}>
-                          {customer.telegramId}
-                        </Link>
+                        {customer.telegramId}
                       </TableCell>
                       <TableCell>
                         <Balance
@@ -181,7 +184,7 @@ function CustomerTable({
                           currency="usd"
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger>
                             <Button variant="ghost">

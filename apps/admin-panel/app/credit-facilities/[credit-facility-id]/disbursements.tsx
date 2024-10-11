@@ -1,6 +1,6 @@
 import React from "react"
 
-import { IoCheckmark, IoCheckmarkDone } from "react-icons/io5"
+import { IoCheckmark } from "react-icons/io5"
 
 import { CreditFacilityDisbursementApproveDialog } from "../disbursement-approve"
 
@@ -41,7 +41,6 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
             <TableHeader>
               <TableRow>
                 <TableHead className="w-2/4">ID</TableHead>
-                <TableHead className="w-1/4">Index</TableHead>
                 <TableHead className="w-1/4"> Amount</TableHead>
                 <TableHead className="text-right"></TableHead>
               </TableRow>
@@ -50,7 +49,6 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
               {creditFacility.disbursements.map((disbursement) => (
                 <TableRow key={disbursement.id}>
                   <TableCell>{disbursement.id.split("disbursement:")[1]}</TableCell>
-                  <TableCell>{disbursement.index}</TableCell>
                   <TableCell>
                     <Balance amount={disbursement.amount} currency="usd" />
                   </TableCell>
@@ -61,14 +59,14 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
                         variant="ghost"
                         onClick={() => setOpenApproveDialog(disbursement.index)}
                       >
-                        <IoCheckmark className="h-4 w-4 mr-1" /> Approve
+                        Approval Required
                       </Button>
                     ) : (
                       <Button
                         className="px-2 py-1 text-success hover:cursor-default"
                         variant="transparent"
                       >
-                        <IoCheckmarkDone className="h-4 w-4 mr-1" /> Approved
+                        <IoCheckmark className="h-4 w-4 mr-1" /> Approved
                       </Button>
                     )}
                   </TableCell>

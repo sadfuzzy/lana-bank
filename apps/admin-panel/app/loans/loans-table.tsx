@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { IoEllipsisHorizontal } from "react-icons/io5"
 import Link from "next/link"
 
+import { useRouter } from "next/navigation"
+
 import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import {
@@ -63,6 +65,7 @@ gql`
 `
 
 const LoansTable = () => {
+  const router = useRouter()
   const { data, loading, error, fetchMore } = useLoansQuery({
     variables: {
       first: 10,
@@ -102,12 +105,20 @@ const LoansTable = () => {
             {data?.loans.edges.map((edge) => {
               const loan = edge?.node
               return (
-                <TableRow key={loan.loanId}>
+                <TableRow
+                  key={loan.loanId}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/loans/${loan.loanId}`)}
+                >
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
-                  <TableCell className="hover:underline">
-                    <Link href={`/customers/${loan.customer.customerId}`}>
-                      {loan.customer.email}
-                    </Link>
+                  <TableCell
+                    className="hover:underline"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      router.push(`/customers/${loan.customer.customerId}`)
+                    }}
+                  >
+                    {loan.customer.email}
                   </TableCell>
                   <TableCell>
                     <span className="font-mono">{loan.currentCvl}</span>
@@ -134,7 +145,7 @@ const LoansTable = () => {
                       className="p-1 px-4"
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
                         <Button variant="ghost">

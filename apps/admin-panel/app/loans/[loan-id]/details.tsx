@@ -10,13 +10,7 @@ import { CollateralizationStateUpdateDialog } from "../update-collateralization-
 
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Button } from "@/components/primitive/button"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import Balance from "@/components/balance/balance"
 
 import {
@@ -40,15 +34,13 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
   const router = useRouter()
 
   return (
-    <>
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center">
-            <CardTitle>Loan Overview</CardTitle>
+    <div className="flex">
+      <Card className="w-full">
+        <>
+          <CardHeader className="flex-row justify-between items-center">
+            <CardTitle>Loan</CardTitle>
             <LoanAndCreditFacilityStatusBadge status={loan.status} />
-          </div>
-        </CardHeader>
-        <div className="flex w-full items-center justify-between">
+          </CardHeader>
           <CardContent className="flex-1">
             <DetailsGroup>
               <DetailItem label="Loan ID" value={loan.loanId} />
@@ -69,34 +61,33 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
               />
             </DetailsGroup>
           </CardContent>
-          <CardFooter className="flex space-x-4 justify-end">
-            {loan.userCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
-              <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
-                Update collateral
-              </Button>
-            )}
-            {loan.userCanRecordPaymentOrCompleteLoan &&
-              loan.status === LoanStatus.Active && (
-                <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
-                  <Button>Make Payment</Button>
-                </LoanPartialPaymentDialog>
-              )}
-            {loan.userCanApprove && loan.status === LoanStatus.New && (
-              <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
-                <Button>Approve Loan</Button>
-              </LoanApproveDialog>
-            )}
-            {loan.userCanUpdateCollateralizationState &&
-              loan.status === LoanStatus.Active &&
-              loan.collateralizationState ===
-                LoanCollaterizationState.UnderLiquidationThreshold && (
-                <Button onClick={() => setOpenCollateralizationStateDialog(true)}>
-                  Update Collateralization
-                </Button>
-              )}
-          </CardFooter>
-        </div>
+        </>
       </Card>
+      <div className="flex flex-col space-y-2 mt-1 ml-4">
+        {loan.userCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
+          <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
+            Update Collateral
+          </Button>
+        )}
+        {loan.userCanRecordPaymentOrCompleteLoan && loan.status === LoanStatus.Active && (
+          <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
+            <Button>Make Payment</Button>
+          </LoanPartialPaymentDialog>
+        )}
+        {loan.userCanApprove && loan.status === LoanStatus.New && (
+          <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
+            <Button>Approve Loan</Button>
+          </LoanApproveDialog>
+        )}
+        {loan.userCanUpdateCollateralizationState &&
+          loan.status === LoanStatus.Active &&
+          loan.collateralizationState ===
+            LoanCollaterizationState.UnderLiquidationThreshold && (
+            <Button onClick={() => setOpenCollateralizationStateDialog(true)}>
+              Update Collateralization
+            </Button>
+          )}
+      </div>
       <>
         <CollateralUpdateDialog
           setOpenCollateralUpdateDialog={setOpenCollateralUpdateDialog}
@@ -117,6 +108,6 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
           refetch={refetch}
         />
       </>
-    </>
+    </div>
   )
 }
