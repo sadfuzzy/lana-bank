@@ -4,9 +4,12 @@ import { useSession, signOut } from "next-auth/react"
 
 import { Button } from "@/components/primitive/button"
 import { PageHeading } from "@/components/page-heading"
+import { useMeQuery } from "@/lib/graphql/generated"
+import { formatRole } from "@/lib/utils"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
+  const { data: user } = useMeQuery()
 
   if (status === "authenticated") {
     return (
@@ -16,9 +19,14 @@ export default function ProfilePage() {
           <p className="text-lg">
             Signed in as <span className="font-semibold">{session?.user?.email}</span>
           </p>
-          <p className="text-lg">
-            Name: <span className="font-semibold">{session?.user?.name}</span>
-          </p>
+          {user?.me && (
+            <p className="text-lg">
+              Role:{" "}
+              <span className="font-semibold">
+                {user.me.roles.map((role) => formatRole(role)).join(", ")}
+              </span>
+            </p>
+          )}
         </div>
         <Button variant="primary" onClick={() => signOut()}>
           Log out
