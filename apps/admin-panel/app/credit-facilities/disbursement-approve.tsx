@@ -142,7 +142,9 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
         </DetailsGroup>
         <div className="text-sm">
           {userHasAlreadyApproved && (
-            <span className="text-primary mb-2">You have already approved this loan</span>
+            <span className="text-primary mb-2">
+              You have already approved this Disbursement
+            </span>
           )}
           {hasApprovals && !userHasAlreadyApproved && (
             <div className="flex flex-col gap-2 mb-2">
