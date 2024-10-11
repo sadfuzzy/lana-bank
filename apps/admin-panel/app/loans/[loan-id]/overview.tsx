@@ -10,11 +10,11 @@ import {
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
-type LoanSnapshotProps = {
+type LoanOverviewProps = {
   loan: NonNullable<GetLoanDetailsQuery["loan"]>
 }
 
-export const LoanSnapshot: React.FC<LoanSnapshotProps> = ({ loan }) => {
+export const LoanOverview: React.FC<LoanOverviewProps> = ({ loan }) => {
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
   })
@@ -34,7 +34,7 @@ export const LoanSnapshot: React.FC<LoanSnapshotProps> = ({ loan }) => {
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle>Loan Snapshot</CardTitle>
+        <CardTitle>Loan Overview</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-6">

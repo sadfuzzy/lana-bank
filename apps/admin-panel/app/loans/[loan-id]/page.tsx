@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { gql } from "@apollo/client"
 
-import { LoanSnapshot } from "./snapshot"
+import { LoanOverview } from "./overview"
 import { LoanDetailsCard } from "./details"
 import { LoanTerms } from "./terms"
 import { LoanTransactionHistory } from "./transactions"
@@ -146,10 +146,10 @@ const Loan = ({
       {data && data.loan && (
         <>
           <LoanDetailsCard loan={data.loan} refetch={refetch} />
-          <Tabs defaultValue="overview" className="mt-4">
+          <Tabs defaultValue="all" className="mt-4">
             <TabsList>
+              <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="terms">Terms</TabsTrigger>
               {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
@@ -157,13 +157,14 @@ const Loan = ({
                 <TabsTrigger value="repayment-plan">Repayment Plan</TabsTrigger>
               )}
             </TabsList>
-            <TabsContent value="overview">
-              <LoanSnapshot loan={data.loan} />
+            <TabsContent value="all">
+              <LoanOverview loan={data.loan} />
               <LoanTerms loan={data.loan} />
               <LoanTransactionHistory loan={data.loan} />
+              {isActive && <RepaymentPlan loan={data.loan} />}
             </TabsContent>
-            <TabsContent value="snapshot">
-              <LoanSnapshot loan={data.loan} />
+            <TabsContent value="overview">
+              <LoanOverview loan={data.loan} />
             </TabsContent>
             <TabsContent value="transactions">
               <LoanTransactionHistory loan={data.loan} />

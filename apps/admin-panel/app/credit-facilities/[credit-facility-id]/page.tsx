@@ -5,7 +5,7 @@ import { gql } from "@apollo/client"
 
 import CreditFacilityDetailsCard from "./details"
 
-import { CreditFacilitySnapshot } from "./snapshot"
+import { CreditFacilityOverview } from "./overview"
 
 import { CreditFacilityTerms } from "./terms"
 
@@ -149,10 +149,10 @@ function CreditFacilityPage({
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}
       />
-      <Tabs defaultValue="overview" className="mt-4">
+      <Tabs defaultValue="all" className="mt-4">
         <TabsList>
+          <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="snapshot">Snapshot</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           {data.creditFacility.disbursements.length > 0 && (
@@ -160,16 +160,16 @@ function CreditFacilityPage({
           )}
           {hasApprovers && <TabsTrigger value="approvers">Approvers</TabsTrigger>}
         </TabsList>
-        <TabsContent value="overview">
-          <CreditFacilitySnapshot creditFacility={data.creditFacility} />
+        <TabsContent value="all">
+          <CreditFacilityOverview creditFacility={data.creditFacility} />
           <CreditFacilityTerms creditFacility={data.creditFacility} />
           {data.creditFacility.disbursements.length > 0 && (
             <CreditFacilityDisbursements creditFacility={data.creditFacility} />
           )}
           <CreditFacilityTransactions creditFacility={data.creditFacility} />
         </TabsContent>
-        <TabsContent value="snapshot">
-          <CreditFacilitySnapshot creditFacility={data.creditFacility} />
+        <TabsContent value="overview">
+          <CreditFacilityOverview creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="terms">
           <CreditFacilityTerms creditFacility={data.creditFacility} />

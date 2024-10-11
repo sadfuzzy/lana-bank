@@ -12,11 +12,11 @@ import {
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, SATS_PER_BTC, formatDate } from "@/lib/utils"
 
-type CreditFacilitySnapshotProps = {
+type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
 }
 
-export const CreditFacilitySnapshot: React.FC<CreditFacilitySnapshotProps> = ({
+export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
   creditFacility,
 }) => {
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
@@ -40,7 +40,7 @@ export const CreditFacilitySnapshot: React.FC<CreditFacilitySnapshotProps> = ({
   return (
     <Card className="mt-4">
       <CardHeader>
-        <CardTitle>Credit Facility Snapshot</CardTitle>
+        <CardTitle>Credit Facility Overview</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-6">

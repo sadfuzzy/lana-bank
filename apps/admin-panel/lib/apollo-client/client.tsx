@@ -21,7 +21,7 @@ import {
 } from "@/lib/graphql/generated"
 
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
-import { calculateBaseAmountInCents } from "@/app/credit-facilities/[credit-facility-id]/snapshot"
+import { calculateBaseAmountInCents } from "@/app/credit-facilities/[credit-facility-id]/overview"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const uploadLink = createUploadLink({
