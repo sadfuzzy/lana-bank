@@ -7,8 +7,15 @@ SELECT customer_id,
 	TIMESTAMP(JSON_VALUE(content, "$.createdAt")) AS created_at,
 	JSON_VALUE(content, "$.info.firstName") AS first_name,
 	DATE(JSON_VALUE(content, "$.info.dob")) AS date_of_birth,
-	JSON_VALUE(content, "$.info.country") AS country,
+	JSON_VALUE(content, "$.info.country") AS iso_alpha_3_code,
 	JSON_VALUE(content, "$.info.gender") AS gender,
+	ARRAY(
+		SELECT AS STRUCT
+			JSON_VALUE(doc, "$.country") AS iso_alpha_3_code,
+			JSON_VALUE(doc, "$.idDocType") AS type,
+			JSON_VALUE(doc, "$.number") AS number,
+		FROM UNNEST(JSON_QUERY_ARRAY(content, "$.info.idDocs")) AS doc
+	) AS id_documents,
 
 FROM ${ref({
 	name: "sumsub_applicants",

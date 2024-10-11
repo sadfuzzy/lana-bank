@@ -3,13 +3,15 @@ config {
 }
 
 SELECT customer_id, first_name, date_of_birth, gender,
+	countries.code AS country_of_residence_code,
+	countries.code AS nationality_code,
 	-- TODO:
 	"todo" AS last_name,
 	"10101" AS economic_activity_code,
-	9654 AS country_of_residence_code,
 	"034" AS occupation_code,
 	"5580648332" AS tax_id_number,
 	"5580648332" AS passport_number,
-	9465 AS nationality_code
 
 FROM ${ref("stg_sumsub_applicants")}
+	LEFT JOIN ${ref("stg_dim_31_npb4_17_codigos_de_paises_o_territorios")} AS countries
+		USING (iso_alpha_3_code)
