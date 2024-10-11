@@ -73,6 +73,15 @@ gql`
         index
         amount
         status
+        approvals {
+          approvedAt
+          user {
+            userId
+            email
+            roles
+          }
+        }
+        createdAt
       }
       transactions {
         ... on CreditFacilityIncrementalPayment {

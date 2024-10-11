@@ -2,6 +2,8 @@ import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
 
+import { useSession } from "next-auth/react"
+
 import {
   Dialog,
   DialogContent,
@@ -15,6 +17,9 @@ import {
   GetCreditFacilityDetailsDocument,
   useCreditFacilityDisbursementApproveMutation,
 } from "@/lib/graphql/generated"
+import Balance from "@/components/balance/balance"
+import { formatDate } from "@/lib/utils"
+import { DetailItem, DetailsGroup } from "@/components/details"
 
 gql`
   mutation CreditFacilityDisbursementApprove(
@@ -34,12 +39,35 @@ type CreditFacilityDisbursementApproveDialogProps = {
   openDialog: boolean
   creditFacilityId: string
   disbursementIdx: number
+  disbursement: {
+    id: string
+    index: number
+    amount: number
+    status: string
+    approvals: {
+      approvedAt: string
+      user: {
+        userId: string
+        email: string
+        roles: string[]
+      }
+    }[]
+    createdAt: string
+  }
   onSuccess?: () => void
 }
 
 export const CreditFacilityDisbursementApproveDialog: React.FC<
   CreditFacilityDisbursementApproveDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId, disbursementIdx, onSuccess }) => {
+> = ({
+  setOpenDialog,
+  openDialog,
+  creditFacilityId,
+  disbursementIdx,
+  disbursement,
+  onSuccess,
+}) => {
+  const { data: session } = useSession()
   const [approveDisbursement, { loading, reset }] =
     useCreditFacilityDisbursementApproveMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
@@ -81,25 +109,63 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
     reset()
   }
 
+  const hasApprovals = disbursement.approvals.length > 0
+  const userHasAlreadyApproved = disbursement.approvals
+    .map((a) => a.user.email)
+    .includes(session?.user?.email || "")
+
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Approve Credit Facility Disbursement</DialogTitle>
           <DialogDescription>
-            Are you sure you want to approve this disbursement?
+            Review the disbursement details before approving.
           </DialogDescription>
         </DialogHeader>
+        <DetailsGroup>
+          <DetailItem
+            className="px-0"
+            label="ID"
+            value={disbursement.id.split("disbursement:")[1]}
+          />
+          <DetailItem
+            className="px-0"
+            label="Amount"
+            valueComponent={<Balance amount={disbursement.amount} currency="usd" />}
+          />
+          <DetailItem
+            className="px-0"
+            label="Created"
+            value={formatDate(disbursement.createdAt)}
+          />
+        </DetailsGroup>
+        <div className="text-sm">
+          {userHasAlreadyApproved && (
+            <span className="text-primary mb-2">You have already approved this loan</span>
+          )}
+          {hasApprovals && !userHasAlreadyApproved && (
+            <div className="flex flex-col gap-2 mb-2">
+              {disbursement.approvals.map((approval, index) => (
+                <p className="text-primary" key={index}>
+                  Approved by {approval.user.email} on {formatDate(approval.approvedAt)}
+                </p>
+              ))}
+            </div>
+          )}
+        </div>
         <form onSubmit={handleSubmit}>
           {error && <p className="text-destructive mb-4">{error}</p>}
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={handleCloseDialog}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Approving..." : "Approve Disbursement"}
-            </Button>
-          </DialogFooter>
+          {!userHasAlreadyApproved && (
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={handleCloseDialog}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Approving..." : "Approve Disbursement"}
+              </Button>
+            </DialogFooter>
+          )}
         </form>
       </DialogContent>
     </Dialog>

@@ -1417,7 +1417,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, faciiltyAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, currentCvl?: number | null, collateralToMatchInitialCvl?: any | null, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvals: Array<{ __typename?: 'DisbursementApproval', approvedAt: any, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
 
 export type CreditFacilityApproveMutationVariables = Exact<{
   input: CreditFacilityApproveInput;
@@ -1431,7 +1431,7 @@ export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any } } } } };
 
 export type CreditFacilityCompleteMutationVariables = Exact<{
   input: CreditFacilityCompleteInput;
@@ -2231,6 +2231,15 @@ export const GetCreditFacilityDetailsDocument = gql`
       index
       amount
       status
+      approvals {
+        approvedAt
+        user {
+          userId
+          email
+          roles
+        }
+      }
+      createdAt
     }
     transactions {
       ... on CreditFacilityIncrementalPayment {
@@ -2342,6 +2351,11 @@ export const CreditFacilityCollateralUpdateDocument = gql`
     creditFacility {
       id
       creditFacilityId
+      balance {
+        collateral {
+          btcBalance
+        }
+      }
     }
   }
 }
