@@ -4,7 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
-import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
+import {
+  CreditFacilityStatus,
+  DisbursementStatus,
+  GetCreditFacilityDetailsQuery,
+  useGetRealtimePriceUpdatesQuery,
+} from "@/lib/graphql/generated"
+import { CENTS_PER_USD, SATS_PER_BTC, formatDate } from "@/lib/utils"
 
 type CreditFacilitySnapshotProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
@@ -13,6 +19,24 @@ type CreditFacilitySnapshotProps = {
 export const CreditFacilitySnapshot: React.FC<CreditFacilitySnapshotProps> = ({
   creditFacility,
 }) => {
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
+
+  const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
+
+  const MarginCallPrice = calculatePrice({
+    cvlPercentage: creditFacility.creditFacilityTerms.marginCallCvl,
+    basisAmountInCents: basisAmountInCents,
+    collateralInSatoshis: creditFacility.collateral,
+  })
+
+  const LiquidationCallPrice = calculatePrice({
+    cvlPercentage: creditFacility.creditFacilityTerms.liquidationCvl,
+    basisAmountInCents: basisAmountInCents,
+    collateralInSatoshis: creditFacility.collateral,
+  })
+
   return (
     <Card className="mt-4">
       <CardHeader>
@@ -28,6 +52,40 @@ export const CreditFacilitySnapshot: React.FC<CreditFacilitySnapshotProps> = ({
                   <Balance amount={creditFacility.collateral} currency="btc" />
                 }
               />
+              <DetailItem
+                label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
+                valueComponent={
+                  <Balance
+                    amount={creditFacility.collateralToMatchInitialCvl}
+                    currency="btc"
+                  />
+                }
+              />
+              {creditFacility.collateral > 0 ? (
+                <>
+                  <DetailItem
+                    label={`Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`}
+                    valueComponent={<Balance amount={MarginCallPrice} currency="usd" />}
+                  />
+                  <DetailItem
+                    label={`Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`}
+                    valueComponent={
+                      <Balance amount={LiquidationCallPrice} currency="usd" />
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <DetailItem
+                    label="Margin Call CVL"
+                    value={`${creditFacility.creditFacilityTerms.marginCallCvl}%`}
+                  />
+                  <DetailItem
+                    label="Liquidation Call CVL"
+                    value={`${creditFacility.creditFacilityTerms.liquidationCvl}%`}
+                  />
+                </>
+              )}
             </DetailsGroup>
           </div>
           <div className="grid auto-rows-min">
@@ -41,10 +99,75 @@ export const CreditFacilitySnapshot: React.FC<CreditFacilitySnapshotProps> = ({
                   />
                 }
               />
+              <DetailItem
+                labelComponent={
+                  <p className="text-textColor-secondary flex items-center">
+                    <div className="mr-2">
+                      Current CVL % <span className="text-sm">(BTC/USD:</span>
+                    </div>
+                    <Balance
+                      className="text-sm"
+                      amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                      currency="usd"
+                    />
+                    <div className="text-sm">)</div>
+                  </p>
+                }
+                value={`${creditFacility.currentCvl}%`}
+              />
+              {creditFacility.expiresAt && (
+                <DetailItem
+                  label="Expires at"
+                  valueComponent={formatDate(creditFacility.expiresAt)}
+                />
+              )}
             </DetailsGroup>
           </div>
         </div>
       </CardContent>
     </Card>
   )
+}
+
+const calculatePrice = ({
+  cvlPercentage,
+  basisAmountInCents,
+  collateralInSatoshis,
+}: {
+  cvlPercentage: number
+  basisAmountInCents: number
+  collateralInSatoshis: number
+}) => {
+  if (collateralInSatoshis === 0) return 0
+  const cvlDecimal = cvlPercentage / 100
+  const basisAmountUsd = basisAmountInCents / CENTS_PER_USD
+  const collateralBtc = collateralInSatoshis / SATS_PER_BTC
+  const priceUsd = (cvlDecimal * basisAmountUsd) / collateralBtc
+  const priceInCents = priceUsd * CENTS_PER_USD
+  return priceInCents
+}
+
+export const calculateBaseAmountInCents = ({
+  status,
+  faciiltyAmount,
+  disbursements,
+  balance,
+}: {
+  status: CreditFacilityStatus
+  faciiltyAmount: number
+  disbursements: { status: DisbursementStatus }[]
+  balance: { outstanding: { usdBalance: number } }
+}) => {
+  if (status === CreditFacilityStatus.New) {
+    return faciiltyAmount
+  }
+
+  if (status === CreditFacilityStatus.Active) {
+    const hasApprovedDisbursements = disbursements.some(
+      (d) => d.status === DisbursementStatus.Approved,
+    )
+    return hasApprovedDisbursements ? balance.outstanding.usdBalance : faciiltyAmount
+  }
+
+  return 0
 }

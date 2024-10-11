@@ -18,12 +18,14 @@ import {
   InterestInterval,
   Period,
   useCreditFacilityCreateMutation,
+  useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod, currencyConverter } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
+import Balance from "@/components/balance/balance"
 
 gql`
   mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
@@ -50,6 +52,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   refetch,
 }) => {
   const router = useRouter()
+
+  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
+    fetchPolicy: "cache-only",
+  })
 
   const [isCustomTerms, setIsCustomTerms] = useState(false)
   const { data: termsTemplatesData, loading: termsTemplatesLoading } =
@@ -227,6 +233,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openCreateCreditFacilityDialog])
 
+  const collateralRequiredForDesiredFacility = currencyConverter.btcToSatoshi(
+    currencyConverter.usdToCents(Number(formValues.facility || 0)) /
+      priceInfo?.realtimePrice.usdCentsPerBtc,
+  )
+
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="min-w-max">
@@ -252,6 +263,15 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
           </div>
+          {priceInfo && (
+            <div className="text-sm ml-1 flex space-x-1 items-center">
+              <Balance amount={collateralRequiredForDesiredFacility} currency="btc" />
+              <div>collateral required (</div>
+              <div>BTC/USD: </div>
+              <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+              <div>)</div>
+            </div>
+          )}
           {useTemplateTerms && (
             <div>
               <Label>Terms Template</Label>

@@ -12,6 +12,7 @@ import {
 } from "@apollo/experimental-nextjs-app-support"
 
 import {
+  CreditFacility,
   Customer,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
@@ -20,6 +21,7 @@ import {
 } from "@/lib/graphql/generated"
 
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
+import { calculateBaseAmountInCents } from "@/app/credit-facilities/[credit-facility-id]/snapshot"
 
 function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const uploadLink = createUploadLink({
@@ -91,6 +93,38 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
             CENTS_PER_USD) *
             SATS_PER_BTC,
         )
+      },
+    },
+    CreditFacility: {
+      currentCvl: async (facility: CreditFacility, _, { cache }) => {
+        const priceInfo = await fetchData(cache)
+        if (!priceInfo) return null
+
+        const collateralValueInUsd =
+          (facility.collateral * priceInfo.realtimePrice.usdCentsPerBtc) /
+          (SATS_PER_BTC * CENTS_PER_USD)
+
+        const basisAmountInUsd = calculateBaseAmountInCents(facility) / CENTS_PER_USD
+
+        if (collateralValueInUsd === 0) return 0
+
+        const cvl = (collateralValueInUsd / basisAmountInUsd) * 100
+
+        return Number(cvl.toFixed(2))
+      },
+      collateralToMatchInitialCvl: async (facility: CreditFacility, _, { cache }) => {
+        const priceInfo = await fetchData(cache)
+        if (!priceInfo) return null
+
+        const basisAmountInUsd = calculateBaseAmountInCents(facility) / CENTS_PER_USD
+
+        const initialCvlDecimal = facility.creditFacilityTerms.initialCvl / 100
+
+        const requiredCollateralInSats =
+          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
+          (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
+
+        return Math.floor(requiredCollateralInSats)
       },
     },
     Customer: {

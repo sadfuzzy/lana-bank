@@ -31,6 +31,8 @@ gql`
       createdAt
       expiresAt
       canBeCompleted
+      currentCvl @client
+      collateralToMatchInitialCvl @client
       balance {
         outstanding {
           usdBalance

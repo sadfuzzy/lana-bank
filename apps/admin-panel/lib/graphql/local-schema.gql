@@ -5,6 +5,11 @@ extend type Loan {
   collateralToMatchInitialCvl: Satoshis
 }
 
+extend type CreditFacility {
+  currentCvl: Float
+  collateralToMatchInitialCvl: Satoshis
+}
+
 extend type Customer {
   transactions: [Transaction!]!
 }
