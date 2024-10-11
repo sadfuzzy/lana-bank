@@ -284,6 +284,8 @@ type CreditFacilityDisbursement {
 	index: DisbursementIdx!
 	amount: UsdCents!
 	status: DisbursementStatus!
+	approvals: [DisbursementApproval!]!
+	createdAt: Timestamp!
 }
 
 input CreditFacilityDisbursementApproveInput {
@@ -464,6 +466,12 @@ input DepositRecordInput {
 
 type DepositRecordPayload {
 	deposit: Deposit!
+}
+
+type DisbursementApproval {
+	userId: UUID!
+	approvedAt: Timestamp!
+	user: User!
 }
 
 scalar DisbursementIdx

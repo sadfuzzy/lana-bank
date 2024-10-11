@@ -94,7 +94,7 @@ impl DisbursementRepo {
             FROM disbursements d
             JOIN disbursement_events e ON d.id = e.id
             where d.credit_facility_id = $1
-            ORDER BY d.id, e.sequence"#,
+            ORDER BY d.created_at DESC, d.id, e.sequence"#,
             facility_id as CreditFacilityId,
         )
         .fetch_all(&self.pool)

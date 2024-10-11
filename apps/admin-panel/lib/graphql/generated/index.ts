@@ -313,6 +313,8 @@ export type CreditFacilityCreatePayload = {
 export type CreditFacilityDisbursement = {
   __typename?: 'CreditFacilityDisbursement';
   amount: Scalars['UsdCents']['output'];
+  approvals: Array<DisbursementApproval>;
+  createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursementIdx']['output'];
   status: DisbursementStatus;
@@ -483,6 +485,13 @@ export type DepositRecordInput = {
 export type DepositRecordPayload = {
   __typename?: 'DepositRecordPayload';
   deposit: Deposit;
+};
+
+export type DisbursementApproval = {
+  __typename?: 'DisbursementApproval';
+  approvedAt: Scalars['Timestamp']['output'];
+  user: User;
+  userId: Scalars['UUID']['output'];
 };
 
 export enum DisbursementStatus {

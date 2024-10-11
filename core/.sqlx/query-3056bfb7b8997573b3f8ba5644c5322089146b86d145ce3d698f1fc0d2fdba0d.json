@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT d.id, e.sequence, e.event,\n                      d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM disbursements d\n            JOIN disbursement_events e ON d.id = e.id\n            where d.credit_facility_id = $1\n            ORDER BY d.id, e.sequence",
+  "query": "SELECT d.id, e.sequence, e.event,\n                      d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM disbursements d\n            JOIN disbursement_events e ON d.id = e.id\n            where d.credit_facility_id = $1\n            ORDER BY d.created_at DESC, d.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "b5408396d8ea0483412a2a5a541d80fa0a518b18fdf19d0d944e98fd1d07b4a6"
+  "hash": "3056bfb7b8997573b3f8ba5644c5322089146b86d145ce3d698f1fc0d2fdba0d"
 }

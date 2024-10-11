@@ -111,6 +111,8 @@ type CreditFacilityDisbursement {
 	index: DisbursementIdx!
 	amount: UsdCents!
 	status: DisbursementStatus!
+	approvals: [DisbursementApproval!]!
+	createdAt: Timestamp!
 }
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated
@@ -164,6 +166,12 @@ type Deposit {
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+}
+
+type DisbursementApproval {
+	userId: UUID!
+	approvedAt: Timestamp!
+	user: User!
 }
 
 scalar DisbursementIdx

@@ -353,15 +353,44 @@ pub struct CreditFacilityDisbursement {
     index: DisbursementIdx,
     amount: UsdCents,
     status: DisbursementStatus,
+    approvals: Vec<DisbursementApproval>,
+    created_at: Timestamp,
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct DisbursementApproval {
+    user_id: UUID,
+    approved_at: Timestamp,
+}
+
+#[ComplexObject]
+impl DisbursementApproval {
+    async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let user = app
+            .users()
+            .find_by_id_internal(UserId::from(&self.user_id))
+            .await?
+            .expect("should always find user for a given UserId");
+        Ok(User::from(user))
+    }
 }
 
 impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursement {
     fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
+        let approvals = disbursement
+            .approvals()
+            .into_iter()
+            .map(DisbursementApproval::from)
+            .collect();
         Self {
             id: disbursement.id.to_global_id(),
             index: disbursement.idx,
             amount: disbursement.amount,
+            approvals,
             status: disbursement.status(),
+            created_at: disbursement.created_at().into(),
         }
     }
 }
@@ -386,6 +415,15 @@ impl From<crate::credit_facility::Disbursement> for CreditFacilityDisbursementIn
     fn from(disbursement: crate::credit_facility::Disbursement) -> Self {
         Self {
             disbursement: CreditFacilityDisbursement::from(disbursement),
+        }
+    }
+}
+
+impl From<crate::credit_facility::DisbursementApproval> for DisbursementApproval {
+    fn from(disbursement_approval: crate::credit_facility::DisbursementApproval) -> Self {
+        Self {
+            user_id: UUID::from(disbursement_approval.user_id),
+            approved_at: disbursement_approval.approved_at.into(),
         }
     }
 }
