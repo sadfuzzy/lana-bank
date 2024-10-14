@@ -109,15 +109,7 @@ const CreditFacilitiesTable = () => {
                   }
                 >
                   <TableCell>{formatDate(facility.createdAt)}</TableCell>
-                  <TableCell
-                    className="hover:underline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      router.push(`/customers/${facility.customer.customerId}`)
-                    }}
-                  >
-                    {facility.customer.email}
-                  </TableCell>
+                  <TableCell>{facility.customer.email}</TableCell>
                   <TableCell>
                     <Balance
                       amount={facility.balance.outstanding.usdBalance}

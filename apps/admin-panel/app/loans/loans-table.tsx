@@ -111,15 +111,7 @@ const LoansTable = () => {
                   onClick={() => router.push(`/loans/${loan.loanId}`)}
                 >
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
-                  <TableCell
-                    className="hover:underline"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      router.push(`/customers/${loan.customer.customerId}`)
-                    }}
-                  >
-                    {loan.customer.email}
-                  </TableCell>
+                  <TableCell>{loan.customer.email}</TableCell>
                   <TableCell>
                     <span className="font-mono">{loan.currentCvl}</span>
                     {" %"}

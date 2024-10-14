@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
-import { gql } from "@apollo/client"
+import { gql, ApolloError } from "@apollo/client"
 import { CgSpinner } from "react-icons/cg"
+
+import { toast } from "sonner"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
@@ -44,6 +46,7 @@ gql`
 type CustomerDocumentsProps = {
   documents: NonNullable<GetCustomerQuery["customer"]>["documents"]
 }
+
 const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
   const [linkLoading, setLinkLoading] = useState<{ [key: string]: boolean }>({})
 
@@ -58,7 +61,8 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
       }).finally(() => setLinkLoading((prev) => ({ ...prev, [id]: false })))
 
       if (!data?.documentDownloadLinkGenerate?.link) {
-        return alert("Failed to generate download link")
+        toast.error("Failed to generate download link")
+        return
       }
 
       window.open(data.documentDownloadLinkGenerate.link, "_blank")
@@ -124,13 +128,19 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
 
   const handleFileUpload = useCallback(
     async (file: File) => {
-      await customerDocumentAttach({
-        variables: {
-          customerId: customer.customerId,
-          file,
-        },
-        onCompleted: () => refetch(),
-      })
+      try {
+        await customerDocumentAttach({
+          variables: {
+            customerId: customer.customerId,
+            file,
+          },
+        })
+        refetch()
+        toast.success("Document uploaded successfully")
+      } catch (err) {
+        const errorMessage = getErrorMessage(err)
+        toast.error(errorMessage)
+      }
     },
     [customerDocumentAttach, customer.customerId, refetch],
   )
@@ -142,7 +152,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
         if (file.type === "application/pdf") {
           await handleFileUpload(file)
         } else {
-          alert("Please upload only PDF files.")
+          toast.error("Please upload only PDF files.")
         }
       }
     },
@@ -166,7 +176,11 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
           const file = items[0].getAsFile()
           if (file) {
             handleFileUpload(file)
+          } else {
+            toast.error("Failed to retrieve the pasted file.")
           }
+        } else {
+          toast.error("Please paste only PDF files.")
         }
       }
     },
@@ -195,3 +209,22 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
     </div>
   )
 }
+
+const getErrorMessage = (err: unknown): string => {
+  if (
+    err instanceof ApolloError &&
+    err.networkError &&
+    "statusCode" in err.networkError
+  ) {
+    if (err.networkError.statusCode === 413) {
+      return "File is too large. Please upload a smaller file."
+    }
+    return `Upload failed: ${err.message}`
+  }
+  if (err instanceof Error) {
+    return `Upload failed: ${err.message}`
+  }
+  return "An unexpected error occurred during file upload."
+}
+
+export default Documents
