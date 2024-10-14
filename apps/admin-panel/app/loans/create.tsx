@@ -249,7 +249,7 @@ export const CreateLoanDialog: React.FC<
       }}
     >
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="min-w-max">
+      <DialogContent className="max-w-[38rem]">
         <DialogHeader>
           <DialogTitle>Create Loan</DialogTitle>
           <DialogDescription>Fill in the details to create a loan.</DialogDescription>
@@ -269,19 +269,16 @@ export const CreateLoanDialog: React.FC<
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
-            {priceInfo && (
-              <div className="mt-2 text-sm flex space-x-1 items-center">
-                <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
-                <div>collateral required (</div>
-                <div>BTC/USD: </div>
-                <Balance
-                  amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                  currency="usd"
-                />
-                <div>)</div>
-              </div>
-            )}
           </div>
+          {priceInfo && (
+            <div className="text-sm ml-1 flex space-x-1 items-center">
+              <Balance amount={collateralRequiredForDesiredPrincipal} currency="btc" />
+              <div>collateral required (</div>
+              <div>BTC/USD: </div>
+              <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
+              <div>)</div>
+            </div>
+          )}
           {useTemplateTerms && (
             <div>
               <Label>Terms Template</Label>
@@ -315,138 +312,138 @@ export const CreateLoanDialog: React.FC<
                   label="Interest Rate (APR)"
                   value={formValues.annualRate + "%"}
                 />
-                <DetailItem label="Initial CVL %" value={formValues.initialCvl} />
+                <DetailItem label="Initial CVL (%)" value={formValues.initialCvl} />
                 <DetailItem
                   label="Duration"
-                  value={
-                    String(formValues.durationUnits) +
-                    " " +
-                    formatPeriod(formValues.durationPeriod as Period)
-                  }
+                  value={`${formValues.durationUnits} ${formatPeriod(
+                    formValues.durationPeriod as Period,
+                  )}`}
                 />
-                <DetailItem label="Margin Call CVL %" value={formValues.marginCallCvl} />
+                <DetailItem
+                  label="Margin Call CVL (%)"
+                  value={formValues.marginCallCvl}
+                />
                 <DetailItem
                   label="Payment Schedule"
-                  className="space-x-7"
                   value={formatInterval(formValues.interval as InterestInterval)}
                 />
-                <DetailItem label="Liquidation CVL %" value={formValues.liquidationCvl} />
+                <DetailItem
+                  label="Liquidation CVL (%)"
+                  value={formValues.liquidationCvl}
+                />
               </div>
             </>
           ) : (
             <>
-              <div>
-                <Label>Initial CVL (%)</Label>
-                <Input
-                  type="number"
-                  name="initialCvl"
-                  value={formValues.initialCvl}
-                  onChange={handleChange}
-                  placeholder="Enter the initial CVL"
-                  required
-                />
-              </div>
-              <div>
-                <Label>Margin Call CVL (%)</Label>
-                <Input
-                  type="number"
-                  name="marginCallCvl"
-                  value={formValues.marginCallCvl}
-                  onChange={handleChange}
-                  placeholder="Enter the margin call CVL"
-                  required
-                />
-              </div>
-              <div>
-                <Label>Liquidation CVL (%)</Label>
-                <Input
-                  type="number"
-                  name="liquidationCvl"
-                  value={formValues.liquidationCvl}
-                  onChange={handleChange}
-                  placeholder="Enter the liquidation CVL"
-                  min={0}
-                  required
-                />
-              </div>
-              <div>
-                <Label>Duration</Label>
-                <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Interest Rate (APR)</Label>
                   <Input
                     type="number"
-                    name="durationUnits"
-                    value={formValues.durationUnits}
+                    name="annualRate"
+                    value={formValues.annualRate}
                     onChange={handleChange}
-                    placeholder="Duration"
-                    min={0}
+                    placeholder="Enter the annual rate"
                     required
-                    className="w-1/2"
                   />
+                </div>
+                <div>
+                  <Label>Initial CVL (%)</Label>
+                  <Input
+                    type="number"
+                    name="initialCvl"
+                    value={formValues.initialCvl}
+                    onChange={handleChange}
+                    placeholder="Enter the initial CVL"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Duration</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      name="durationUnits"
+                      value={formValues.durationUnits}
+                      onChange={handleChange}
+                      placeholder="Duration"
+                      min={0}
+                      required
+                      className="w-1/2"
+                    />
+                    <Select
+                      name="durationPeriod"
+                      value={formValues.durationPeriod}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="" disabled>
+                        Select period
+                      </option>
+                      {Object.values(Period).map((period) => (
+                        <option key={period} value={period}>
+                          {formatPeriod(period)}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <Label>Margin Call CVL (%)</Label>
+                  <Input
+                    type="number"
+                    name="marginCallCvl"
+                    value={formValues.marginCallCvl}
+                    onChange={handleChange}
+                    placeholder="Enter the margin call CVL"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Payment Schedule</Label>
                   <Select
-                    name="durationPeriod"
-                    value={formValues.durationPeriod}
+                    name="interval"
+                    value={formValues.interval}
                     onChange={handleChange}
                     required
                   >
                     <option value="" disabled>
-                      Select period
+                      Select interval
                     </option>
-                    {Object.values(Period).map((period) => (
-                      <option key={period} value={period}>
-                        {formatPeriod(period)}
+                    {Object.values(InterestInterval).map((interval) => (
+                      <option key={interval} value={interval}>
+                        {formatInterval(interval)}
                       </option>
                     ))}
                   </Select>
                 </div>
-              </div>
-              <div>
-                <Label>Interest Payment Schedule</Label>
-                <Select
-                  name="interval"
-                  value={formValues.interval}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="" disabled>
-                    Select interval
-                  </option>
-                  {Object.values(InterestInterval).map((interval) => (
-                    <option key={interval} value={interval}>
-                      {formatInterval(interval)}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label>Annual Rate (%)</Label>
-                <Input
-                  type="number"
-                  name="annualRate"
-                  value={formValues.annualRate}
-                  onChange={handleChange}
-                  placeholder="Enter the annual rate"
-                  required
-                />
+                <div>
+                  <Label>Liquidation CVL (%)</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder="Enter the liquidation CVL"
+                    min={0}
+                    required
+                  />
+                </div>
               </div>
             </>
           )}
           {error && <span className="text-destructive">{error.message}</span>}
-          <DialogFooter className={!useTemplateTerms ? "sm:justify-between" : ""}>
+          <DialogFooter className="mt-4">
             {!useTemplateTerms && (
-              <div
+              <Button
+                type="button"
                 onClick={() => setUseTemplateTerms(true)}
-                className="flex items-center space-x-2 cursor-pointer text-sm hover:underline"
+                variant="ghost"
               >
-                Show less...
-              </div>
+                Back
+              </Button>
             )}
-            <Button
-              onClick={handleCreateLoan}
-              className="w-32"
-              disabled={loading}
-              type="submit"
-              loading={loading}
-            >
+            <Button className="w-48" disabled={loading} type="submit" loading={loading}>
               Create New Loan
             </Button>
           </DialogFooter>

@@ -246,7 +246,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
 
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
-      <DialogContent className="min-w-max">
+      <DialogContent className="max-w-[38rem]">
         <DialogHeader>
           <DialogTitle>Create Credit Facility</DialogTitle>
           <DialogDescription>
