@@ -12,12 +12,13 @@ crate::entity_id! { LineOfCreditContractId }
 crate::entity_id! { WithdrawId }
 crate::entity_id! { DepositId }
 crate::entity_id! { DocumentId }
-crate::entity_id! { JobId }
 crate::entity_id! { LoanId }
 crate::entity_id! { CreditFacilityId }
 crate::entity_id! { DisbursementId }
 crate::entity_id! { TermsTemplateId }
 crate::entity_id! { ReportId }
+
+pub use lava_job::JobId;
 
 impl From<LoanId> for JobId {
     fn from(id: LoanId) -> Self {

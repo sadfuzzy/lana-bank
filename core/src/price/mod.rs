@@ -40,7 +40,7 @@ impl Price {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_job::<job::ExportPriceInitializer, _>(
+            .create_and_spawn_in_tx::<job::ExportPriceInitializer, _>(
                 &mut db_tx,
                 PRICE_JOB_ID,
                 "export-price-job".to_string(),

@@ -42,7 +42,7 @@ impl JobInitializer for LoanProcessingJobInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(LoanProcessingJobRunner {
-            config: job.config()?,
+            config: job.data()?,
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),

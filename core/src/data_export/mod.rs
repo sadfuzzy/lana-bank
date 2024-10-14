@@ -110,7 +110,7 @@ impl Export {
                 recorded_at,
             };
             self.jobs
-                .create_and_spawn_job::<DataExportInitializer, _>(
+                .create_and_spawn_in_tx::<DataExportInitializer, _>(
                     db,
                     JobId::new(),
                     format!("export:{}:{}", id, sequence),

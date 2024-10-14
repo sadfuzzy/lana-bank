@@ -17,6 +17,7 @@ setup-db:
 	cd core && cargo sqlx migrate run
 
 sqlx-prepare:
+	cd lib/job && cargo sqlx prepare
 	cd core && cargo sqlx prepare
 
 reset-tf-state:

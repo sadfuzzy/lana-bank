@@ -61,7 +61,7 @@ impl Reports {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_job::<report_jobs::create::CreateReportInitializer, _>(
+            .create_and_spawn_in_tx::<report_jobs::create::CreateReportInitializer, _>(
                 &mut db_tx,
                 CREATE_REPORT_JOB_ID,
                 "create-report-job".to_string(),
@@ -94,7 +94,7 @@ impl Reports {
         let mut db = self.pool.begin().await?;
         let report = self.repo.create_in_tx(&mut db, new_report).await?;
         self.jobs
-            .create_and_spawn_job::<report_jobs::generate::GenerateReportInitializer, _>(
+            .create_and_spawn_in_tx::<report_jobs::generate::GenerateReportInitializer, _>(
                 &mut db,
                 report.id,
                 "generate_report".to_string(),

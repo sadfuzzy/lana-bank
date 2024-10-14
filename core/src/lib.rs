@@ -13,7 +13,6 @@ pub mod data_export;
 pub mod deposit;
 pub mod document;
 pub mod entity;
-pub mod job;
 pub mod ledger;
 pub mod loan;
 pub mod price;
@@ -26,6 +25,10 @@ pub mod terms;
 pub mod terms_template;
 pub mod user;
 pub mod withdraw;
+
+pub mod job {
+    pub use lava_job::*;
+}
 
 pub mod query {
     #[derive(Debug)]

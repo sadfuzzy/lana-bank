@@ -1,3 +1,6 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 mod config;
 mod current;
 mod entity;
@@ -15,8 +18,6 @@ use tracing::instrument;
 
 use std::sync::Arc;
 
-use crate::primitives::JobId;
-
 pub use config::*;
 pub use current::*;
 pub use entity::*;
@@ -26,6 +27,39 @@ pub use traits::*;
 use error::*;
 use executor::*;
 use repo::*;
+
+#[derive(
+    sqlx::Type,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    serde::Deserialize,
+    serde::Serialize,
+)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct JobId(uuid::Uuid);
+impl JobId {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self(uuid::Uuid::new_v4())
+    }
+}
+impl From<uuid::Uuid> for JobId {
+    fn from(uuid: uuid::Uuid) -> Self {
+        Self(uuid)
+    }
+}
+impl std::fmt::Display for JobId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 #[derive(Clone)]
 pub struct Jobs {
@@ -53,47 +87,39 @@ impl Jobs {
         registry.add_initializer(initializer);
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
-    pub async fn create_and_spawn_job<I: JobInitializer, C: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, initial_data))]
+    pub async fn create_and_spawn_in_tx<I: JobInitializer, D: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         id: impl Into<JobId> + std::fmt::Debug,
-        job_name: String,
-        config: C,
+        name: String,
+        initial_data: D,
     ) -> Result<Job, JobError> {
-        let new_job = NewJob::builder()
-            .id(id.into())
-            .name(job_name)
-            .config(config)?
-            .job_type(<I as JobInitializer>::job_type())
-            .build()
-            .expect("Could not build job");
+        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_data);
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor.spawn_job::<I>(db, &job, None).await?;
         Ok(job)
     }
 
-    #[instrument(name = "lava.jobs.create_and_spawn_job", skip(self, config))]
-    pub async fn create_and_spawn_job_at<I: JobInitializer, C: serde::Serialize>(
+    #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, initial_data))]
+    pub async fn create_and_spawn_at_in_tx<I: JobInitializer, D: serde::Serialize>(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        id: impl Into<JobId> + std::fmt::Debug,
         name: String,
-        config: C,
+        initial_data: D,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
-        let new_job = NewJob::builder()
-            .id(id.into())
-            .name(name)
-            .config(config)?
-            .job_type(<I as JobInitializer>::job_type())
-            .build()
-            .expect("Could not build job");
+        let new_job = Job::new(name, <I as JobInitializer>::job_type(), initial_data);
         let job = self.repo.create_in_tx(db, new_job).await?;
         self.executor
             .spawn_job::<I>(db, &job, Some(schedule_at))
             .await?;
         Ok(job)
+    }
+
+    #[instrument(name = "cala_server.jobs.find", skip(self))]
+    pub async fn find(&self, id: JobId) -> Result<Job, JobError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn start_poll(&mut self) -> Result<(), JobError> {

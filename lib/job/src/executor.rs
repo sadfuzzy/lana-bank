@@ -1,12 +1,13 @@
 use chrono::{DateTime, Utc};
 use sqlx::{postgres::types::PgInterval, PgPool, Postgres, Transaction};
 use tokio::sync::RwLock;
-use tracing::instrument;
+use tracing::{instrument, Span};
 
 use std::{collections::HashMap, sync::Arc};
 
-use super::{config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*};
-use crate::primitives::JobId;
+use super::{
+    config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*, JobId,
+};
 
 #[derive(Clone)]
 pub struct JobExecutor {
@@ -57,10 +58,11 @@ impl JobExecutor {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id, reschedule_after)
-          VALUES ($1, COALESCE($2, NOW()))
+          INSERT INTO job_executions (id, name, reschedule_after)
+          VALUES ($1, $2, COALESCE($3, NOW()))
         "#,
             job.id as JobId,
+            job.name,
             schedule_at
         )
         .execute(&mut **db)
@@ -114,7 +116,7 @@ impl JobExecutor {
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         jobs: &JobRepo,
     ) -> Result<(), JobError> {
-        let span = tracing::Span::current();
+        let span = Span::current();
         span.record("keep_alive", *keep_alive);
         {
             let jobs = running_jobs.read().await;
@@ -132,16 +134,28 @@ impl JobExecutor {
                 )
                 .fetch_all(pool)
                 .await?;
+                // mark 'lost' jobs as 'pending'
+                sqlx::query!(
+                    r#"
+                    UPDATE job_executions
+                    SET state = 'pending'
+                    WHERE state = 'running' AND reschedule_after < NOW() + $1::interval
+                    "#,
+                    pg_interval
+                )
+                .fetch_all(pool)
+                .await?;
             }
         }
         *keep_alive = !*keep_alive;
         let rows = sqlx::query!(
             r#"
               WITH selected_jobs AS (
-                  SELECT id
-                  FROM job_executions
+                  SELECT je.id, data_json
+                  FROM job_executions je
+                  JOIN jobs ON je.id = jobs.id
                   WHERE reschedule_after < NOW()
-                  AND state = 'pending'
+                  AND je.state = 'pending'
                   LIMIT $1
                   FOR UPDATE
               )
@@ -149,7 +163,7 @@ impl JobExecutor {
               SET state = 'running', reschedule_after = NOW() + $2::interval
               FROM selected_jobs
               WHERE je.id = selected_jobs.id
-              RETURNING je.id AS "id!: JobId"
+              RETURNING je.id AS "id!: JobId", selected_jobs.data_json, je.attempt_index
               "#,
             poll_limit as i32,
             pg_interval
@@ -160,7 +174,16 @@ impl JobExecutor {
         if !rows.is_empty() {
             for row in rows {
                 let job = jobs.find_by_id(row.id).await?;
-                let _ = Self::start_job(pool, registry, running_jobs, job, jobs.clone()).await;
+                let _ = Self::start_job(
+                    pool,
+                    registry,
+                    running_jobs,
+                    job,
+                    row.attempt_index as u32,
+                    row.data_json,
+                    jobs.clone(),
+                )
+                .await;
             }
         }
         Ok(())
@@ -176,20 +199,53 @@ impl JobExecutor {
         registry: &Arc<RwLock<JobRegistry>>,
         running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
         job: Job,
+        attempt: u32,
+        job_payload: Option<serde_json::Value>,
         repo: JobRepo,
     ) -> Result<(), JobError> {
         let id = job.id;
+        let job_type = job.job_type.clone();
         let runner = registry
             .try_read()
             .expect("cannot read registry")
             .init_job(&job)?;
         let all_jobs = Arc::clone(running_jobs);
         let pool = pool.clone();
+        let registry = Arc::clone(registry);
         let handle = tokio::spawn(async move {
-            {
-                let _ = Self::execute_job(id, pool, runner, repo).await;
-            }
+            let res = Self::execute_job(
+                job,
+                attempt,
+                pool.clone(),
+                job_payload,
+                runner,
+                repo.clone(),
+                &registry,
+            )
+            .await;
             all_jobs.write().await.remove(&id);
+            if let Err(e) = res {
+                match pool.begin().await {
+                    Ok(db) => {
+                        let _ = Self::fail_job(
+                            db,
+                            id,
+                            attempt,
+                            e,
+                            repo,
+                            registry
+                                .try_read()
+                                .expect("Cannot read registry")
+                                .retry_settings(&job_type),
+                        )
+                        .await;
+                    }
+                    Err(_) => {
+                        eprintln!("Could not start transaction when failing job");
+                        tracing::error!("Could not start transaction when failing job");
+                    }
+                }
+            }
         });
         running_jobs
             .write()
@@ -198,19 +254,46 @@ impl JobExecutor {
         Ok(())
     }
 
+    #[instrument(name = "job.execute", skip_all,
+        fields(job_id, job_name, attempt, error, error.level, error.message),
+    err)]
     async fn execute_job(
-        id: JobId,
+        job: Job,
+        attempt: u32,
         pool: PgPool,
+        payload: Option<serde_json::Value>,
         runner: Box<dyn JobRunner>,
         repo: JobRepo,
+        registry: &Arc<RwLock<JobRegistry>>,
     ) -> Result<(), JobError> {
+        let id = job.id;
+        let span = Span::current();
+        span.record("job_id", tracing::field::display(id));
+        span.record("job_name", job.name);
+        span.record("attempt", attempt);
         let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id, current_job_pool);
-        match runner
-            .run(current_job)
-            .await
-            .map_err(|e| JobError::JobExecutionError(e.to_string()))?
-        {
+        let current_job = CurrentJob::new(id, attempt, current_job_pool, payload);
+
+        match runner.run(current_job).await.map_err(|e| {
+            let error = e.to_string();
+            Span::current().record("error", tracing::field::display("true"));
+            Span::current().record("error.message", tracing::field::display(&error));
+            let n_warn_attempts = registry
+                .try_read()
+                .expect("Cannot read registry")
+                .retry_settings(&job.job_type)
+                .n_warn_attempts;
+            if attempt <= n_warn_attempts {
+                Span::current()
+                    .record("error.level", tracing::field::display(tracing::Level::WARN));
+            } else {
+                Span::current().record(
+                    "error.level",
+                    tracing::field::display(tracing::Level::ERROR),
+                );
+            }
+            JobError::JobExecutionError(error)
+        })? {
             JobCompletion::Complete => {
                 let tx = pool.begin().await?;
                 Self::complete_job(tx, id, repo).await?;
@@ -228,6 +311,7 @@ impl JobExecutor {
         }
         Ok(())
     }
+
     async fn complete_job(
         mut db: Transaction<'_, Postgres>,
         id: JobId,
@@ -243,8 +327,8 @@ impl JobExecutor {
         )
         .execute(&mut *db)
         .await?;
-        job.complete();
-        repo.persist(&mut db, job).await?;
+        job.success();
+        repo.persist_in_tx(&mut db, job).await?;
         db.commit().await?;
         Ok(())
     }
@@ -257,7 +341,7 @@ impl JobExecutor {
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state = 'pending', reschedule_after = $2
+          SET state = 'pending', reschedule_after = $2, attempt_index = 1
           WHERE id = $1
         "#,
             id as JobId,
@@ -265,6 +349,48 @@ impl JobExecutor {
         )
         .execute(&mut *db)
         .await?;
+        db.commit().await?;
+        Ok(())
+    }
+
+    async fn fail_job(
+        mut db: Transaction<'_, Postgres>,
+        id: JobId,
+        attempt: u32,
+        error: JobError,
+        repo: JobRepo,
+        retry_settings: &RetrySettings,
+    ) -> Result<(), JobError> {
+        let mut job = repo.find_by_id(id).await?;
+        job.fail(error.to_string());
+        repo.persist_in_tx(&mut db, job).await?;
+
+        if retry_settings.n_attempts > attempt {
+            let reschedule_at = retry_settings.next_attempt_at(attempt);
+            sqlx::query!(
+                r#"
+                UPDATE job_executions
+                SET state = 'pending', reschedule_after = $2, attempt_index = $3
+                WHERE id = $1
+              "#,
+                id as JobId,
+                reschedule_at,
+                (attempt + 1) as i32
+            )
+            .execute(&mut *db)
+            .await?;
+        } else {
+            sqlx::query!(
+                r#"
+                DELETE FROM job_executions
+                WHERE id = $1
+              "#,
+                id as JobId
+            )
+            .execute(&mut *db)
+            .await?;
+        }
+
         db.commit().await?;
         Ok(())
     }

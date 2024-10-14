@@ -63,7 +63,7 @@ impl JobInitializer for CreateReportInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreateReportJobRunner {
-            config: job.config()?,
+            config: job.data()?,
             repo: self.repo.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
@@ -107,7 +107,7 @@ impl JobRunner for CreateReportJobRunner {
         let report = self.repo.create_in_tx(&mut db_tx, new_report).await?;
 
         self.jobs
-            .create_and_spawn_job::<super::generate::GenerateReportInitializer, _>(
+            .create_and_spawn_in_tx::<super::generate::GenerateReportInitializer, _>(
                 &mut db_tx,
                 report.id,
                 "generate_report".to_string(),

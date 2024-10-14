@@ -89,7 +89,7 @@ impl Loans {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_job::<cvl::LoanProcessingJobInitializer, _>(
+            .create_and_spawn_in_tx::<cvl::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
                 CVL_JOB_ID,
                 "cvl-update-job".to_string(),
@@ -213,7 +213,7 @@ impl Loans {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
             self.jobs
-                .create_and_spawn_job::<interest::LoanProcessingJobInitializer, _>(
+                .create_and_spawn_in_tx::<interest::LoanProcessingJobInitializer, _>(
                     &mut db_tx,
                     loan.id,
                     format!("loan-interest-processing-{}", loan.id),

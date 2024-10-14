@@ -1,0 +1,21 @@
+[package]
+name = "lava-job"
+version = "0.1.131-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+tracing = { workspace = true }
+chrono = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_with = { workspace = true }
+tokio = { workspace = true }
+uuid = { workspace = true }
+rand = { workspace = true }

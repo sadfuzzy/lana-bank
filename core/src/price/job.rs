@@ -61,7 +61,7 @@ impl JobInitializer for ExportPriceInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(ExportPriceJobRunner {
-            config: job.config()?,
+            config: job.data()?,
             price: self.price.clone(),
             export: self.export.clone(),
         }))

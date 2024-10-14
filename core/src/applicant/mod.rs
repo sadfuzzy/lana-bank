@@ -135,7 +135,7 @@ impl Applicants {
         let mut db = self.pool.begin().await?;
 
         self.jobs
-            .create_and_spawn_job::<SumsubExportInitializer, _>(
+            .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
                 &mut db,
                 JobId::new(),
                 format!("sumsub-export:{}", callback_id),
@@ -231,7 +231,7 @@ impl Applicants {
                 }
 
                 self.jobs
-                    .create_and_spawn_job::<SumsubExportInitializer, _>(
+                    .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
                         db,
                         JobId::new(),
                         format!("sumsub-export:{}", external_user_id),
