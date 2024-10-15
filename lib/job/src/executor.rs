@@ -284,7 +284,7 @@ impl JobExecutor {
                 .expect("Cannot read registry")
                 .retry_settings(&job.job_type)
                 .n_warn_attempts;
-            if attempt <= n_warn_attempts {
+            if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
                 Span::current()
                     .record("error.level", tracing::field::display(tracing::Level::WARN));
             } else {
@@ -366,7 +366,7 @@ impl JobExecutor {
         job.fail(error.to_string());
         repo.persist_in_tx(&mut db, job).await?;
 
-        if retry_settings.n_attempts > attempt {
+        if retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
             let reschedule_at = retry_settings.next_attempt_at(attempt);
             sqlx::query!(
                 r#"
