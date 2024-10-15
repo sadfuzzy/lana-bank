@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                    UPDATE job_executions\n                    SET state = 'pending', attempt_index = attempt_index + 1\n                    WHERE state = 'running' AND reschedule_after < NOW() + $1::interval\n                    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Interval"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ac7cae29d52dd9d041a63c7bfd8f0d435103ab89457a412a2086e26c771c8e83"
+}
