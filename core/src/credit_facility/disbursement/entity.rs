@@ -50,7 +50,7 @@ impl EntityEvent for DisbursementEvent {
     }
 }
 
-#[derive(Builder, Clone)]
+#[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Disbursement {
     pub id: DisbursementId,

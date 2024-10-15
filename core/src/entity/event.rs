@@ -25,7 +25,6 @@ pub trait Entity: TryFrom<EntityEvents<<Self as Entity>::Event>, Error = EntityE
     type Event: EntityEvent;
 }
 
-#[derive(Clone)]
 pub struct EntityEvents<T: EntityEvent> {
     pub entity_id: <T as EntityEvent>::EntityId,
     pub entity_first_persisted_at: Option<chrono::DateTime<chrono::Utc>>,
