@@ -269,7 +269,7 @@ impl JobExecutor {
     ) -> Result<(), JobError> {
         let id = job.id;
         let span = Span::current();
-        span.record("job_id", &tracing::field::display(id));
+        span.record("job_id", tracing::field::display(id));
         span.record("job_name", job.name);
         span.record("attempt", attempt);
         let current_job_pool = pool.clone();
