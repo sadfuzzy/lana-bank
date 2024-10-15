@@ -36,6 +36,7 @@ pub trait JobRunner: Send + Sync + 'static {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>>;
 }
 
+#[derive(Debug)]
 pub struct RetrySettings {
     pub n_attempts: u32,
     pub n_warn_attempts: u32,

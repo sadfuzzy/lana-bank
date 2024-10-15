@@ -138,7 +138,7 @@ impl JobExecutor {
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
-                    SET state = 'pending'
+                    SET state = 'pending', attempt_index = attempt_index + 1
                     WHERE state = 'running' AND reschedule_after < NOW() + $1::interval
                     "#,
                     pg_interval
@@ -223,7 +223,7 @@ impl JobExecutor {
                 &registry,
             )
             .await;
-            all_jobs.write().await.remove(&id);
+            let mut write_lock = all_jobs.write().await;
             if let Err(e) = res {
                 match pool.begin().await {
                     Ok(db) => {
@@ -246,6 +246,7 @@ impl JobExecutor {
                     }
                 }
             }
+            write_lock.remove(&id);
         });
         running_jobs
             .write()
@@ -268,7 +269,7 @@ impl JobExecutor {
     ) -> Result<(), JobError> {
         let id = job.id;
         let span = Span::current();
-        span.record("job_id", tracing::field::display(id));
+        span.record("job_id", &tracing::field::display(id));
         span.record("job_name", job.name);
         span.record("attempt", attempt);
         let current_job_pool = pool.clone();
