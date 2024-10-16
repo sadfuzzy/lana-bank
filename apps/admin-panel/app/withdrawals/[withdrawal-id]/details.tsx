@@ -86,7 +86,7 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                 />
                 <DetailItem
                   label="Withdrawal Amount"
-                  valueComponent={
+                  value={
                     <Balance
                       amount={withdrawalDetails.withdrawal.amount}
                       currency="usd"

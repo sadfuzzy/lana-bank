@@ -69,7 +69,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
         <DetailItem label="Status" value={data?.customer?.status.toLocaleLowerCase()} />
         <DetailItem
           label="KYC Application Link"
-          valueComponent={
+          value={
             data?.customer?.applicantId ? (
               <a
                 href={sumsubLink}

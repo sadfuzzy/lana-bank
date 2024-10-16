@@ -109,7 +109,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
           <DetailItem
             label="Collateral Balance"
             className="px-0"
-            valueComponent={
+            value={
               <Balance
                 amount={creditFacilityDetails.balance.collateral.btcBalance}
                 currency="btc"
@@ -119,7 +119,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
           <DetailItem
             label="Expected Collateral to meet target CVL"
             className="px-0"
-            valueComponent={
+            value={
               <Balance
                 amount={creditFacilityDetails.collateralToMatchInitialCvl}
                 currency="btc"
@@ -128,7 +128,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
           />
           <DetailItem
             className="px-0"
-            labelComponent={
+            label={
               <p className="text-textColor-secondary flex items-center">
                 <div className="mr-2">Current CVL (BTC/USD:</div>
                 <Balance

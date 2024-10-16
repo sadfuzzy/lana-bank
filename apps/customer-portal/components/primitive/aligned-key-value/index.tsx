@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 interface KeyValueGroupProps extends React.HTMLAttributes<HTMLDivElement> {}
 interface KeyValueCell extends React.HTMLAttributes<HTMLDivElement> {}
 interface KeyComponentProps extends React.HTMLAttributes<HTMLParagraphElement> {}
-interface ValueComponentProps extends React.HTMLAttributes<HTMLParagraphElement> {}
+interface valueProps extends React.HTMLAttributes<HTMLParagraphElement> {}
 
 const KeyValueGroup = React.forwardRef<HTMLDivElement, KeyValueGroupProps>(
   ({ children, className, ...props }, ref) => (
@@ -41,7 +41,7 @@ const Key = React.forwardRef<HTMLParagraphElement, KeyComponentProps>(
 )
 Key.displayName = "Key"
 
-const Value = React.forwardRef<HTMLParagraphElement, ValueComponentProps>(
+const Value = React.forwardRef<HTMLParagraphElement, valueProps>(
   ({ children, className, ...props }, ref) => (
     <p
       ref={ref}

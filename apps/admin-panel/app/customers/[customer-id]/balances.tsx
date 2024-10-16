@@ -20,11 +20,11 @@ export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = (
     <CardContent>
       <DetailItem
         label="Checking Settled Balance (USD)"
-        valueComponent={<Balance amount={balance.checking.settled} currency="usd" />}
+        value={<Balance amount={balance.checking.settled} currency="usd" />}
       />
       <DetailItem
         label="Pending Withdrawals (USD)"
-        valueComponent={<Balance amount={balance.checking.pending} currency="usd" />}
+        value={<Balance amount={balance.checking.pending} currency="usd" />}
       />
     </CardContent>
   </Card>

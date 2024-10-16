@@ -46,8 +46,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
               <DetailItem label="Email" value={customer.email} />
               <DetailItem
                 label="Telegram"
-                value={customer.telegramId}
-                valueComponent={
+                value={
                   <div className="flex items-center gap-2">
                     {customer.telegramId}
                     <PiPencilSimpleLineLight

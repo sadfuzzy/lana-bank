@@ -48,13 +48,11 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
             <DetailsGroup>
               <DetailItem
                 label="Collateral balance"
-                valueComponent={
-                  <Balance amount={creditFacility.collateral} currency="btc" />
-                }
+                value={<Balance amount={creditFacility.collateral} currency="btc" />}
               />
               <DetailItem
                 label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
-                valueComponent={
+                value={
                   <Balance
                     amount={creditFacility.collateralToMatchInitialCvl}
                     currency="btc"
@@ -65,13 +63,11 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 <>
                   <DetailItem
                     label={`Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`}
-                    valueComponent={<Balance amount={MarginCallPrice} currency="usd" />}
+                    value={<Balance amount={MarginCallPrice} currency="usd" />}
                   />
                   <DetailItem
                     label={`Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`}
-                    valueComponent={
-                      <Balance amount={LiquidationCallPrice} currency="usd" />
-                    }
+                    value={<Balance amount={LiquidationCallPrice} currency="usd" />}
                   />
                 </>
               ) : (
@@ -92,7 +88,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
             <DetailsGroup>
               <DetailItem
                 label="Outstanding Balance"
-                valueComponent={
+                value={
                   <Balance
                     amount={creditFacility.balance.outstanding.usdBalance}
                     currency="usd"
@@ -100,7 +96,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 }
               />
               <DetailItem
-                labelComponent={
+                label={
                   <p className="text-textColor-secondary flex items-center">
                     <div className="mr-2">
                       Current CVL % <span className="text-sm">(BTC/USD:</span>
@@ -118,7 +114,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
               {creditFacility.expiresAt && (
                 <DetailItem
                   label="Expires at"
-                  valueComponent={formatDate(creditFacility.expiresAt)}
+                  value={formatDate(creditFacility.expiresAt)}
                 />
               )}
             </DetailsGroup>

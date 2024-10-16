@@ -111,7 +111,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
               <DetailItem
                 className="text-sm"
                 label="Amount"
-                valueComponent={
+                value={
                   <Balance
                     amount={currencyConverter.centsToUsd(withdrawalData.amount)}
                     currency="usd"

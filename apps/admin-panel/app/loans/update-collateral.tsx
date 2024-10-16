@@ -142,14 +142,12 @@ export const CollateralUpdateDialog: React.FC<
                 <DetailItem
                   className="text-sm"
                   label="Current Collateral"
-                  valueComponent={
-                    <Balance amount={loanData.existingCollateral} currency="btc" />
-                  }
+                  value={<Balance amount={loanData.existingCollateral} currency="btc" />}
                 />
                 <DetailItem
                   className="text-sm"
                   label="New Collateral"
-                  valueComponent={
+                  value={
                     <Balance
                       amount={currencyConverter.btcToSatoshi(Number(newCollateral))}
                       currency="btc"
@@ -187,13 +185,13 @@ export const CollateralUpdateDialog: React.FC<
                   <DetailItem label="Loan ID" value={loanData.loanId} />
                   <DetailItem
                     label="Current Collateral"
-                    valueComponent={
+                    value={
                       <Balance amount={loanData.existingCollateral} currency="btc" />
                     }
                   />
                   <DetailItem
                     label="Expected Collateral"
-                    valueComponent={
+                    value={
                       <Balance
                         amount={loanDetails?.loan?.collateralToMatchInitialCvl}
                         currency="btc"

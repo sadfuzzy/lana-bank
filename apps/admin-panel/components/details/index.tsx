@@ -16,16 +16,12 @@ const DetailItem = ({
   label,
   value,
   className,
-  labelComponent,
-  valueComponent,
   onClick = null,
   hover = false,
 }: {
-  label?: string
-  value?: string
+  label: React.ReactNode
+  value: React.ReactNode
   className?: string
-  labelComponent?: React.ReactNode
-  valueComponent?: React.ReactNode
   onClick?: null | (() => void)
   hover?: boolean
 }) => {
@@ -38,19 +34,15 @@ const DetailItem = ({
   return (
     <div
       className={cn(
-        "flex justify-between items-center p-1 px-2 rounded-md",
+        "flex justify-between items-center p-1 px-2 rounded-md font-semibold flex-wrap",
         className,
         onClickHoverClass,
         hoverClass,
       )}
       onClick={onClick || undefined}
     >
-      {labelComponent ? (
-        labelComponent
-      ) : (
-        <p className="text-textColor-secondary">{label}</p>
-      )}
-      {valueComponent ? valueComponent : <p>{value}</p>}
+      <div className="text-textColor-secondary font-normal">{label}</div>
+      <div>{value}</div>
     </div>
   )
 }

@@ -218,11 +218,16 @@ function BalanceSheetColumn({
       <Table>
         <TableBody>
           <TableRow className="bg-secondary-foreground">
-            <TableCell className="uppercase font-bold text-textColor-secondary">
+            <TableCell className="uppercase font-bold text-textColor-secondary ">
               {title}
             </TableCell>
-            <TableCell className="flex flex-col gap-2 items-end text-right">
-              <Balance align="end" currency={currency} amount={total} />
+            <TableCell className="flex flex-col gap-2 items-end text-right font-semibold">
+              <Balance
+                align="end"
+                currency={currency}
+                amount={total}
+                className="font-semibold"
+              />
             </TableCell>
           </TableRow>
         </TableBody>
@@ -271,6 +276,7 @@ function CategoryRow({
           <TableCell>
             <Balance
               align="end"
+              className="font-semibold"
               currency={currency}
               amount={category.amounts[currency].closingBalance[layer][transactionType]}
             />

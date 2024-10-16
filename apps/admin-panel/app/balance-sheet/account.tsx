@@ -46,6 +46,7 @@ export const Account = ({
         <TableCell>
           <Balance
             align="end"
+            className="font-semibold"
             currency={currency}
             amount={account.amounts[currency].closingBalance[layer][transactionType]}
           />

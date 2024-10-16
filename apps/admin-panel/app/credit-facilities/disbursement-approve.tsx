@@ -132,7 +132,7 @@ export const CreditFacilityDisbursementApproveDialog: React.FC<
           <DetailItem
             className="px-0"
             label="Amount"
-            valueComponent={<Balance amount={disbursement.amount} currency="usd" />}
+            value={<Balance amount={disbursement.amount} currency="usd" />}
           />
           <DetailItem
             className="px-0"

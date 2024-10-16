@@ -48,7 +48,7 @@ const Balance: React.FC<BalanceProps> = ({ amount, currency, className, align })
   return (
     <div className={cn(balanceVariants({ align }), "flex gap-0.5", className)}>
       {currency === "usd" && <div>$</div>}
-      <div className="font-mono">
+      <div>
         {formattedAmountWithSymbol}
         {currency === "btc" && " BTC"}
       </div>

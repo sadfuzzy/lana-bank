@@ -42,12 +42,12 @@ export const LoanOverview: React.FC<LoanOverviewProps> = ({ loan }) => {
             <DetailsGroup>
               <DetailItem
                 label="Collateral balance"
-                valueComponent={
+                value={
                   <Balance amount={loan.balance.collateral.btcBalance} currency="btc" />
                 }
               />
               <DetailItem
-                labelComponent={
+                label={
                   <p className="text-textColor-secondary flex items-center">
                     <div className="mr-2">
                       Current CVL % <span className="text-sm">(BTC/USD:</span>
@@ -64,14 +64,14 @@ export const LoanOverview: React.FC<LoanOverviewProps> = ({ loan }) => {
               />
               <DetailItem
                 label={`Collateral to reach target (${loan.loanTerms.initialCvl}%)`}
-                valueComponent={
+                value={
                   <Balance amount={loan.collateralToMatchInitialCvl} currency="btc" />
                 }
               />
               {loan.balance.collateral.btcBalance > 0 ? (
                 <DetailItem
                   label={`Margin Call Price BTC/USD (${loan.loanTerms.marginCallCvl}%)`}
-                  valueComponent={<Balance amount={MarginCallPrice} currency="usd" />}
+                  value={<Balance amount={MarginCallPrice} currency="usd" />}
                 />
               ) : (
                 <DetailItem
@@ -82,9 +82,7 @@ export const LoanOverview: React.FC<LoanOverviewProps> = ({ loan }) => {
               {loan.balance.collateral.btcBalance > 0 ? (
                 <DetailItem
                   label={`Liquidation Call Price BTC/USD (${loan.loanTerms.liquidationCvl}%)`}
-                  valueComponent={
-                    <Balance amount={LiquidationCallPrice} currency="usd" />
-                  }
+                  value={<Balance amount={LiquidationCallPrice} currency="usd" />}
                 />
               ) : (
                 <DetailItem
@@ -98,13 +96,13 @@ export const LoanOverview: React.FC<LoanOverviewProps> = ({ loan }) => {
             <DetailsGroup>
               <DetailItem
                 label="Outstanding Balance"
-                valueComponent={
+                value={
                   <Balance amount={loan.balance.outstanding.usdBalance} currency="usd" />
                 }
               />
               <DetailItem
                 label="Interest incurred"
-                valueComponent={
+                value={
                   <Balance
                     amount={loan.balance.interestIncurred.usdBalance}
                     currency="usd"

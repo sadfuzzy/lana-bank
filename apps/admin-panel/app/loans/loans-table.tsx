@@ -113,7 +113,7 @@ const LoansTable = () => {
                   <TableCell>{formatDate(loan.createdAt)}</TableCell>
                   <TableCell>{loan.customer.email}</TableCell>
                   <TableCell>
-                    <span className="font-mono">{loan.currentCvl}</span>
+                    {loan.currentCvl}
                     {" %"}
                   </TableCell>
                   <TableCell>

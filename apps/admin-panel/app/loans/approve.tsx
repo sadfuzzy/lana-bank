@@ -108,7 +108,7 @@ export const LoanApproveDialog: React.FC<
             <DetailItem label="Created At" value={data.loanApprove.loan.createdAt} />
             <DetailItem
               label="Collateral"
-              valueComponent={
+              value={
                 <Balance
                   amount={data.loanApprove.loan.balance.collateral.btcBalance}
                   currency="btc"
@@ -117,7 +117,7 @@ export const LoanApproveDialog: React.FC<
             />
             <DetailItem
               label="Interest Incurred"
-              valueComponent={
+              value={
                 <Balance
                   amount={data.loanApprove.loan.balance.interestIncurred.usdBalance}
                   currency="usd"
@@ -126,7 +126,7 @@ export const LoanApproveDialog: React.FC<
             />
             <DetailItem
               label="Outstanding"
-              valueComponent={
+              value={
                 <Balance
                   amount={data.loanApprove.loan.balance.outstanding.usdBalance}
                   currency="usd"
@@ -144,7 +144,7 @@ export const LoanApproveDialog: React.FC<
           <DetailsGroup>
             <DetailItem
               label="Collateral Balance"
-              valueComponent={
+              value={
                 <Balance
                   amount={loanDetails.balance.collateral.btcBalance}
                   currency="btc"
@@ -153,7 +153,7 @@ export const LoanApproveDialog: React.FC<
             />
             <DetailItem
               label="Expected Collateral to meet target CVL"
-              valueComponent={
+              value={
                 <Balance
                   amount={loanDetails.collateralToMatchInitialCvl}
                   currency="btc"
@@ -161,7 +161,7 @@ export const LoanApproveDialog: React.FC<
               }
             />
             <DetailItem
-              labelComponent={
+              label={
                 <p className="text-textColor-secondary flex items-center">
                   <div className="mr-2">Current CVL (BTC/USD:</div>
                   <Balance
