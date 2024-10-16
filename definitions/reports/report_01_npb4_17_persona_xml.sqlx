@@ -40,7 +40,7 @@ SELECT
   , LEFT(`municipio_residencia`, 4) AS `municipio_residencia`
   , CURRENT_TIMESTAMP() AS created_at
 FROM
-  ${ref("stg_01_npb4_17_persona_xml_raw")}
+  ${ref("stg_01_npb4_17_persona_xml_raw")}(asof)
 
 );
 

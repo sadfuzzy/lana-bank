@@ -2,16 +2,21 @@ config {
 	type: "table",
 }
 
-SELECT customer_id, first_name, date_of_birth, gender,
+SELECT
+	customer_id,
+	first_name,
+	last_name,
+	date_of_birth,
+	gender,
 	countries.code AS country_of_residence_code,
-	countries.code AS nationality_code,
-	-- TODO:
-	"todo" AS last_name,
-	"10101" AS economic_activity_code,
-	"034" AS occupation_code,
-	"5580648332" AS tax_id_number,
-	"5580648332" AS passport_number,
+	nationalities.code AS nationality_code,
+	questionnaires[SAFE_OFFSET(0)].occupation_code,
+	questionnaires[SAFE_OFFSET(0)].economic_activity_code,
+	questionnaires[SAFE_OFFSET(0)].tax_id_number,
+	id_documents[SAFE_OFFSET(0)].number AS passport_number,
 
 FROM ${ref("stg_sumsub_applicants")}
-	LEFT JOIN ${ref("stg_dim_31_npb4_17_codigos_de_paises_o_territorios")} AS countries
-		USING (iso_alpha_3_code)
+LEFT JOIN ${ref("stg_dim_31_npb4_17_codigos_de_paises_o_territorios")} AS countries
+	ON countries.iso_alpha_3_code = questionnaires[SAFE_OFFSET(0)].country_of_residence_iso_alpha_3_code
+LEFT JOIN ${ref("stg_dim_31_npb4_17_codigos_de_paises_o_territorios")} AS nationalities
+	ON nationalities.iso_alpha_3_code = nationality_iso_alpha_3_code
