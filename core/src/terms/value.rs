@@ -1,9 +1,11 @@
 use chrono::{DateTime, Datelike, TimeZone, Utc};
-use derive_builder::Builder;
+use derive_builder::{Builder, UninitializedFieldError};
 use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
+use super::error::TermsError;
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: Decimal = dec!(366);
@@ -42,6 +44,12 @@ impl From<Decimal> for AnnualRatePct {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct CVLPct(Decimal);
+
+impl fmt::Display for CVLPct {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
 
 impl std::ops::Add for CVLPct {
     type Output = Self;
@@ -278,6 +286,7 @@ impl InterestInterval {
 }
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
+#[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
 pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) annual_rate: AnnualRatePct,
@@ -306,6 +315,36 @@ impl TermValues {
     ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
         price.cents_to_sats_round_up(collateral_value)
+    }
+}
+
+impl TermValuesBuilder {
+    fn validate(&self) -> Result<(), TermsError> {
+        let initial_cvl = self
+            .initial_cvl
+            .ok_or(UninitializedFieldError::new("initial_cvl"))?;
+        let margin_call_cvl = self
+            .margin_call_cvl
+            .ok_or(UninitializedFieldError::new("margin_call_cvl"))?;
+        let liquidation_cvl = self
+            .liquidation_cvl
+            .ok_or(UninitializedFieldError::new("liquidation_cvl"))?;
+
+        if initial_cvl <= margin_call_cvl {
+            return Err(TermsError::MarginCallAboveInitialLimit(
+                margin_call_cvl,
+                initial_cvl,
+            ));
+        }
+
+        if margin_call_cvl <= liquidation_cvl {
+            return Err(TermsError::MarginCallBelowLiquidationLimit(
+                margin_call_cvl,
+                liquidation_cvl,
+            ));
+        }
+
+        Ok(())
     }
 }
 
@@ -388,6 +427,66 @@ mod test {
             .initial_cvl(CVLPct(dec!(140)))
             .build()
             .expect("should build a valid term")
+    }
+
+    #[test]
+    fn invalid_term_values_margin_call_greater_than_initial() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(105)))
+            .margin_call_cvl(CVLPct(dec!(150)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        match result.unwrap_err() {
+            TermsError::MarginCallAboveInitialLimit(margin_call, initial) => {
+                assert_eq!(margin_call, CVLPct(dec!(150)));
+                assert_eq!(initial, CVLPct(dec!(140)));
+            }
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn invalid_term_values_liquidation_greater_than_margin_call() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(130)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        match result.unwrap_err() {
+            TermsError::MarginCallBelowLiquidationLimit(margin_call, liquidation) => {
+                assert_eq!(margin_call, CVLPct(dec!(125)));
+                assert_eq!(liquidation, CVLPct(dec!(130)));
+            }
+            _ => panic!("Unexpected error type"),
+        }
+    }
+
+    #[test]
+    fn invalid_term_values_margin_call_equal_to_liquidation() {
+        let result = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(Duration::Months(3))
+            .interval(InterestInterval::EndOfMonth)
+            .liquidation_cvl(CVLPct(dec!(125)))
+            .margin_call_cvl(CVLPct(dec!(125)))
+            .initial_cvl(CVLPct(dec!(140)))
+            .build();
+
+        match result.unwrap_err() {
+            TermsError::MarginCallBelowLiquidationLimit(margin_call, liquidation) => {
+                assert_eq!(margin_call, CVLPct(dec!(125)));
+                assert_eq!(liquidation, CVLPct(dec!(125)));
+            }
+            _ => panic!("Unexpected error type"),
+        }
     }
 
     #[test]
