@@ -248,7 +248,7 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.record_interest", skip(self), err)]
+    #[instrument(name = "lava.ledger.record_loan_interest", skip(self), err)]
     pub async fn record_loan_interest(
         &self,
         LoanInterestAccrual {
@@ -322,6 +322,56 @@ impl Ledger {
             }
         };
         Ok(executed_at)
+    }
+
+    #[instrument(
+        name = "lava.ledger.record_credit_facility_interest_incurrence",
+        skip(self),
+        err
+    )]
+    pub async fn record_credit_facility_interest_incurrence(
+        &self,
+        CreditFacilityInterestIncurrence {
+            interest,
+            tx_ref,
+            tx_id,
+            credit_facility_account_ids,
+        }: CreditFacilityInterestIncurrence,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_credit_facility_incur_interest_tx(
+                tx_id,
+                credit_facility_account_ids,
+                interest.to_usd(),
+                tx_ref,
+            )
+            .await?)
+    }
+
+    #[instrument(
+        name = "lava.ledger.record_credit_facility_interest_accrual",
+        skip(self),
+        err
+    )]
+    pub async fn record_credit_facility_interest_accrual(
+        &self,
+        CreditFacilityInterestAccrual {
+            interest,
+            tx_ref,
+            tx_id,
+            credit_facility_account_ids,
+        }: CreditFacilityInterestAccrual,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_credit_facility_accrue_interest_tx(
+                tx_id,
+                credit_facility_account_ids,
+                interest.to_usd(),
+                tx_ref,
+            )
+            .await?)
     }
 
     #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
@@ -688,6 +738,16 @@ impl Ledger {
             .await?;
         Self::assert_incur_interest_tx_template_exists(cala, constants::INCUR_INTEREST_CODE)
             .await?;
+        Self::assert_credit_facility_incur_interest_tx_template_exists(
+            cala,
+            constants::CREDIT_FACILITY_INCUR_INTEREST_CODE,
+        )
+        .await?;
+        Self::assert_credit_facility_accrue_interest_tx_template_exists(
+            cala,
+            constants::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
+        )
+        .await?;
 
         Self::assert_record_payment_tx_template_exists(cala, constants::RECORD_PAYMENT_CODE)
             .await?;
@@ -969,6 +1029,62 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_incur_interest_tx_template(template_id).await {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_credit_facility_incur_interest_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_credit_facility_incur_interest_tx_template(template_id)
+            .await
+        {
+            Ok(id) => {
+                return Ok(id);
+            }
+            Err(e) => e,
+        };
+
+        Ok(cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+            .map_err(|_| err)?)
+    }
+
+    async fn assert_credit_facility_accrue_interest_tx_template_exists(
+        cala: &CalaClient,
+        template_code: &str,
+    ) -> Result<LedgerTxTemplateId, LedgerError> {
+        if let Ok(id) = cala
+            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
+            .await
+        {
+            return Ok(id);
+        }
+
+        let template_id = LedgerTxTemplateId::new();
+        let err = match cala
+            .create_credit_facility_accrue_interest_tx_template(template_id)
+            .await
+        {
             Ok(id) => {
                 return Ok(id);
             }
