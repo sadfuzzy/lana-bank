@@ -1918,7 +1918,7 @@ dependencies = [
 
 [[package]]
 name = "lava-core"
-version = "0.1.136-dev"
+version = "0.1.137-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1966,7 +1966,7 @@ dependencies = [
 
 [[package]]
 name = "lava-job"
-version = "0.1.131-dev"
+version = "0.1.137-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1983,7 +1983,7 @@ dependencies = [
 
 [[package]]
 name = "lava-tracing"
-version = "0.1.136-dev"
+version = "0.1.137-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
