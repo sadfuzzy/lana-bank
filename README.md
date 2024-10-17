@@ -51,8 +51,13 @@ app: http://localhost:4455/
 
 # To setup BQ dev
 
-Also needs re-running when adding tables:
+needs re-running when adding new BQ tables:
+
 ```
+git checkout pre-merged-commit
+# this is important to have the previous state before pulling
+make reset-deps
+git pull
 make init-bq
 ```
 
