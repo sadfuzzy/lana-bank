@@ -104,8 +104,6 @@ impl Authorization {
             .await?;
         self.add_permission_to_role(&role, Object::User, UserAction::Update)
             .await?;
-        self.add_permission_to_role(&role, Object::User, UserAction::Delete)
-            .await?;
         self.add_permission_to_role(&role, Object::User, UserAction::AssignRole)
             .await?;
         self.add_permission_to_role(&role, Object::User, UserAction::RevokeRole)

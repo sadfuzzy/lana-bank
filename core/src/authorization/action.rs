@@ -130,7 +130,6 @@ pub enum UserAction {
     Create,
     List,
     Update,
-    Delete,
     AssignRole,
     RevokeRole,
 }
