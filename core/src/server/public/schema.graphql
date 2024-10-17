@@ -236,6 +236,7 @@ type InterestIncome {
 
 enum InterestInterval {
 	END_OF_MONTH
+	END_OF_DAY
 }
 
 enum KycLevel {
@@ -360,6 +361,7 @@ type System {
 type TermValues {
 	annualRate: AnnualRatePct!
 	interval: InterestInterval!
+	incurrenceInterval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!

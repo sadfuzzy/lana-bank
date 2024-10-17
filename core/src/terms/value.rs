@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike, TimeZone, Utc};
+use chrono::{DateTime, Datelike, TimeZone, Timelike, Utc};
 use derive_builder::{Builder, UninitializedFieldError};
 use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
@@ -257,6 +257,7 @@ impl InterestPeriod {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,
+    EndOfDay,
 }
 
 impl InterestInterval {
@@ -281,6 +282,11 @@ impl InterestInterval {
                     .expect("should return a valid date time")
                     - chrono::Duration::seconds(1)
             }
+            InterestInterval::EndOfDay => current_date
+                .with_hour(23)
+                .and_then(|d| d.with_minute(59))
+                .and_then(|d| d.with_second(59))
+                .expect("should return a valid date time"),
         }
     }
 }
@@ -293,7 +299,9 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub(crate) duration: Duration,
     #[builder(setter(into))]
-    pub(crate) interval: InterestInterval,
+    pub(crate) accrual_interval: InterestInterval,
+    #[builder(setter(into))]
+    pub(crate) incurrence_interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
     pub(crate) liquidation_cvl: CVLPct,
@@ -421,7 +429,8 @@ mod test {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
+            .incurrence_interval(InterestInterval::EndOfDay)
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -434,7 +443,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(105)))
             .margin_call_cvl(CVLPct(dec!(150)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -454,7 +463,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(130)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -474,7 +483,7 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfMonth)
             .liquidation_cvl(CVLPct(dec!(125)))
             .margin_call_cvl(CVLPct(dec!(125)))
             .initial_cvl(CVLPct(dec!(140)))
@@ -573,7 +582,8 @@ mod test {
             TermValues::builder()
                 .annual_rate(dec!(12))
                 .duration(Duration::Months(3))
-                .interval(InterestInterval::EndOfMonth)
+                .accrual_interval(InterestInterval::EndOfMonth)
+                .incurrence_interval(InterestInterval::EndOfDay)
                 .liquidation_cvl(dec!(105))
                 .margin_call_cvl(dec!(125))
                 .initial_cvl(dec!(140))

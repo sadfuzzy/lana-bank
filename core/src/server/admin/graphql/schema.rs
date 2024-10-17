@@ -588,7 +588,8 @@ impl Mutation {
         } = input;
         let term_values = crate::terms::TermValues::builder()
             .annual_rate(loan_terms.annual_rate)
-            .interval(loan_terms.interval)
+            .accrual_interval(loan_terms.interval)
+            .incurrence_interval(loan_terms.incurrence_interval)
             .duration(loan_terms.duration)
             .liquidation_cvl(loan_terms.liquidation_cvl)
             .margin_call_cvl(loan_terms.margin_call_cvl)
@@ -679,7 +680,8 @@ impl Mutation {
 
         let credit_facility_term_values = crate::terms::TermValues::builder()
             .annual_rate(terms.annual_rate)
-            .interval(terms.interval)
+            .accrual_interval(terms.interval)
+            .incurrence_interval(terms.incurrence_interval)
             .duration(terms.duration)
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
@@ -968,7 +970,8 @@ impl Mutation {
         let AdminAuthContext { sub } = ctx.data()?;
         let term_values = crate::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
-            .interval(input.interval)
+            .accrual_interval(input.interval)
+            .incurrence_interval(input.incurrence_interval)
             .duration(input.duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
@@ -992,7 +995,8 @@ impl Mutation {
 
         let term_values = crate::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
-            .interval(input.interval)
+            .accrual_interval(input.interval)
+            .incurrence_interval(input.incurrence_interval)
             .duration(input.duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
