@@ -199,6 +199,12 @@ type Document {
 	id: UUID!
 	customerId: UUID!
 	filename: String!
+	status: DocumentStatus!
+}
+
+enum DocumentStatus {
+	ACTIVE
+	ARCHIVED
 }
 
 type Duration {

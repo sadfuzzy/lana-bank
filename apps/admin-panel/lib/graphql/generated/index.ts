@@ -522,6 +522,16 @@ export type Document = {
   customerId: Scalars['UUID']['output'];
   filename: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
+  status: DocumentStatus;
+};
+
+export type DocumentArchiveInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type DocumentArchivePayload = {
+  __typename?: 'DocumentArchivePayload';
+  document: Document;
 };
 
 export type DocumentCreateInput = {
@@ -534,6 +544,15 @@ export type DocumentCreatePayload = {
   document: Document;
 };
 
+export type DocumentDeleteInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type DocumentDeletePayload = {
+  __typename?: 'DocumentDeletePayload';
+  deletedDocumentId: Scalars['UUID']['output'];
+};
+
 export type DocumentDownloadLinksGenerateInput = {
   documentId: Scalars['UUID']['input'];
 };
@@ -543,6 +562,11 @@ export type DocumentDownloadLinksGeneratePayload = {
   documentId: Scalars['UUID']['output'];
   link: Scalars['String']['output'];
 };
+
+export enum DocumentStatus {
+  Active = 'ACTIVE',
+  Archived = 'ARCHIVED'
+}
 
 export type Duration = {
   __typename?: 'Duration';
@@ -768,6 +792,8 @@ export type Mutation = {
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
   depositRecord: DepositRecordPayload;
+  documentArchive: DocumentArchivePayload;
+  documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
   loanApprove: LoanApprovePayload;
   loanCollateralUpdate: LoanCollateralUpdatePayload;
@@ -845,6 +871,16 @@ export type MutationCustomerUpdateArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
+};
+
+
+export type MutationDocumentArchiveArgs = {
+  input: DocumentArchiveInput;
+};
+
+
+export type MutationDocumentDeleteArgs = {
+  input: DocumentDeleteInput;
 };
 
 
@@ -1512,6 +1548,13 @@ export type DocumentDownloadLinkGenerateMutationVariables = Exact<{
 
 
 export type DocumentDownloadLinkGenerateMutation = { __typename?: 'Mutation', documentDownloadLinkGenerate: { __typename?: 'DocumentDownloadLinksGeneratePayload', link: string } };
+
+export type DocumentDeleteMutationVariables = Exact<{
+  input: DocumentDeleteInput;
+}>;
+
+
+export type DocumentDeleteMutation = { __typename?: 'Mutation', documentDelete: { __typename?: 'DocumentDeletePayload', deletedDocumentId: string } };
 
 export type CustomerDocumentAttachMutationVariables = Exact<{
   file: Scalars['Upload']['input'];
@@ -2689,6 +2732,39 @@ export function useDocumentDownloadLinkGenerateMutation(baseOptions?: Apollo.Mut
 export type DocumentDownloadLinkGenerateMutationHookResult = ReturnType<typeof useDocumentDownloadLinkGenerateMutation>;
 export type DocumentDownloadLinkGenerateMutationResult = Apollo.MutationResult<DocumentDownloadLinkGenerateMutation>;
 export type DocumentDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+export const DocumentDeleteDocument = gql`
+    mutation DocumentDelete($input: DocumentDeleteInput!) {
+  documentDelete(input: $input) {
+    deletedDocumentId
+  }
+}
+    `;
+export type DocumentDeleteMutationFn = Apollo.MutationFunction<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
+
+/**
+ * __useDocumentDeleteMutation__
+ *
+ * To run a mutation, you first call `useDocumentDeleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDocumentDeleteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [documentDeleteMutation, { data, loading, error }] = useDocumentDeleteMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDocumentDeleteMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DocumentDeleteMutation, DocumentDeleteMutationVariables>(DocumentDeleteDocument, options);
+      }
+export type DocumentDeleteMutationHookResult = ReturnType<typeof useDocumentDeleteMutation>;
+export type DocumentDeleteMutationResult = Apollo.MutationResult<DocumentDeleteMutation>;
+export type DocumentDeleteMutationOptions = Apollo.BaseMutationOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
 export const CustomerDocumentAttachDocument = gql`
     mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
   customerDocumentAttach(input: {file: $file, customerId: $customerId}) {

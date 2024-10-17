@@ -18,6 +18,7 @@ import {
 import {
   GetCustomerQuery,
   useCustomerDocumentAttachMutation,
+  useDocumentDeleteMutation,
   useDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
@@ -29,7 +30,7 @@ type DocumentProps = {
 export const Documents: React.FC<DocumentProps> = ({ customer, refetch }) => {
   return (
     <>
-      <CustomerDocuments documents={customer.documents} />
+      <CustomerDocuments documents={customer.documents} refetch={refetch} />
       <AddDocument customer={customer} refetch={refetch} />
     </>
   )
@@ -41,16 +42,25 @@ gql`
       link
     }
   }
+
+  mutation DocumentDelete($input: DocumentDeleteInput!) {
+    documentDelete(input: $input) {
+      deletedDocumentId
+    }
+  }
 `
 
 type CustomerDocumentsProps = {
   documents: NonNullable<GetCustomerQuery["customer"]>["documents"]
+  refetch: () => void
 }
 
-const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
+const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetch }) => {
   const [linkLoading, setLinkLoading] = useState<{ [key: string]: boolean }>({})
+  const [deleteLoading, setDeleteLoading] = useState<{ [key: string]: boolean }>({})
 
   const [documentDownloadLinkGenerate] = useDocumentDownloadLinkGenerateMutation()
+  const [documentDelete] = useDocumentDeleteMutation()
 
   const openFile = useCallback(
     async (id: string) => {
@@ -68,6 +78,26 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
       window.open(data.documentDownloadLinkGenerate.link, "_blank")
     },
     [documentDownloadLinkGenerate],
+  )
+
+  const deleteDocument = useCallback(
+    async (id: string) => {
+      setDeleteLoading((prev) => ({ ...prev, [id]: true }))
+
+      try {
+        await documentDelete({
+          variables: { input: { documentId: id } },
+        })
+        toast.success("Document deleted successfully")
+        refetch()
+      } catch (error) {
+        toast.error("Failed to delete document")
+        console.error("Delete document error:", error)
+      } finally {
+        setDeleteLoading((prev) => ({ ...prev, [id]: false }))
+      }
+    },
+    [documentDelete, refetch],
   )
 
   return (
@@ -97,8 +127,16 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents }) => {
                       variant="secondary"
                       onClick={() => openFile(document.id)}
                       loading={linkLoading[document.id] || false}
+                      className="mr-2"
                     >
                       View
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => deleteDocument(document.id)}
+                      loading={deleteLoading[document.id] || false}
+                    >
+                      Delete
                     </Button>
                   </TableCell>
                 </TableRow>

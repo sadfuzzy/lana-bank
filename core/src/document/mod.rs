@@ -111,4 +111,47 @@ impl Documents {
 
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
+
+    pub async fn delete(
+        &self,
+        sub: &Subject,
+        document_id: DocumentId,
+    ) -> Result<(), DocumentError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(sub, Object::Document, DocumentAction::Delete)
+            .await?;
+
+        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
+        let mut document = self.repo.find_by_id(document_id).await?;
+
+        let document_location = document.path_for_removal();
+        self.storage.remove(document_location).await?;
+
+        document.delete(audit_info);
+        self.repo.persist_in_tx(&mut db, &mut document).await?;
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn archive(
+        &self,
+        sub: &Subject,
+        document_id: DocumentId,
+    ) -> Result<Document, DocumentError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(sub, Object::Document, DocumentAction::Archive)
+            .await?;
+
+        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
+        let mut document = self.repo.find_by_id(document_id).await?;
+
+        document.archive(audit_info);
+        self.repo.persist_in_tx(&mut db, &mut document).await?;
+        db.commit().await?;
+
+        Ok(document)
+    }
 }

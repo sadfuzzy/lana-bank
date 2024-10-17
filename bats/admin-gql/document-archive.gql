@@ -1,0 +1,10 @@
+mutation DocumentArchive($input: DocumentArchiveInput!) {
+  documentArchive(input: $input) {
+    document {
+      id
+      customerId
+      filename
+      status
+    }
+  }
+}

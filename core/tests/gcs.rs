@@ -40,7 +40,7 @@ async fn upload_doc() -> anyhow::Result<()> {
         bucket: storage.bucket_name(),
         path_in_bucket: filename.to_owned(),
     };
-    let link = storage.generate_download_link(location).await?;
+    let link = storage.generate_download_link(location.clone()).await?;
 
     // download and verify the link
     let res = reqwest::get(link).await?;
@@ -50,7 +50,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     assert_eq!(return_content, content_str);
 
     // remove docs
-    let _ = storage.remove(filename).await;
+    let _ = storage.remove(location).await;
 
     // verify list is now empty
     let res = storage._list("".to_string()).await?;

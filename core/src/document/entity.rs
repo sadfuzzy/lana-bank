@@ -28,6 +28,12 @@ pub enum DocumentEvent {
     DownloadLinkGenerated {
         audit_info: AuditInfo,
     },
+    Deleted {
+        audit_info: AuditInfo,
+    },
+    Archived {
+        audit_info: AuditInfo,
+    },
 }
 
 impl EntityEvent for DocumentEvent {
@@ -37,6 +43,11 @@ impl EntityEvent for DocumentEvent {
     }
 }
 
+pub enum DocumentStatus {
+    Active,
+    Archived,
+}
+
 #[derive(Builder)]
 #[builder(pattern = "owned", build_fn(error = "EntityError"))]
 pub struct Document {
@@ -44,6 +55,7 @@ pub struct Document {
     pub customer_id: CustomerId,
     pub filename: String,
     pub audit_info: AuditInfo,
+    pub status: DocumentStatus,
     pub(super) path_in_bucket: String,
     pub(super) bucket: String,
     pub(super) events: EntityEvents<DocumentEvent>,
@@ -64,20 +76,37 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 }
 
 impl Document {
-    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
-        self.events
-            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
-
+    fn location_in_cloud(&self) -> LocationInCloud {
         LocationInCloud {
             bucket: self.bucket.clone(),
             path_in_bucket: self.path_in_bucket.clone(),
         }
     }
 
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
+        self.events
+            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+
+        self.location_in_cloud()
+    }
+
+    pub fn path_for_removal(&self) -> LocationInCloud {
+        self.location_in_cloud()
+    }
+
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at
             .expect("No events for document")
+    }
+
+    pub fn delete(&mut self, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::Deleted { audit_info });
+    }
+
+    pub fn archive(&mut self, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::Archived { audit_info });
+        self.status = DocumentStatus::Archived;
     }
 }
 
@@ -104,7 +133,13 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
                         .filename(sanitized_filename.clone())
                         .audit_info(*audit_info)
                         .path_in_bucket(path_in_bucket.clone())
-                        .bucket(bucket.clone());
+                        .bucket(bucket.clone())
+                        .status(DocumentStatus::Active);
+                }
+                DocumentEvent::Archived { audit_info } => {
+                    builder = builder
+                        .status(DocumentStatus::Archived)
+                        .audit_info(*audit_info);
                 }
                 _ => (),
             }

@@ -52,10 +52,10 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageError> {
+    pub async fn remove(&self, location: LocationInCloud) -> Result<(), StorageError> {
         Object::delete(
             &self.config.bucket_name,
-            &self.path_with_prefix(path_in_bucket),
+            &self.path_with_prefix(&location.path_in_bucket),
         )
         .await?;
 

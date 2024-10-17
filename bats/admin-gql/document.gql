@@ -3,5 +3,6 @@ query Document($id: UUID!) {
     id
     customerId
     filename
+    status
   }
 }
