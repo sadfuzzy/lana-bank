@@ -4,6 +4,7 @@ mod disbursement;
 mod entity;
 pub mod error;
 mod history;
+mod interest_accrual;
 mod repo;
 
 use crate::{
@@ -27,6 +28,7 @@ pub use disbursement::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
+pub use interest_accrual::*;
 use repo::*;
 use tracing::instrument;
 
@@ -37,6 +39,7 @@ pub struct CreditFacilities {
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
     disbursement_repo: DisbursementRepo,
+    interest_accrual_repo: InterestAccrualRepo,
     user_repo: UserRepo,
     ledger: Ledger,
     price: Price,
@@ -57,6 +60,7 @@ impl CreditFacilities {
     ) -> Self {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
+        let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
 
         Self {
             pool: pool.clone(),
@@ -64,6 +68,7 @@ impl CreditFacilities {
             customers: customers.clone(),
             credit_facility_repo,
             disbursement_repo,
+            interest_accrual_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
             price: price.clone(),
@@ -323,6 +328,11 @@ impl CreditFacilities {
                 executed_at,
                 audit_info,
             );
+
+            let new_accrual = credit_facility.initiate_interest_accrual(audit_info)?;
+            self.interest_accrual_repo
+                .create_in_tx(&mut db_tx, new_accrual)
+                .await?;
         }
 
         self.disbursement_repo
