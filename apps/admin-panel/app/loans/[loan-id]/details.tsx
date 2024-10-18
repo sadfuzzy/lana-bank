@@ -45,7 +45,7 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
             <DetailsGroup>
               <DetailItem label="Loan ID" value={loan.loanId} />
               <DetailItem
-                label="Customer"
+                label="Customer Email"
                 value={loan.customer.email}
                 onClick={() => {
                   router.push(`/customers/${loan.customer.customerId}`)

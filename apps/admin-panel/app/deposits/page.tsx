@@ -165,7 +165,7 @@ function DepositsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
+                    <TableHead>Customer Email</TableHead>
                     <TableHead>Deposit ID</TableHead>
                     <TableHead>Reference</TableHead>
                     <TableHead className="text-right">Deposit Amount</TableHead>

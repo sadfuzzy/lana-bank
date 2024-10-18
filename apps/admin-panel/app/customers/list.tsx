@@ -152,10 +152,9 @@ function CustomerTable({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
+                    <TableHead>Customer Email</TableHead>
                     <TableHead>Telegram</TableHead>
                     <TableHead>USD Balance (Settled)</TableHead>
-                    <TableHead>USD Balance (Withdrawals)</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -175,12 +174,6 @@ function CustomerTable({
                       <TableCell>
                         <Balance
                           amount={customer.balance.checking.settled}
-                          currency="usd"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Balance
-                          amount={customer.balance.checking.pending}
                           currency="usd"
                         />
                       </TableCell>

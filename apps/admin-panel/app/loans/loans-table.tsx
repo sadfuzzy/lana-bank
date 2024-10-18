@@ -94,7 +94,7 @@ const LoansTable = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Created At</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Customer Email</TableHead>
               <TableHead>Current CVL</TableHead>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead>Status</TableHead>

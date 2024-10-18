@@ -180,7 +180,7 @@ function WithdrawalsTable() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Customer</TableHead>
+                    <TableHead>Customer Email</TableHead>
                     <TableHead>Withdrawal ID</TableHead>
                     <TableHead>Withdrawal Amount</TableHead>
                     <TableHead>Status</TableHead>

@@ -90,7 +90,7 @@ const CreditFacilitiesTable = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Created At</TableHead>
-              <TableHead>Customer</TableHead>
+              <TableHead>Customer Email</TableHead>
               <TableHead>Outstanding Balance</TableHead>
               <TableHead>Collateralization State</TableHead>
               <TableHead>Status</TableHead>

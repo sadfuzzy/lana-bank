@@ -56,7 +56,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
                 <DetailItem
                   hover={true}
-                  label="Customer"
+                  label="Customer Email"
                   value={creditFacilityDetails.customer.email}
                 />
               </Link>
