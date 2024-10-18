@@ -10,6 +10,7 @@ fail-on-warnings = []
 [dependencies]
 lava-tracing = { path = "../lib/tracing-rs", features = ["http"] }
 lava-job = { path = "../lib/job" }
+es-entity = { path = "../lib/es-entity" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

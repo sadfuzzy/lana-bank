@@ -124,4 +124,51 @@ impl Export {
         }
         Ok(())
     }
+
+    #[instrument(name = "lava.export.export_last", skip(self, db, events), err)]
+    pub async fn es_entity_export<T>(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        table_name: &'static str,
+        events: impl Iterator<Item = &es_entity::PersistedEvent<T>>,
+    ) -> Result<(), JobError>
+    where
+        T: es_entity::EsEvent + 'static,
+        <T as es_entity::EsEvent>::EntityId: Into<uuid::Uuid> + std::fmt::Display + Copy,
+    {
+        for persisted_event in events {
+            let id = persisted_event.entity_id.into();
+            let event =
+                serde_json::to_value(&persisted_event.event).expect("Couldn't serialize event");
+            let event_type = event
+                .get("type")
+                .expect("Event must have a type")
+                .as_str()
+                .expect("Type must be a string")
+                .to_string();
+            let event = serde_json::to_string(&event).expect("Couldn't serialize event");
+            let sequence = persisted_event.sequence;
+            let recorded_at = persisted_event.recorded_at;
+            let data = ExportEntityEventData {
+                id,
+                event,
+                event_type,
+                sequence,
+                recorded_at,
+            };
+            self.jobs
+                .create_and_spawn_in_tx::<DataExportInitializer, _>(
+                    db,
+                    JobId::new(),
+                    format!("export:{}:{}", id, sequence),
+                    DataExportConfig {
+                        table_name: std::borrow::Cow::Borrowed(table_name),
+                        cala_url: self.cala_url.clone(),
+                        data,
+                    },
+                )
+                .await?;
+        }
+        Ok(())
+    }
 }

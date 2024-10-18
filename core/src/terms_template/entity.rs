@@ -1,10 +1,13 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, terms::TermValues};
+use es_entity::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+use crate::{primitives::*, terms::TermValues};
+
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "TermsTemplateId")]
 pub enum TermsTemplateEvent {
     Initialized {
         id: TermsTemplateId,
@@ -18,15 +21,8 @@ pub enum TermsTemplateEvent {
     },
 }
 
-impl EntityEvent for TermsTemplateEvent {
-    type EntityId = TermsTemplateId;
-    fn event_table_name() -> &'static str {
-        "terms_template_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct TermsTemplate {
     pub id: TermsTemplateId,
     pub name: String,
@@ -34,15 +30,11 @@ pub struct TermsTemplate {
     pub(super) events: EntityEvents<TermsTemplateEvent>,
 }
 
-impl Entity for TermsTemplate {
-    type Event = TermsTemplateEvent;
-}
-
 impl TermsTemplate {
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
-            .entity_first_persisted_at
-            .expect("No events for terms template")
+            .entity_first_persisted_at()
+            .expect("TermsTemplate has never been persisted")
     }
 
     pub fn update_values(&mut self, new_values: TermValues, audit_info: AuditInfo) {
@@ -54,13 +46,11 @@ impl TermsTemplate {
     }
 }
 
-impl TryFrom<EntityEvents<TermsTemplateEvent>> for TermsTemplate {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<TermsTemplateEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<TermsTemplateEvent> for TermsTemplate {
+    fn try_from_events(events: EntityEvents<TermsTemplateEvent>) -> Result<Self, EsEntityError> {
         let mut builder = TermsTemplateBuilder::default();
 
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 TermsTemplateEvent::Initialized {
                     id, name, values, ..
@@ -92,8 +82,10 @@ impl NewTermsTemplate {
     pub fn builder() -> NewTermsTemplateBuilder {
         NewTermsTemplateBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<TermsTemplateEvent> {
+impl IntoEvents<TermsTemplateEvent> for NewTermsTemplate {
+    fn into_events(self) -> EntityEvents<TermsTemplateEvent> {
         EntityEvents::init(
             self.id,
             [TermsTemplateEvent::Initialized {

@@ -125,13 +125,10 @@ impl TermsTemplates {
         }
     }
 
-    pub async fn list_terms_templates(
-        &self,
-        sub: &Subject,
-    ) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
+    pub async fn list(&self, sub: &Subject) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
             .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
-        self.repo.list().await
+        Ok(self.repo.list_by_name(Default::default()).await?.entities)
     }
 }

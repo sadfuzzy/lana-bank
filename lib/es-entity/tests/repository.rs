@@ -4,9 +4,25 @@ use es_entity::*;
 
 use user_entity::*;
 
-#[derive(EsEntityRepository)]
-#[es_repo(entity = "User", indexes(id))]
-pub struct Users {}
+#[derive(EsRepo)]
+#[es_repo(
+    entity = "User",
+    columns(email = "String"),
+    post_persist_hook = "export"
+)]
+pub struct Users {
+    pool: sqlx::PgPool,
+}
+
+impl Users {
+    async fn export(
+        &self,
+        _db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _events: impl Iterator<Item = &es_entity::PersistedEvent<UserEvent>>,
+    ) -> Result<(), EsRepoError> {
+        Ok(())
+    }
+}
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_host = std::env::var("PG_HOST").unwrap_or("localhost".to_string());
@@ -16,21 +32,53 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 }
 
 #[tokio::test]
-async fn test() -> anyhow::Result<()> {
+async fn create() -> anyhow::Result<()> {
     let pool = init_pool().await?;
-    let id = UserId::from(uuid::Uuid::new_v4());
-    let repo = Users {};
+    let repo = Users { pool: pool.clone() };
+
     let mut db = pool.begin().await?;
-    let entity = repo.create_in_tx(&mut db, NewUser { id }).await?;
+    let id = UserId::from(uuid::Uuid::new_v4());
+    let entity = repo
+        .create_in_tx(
+            &mut db,
+            NewUser {
+                id,
+                email: "email@test.com".to_string(),
+            },
+        )
+        .await?;
     assert!(entity.id == id);
 
     Ok(())
 }
 
-// NewEntity
-// EntityEvent
-// EntityId
-// Entity
-// Repo
-//
-// Load
+#[tokio::test]
+async fn find_by() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users { pool: pool.clone() };
+
+    let res = repo.find_by_email("email@test.com".to_string()).await;
+
+    assert!(matches!(
+        res,
+        Err(EsRepoError::EntityError(EsEntityError::NotFound))
+    ));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn find_all() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users { pool: pool.clone() };
+
+    let res = repo
+        .find_all::<User>(&[UserId::from(uuid::Uuid::new_v4())])
+        .await?;
+
+    assert!(res.is_empty());
+
+    Ok(())
+}

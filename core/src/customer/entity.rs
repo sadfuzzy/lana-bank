@@ -1,10 +1,13 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, ledger::customer::CustomerLedgerAccountIds, primitives::*};
+use es_entity::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+use crate::{ledger::customer::CustomerLedgerAccountIds, primitives::*};
+
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "CustomerId")]
 pub enum CustomerEvent {
     Initialized {
         id: CustomerId,
@@ -44,15 +47,8 @@ impl CustomerEvent {
     }
 }
 
-impl EntityEvent for CustomerEvent {
-    type EntityId = CustomerId;
-    fn event_table_name() -> &'static str {
-        "customer_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {
     pub id: CustomerId,
     pub email: String,
@@ -71,17 +67,16 @@ impl core::fmt::Display for Customer {
     }
 }
 
-impl Entity for Customer {
-    type Event = CustomerEvent;
-}
-
 impl Customer {
     pub fn may_create_loan(&self) -> bool {
         true
     }
 
     pub fn audit_info(&self) -> Vec<AuditInfo> {
-        self.events.iter().map(|e| e.audit_info()).collect()
+        self.events
+            .iter_persisted()
+            .map(|e| e.event.audit_info())
+            .collect()
     }
 
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
@@ -122,13 +117,11 @@ impl Customer {
     }
 }
 
-impl TryFrom<EntityEvents<CustomerEvent>> for Customer {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<CustomerEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<CustomerEvent> for Customer {
+    fn try_from_events(events: EntityEvents<CustomerEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CustomerBuilder::default();
 
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 CustomerEvent::Initialized {
                     id,
@@ -191,8 +184,10 @@ impl NewCustomer {
     pub fn builder() -> NewCustomerBuilder {
         NewCustomerBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<CustomerEvent> {
+impl IntoEvents<CustomerEvent> for NewCustomer {
+    fn into_events(self) -> EntityEvents<CustomerEvent> {
         EntityEvents::init(
             self.id,
             [CustomerEvent::Initialized {

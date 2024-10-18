@@ -175,7 +175,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::CouldNotFindById(_)) if sandbox_mode.unwrap_or(false) => {
+                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -199,7 +199,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::CouldNotFindById(_)) if sandbox_mode.unwrap_or(false) => {
+                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -224,7 +224,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::CouldNotFindById(_)) if sandbox_mode.unwrap_or(false) => {
+                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),

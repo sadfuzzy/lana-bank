@@ -46,12 +46,12 @@ impl From<crate::customer::Customer> for CustomerCreatePayload {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct CustomerByNameCursor {
-    pub name: String,
+pub(super) struct CustomerByEmailCursor {
+    pub email: String,
     pub id: CustomerId,
 }
 
-impl CursorType for CustomerByNameCursor {
+impl CursorType for CustomerByEmailCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -70,20 +70,20 @@ impl CursorType for CustomerByNameCursor {
     }
 }
 
-impl From<(CustomerId, &str)> for CustomerByNameCursor {
-    fn from((id, name): (CustomerId, &str)) -> Self {
+impl From<(CustomerId, &str)> for CustomerByEmailCursor {
+    fn from((id, email): (CustomerId, &str)) -> Self {
         Self {
             id,
-            name: name.to_string(),
+            email: email.to_string(),
         }
     }
 }
 
-impl From<CustomerByNameCursor> for crate::customer::CustomerByNameCursor {
-    fn from(cursor: CustomerByNameCursor) -> Self {
+impl From<CustomerByEmailCursor> for crate::customer::CustomerByEmailCursor {
+    fn from(cursor: CustomerByEmailCursor) -> Self {
         Self {
             id: cursor.id,
-            name: cursor.name,
+            email: cursor.email,
         }
     }
 }

@@ -4,6 +4,8 @@ members = [
   "core",
   "lib/job",
   "lib/tracing-rs",
+  "lib/es-entity",
+  "lib/es-entity-derive",
 ]
 
 [workspace.dependencies]
