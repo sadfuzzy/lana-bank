@@ -8,4 +8,8 @@ pub enum InterestAccrualError {
     EntityError(#[from] crate::entity::EntityError),
     #[error("InterestAccrualError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("InterestAccrualError - AlreadyAccrued")]
+    AlreadyAccrued,
+    #[error("InterestAccrualError - InterestPeriodStartDatePastAccrualDate")]
+    InterestPeriodStartDatePastAccrualDate,
 }

@@ -32,8 +32,12 @@ pub enum CreditFacilityError {
     UserCannotApproveTwice,
     #[error("CreditFacilityError - AlreadyApproved")]
     AlreadyApproved,
+    #[error("CreditFacilityError - NotApprovedYet")]
+    NotApprovedYet,
     #[error("CreditFacilityError - AlreadyExpired")]
     AlreadyExpired,
+    #[error("CreditFacilityError - NoDisbursementsApprovedYet")]
+    NoDisbursementsApprovedYet,
     #[error("CreditFacilityError - NoDisbursementInProgress")]
     NoDisbursementInProgress,
     #[error("CreditFacilityError - DisbursementInProgress")]
@@ -54,4 +58,6 @@ pub enum CreditFacilityError {
     AlreadyCompleted,
     #[error("CreditFacilityError - InterestAccrualInProgress")]
     InterestAccrualInProgress,
+    #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
+    InterestAccrualWithInvalidFutureStartDate,
 }
