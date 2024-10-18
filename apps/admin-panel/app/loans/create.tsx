@@ -346,14 +346,14 @@ export const CreateLoanDialog: React.FC<
                   value={formatInterval(formValues.accrualInterval as InterestInterval)}
                 />
                 <DetailItem
+                  label="Liquidation CVL (%)"
+                  value={formValues.liquidationCvl}
+                />
+                <DetailItem
                   label="Incurrence Interval"
                   value={formatInterval(
                     formValues.incurrenceInterval as InterestInterval,
                   )}
-                />
-                <DetailItem
-                  label="Liquidation CVL (%)"
-                  value={formValues.liquidationCvl}
                 />
               </div>
             </>
@@ -441,6 +441,19 @@ export const CreateLoanDialog: React.FC<
                     ))}
                   </Select>
                 </div>
+
+                <div>
+                  <Label>Liquidation CVL (%)</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder="Enter the liquidation CVL"
+                    min={0}
+                    required
+                  />
+                </div>
                 <div>
                   <Label>Incurrence Interval</Label>
                   <Select
@@ -458,18 +471,6 @@ export const CreateLoanDialog: React.FC<
                       </option>
                     ))}
                   </Select>
-                </div>
-                <div>
-                  <Label>Liquidation CVL (%)</Label>
-                  <Input
-                    type="number"
-                    name="liquidationCvl"
-                    value={formValues.liquidationCvl}
-                    onChange={handleChange}
-                    placeholder="Enter the liquidation CVL"
-                    min={0}
-                    required
-                  />
                 </div>
               </div>
             </>

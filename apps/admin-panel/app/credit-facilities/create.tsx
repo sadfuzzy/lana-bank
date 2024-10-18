@@ -349,14 +349,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={formatInterval(formValues.accrualInterval as InterestInterval)}
                 />
                 <DetailItem
+                  label="Liquidation CVL (%)"
+                  value={formValues.liquidationCvl}
+                />
+                <DetailItem
                   label="Incurrence Interval"
                   value={formatInterval(
                     formValues.incurrenceInterval as InterestInterval,
                   )}
-                />
-                <DetailItem
-                  label="Liquidation CVL (%)"
-                  value={formValues.liquidationCvl}
                 />
               </div>
             </>
@@ -445,6 +445,18 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   </Select>
                 </div>
                 <div>
+                  <Label>Liquidation CVL (%)</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder="Enter the liquidation CVL"
+                    min={0}
+                    required
+                  />
+                </div>
+                <div>
                   <Label>Incurrence Interval</Label>
                   <Select
                     name="incurrenceInterval"
@@ -461,18 +473,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                       </option>
                     ))}
                   </Select>
-                </div>
-                <div>
-                  <Label>Liquidation CVL (%)</Label>
-                  <Input
-                    type="number"
-                    name="liquidationCvl"
-                    value={formValues.liquidationCvl}
-                    onChange={handleChange}
-                    placeholder="Enter the liquidation CVL"
-                    min={0}
-                    required
-                  />
                 </div>
               </div>
             </>

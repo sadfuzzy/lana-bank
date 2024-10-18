@@ -62,46 +62,43 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const [updateTermsTemplate, { loading, reset, error: updateTermsTemplateError }] =
     useUpdateTermsTemplateMutation()
 
-  const [name, setName] = useState<string>(termsTemplate.name)
-  const [annualRate, setAnnualRate] = useState<string>(
-    termsTemplate.values.annualRate.toString(),
-  )
-  const [accrualInterval, setAccrualInterval] = useState<InterestInterval>(
-    termsTemplate.values.accrualInterval,
-  )
-  const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval>(
-    termsTemplate.values.incurrenceInterval,
-  )
-  const [duration, setDuration] = useState<{ period: Period; units: string }>({
-    period: termsTemplate.values.duration.period,
-    units: termsTemplate.values.duration.units.toString(),
+  const [formValues, setFormValues] = useState({
+    name: termsTemplate.name,
+    annualRate: termsTemplate.values.annualRate.toString(),
+    accrualInterval: termsTemplate.values.accrualInterval,
+    incurrenceInterval: termsTemplate.values.incurrenceInterval,
+    durationUnits: termsTemplate.values.duration.units.toString(),
+    durationPeriod: termsTemplate.values.duration.period,
+    liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
+    marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
+    initialCvl: termsTemplate.values.initialCvl.toString(),
   })
-  const [liquidationCvl, setLiquidationCvl] = useState<string>(
-    termsTemplate.values.liquidationCvl.toString(),
-  )
-  const [marginCallCvl, setMarginCallCvl] = useState<string>(
-    termsTemplate.values.marginCallCvl.toString(),
-  )
-  const [initialCvl, setInitialCvl] = useState<string>(
-    termsTemplate.values.initialCvl.toString(),
-  )
+
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (openUpdateTermsTemplateDialog) {
-      setName(termsTemplate.name)
-      setAnnualRate(termsTemplate.values.annualRate.toString())
-      setAccrualInterval(termsTemplate.values.accrualInterval)
-      setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
-      setDuration({
-        period: termsTemplate.values.duration.period,
-        units: termsTemplate.values.duration.units.toString(),
+      setFormValues({
+        name: termsTemplate.name,
+        annualRate: termsTemplate.values.annualRate.toString(),
+        accrualInterval: termsTemplate.values.accrualInterval,
+        incurrenceInterval: termsTemplate.values.incurrenceInterval,
+        durationUnits: termsTemplate.values.duration.units.toString(),
+        durationPeriod: termsTemplate.values.duration.period,
+        liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
+        marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
+        initialCvl: termsTemplate.values.initialCvl.toString(),
       })
-      setLiquidationCvl(termsTemplate.values.liquidationCvl.toString())
-      setMarginCallCvl(termsTemplate.values.marginCallCvl.toString())
-      setInitialCvl(termsTemplate.values.initialCvl.toString())
     }
   }, [openUpdateTermsTemplateDialog, termsTemplate])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      [name]: value,
+    }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,16 +109,16 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         variables: {
           input: {
             id: termsTemplate.termsId,
-            annualRate,
-            accrualInterval,
-            incurrenceInterval,
+            annualRate: formValues.annualRate,
+            accrualInterval: formValues.accrualInterval as InterestInterval,
+            incurrenceInterval: formValues.incurrenceInterval as InterestInterval,
             duration: {
-              period: duration.period,
-              units: parseInt(duration.units),
+              period: formValues.durationPeriod as Period,
+              units: parseInt(formValues.durationUnits),
             },
-            liquidationCvl,
-            marginCallCvl,
-            initialCvl,
+            liquidationCvl: formValues.liquidationCvl,
+            marginCallCvl: formValues.marginCallCvl,
+            initialCvl: formValues.initialCvl,
           },
         },
       })
@@ -145,18 +142,18 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     }
   }
 
-  const resetStates = () => {
-    setName(termsTemplate.name)
-    setAnnualRate(termsTemplate.values.annualRate.toString())
-    setAccrualInterval(termsTemplate.values.accrualInterval)
-    setIncurrenceInterval(termsTemplate.values.incurrenceInterval)
-    setDuration({
-      period: termsTemplate.values.duration.period,
-      units: termsTemplate.values.duration.units.toString(),
+  const resetForm = () => {
+    setFormValues({
+      name: termsTemplate.name,
+      annualRate: termsTemplate.values.annualRate.toString(),
+      accrualInterval: termsTemplate.values.accrualInterval,
+      incurrenceInterval: termsTemplate.values.incurrenceInterval,
+      durationUnits: termsTemplate.values.duration.units.toString(),
+      durationPeriod: termsTemplate.values.duration.period,
+      liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
+      marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
+      initialCvl: termsTemplate.values.initialCvl.toString(),
     })
-    setLiquidationCvl(termsTemplate.values.liquidationCvl.toString())
-    setMarginCallCvl(termsTemplate.values.marginCallCvl.toString())
-    setInitialCvl(termsTemplate.values.initialCvl.toString())
     setError(null)
     reset()
   }
@@ -167,117 +164,130 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       onOpenChange={(isOpen) => {
         setOpenUpdateTermsTemplateDialog(isOpen)
         if (!isOpen) {
-          resetStates()
+          resetForm()
         }
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-w-[38rem]">
         <DialogHeader>
-          <DialogTitle>Update {name}</DialogTitle>
+          <DialogTitle>Update {formValues.name}</DialogTitle>
           <DialogDescription>
             Update the Terms Template by modifying the required information
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div>
-            <Label htmlFor="annualRate">Annual Rate (%)</Label>
-            <Input
-              id="annualRate"
-              type="number"
-              required
-              placeholder="Enter the annual rate"
-              value={annualRate}
-              onChange={(e) => setAnnualRate(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="accrualInterval">Accrual Interval</Label>
-            <Select
-              id="accrualInterval"
-              value={accrualInterval}
-              onChange={(e) => setAccrualInterval(e.target.value as InterestInterval)}
-              required
-            >
-              {Object.values(InterestInterval).map((int) => (
-                <option key={int} value={int}>
-                  {formatInterval(int)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
-            <Select
-              id="incurrenceInterval"
-              value={incurrenceInterval}
-              onChange={(e) => setIncurrenceInterval(e.target.value as InterestInterval)}
-              required
-            >
-              {Object.values(InterestInterval).map((int) => (
-                <option key={int} value={int}>
-                  {formatInterval(int)}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label>Duration</Label>
-            <div className="flex gap-2">
-              <Input
-                type="number"
-                value={duration.units}
-                onChange={(e) => setDuration({ ...duration, units: e.target.value })}
-                placeholder="Units"
-                required
-                className="w-1/2"
-              />
-              <Select
-                value={duration.period}
-                onChange={(e) =>
-                  setDuration({ ...duration, period: e.target.value as Period })
-                }
-                required
-              >
-                {Object.values(Period).map((period) => (
-                  <option key={period} value={period}>
-                    {formatPeriod(period)}
-                  </option>
-                ))}
-              </Select>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="annualRate">Interest Rate (APR)</Label>
+                <Input
+                  id="annualRate"
+                  name="annualRate"
+                  type="number"
+                  required
+                  placeholder="Enter the annual rate"
+                  value={formValues.annualRate}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label>Duration</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    name="durationUnits"
+                    value={formValues.durationUnits}
+                    onChange={handleChange}
+                    placeholder="Duration"
+                    min={0}
+                    required
+                    className="w-1/2"
+                  />
+                  <Select
+                    name="durationPeriod"
+                    value={formValues.durationPeriod}
+                    onChange={handleChange}
+                    required
+                  >
+                    {Object.values(Period).map((period) => (
+                      <option key={period} value={period}>
+                        {formatPeriod(period)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+              <div>
+                <Label htmlFor="accrualInterval">Accrual Interval</Label>
+                <Select
+                  id="accrualInterval"
+                  name="accrualInterval"
+                  value={formValues.accrualInterval}
+                  onChange={handleChange}
+                  required
+                >
+                  {Object.values(InterestInterval).map((int) => (
+                    <option key={int} value={int}>
+                      {formatInterval(int)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
+                <Select
+                  id="incurrenceInterval"
+                  name="incurrenceInterval"
+                  value={formValues.incurrenceInterval}
+                  onChange={handleChange}
+                  required
+                >
+                  {Object.values(InterestInterval).map((int) => (
+                    <option key={int} value={int}>
+                      {formatInterval(int)}
+                    </option>
+                  ))}
+                </Select>
+              </div>
             </div>
-          </div>
-          <div>
-            <Label htmlFor="liquidationCvl">Liquidation CVL (%)</Label>
-            <Input
-              id="liquidationCvl"
-              type="number"
-              required
-              placeholder="Enter the liquidation CVL"
-              value={liquidationCvl}
-              onChange={(e) => setLiquidationCvl(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="marginCallCvl">Margin Call CVL (%)</Label>
-            <Input
-              id="marginCallCvl"
-              type="number"
-              required
-              placeholder="Enter the margin call CVL"
-              value={marginCallCvl}
-              onChange={(e) => setMarginCallCvl(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="initialCvl">Initial CVL (%)</Label>
-            <Input
-              id="initialCvl"
-              type="number"
-              required
-              placeholder="Enter the initial CVL"
-              value={initialCvl}
-              onChange={(e) => setInitialCvl(e.target.value)}
-            />
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="initialCvl">Initial CVL (%)</Label>
+                <Input
+                  id="initialCvl"
+                  name="initialCvl"
+                  type="number"
+                  required
+                  placeholder="Enter the initial CVL"
+                  value={formValues.initialCvl}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="marginCallCvl">Margin Call CVL (%)</Label>
+                <Input
+                  id="marginCallCvl"
+                  name="marginCallCvl"
+                  type="number"
+                  required
+                  placeholder="Enter the margin call CVL"
+                  value={formValues.marginCallCvl}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="liquidationCvl">Liquidation CVL (%)</Label>
+                <Input
+                  id="liquidationCvl"
+                  name="liquidationCvl"
+                  type="number"
+                  required
+                  placeholder="Enter the liquidation CVL"
+                  value={formValues.liquidationCvl}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
