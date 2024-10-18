@@ -34,6 +34,25 @@ gql`
       currentCvl @client
       collateralToMatchInitialCvl @client
       balance {
+        facilityRemaining {
+          usdBalance
+        }
+        disbursed {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+        interest {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
         outstanding {
           usdBalance
         }
