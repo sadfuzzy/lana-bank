@@ -344,7 +344,7 @@ impl From<crate::credit_facility::CreditFacility> for CreditFacility {
             transactions,
             facility_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
-            collateralization_state: credit_facility.collateralization(),
+            collateralization_state: credit_facility.last_collateralization_state(),
             customer_id: UUID::from(credit_facility.customer_id),
         }
     }
