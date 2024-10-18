@@ -130,6 +130,7 @@ impl Documents {
 
         document.delete(audit_info);
         self.repo.persist_in_tx(&mut db, &mut document).await?;
+        self.repo.delete_in_tx(&mut db, document_id).await?;
         db.commit().await?;
 
         Ok(())

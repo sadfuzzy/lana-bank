@@ -10,7 +10,7 @@ teardown_file() {
   stop_server
 }
 
-@test "documents: can upload a file and retrieve documents" {
+@test "documents: can upload a file, retrieve, archive, delete, and verify deletion" {
   # fake service account used in concourse
   if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
     skip
@@ -117,6 +117,7 @@ teardown_file() {
   status=$(graphql_output .data.documentArchive.document.status)
   [[ "$status" == "ARCHIVED" ]] || exit 1
 
+  # Delete the document
   variables=$(jq -n \
     --arg documentId "$document_id" \
     '{
@@ -129,4 +130,30 @@ teardown_file() {
 
   deleted_document_id=$(graphql_output .data.documentDelete.deletedDocumentId)
   [[ "$deleted_document_id" == "$document_id" ]] || exit 1
+
+  # Verify that the deleted document is no longer accessible
+  # Fetch documents for the customer again
+  variables=$(jq -n \
+    --arg customerId "$customer_id" \
+    '{
+      "customerId": $customerId
+    }')
+
+  exec_admin_graphql 'documents-for-customer' "$variables"
+  echo "$output"
+
+  # Check if the deleted document is not in the list
+  documents=$(graphql_output '.data.customer.documents')
+  deleted_document_exists=$(echo "$documents" | jq --arg id "$document_id" 'any(.[]; .id == $id)')
+  [[ "$deleted_document_exists" == "false" ]] || exit 1
+
+  variables=$(jq -n \
+    --arg documentId "$document_id" \
+    '{
+      "id": $documentId
+    }')
+
+  exec_admin_graphql 'document' "$variables"
+  error_message=$(graphql_output '.errors[0].message')
+  [[ "$error_message" == *"Could not find document by id"* ]] || exit 1
 }

@@ -44,7 +44,7 @@ impl DocumentsRepo {
                w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
                FROM documents w
                JOIN document_events e ON w.id = e.id
-               WHERE w.id = $1"#,
+               WHERE w.id = $1 AND w.deleted = FALSE"#,
             id as DocumentId,
         )
         .fetch_all(&self.pool)
@@ -87,6 +87,22 @@ impl DocumentsRepo {
         document: &mut Document,
     ) -> Result<(), DocumentError> {
         document.events.persist(db).await?;
+        Ok(())
+    }
+
+    pub async fn delete_in_tx(
+        &self,
+        db: &mut Transaction<'_, sqlx::Postgres>,
+        document_id: DocumentId,
+    ) -> Result<(), DocumentError> {
+        sqlx::query!(
+            r#"UPDATE documents
+            SET deleted = TRUE
+            WHERE id = $1"#,
+            document_id as DocumentId,
+        )
+        .execute(&mut **db)
+        .await?;
         Ok(())
     }
 }

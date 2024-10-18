@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT w.id, e.sequence, e.event,\n               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n               FROM documents w\n               JOIN document_events e ON w.id = e.id\n               WHERE w.id = $1",
+  "query": "SELECT w.id, e.sequence, e.event,\n               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n               FROM documents w\n               JOIN document_events e ON w.id = e.id\n               WHERE w.id = $1 AND w.deleted = FALSE",
   "describe": {
     "columns": [
       {
@@ -42,5 +42,5 @@
       false
     ]
   },
-  "hash": "eec5594eacd1cbf0ca860ea528197f101621820c3f17c36d41c07d0ca6adbff5"
+  "hash": "ddd50c7aa21ae988faab89c0c56a3733dfce95e4dd7168873b0099757021f7f9"
 }
