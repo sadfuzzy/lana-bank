@@ -1,0 +1,48 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH credit_facilities AS (\n              SELECT id, customer_id, created_at, collateralization_ratio\n              FROM credit_facilities\n              WHERE ((COALESCE(collateralization_ratio, -1::NUMERIC), id) > (COALESCE($2, -1::NUMERIC), $1)) OR ($1 IS NULL)\n              ORDER BY collateralization_ratio NULLS FIRST, id\n              LIMIT $3\n            )\n            SELECT l.id, e.sequence, e.event,\n              l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at\n            FROM credit_facilities l\n            JOIN credit_facility_events e ON l.id = e.id\n            ORDER BY l.collateralization_ratio NULLS FIRST, l.id, e.sequence;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "entity_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 4,
+        "name": "event_recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Numeric",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "92354fbde5caa3076d0f79b7ad6417a45850203561a5fcd2011d393a32fe2249"
+}

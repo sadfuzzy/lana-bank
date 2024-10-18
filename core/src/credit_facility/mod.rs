@@ -5,13 +5,17 @@ mod entity;
 pub mod error;
 mod history;
 mod interest_accrual;
+mod jobs;
 mod repo;
 
 use crate::{
+    audit::Audit,
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
+    constants::CREDIT_FACILITY_CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
     entity::EntityError,
+    job::Jobs,
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
@@ -29,6 +33,7 @@ pub use entity::*;
 use error::*;
 pub use history::*;
 pub use interest_accrual::*;
+pub use jobs::*;
 use repo::*;
 use tracing::instrument;
 
@@ -40,6 +45,7 @@ pub struct CreditFacilities {
     credit_facility_repo: CreditFacilityRepo,
     disbursement_repo: DisbursementRepo,
     interest_accrual_repo: InterestAccrualRepo,
+    jobs: Jobs,
     user_repo: UserRepo,
     ledger: Ledger,
     price: Price,
@@ -52,7 +58,9 @@ impl CreditFacilities {
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
         export: &Export,
+        jobs: &Jobs,
         authz: &Authorization,
+        audit: &Audit,
         customers: &Customers,
         users: &Users,
         ledger: &Ledger,
@@ -61,6 +69,11 @@ impl CreditFacilities {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
+        jobs.add_initializer(cvl::CreditFacilityProcessingJobInitializer::new(
+            credit_facility_repo.clone(),
+            price,
+            audit,
+        ));
 
         Self {
             pool: pool.clone(),
@@ -68,12 +81,36 @@ impl CreditFacilities {
             customers: customers.clone(),
             credit_facility_repo,
             disbursement_repo,
+            jobs: jobs.clone(),
             interest_accrual_repo,
             user_repo: users.repo().clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             config,
         }
+    }
+
+    pub async fn spawn_global_jobs(&self) -> Result<(), CreditFacilityError> {
+        let mut db_tx = self.pool.begin().await?;
+        match self
+            .jobs
+            .create_and_spawn_in_tx::<cvl::CreditFacilityProcessingJobInitializer, _>(
+                &mut db_tx,
+                CREDIT_FACILITY_CVL_JOB_ID,
+                "credit-facility-cvl-update-job".to_string(),
+                cvl::CreditFacilityJobConfig {
+                    job_interval: std::time::Duration::from_secs(30),
+                    upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
+                },
+            )
+            .await
+        {
+            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+        db_tx.commit().await?;
+        Ok(())
     }
 
     pub async fn user_can_create(

@@ -100,6 +100,7 @@ pub enum CreditFacilityAction {
     UpdateCollateral,
     RecordPayment,
     Complete,
+    UpdateCollateralizationState,
 }
 
 impl_trivial_action!(CreditFacilityAction, CreditFacility);

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE credit_facilities SET collateralization_ratio = $2\n            WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Numeric"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "22910c58918e2792831f595ddf208dbadbdb979a3a75f3d97b3f2341d72b88df"
+}

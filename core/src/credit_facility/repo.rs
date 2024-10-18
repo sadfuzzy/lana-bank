@@ -2,7 +2,10 @@ use sqlx::{PgPool, Postgres, Transaction};
 
 use crate::{data_export::Export, entity::*, primitives::*};
 
-use super::{entity::*, error::CreditFacilityError, CreditFacilityByCreatedAtCursor};
+use super::{
+    entity::*, error::CreditFacilityError, CreditFacilityByCollateralizationRatioCursor,
+    CreditFacilityByCreatedAtCursor,
+};
 
 const BQ_TABLE_NAME: &str = "credit_facility_events";
 
@@ -46,6 +49,14 @@ impl CreditFacilityRepo {
         db: &mut Transaction<'_, Postgres>,
         credit_facility: &mut CreditFacility,
     ) -> Result<(), CreditFacilityError> {
+        sqlx::query!(
+            r#"UPDATE credit_facilities SET collateralization_ratio = $2
+            WHERE id = $1"#,
+            credit_facility.id as CreditFacilityId,
+            credit_facility.collateralization_ratio()
+        )
+        .execute(&mut **db)
+        .await?;
         let n_events = credit_facility.events.persist(db).await?;
         self.export
             .export_last(db, BQ_TABLE_NAME, n_events, &credit_facility.events)
@@ -132,6 +143,50 @@ impl CreditFacilityRepo {
                 id: last.id,
                 created_at: last.created_at(),
             });
+        }
+        Ok(crate::query::PaginatedQueryRet {
+            entities,
+            has_next_page,
+            end_cursor,
+        })
+    }
+
+    pub async fn list_by_collateralization_ratio(
+        &self,
+        query: crate::query::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+    ) -> Result<
+        crate::query::PaginatedQueryRet<
+            CreditFacility,
+            CreditFacilityByCollateralizationRatioCursor,
+        >,
+        CreditFacilityError,
+    > {
+        let rows = sqlx::query_as!(
+            GenericEvent,
+            r#"
+            WITH credit_facilities AS (
+              SELECT id, customer_id, created_at, collateralization_ratio
+              FROM credit_facilities
+              WHERE ((COALESCE(collateralization_ratio, -1::NUMERIC), id) > (COALESCE($2, -1::NUMERIC), $1)) OR ($1 IS NULL)
+              ORDER BY collateralization_ratio NULLS FIRST, id
+              LIMIT $3
+            )
+            SELECT l.id, e.sequence, e.event,
+              l.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
+            FROM credit_facilities l
+            JOIN credit_facility_events e ON l.id = e.id
+            ORDER BY l.collateralization_ratio NULLS FIRST, l.id, e.sequence;
+            "#,
+            query.after.as_ref().map(|c| c.id) as Option<CreditFacilityId>,
+            query.after.and_then(|l| l.ratio),
+            query.first as i64 + 1
+        )
+        .fetch_all(&self.pool)
+        .await?;
+        let (entities, has_next_page) = EntityEvents::load_n::<CreditFacility>(rows, query.first)?;
+        let mut end_cursor = None;
+        if let Some(last) = entities.last() {
+            end_cursor = Some(CreditFacilityByCollateralizationRatioCursor::from(last))
         }
         Ok(crate::query::PaginatedQueryRet {
             entities,

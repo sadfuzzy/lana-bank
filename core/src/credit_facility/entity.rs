@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
@@ -767,6 +768,25 @@ impl CreditFacility {
         })
     }
 
+    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
+        let amount = if self.status() == CreditFacilityStatus::New
+            || self.total_disbursed() == UsdCents::ZERO
+        {
+            self.initial_facility()
+        } else {
+            self.outstanding().total()
+        };
+
+        if amount > UsdCents::ZERO {
+            Some(
+                rust_decimal::Decimal::from(self.collateral().into_inner())
+                    / Decimal::from(amount.into_inner()),
+            )
+        } else {
+            None
+        }
+    }
+
     pub(super) fn confirm_completion(
         &mut self,
         CreditFacilityCompletion {
@@ -1029,6 +1049,77 @@ mod test {
             default_upgrade_buffer_cvl_pct(),
         );
         assert_eq!(credit_facility.collateral(), Satoshis::from(5000));
+    }
+
+    #[test]
+    fn collateralization_ratio() {
+        let events = initial_events();
+        let mut credit_facility = facility_from(&events);
+        assert_eq!(
+            credit_facility.collateralization_ratio(),
+            Some(Decimal::ZERO)
+        );
+
+        let credit_facility_collateral_update = credit_facility
+            .initiate_collateral_update(Satoshis::from(500))
+            .unwrap();
+        credit_facility.confirm_collateral_update(
+            credit_facility_collateral_update,
+            Utc::now(),
+            dummy_audit_info(),
+            default_price(),
+            default_upgrade_buffer_cvl_pct(),
+        );
+        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(5)));
+    }
+
+    #[test]
+    fn collateralization_ratio_when_active_disbursement() {
+        let mut events = initial_events();
+        let mut roles = std::collections::HashSet::new();
+        roles.insert(Role::Admin);
+        events.extend([
+            CreditFacilityEvent::CollateralUpdated {
+                tx_id: LedgerTxId::new(),
+                tx_ref: "tx-ref".to_string(),
+                total_collateral: Satoshis::from(500),
+                abs_diff: Satoshis::from(500),
+                action: CollateralAction::Add,
+                recorded_in_ledger_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::ApprovalAdded {
+                approving_user_id: UserId::new(),
+                approving_user_roles: roles.clone(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::ApprovalAdded {
+                approving_user_id: UserId::new(),
+                approving_user_roles: roles,
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::Approved {
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementInitiated {
+                idx: DisbursementIdx::FIRST,
+                amount: UsdCents::from(10),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursementConcluded {
+                idx: DisbursementIdx::FIRST,
+                tx_id: LedgerTxId::new(),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+
+        let credit_facility = facility_from(&events);
+        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(50)));
     }
 
     mod approve {

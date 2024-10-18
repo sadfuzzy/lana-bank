@@ -16,3 +16,18 @@ impl From<&CreditFacility> for CreditFacilityByCreatedAtCursor {
         }
     }
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreditFacilityByCollateralizationRatioCursor {
+    pub id: CreditFacilityId,
+    pub ratio: Option<rust_decimal::Decimal>,
+}
+
+impl From<&CreditFacility> for CreditFacilityByCollateralizationRatioCursor {
+    fn from(values: &CreditFacility) -> Self {
+        Self {
+            id: values.id,
+            ratio: values.collateralization_ratio(),
+        }
+    }
+}
