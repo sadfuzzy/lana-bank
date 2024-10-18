@@ -18,7 +18,7 @@ teardown_file() {
       input: {
         name: $name,
         annualRate: 5.5,
-        interval: "END_OF_MONTH",
+        accrualInterval: "END_OF_MONTH",
         incurrenceInterval: "END_OF_DAY",
         duration: {
           period: "MONTHS",
@@ -49,7 +49,7 @@ teardown_file() {
       input: {
         id: $id,
         annualRate: 6.5,
-        interval: "END_OF_MONTH",
+        accrualInterval: "END_OF_MONTH",
         incurrenceInterval: "END_OF_DAY",
         duration: {
           period: "MONTHS",

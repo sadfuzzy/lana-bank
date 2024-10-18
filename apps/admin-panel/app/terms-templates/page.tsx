@@ -43,7 +43,7 @@ gql`
       createdAt
       values {
         annualRate
-        interval
+        accrualInterval
         incurrenceInterval
         liquidationCvl
         marginCallCvl

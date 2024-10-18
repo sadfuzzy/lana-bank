@@ -30,7 +30,7 @@ gql`
         termsId
         values {
           annualRate
-          interval
+          accrualInterval
           liquidationCvl
           marginCallCvl
           initialCvl
@@ -62,7 +62,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
 
   const [name, setName] = useState<string>("")
   const [annualRate, setAnnualRate] = useState<string>("")
-  const [interval, setInterval] = useState<InterestInterval | "">("")
+  const [accrualInterval, setAccrualInterval] = useState<InterestInterval | "">("")
   const [incurrenceInterval, setIncurrenceInterval] = useState<InterestInterval | "">("")
   const [duration, setDuration] = useState<{ period: Period | ""; units: string }>({
     period: "",
@@ -83,7 +83,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
           input: {
             name,
             annualRate,
-            interval: interval as InterestInterval,
+            accrualInterval: accrualInterval as InterestInterval,
             incurrenceInterval: incurrenceInterval as InterestInterval,
             duration: {
               period: duration.period as Period,
@@ -119,7 +119,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   const resetStates = () => {
     setName("")
     setAnnualRate("")
-    setInterval("")
+    setAccrualInterval("")
     setIncurrenceInterval("")
     setDuration({ period: "", units: "" })
     setLiquidationCvl("")
@@ -221,15 +221,15 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             </div>
           </div>
           <div>
-            <Label htmlFor="interval">Interval</Label>
+            <Label htmlFor="accrualInterval">Accrual Interval</Label>
             <Select
-              id="interval"
-              value={interval}
-              onChange={(e) => setInterval(e.target.value as InterestInterval)}
+              id="accrualInterval"
+              value={accrualInterval}
+              onChange={(e) => setAccrualInterval(e.target.value as InterestInterval)}
               required
             >
               <option value="" disabled>
-                Select interval
+                Select accrual interval
               </option>
               {Object.values(InterestInterval).map((int) => (
                 <option key={int} value={int}>

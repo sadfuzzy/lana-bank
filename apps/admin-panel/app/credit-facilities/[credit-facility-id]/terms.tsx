@@ -32,8 +32,8 @@ export const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({
                 value={`${creditFacility.creditFacilityTerms.annualRate}%`}
               />
               <DetailItem
-                label="Payment due"
-                value={formatInterval(creditFacility.creditFacilityTerms.interval)}
+                label="Accrual Interval"
+                value={formatInterval(creditFacility.creditFacilityTerms.accrualInterval)}
               />
             </DetailsGroup>
           </div>
@@ -62,6 +62,12 @@ export const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({
               <DetailItem
                 label="Facility Amount"
                 value={<Balance amount={creditFacility.facilityAmount} currency="usd" />}
+              />
+              <DetailItem
+                label="Incurrence Interval"
+                value={formatInterval(
+                  creditFacility.creditFacilityTerms.incurrenceInterval,
+                )}
               />
             </DetailsGroup>
           </div>

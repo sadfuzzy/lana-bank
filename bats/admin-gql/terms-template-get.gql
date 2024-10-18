@@ -1,12 +1,12 @@
-query TermsTemplateGet ($id: UUID!) {
+query TermsTemplateGet($id: UUID!) {
   termsTemplate(id: $id) {
     termsId
     name
     values {
       annualRate
-      interval
+      accrualInterval
       duration {
-        period          
+        period
         units
       }
       liquidationCvl

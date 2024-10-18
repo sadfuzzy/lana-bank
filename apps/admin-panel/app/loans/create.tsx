@@ -54,7 +54,7 @@ gql`
         }
         loanTerms {
           annualRate
-          interval
+          accrualInterval
           liquidationCvl
           marginCallCvl
           initialCvl
@@ -71,7 +71,6 @@ type CreateLoanDialogProps = {
   customerId: string
   refetch?: () => void
 }
-
 export const CreateLoanDialog: React.FC<
   React.PropsWithChildren<CreateLoanDialogProps>
 > = ({ customerId, children, refetch }) => {
@@ -101,7 +100,8 @@ export const CreateLoanDialog: React.FC<
   const [formValues, setFormValues] = useState({
     desiredPrincipal: "0",
     annualRate: "",
-    interval: "",
+    accrualInterval: "",
+    incurrenceInterval: "",
     liquidationCvl: "",
     marginCallCvl: "",
     initialCvl: "",
@@ -131,7 +131,8 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         ...formValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
-        interval: selectedTemplate.values.interval,
+        accrualInterval: selectedTemplate.values.accrualInterval,
+        incurrenceInterval: selectedTemplate.values.incurrenceInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -146,7 +147,8 @@ export const CreateLoanDialog: React.FC<
     const {
       desiredPrincipal,
       annualRate,
-      interval,
+      accrualInterval,
+      incurrenceInterval,
       liquidationCvl,
       marginCallCvl,
       initialCvl,
@@ -157,7 +159,8 @@ export const CreateLoanDialog: React.FC<
     if (
       !desiredPrincipal ||
       !annualRate ||
-      !interval ||
+      !accrualInterval ||
+      !incurrenceInterval ||
       !liquidationCvl ||
       !marginCallCvl ||
       !initialCvl ||
@@ -176,8 +179,8 @@ export const CreateLoanDialog: React.FC<
             desiredPrincipal: currencyConverter.usdToCents(Number(desiredPrincipal)),
             loanTerms: {
               annualRate: parseFloat(annualRate),
-              interval: interval as InterestInterval,
-              incurrenceInterval: interval as InterestInterval,
+              accrualInterval: accrualInterval as InterestInterval,
+              incurrenceInterval: incurrenceInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
@@ -211,7 +214,8 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         desiredPrincipal: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
-        interval: latestTemplate.values.interval,
+        accrualInterval: latestTemplate.values.accrualInterval,
+        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -222,7 +226,8 @@ export const CreateLoanDialog: React.FC<
       setFormValues({
         desiredPrincipal: "0",
         annualRate: "",
-        interval: "",
+        accrualInterval: "",
+        incurrenceInterval: "",
         liquidationCvl: "",
         marginCallCvl: "",
         initialCvl: "",
@@ -337,8 +342,14 @@ export const CreateLoanDialog: React.FC<
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label="Payment Schedule"
-                  value={formatInterval(formValues.interval as InterestInterval)}
+                  label="Accrual Interval"
+                  value={formatInterval(formValues.accrualInterval as InterestInterval)}
+                />
+                <DetailItem
+                  label="Incurrence Interval"
+                  value={formatInterval(
+                    formValues.incurrenceInterval as InterestInterval,
+                  )}
                 />
                 <DetailItem
                   label="Liquidation CVL (%)"
@@ -413,15 +424,33 @@ export const CreateLoanDialog: React.FC<
                   />
                 </div>
                 <div>
-                  <Label>Payment Schedule</Label>
+                  <Label>Accrual Interval</Label>
                   <Select
-                    name="interval"
-                    value={formValues.interval}
+                    name="accrualInterval"
+                    value={formValues.accrualInterval}
                     onChange={handleChange}
                     required
                   >
                     <option value="" disabled>
-                      Select interval
+                      Select accrual interval
+                    </option>
+                    {Object.values(InterestInterval).map((interval) => (
+                      <option key={interval} value={interval}>
+                        {formatInterval(interval)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Incurrence Interval</Label>
+                  <Select
+                    name="incurrenceInterval"
+                    value={formValues.incurrenceInterval}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select incurrence interval
                     </option>
                     {Object.values(InterestInterval).map((interval) => (
                       <option key={interval} value={interval}>
@@ -456,7 +485,13 @@ export const CreateLoanDialog: React.FC<
                 Back
               </Button>
             )}
-            <Button className="w-48" disabled={loading} type="submit" loading={loading}>
+            <Button
+              className="w-48"
+              onClick={handleCreateLoan}
+              disabled={loading}
+              type="submit"
+              loading={loading}
+            >
               Create New Loan
             </Button>
           </DialogFooter>

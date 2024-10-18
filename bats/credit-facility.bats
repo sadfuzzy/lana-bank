@@ -25,7 +25,7 @@ teardown_file() {
         facility: $facility,
         terms: {
           annualRate: "12",
-          interval: "END_OF_MONTH",
+          accrualInterval: "END_OF_MONTH",
           incurrenceInterval: "END_OF_DAY",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",

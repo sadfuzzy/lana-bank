@@ -29,8 +29,12 @@ export const LoanTerms: React.FC<LoanTermsProps> = ({ loan }) => {
                 value={`${loan.loanTerms.annualRate}%`}
               />
               <DetailItem
-                label="Payment due"
-                value={formatInterval(loan.loanTerms.interval)}
+                label="Accrual Interval"
+                value={formatInterval(loan.loanTerms.accrualInterval)}
+              />
+              <DetailItem
+                label="Incurrence Interval"
+                value={formatInterval(loan.loanTerms.incurrenceInterval)}
               />
             </DetailsGroup>
           </div>

@@ -926,7 +926,7 @@ type System {
 
 type TermValues {
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	duration: Duration!
 	liquidationCvl: CVLPct!
@@ -936,7 +936,7 @@ type TermValues {
 
 input TermsInput {
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
@@ -955,7 +955,7 @@ type TermsTemplate {
 input TermsTemplateCreateInput {
 	name: String!
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	duration: DurationInput!
 	liquidationCvl: CVLPct!
@@ -970,7 +970,7 @@ type TermsTemplateCreatePayload {
 input TermsTemplateUpdateInput {
 	id: UUID!
 	annualRate: AnnualRatePct!
-	interval: InterestInterval!
+	accrualInterval: InterestInterval!
 	incurrenceInterval: InterestInterval!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!

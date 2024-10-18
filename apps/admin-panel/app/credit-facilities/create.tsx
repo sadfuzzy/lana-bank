@@ -74,7 +74,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   const [formValues, setFormValues] = useState({
     facility: "0",
     annualRate: "",
-    interval: "",
+    accrualInterval: "",
     incurrenceInterval: "",
     liquidationCvl: "",
     marginCallCvl: "",
@@ -93,7 +93,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: latestTemplate.values.annualRate.toString(),
-        interval: latestTemplate.values.interval,
+        accrualInterval: latestTemplate.values.accrualInterval,
+        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -125,7 +126,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
-        interval: selectedTemplate.values.interval,
+        accrualInterval: selectedTemplate.values.accrualInterval,
+        incurrenceInterval: selectedTemplate.values.incurrenceInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -140,7 +142,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     const {
       facility,
       annualRate,
-      interval,
+      accrualInterval,
       incurrenceInterval,
       liquidationCvl,
       marginCallCvl,
@@ -152,7 +154,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     if (
       !facility ||
       !annualRate ||
-      !interval ||
+      !accrualInterval ||
       !incurrenceInterval ||
       !liquidationCvl ||
       !marginCallCvl ||
@@ -172,7 +174,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             facility: currencyConverter.usdToCents(Number(facility)),
             terms: {
               annualRate: parseFloat(annualRate),
-              interval: interval as InterestInterval,
+              accrualInterval: accrualInterval as InterestInterval,
               incurrenceInterval: incurrenceInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
@@ -209,7 +211,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues({
         facility: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
-        interval: latestTemplate.values.interval,
+        accrualInterval: latestTemplate.values.accrualInterval,
         incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
@@ -221,7 +223,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues({
         facility: "0",
         annualRate: "",
-        interval: "",
+        accrualInterval: "",
         incurrenceInterval: "",
         liquidationCvl: "",
         marginCallCvl: "",
@@ -343,9 +345,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label="Payment Schedule"
-                  className="space-x-7"
-                  value={formatInterval(formValues.interval as InterestInterval)}
+                  label="Accrual Interval"
+                  value={formatInterval(formValues.accrualInterval as InterestInterval)}
+                />
+                <DetailItem
+                  label="Incurrence Interval"
+                  value={formatInterval(
+                    formValues.incurrenceInterval as InterestInterval,
+                  )}
                 />
                 <DetailItem
                   label="Liquidation CVL (%)"
@@ -420,15 +427,33 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   />
                 </div>
                 <div>
-                  <Label>Payment Schedule</Label>
+                  <Label>Accrual Interval</Label>
                   <Select
-                    name="interval"
-                    value={formValues.interval}
+                    name="accrualInterval"
+                    value={formValues.accrualInterval}
                     onChange={handleChange}
                     required
                   >
                     <option value="" disabled>
-                      Select interval
+                      Select accrual interval
+                    </option>
+                    {Object.values(InterestInterval).map((interval) => (
+                      <option key={interval} value={interval}>
+                        {formatInterval(interval)}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+                <div>
+                  <Label>Incurrence Interval</Label>
+                  <Select
+                    name="incurrenceInterval"
+                    value={formValues.incurrenceInterval}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="" disabled>
+                      Select incurrence interval
                     </option>
                     {Object.values(InterestInterval).map((interval) => (
                       <option key={interval} value={interval}>

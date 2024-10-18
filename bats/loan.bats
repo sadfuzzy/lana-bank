@@ -61,7 +61,7 @@ wait_for_interest() {
         desiredPrincipal: $principal,
         loanTerms: {
           annualRate: "12",
-          interval: "END_OF_MONTH",
+          accrualInterval: "END_OF_MONTH",
           incurrenceInterval: "END_OF_MONTH",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
@@ -232,7 +232,7 @@ wait_for_interest() {
           desiredPrincipal: $principal,
           loanTerms: {
             annualRate: "12",
-            interval: "END_OF_MONTH",
+            accrualInterval: "END_OF_MONTH",
             incurrenceInterval: "END_OF_MONTH",
             duration: { period: "MONTHS", units: 3 },
             liquidationCvl: "105",
@@ -322,7 +322,7 @@ wait_for_interest() {
         desiredPrincipal: $principal,
         loanTerms: {
           annualRate: "12",
-          interval: "END_OF_MONTH",
+          accrualInterval: "END_OF_MONTH",
           incurrenceInterval: "END_OF_MONTH",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",

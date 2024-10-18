@@ -5,7 +5,7 @@ mutation TermsTemplateUpdate($input: TermsTemplateUpdateInput!) {
       name
       values {
         annualRate
-        interval
+        accrualInterval
         duration {
           period
           units
