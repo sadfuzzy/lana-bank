@@ -1,5 +1,5 @@
 [package]
-name = "es-entity-derive"
+name = "es-entity-macros"
 version = "0.1.132-dev"
 edition = "2021"
 

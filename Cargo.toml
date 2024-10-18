@@ -5,7 +5,7 @@ members = [
   "lib/job",
   "lib/tracing-rs",
   "lib/es-entity",
-  "lib/es-entity-derive",
+  "lib/es-entity-macros",
 ]
 
 [workspace.dependencies]

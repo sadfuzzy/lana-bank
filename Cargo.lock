@@ -1106,7 +1106,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "derive_builder",
- "es-entity-derive",
+ "es-entity-macros",
  "serde",
  "serde_json",
  "sqlx",
@@ -1116,7 +1116,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "es-entity-derive"
+name = "es-entity-macros"
 version = "0.1.132-dev"
 dependencies = [
  "convert_case",
