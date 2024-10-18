@@ -1,6 +1,6 @@
 [package]
 name = "lava-job"
-version = "0.1.139-dev"
+version = "0.1.140-dev"
 edition = "2021"
 
 [features]
