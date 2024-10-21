@@ -108,7 +108,7 @@ impl JobRunner for GenerateReportJobRunner {
                         report.compilation_failed(e.to_string(), audit_info);
                     }
                 }
-                self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
                 db_tx.commit().await?;
 
                 return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
@@ -135,7 +135,7 @@ impl JobRunner for GenerateReportJobRunner {
                         report.invocation_failed(e.to_string(), audit_info);
                     }
                 }
-                self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
                 db_tx.commit().await?;
 
                 return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
@@ -160,14 +160,14 @@ impl JobRunner for GenerateReportJobRunner {
                     Err(e) => {
                         report.upload_failed(e.to_string(), audit_info);
 
-                        self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                        self.repo.update_in_tx(&mut db_tx, &mut report).await?;
                         db_tx.commit().await?;
 
                         return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
                     }
                 }
 
-                self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
                 db_tx.commit().await?;
             }
         }

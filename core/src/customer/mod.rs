@@ -228,7 +228,7 @@ impl Customers {
 
         customer.start_kyc(applicant_id, audit_info);
 
-        self.repo.persist_in_tx(db, &mut customer).await?;
+        self.repo.update_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }
@@ -254,7 +254,7 @@ impl Customers {
 
         customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
 
-        self.repo.persist_in_tx(db, &mut customer).await?;
+        self.repo.update_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }
@@ -279,7 +279,7 @@ impl Customers {
             .await?;
 
         customer.deactivate(applicant_id, audit_info);
-        self.repo.persist_in_tx(db, &mut customer).await?;
+        self.repo.update_in_tx(db, &mut customer).await?;
 
         Ok(customer)
     }
@@ -310,7 +310,7 @@ impl Customers {
         customer.update_telegram_id(new_telegram_id, audit_info);
 
         let mut db = self.pool.begin().await?;
-        self.repo.persist_in_tx(&mut db, &mut customer).await?;
+        self.repo.update_in_tx(&mut db, &mut customer).await?;
 
         db.commit().await?;
 

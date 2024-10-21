@@ -96,6 +96,19 @@ async fn find_all() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+async fn list_by_created_at() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users { pool: pool.clone() };
+
+    let res = repo.list_by_created_at(Default::default()).await?;
+
+    assert!(res.entities.is_empty());
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn custom() -> anyhow::Result<()> {
     let pool = init_pool().await?;
 

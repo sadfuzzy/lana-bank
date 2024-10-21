@@ -1,4 +1,3 @@
-mod cursor;
 mod entity;
 mod error;
 mod repo;
@@ -11,10 +10,9 @@ use crate::{
     primitives::{AuditInfo, CustomerId, DepositId, Subject, UsdCents},
 };
 
-pub use cursor::*;
 pub use entity::*;
 use error::DepositError;
-pub use repo::DepositRepo;
+pub use repo::{cursor::DepositByCreatedAtCursor, DepositRepo};
 
 #[derive(Clone)]
 pub struct Deposits {
@@ -130,11 +128,11 @@ impl Deposits {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<DepositCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Deposit, DepositCursor>, DepositError> {
+        query: es_entity::PaginatedQueryArgs<DepositByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositByCreatedAtCursor>, DepositError> {
         self.authz
             .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;
-        self.repo.list(query).await
+        self.repo.list_by_created_at(query).await
     }
 }

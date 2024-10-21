@@ -31,7 +31,7 @@ impl Columns {
                             .expect("entity not persisted"))),
                         new: None,
                     },
-                    list_by: None,
+                    list_by: Some(true),
                     find_by: Some(false),
                     update: Some(false),
                 },

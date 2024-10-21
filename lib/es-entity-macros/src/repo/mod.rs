@@ -4,8 +4,8 @@ mod find_by_fn;
 mod list_by_fn;
 mod options;
 mod persist_events_fn;
-mod persist_fn;
 mod post_persist_hook;
+mod update_fn;
 
 use darling::{FromDeriveInput, ToTokens};
 use proc_macro2::TokenStream;
@@ -21,7 +21,7 @@ pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream
 pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
     persist_events_fn: persist_events_fn::PersistEventsFn<'a>,
-    persist_fn: persist_fn::PersistFn<'a>,
+    update_fn: update_fn::UpdateFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
@@ -46,7 +46,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
         Self {
             repo: &opts.ident,
             persist_events_fn: persist_events_fn::PersistEventsFn::from(opts),
-            persist_fn: persist_fn::PersistFn::from(opts),
+            update_fn: update_fn::UpdateFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
@@ -61,7 +61,7 @@ impl<'a> ToTokens for EsRepo<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let repo = &self.repo;
         let persist_events_fn = &self.persist_events_fn;
-        let persist_fn = &self.persist_fn;
+        let update_fn = &self.update_fn;
         let create_fn = &self.create_fn;
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
@@ -125,7 +125,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #post_persist_hook
                 #persist_events_fn
                 #create_fn
-                #persist_fn
+                #update_fn
                 #(#find_by_fns)*
                 #find_all_fn
                 #(#list_by_fns)*

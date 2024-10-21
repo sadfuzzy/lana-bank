@@ -18,4 +18,20 @@ pub enum DepositError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("DepositError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("DepositError - NotFound")]
+    NotFound,
+}
+
+impl From<es_entity::EsEntityError> for DepositError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => DepositError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!(
+                    "Inconsistent data when initializing a Deposit entity: {:?}",
+                    e
+                )
+            }
+        }
+    }
 }

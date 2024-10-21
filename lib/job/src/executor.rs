@@ -329,7 +329,7 @@ impl JobExecutor {
         .execute(&mut *db)
         .await?;
         job.success();
-        repo.persist_in_tx(&mut db, job).await?;
+        repo.update_in_tx(&mut db, job).await?;
         db.commit().await?;
         Ok(())
     }
@@ -364,7 +364,7 @@ impl JobExecutor {
     ) -> Result<(), JobError> {
         let mut job = repo.find_by_id(id).await?;
         job.fail(error.to_string());
-        repo.persist_in_tx(&mut db, job).await?;
+        repo.update_in_tx(&mut db, job).await?;
 
         if retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
             let reschedule_at = retry_settings.next_attempt_at(attempt);

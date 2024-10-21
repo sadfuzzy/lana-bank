@@ -398,7 +398,9 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<DepositCursor, Deposit, EmptyFields, EmptyFields>> {
+    ) -> async_graphql::Result<
+        Connection<DepositByCreatedAtCursor, Deposit, EmptyFields, EmptyFields>,
+    > {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         query(
@@ -410,19 +412,13 @@ impl Query {
                 let first = first.expect("First always exists");
                 let res = app
                     .deposits()
-                    .list(
-                        sub,
-                        crate::query::PaginatedQueryArgs {
-                            first,
-                            after: after.map(crate::deposit::DepositCursor::from),
-                        },
-                    )
+                    .list(sub, es_entity::PaginatedQueryArgs { first, after })
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|deposit| {
-                        let cursor = DepositCursor::from(deposit.created_at());
+                        let cursor = DepositByCreatedAtCursor::from(&deposit);
                         Edge::new(cursor, Deposit::from(deposit))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

@@ -1,5 +1,4 @@
 use async_graphql::{types::connection::*, *};
-use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::UsdCents,
@@ -26,12 +25,8 @@ impl From<crate::deposit::Deposit> for DepositRecordPayload {
     }
 }
 
-#[derive(Serialize, Deserialize)]
-pub(super) struct DepositCursor {
-    pub deposit_created_at: chrono::DateTime<chrono::Utc>,
-}
-
-impl CursorType for DepositCursor {
+pub use crate::deposit::DepositByCreatedAtCursor;
+impl CursorType for DepositByCreatedAtCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -47,19 +42,5 @@ impl CursorType for DepositCursor {
             .map_err(|e| e.to_string())?;
         let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
-
-impl From<chrono::DateTime<chrono::Utc>> for DepositCursor {
-    fn from(deposit_created_at: chrono::DateTime<chrono::Utc>) -> Self {
-        Self { deposit_created_at }
-    }
-}
-
-impl From<DepositCursor> for crate::deposit::DepositCursor {
-    fn from(cursor: DepositCursor) -> Self {
-        Self {
-            deposit_created_at: cursor.deposit_created_at,
-        }
     }
 }

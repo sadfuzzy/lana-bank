@@ -134,7 +134,7 @@ impl Withdraws {
         let tx_id = withdrawal.confirm(audit_info)?;
 
         let mut db_tx = self.pool.begin().await?;
-        self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
+        self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
 
         self.ledger
             .confirm_withdrawal_for_customer(
@@ -177,7 +177,7 @@ impl Withdraws {
         let tx_id = withdrawal.cancel(audit_info)?;
 
         let mut db_tx = self.pool.begin().await?;
-        self.repo.persist_in_tx(&mut db_tx, &mut withdrawal).await?;
+        self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
 
         self.ledger
             .cancel_withdrawal_for_customer(

@@ -101,9 +101,7 @@ impl TermsTemplates {
         terms_template.update_values(values, audit_info);
 
         let mut db = self.pool.begin().await?;
-        self.repo
-            .persist_in_tx(&mut db, &mut terms_template)
-            .await?;
+        self.repo.update_in_tx(&mut db, &mut terms_template).await?;
 
         db.commit().await?;
 

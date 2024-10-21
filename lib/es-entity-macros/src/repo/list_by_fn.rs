@@ -10,6 +10,7 @@ pub struct CursorStruct<'a> {
     entity: &'a syn::Ident,
     column_name: &'a syn::Ident,
     column_type: &'a syn::Type,
+    accessor: TokenStream,
 }
 
 impl<'a> CursorStruct<'a> {
@@ -24,6 +25,8 @@ impl<'a> CursorStruct<'a> {
 
 impl<'a> ToTokens for CursorStruct<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let entity = self.entity;
+        let accessor = &self.accessor;
         let struct_ident = syn::Ident::new(
             &format!(
                 "{}By{}Cursor",
@@ -34,14 +37,19 @@ impl<'a> ToTokens for CursorStruct<'a> {
         );
         let id = &self.id;
 
-        let field = if &self.column_name.to_string() != "id" {
+        let (field, from_impl) = if &self.column_name.to_string() != "id" {
             let column_name = &self.column_name;
             let column_type = &self.column_type;
-            quote! {
-                pub #column_name: #column_type,
-            }
+            (
+                quote! {
+                    pub #column_name: #column_type,
+                },
+                quote! {
+                    #column_name: entity.#accessor.clone(),
+                },
+            )
         } else {
-            quote! {}
+            (quote! {}, quote! {})
         };
 
         tokens.append_all(quote! {
@@ -49,6 +57,15 @@ impl<'a> ToTokens for CursorStruct<'a> {
             pub struct #struct_ident {
                 pub id: #id,
                 #field
+            }
+
+            impl From<&#entity> for #struct_ident {
+                fn from(entity: &#entity) -> Self {
+                    Self {
+                        id: entity.id.clone(),
+                        #from_impl
+                    }
+                }
             }
         });
     }
@@ -77,6 +94,7 @@ impl<'a> ListByFn<'a> {
         CursorStruct {
             column_name: self.column.name(),
             column_type: self.column.ty(),
+            accessor: self.column.accessor(),
             id: self.id,
             entity: self.entity,
         }
@@ -88,7 +106,6 @@ impl<'a> ToTokens for ListByFn<'a> {
         let id = self.id;
         let entity = self.entity;
         let column_name = self.column.name();
-        let accessor = self.column.accessor();
         let column_type = self.column.ty();
         let cursor = syn::Ident::new(&self.cursor().name(), Span::call_site());
         let error = self.error;
@@ -100,9 +117,6 @@ impl<'a> ToTokens for ListByFn<'a> {
         let mut order_by = format!("{}, ", name);
         let mut arg_tokens = quote! {
             #column_name as Option<#column_type>,
-        };
-        let mut cursor_arg = quote! {
-            #column_name: last.#accessor.clone(),
         };
         let mut after_args = quote! {
             (id, #column_name)
@@ -119,7 +133,6 @@ impl<'a> ToTokens for ListByFn<'a> {
             where_pt = "id > $2".to_string();
             order_by = String::new();
             arg_tokens = quote! {};
-            cursor_arg = quote! {};
             after_args = quote! {
                 id
             };
@@ -158,13 +171,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                     .fetch_n(first)
                     .await?;
 
-                let mut end_cursor = None;
-                if let Some(last) = entities.last() {
-                    end_cursor = Some(cursor::#cursor {
-                        id: last.id.clone(),
-                        #cursor_arg
-                    });
-                }
+                let end_cursor = entities.last().map(cursor::#cursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
@@ -192,6 +199,7 @@ mod tests {
         let cursor = CursorStruct {
             column_name: &column_name,
             column_type: &column_type,
+            accessor: quote!(id),
             id: &id_type,
             entity: &entity,
         };
@@ -203,6 +211,14 @@ mod tests {
             #[derive(serde::Serialize, serde::Deserialize)]
             pub struct EntityByIdCursor {
                 pub id: EntityId,
+            }
+
+            impl From<&Entity> for EntityByIdCursor {
+                fn from(entity: &Entity) -> Self {
+                    Self {
+                        id: entity.id.clone(),
+                    }
+                }
             }
         };
 
@@ -219,6 +235,9 @@ mod tests {
         let cursor = CursorStruct {
             column_name: &column_name,
             column_type: &column_type,
+            accessor: quote!(events()
+                .entity_first_persisted_at()
+                .expect("entity not persisted")),
             id: &id_type,
             entity: &entity,
         };
@@ -231,6 +250,18 @@ mod tests {
             pub struct EntityByCreatedAtCursor {
                 pub id: EntityId,
                 pub created_at: DateTime<Utc>,
+            }
+
+            impl From<&Entity> for EntityByCreatedAtCursor {
+                fn from(entity: &Entity) -> Self {
+                    Self {
+                        id: entity.id.clone(),
+                        created_at: entity.events()
+                            .entity_first_persisted_at()
+                            .expect("entity not persisted")
+                            .clone(),
+                    }
+                }
             }
         };
 
@@ -277,13 +308,7 @@ mod tests {
                 )
                     .fetch_n(first)
                     .await?;
-                let mut end_cursor = None;
-                if let Some(last) = entities.last() {
-                    end_cursor = Some(cursor::EntityByIdCursor {
-                        id: last.id.clone(),
-                    });
-                }
-
+                let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,
@@ -338,13 +363,7 @@ mod tests {
                     .fetch_n(first)
                     .await?;
 
-                let mut end_cursor = None;
-                if let Some(last) = entities.last() {
-                    end_cursor = Some(cursor::EntityByNameCursor {
-                        id: last.id.clone(),
-                        name: last.name.clone(),
-                    });
-                }
+                let end_cursor = entities.last().map(cursor::EntityByNameCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,

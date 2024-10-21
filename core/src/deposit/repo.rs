@@ -1,16 +1,26 @@
 use sqlx::PgPool;
 
+use es_entity::*;
+
 use crate::{
     data_export::Export,
-    entity::*,
     primitives::{CustomerId, DepositId},
 };
 
-use super::{entity::*, error::*, DepositCursor};
+use super::{entity::*, error::*};
 
 const BQ_TABLE_NAME: &str = "deposit_events";
 
-#[derive(Clone)]
+#[derive(EsRepo, Clone)]
+#[es_repo(
+    entity = "Deposit",
+    err = "DepositError",
+    columns(
+        customer_id = "CustomerId",
+        reference(ty = "String", accessor(new = "reference()"))
+    ),
+    post_persist_hook = "export"
+)]
 pub struct DepositRepo {
     pool: PgPool,
     export: Export,
@@ -24,109 +34,29 @@ impl DepositRepo {
         }
     }
 
-    pub(super) async fn create_in_tx(
-        &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        new_deposit: NewDeposit,
-    ) -> Result<Deposit, DepositError> {
-        sqlx::query!(
-            r#"INSERT INTO deposits (id, customer_id, reference)
-            VALUES ($1, $2, $3)"#,
-            new_deposit.id as DepositId,
-            new_deposit.customer_id as CustomerId,
-            new_deposit.reference()
-        )
-        .execute(&mut **db)
-        .await?;
-        let mut events = new_deposit.initial_events();
-        let n_events = events.persist(db).await?;
-        self.export
-            .export_last(db, BQ_TABLE_NAME, n_events, &events)
-            .await?;
-        let deposit = Deposit::try_from(events)?;
-        Ok(deposit)
-    }
-
-    pub async fn find_by_id(&self, id: DepositId) -> Result<Deposit, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT w.id, e.sequence, e.event,
-               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-               FROM deposits w
-               JOIN deposit_events e ON w.id = e.id
-               WHERE w.id = $1"#,
-            id as DepositId,
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        match EntityEvents::load_first(rows) {
-            Ok(deposit) => Ok(deposit),
-            Err(EntityError::NoEntityEventsPresent) => Err(DepositError::CouldNotFindById(id)),
-            Err(e) => Err(e.into()),
-        }
-    }
-
     pub async fn list_for_customer(
         &self,
         customer_id: CustomerId,
     ) -> Result<Vec<Deposit>, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"SELECT w.id, e.sequence, e.event,
-               w.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-               FROM deposits w
-               JOIN deposit_events e ON w.id = e.id
-               WHERE w.customer_id = $1
-               ORDER BY w.id, e.sequence"#,
+        let (deposits, _) = es_entity::es_query!(
+            &self.pool,
+            "SELECT id FROM deposits WHERE customer_id = $1",
             customer_id as CustomerId,
         )
-        .fetch_all(&self.pool)
+        .fetch_n(usize::MAX)
         .await?;
 
-        let n = rows.len();
-        let deposits = EntityEvents::load_n(rows, n)?;
-        Ok(deposits.0)
+        Ok(deposits)
     }
 
-    pub async fn list(
+    async fn export(
         &self,
-        query: crate::query::PaginatedQueryArgs<DepositCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Deposit, DepositCursor>, DepositError> {
-        let rows = sqlx::query_as!(
-            GenericEvent,
-            r#"
-        WITH deposits AS (
-            SELECT id, created_at
-            FROM deposits
-            WHERE created_at < $1 OR $1 IS NULL
-            ORDER BY created_at DESC
-            LIMIT $2
-        )
-        SELECT d.id, e.sequence, e.event,
-            d.created_at AS entity_created_at, e.recorded_at AS event_recorded_at
-        FROM deposits d
-        JOIN deposit_events e ON d.id = e.id
-        ORDER BY d.created_at DESC, d.id, e.sequence"#,
-            query.after.map(|c| c.deposit_created_at),
-            query.first as i64 + 1
-        )
-        .fetch_all(&self.pool)
-        .await?;
-
-        let (entities, has_next_page) = EntityEvents::load_n::<Deposit>(rows, query.first)?;
-
-        let mut end_cursor = None;
-        if let Some(last) = entities.last() {
-            end_cursor = Some(DepositCursor {
-                deposit_created_at: last.created_at(),
-            });
-        }
-
-        Ok(crate::query::PaginatedQueryRet {
-            entities,
-            has_next_page,
-            end_cursor,
-        })
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        events: impl Iterator<Item = &PersistedEvent<DepositEvent>>,
+    ) -> Result<(), DepositError> {
+        self.export
+            .es_entity_export(db, BQ_TABLE_NAME, events)
+            .await?;
+        Ok(())
     }
 }

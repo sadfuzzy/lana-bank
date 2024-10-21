@@ -107,7 +107,7 @@ impl Documents {
 
         let mut tx = self.pool.begin().await?;
 
-        self.repo.persist_in_tx(&mut tx, &mut document).await?;
+        self.repo.update_in_tx(&mut tx, &mut document).await?;
 
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
@@ -129,7 +129,7 @@ impl Documents {
         self.storage.remove(document_location).await?;
 
         document.delete(audit_info);
-        self.repo.persist_in_tx(&mut db, &mut document).await?;
+        self.repo.update_in_tx(&mut db, &mut document).await?;
         self.repo.delete_in_tx(&mut db, document_id).await?;
         db.commit().await?;
 
@@ -150,7 +150,7 @@ impl Documents {
         let mut document = self.repo.find_by_id(document_id).await?;
 
         document.archive(audit_info);
-        self.repo.persist_in_tx(&mut db, &mut document).await?;
+        self.repo.update_in_tx(&mut db, &mut document).await?;
         db.commit().await?;
 
         Ok(document)

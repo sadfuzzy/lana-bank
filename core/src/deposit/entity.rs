@@ -1,13 +1,13 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    entity::*,
-    primitives::{AuditInfo, CustomerId, DepositId, LedgerAccountId, UsdCents},
-};
+use es_entity::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+use crate::primitives::{AuditInfo, CustomerId, DepositId, LedgerAccountId, UsdCents};
+
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "DepositId")]
 pub enum DepositEvent {
     Initialized {
         id: DepositId,
@@ -19,21 +19,14 @@ pub enum DepositEvent {
     },
 }
 
-impl EntityEvent for DepositEvent {
-    type EntityId = DepositId;
-    fn event_table_name() -> &'static str {
-        "deposit_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Deposit {
     pub id: DepositId,
     pub customer_id: CustomerId,
     pub amount: UsdCents,
-    pub credit_account_id: LedgerAccountId,
     pub reference: String,
+    pub credit_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<DepositEvent>,
     pub audit_info: AuditInfo,
 }
@@ -44,24 +37,18 @@ impl std::fmt::Display for Deposit {
     }
 }
 
-impl Entity for Deposit {
-    type Event = DepositEvent;
-}
-
 impl Deposit {
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("No events for deposit")
     }
 }
 
-impl TryFrom<EntityEvents<DepositEvent>> for Deposit {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<DepositEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<DepositEvent> for Deposit {
+    fn try_from_events(events: EntityEvents<DepositEvent>) -> Result<Self, EsEntityError> {
         let mut builder = DepositBuilder::default();
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 DepositEvent::Initialized {
                     id,
@@ -112,8 +99,10 @@ impl NewDeposit {
             Some(reference) => reference.to_string(),
         }
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<DepositEvent> {
+impl IntoEvents<DepositEvent> for NewDeposit {
+    fn into_events(self) -> EntityEvents<DepositEvent> {
         EntityEvents::init(
             self.id,
             [DepositEvent::Initialized {

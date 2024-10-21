@@ -4,14 +4,14 @@ use quote::{quote, TokenStreamExt};
 
 use super::options::*;
 
-pub struct PersistFn<'a> {
+pub struct UpdateFn<'a> {
     entity: &'a syn::Ident,
     table_name: &'a str,
     columns: &'a Columns,
     error: &'a syn::Type,
 }
 
-impl<'a> From<&'a RepositoryOptions> for PersistFn<'a> {
+impl<'a> From<&'a RepositoryOptions> for UpdateFn<'a> {
     fn from(opts: &'a RepositoryOptions) -> Self {
         Self {
             entity: opts.entity(),
@@ -22,7 +22,7 @@ impl<'a> From<&'a RepositoryOptions> for PersistFn<'a> {
     }
 }
 
-impl<'a> ToTokens for PersistFn<'a> {
+impl<'a> ToTokens for UpdateFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
         let error = self.error;
@@ -59,17 +59,17 @@ impl<'a> ToTokens for PersistFn<'a> {
                 entity.events_mut()
             }
 
-            pub async fn persist(
+            pub async fn update(
                 &self,
                 entity: &mut #entity
             ) -> Result<(), #error> {
                 let mut db = self.pool().begin().await?;
-                let res = self.persist_in_tx(&mut db, entity).await?;
+                let res = self.update_in_tx(&mut db, entity).await?;
                 db.commit().await?;
                 Ok(res)
             }
 
-            pub async fn persist_in_tx(
+            pub async fn update_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut #entity
@@ -97,7 +97,7 @@ mod tests {
     use syn::Ident;
 
     #[test]
-    fn persist_fn() {
+    fn update_fn() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
@@ -110,7 +110,7 @@ mod tests {
             )],
         );
 
-        let persist_fn = PersistFn {
+        let update_fn = UpdateFn {
             entity: &entity,
             table_name: "entities",
             error: &error,
@@ -118,7 +118,7 @@ mod tests {
         };
 
         let mut tokens = TokenStream::new();
-        persist_fn.to_tokens(&mut tokens);
+        update_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
             #[inline(always)]
@@ -130,17 +130,17 @@ mod tests {
                 entity.events_mut()
             }
 
-            pub async fn persist(
+            pub async fn update(
                 &self,
                 entity: &mut Entity
             ) -> Result<(), es_entity::EsRepoError> {
                 let mut db = self.pool().begin().await?;
-                let res = self.persist_in_tx(&mut db, entity).await?;
+                let res = self.update_in_tx(&mut db, entity).await?;
                 db.commit().await?;
                 Ok(res)
             }
 
-            pub async fn persist_in_tx(
+            pub async fn update_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity
@@ -172,7 +172,7 @@ mod tests {
     }
 
     #[test]
-    fn persist_fn_no_columns() {
+    fn update_fn_no_columns() {
         let id = syn::parse_str("EntityId").unwrap();
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
@@ -180,7 +180,7 @@ mod tests {
         let mut columns = Columns::default();
         columns.set_id_column(&id);
 
-        let persist_fn = PersistFn {
+        let update_fn = UpdateFn {
             entity: &entity,
             table_name: "entities",
             error: &error,
@@ -188,7 +188,7 @@ mod tests {
         };
 
         let mut tokens = TokenStream::new();
-        persist_fn.to_tokens(&mut tokens);
+        update_fn.to_tokens(&mut tokens);
 
         let expected = quote! {
             #[inline(always)]
@@ -200,17 +200,17 @@ mod tests {
                 entity.events_mut()
             }
 
-            pub async fn persist(
+            pub async fn update(
                 &self,
                 entity: &mut Entity
             ) -> Result<(), es_entity::EsRepoError> {
                 let mut db = self.pool().begin().await?;
-                let res = self.persist_in_tx(&mut db, entity).await?;
+                let res = self.update_in_tx(&mut db, entity).await?;
                 db.commit().await?;
                 Ok(res)
             }
 
-            pub async fn persist_in_tx(
+            pub async fn update_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
                 entity: &mut Entity

@@ -109,7 +109,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                     )
                     .is_some()
                 {
-                    self.repo.persist_in_tx(&mut db, facility).await?;
+                    self.repo.update_in_tx(&mut db, facility).await?;
                     at_least_one = true;
                 }
             }

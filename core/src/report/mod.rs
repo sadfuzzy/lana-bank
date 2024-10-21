@@ -159,7 +159,7 @@ impl Reports {
             report.download_link_generated(audit_info, location);
         }
 
-        self.repo.persist_in_tx(&mut db_tx, &mut report).await?;
+        self.repo.update_in_tx(&mut db_tx, &mut report).await?;
         Ok(GeneratedReportDownloadLinks {
             report_id,
             links: download_links,

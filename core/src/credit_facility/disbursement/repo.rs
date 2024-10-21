@@ -48,7 +48,7 @@ impl DisbursementRepo {
         Ok(Disbursement::try_from(events)?)
     }
 
-    pub async fn persist_in_tx(
+    pub async fn update_in_tx(
         &self,
         db: &mut Transaction<'_, Postgres>,
         disbursement: &mut Disbursement,

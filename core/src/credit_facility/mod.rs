@@ -251,7 +251,7 @@ impl CreditFacilities {
         }
 
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         db_tx.commit().await?;
 
@@ -299,7 +299,7 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
         let new_disbursement = credit_facility.initiate_disbursement(audit_info, amount)?;
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         let disbursement = self
             .disbursement_repo
@@ -402,10 +402,10 @@ impl CreditFacilities {
         }
 
         self.disbursement_repo
-            .persist_in_tx(&mut db_tx, &mut disbursement)
+            .update_in_tx(&mut db_tx, &mut disbursement)
             .await?;
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         db_tx.commit().await?;
 
@@ -464,7 +464,7 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         db_tx.commit().await?;
         Ok(credit_facility)
@@ -540,11 +540,11 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
 
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
 
         db_tx.commit().await?;
@@ -640,7 +640,7 @@ impl CreditFacilities {
 
         let mut db_tx = self.pool.begin().await?;
         self.credit_facility_repo
-            .persist_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         db_tx.commit().await?;
 

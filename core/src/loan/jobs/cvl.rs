@@ -105,7 +105,7 @@ impl JobRunner for LoanProcessingJobRunner {
                     )
                     .is_some()
                 {
-                    self.repo.persist_in_tx(&mut db, loan).await?;
+                    self.repo.update_in_tx(&mut db, loan).await?;
                     at_least_one = true;
                 }
             }

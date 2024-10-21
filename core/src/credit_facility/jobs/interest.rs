@@ -125,19 +125,19 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                 audit_info,
             );
             self.credit_facility_repo
-                .persist_in_tx(&mut db_tx, &mut credit_facility)
+                .update_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;
         }
 
         self.interest_accrual_repo
-            .persist_in_tx(&mut db_tx, &mut accrual)
+            .update_in_tx(&mut db_tx, &mut accrual)
             .await?;
 
         if let Some(period) = accrual.next_incurrence_period() {
             Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end))
         } else if let Some(new_accrual) = credit_facility.start_interest_accrual(audit_info)? {
             self.credit_facility_repo
-                .persist_in_tx(&mut db_tx, &mut credit_facility)
+                .update_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;
             let new_incurrence_period = self
                 .interest_accrual_repo

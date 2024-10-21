@@ -221,7 +221,7 @@ impl Loans {
                 )
                 .await?;
         }
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.loan_repo.update_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
 
         Ok(loan)
@@ -275,7 +275,7 @@ impl Loans {
             price,
             self.config.upgrade_buffer_cvl_pct,
         );
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.loan_repo.update_in_tx(&mut db_tx, &mut loan).await?;
         db_tx.commit().await?;
         Ok(loan)
     }
@@ -381,7 +381,7 @@ impl Loans {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        self.loan_repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.loan_repo.update_in_tx(&mut db_tx, &mut loan).await?;
 
         db_tx.commit().await?;
 

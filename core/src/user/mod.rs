@@ -67,7 +67,7 @@ impl Users {
             self.authz
                 .assign_role_to_subject(user.id, &Role::Superuser)
                 .await?;
-            self.repo.persist_in_tx(&mut db, &mut user).await?;
+            self.repo.update_in_tx(&mut db, &mut user).await?;
             db.commit().await?;
         }
         Ok(())

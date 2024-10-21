@@ -92,7 +92,7 @@ impl JobRunner for LoanProcessingJobRunner {
             .await?;
 
         loan.confirm_interest(interest_accrual, executed_at, audit_info);
-        self.repo.persist_in_tx(&mut db_tx, &mut loan).await?;
+        self.repo.update_in_tx(&mut db_tx, &mut loan).await?;
 
         match loan.next_interest_period()? {
             Some(period) => Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end)),

@@ -44,7 +44,7 @@ impl CreditFacilityRepo {
         Ok(CreditFacility::try_from(events)?)
     }
 
-    pub(super) async fn persist_in_tx(
+    pub(super) async fn update_in_tx(
         &self,
         db: &mut Transaction<'_, Postgres>,
         credit_facility: &mut CreditFacility,
