@@ -447,7 +447,7 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<WithdrawCursor, Withdrawal, EmptyFields, EmptyFields>>
+    ) -> async_graphql::Result<Connection<WithdrawByIdCursor, Withdrawal, EmptyFields, EmptyFields>>
     {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
@@ -462,9 +462,9 @@ impl Query {
                     .withdraws()
                     .list(
                         sub,
-                        crate::query::PaginatedQueryArgs {
+                        es_entity::PaginatedQueryArgs {
                             first,
-                            after: after.map(crate::withdraw::WithdrawCursor::from),
+                            after: after.map(crate::withdraw::WithdrawByIdCursor::from),
                         },
                     )
                     .await?;
@@ -472,7 +472,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|withdraw| {
-                        let cursor = WithdrawCursor::from(withdraw.created_at());
+                        let cursor = WithdrawByIdCursor::from(withdraw.id);
                         Edge::new(cursor, Withdrawal::from(withdraw))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

@@ -3,6 +3,7 @@
 
 mod entity;
 mod event;
+mod query;
 mod repo;
 
 use proc_macro::TokenStream;
@@ -30,6 +31,15 @@ pub fn es_entity_derive(input: TokenStream) -> TokenStream {
 pub fn es_repo_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     match repo::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
+}
+
+#[proc_macro]
+pub fn expand_es_query(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as query::QueryInput);
+    match query::expand(input) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.write_errors().into(),
     }

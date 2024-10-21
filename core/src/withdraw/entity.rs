@@ -1,11 +1,10 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use es_entity::*;
+
 use super::error::*;
-use crate::{
-    entity::*,
-    primitives::{AuditInfo, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
-};
+use crate::primitives::{AuditInfo, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId};
 
 #[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum WithdrawalStatus {
@@ -14,8 +13,9 @@ pub enum WithdrawalStatus {
     Confirmed,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "WithdrawId")]
 pub enum WithdrawEvent {
     Initialized {
         id: WithdrawId,
@@ -36,15 +36,8 @@ pub enum WithdrawEvent {
     },
 }
 
-impl EntityEvent for WithdrawEvent {
-    type EntityId = WithdrawId;
-    fn event_table_name() -> &'static str {
-        "withdraw_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Withdraw {
     pub id: WithdrawId,
     pub reference: String,
@@ -57,12 +50,10 @@ pub struct Withdraw {
 impl Withdraw {
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
-            .entity_first_persisted_at
-            .expect("No events for withdraw")
+            .entity_first_persisted_at()
+            .expect("Withdraw has never been persisted")
     }
-}
 
-impl Withdraw {
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
         if self.is_confirmed() {
             return Err(WithdrawError::AlreadyConfirmed(self.id));
@@ -100,13 +91,13 @@ impl Withdraw {
 
     fn is_confirmed(&self) -> bool {
         self.events
-            .iter()
+            .iter_all()
             .any(|e| matches!(e, WithdrawEvent::Confirmed { .. }))
     }
 
     fn is_cancelled(&self) -> bool {
         self.events
-            .iter()
+            .iter_all()
             .any(|e| matches!(e, WithdrawEvent::Cancelled { .. }))
     }
 
@@ -127,16 +118,10 @@ impl std::fmt::Display for Withdraw {
     }
 }
 
-impl Entity for Withdraw {
-    type Event = WithdrawEvent;
-}
-
-impl TryFrom<EntityEvents<WithdrawEvent>> for Withdraw {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<WithdrawEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<WithdrawEvent> for Withdraw {
+    fn try_from_events(events: EntityEvents<WithdrawEvent>) -> Result<Self, EsEntityError> {
         let mut builder = WithdrawBuilder::default();
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 WithdrawEvent::Initialized {
                     id,
@@ -169,7 +154,7 @@ pub struct NewWithdraw {
     pub(super) customer_id: CustomerId,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
-    reference: Option<String>,
+    pub(super) reference: Option<String>,
     pub(super) debit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
@@ -187,8 +172,10 @@ impl NewWithdraw {
             Some(reference) => reference.to_string(),
         }
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<WithdrawEvent> {
+impl IntoEvents<WithdrawEvent> for NewWithdraw {
+    fn into_events(self) -> EntityEvents<WithdrawEvent> {
         EntityEvents::init(
             self.id,
             [WithdrawEvent::Initialized {

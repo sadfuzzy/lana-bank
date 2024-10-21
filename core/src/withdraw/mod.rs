@@ -11,10 +11,9 @@ use crate::{
     primitives::{AuditInfo, CustomerId, Subject, UsdCents, WithdrawId},
 };
 
-pub use cursor::*;
 pub use entity::*;
 use error::WithdrawError;
-pub use repo::WithdrawRepo;
+pub use repo::{cursor::*, WithdrawRepo};
 
 #[derive(Clone)]
 pub struct Withdraws {
@@ -81,6 +80,7 @@ impl Withdraws {
             .build()
             .expect("Could not build Withdraw");
 
+        dbg!(&new_withdraw);
         let mut db_tx = self.pool.begin().await?;
         let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
 
@@ -205,7 +205,7 @@ impl Withdraws {
 
         match self.repo.find_by_id(id.into()).await {
             Ok(withdrawal) => Ok(Some(withdrawal)),
-            Err(WithdrawError::CouldNotFindById(_)) => Ok(None),
+            Err(WithdrawError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -225,11 +225,11 @@ impl Withdraws {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<WithdrawCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Withdraw, WithdrawCursor>, WithdrawError> {
+        query: es_entity::PaginatedQueryArgs<WithdrawByIdCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Withdraw, WithdrawByIdCursor>, WithdrawError> {
         self.authz
             .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
             .await?;
-        self.repo.list(query).await
+        self.repo.list_by_id(query).await
     }
 }

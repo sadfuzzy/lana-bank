@@ -12,8 +12,6 @@ pub enum WithdrawError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("WithdrawError - UserError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
-    #[error("WithdrawError - CouldNotFindById: {0}")]
-    CouldNotFindById(WithdrawId),
     #[error("WithdrawError - AlreadyConfirmed: {0}")]
     AlreadyConfirmed(WithdrawId),
     #[error("WithdrawError - AlreadyCancelled: {0}")]
@@ -24,4 +22,20 @@ pub enum WithdrawError {
     InsufficientBalance(UsdCents, UsdCents),
     #[error("WithdrawError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("WithdrawError - NotFound")]
+    NotFound,
+}
+
+impl From<es_entity::EsEntityError> for WithdrawError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => WithdrawError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!(
+                    "Inconsistent data when initializing a Customer entity: {:?}",
+                    e
+                )
+            }
+        }
+    }
 }

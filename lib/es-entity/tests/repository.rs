@@ -15,6 +15,18 @@ pub struct Users {
 }
 
 impl Users {
+    async fn custom_query(&self) -> Result<(), EsRepoError> {
+        let id = UserId::from(uuid::Uuid::new_v4());
+        let _: User = es_query!(
+            self.pool(),
+            "SELECT * FROM users WHERE id = $1",
+            id as UserId
+        )
+        .fetch_one()
+        .await?;
+        Ok(())
+    }
+
     async fn export(
         &self,
         _db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
@@ -79,6 +91,21 @@ async fn find_all() -> anyhow::Result<()> {
         .await?;
 
     assert!(res.is_empty());
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn custom() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users { pool: pool.clone() };
+
+    let res = repo.custom_query().await;
+    assert!(matches!(
+        res,
+        Err(EsRepoError::EntityError(EsEntityError::NotFound))
+    ));
 
     Ok(())
 }

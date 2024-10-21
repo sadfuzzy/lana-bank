@@ -2,7 +2,7 @@ use async_graphql::{types::connection::*, *};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    primitives::UsdCents,
+    primitives::{UsdCents, WithdrawId},
     server::shared_graphql::{primitives::UUID, withdraw::Withdrawal},
 };
 
@@ -63,11 +63,11 @@ impl From<crate::withdraw::Withdraw> for WithdrawalCancelPayload {
 }
 
 #[derive(Serialize, Deserialize)]
-pub(super) struct WithdrawCursor {
-    pub withdrawal_created_at: chrono::DateTime<chrono::Utc>,
+pub(super) struct WithdrawByIdCursor {
+    pub id: WithdrawId,
 }
 
-impl CursorType for WithdrawCursor {
+impl CursorType for WithdrawByIdCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -86,18 +86,14 @@ impl CursorType for WithdrawCursor {
     }
 }
 
-impl From<chrono::DateTime<chrono::Utc>> for WithdrawCursor {
-    fn from(withdrawal_created_at: chrono::DateTime<chrono::Utc>) -> Self {
-        Self {
-            withdrawal_created_at,
-        }
+impl From<WithdrawId> for WithdrawByIdCursor {
+    fn from(id: WithdrawId) -> Self {
+        Self { id }
     }
 }
 
-impl From<WithdrawCursor> for crate::withdraw::WithdrawCursor {
-    fn from(cursor: WithdrawCursor) -> Self {
-        Self {
-            withdrawal_created_at: cursor.withdrawal_created_at,
-        }
+impl From<WithdrawByIdCursor> for crate::withdraw::WithdrawByIdCursor {
+    fn from(cursor: WithdrawByIdCursor) -> Self {
+        Self { id: cursor.id }
     }
 }

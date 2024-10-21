@@ -5,12 +5,10 @@ use quote::{quote, TokenStreamExt};
 use super::options::*;
 
 pub struct FindByFn<'a> {
-    id: &'a syn::Ident,
     entity: &'a syn::Ident,
     column_name: &'a syn::Ident,
     column_type: &'a syn::Type,
     table_name: &'a str,
-    events_table_name: &'a str,
     error: &'a syn::Type,
 }
 
@@ -23,10 +21,8 @@ impl<'a> FindByFn<'a> {
         Self {
             column_name,
             column_type,
-            id: opts.id(),
             entity: opts.entity(),
             table_name: opts.table_name(),
-            events_table_name: opts.events_table_name(),
             error: opts.err(),
         }
     }
@@ -45,8 +41,8 @@ impl<'a> ToTokens for FindByFn<'a> {
             syn::Ident::new(&format!("find_by_{}_in_tx", column_name), Span::call_site());
 
         let query = format!(
-            r#"SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at FROM {} i JOIN {} e ON i.id = e.id WHERE i.{} = $1 ORDER BY e.sequence"#,
-            self.id, self.table_name, self.events_table_name, column_name
+            r#"SELECT id FROM {} WHERE {} = $1"#,
+            self.table_name, column_name
         );
 
         tokens.append_all(quote! {
@@ -70,19 +66,13 @@ impl<'a> ToTokens for FindByFn<'a> {
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 #column_name: #column_type
             ) -> Result<#entity, #error> {
-                let rows = sqlx::query!(
-                    #query,
-                    #column_name as #column_type,
+                es_entity::es_query!(
+                        executor,
+                        #query,
+                        #column_name as #column_type,
                 )
-                    .fetch_all(executor)
-                    .await?;
-                Ok(es_entity::EntityEvents::load_first(rows.into_iter().map(|r|
-                    es_entity::GenericEvent {
-                        entity_id: r.id,
-                        sequence: r.sequence,
-                        event: r.event,
-                        recorded_at: r.recorded_at,
-                }))?)
+                    .fetch_one()
+                    .await
             }
         });
     }
@@ -96,19 +86,16 @@ mod tests {
 
     #[test]
     fn find_by_fn() {
-        let id_type = Ident::new("EntityId", Span::call_site());
         let column_name = parse_quote!(id);
         let column_type = parse_quote!(EntityId);
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
-            id: &id_type,
             column_name: &column_name,
             column_type: &column_type,
             entity: &entity,
             table_name: "entities",
-            events_table_name: "entity_events",
             error: &error,
         };
 
@@ -136,19 +123,13 @@ mod tests {
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 id: EntityId
             ) -> Result<Entity, es_entity::EsRepoError> {
-                let rows = sqlx::query!(
-                    "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = $1 ORDER BY e.sequence",
-                    id as EntityId,
+                es_entity::es_query!(
+                        executor,
+                        "SELECT id FROM entities WHERE id = $1",
+                        id as EntityId,
                 )
-                    .fetch_all(executor)
-                    .await?;
-                Ok(es_entity::EntityEvents::load_first(rows.into_iter().map(|r|
-                    es_entity::GenericEvent {
-                        entity_id: r.id,
-                        sequence: r.sequence,
-                        event: r.event,
-                        recorded_at: r.recorded_at,
-                }))?)
+                    .fetch_one()
+                    .await
             }
         };
 

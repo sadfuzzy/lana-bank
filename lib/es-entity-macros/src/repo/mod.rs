@@ -27,6 +27,7 @@ pub struct EsRepo<'a> {
     find_all_fn: find_all_fn::FindAllFn<'a>,
     post_persist_hook: post_persist_hook::PostPersistHook<'a>,
     list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
+    opts: &'a RepositoryOptions,
 }
 
 impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
@@ -51,6 +52,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             find_all_fn: find_all_fn::FindAllFn::from(opts),
             post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
             list_by_fns,
+            opts,
         }
     }
 }
@@ -67,6 +69,11 @@ impl<'a> ToTokens for EsRepo<'a> {
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
         let list_by_fns = &self.list_by_fns;
 
+        let entity = self.opts.entity();
+        let event = self.opts.event();
+        let id = self.opts.id();
+        let error = self.opts.err();
+
         tokens.append_all(quote! {
             pub mod cursor {
                 use super::*;
@@ -74,7 +81,42 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #(#cursors)*
             }
 
+            mod repo_types {
+                #![allow(non_camel_case_types)]
+
+                use super::*;
+
+                pub(super) type Repo__Id = #id;
+                pub(super) type Repo__Event = #event;
+                pub(super) type Repo__Entity = #entity;
+                pub(super) type Repo__Error = #error;
+                pub(super) type Repo__DbEvent = es_entity::GenericEvent<#id>;
+
+                pub(super) struct QueryRes {
+                    pub(super) rows: Vec<Repo__DbEvent>,
+                }
+
+                impl QueryRes {
+                    pub(super) async fn fetch_one(
+                        self,
+                    ) -> Result<Repo__Entity, Repo__Error>
+                    {
+                        Ok(es_entity::EntityEvents::load_first(self.rows.into_iter())?)
+                    }
+
+                    pub(super) async fn fetch_n(
+                        self,
+                        first: usize,
+                    ) -> Result<(Vec<Repo__Entity>, bool), Repo__Error>
+                    {
+                        Ok(es_entity::EntityEvents::load_n(self.rows.into_iter(), first)?)
+                    }
+                }
+            }
+
             impl #repo {
+                #![allow(non_camel_case_types)]
+
                 #[inline(always)]
                 fn pool(&self) -> &sqlx::PgPool {
                     &self.pool

@@ -60,7 +60,6 @@ pub struct ListByFn<'a> {
     column_name: &'a syn::Ident,
     column_type: &'a syn::Type,
     table_name: &'a str,
-    events_table_name: &'a str,
     error: &'a syn::Type,
 }
 
@@ -76,7 +75,6 @@ impl<'a> ListByFn<'a> {
             id: opts.id(),
             entity: opts.entity(),
             table_name: opts.table_name(),
-            events_table_name: opts.events_table_name(),
             error: opts.err(),
         }
     }
@@ -103,7 +101,7 @@ impl<'a> ToTokens for ListByFn<'a> {
         let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
         let name = column_name.to_string();
         let mut column = format!("{}, ", name);
-        let mut where_pt1 = format!("({}, id) > ($3, $2)", name);
+        let mut where_pt = format!("({}, id) > ($3, $2)", name);
         let mut order_by = format!("{}, ", name);
         let mut arg_tokens = quote! {
             #column_name as Option<#column_type>,
@@ -123,7 +121,7 @@ impl<'a> ToTokens for ListByFn<'a> {
 
         if &name == "id" {
             column = String::new();
-            where_pt1 = "id > $2".to_string();
+            where_pt = "id > $2".to_string();
             order_by = String::new();
             arg_tokens = quote! {};
             cursor_arg = quote! {};
@@ -139,8 +137,8 @@ impl<'a> ToTokens for ListByFn<'a> {
         };
 
         let query = format!(
-            r#"WITH entities AS (SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1) SELECT i.id AS "id: {}", e.sequence, e.event, e.recorded_at FROM entities i JOIN {} e ON i.id = e.id ORDER BY {}i.id, e.sequence"#,
-            column, self.table_name, where_pt1, order_by, self.id, self.events_table_name, column
+            r#"SELECT {}id FROM {} WHERE ({}) OR $2 IS NULL ORDER BY {}id LIMIT $1"#,
+            column, self.table_name, where_pt, order_by
         );
 
         tokens.append_all(quote! {
@@ -155,22 +153,16 @@ impl<'a> ToTokens for ListByFn<'a> {
                     #after_default
                 };
 
-                let rows = sqlx::query!(
+                let (entities, has_next_page) = es_entity::es_query!(
+                    self.pool(),
                     #query,
                     (first + 1) as i64,
                     id as Option<#id>,
                     #arg_tokens
                 )
-                    .fetch_all(self.pool())
+                    .fetch_n(first)
                     .await?;
 
-                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
-                        es_entity::GenericEvent {
-                            entity_id: r.id,
-                            sequence: r.sequence,
-                            event: r.event,
-                            recorded_at: r.recorded_at,
-                        }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::#cursor {
@@ -264,7 +256,6 @@ mod tests {
             id: &id_type,
             entity: &entity,
             table_name: "entities",
-            events_table_name: "entity_events",
             error: &error,
         };
 
@@ -282,21 +273,14 @@ mod tests {
                 } else {
                     None
                 };
-                let rows = sqlx::query!(
-                    "WITH entities AS (SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+                let (entities, has_next_page) = es_entity::es_query!(
+                    self.pool(),
+                    "SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
-                    .fetch_all(self.pool())
+                    .fetch_n(first)
                     .await?;
-
-                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
-                        es_entity::GenericEvent {
-                            entity_id: r.id,
-                            sequence: r.sequence,
-                            event: r.event,
-                            recorded_at: r.recorded_at,
-                        }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::EntityByIdCursor {
@@ -329,7 +313,6 @@ mod tests {
             id: &id_type,
             entity: &entity,
             table_name: "entities",
-            events_table_name: "entity_events",
             error: &error,
         };
 
@@ -347,22 +330,17 @@ mod tests {
                 } else {
                     (None, None)
                 };
-                let rows = sqlx::query!(
-                    "WITH entities AS (SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY name, i.id, e.sequence",
-                    (first + 1) as i64,
-                    id as Option<EntityId>,
-                    name as Option<String>,
+
+                let (entities, has_next_page) = es_entity::es_query!(
+                        self.pool(),
+                        "SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1",
+                        (first + 1) as i64,
+                        id as Option<EntityId>,
+                        name as Option<String>,
                 )
-                    .fetch_all(self.pool())
+                    .fetch_n(first)
                     .await?;
 
-                let (entities, has_next_page) = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
-                        es_entity::GenericEvent {
-                            entity_id: r.id,
-                            sequence: r.sequence,
-                            event: r.event,
-                            recorded_at: r.recorded_at,
-                        }), first)?;
                 let mut end_cursor = None;
                 if let Some(last) = entities.last() {
                     end_cursor = Some(cursor::EntityByNameCursor {

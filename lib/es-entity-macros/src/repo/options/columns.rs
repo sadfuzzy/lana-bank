@@ -48,6 +48,16 @@ impl Columns {
         }
     }
 
+    pub fn variable_assignments_for_create(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
+        let assignments = self
+            .all
+            .iter()
+            .map(|column| column.variable_assignment_for_create(&ident));
+        quote! {
+            #(#assignments)*
+        }
+    }
+
     pub fn names(&self) -> Vec<String> {
         self.all.iter().map(|c| c.name.to_string()).collect()
     }
@@ -141,9 +151,7 @@ impl Column {
             opts: ColumnOpts::new(ty),
         }
     }
-}
 
-impl Column {
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
@@ -152,10 +160,19 @@ impl Column {
         &self.opts.ty
     }
 
+    fn variable_assignment_for_create(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
+        let name = &self.name;
+        let accessor = self.opts.new_accessor(name);
+        quote! {
+            let #name = &#ident.#accessor;
+        }
+    }
+
     fn variable_assignment(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
+        let accessor = self.opts.accessor(name);
         quote! {
-            let #name = &#ident.#name;
+            let #name = &#ident.#accessor;
         }
     }
 }
@@ -163,6 +180,8 @@ impl Column {
 #[derive(FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
+    #[darling(default)]
+    accessor: Accessor,
     #[darling(default)]
     find_by: Option<bool>,
     #[darling(default)]
@@ -173,6 +192,7 @@ impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
         ColumnOpts {
             ty,
+            accessor: Default::default(),
             find_by: None,
             list_by: None,
         }
@@ -185,6 +205,34 @@ impl ColumnOpts {
     fn list_by(&self) -> bool {
         self.list_by.unwrap_or(true)
     }
+
+    fn accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
+        if let Some(both) = &self.accessor.both {
+            quote! {
+                #both
+            }
+        } else {
+            quote! {
+                #name
+            }
+        }
+    }
+
+    fn new_accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
+        if let Some(new) = &self.accessor.new {
+            quote! {
+                #new
+            }
+        } else {
+            self.accessor(name)
+        }
+    }
+}
+
+#[derive(Default, FromMeta)]
+struct Accessor {
+    new: Option<syn::Expr>,
+    both: Option<syn::Expr>,
 }
 
 #[cfg(test)]
@@ -196,23 +244,37 @@ mod tests {
 
     #[test]
     fn column_opts_from_list() {
-        let input: syn::Meta = parse_quote!(thing(ty = "crate::module::Thing", list_by = false));
+        let input: syn::Meta = parse_quote!(thing(
+            ty = "crate::module::Thing",
+            list_by = false,
+            accessor(new = "accessor_fn()")
+        ));
         let values = ColumnOpts::from_meta(&input).expect("Failed to parse Field");
         assert_eq!(values.ty, parse_quote!(crate::module::Thing));
         assert!(!values.list_by());
         assert!(values.find_by());
+        assert_eq!(values.accessor.new.unwrap(), parse_quote!(accessor_fn()));
     }
 
     #[test]
     fn columns_from_list() {
         let input: syn::Meta = parse_quote!(columns(
             name = "String",
-            email(ty = "String", list_by = false)
+            email(ty = "String", list_by = false, accessor(both = "email()"))
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
         assert_eq!(columns.all.len(), 2);
+
         assert_eq!(columns.all[0].name.to_string(), "name");
+
         assert_eq!(columns.all[1].name.to_string(), "email");
         assert!(!columns.all[1].opts.list_by());
+        assert_eq!(
+            columns.all[1]
+                .opts
+                .accessor(&parse_quote!(email))
+                .to_string(),
+            quote!(email()).to_string()
+        );
     }
 }
