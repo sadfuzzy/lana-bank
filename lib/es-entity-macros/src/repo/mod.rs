@@ -40,7 +40,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
         let list_by_fns = opts
             .columns
             .all_list_by()
-            .map(|c| list_by_fn::ListByFn::new(c.name(), c.ty(), opts))
+            .map(|c| list_by_fn::ListByFn::new(c, opts))
             .collect();
 
         Self {

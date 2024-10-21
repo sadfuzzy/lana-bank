@@ -36,6 +36,9 @@ impl ToTokens for EsEntity {
                 fn events_mut(&mut self) -> &mut es_entity::EntityEvents<#events> {
                     &mut self.#events_field
                 }
+                fn events(&self) -> &es_entity::EntityEvents<#events> {
+                    &self.#events_field
+                }
             }
         });
     }

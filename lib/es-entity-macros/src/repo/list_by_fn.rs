@@ -57,21 +57,15 @@ impl<'a> ToTokens for CursorStruct<'a> {
 pub struct ListByFn<'a> {
     id: &'a syn::Ident,
     entity: &'a syn::Ident,
-    column_name: &'a syn::Ident,
-    column_type: &'a syn::Type,
+    column: &'a Column,
     table_name: &'a str,
     error: &'a syn::Type,
 }
 
 impl<'a> ListByFn<'a> {
-    pub fn new(
-        column_name: &'a syn::Ident,
-        column_type: &'a syn::Type,
-        opts: &'a RepositoryOptions,
-    ) -> Self {
+    pub fn new(column: &'a Column, opts: &'a RepositoryOptions) -> Self {
         Self {
-            column_name,
-            column_type,
+            column,
             id: opts.id(),
             entity: opts.entity(),
             table_name: opts.table_name(),
@@ -81,8 +75,8 @@ impl<'a> ListByFn<'a> {
 
     pub fn cursor(&'a self) -> CursorStruct<'a> {
         CursorStruct {
-            column_name: self.column_name,
-            column_type: self.column_type,
+            column_name: self.column.name(),
+            column_type: self.column.ty(),
             id: self.id,
             entity: self.entity,
         }
@@ -93,8 +87,9 @@ impl<'a> ToTokens for ListByFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let id = self.id;
         let entity = self.entity;
-        let column_name = &self.column_name;
-        let column_type = &self.column_type;
+        let column_name = self.column.name();
+        let accessor = self.column.accessor();
+        let column_type = self.column.ty();
         let cursor = syn::Ident::new(&self.cursor().name(), Span::call_site());
         let error = self.error;
 
@@ -107,7 +102,7 @@ impl<'a> ToTokens for ListByFn<'a> {
             #column_name as Option<#column_type>,
         };
         let mut cursor_arg = quote! {
-            #column_name: last.#column_name.clone(),
+            #column_name: last.#accessor.clone(),
         };
         let mut after_args = quote! {
             (id, #column_name)
@@ -185,7 +180,7 @@ impl<'a> ToTokens for ListByFn<'a> {
 mod tests {
     use super::*;
     use proc_macro2::Span;
-    use syn::{parse_quote, Ident};
+    use syn::Ident;
 
     #[test]
     fn cursor_struct_by_id() {
@@ -245,14 +240,15 @@ mod tests {
     #[test]
     fn list_by_fn() {
         let id_type = Ident::new("EntityId", Span::call_site());
-        let column_name = parse_quote!(id);
-        let column_type = parse_quote!(EntityId);
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
+        let column = Column::new(
+            syn::Ident::new("id", proc_macro2::Span::call_site()),
+            syn::parse_str("EntityId").unwrap(),
+        );
 
         let persist_fn = ListByFn {
-            column_name: &column_name,
-            column_type: &column_type,
+            column: &column,
             id: &id_type,
             entity: &entity,
             table_name: "entities",
@@ -302,14 +298,15 @@ mod tests {
     #[test]
     fn list_by_fn_name() {
         let id_type = Ident::new("EntityId", Span::call_site());
-        let column_name = parse_quote!(name);
-        let column_type = parse_quote!(String);
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
+        let column = Column::new(
+            syn::Ident::new("name", proc_macro2::Span::call_site()),
+            syn::parse_str("String").unwrap(),
+        );
 
         let persist_fn = ListByFn {
-            column_name: &column_name,
-            column_type: &column_type,
+            column: &column,
             id: &id_type,
             entity: &entity,
             table_name: "entities",

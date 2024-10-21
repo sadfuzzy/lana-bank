@@ -9,19 +9,34 @@ pub struct Columns {
 impl Columns {
     #[cfg(test)]
     pub fn new(id: &syn::Ident, columns: impl IntoIterator<Item = Column>) -> Self {
-        let mut all = vec![Column::new(
-            syn::Ident::new("id", proc_macro2::Span::call_site()),
-            syn::parse_str(&id.to_string()).unwrap(),
-        )];
-        all.extend(columns.into_iter());
-        Columns { all }
+        let all = columns.into_iter().collect();
+        let mut res = Columns { all };
+        res.set_id_column(id);
+        res
     }
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
-        let mut all = vec![Column::new(
-            syn::Ident::new("id", proc_macro2::Span::call_site()),
-            syn::parse_str(&ty.to_string()).unwrap(),
-        )];
+        let mut all = vec![
+            Column::new(
+                syn::Ident::new("id", proc_macro2::Span::call_site()),
+                syn::parse_str(&ty.to_string()).unwrap(),
+            ),
+            Column {
+                name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
+                opts: ColumnOpts {
+                    ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
+                    accessor: Accessor {
+                        both: Some(syn::parse_quote!(events()
+                            .entity_first_persisted_at()
+                            .expect("entity not persisted"))),
+                        new: None,
+                    },
+                    list_by: None,
+                    find_by: Some(false),
+                    update: Some(false),
+                },
+            },
+        ];
         all.append(&mut self.all);
         self.all = all;
     }
@@ -35,35 +50,51 @@ impl Columns {
     }
 
     pub fn updates_needed(&self) -> bool {
-        self.all.len() > 1
+        self.all.len() > 2
     }
 
     pub fn variable_assignments(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
-        let assignments = self
-            .all
-            .iter()
-            .map(|column| column.variable_assignment(&ident));
+        let assignments = self.all.iter().filter_map(|c| {
+            if c.opts.update() {
+                Some(c.variable_assignment(&ident))
+            } else {
+                None
+            }
+        });
         quote! {
             #(#assignments)*
         }
     }
 
     pub fn variable_assignments_for_create(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
-        let assignments = self
-            .all
-            .iter()
-            .map(|column| column.variable_assignment_for_create(&ident));
+        let assignments = self.all.iter().filter_map(|c| {
+            if c.opts.update() {
+                Some(c.variable_assignment_for_create(&ident))
+            } else {
+                None
+            }
+        });
         quote! {
             #(#assignments)*
         }
     }
 
     pub fn names(&self) -> Vec<String> {
-        self.all.iter().map(|c| c.name.to_string()).collect()
+        self.all
+            .iter()
+            .filter_map(|c| {
+                if c.opts.update() {
+                    Some(c.name.to_string())
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 
     pub fn placeholders(&self) -> String {
-        (1..=self.all.len())
+        let count = self.all.iter().filter(|c| c.opts.update()).count();
+        (1..=count)
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
             .join(", ")
@@ -73,6 +104,7 @@ impl Columns {
         self.all
             .iter()
             .skip(1)
+            .filter(|c| c.opts.update())
             .enumerate()
             .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
             .collect::<Vec<_>>()
@@ -82,6 +114,7 @@ impl Columns {
     pub fn query_args(&self) -> Vec<proc_macro2::TokenStream> {
         self.all
             .iter()
+            .filter(|c| c.opts.update())
             .map(|column| {
                 let ident = &column.name;
                 let ty = &column.opts.ty;
@@ -160,6 +193,10 @@ impl Column {
         &self.opts.ty
     }
 
+    pub fn accessor(&self) -> proc_macro2::TokenStream {
+        self.opts.accessor(&self.name)
+    }
+
     fn variable_assignment_for_create(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
         let accessor = self.opts.new_accessor(name);
@@ -186,6 +223,8 @@ struct ColumnOpts {
     find_by: Option<bool>,
     #[darling(default)]
     list_by: Option<bool>,
+    #[darling(default)]
+    update: Option<bool>,
 }
 
 impl ColumnOpts {
@@ -195,6 +234,7 @@ impl ColumnOpts {
             accessor: Default::default(),
             find_by: None,
             list_by: None,
+            update: None,
         }
     }
 
@@ -204,6 +244,10 @@ impl ColumnOpts {
 
     fn list_by(&self) -> bool {
         self.list_by.unwrap_or(true)
+    }
+
+    fn update(&self) -> bool {
+        self.update.unwrap_or(true)
     }
 
     fn accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
@@ -253,6 +297,7 @@ mod tests {
         assert_eq!(values.ty, parse_quote!(crate::module::Thing));
         assert!(!values.list_by());
         assert!(values.find_by());
+        assert!(values.update());
         assert_eq!(values.accessor.new.unwrap(), parse_quote!(accessor_fn()));
     }
 

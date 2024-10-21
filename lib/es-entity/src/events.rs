@@ -203,6 +203,9 @@ mod tests {
         fn events_mut(&mut self) -> &mut EntityEvents<DummyEntityEvent> {
             &mut self.events
         }
+        fn events(&self) -> &EntityEvents<DummyEntityEvent> {
+            &self.events
+        }
     }
 
     impl TryFromEvents<DummyEntityEvent> for DummyEntity {
