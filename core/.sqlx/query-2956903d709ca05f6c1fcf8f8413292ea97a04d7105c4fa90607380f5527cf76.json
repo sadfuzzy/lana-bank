@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT customer_id, id FROM deposits WHERE ((customer_id, id) > ($3, $2)) OR $2 IS NULL ORDER BY customer_id, id LIMIT $1) SELECT i.id AS \"entity_id: DepositId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN deposit_events e ON i.id = e.id ORDER BY i.customer_id, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT customer_id, reference, id FROM withdraws WHERE (customer_id = $1) AND (((reference, id) > ($4, $3)) OR $3 IS NULL) ORDER BY reference, id LIMIT $2) SELECT i.id AS \"entity_id: WithdrawId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN withdraw_events e ON i.id = e.id ORDER BY i.reference, i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: DepositId",
+        "name": "entity_id: WithdrawId",
         "type_info": "Uuid"
       },
       {
@@ -26,9 +26,10 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
         "Int8",
         "Uuid",
-        "Uuid"
+        "Text"
       ]
     },
     "nullable": [
@@ -38,5 +39,5 @@
       false
     ]
   },
-  "hash": "b435a64e48a90d51a5f0dae598ff0ba15d331c742187f79942a639d0a229c5f1"
+  "hash": "2956903d709ca05f6c1fcf8f8413292ea97a04d7105c4fa90607380f5527cf76"
 }

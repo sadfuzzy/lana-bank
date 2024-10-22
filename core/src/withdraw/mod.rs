@@ -218,7 +218,11 @@ impl Withdraws {
             .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
             .await?;
 
-        self.repo.list_for_customer(customer_id).await
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .await?
+            .entities)
     }
 
     pub async fn list(

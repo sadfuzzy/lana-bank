@@ -17,42 +17,8 @@ impl Columns {
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![
-            Column {
-                name: syn::Ident::new("id", proc_macro2::Span::call_site()),
-                opts: ColumnOpts {
-                    ty: syn::parse_str(&ty.to_string()).unwrap(),
-                    is_id: true,
-                    list_by: Some(true),
-                    find_by: Some(true),
-                    create_opts: Some(CreateOpts {
-                        persist: Some(true),
-                        accessor: None,
-                    }),
-                    update_opts: Some(UpdateOpts {
-                        persist: Some(false),
-                        accessor: None,
-                    }),
-                },
-            },
-            Column {
-                name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
-                opts: ColumnOpts {
-                    ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
-                    is_id: false,
-                    list_by: Some(true),
-                    find_by: Some(false),
-                    create_opts: Some(CreateOpts {
-                        persist: Some(false),
-                        accessor: None,
-                    }),
-                    update_opts: Some(UpdateOpts {
-                        persist: Some(false),
-                        accessor: Some(syn::parse_quote!(events()
-                            .entity_first_persisted_at()
-                            .expect("entity not persisted"))),
-                    }),
-                },
-            },
+            Column::for_id(syn::parse_str(&ty.to_string()).unwrap()),
+            Column::for_created_at(),
         ];
         all.append(&mut self.all);
         self.all = all;
@@ -64,6 +30,10 @@ impl Columns {
 
     pub fn all_list_by(&self) -> impl Iterator<Item = &Column> {
         self.all.iter().filter(|c| c.opts.list_by())
+    }
+
+    pub fn all_list_for(&self) -> impl Iterator<Item = &Column> {
+        self.all.iter().filter(|c| c.opts.list_for())
     }
 
     pub fn updates_needed(&self) -> bool {
@@ -171,6 +141,7 @@ impl FromMeta for Columns {
     }
 }
 
+#[derive(PartialEq)]
 pub struct Column {
     name: syn::Ident,
     opts: ColumnOpts,
@@ -220,6 +191,54 @@ impl Column {
         }
     }
 
+    pub fn for_id(ty: syn::Type) -> Self {
+        Column {
+            name: syn::Ident::new("id", proc_macro2::Span::call_site()),
+            opts: ColumnOpts {
+                ty,
+                is_id: true,
+                list_by: Some(true),
+                find_by: Some(true),
+                list_for: Some(false),
+                create_opts: Some(CreateOpts {
+                    persist: Some(true),
+                    accessor: None,
+                }),
+                update_opts: Some(UpdateOpts {
+                    persist: Some(false),
+                    accessor: None,
+                }),
+            },
+        }
+    }
+
+    pub fn for_created_at() -> Self {
+        Column {
+            name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
+            opts: ColumnOpts {
+                ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
+                is_id: false,
+                list_by: Some(true),
+                find_by: Some(false),
+                list_for: Some(false),
+                create_opts: Some(CreateOpts {
+                    persist: Some(false),
+                    accessor: None,
+                }),
+                update_opts: Some(UpdateOpts {
+                    persist: Some(false),
+                    accessor: Some(syn::parse_quote!(events()
+                        .entity_first_persisted_at()
+                        .expect("entity not persisted"))),
+                }),
+            },
+        }
+    }
+
+    pub fn is_id(&self) -> bool {
+        self.opts.is_id
+    }
+
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }
@@ -249,7 +268,7 @@ impl Column {
     }
 }
 
-#[derive(FromMeta)]
+#[derive(PartialEq, FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
     #[darling(default, skip)]
@@ -258,6 +277,8 @@ struct ColumnOpts {
     find_by: Option<bool>,
     #[darling(default)]
     list_by: Option<bool>,
+    #[darling(default)]
+    list_for: Option<bool>,
     #[darling(default, rename = "create")]
     create_opts: Option<CreateOpts>,
     #[darling(default, rename = "update")]
@@ -271,6 +292,7 @@ impl ColumnOpts {
             is_id: false,
             find_by: None,
             list_by: None,
+            list_for: None,
             create_opts: None,
             update_opts: None,
         }
@@ -281,7 +303,11 @@ impl ColumnOpts {
     }
 
     fn list_by(&self) -> bool {
-        self.list_by.unwrap_or(true)
+        self.list_by.unwrap_or(!self.list_for())
+    }
+
+    fn list_for(&self) -> bool {
+        self.list_for.unwrap_or(false)
     }
 
     fn persist_on_create(&self) -> bool {
@@ -321,13 +347,13 @@ impl ColumnOpts {
     }
 }
 
-#[derive(Default, FromMeta)]
+#[derive(Default, PartialEq, FromMeta)]
 struct CreateOpts {
     persist: Option<bool>,
     accessor: Option<syn::Expr>,
 }
 
-#[derive(Default, FromMeta)]
+#[derive(Default, PartialEq, FromMeta)]
 struct UpdateOpts {
     persist: Option<bool>,
     accessor: Option<syn::Expr>,

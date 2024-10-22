@@ -16,7 +16,7 @@ const BQ_TABLE_NAME: &str = "withdraw_events";
     entity = "Withdraw",
     err = "WithdrawError",
     columns(
-        customer_id = "CustomerId",
+        customer_id(ty = "CustomerId", list_for),
         reference(ty = "String", create(accessor = "reference()")),
     ),
     post_persist_hook = "export"
@@ -32,21 +32,6 @@ impl WithdrawRepo {
             pool: pool.clone(),
             export: export.clone(),
         }
-    }
-
-    pub async fn list_for_customer(
-        &self,
-        customer_id: CustomerId,
-    ) -> Result<Vec<Withdraw>, WithdrawError> {
-        let (withdraws, _) = es_entity::es_query!(
-            &self.pool,
-            "SELECT id FROM withdraws WHERE customer_id = $1",
-            customer_id as CustomerId,
-        )
-        .fetch_n(usize::MAX)
-        .await?;
-
-        Ok(withdraws)
     }
 
     async fn export(

@@ -2,6 +2,7 @@ mod create_fn;
 mod find_all_fn;
 mod find_by_fn;
 mod list_by_fn;
+mod list_for_fn;
 mod options;
 mod persist_events_fn;
 mod post_persist_hook;
@@ -27,6 +28,7 @@ pub struct EsRepo<'a> {
     find_all_fn: find_all_fn::FindAllFn<'a>,
     post_persist_hook: post_persist_hook::PostPersistHook<'a>,
     list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
+    list_for_fns: Vec<list_for_fn::ListForFn<'a>>,
     opts: &'a RepositoryOptions,
 }
 
@@ -42,6 +44,16 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             .all_list_by()
             .map(|c| list_by_fn::ListByFn::new(c, opts))
             .collect();
+        let list_for_fns = opts
+            .columns
+            .all_list_for()
+            .flat_map(|list_for_column| {
+                opts.columns
+                    .all_list_by()
+                    .filter(move |list_by_column| list_for_column != *list_by_column)
+                    .map(|b| list_for_fn::ListForFn::new(list_for_column, b, opts))
+            })
+            .collect();
 
         Self {
             repo: &opts.ident,
@@ -52,6 +64,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             find_all_fn: find_all_fn::FindAllFn::from(opts),
             post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
             list_by_fns,
+            list_for_fns,
             opts,
         }
     }
@@ -68,6 +81,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let post_persist_hook = &self.post_persist_hook;
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
         let list_by_fns = &self.list_by_fns;
+        let list_for_fns = &self.list_for_fns;
 
         let entity = self.opts.entity();
         let event = self.opts.event();
@@ -131,6 +145,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #(#find_by_fns)*
                 #find_all_fn
                 #(#list_by_fns)*
+                #(#list_for_fns)*
             }
         });
     }
