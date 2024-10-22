@@ -18,7 +18,6 @@ import {
   useWithdrawalConfirmMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 
 gql`
@@ -122,12 +121,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
             <DetailItem
               className="text-sm"
               label="Amount"
-              value={
-                <Balance
-                  amount={currencyConverter.centsToUsd(withdrawalData.amount)}
-                  currency="usd"
-                />
-              }
+              value={<Balance amount={withdrawalData.amount} currency="usd" />}
             />
             <DetailItem
               className="text-sm"

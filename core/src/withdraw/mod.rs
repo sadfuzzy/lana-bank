@@ -1,4 +1,3 @@
-mod cursor;
 mod entity;
 mod error;
 mod repo;
