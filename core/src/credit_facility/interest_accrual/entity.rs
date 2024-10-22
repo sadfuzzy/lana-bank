@@ -145,7 +145,7 @@ impl InterestAccrual {
     }
 
     pub fn initiate_incurrence(
-        &mut self,
+        &self,
         outstanding: CreditFacilityReceivable,
         credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> CreditFacilityInterestIncurrence {
@@ -153,11 +153,11 @@ impl InterestAccrual {
             .next_incurrence_period()
             .expect("Incurrence period should exist inside this function");
 
-        let secs_in_interest_period = incurrence_period.seconds();
+        let days_in_interest_period = incurrence_period.days();
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period_in_secs(outstanding.total(), secs_in_interest_period);
+            .interest_for_time_period(outstanding.total(), days_in_interest_period);
 
         let incurrence_tx_ref = format!(
             "{}-interest-incurrence-{}",
@@ -180,9 +180,8 @@ impl InterestAccrual {
             tx_ref,
             tx_id,
             period,
-            ..
+            credit_facility_account_ids,
         }: CreditFacilityInterestIncurrence,
-        credit_facility_account_ids: CreditFacilityAccountIds,
         audit_info: AuditInfo,
     ) -> Option<CreditFacilityInterestAccrual> {
         self.events.push(InterestAccrualEvent::InterestIncurred {
@@ -267,6 +266,7 @@ impl NewInterestAccrual {
 
 #[cfg(test)]
 mod test {
+    use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
     use crate::terms::{Duration, InterestInterval};
@@ -372,5 +372,135 @@ mod test {
         let accrual = accrual_from(&events);
 
         assert_eq!(accrual.next_incurrence_period(), None);
+    }
+
+    #[test]
+    fn zero_amount_incurrence() {
+        let account_ids = CreditFacilityAccountIds::new();
+        let mut accrual = accrual_from(&initial_events());
+        let incurrence @ CreditFacilityInterestIncurrence {
+            interest, period, ..
+        } = accrual.initiate_incurrence(
+            CreditFacilityReceivable {
+                disbursed: UsdCents::ZERO,
+                interest: UsdCents::ZERO,
+            },
+            account_ids,
+        );
+        assert_eq!(interest, UsdCents::ZERO);
+        let start = default_started_at();
+        assert_eq!(period.start, start);
+        let start = start.date_naive();
+        let end_of_day = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        assert_eq!(period.end, end_of_day);
+
+        assert!(accrual
+            .confirm_incurrence(incurrence, dummy_audit_info())
+            .is_none());
+    }
+
+    fn end_of_month(start_date: DateTime<Utc>) -> DateTime<Utc> {
+        let current_year = start_date.year();
+        let current_month = start_date.month();
+
+        let (year, month) = if current_month == 12 {
+            (current_year + 1, 1)
+        } else {
+            (current_year, current_month + 1)
+        };
+
+        Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
+            .single()
+            .expect("should return a valid date time")
+            - chrono::Duration::seconds(1)
+    }
+
+    #[test]
+    fn accrual_is_zero_for_zero_outstanding() {
+        let account_ids = CreditFacilityAccountIds::new();
+        let mut accrual = accrual_from(&initial_events());
+
+        let start = default_started_at();
+        let start_day = start.day();
+        let end = end_of_month(start);
+        let end_day = end.day();
+        let mut expected_end_of_day = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        let mut confirmed_incurrence: Option<CreditFacilityInterestAccrual> = None;
+        for _ in start_day..(end_day + 1) {
+            assert!(confirmed_incurrence.is_none());
+
+            let incurrence @ CreditFacilityInterestIncurrence {
+                interest, period, ..
+            } = accrual.initiate_incurrence(
+                CreditFacilityReceivable {
+                    disbursed: UsdCents::ZERO,
+                    interest: UsdCents::ZERO,
+                },
+                account_ids,
+            );
+            assert_eq!(interest, UsdCents::ZERO);
+            assert_eq!(period.end, expected_end_of_day);
+
+            confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
+            expected_end_of_day = expected_end_of_day + chrono::Duration::days(1);
+        }
+
+        let expected_accrual_sum = UsdCents::ZERO;
+        match confirmed_incurrence {
+            Some(CreditFacilityInterestAccrual { interest, .. }) => {
+                assert_eq!(interest, expected_accrual_sum);
+            }
+            _ => panic!("Expected accrual to be returned"),
+        }
+    }
+
+    #[test]
+    fn accrual_is_sum_of_all_interest() {
+        let disbursed_outstanding = UsdCents::from(1_000_000_00);
+        let expected_daily_interest = default_terms()
+            .annual_rate
+            .interest_for_time_period(disbursed_outstanding, 1);
+
+        let account_ids = CreditFacilityAccountIds::new();
+        let mut accrual = accrual_from(&initial_events());
+
+        let start = default_started_at();
+        let start_day = start.day();
+        let end = end_of_month(start);
+        let end_day = end.day();
+        let mut expected_end_of_day = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        let mut confirmed_incurrence: Option<CreditFacilityInterestAccrual> = None;
+        for _ in start_day..(end_day + 1) {
+            assert!(confirmed_incurrence.is_none());
+
+            let incurrence @ CreditFacilityInterestIncurrence {
+                interest, period, ..
+            } = accrual.initiate_incurrence(
+                CreditFacilityReceivable {
+                    disbursed: disbursed_outstanding,
+                    interest: UsdCents::ZERO,
+                },
+                account_ids,
+            );
+            assert_eq!(interest, expected_daily_interest);
+            assert_eq!(period.end, expected_end_of_day);
+
+            confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
+            expected_end_of_day = expected_end_of_day + chrono::Duration::days(1);
+        }
+
+        let expected_accrual_sum = expected_daily_interest * (end_day + 1 - start_day).into();
+        match confirmed_incurrence {
+            Some(CreditFacilityInterestAccrual { interest, .. }) => {
+                assert_eq!(interest, expected_accrual_sum);
+            }
+            _ => panic!("Expected accrual to be returned"),
+        }
     }
 }
