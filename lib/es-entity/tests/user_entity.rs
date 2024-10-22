@@ -19,6 +19,8 @@ impl From<uuid::Uuid> for UserId {
 #[es_event(id = "UserId")]
 pub enum UserEvent {
     Initialized { id: UserId, email: String },
+    RoleAssigned {},
+    RoleRevoked {},
 }
 
 #[derive(Debug)]
@@ -56,6 +58,7 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::Initialized { id, email } => {
                     builder = builder.id(*id).email(email.clone())
                 }
+                _ => {}
             }
         }
         builder.events(events).build()

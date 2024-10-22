@@ -29,13 +29,13 @@ impl<'a> ToTokens for UpdateFn<'a> {
         let update_tokens = if self.columns.updates_needed() {
             let assignments = self
                 .columns
-                .variable_assignments(syn::parse_quote! { entity });
+                .variable_assignments_for_update(syn::parse_quote! { entity });
             let column_updates = self.columns.sql_updates();
             let query = format!(
                 "UPDATE {} SET {} WHERE id = $1",
                 self.table_name, column_updates,
             );
-            let args = self.columns.query_args();
+            let args = self.columns.update_query_args();
             Some(quote! {
             #assignments
             sqlx::query!(

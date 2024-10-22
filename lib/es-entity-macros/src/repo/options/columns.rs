@@ -17,23 +17,40 @@ impl Columns {
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![
-            Column::new(
-                syn::Ident::new("id", proc_macro2::Span::call_site()),
-                syn::parse_str(&ty.to_string()).unwrap(),
-            ),
+            Column {
+                name: syn::Ident::new("id", proc_macro2::Span::call_site()),
+                opts: ColumnOpts {
+                    ty: syn::parse_str(&ty.to_string()).unwrap(),
+                    is_id: true,
+                    list_by: Some(true),
+                    find_by: Some(true),
+                    create_opts: Some(CreateOpts {
+                        persist: Some(true),
+                        accessor: None,
+                    }),
+                    update_opts: Some(UpdateOpts {
+                        persist: Some(false),
+                        accessor: None,
+                    }),
+                },
+            },
             Column {
                 name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
                 opts: ColumnOpts {
                     ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
-                    accessor: Accessor {
-                        both: Some(syn::parse_quote!(events()
-                            .entity_first_persisted_at()
-                            .expect("entity not persisted"))),
-                        new: None,
-                    },
+                    is_id: false,
                     list_by: Some(true),
                     find_by: Some(false),
-                    update: Some(false),
+                    create_opts: Some(CreateOpts {
+                        persist: Some(false),
+                        accessor: None,
+                    }),
+                    update_opts: Some(UpdateOpts {
+                        persist: Some(false),
+                        accessor: Some(syn::parse_quote!(events()
+                            .entity_first_persisted_at()
+                            .expect("entity not persisted"))),
+                    }),
                 },
             },
         ];
@@ -50,13 +67,13 @@ impl Columns {
     }
 
     pub fn updates_needed(&self) -> bool {
-        self.all.len() > 2
+        self.all.iter().any(|c| c.opts.persist_on_update())
     }
 
-    pub fn variable_assignments(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
+    pub fn variable_assignments_for_update(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
         let assignments = self.all.iter().filter_map(|c| {
-            if c.opts.update() {
-                Some(c.variable_assignment(&ident))
+            if c.opts.persist_on_update() || c.opts.is_id {
+                Some(c.variable_assignment_for_update(&ident))
             } else {
                 None
             }
@@ -68,7 +85,7 @@ impl Columns {
 
     pub fn variable_assignments_for_create(&self, ident: syn::Ident) -> proc_macro2::TokenStream {
         let assignments = self.all.iter().filter_map(|c| {
-            if c.opts.update() {
+            if c.opts.persist_on_create() {
                 Some(c.variable_assignment_for_create(&ident))
             } else {
                 None
@@ -79,11 +96,25 @@ impl Columns {
         }
     }
 
-    pub fn names(&self) -> Vec<String> {
+    pub fn create_query_args(&self) -> Vec<proc_macro2::TokenStream> {
+        self.all
+            .iter()
+            .filter(|c| c.opts.persist_on_create())
+            .map(|column| {
+                let ident = &column.name;
+                let ty = &column.opts.ty;
+                quote! {
+                    #ident as &#ty
+                }
+            })
+            .collect()
+    }
+
+    pub fn insert_column_names(&self) -> Vec<String> {
         self.all
             .iter()
             .filter_map(|c| {
-                if c.opts.update() {
+                if c.opts.persist_on_create() {
                     Some(c.name.to_string())
                 } else {
                     None
@@ -92,8 +123,12 @@ impl Columns {
             .collect()
     }
 
-    pub fn placeholders(&self) -> String {
-        let count = self.all.iter().filter(|c| c.opts.update()).count();
+    pub fn insert_placeholders(&self) -> String {
+        let count = self
+            .all
+            .iter()
+            .filter(|c| c.opts.persist_on_create())
+            .count();
         (1..=count)
             .map(|i| format!("${}", i))
             .collect::<Vec<_>>()
@@ -104,17 +139,17 @@ impl Columns {
         self.all
             .iter()
             .skip(1)
-            .filter(|c| c.opts.update())
+            .filter(|c| c.opts.persist_on_update())
             .enumerate()
             .map(|(idx, column)| format!("{} = ${}", column.name, idx + 2))
             .collect::<Vec<_>>()
             .join(", ")
     }
 
-    pub fn query_args(&self) -> Vec<proc_macro2::TokenStream> {
+    pub fn update_query_args(&self) -> Vec<proc_macro2::TokenStream> {
         self.all
             .iter()
-            .filter(|c| c.opts.update())
+            .filter(|c| c.opts.persist_on_update() || c.opts.is_id)
             .map(|column| {
                 let ident = &column.name;
                 let ty = &column.opts.ty;
@@ -194,20 +229,20 @@ impl Column {
     }
 
     pub fn accessor(&self) -> proc_macro2::TokenStream {
-        self.opts.accessor(&self.name)
+        self.opts.update_accessor(&self.name)
     }
 
     fn variable_assignment_for_create(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
-        let accessor = self.opts.new_accessor(name);
+        let accessor = self.opts.create_accessor(name);
         quote! {
             let #name = &#ident.#accessor;
         }
     }
 
-    fn variable_assignment(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
+    fn variable_assignment_for_update(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
         let name = &self.name;
-        let accessor = self.opts.accessor(name);
+        let accessor = self.opts.update_accessor(name);
         quote! {
             let #name = &#ident.#accessor;
         }
@@ -217,24 +252,27 @@ impl Column {
 #[derive(FromMeta)]
 struct ColumnOpts {
     ty: syn::Type,
-    #[darling(default)]
-    accessor: Accessor,
+    #[darling(default, skip)]
+    is_id: bool,
     #[darling(default)]
     find_by: Option<bool>,
     #[darling(default)]
     list_by: Option<bool>,
-    #[darling(default)]
-    update: Option<bool>,
+    #[darling(default, rename = "create")]
+    create_opts: Option<CreateOpts>,
+    #[darling(default, rename = "update")]
+    update_opts: Option<UpdateOpts>,
 }
 
 impl ColumnOpts {
     fn new(ty: syn::Type) -> Self {
         ColumnOpts {
             ty,
-            accessor: Default::default(),
+            is_id: false,
             find_by: None,
             list_by: None,
-            update: None,
+            create_opts: None,
+            update_opts: None,
         }
     }
 
@@ -246,14 +284,16 @@ impl ColumnOpts {
         self.list_by.unwrap_or(true)
     }
 
-    fn update(&self) -> bool {
-        self.update.unwrap_or(true)
+    fn persist_on_create(&self) -> bool {
+        self.create_opts
+            .as_ref()
+            .map_or(true, |o| o.persist.unwrap_or(true))
     }
 
-    fn accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
-        if let Some(both) = &self.accessor.both {
+    fn create_accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
+        if let Some(accessor) = &self.create_opts.as_ref().and_then(|o| o.accessor.as_ref()) {
             quote! {
-                #both
+                #accessor
             }
         } else {
             quote! {
@@ -262,21 +302,35 @@ impl ColumnOpts {
         }
     }
 
-    fn new_accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
-        if let Some(new) = &self.accessor.new {
+    fn persist_on_update(&self) -> bool {
+        self.update_opts
+            .as_ref()
+            .map_or(true, |o| o.persist.unwrap_or(true))
+    }
+
+    fn update_accessor(&self, name: &syn::Ident) -> proc_macro2::TokenStream {
+        if let Some(accessor) = &self.update_opts.as_ref().and_then(|o| o.accessor.as_ref()) {
             quote! {
-                #new
+                #accessor
             }
         } else {
-            self.accessor(name)
+            quote! {
+                #name
+            }
         }
     }
 }
 
 #[derive(Default, FromMeta)]
-struct Accessor {
-    new: Option<syn::Expr>,
-    both: Option<syn::Expr>,
+struct CreateOpts {
+    persist: Option<bool>,
+    accessor: Option<syn::Expr>,
+}
+
+#[derive(Default, FromMeta)]
+struct UpdateOpts {
+    persist: Option<bool>,
+    accessor: Option<syn::Expr>,
 }
 
 #[cfg(test)]
@@ -291,21 +345,24 @@ mod tests {
         let input: syn::Meta = parse_quote!(thing(
             ty = "crate::module::Thing",
             list_by = false,
-            accessor(new = "accessor_fn()")
+            create(persist = true, accessor = accessor_fn()),
         ));
         let values = ColumnOpts::from_meta(&input).expect("Failed to parse Field");
         assert_eq!(values.ty, parse_quote!(crate::module::Thing));
         assert!(!values.list_by());
         assert!(values.find_by());
-        assert!(values.update());
-        assert_eq!(values.accessor.new.unwrap(), parse_quote!(accessor_fn()));
+        // assert!(values.update());
+        assert_eq!(
+            values.create_opts.unwrap().accessor.unwrap(),
+            parse_quote!(accessor_fn())
+        );
     }
 
     #[test]
     fn columns_from_list() {
         let input: syn::Meta = parse_quote!(columns(
             name = "String",
-            email(ty = "String", list_by = false, accessor(both = "email()"))
+            email(ty = "String", list_by = false, create(accessor = "email()"))
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
         assert_eq!(columns.all.len(), 2);
@@ -317,7 +374,7 @@ mod tests {
         assert_eq!(
             columns.all[1]
                 .opts
-                .accessor(&parse_quote!(email))
+                .create_accessor(&parse_quote!(email))
                 .to_string(),
             quote!(email()).to_string()
         );

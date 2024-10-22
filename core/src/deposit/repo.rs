@@ -17,7 +17,7 @@ const BQ_TABLE_NAME: &str = "deposit_events";
     err = "DepositError",
     columns(
         customer_id = "CustomerId",
-        reference(ty = "String", accessor(new = "reference()"))
+        reference(ty = "String", create(accessor = "reference()"))
     ),
     post_persist_hook = "export"
 )]

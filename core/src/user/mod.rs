@@ -115,7 +115,7 @@ impl Users {
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindById(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -123,7 +123,7 @@ impl Users {
     pub async fn find_by_id_internal(&self, id: UserId) -> Result<Option<User>, UserError> {
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindById(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -136,9 +136,9 @@ impl Users {
     }
 
     pub async fn find_by_email(&self, email: impl Into<String>) -> Result<Option<User>, UserError> {
-        match self.repo.find_by_email(email).await {
+        match self.repo.find_by_email(email.into()).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::CouldNotFindByEmail(_)) => Ok(None),
+            Err(UserError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -147,7 +147,8 @@ impl Users {
         self.authz
             .enforce_permission(sub, Object::User, UserAction::List)
             .await?;
-        self.repo.list().await
+
+        Ok(self.repo.list_by_email(Default::default()).await?.entities)
     }
 
     pub async fn can_assign_role_to_user(
@@ -180,7 +181,7 @@ impl Users {
         let mut user = self.repo.find_by_id(id).await?;
         if user.assign_role(role, audit_info) {
             self.authz.assign_role_to_subject(user.id, &role).await?;
-            self.repo.persist(&mut user).await?;
+            self.repo.update(&mut user).await?;
         }
 
         Ok(user)
@@ -216,7 +217,7 @@ impl Users {
         let mut user = self.repo.find_by_id(id).await?;
         if user.revoke_role(role, audit_role) {
             self.authz.revoke_role_from_subject(user.id, &role).await?;
-            self.repo.persist(&mut user).await?;
+            self.repo.update(&mut user).await?;
         }
 
         Ok(user)

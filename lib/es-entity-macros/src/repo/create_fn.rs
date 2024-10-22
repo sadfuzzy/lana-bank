@@ -36,9 +36,9 @@ impl<'a> ToTokens for CreateFn<'a> {
 
         let table_name = self.table_name;
 
-        let column_names = self.columns.names();
-        let placeholders = self.columns.placeholders();
-        let args = self.columns.query_args();
+        let column_names = self.columns.insert_column_names();
+        let placeholders = self.columns.insert_placeholders();
+        let args = self.columns.create_query_args();
 
         let query = format!(
             "INSERT INTO {} ({}) VALUES ({})",
@@ -192,7 +192,7 @@ mod tests {
         use darling::FromMeta;
         let input: syn::Meta = syn::parse_quote!(columns(
             id = "EntityId",
-            name(ty = "String", accessor(new = "name()"))
+            name(ty = "String", create(accessor = "name()"))
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
 
