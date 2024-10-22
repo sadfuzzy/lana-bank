@@ -1101,7 +1101,7 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.1.132-dev"
+version = "0.1.143-dev"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1117,7 +1117,7 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.1.132-dev"
+version = "0.1.143-dev"
 dependencies = [
  "convert_case",
  "darling",
@@ -1956,7 +1956,7 @@ dependencies = [
 
 [[package]]
 name = "lava-core"
-version = "0.1.142-dev"
+version = "0.1.143-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2005,7 +2005,7 @@ dependencies = [
 
 [[package]]
 name = "lava-job"
-version = "0.1.142-dev"
+version = "0.1.143-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2022,7 +2022,7 @@ dependencies = [
 
 [[package]]
 name = "lava-tracing"
-version = "0.1.142-dev"
+version = "0.1.143-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
