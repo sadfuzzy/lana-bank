@@ -1,0 +1,159 @@
+config {
+	type: "operations",
+	hasOutput: true,
+}
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
+
+WITH approved AS (
+
+	SELECT DISTINCT id AS loan_id
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "approved"
+
+), initial AS (
+
+	SELECT DISTINCT id AS loan_id
+		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
+		, recorded_at AS start_timestamp
+		, CASE
+			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
+			THEN TIMESTAMP_ADD(
+				DATE(recorded_at),
+				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
+			)
+		END AS end_date
+		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
+		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
+		, JSON_VALUE(event, "$.customer_id") AS customer_id
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "initialized"
+
+), payments AS (
+
+	SELECT id AS loan_id
+		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
+		, SUM(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC)) AS total_disbursement_paid
+		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_interest_payment_timestamp
+		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_disbursement_payment_timestamp
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "payment_recorded"
+
+	GROUP BY loan_id
+
+), interest AS (
+
+	SELECT id AS loan_id
+		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_interest_incurred
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "interest_incurred"
+
+	GROUP BY loan_id
+
+), collateral AS (
+
+	SELECT id AS loan_id
+		, CAST(
+			JSON_VALUE(
+				ANY_VALUE(event HAVING MAX recorded_at),
+				"$.total_collateral"
+			)
+		AS NUMERIC) AS total_collateral
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "collateral_updated"
+
+	GROUP BY loan_id
+
+), collateral_deposits AS (
+
+	SELECT id AS loan_id
+		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6SZ',
+			JSON_VALUE(
+				ANY_VALUE(event HAVING MAX recorded_at),
+				"$.recorded_at"
+			),
+			"UTC"
+		) AS most_recent_collateral_deposit
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "collateral_updated"
+		AND JSON_VALUE(event, "$.action") = "Add"
+
+	GROUP BY loan_id
+
+), disbursements AS (
+
+	SELECT id AS loan_id
+		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_disbursed
+
+	FROM ${ref({
+		name: "credit_facility_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "disbursement_initiated"
+
+	GROUP BY loan_id
+
+)
+
+SELECT loan_id
+	, start_timestamp
+	, end_date
+	, payment_interval
+	, most_recent_interest_payment_timestamp
+	, most_recent_disbursement_payment_timestamp
+	, annual_rate
+	, COALESCE(facility, 0) AS facility
+	, COALESCE(total_interest_paid, 0) AS total_interest_paid
+	, COALESCE(total_disbursement_paid, 0) AS total_disbursement_paid
+	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
+	, COALESCE(total_collateral, 0) AS total_collateral
+	, customer_id
+	, most_recent_collateral_deposit
+	, COALESCE(total_disbursed, 0) AS total_disbursed
+
+FROM approved
+	JOIN initial USING (loan_id)
+	LEFT JOIN payments USING (loan_id)
+	LEFT JOIN interest USING (loan_id)
+	LEFT JOIN collateral USING (loan_id)
+	LEFT JOIN collateral_deposits USING (loan_id)
+	LEFT JOIN disbursements USING (loan_id)
+);

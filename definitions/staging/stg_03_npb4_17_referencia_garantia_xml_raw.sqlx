@@ -7,6 +7,22 @@ config {
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
+	WITH loans_and_credit_facilities AS (
+
+		SELECT loan_id, total_collateral,
+			principal AS loan_amount,
+
+		FROM ${ref("stg_approved_loans")}(asof)
+
+		UNION ALL
+
+		SELECT loan_id, total_collateral,
+			facility AS loan_amount,
+
+		FROM ${ref("stg_approved_credit_facilities")}(asof)
+
+	)
+
 	SELECT
 		LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  			-- uses the 20 leftmost no-hyphen characters from backend loan_id
 		, (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)") AS `cod_cartera`
@@ -19,8 +35,8 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 				name: "price_cents_btc",
 				schema: envs.currentImportSchema
 			})}
-		), principal*100), 1) AS `valor_garantia_proporcional`,
+		), loan_amount*100), 1) AS `valor_garantia_proporcional`,
 
-	FROM ${ref("stg_approved_loans")}(asof)
+	FROM loans_and_credit_facilities
 
 )

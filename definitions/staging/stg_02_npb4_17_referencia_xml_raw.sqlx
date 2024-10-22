@@ -7,16 +7,42 @@ config {
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
+WITH loans_and_credit_facilities AS (
+
+	SELECT customer_id, loan_id, start_timestamp, end_date, payment_interval, annual_rate,
+		most_recent_interest_payment_timestamp,
+		most_recent_principal_payment_timestamp AS most_recent_capital_payment_timestamp,
+		principal AS loan_amount,
+		principal + total_interest_incurred - total_interest_paid - total_principal_paid AS remaining_balance,
+		principal - total_principal_paid AS remaining_capital_balance,
+		total_interest_incurred - total_interest_paid AS remaining_interest_balance,
+
+	FROM ${ref("stg_approved_loans")}(asof)
+
+	UNION ALL
+
+	SELECT customer_id, loan_id, start_timestamp, end_date, payment_interval, annual_rate,
+		most_recent_interest_payment_timestamp,
+		most_recent_disbursement_payment_timestamp AS most_recent_capital_payment_timestamp,
+		facility AS loan_amount,
+		total_disbursed + total_interest_incurred - total_interest_paid - total_disbursement_paid AS remaining_balance,
+		total_disbursed - total_disbursement_paid AS remaining_capital_balance,
+		total_interest_incurred - total_interest_paid AS remaining_interest_balance,
+
+	FROM ${ref("stg_approved_credit_facilities")}(asof)
+
+)
+
 SELECT
     LEFT(REPLACE(customer_id, '-', ''), 14) AS `nit_deudor`         -- use NIU type which uses the 14 leftmost no-hyphen characters from backend customer_id
   , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)" ) AS `cod_cartera`
   , (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Préstamos" ) AS `cod_activo`
   , LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  -- uses the 20 leftmost no-hyphen characters from backend loan_id
-  , principal AS `monto_referencia` -- Original loan amount
-  , principal + total_interest_incurred - total_interest_paid - total_principal_paid AS `saldo_referencia` -- Remaining balance
-  , principal - total_principal_paid AS `saldo_vigente_k`
+  , loan_amount AS `monto_referencia`
+  , remaining_balance AS `saldo_referencia`
+  , remaining_capital_balance AS `saldo_vigente_k`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_k`
-  , GREATEST(total_interest_incurred - total_principal_paid, 0) AS `saldo_vigente_i` -- yeilds a negative, TODO: review
+  , remaining_interest_balance AS `saldo_vigente_i`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
   , DATE(start_timestamp) AS `fecha_otorgamiento`
@@ -50,7 +76,7 @@ SELECT
   , CAST(NULL AS NUMERIC) AS `monto_desembolsado`
   , CAST(NULL AS STRING) AS `tipo_credito`
   , DATE(most_recent_interest_payment_timestamp) AS `fecha_ultimo_pago_k`
-  , DATE(most_recent_principal_payment_timestamp) AS `fecha_ultimo_pago_i`
+  , DATE(most_recent_capital_payment_timestamp) AS `fecha_ultimo_pago_i`
   , CAST(NULL AS NUMERIC) AS `dia_pago_k`
   , CAST(NULL AS NUMERIC) AS `dia_pago_i`
   , CAST(NULL AS INT64) AS `cuota_mora_k`
@@ -87,6 +113,6 @@ SELECT
   , CAST(NULL AS STRING) AS `programa_asist_cafe`
   , CAST(NULL AS DATE) AS `fecha_cump_cafe`
 
-FROM ${ref("stg_approved_loans")}(asof)
+FROM loans_and_credit_facilities
 
 )
