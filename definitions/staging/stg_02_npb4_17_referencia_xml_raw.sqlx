@@ -9,7 +9,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH loans_and_credit_facilities AS (
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, payment_interval, annual_rate,
+	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
 		most_recent_interest_payment_timestamp,
 		most_recent_principal_payment_timestamp AS most_recent_capital_payment_timestamp,
 		principal AS loan_amount,
@@ -21,7 +21,7 @@ WITH loans_and_credit_facilities AS (
 
 	UNION ALL
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, payment_interval, annual_rate,
+	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
 		most_recent_interest_payment_timestamp,
 		most_recent_disbursement_payment_timestamp AS most_recent_capital_payment_timestamp,
 		facility AS loan_amount,
@@ -55,8 +55,8 @@ SELECT
   , CAST(NULL AS INT64) AS `dias_mora_i`
   , CAST(NULL AS DATE) AS `fecha_inicio_mora_k`
   , CAST(NULL AS DATE) AS `fecha_inicio_mora_i`
-  , CASE WHEN payment_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_capital`
-  , CASE WHEN payment_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_interes`
+  , CASE WHEN accrual_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_capital`
+  , CASE WHEN accrual_interval = "end_of_month" THEN (SELECT code FROM ${ref("stg_dim_08_npb4_17_formas_de_pago")} WHERE description = "Mensual") END AS `pago_interes`
   , CAST(NULL AS INT64) AS `periodo_gracia_k`
   , CAST(NULL AS INT64) AS `periodo_gracia_i`
   , CAST(NULL AS STRING) AS `garante`

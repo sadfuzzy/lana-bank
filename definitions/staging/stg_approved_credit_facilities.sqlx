@@ -30,7 +30,8 @@ WITH approved AS (
 			)
 		END AS end_date
 		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
-		, JSON_VALUE(event, "$.terms.interval.type") AS payment_interval
+		, JSON_VALUE(event, "$.terms.incurrence_interval.type") AS incurrence_interval
+		, JSON_VALUE(event, "$.terms.accrual_interval.type") AS accrual_interval
 		, JSON_VALUE(event, "$.customer_id") AS customer_id
 
 	FROM ${ref({
@@ -136,7 +137,8 @@ WITH approved AS (
 SELECT loan_id
 	, start_timestamp
 	, end_date
-	, payment_interval
+	, incurrence_interval
+	, accrual_interval
 	, most_recent_interest_payment_timestamp
 	, most_recent_disbursement_payment_timestamp
 	, annual_rate
