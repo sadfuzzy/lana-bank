@@ -135,8 +135,8 @@ impl LavaApp {
     pub async fn list_audit(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<AuditCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
+        query: es_entity::PaginatedQueryArgs<AuditCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
         self.authz
             .enforce_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
             .await?;

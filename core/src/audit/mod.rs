@@ -75,8 +75,8 @@ impl Audit {
 
     pub async fn list(
         &self,
-        query: crate::query::PaginatedQueryArgs<AuditCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
+        query: es_entity::PaginatedQueryArgs<AuditCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
         let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
         let limit = i64::try_from(query.first)?;
 
@@ -126,7 +126,7 @@ impl Audit {
             })
             .collect();
 
-        Ok(crate::query::PaginatedQueryRet {
+        Ok(es_entity::PaginatedQueryRet {
             entities: audit_entries,
             has_next_page,
             end_cursor,

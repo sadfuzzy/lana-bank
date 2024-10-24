@@ -673,9 +673,9 @@ impl Ledger {
         account_set_id: LedgerAccountSetId,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-        query: crate::query::PaginatedQueryArgs<LedgerSubAccountCursor>,
+        query: es_entity::PaginatedQueryArgs<LedgerSubAccountCursor>,
     ) -> Result<
-        crate::query::PaginatedQueryRet<
+        es_entity::PaginatedQueryRet<
             PaginatedLedgerAccountSetSubAccountWithBalance,
             LedgerSubAccountCursor,
         >,
@@ -705,7 +705,7 @@ impl Ledger {
                 )
             });
 
-        Ok(crate::query::PaginatedQueryRet {
+        Ok(es_entity::PaginatedQueryRet {
             entities: sub_accounts,
             has_next_page,
             end_cursor,

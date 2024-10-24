@@ -154,7 +154,7 @@ impl AccountSetAndSubAccounts {
                         self.id.clone().into(),
                         self.from,
                         self.until,
-                        crate::query::PaginatedQueryArgs {
+                        es_entity::PaginatedQueryArgs {
                             first,
                             after: after
                                 .map(crate::ledger::account_set::LedgerSubAccountCursor::from),

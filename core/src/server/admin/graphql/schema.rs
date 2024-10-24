@@ -55,7 +55,7 @@ impl Query {
             .map(|cursor| cursor.parse::<AuditCursor>())
             .transpose()?;
 
-        let query_args = crate::query::PaginatedQueryArgs {
+        let query_args = es_entity::PaginatedQueryArgs {
             first: first.try_into().expect("convert to usize failed"),
             after: after_cursor,
         };
