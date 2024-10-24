@@ -251,7 +251,7 @@ impl Query {
                 let first = first.expect("First always exists");
                 let res = app
                     .credit_facilities()
-                    .list(sub, crate::query::PaginatedQueryArgs { first, after })
+                    .list(sub, es_entity::PaginatedQueryArgs { first, after })
                     .await?;
                 let mut connection = Connection::new(false, res.has_next_page);
                 connection

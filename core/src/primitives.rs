@@ -55,7 +55,7 @@ impl DisbursementIdx {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
+#[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct InterestAccrualIdx(i32);

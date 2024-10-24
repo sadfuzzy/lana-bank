@@ -60,4 +60,20 @@ pub enum CreditFacilityError {
     InterestAccrualInProgress,
     #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
     InterestAccrualWithInvalidFutureStartDate,
+    #[error("CreditFacilityError - NotFound")]
+    NotFound,
+}
+
+impl From<es_entity::EsEntityError> for CreditFacilityError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => CreditFacilityError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!(
+                    "Inconsistent data when initializing a CreditFacility entity: {:?}",
+                    e
+                )
+            }
+        }
+    }
 }

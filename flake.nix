@@ -41,6 +41,7 @@
           cargo-nextest
           cargo-audit
           cargo-watch
+          typos
           postgresql
           docker-compose
           bats

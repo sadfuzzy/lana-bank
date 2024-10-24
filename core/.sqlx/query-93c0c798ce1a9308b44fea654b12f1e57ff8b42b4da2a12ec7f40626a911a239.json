@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO disbursements (id, credit_facility_id, idx)\n            VALUES ($1, $2, $3)",
+  "query": "INSERT INTO disbursements (id, credit_facility_id, idx) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "854be87040f39a3b32a3964da22a52201b193ee5067564ae3223bb33156dda7f"
+  "hash": "93c0c798ce1a9308b44fea654b12f1e57ff8b42b4da2a12ec7f40626a911a239"
 }

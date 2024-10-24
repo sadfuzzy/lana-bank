@@ -91,13 +91,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             )
             .await?;
 
-        let idx = credit_facility
+        let id = credit_facility
             .interest_accrual_in_progress()
             .expect("Accrual in progress should exist for scheduled job");
-        let mut accrual = self
-            .interest_accrual_repo
-            .find_by_idx_for_credit_facility(credit_facility.id, idx)
-            .await?;
+        let mut accrual = self.interest_accrual_repo.find_by_id(id).await?;
 
         let interest_incurrence =
             accrual.initiate_incurrence(credit_facility.outstanding(), credit_facility.account_ids);

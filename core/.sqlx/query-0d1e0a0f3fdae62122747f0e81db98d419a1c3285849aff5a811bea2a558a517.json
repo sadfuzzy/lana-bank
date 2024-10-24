@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM interest_accruals WHERE (COALESCE(id > $2, true)) ORDER BY id LIMIT $1) SELECT i.id AS \"entity_id: InterestAccrualId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN interest_accrual_events e ON i.id = e.id ORDER BY i.id, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: InterestAccrualId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0d1e0a0f3fdae62122747f0e81db98d419a1c3285849aff5a811bea2a558a517"
+}

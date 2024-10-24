@@ -1,5 +1,4 @@
 mod config;
-mod cursor;
 mod disbursement;
 mod entity;
 pub mod error;
@@ -27,7 +26,6 @@ use crate::{
 };
 
 pub use config::*;
-pub use cursor::*;
 pub use disbursement::*;
 pub use entity::*;
 use error::*;
@@ -35,7 +33,8 @@ pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 use lava_job::error::JobError;
-use repo::*;
+pub use repo::cursor::*;
+use repo::CreditFacilityRepo;
 use tracing::instrument;
 
 #[derive(Clone)]
@@ -347,13 +346,14 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
+        let disbursement_id = credit_facility
+            .disbursement_id_from_idx(disbursement_idx)
+            .ok_or_else(|| disbursement::error::DisbursementError::NotFound)?;
+
         let subject_id = uuid::Uuid::from(sub);
         let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
 
-        let mut disbursement = self
-            .disbursement_repo
-            .find_by_idx_for_credit_facility(credit_facility_id, disbursement_idx)
-            .await?;
+        let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
 
         let mut db_tx = self.pool.begin().await?;
 
@@ -568,24 +568,26 @@ impl CreditFacilities {
                 .await?;
         }
 
-        self.credit_facility_repo
-            .find_for_customer(customer_id)
-            .await
+        Ok(self
+            .credit_facility_repo
+            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .await?
+            .entities)
     }
 
     #[instrument(name = "lava.credit_facility.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
     ) -> Result<
-        crate::query::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
         CreditFacilityError,
     > {
         self.authz
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
-        self.credit_facility_repo.list(query).await
+        self.credit_facility_repo.list_by_created_at(query).await
     }
 
     pub async fn user_can_complete(
@@ -660,7 +662,11 @@ impl CreditFacilities {
             )
             .await?;
 
-        let disbursements = self.disbursement_repo.list(credit_facility_id).await?;
+        let disbursements = self
+            .disbursement_repo
+            .list_for_credit_facility_id_by_idx(credit_facility_id, Default::default())
+            .await?
+            .entities;
         Ok(disbursements)
     }
 }

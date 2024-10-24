@@ -2,18 +2,20 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use es_entity::*;
+
 use crate::{
     credit_facility::{
         CreditFacilityAccountIds, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
         CreditFacilityReceivable,
     },
-    entity::{Entity, EntityError, EntityEvent, EntityEvents},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "InterestAccrualId")]
 pub enum InterestAccrualEvent {
     Initialized {
         id: InterestAccrualId,
@@ -40,18 +42,11 @@ pub enum InterestAccrualEvent {
     },
 }
 
-impl EntityEvent for InterestAccrualEvent {
-    type EntityId = InterestAccrualId;
-    fn event_table_name() -> &'static str {
-        "interest_accrual_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct InterestAccrual {
     pub id: InterestAccrualId,
-    pub facility_id: CreditFacilityId,
+    pub credit_facility_id: CreditFacilityId,
     pub idx: InterestAccrualIdx,
     pub started_at: DateTime<Utc>,
     pub facility_expires_at: DateTime<Utc>,
@@ -59,16 +54,10 @@ pub struct InterestAccrual {
     pub(super) events: EntityEvents<InterestAccrualEvent>,
 }
 
-impl Entity for InterestAccrual {
-    type Event = InterestAccrualEvent;
-}
-
-impl TryFrom<EntityEvents<InterestAccrualEvent>> for InterestAccrual {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<InterestAccrualEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<InterestAccrualEvent> for InterestAccrual {
+    fn try_from_events(events: EntityEvents<InterestAccrualEvent>) -> Result<Self, EsEntityError> {
         let mut builder = InterestAccrualBuilder::default();
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 InterestAccrualEvent::Initialized {
                     id,
@@ -81,7 +70,7 @@ impl TryFrom<EntityEvents<InterestAccrualEvent>> for InterestAccrual {
                 } => {
                     builder = builder
                         .id(*id)
-                        .facility_id(*facility_id)
+                        .credit_facility_id(*facility_id)
                         .idx(*idx)
                         .started_at(*started_at)
                         .facility_expires_at(*facility_expires_at)
@@ -107,13 +96,13 @@ impl InterestAccrual {
 
     pub fn is_accrued(&self) -> bool {
         self.events
-            .iter()
+            .iter_all()
             .any(|event| matches!(event, InterestAccrualEvent::InterestAccrued { .. }))
     }
 
     fn total_incurred(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 InterestAccrualEvent::InterestIncurred { amount, .. } => Some(*amount),
                 _ => None,
@@ -123,13 +112,13 @@ impl InterestAccrual {
 
     fn count_incurred(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, InterestAccrualEvent::InterestIncurred { .. }))
             .count()
     }
 
     pub fn next_incurrence_period(&self) -> Option<InterestPeriod> {
-        let last_incurrence = self.events.iter().rev().find_map(|event| match event {
+        let last_incurrence = self.events.iter_all().rev().find_map(|event| match event {
             InterestAccrualEvent::InterestIncurred { incurred_at, .. } => Some(*incurred_at),
             _ => None,
         });
@@ -195,7 +184,8 @@ impl InterestAccrual {
         match period.next().truncate(self.accrues_at()) {
             Some(_) => None,
             None => {
-                let accrual_tx_ref = format!("{}-interest-accrual-{}", self.facility_id, self.idx);
+                let accrual_tx_ref =
+                    format!("{}-interest-accrual-{}", self.credit_facility_id, self.idx);
                 let interest_accrual = CreditFacilityInterestAccrual {
                     interest: self.total_incurred(),
                     tx_ref: accrual_tx_ref,
@@ -234,7 +224,7 @@ pub struct NewInterestAccrual {
     #[builder(setter(into))]
     pub(super) id: InterestAccrualId,
     #[builder(setter(into))]
-    pub(super) facility_id: CreditFacilityId,
+    pub(super) credit_facility_id: CreditFacilityId,
     pub(super) idx: InterestAccrualIdx,
     pub(super) started_at: DateTime<Utc>,
     pub(super) facility_expires_at: DateTime<Utc>,
@@ -247,13 +237,15 @@ impl NewInterestAccrual {
     pub fn builder() -> NewInterestAccrualBuilder {
         NewInterestAccrualBuilder::default()
     }
+}
 
-    pub fn initial_events(self) -> EntityEvents<InterestAccrualEvent> {
+impl IntoEvents<InterestAccrualEvent> for NewInterestAccrual {
+    fn into_events(self) -> EntityEvents<InterestAccrualEvent> {
         EntityEvents::init(
             self.id,
             [InterestAccrualEvent::Initialized {
                 id: self.id,
-                facility_id: self.facility_id,
+                facility_id: self.credit_facility_id,
                 idx: self.idx,
                 started_at: self.started_at,
                 facility_expires_at: self.facility_expires_at,
@@ -298,8 +290,11 @@ mod test {
     }
 
     fn accrual_from(events: &Vec<InterestAccrualEvent>) -> InterestAccrual {
-        InterestAccrual::try_from(EntityEvents::init(InterestAccrualId::new(), events.clone()))
-            .unwrap()
+        InterestAccrual::try_from_events(EntityEvents::init(
+            InterestAccrualId::new(),
+            events.clone(),
+        ))
+        .unwrap()
     }
 
     fn initial_events() -> Vec<InterestAccrualEvent> {
