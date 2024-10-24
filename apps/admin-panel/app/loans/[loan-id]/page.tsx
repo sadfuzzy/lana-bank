@@ -100,7 +100,7 @@ gql`
         }
         approvedAt
       }
-      currentCvl @client
+      currentCvl
       collateralToMatchInitialCvl @client
       repaymentPlan {
         repaymentType

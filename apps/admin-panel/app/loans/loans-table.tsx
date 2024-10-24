@@ -42,7 +42,7 @@ gql`
             email
           }
           principal
-          currentCvl @client
+          currentCvl
           balance {
             collateral {
               btcBalance

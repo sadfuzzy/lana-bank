@@ -138,7 +138,7 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
                 <div>)</div>
               </p>
             }
-            value={`${creditFacilityDetails.currentCvl}%`}
+            value={`${creditFacilityDetails.currentCvl.total}%`}
           />
           <DetailItem
             className="px-0"

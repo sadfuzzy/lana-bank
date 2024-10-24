@@ -9,11 +9,13 @@ use crate::{
         admin::{graphql::user::User, AdminAuthContext},
         shared_graphql::{customer::Customer, primitives::*, terms::TermValues},
     },
+    terms::CVLData,
 };
 
 use super::{
     convert::ToGlobalId,
     objects::{Collateral, Outstanding},
+    terms::CVLPct,
 };
 
 #[derive(SimpleObject)]
@@ -29,6 +31,8 @@ pub struct Loan {
     customer_id: UUID,
     #[graphql(skip)]
     account_ids: crate::ledger::loan::LoanAccountIds,
+    #[graphql(skip)]
+    cvl_data: CVLData,
     status: LoanStatus,
     collateral: Satoshis,
     principal: UsdCents,
@@ -172,6 +176,12 @@ impl Loan {
         }
     }
 
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let price = app.price().usd_cents_per_btc().await?;
+        Ok(self.cvl_data.cvl(price))
+    }
+
     async fn user_can_approve(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
@@ -302,6 +312,7 @@ impl From<crate::loan::Loan> for Loan {
             status: loan.status(),
             loan_terms: TermValues::from(loan.terms),
             account_ids: loan.account_ids,
+            cvl_data: loan.cvl_data(),
             created_at,
             approved_at,
             expires_at,

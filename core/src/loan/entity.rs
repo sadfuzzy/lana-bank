@@ -13,7 +13,7 @@ use crate::{
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},
     },
     primitives::*,
-    terms::{CVLPct, InterestPeriod, TermValues},
+    terms::{CVLData, CVLPct, InterestPeriod, TermValues},
 };
 
 use super::{error::LoanError, history, repayment_plan, LoanApprovalData, LoanInterestAccrual};
@@ -290,7 +290,7 @@ impl Loan {
             return Err(LoanError::NoCollateral);
         }
 
-        let current_cvl = self.cvl(price);
+        let current_cvl = self.cvl_data().cvl(price);
         let margin_call_cvl = self.terms.margin_call_cvl;
 
         if current_cvl < margin_call_cvl {
@@ -595,20 +595,15 @@ impl Loan {
         }
     }
 
-    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral());
-        if collateral_value == UsdCents::ZERO {
-            CVLPct::ZERO
-        } else {
-            CVLPct::from_loan_amounts(collateral_value, self.outstanding().total())
-        }
+    pub fn cvl_data(&self) -> CVLData {
+        CVLData::new(self.collateral(), self.outstanding().total())
     }
 
     fn calculate_collaterization(&self, price: PriceOfOneBTC) -> LoanCollaterizationState {
         let margin_call_cvl = self.terms.margin_call_cvl;
         let liquidation_cvl = self.terms.liquidation_cvl;
 
-        let current_cvl = self.cvl(price);
+        let current_cvl = self.cvl_data().cvl(price);
         if current_cvl == CVLPct::ZERO {
             LoanCollaterizationState::NoCollateral
         } else if current_cvl >= margin_call_cvl {
@@ -690,7 +685,7 @@ impl Loan {
                 LoanCollaterizationState::FullyCollateralized,
             ) => {
                 let margin_call_cvl = self.terms.margin_call_cvl;
-                let current_cvl = self.cvl(price);
+                let current_cvl = self.cvl_data().cvl(price);
 
                 if margin_call_cvl.is_significantly_lower_than(current_cvl, upgrade_buffer_cvl_pct)
                 {
@@ -1201,11 +1196,15 @@ mod test {
         loan.confirm_approval(loan_approval, Utc::now(), dummy_audit_info());
 
         let expected_cvl = CVLPct::from(dec!(142));
-        let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
+        let cvl = loan
+            .cvl_data()
+            .cvl(PriceOfOneBTC::new(UsdCents::from(5000000)));
         assert_eq!(cvl, expected_cvl);
 
         let expected_cvl = CVLPct::from(dec!(100));
-        let cvl = loan.cvl(PriceOfOneBTC::new(UsdCents::from(3500000)));
+        let cvl = loan
+            .cvl_data()
+            .cvl(PriceOfOneBTC::new(UsdCents::from(3500000)));
         assert_eq!(cvl, expected_cvl);
     }
 

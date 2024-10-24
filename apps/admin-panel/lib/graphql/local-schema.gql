@@ -1,12 +1,10 @@
 union Transaction = Deposit | Withdrawal
 
 extend type Loan {
-  currentCvl: Float
   collateralToMatchInitialCvl: Satoshis
 }
 
 extend type CreditFacility {
-  currentCvl: Float
   collateralToMatchInitialCvl: Satoshis
 }
 

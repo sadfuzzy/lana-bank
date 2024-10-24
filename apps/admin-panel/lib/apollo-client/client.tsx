@@ -17,7 +17,6 @@ import {
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
   Loan,
-  LoanStatus,
 } from "@/lib/graphql/generated"
 
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
@@ -62,27 +61,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
 
   const resolvers: Resolvers = {
     Loan: {
-      currentCvl: async (loan: Loan, _, { cache }) => {
-        const priceInfo = await fetchData(cache)
-        if (!priceInfo) return null
-
-        const principalValueInUsd = loan.principal / CENTS_PER_USD
-
-        const collateralValueInSats = loan.balance.collateral.btcBalance
-        const collateralValueInCents =
-          (priceInfo.realtimePrice.usdCentsPerBtc * collateralValueInSats) / SATS_PER_BTC
-        const collateralValueInUsd = collateralValueInCents / CENTS_PER_USD
-
-        const outstandingAmountInUsd = loan.balance.outstanding.usdBalance / CENTS_PER_USD
-
-        if (collateralValueInUsd == 0 || loan.status === LoanStatus.Closed) return 0
-
-        const newOutstandingAmount =
-          outstandingAmountInUsd === 0 ? principalValueInUsd : outstandingAmountInUsd
-        const cvl = (collateralValueInUsd / newOutstandingAmount) * CENTS_PER_USD
-
-        return Number(cvl.toFixed(2))
-      },
       collateralToMatchInitialCvl: async (loan: Loan, _, { cache }) => {
         const priceInfo = await fetchData(cache)
         if (!priceInfo) return null
@@ -96,22 +74,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
     },
     CreditFacility: {
-      currentCvl: async (facility: CreditFacility, _, { cache }) => {
-        const priceInfo = await fetchData(cache)
-        if (!priceInfo) return null
-
-        const collateralValueInUsd =
-          (facility.collateral * priceInfo.realtimePrice.usdCentsPerBtc) /
-          (SATS_PER_BTC * CENTS_PER_USD)
-
-        const basisAmountInUsd = calculateBaseAmountInCents(facility) / CENTS_PER_USD
-
-        if (collateralValueInUsd === 0) return 0
-
-        const cvl = (collateralValueInUsd / basisAmountInUsd) * 100
-
-        return Number(cvl.toFixed(2))
-      },
       collateralToMatchInitialCvl: async (facility: CreditFacility, _, { cache }) => {
         const priceInfo = await fetchData(cache)
         if (!priceInfo) return null

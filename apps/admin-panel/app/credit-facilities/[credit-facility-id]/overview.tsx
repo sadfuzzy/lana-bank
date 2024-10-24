@@ -98,7 +98,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 <div className="text-sm">)</div>
               </p>
             }
-            value={`${creditFacility.currentCvl}%`}
+            value={`${creditFacility.currentCvl.total}%`}
           />
 
           {creditFacility.expiresAt && (

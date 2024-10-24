@@ -9,7 +9,7 @@ use crate::{
     entity::*,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
-    terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
+    terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
 
 use super::{
@@ -127,6 +127,14 @@ impl CreditFacilityReceivable {
         self.interest + self.disbursed
     }
 
+    pub fn disbursed_cvl(&self, collateral: Satoshis) -> CVLData {
+        CVLData::new(collateral, self.total())
+    }
+
+    pub fn total_cvl(&self, collateral: Satoshis, facility_remaining: UsdCents) -> CVLData {
+        CVLData::new(collateral, self.total() + facility_remaining)
+    }
+
     fn allocate_payment(
         &self,
         amount: UsdCents,
@@ -155,17 +163,26 @@ impl CreditFacilityReceivable {
     }
 }
 
+pub struct FacilityCVLData {
+    pub total: CVLData,
+    pub disbursed: CVLData,
+}
+
+impl FacilityCVLData {
+    pub fn cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
+        FacilityCVL {
+            total: self.total.cvl(price),
+            disbursed: self.disbursed.cvl(price),
+        }
+    }
+}
+
 pub struct FacilityCVL {
-    total: CVLPct,
-    disbursed: CVLPct,
+    pub total: CVLPct,
+    pub disbursed: CVLPct,
 }
 
 impl FacilityCVL {
-    pub const ZERO: Self = Self {
-        total: CVLPct::ZERO,
-        disbursed: CVLPct::ZERO,
-    };
-
     fn is_approval_allowed(&self, terms: TermValues) -> Result<(), CreditFacilityError> {
         if self.total < terms.margin_call_cvl {
             return Err(CreditFacilityError::BelowMarginLimit);
@@ -363,7 +380,9 @@ impl CreditFacility {
             return Err(CreditFacilityError::NoCollateral);
         }
 
-        self.facility_cvl(price).is_approval_allowed(self.terms)?;
+        self.facility_cvl_data()
+            .cvl(price)
+            .is_approval_allowed(self.terms)?;
 
         self.events.push(CreditFacilityEvent::ApprovalAdded {
             approving_user_id,
@@ -612,16 +631,13 @@ impl CreditFacility {
             .unwrap_or(Satoshis::ZERO)
     }
 
-    pub fn facility_cvl(&self, price: PriceOfOneBTC) -> FacilityCVL {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral());
+    pub fn facility_cvl_data(&self) -> FacilityCVLData {
+        let total = self
+            .outstanding()
+            .total_cvl(self.collateral(), self.facility_remaining());
+        let disbursed = self.outstanding().disbursed_cvl(self.collateral());
 
-        FacilityCVL {
-            total: CVLPct::from_loan_amounts(
-                collateral_value,
-                self.outstanding().total() + self.facility_remaining(),
-            ),
-            disbursed: CVLPct::from_loan_amounts(collateral_value, self.outstanding().total()),
-        }
+        FacilityCVLData { total, disbursed }
     }
 
     pub(super) fn initiate_repayment(
@@ -691,7 +707,7 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         audit_info: AuditInfo,
     ) -> Option<CollateralizationState> {
-        let facility_cvl = self.facility_cvl(price);
+        let facility_cvl = self.facility_cvl_data().cvl(price);
         let last_collateralization_state = self.last_collateralization_state();
 
         let collateralization_update = match self.status() {
