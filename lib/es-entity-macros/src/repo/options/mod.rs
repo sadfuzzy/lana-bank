@@ -1,9 +1,11 @@
 mod columns;
+mod delete;
 
 use convert_case::{Case, Casing};
 use darling::FromDeriveInput;
 
 pub use columns::*;
+pub use delete::*;
 
 #[derive(FromDeriveInput)]
 #[darling(attributes(es_repo), map = "Self::update_defaults")]
@@ -13,6 +15,8 @@ pub struct RepositoryOptions {
     pub columns: Columns,
     #[darling(default)]
     pub post_persist_hook: Option<syn::Ident>,
+    #[darling(default)]
+    pub delete: DeleteOption,
 
     #[darling(rename = "entity")]
     entity_ident: syn::Ident,

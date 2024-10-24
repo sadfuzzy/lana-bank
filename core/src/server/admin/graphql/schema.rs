@@ -513,14 +513,18 @@ impl Query {
         Ok(terms_template.map(TermsTemplate::from))
     }
 
-    async fn document(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Document> {
+    async fn document(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Document>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let document = app
             .documents()
             .find_by_id(sub, DocumentId::from(id))
             .await?;
-        Ok(Document::from(document))
+        Ok(document.map(Document::from))
     }
 }
 

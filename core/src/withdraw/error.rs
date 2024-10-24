@@ -6,8 +6,6 @@ use crate::primitives::{UsdCents, WithdrawId};
 pub enum WithdrawError {
     #[error("WithdrawError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("WithdrawError - EntityError: {0}")]
-    EntityError(#[from] crate::entity::EntityError),
     #[error("WithdrawError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("WithdrawError - UserError: {0}")]

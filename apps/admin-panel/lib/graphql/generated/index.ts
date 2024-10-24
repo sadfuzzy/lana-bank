@@ -1006,7 +1006,7 @@ export type Query = {
   customers: CustomerConnection;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
-  document: Document;
+  document?: Maybe<Document>;
   loan?: Maybe<Loan>;
   loans: LoanConnection;
   me: User;

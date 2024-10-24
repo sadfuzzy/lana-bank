@@ -9,18 +9,18 @@ use super::{
     upload::ReportFileUpload,
 };
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ReportLocationInCloud {
     pub report_name: String,
     pub bucket: String,
     pub path_in_bucket: String,
 }
 
-impl From<ReportLocationInCloud> for LocationInCloud {
-    fn from(meta: ReportLocationInCloud) -> Self {
+impl<'a> From<&'a ReportLocationInCloud> for LocationInCloud<'a> {
+    fn from(meta: &'a ReportLocationInCloud) -> Self {
         LocationInCloud {
-            bucket: meta.bucket,
-            path_in_bucket: meta.path_in_bucket,
+            bucket: &meta.bucket,
+            path_in_bucket: &meta.path_in_bucket,
         }
     }
 }

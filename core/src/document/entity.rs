@@ -1,8 +1,9 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
+use es_entity::*;
+
 use crate::{
-    entity::*,
     primitives::{AuditInfo, CustomerId, DocumentId},
     storage::LocationInCloud,
 };
@@ -13,8 +14,9 @@ pub struct GeneratedDocumentDownloadLink {
     pub link: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "DocumentId")]
 pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
@@ -36,20 +38,13 @@ pub enum DocumentEvent {
     },
 }
 
-impl EntityEvent for DocumentEvent {
-    type EntityId = DocumentId;
-    fn event_table_name() -> &'static str {
-        "document_events"
-    }
-}
-
 pub enum DocumentStatus {
     Active,
     Archived,
 }
 
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Document {
     pub id: DocumentId,
     pub customer_id: CustomerId,
@@ -67,10 +62,6 @@ impl std::fmt::Display for Document {
     }
 }
 
-impl Entity for Document {
-    type Event = DocumentEvent;
-}
-
 fn path_in_bucket_util(id: DocumentId) -> String {
     format!("documents/customer/{}", id)
 }
@@ -78,8 +69,8 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 impl Document {
     fn location_in_cloud(&self) -> LocationInCloud {
         LocationInCloud {
-            bucket: self.bucket.clone(),
-            path_in_bucket: self.path_in_bucket.clone(),
+            bucket: &self.bucket,
+            path_in_bucket: &self.path_in_bucket,
         }
     }
 
@@ -96,7 +87,7 @@ impl Document {
 
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("No events for document")
     }
 
@@ -111,12 +102,10 @@ impl Document {
 }
 
 #[allow(clippy::single_match)]
-impl TryFrom<EntityEvents<DocumentEvent>> for Document {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<DocumentEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<DocumentEvent> for Document {
+    fn try_from_events(events: EntityEvents<DocumentEvent>) -> Result<Self, EsEntityError> {
         let mut builder = DocumentBuilder::default();
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 DocumentEvent::Initialized {
                     id,
@@ -149,7 +138,7 @@ impl TryFrom<EntityEvents<DocumentEvent>> for Document {
 }
 
 #[derive(Debug, Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) id: DocumentId,
@@ -182,8 +171,10 @@ impl NewDocument {
     pub fn builder() -> NewDocumentBuilder {
         NewDocumentBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<DocumentEvent> {
+impl IntoEvents<DocumentEvent> for NewDocument {
+    fn into_events(self) -> EntityEvents<DocumentEvent> {
         EntityEvents::init(
             self.id,
             [DocumentEvent::Initialized {

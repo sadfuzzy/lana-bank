@@ -11,6 +11,7 @@ pub struct ListForFn<'a> {
     by_column: &'a Column,
     table_name: &'a str,
     error: &'a syn::Type,
+    delete: DeleteOption,
 }
 
 impl<'a> ListForFn<'a> {
@@ -22,6 +23,7 @@ impl<'a> ListForFn<'a> {
             entity: opts.entity(),
             table_name: opts.table_name(),
             error: opts.err(),
+            delete: opts.delete,
         }
     }
 
@@ -46,51 +48,68 @@ impl<'a> ToTokens for ListForFn<'a> {
         let for_column_name = self.for_column.name();
         let for_column_type = self.for_column.ty();
 
-        let fn_name = syn::Ident::new(
-            &format!("list_for_{}_by_{}", for_column_name, by_column_name),
-            Span::call_site(),
-        );
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
         let condition = cursor.condition(1);
         let arg_tokens = cursor.query_arg_tokens();
 
-        let query = format!(
-            r#"SELECT {}, {} FROM {} WHERE ({} = $1) AND ({}) ORDER BY {} LIMIT $2"#,
-            for_column_name,
-            select_columns,
-            self.table_name,
-            for_column_name,
-            condition,
-            select_columns
-        );
+        for delete in [DeleteOption::No, DeleteOption::Soft] {
+            let fn_name = syn::Ident::new(
+                &format!(
+                    "list_for_{}_by_{}{}",
+                    for_column_name,
+                    by_column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
 
-        tokens.append_all(quote! {
-            pub async fn #fn_name(
-                &self,
-                #for_column_name: #for_column_type,
-                cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
-            ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
-                #destructure_tokens
+            let query = format!(
+                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
+                for_column_name,
+                select_columns,
+                self.table_name,
+                for_column_name,
+                condition,
+                if delete == DeleteOption::No {
+                    self.delete.not_deleted_condition()
+                } else {
+                    ""
+                },
+                select_columns
+            );
 
-                let (entities, has_next_page) = es_entity::es_query!(
-                    self.pool(),
-                    #query,
-                    #for_column_name as #for_column_type,
-                    #arg_tokens
-                )
-                    .fetch_n(first)
-                    .await?;
+            tokens.append_all(quote! {
+                pub async fn #fn_name(
+                    &self,
+                    #for_column_name: #for_column_type,
+                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
+                    #destructure_tokens
 
-                let end_cursor = entities.last().map(cursor::#cursor_ident::from);
+                    let (entities, has_next_page) = es_entity::es_query!(
+                        self.pool(),
+                        #query,
+                        #for_column_name as #for_column_type,
+                        #arg_tokens
+                    )
+                        .fetch_n(first)
+                        .await?;
 
-                Ok(es_entity::PaginatedQueryRet {
-                    entities,
-                    has_next_page,
-                    end_cursor,
-                })
+                    let end_cursor = entities.last().map(cursor::#cursor_ident::from);
+
+                    Ok(es_entity::PaginatedQueryRet {
+                        entities,
+                        has_next_page,
+                        end_cursor,
+                    })
+                }
+            });
+
+            if delete == self.delete {
+                break;
             }
-        });
+        }
     }
 }
 
@@ -118,6 +137,7 @@ mod tests {
             by_column: &by_column,
             table_name: "entities",
             error: &error,
+            delete: DeleteOption::No,
         };
 
         let mut tokens = TokenStream::new();
@@ -137,7 +157,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT customer_id, id FROM entities WHERE (customer_id = $1) AND ((id > $3) OR $3 IS NULL) ORDER BY id LIMIT $2",
+                    "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND ((id > $3) OR $3 IS NULL)) ORDER BY id LIMIT $2",
                     customer_id as Uuid,
                     (first + 1) as i64,
                     id as Option<EntityId>,

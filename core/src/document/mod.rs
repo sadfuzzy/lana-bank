@@ -66,12 +66,16 @@ impl Documents {
         &self,
         sub: &Subject,
         id: DocumentId,
-    ) -> Result<Document, DocumentError> {
+    ) -> Result<Option<Document>, DocumentError> {
         self.authz
             .enforce_permission(sub, Object::Document, DocumentAction::Read)
             .await?;
 
-        self.repo.find_by_id(id).await
+        match self.repo.find_by_id(id).await {
+            Ok(document) => Ok(Some(document)),
+            Err(DocumentError::NotFound) => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn list_by_customer_id(
@@ -83,7 +87,11 @@ impl Documents {
             .enforce_permission(sub, Object::Document, DocumentAction::List)
             .await?;
 
-        self.repo.list_for_customer(customer_id).await
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .await?
+            .entities)
     }
 
     pub async fn generate_download_link(
@@ -129,8 +137,7 @@ impl Documents {
         self.storage.remove(document_location).await?;
 
         document.delete(audit_info);
-        self.repo.update_in_tx(&mut db, &mut document).await?;
-        self.repo.delete_in_tx(&mut db, document_id).await?;
+        self.repo.delete_in_tx(&mut db, document).await?;
         db.commit().await?;
 
         Ok(())

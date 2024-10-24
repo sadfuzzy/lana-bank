@@ -38,7 +38,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     // generate link
     let location = LocationInCloud {
         bucket: storage.bucket_name(),
-        path_in_bucket: filename.to_owned(),
+        path_in_bucket: filename,
     };
     let link = storage.generate_download_link(location.clone()).await?;
 

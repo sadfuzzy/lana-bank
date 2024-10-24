@@ -154,6 +154,6 @@ teardown_file() {
     }')
 
   exec_admin_graphql 'document' "$variables"
-  error_message=$(graphql_output '.errors[0].message')
-  [[ "$error_message" == *"Could not find document by id"* ]] || exit 1
+  document=$(graphql_output '.document')
+  [[ "$document" == "null" ]] || exit 1
 }

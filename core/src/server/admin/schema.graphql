@@ -844,7 +844,7 @@ type Query {
 	reports: [Report!]!
 	report(id: UUID!): Report
 	termsTemplate(id: UUID!): TermsTemplate
-	document(id: UUID!): Document!
+	document(id: UUID!): Document
 }
 
 type RealtimePrice {

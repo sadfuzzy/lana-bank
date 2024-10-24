@@ -10,9 +10,9 @@ use futures::TryStreamExt;
 const LINK_DURATION_IN_SECS: u32 = 60 * 5;
 
 #[derive(Debug, Clone)]
-pub struct LocationInCloud {
-    pub bucket: String,
-    pub path_in_bucket: String,
+pub struct LocationInCloud<'a> {
+    pub bucket: &'a str,
+    pub path_in_bucket: &'a str,
 }
 
 #[derive(Clone)]
@@ -27,8 +27,8 @@ impl Storage {
         }
     }
 
-    pub fn bucket_name(&self) -> String {
-        self.config.bucket_name.clone()
+    pub fn bucket_name(&self) -> &str {
+        &self.config.bucket_name
     }
 
     fn path_with_prefix(&self, path: &str) -> String {
@@ -52,25 +52,24 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn remove(&self, location: LocationInCloud) -> Result<(), StorageError> {
+    pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
         Object::delete(
             &self.config.bucket_name,
-            &self.path_with_prefix(&location.path_in_bucket),
+            &self.path_with_prefix(location.path_in_bucket),
         )
         .await?;
 
         Ok(())
     }
 
-    pub async fn generate_download_link<T>(&self, location: T) -> Result<String, StorageError>
-    where
-        T: Into<LocationInCloud>,
-    {
-        let location: LocationInCloud = location.into();
-
+    pub async fn generate_download_link(
+        &self,
+        location: impl Into<LocationInCloud<'_>>,
+    ) -> Result<String, StorageError> {
+        let location = location.into();
         Ok(Object::read(
-            &location.bucket,
-            &self.path_with_prefix(&location.path_in_bucket),
+            location.bucket,
+            &self.path_with_prefix(location.path_in_bucket),
         )
         .await?
         .download_url(LINK_DURATION_IN_SECS)?)

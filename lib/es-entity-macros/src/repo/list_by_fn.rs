@@ -148,6 +148,7 @@ pub struct ListByFn<'a> {
     column: &'a Column,
     table_name: &'a str,
     error: &'a syn::Type,
+    delete: DeleteOption,
 }
 
 impl<'a> ListByFn<'a> {
@@ -158,6 +159,7 @@ impl<'a> ListByFn<'a> {
             entity: opts.entity(),
             table_name: opts.table_name(),
             error: opts.err(),
+            delete: opts.delete,
         }
     }
 
@@ -178,41 +180,62 @@ impl<'a> ToTokens for ListByFn<'a> {
         let cursor_ident = cursor.ident();
         let error = self.error;
 
-        let fn_name = syn::Ident::new(&format!("list_by_{}", column_name), Span::call_site());
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
         let condition = cursor.condition(0);
         let arg_tokens = cursor.query_arg_tokens();
 
-        let query = format!(
-            r#"SELECT {} FROM {} WHERE {} ORDER BY {} LIMIT $1"#,
-            select_columns, self.table_name, condition, select_columns
-        );
+        for delete in [DeleteOption::No, DeleteOption::Soft] {
+            let fn_name = syn::Ident::new(
+                &format!(
+                    "list_by_{}{}",
+                    column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
+            let query = format!(
+                r#"SELECT {} FROM {} WHERE ({}){} ORDER BY {} LIMIT $1"#,
+                select_columns,
+                self.table_name,
+                condition,
+                if delete == DeleteOption::No {
+                    self.delete.not_deleted_condition()
+                } else {
+                    ""
+                },
+                select_columns
+            );
 
-        tokens.append_all(quote! {
-            pub async fn #fn_name(
-                &self,
-                cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
-            ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
-                #destructure_tokens
+            tokens.append_all(quote! {
+                pub async fn #fn_name(
+                    &self,
+                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
+                    #destructure_tokens
 
-                let (entities, has_next_page) = es_entity::es_query!(
-                    self.pool(),
-                    #query,
-                    #arg_tokens
-                )
-                    .fetch_n(first)
-                    .await?;
+                    let (entities, has_next_page) = es_entity::es_query!(
+                        self.pool(),
+                        #query,
+                        #arg_tokens
+                    )
+                        .fetch_n(first)
+                        .await?;
 
-                let end_cursor = entities.last().map(cursor::#cursor_ident::from);
+                    let end_cursor = entities.last().map(cursor::#cursor_ident::from);
 
-                Ok(es_entity::PaginatedQueryRet {
-                    entities,
-                    has_next_page,
-                    end_cursor,
-                })
+                    Ok(es_entity::PaginatedQueryRet {
+                        entities,
+                        has_next_page,
+                        end_cursor,
+                    })
+                }
+            });
+
+            if delete == self.delete {
+                break;
             }
-        });
+        }
     }
 }
 
@@ -306,6 +329,7 @@ mod tests {
             entity: &entity,
             table_name: "entities",
             error: &error,
+            delete: DeleteOption::Soft,
         };
 
         let mut tokens = TokenStream::new();
@@ -324,7 +348,33 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1",
+                    "SELECT id FROM entities WHERE ((id > $2) OR $2 IS NULL) AND deleted = FALSE ORDER BY id LIMIT $1",
+                    (first + 1) as i64,
+                    id as Option<EntityId>,
+                )
+                    .fetch_n(first)
+                    .await?;
+                let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
+            }
+
+            pub async fn list_by_id_include_deleted(
+                &self,
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
+                let id = if let Some(after) = after {
+                    Some(after.id)
+                } else {
+                    None
+                };
+                let (entities, has_next_page) = es_entity::es_query!(
+                    self.pool(),
+                    "SELECT id FROM entities WHERE ((id > $2) OR $2 IS NULL) ORDER BY id LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -358,6 +408,7 @@ mod tests {
             entity: &entity,
             table_name: "entities",
             error: &error,
+            delete: DeleteOption::No,
         };
 
         let mut tokens = TokenStream::new();
@@ -377,7 +428,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::es_query!(
                         self.pool(),
-                        "SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1",
+                        "SELECT name, id FROM entities WHERE (((name, id) > ($3, $2)) OR $2 IS NULL) ORDER BY name, id LIMIT $1",
                         (first + 1) as i64,
                         id as Option<EntityId>,
                         name as Option<String>,

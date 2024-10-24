@@ -1,4 +1,5 @@
 mod create_fn;
+mod delete_fn;
 mod find_all_fn;
 mod find_by_fn;
 mod list_by_fn;
@@ -24,6 +25,7 @@ pub struct EsRepo<'a> {
     persist_events_fn: persist_events_fn::PersistEventsFn<'a>,
     update_fn: update_fn::UpdateFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
+    delete_fn: delete_fn::DeleteFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
     post_persist_hook: post_persist_hook::PostPersistHook<'a>,
@@ -60,6 +62,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             persist_events_fn: persist_events_fn::PersistEventsFn::from(opts),
             update_fn: update_fn::UpdateFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
+            delete_fn: delete_fn::DeleteFn::from(opts),
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
             post_persist_hook: post_persist_hook::PostPersistHook::from(opts),
@@ -76,6 +79,7 @@ impl<'a> ToTokens for EsRepo<'a> {
         let persist_events_fn = &self.persist_events_fn;
         let update_fn = &self.update_fn;
         let create_fn = &self.create_fn;
+        let delete_fn = &self.delete_fn;
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
         let post_persist_hook = &self.post_persist_hook;
@@ -142,6 +146,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #persist_events_fn
                 #create_fn
                 #update_fn
+                #delete_fn
                 #(#find_by_fns)*
                 #find_all_fn
                 #(#list_by_fns)*

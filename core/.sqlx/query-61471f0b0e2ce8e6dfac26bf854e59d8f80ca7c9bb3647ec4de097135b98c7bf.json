@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT reference, id FROM withdraws WHERE (((reference, id) > ($3, $2)) OR $2 IS NULL) ORDER BY reference, id LIMIT $1) SELECT i.id AS \"entity_id: WithdrawId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN withdraw_events e ON i.id = e.id ORDER BY i.reference, i.id, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: WithdrawId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "61471f0b0e2ce8e6dfac26bf854e59d8f80ca7c9bb3647ec4de097135b98c7bf"
+}

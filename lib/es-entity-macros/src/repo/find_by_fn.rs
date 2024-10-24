@@ -10,6 +10,7 @@ pub struct FindByFn<'a> {
     column_type: &'a syn::Type,
     table_name: &'a str,
     error: &'a syn::Type,
+    delete: DeleteOption,
 }
 
 impl<'a> FindByFn<'a> {
@@ -24,6 +25,7 @@ impl<'a> FindByFn<'a> {
             entity: opts.entity(),
             table_name: opts.table_name(),
             error: opts.err(),
+            delete: opts.delete,
         }
     }
 }
@@ -35,46 +37,78 @@ impl<'a> ToTokens for FindByFn<'a> {
         let column_type = &self.column_type;
         let error = self.error;
 
-        let fn_name = syn::Ident::new(&format!("find_by_{}", column_name), Span::call_site());
-        let fn_via = syn::Ident::new(&format!("find_by_{}_via", column_name), Span::call_site());
-        let fn_in_tx =
-            syn::Ident::new(&format!("find_by_{}_in_tx", column_name), Span::call_site());
+        for delete in [DeleteOption::No, DeleteOption::Soft] {
+            let fn_name = syn::Ident::new(
+                &format!(
+                    "find_by_{}{}",
+                    column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
+            let fn_via = syn::Ident::new(
+                &format!(
+                    "find_by_{}_via{}",
+                    column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
+            let fn_in_tx = syn::Ident::new(
+                &format!(
+                    "find_by_{}_in_tx{}",
+                    column_name,
+                    delete.include_deletion_fn_postfix()
+                ),
+                Span::call_site(),
+            );
 
-        let query = format!(
-            r#"SELECT id FROM {} WHERE {} = $1"#,
-            self.table_name, column_name
-        );
+            let query = format!(
+                r#"SELECT id FROM {} WHERE {} = $1{}"#,
+                self.table_name,
+                column_name,
+                if delete == DeleteOption::No {
+                    self.delete.not_deleted_condition()
+                } else {
+                    ""
+                }
+            );
 
-        tokens.append_all(quote! {
-            pub async fn #fn_name(
-                &self,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
-                self.#fn_via(self.pool(), #column_name).await
+            tokens.append_all(quote! {
+                pub async fn #fn_name(
+                    &self,
+                    #column_name: #column_type
+                ) -> Result<#entity, #error> {
+                    self.#fn_via(self.pool(), #column_name).await
+                }
+
+                pub async fn #fn_in_tx(
+                    &self,
+                    db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                    #column_name: #column_type
+                ) -> Result<#entity, #error> {
+                    self.#fn_via(&mut **db, #column_name).await
+                }
+
+                async fn #fn_via(
+                    &self,
+                    executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                    #column_name: #column_type
+                ) -> Result<#entity, #error> {
+                    es_entity::es_query!(
+                            executor,
+                            #query,
+                            #column_name as #column_type,
+                    )
+                        .fetch_one()
+                        .await
+                }
+            });
+
+            if delete == self.delete {
+                break;
             }
-
-            pub async fn #fn_in_tx(
-                &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
-                self.#fn_via(&mut **db, #column_name).await
-            }
-
-            async fn #fn_via(
-                &self,
-                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                #column_name: #column_type
-            ) -> Result<#entity, #error> {
-                es_entity::es_query!(
-                        executor,
-                        #query,
-                        #column_name as #column_type,
-                )
-                    .fetch_one()
-                    .await
-            }
-        });
+        }
     }
 }
 
@@ -97,6 +131,7 @@ mod tests {
             entity: &entity,
             table_name: "entities",
             error: &error,
+            delete: DeleteOption::No,
         };
 
         let mut tokens = TokenStream::new();
@@ -119,6 +154,88 @@ mod tests {
             }
 
             async fn find_by_id_via(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                es_entity::es_query!(
+                        executor,
+                        "SELECT id FROM entities WHERE id = $1",
+                        id as EntityId,
+                )
+                    .fetch_one()
+                    .await
+            }
+        };
+
+        assert_eq!(tokens.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn find_by_fn_with_soft_delete() {
+        let column_name = parse_quote!(id);
+        let column_type = parse_quote!(EntityId);
+        let entity = Ident::new("Entity", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
+
+        let persist_fn = FindByFn {
+            column_name: &column_name,
+            column_type: &column_type,
+            entity: &entity,
+            table_name: "entities",
+            error: &error,
+            delete: DeleteOption::Soft,
+        };
+
+        let mut tokens = TokenStream::new();
+        persist_fn.to_tokens(&mut tokens);
+
+        let expected = quote! {
+            pub async fn find_by_id(
+                &self,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                self.find_by_id_via(self.pool(), id).await
+            }
+
+            pub async fn find_by_id_in_tx(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                self.find_by_id_via(&mut **db, id).await
+            }
+
+            async fn find_by_id_via(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                es_entity::es_query!(
+                        executor,
+                        "SELECT id FROM entities WHERE id = $1 AND deleted = FALSE",
+                        id as EntityId,
+                )
+                    .fetch_one()
+                    .await
+            }
+
+            pub async fn find_by_id_include_deleted(
+                &self,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                self.find_by_id_via_include_deleted(self.pool(), id).await
+            }
+
+            pub async fn find_by_id_in_tx_include_deleted(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                id: EntityId
+            ) -> Result<Entity, es_entity::EsRepoError> {
+                self.find_by_id_via_include_deleted(&mut **db, id).await
+            }
+
+            async fn find_by_id_via_include_deleted(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
                 id: EntityId
