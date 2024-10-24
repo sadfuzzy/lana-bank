@@ -1,9 +1,10 @@
-pub struct PaginatedQueryArgs<T> {
+#[derive(Debug)]
+pub struct PaginatedQueryArgs<T: std::fmt::Debug> {
     pub first: usize,
     pub after: Option<T>,
 }
 
-impl<T> Default for PaginatedQueryArgs<T> {
+impl<T: std::fmt::Debug> Default for PaginatedQueryArgs<T> {
     fn default() -> Self {
         Self {
             first: 100,

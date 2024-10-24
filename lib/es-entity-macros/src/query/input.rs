@@ -122,8 +122,7 @@ mod tests {
 
     #[test]
     fn test_order_by_columns() {
-        let test_cases =
-            vec![
+        let test_cases = vec![
             (
                 "SELECT id FROM entities WHERE (id > $2) OR $2 IS NULL ORDER BY id LIMIT $1",
                 vec!["i.id"],
@@ -133,7 +132,10 @@ mod tests {
                 vec!["i.name asc", "i.date desc"],
             ),
             ("SELECT TOP 10 id FROM entities Order By id", vec!["i.id"]),
-            ("select id from entities ORDER BY id offset 10", vec!["i.id"]),
+            (
+                "select id from entities ORDER BY id offset 10",
+                vec!["i.id"],
+            ),
             ("SELECT id FROM entities orDer bY id;", vec!["i.id"]),
             (
                 "SELECT * FROM users WHERE age > 18 ORDER BY last_name, first_name DESC LIMIT 10",
@@ -144,6 +146,10 @@ mod tests {
                 vec!["i.price asc", "i.stock desc", "i.name"],
             ),
             ("SELECT * FROM orders", vec![]),
+            (
+                "SELECT * FROM orders ORDER BY orders NULLS FIRST, id",
+                vec!["i.orders nulls first", "i.id"],
+            ),
         ];
 
         for (sql, expected) in test_cases {

@@ -239,6 +239,18 @@ impl Column {
         self.opts.is_id
     }
 
+    pub fn is_optional(&self) -> bool {
+        if let syn::Type::Path(type_path) = self.ty() {
+            if type_path.path.segments.len() == 1 {
+                let segment = &type_path.path.segments[0];
+                if segment.ident == "Option" {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
     pub fn name(&self) -> &syn::Ident {
         &self.name
     }

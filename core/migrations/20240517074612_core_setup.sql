@@ -47,7 +47,7 @@ CREATE TABLE user_events (
 CREATE TABLE loans (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
-  collateralization_ratio NUMERIC,
+  collateralization_ratio NUMERIC DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX idx_loans_collateralization_ratio ON loans (collateralization_ratio);

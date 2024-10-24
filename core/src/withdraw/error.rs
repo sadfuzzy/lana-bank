@@ -30,7 +30,7 @@ impl From<es_entity::EsEntityError> for WithdrawError {
             es_entity::EsEntityError::NotFound => WithdrawError::NotFound,
             es_entity::EsEntityError::UninitializedFieldError(e) => {
                 panic!(
-                    "Inconsistent data when initializing a Customer entity: {:?}",
+                    "Inconsistent data when initializing a Withdraw entity: {:?}",
                     e
                 )
             }

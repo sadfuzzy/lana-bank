@@ -32,16 +32,31 @@ impl<'a> CursorStruct<'a> {
         }
     }
 
-    pub fn condition(&self, offset: u32) -> String {
+    pub fn order_by(&self) -> String {
         if self.column.is_id() {
-            format!("(id > ${}) OR ${} IS NULL", offset + 2, offset + 2)
+            "id".to_string()
+        } else if self.column.is_optional() {
+            format!("{} NULLS FIRST, id", self.column.name())
+        } else {
+            format!("{}, id", self.column.name())
+        }
+    }
+
+    pub fn condition(&self, offset: u32) -> String {
+        let id_offset = offset + 2;
+        let column_offset = offset + 3;
+
+        if self.column.is_id() {
+            format!("COALESCE(id > ${id_offset}, true)")
+        } else if self.column.is_optional() {
+            format!(
+                "({0} IS NOT DISTINCT FROM ${column_offset}) AND COALESCE(id > ${id_offset}, true) OR COALESCE({0} > ${column_offset}, {0} IS NOT NULL)",
+                self.column.name(),
+            )
         } else {
             format!(
-                "(({}, id) > (${}, ${})) OR ${} IS NULL",
+                "COALESCE(({0}, id) > (${column_offset}, ${id_offset}), ${id_offset} IS NULL)",
                 self.column.name(),
-                offset + 3,
-                offset + 2,
-                offset + 2
             )
         }
     }
@@ -53,6 +68,14 @@ impl<'a> CursorStruct<'a> {
             quote! {
                 (first + 1) as i64,
                 id as Option<#id>,
+            }
+        } else if self.column.is_optional() {
+            let column_name = self.column.name();
+            let column_type = self.column.ty();
+            quote! {
+                (first + 1) as i64,
+                id as Option<#id>,
+                #column_name as #column_type,
             }
         } else {
             let column_name = self.column.name();
@@ -87,6 +110,10 @@ impl<'a> CursorStruct<'a> {
             };
             after_default = quote! {
                 None
+            };
+        } else if self.column.is_optional() {
+            after_destruction = quote! {
+                (Some(after.id), after.#column_name)
             };
         }
 
@@ -124,7 +151,7 @@ impl<'a> ToTokens for CursorStruct<'a> {
         };
 
         tokens.append_all(quote! {
-            #[derive(serde::Serialize, serde::Deserialize)]
+            #[derive(Debug, serde::Serialize, serde::Deserialize)]
             pub struct #ident {
                 pub id: #id,
                 #field
@@ -182,6 +209,7 @@ impl<'a> ToTokens for ListByFn<'a> {
 
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
+        let order_by = cursor.order_by();
         let condition = cursor.condition(0);
         let arg_tokens = cursor.query_arg_tokens();
 
@@ -204,7 +232,7 @@ impl<'a> ToTokens for ListByFn<'a> {
                 } else {
                     ""
                 },
-                select_columns
+                order_by
             );
 
             tokens.append_all(quote! {
@@ -261,7 +289,7 @@ mod tests {
         cursor.to_tokens(&mut tokens);
 
         let expected = quote! {
-            #[derive(serde::Serialize, serde::Deserialize)]
+            #[derive(Debug, serde::Serialize, serde::Deserialize)]
             pub struct EntityByIdCursor {
                 pub id: EntityId,
             }
@@ -294,7 +322,7 @@ mod tests {
         cursor.to_tokens(&mut tokens);
 
         let expected = quote! {
-            #[derive(serde::Serialize, serde::Deserialize)]
+            #[derive(Debug, serde::Serialize, serde::Deserialize)]
             pub struct EntityByCreatedAtCursor {
                 pub id: EntityId,
                 pub created_at: chrono::DateTime<chrono::Utc>,
@@ -348,7 +376,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT id FROM entities WHERE ((id > $2) OR $2 IS NULL) AND deleted = FALSE ORDER BY id LIMIT $1",
+                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) AND deleted = FALSE ORDER BY id LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -374,7 +402,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT id FROM entities WHERE ((id > $2) OR $2 IS NULL) ORDER BY id LIMIT $1",
+                    "SELECT id FROM entities WHERE (COALESCE(id > $2, true)) ORDER BY id LIMIT $1",
                     (first + 1) as i64,
                     id as Option<EntityId>,
                 )
@@ -428,7 +456,7 @@ mod tests {
 
                 let (entities, has_next_page) = es_entity::es_query!(
                         self.pool(),
-                        "SELECT name, id FROM entities WHERE (((name, id) > ($3, $2)) OR $2 IS NULL) ORDER BY name, id LIMIT $1",
+                        "SELECT name, id FROM entities WHERE (COALESCE((name, id) > ($3, $2), $2 IS NULL)) ORDER BY name, id LIMIT $1",
                         (first + 1) as i64,
                         id as Option<EntityId>,
                         name as Option<String>,
@@ -437,6 +465,63 @@ mod tests {
                     .await?;
 
                 let end_cursor = entities.last().map(cursor::EntityByNameCursor::from);
+
+                Ok(es_entity::PaginatedQueryRet {
+                    entities,
+                    has_next_page,
+                    end_cursor,
+                })
+            }
+        };
+
+        assert_eq!(tokens.to_string(), expected.to_string());
+    }
+
+    #[test]
+    fn list_by_fn_optional_column() {
+        let id_type = Ident::new("EntityId", Span::call_site());
+        let entity = Ident::new("Entity", Span::call_site());
+        let error = syn::parse_str("es_entity::EsRepoError").unwrap();
+        let column = Column::new(
+            syn::Ident::new("value", proc_macro2::Span::call_site()),
+            syn::parse_str("Option<rust_decimal::Decimal>").unwrap(),
+        );
+
+        let persist_fn = ListByFn {
+            column: &column,
+            id: &id_type,
+            entity: &entity,
+            table_name: "entities",
+            error: &error,
+            delete: DeleteOption::No,
+        };
+
+        let mut tokens = TokenStream::new();
+        persist_fn.to_tokens(&mut tokens);
+
+        let expected = quote! {
+            pub async fn list_by_value(
+                &self,
+                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByValueCursor>,
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByValueCursor>, es_entity::EsRepoError> {
+                let es_entity::PaginatedQueryArgs { first, after } = cursor;
+                let (id, value) = if let Some(after) = after {
+                    (Some(after.id), after.value)
+                } else {
+                    (None, None)
+                };
+
+                let (entities, has_next_page) = es_entity::es_query!(
+                        self.pool(),
+                        "SELECT value, id FROM entities WHERE ((value IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(value > $3, value IS NOT NULL)) ORDER BY value NULLS FIRST, id LIMIT $1",
+                        (first + 1) as i64,
+                        id as Option<EntityId>,
+                        value as Option<rust_decimal::Decimal>,
+                )
+                    .fetch_n(first)
+                    .await?;
+
+                let end_cursor = entities.last().map(cursor::EntityByValueCursor::from);
 
                 Ok(es_entity::PaginatedQueryRet {
                     entities,

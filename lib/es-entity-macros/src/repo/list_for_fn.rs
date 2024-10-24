@@ -50,6 +50,7 @@ impl<'a> ToTokens for ListForFn<'a> {
 
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
+        let order_by = cursor.order_by();
         let condition = cursor.condition(1);
         let arg_tokens = cursor.query_arg_tokens();
 
@@ -76,7 +77,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                 } else {
                     ""
                 },
-                select_columns
+                order_by,
             );
 
             tokens.append_all(quote! {
@@ -157,7 +158,7 @@ mod tests {
                 };
                 let (entities, has_next_page) = es_entity::es_query!(
                     self.pool(),
-                    "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND ((id > $3) OR $3 IS NULL)) ORDER BY id LIMIT $2",
+                    "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id LIMIT $2",
                     customer_id as Uuid,
                     (first + 1) as i64,
                     id as Option<EntityId>,

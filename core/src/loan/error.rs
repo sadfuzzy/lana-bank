@@ -6,8 +6,6 @@ use crate::primitives::*;
 pub enum LoanError {
     #[error("LoanError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("LoanError - EntityError: {0}")]
-    EntityError(#[from] crate::entity::EntityError),
     #[error("LoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("LoanError - UserError: {0}")]
@@ -52,4 +50,17 @@ pub enum LoanError {
     NoCollateral,
     #[error("LoanError - BelowMarginLimit")]
     BelowMarginLimit,
+    #[error("LoanError - NotFound")]
+    NotFound,
+}
+
+impl From<es_entity::EsEntityError> for LoanError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => LoanError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!("Inconsistent data when initializing a Loan entity: {:?}", e)
+            }
+        }
+    }
 }

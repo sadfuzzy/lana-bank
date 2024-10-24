@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT created_at, id FROM deposits WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at, id LIMIT $1) SELECT i.id AS \"entity_id: DepositId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN deposit_events e ON i.id = e.id ORDER BY i.created_at, i.id, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: DepositId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "2b9038efb8bdd86ff039378a5a008819f3744f1b90c474cd3d5e81c042628270"
+}

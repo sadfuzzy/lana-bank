@@ -74,7 +74,7 @@ impl JobRunner for LoanProcessingJobRunner {
         while has_next_page {
             let mut loans = self
                 .repo
-                .list_by_collateralization_ratio(crate::query::PaginatedQueryArgs::<
+                .list_by_collateralization_ratio(es_entity::PaginatedQueryArgs::<
                     LoanByCollateralizationRatioCursor,
                 > {
                     first: 10,

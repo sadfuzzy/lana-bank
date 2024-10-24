@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
+use es_entity::*;
+
 use crate::{
-    entity::*,
     ledger::{
         customer::CustomerLedgerAccountIds,
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},
@@ -57,8 +58,9 @@ pub enum LoanCollaterizationState {
     NoCollateral,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "LoanId")]
 pub enum LoanEvent {
     Initialized {
         id: LoanId,
@@ -118,15 +120,8 @@ pub enum LoanEvent {
     },
 }
 
-impl EntityEvent for LoanEvent {
-    type EntityId = LoanId;
-    fn event_table_name() -> &'static str {
-        "loan_events"
-    }
-}
-
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Loan {
     pub id: LoanId,
     pub customer_id: CustomerId,
@@ -143,12 +138,12 @@ pub struct Loan {
 impl Loan {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
 
     pub fn initial_principal(&self) -> UsdCents {
-        if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter().next() {
+        if let Some(LoanEvent::Initialized { principal, .. }) = self.events.iter_all().next() {
             *principal
         } else {
             unreachable!("Initialized event not found")
@@ -157,7 +152,7 @@ impl Loan {
 
     fn principal_payments(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 LoanEvent::PaymentRecorded {
                     principal_amount, ..
@@ -169,7 +164,7 @@ impl Loan {
 
     fn interest_payments(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 LoanEvent::PaymentRecorded {
                     interest_amount, ..
@@ -181,7 +176,7 @@ impl Loan {
 
     fn interest_recorded(&self) -> UsdCents {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|event| match event {
                 LoanEvent::InterestIncurred { amount, .. } => Some(*amount),
                 _ => None,
@@ -198,7 +193,7 @@ impl Loan {
 
     pub fn collateral(&self) -> Satoshis {
         self.events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 LoanEvent::CollateralUpdated {
@@ -210,15 +205,15 @@ impl Loan {
     }
 
     pub fn history(&self) -> Vec<history::LoanHistoryEntry> {
-        history::project(self.events.iter())
+        history::project(self.events.iter_all())
     }
 
     pub fn repayment_plan(&self) -> Vec<repayment_plan::LoanRepaymentInPlan> {
-        repayment_plan::project(self.events.iter())
+        repayment_plan::project(self.events.iter_all())
     }
 
     pub(super) fn is_approved(&self) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 LoanEvent::Approved { .. } => return true,
                 _ => continue,
@@ -243,7 +238,7 @@ impl Loan {
         }
 
         self.events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 LoanEvent::CollateralizationChanged { state, .. } => Some(*state),
@@ -262,7 +257,7 @@ impl Loan {
     }
 
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             match event {
                 LoanEvent::ApprovalAdded {
                     approving_user_id, ..
@@ -327,7 +322,7 @@ impl Loan {
         let mut n_admin = 0;
         let mut n_bank_manager = 0;
 
-        for event in self.events.iter() {
+        for event in self.events.iter_all() {
             if let LoanEvent::ApprovalAdded {
                 approving_user_roles,
                 ..
@@ -349,7 +344,7 @@ impl Loan {
     pub fn approvals(&self) -> Vec<LoanApproval> {
         let mut loan_approvals = vec![];
 
-        for event in self.events.iter().rev() {
+        for event in self.events.iter_all().rev() {
             if let LoanEvent::ApprovalAdded {
                 approving_user_id,
                 recorded_at,
@@ -393,7 +388,7 @@ impl Loan {
 
         let last_interest_payment = self
             .events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
@@ -411,14 +406,14 @@ impl Loan {
 
     fn count_interest_incurred(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, LoanEvent::InterestIncurred { .. }))
             .count()
     }
 
     pub fn is_completed(&self) -> bool {
         self.events
-            .iter()
+            .iter_all()
             .any(|event| matches!(event, LoanEvent::Completed { .. }))
     }
 
@@ -434,7 +429,7 @@ impl Loan {
 
         let last_interest_payment = self
             .events
-            .iter()
+            .iter_all()
             .rev()
             .find_map(|event| match event {
                 LoanEvent::InterestIncurred { recorded_at, .. } => Some(*recorded_at),
@@ -735,14 +730,14 @@ impl Loan {
 
     fn count_recorded_payments(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, LoanEvent::PaymentRecorded { .. }))
             .count()
     }
 
     fn count_collateral_adjustments(&self) -> usize {
         self.events
-            .iter()
+            .iter_all()
             .filter(|event| matches!(event, LoanEvent::CollateralUpdated { .. }))
             .count()
     }
@@ -817,18 +812,11 @@ impl Loan {
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
     }
 }
-
-impl Entity for Loan {
-    type Event = LoanEvent;
-}
-
-impl TryFrom<EntityEvents<LoanEvent>> for Loan {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<LoanEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<LoanEvent> for Loan {
+    fn try_from_events(events: EntityEvents<LoanEvent>) -> Result<Self, EsEntityError> {
         let mut builder = LoanBuilder::default();
         let mut terms = None;
-        for event in events.iter() {
+        for event in events.iter_all() {
             match event {
                 LoanEvent::Initialized {
                     id,
@@ -884,8 +872,10 @@ impl NewLoan {
     pub fn builder() -> NewLoanBuilder {
         NewLoanBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<LoanEvent> {
+impl IntoEvents<LoanEvent> for NewLoan {
+    fn into_events(self) -> EntityEvents<LoanEvent> {
         EntityEvents::init(
             self.id,
             [LoanEvent::Initialized {
@@ -975,7 +965,7 @@ mod test {
 
     #[test]
     fn outstanding() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         assert_eq!(
             loan.outstanding(),
             LoanReceivable {
@@ -1042,7 +1032,7 @@ mod test {
 
     #[test]
     fn prevent_double_approve() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
@@ -1067,7 +1057,7 @@ mod test {
 
     #[test]
     fn check_approved_at() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         assert_eq!(loan.approved_at, None);
         assert_eq!(loan.expires_at, None);
 
@@ -1091,7 +1081,7 @@ mod test {
 
     #[test]
     fn status() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         assert_eq!(loan.status(), LoanStatus::New);
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
@@ -1120,7 +1110,7 @@ mod test {
 
     #[test]
     fn collateral() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         // initially collateral should be 0
         assert_eq!(loan.collateral(), Satoshis::ZERO);
 
@@ -1151,7 +1141,7 @@ mod test {
 
     #[test]
     fn cannot_approve_if_loan_has_no_collateral() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let res = loan.add_approval(
             UserId::new(),
             bank_manager_role(),
@@ -1163,7 +1153,7 @@ mod test {
 
     #[test]
     fn test_collateralization() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         assert_eq!(
             loan.collateralization(),
             LoanCollaterizationState::NoCollateral
@@ -1196,7 +1186,7 @@ mod test {
 
     #[test]
     fn calculate_cvl() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(3000))
             .unwrap();
@@ -1285,7 +1275,7 @@ mod test {
         }
 
         fn fully_collateralized_loan() -> Loan {
-            let mut loan = Loan::try_from(init_events()).unwrap();
+            let mut loan = Loan::try_from_events(init_events()).unwrap();
 
             let loan_collateral_update = loan
                 .initiate_collateral_update(Satoshis::from(3000))
@@ -1309,7 +1299,7 @@ mod test {
 
             #[test]
             fn returns_none_for_no_collateral_state_and_higher_price() {
-                let mut loan = Loan::try_from(init_events()).unwrap();
+                let mut loan = Loan::try_from_events(init_events()).unwrap();
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
@@ -1326,7 +1316,7 @@ mod test {
 
             #[test]
             fn no_collateral_to_under_liquidation() {
-                let mut loan = Loan::try_from(init_events()).unwrap();
+                let mut loan = Loan::try_from_events(init_events()).unwrap();
 
                 let loan_collateral_update = loan
                     .initiate_collateral_update(test_collateral(&loan).below_liquidation)
@@ -1344,7 +1334,7 @@ mod test {
 
             #[test]
             fn fully_collateralized_to_under_margin_called() {
-                let mut loan = Loan::try_from(init_events()).unwrap();
+                let mut loan = Loan::try_from_events(init_events()).unwrap();
 
                 let loan_collateral_update = loan
                     .initiate_collateral_update(
@@ -1392,7 +1382,7 @@ mod test {
 
             #[test]
             fn under_liquidation_to_under_margin_called() {
-                let mut loan = Loan::try_from(init_events()).unwrap();
+                let mut loan = Loan::try_from_events(init_events()).unwrap();
                 let loan_collateral_update = loan
                     .initiate_collateral_update(test_collateral(&loan).below_liquidation)
                     .unwrap();
@@ -1422,7 +1412,7 @@ mod test {
 
             #[test]
             fn under_margin_called_to_fully_collateralized() {
-                let mut loan = Loan::try_from(init_events()).unwrap();
+                let mut loan = Loan::try_from_events(init_events()).unwrap();
 
                 let loan_collateral_update = loan
                     .initiate_collateral_update(test_collateral(&loan).below_margin_called)
@@ -1655,7 +1645,7 @@ mod test {
 
     #[test]
     fn reject_loan_approval_below_margin_limit() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
 
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(100))
@@ -1701,7 +1691,7 @@ mod test {
 
     #[test]
     fn two_admins_can_approve() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
@@ -1731,7 +1721,7 @@ mod test {
 
     #[test]
     fn admin_and_bank_manager_can_approve() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
@@ -1761,7 +1751,7 @@ mod test {
 
     #[test]
     fn user_with_both_admin_and_bank_manager_role_cannot_approve() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
@@ -1785,7 +1775,7 @@ mod test {
 
     #[test]
     fn two_bank_managers_cannot_approve() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
@@ -1814,7 +1804,7 @@ mod test {
 
     #[test]
     fn same_user_cannot_approve_twice() {
-        let mut loan = Loan::try_from(init_events()).unwrap();
+        let mut loan = Loan::try_from_events(init_events()).unwrap();
         let loan_collateral_update = loan
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();

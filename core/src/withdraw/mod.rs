@@ -79,7 +79,6 @@ impl Withdraws {
             .build()
             .expect("Could not build Withdraw");
 
-        dbg!(&new_withdraw);
         let mut db_tx = self.pool.begin().await?;
         let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
 

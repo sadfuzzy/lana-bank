@@ -1,5 +1,4 @@
 mod config;
-mod cursor;
 mod entity;
 pub mod error;
 mod history;
@@ -16,7 +15,6 @@ use crate::{
     constants::CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
-    entity::EntityError,
     job::Jobs,
     ledger::{loan::*, Ledger},
     price::Price,
@@ -26,13 +24,12 @@ use crate::{
 };
 
 pub use config::*;
-pub use cursor::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
 use jobs::*;
 pub use repayment_plan::*;
-use repo::*;
+pub use repo::{cursor::*, LoanRepo};
 
 #[derive(Clone)]
 pub struct Loans {
@@ -320,7 +317,7 @@ impl Loans {
             )
             .is_some()
         {
-            self.loan_repo.persist(&mut loan).await?;
+            self.loan_repo.update(&mut loan).await?;
         }
 
         Ok(loan)
@@ -401,7 +398,7 @@ impl Loans {
 
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
-            Err(LoanError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(LoanError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -422,27 +419,31 @@ impl Loans {
                 .await?;
         }
 
-        self.loan_repo.find_for_customer(customer_id).await
+        Ok(self
+            .loan_repo
+            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .await?
+            .entities)
     }
 
     #[instrument(name = "lava.loan.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<LoanByCreatedAtCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
+        query: es_entity::PaginatedQueryArgs<LoanByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Loan, LoanByCreatedAtCursor>, LoanError> {
         self.authz
             .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
-        self.loan_repo.list(query).await
+        self.loan_repo.list_by_created_at(query).await
     }
 
     #[instrument(name = "lava.loan.list_by_collateralization_ratio", skip(self), err)]
     pub async fn list_by_collateralization_ratio(
         &self,
         sub: &Subject,
-        query: crate::query::PaginatedQueryArgs<LoanByCollateralizationRatioCursor>,
-    ) -> Result<crate::query::PaginatedQueryRet<Loan, LoanByCollateralizationRatioCursor>, LoanError>
+        query: es_entity::PaginatedQueryArgs<LoanByCollateralizationRatioCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Loan, LoanByCollateralizationRatioCursor>, LoanError>
     {
         self.authz
             .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
