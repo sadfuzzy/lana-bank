@@ -1,5 +1,5 @@
 [package]
-name = "lava-core"
+name = "lava-app"
 version = "0.1.143-dev"
 edition = "2021"
 
@@ -8,9 +8,9 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-lava-tracing = { path = "../lib/tracing-rs", features = ["http"] }
-lava-job = { path = "../lib/job" }
-es-entity = { path = "../lib/es-entity" }
+lava-tracing = { path = "../../lib/tracing-rs", features = ["http"] }
+lava-job = { path = "../../lib/job" }
+es-entity = { path = "../../lib/es-entity" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

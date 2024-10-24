@@ -2,7 +2,7 @@ mod helpers;
 
 use serial_test::file_serial;
 
-use lava_core::{
+use lava_app::{
     audit::*,
     authorization::{error::AuthorizationError, *},
     data_export::Export,

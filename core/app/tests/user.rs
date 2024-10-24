@@ -2,7 +2,7 @@ mod helpers;
 use rand::distributions::{Alphanumeric, DistString};
 use serial_test::file_serial;
 
-use lava_core::{app::*, primitives::*, user::*};
+use lava_app::{app::*, primitives::*, user::*};
 
 fn generate_random_email() -> String {
     let random_string: String = Alphanumeric.sample_string(&mut rand::thread_rng(), 32);

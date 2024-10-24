@@ -1,4 +1,4 @@
-use lava_core::{
+use lava_app::{
     service_account::ServiceAccountConfig,
     storage::{config::StorageConfig, LocationInCloud, Storage},
 };

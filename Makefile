@@ -14,11 +14,11 @@ start-deps:
 	docker compose up --wait -d
 
 setup-db:
-	cd core && cargo sqlx migrate run
+	cd core/app && cargo sqlx migrate run
 
 sqlx-prepare:
 	cd lib/job && cargo sqlx prepare
-	cd core && cargo sqlx prepare
+	cd core/app && cargo sqlx prepare
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate
@@ -43,11 +43,11 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-core -- --config ./bats/lava.yml
+	cargo run --bin lava-app -- --config ./bats/lava.yml
 
 check-code: public-sdl admin-sdl
-	git diff --exit-code core/src/server/public/schema.graphql
-	git diff --exit-code core/src/server/admin/schema.graphql
+	git diff --exit-code core/app/src/server/public/schema.graphql
+	git diff --exit-code core/app/src/server/admin/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -63,14 +63,14 @@ e2e-in-ci: bump-cala-docker-image clean-deps start-deps build run-tf
 	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
 
 public-sdl:
-	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/src/server/public/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_public_sdl > core/app/src/server/public/schema.graphql
 
 admin-sdl:
-	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > core/src/server/admin/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > core/app/src/server/admin/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
 bump-cala-schema:
-	curl -H "Authorization: token ${GITHUB_TOKEN}" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > core/src/ledger/cala/graphql/schema.graphql
+	curl -H "Authorization: token ${GITHUB_TOKEN}" https://raw.githubusercontent.com/GaloyMoney/cala-enterprise/main/schema.graphql > core/app/src/ledger/cala/graphql/schema.graphql
 
 bump-cala-docker-image:
 	docker compose pull cala
@@ -81,7 +81,7 @@ test-in-ci: start-deps setup-db run-tf
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lava-core --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --locked --bin lava-app --target x86_64-unknown-linux-musl
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh

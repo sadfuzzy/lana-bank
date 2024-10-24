@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-  "core",
+  "core/app",
   "lib/job",
   "lib/tracing-rs",
   "lib/es-entity",

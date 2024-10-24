@@ -1,5 +1,5 @@
 mod helpers;
-use lava_core::{
+use lava_app::{
     data_export::Export,
     job::{JobExecutorConfig, Jobs},
     price::Price,

@@ -1,6 +1,6 @@
 mod helpers;
 
-use lava_core::{app::*, applicant::*, primitives::CustomerId};
+use lava_app::{app::*, applicant::*, primitives::CustomerId};
 
 use std::env;
 

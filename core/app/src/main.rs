@@ -1,4 +1,4 @@
-use lava_core::*;
+use lava_app::*;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - "../../core/src/server/public/schema.graphql"
+  - "../../core/app/src/server/public/schema.graphql"
 documents:
   - "app/**/*.{ts,tsx}"
   - "lib/**/*.{ts,tsx}"
