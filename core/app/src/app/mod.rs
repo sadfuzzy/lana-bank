@@ -7,7 +7,7 @@ use tracing::instrument;
 use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{Action, AuditAction, Authorization, Object},
+    authorization::{init as init_authz, Action, AuditAction, Authorization, Object},
     credit_facility::CreditFacilities,
     customer::Customers,
     data_export::Export,
@@ -53,7 +53,7 @@ impl LavaApp {
         let mut jobs = Jobs::new(&pool, config.job_execution);
         let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
-        let authz = Authorization::init(&pool, &audit).await?;
+        let authz = init_authz(&pool, &audit).await?;
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
@@ -172,15 +172,21 @@ impl LavaApp {
         &self.users
     }
 
-    pub fn authz(&self) -> &Authorization {
-        &self.authz
-    }
-
     pub fn terms_templates(&self) -> &TermsTemplates {
         &self.terms_templates
     }
 
     pub fn documents(&self) -> &Documents {
         &self.documents
+    }
+
+    pub async fn get_visible_nav_items(
+        &self,
+        sub: &Subject,
+    ) -> Result<
+        crate::authorization::VisibleNavigationItems,
+        crate::authorization::error::AuthorizationError,
+    > {
+        crate::authorization::get_visible_navigation_items(&self.authz, sub).await
     }
 }

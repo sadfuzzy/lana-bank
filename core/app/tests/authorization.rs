@@ -4,7 +4,7 @@ use serial_test::file_serial;
 
 use lava_app::{
     audit::*,
-    authorization::{error::AuthorizationError, *},
+    authorization::{error::AuthorizationError, init as init_authz, *},
     data_export::Export,
     job::*,
     primitives::*,
@@ -58,7 +58,7 @@ async fn create_user_with_role(
 async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, &audit).await?;
+    let authz = init_authz(&pool, &audit).await?;
     let (_, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     // Superuser can create users
@@ -99,7 +99,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, &audit).await?;
+    let authz = init_authz(&pool, &audit).await?;
     let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     let admin_subject = create_user_with_role(&users, &superuser_subject, Role::Admin).await?;
@@ -142,7 +142,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
 async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = Authorization::init(&pool, &audit).await?;
+    let authz = init_authz(&pool, &audit).await?;
     let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
 
     let bank_manager_subject =

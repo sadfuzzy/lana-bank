@@ -3,10 +3,11 @@ resolver = "2"
 members = [
   "core/app",
   "core/audit",
+  "core/authz",
   "lib/job",
   "lib/tracing-rs",
   "lib/es-entity",
-  "lib/es-entity-macros",
+  "lib/es-entity-macros"
 ]
 
 [workspace.dependencies]

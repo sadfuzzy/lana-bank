@@ -28,7 +28,7 @@ impl User {
     ) -> async_graphql::Result<VisibleNavigationItems> {
         let app = ctx.data_unchecked::<LavaApp>();
         let sub = Subject::User(UserId::from(&self.user_id));
-        let permissions = app.authz().get_visible_navigation_items(&sub).await?;
+        let permissions = app.get_visible_nav_items(&sub).await?;
         Ok(permissions)
     }
 

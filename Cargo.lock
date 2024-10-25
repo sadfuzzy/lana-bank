@@ -1980,6 +1980,7 @@ dependencies = [
  "hmac",
  "jsonwebtoken 9.3.0",
  "lava-audit",
+ "lava-authz",
  "lava-job",
  "lava-tracing",
  "ory-kratos-client",
@@ -1995,7 +1996,6 @@ dependencies = [
  "serial_test",
  "sha2",
  "sqlx",
- "sqlx-adapter",
  "strum",
  "thiserror",
  "tokio",
@@ -2013,6 +2013,20 @@ dependencies = [
  "serde",
  "sqlx",
  "thiserror",
+]
+
+[[package]]
+name = "lava-authz"
+version = "0.1.143-dev"
+dependencies = [
+ "anyhow",
+ "lava-audit",
+ "sqlx",
+ "sqlx-adapter",
+ "strum",
+ "thiserror",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

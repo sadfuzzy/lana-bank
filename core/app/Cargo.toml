@@ -12,6 +12,7 @@ lava-tracing = { path = "../../lib/tracing-rs", features = ["http"] }
 lava-job = { path = "../../lib/job" }
 es-entity = { path = "../../lib/es-entity" }
 lava-audit = { path = "../audit" }
+lava-authz = { path = "../authz" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
@@ -45,7 +46,6 @@ jsonwebtoken = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-sqlx-adapter = { workspace = true }
 ory-kratos-client = { workspace = true }
 cached = { workspace = true }
 gcp_auth = { workspace = true }
