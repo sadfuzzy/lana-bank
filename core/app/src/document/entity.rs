@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    primitives::{AuditInfo, CustomerId, DocumentId},
+    audit::AuditInfo,
+    primitives::{CustomerId, DocumentId},
     storage::LocationInCloud,
 };
 

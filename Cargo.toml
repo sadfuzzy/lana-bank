@@ -2,6 +2,7 @@
 resolver = "2"
 members = [
   "core/app",
+  "core/audit",
   "lib/job",
   "lib/tracing-rs",
   "lib/es-entity",

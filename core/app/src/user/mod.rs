@@ -6,10 +6,10 @@ mod repo;
 use std::collections::HashMap;
 
 use crate::{
-    audit::Audit,
+    audit::{Audit, AuditInfo},
     authorization::{error::AuthorizationError, Authorization, Object, UserAction},
     data_export::Export,
-    primitives::{AuditInfo, Role, Subject, SystemNode, UserId},
+    primitives::{Role, Subject, SystemNode, UserId},
 };
 
 pub use config::*;

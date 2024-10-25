@@ -41,7 +41,7 @@ pub struct Customer {
     #[graphql(skip)]
     account_ids: ledger::customer::CustomerLedgerAccountIds,
     #[graphql(skip)]
-    audit_info: Vec<primitives::AuditInfo>,
+    audit_info: Vec<crate::audit::AuditInfo>,
 }
 
 #[ComplexObject]

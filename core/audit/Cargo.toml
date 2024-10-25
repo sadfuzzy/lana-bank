@@ -1,0 +1,16 @@
+[package]
+name = "lava-audit"
+version = "0.1.143-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+es-entity = { path = "../../lib/es-entity" }
+
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }

@@ -1,44 +1,60 @@
-use std::collections::HashMap;
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
+use std::{collections::HashMap, fmt, marker::PhantomData, str::FromStr};
 
 use chrono::{DateTime, Utc};
 
-pub mod error;
-use error::AuditError;
-
 mod cursor;
+pub mod error;
+mod primitives;
+
 pub use cursor::AuditCursor;
+use error::AuditError;
+pub use primitives::*;
 
-use crate::{
-    authorization::{Action, Object},
-    primitives::{AuditEntryId, AuditInfo, Subject},
-};
-
-pub struct AuditEntry {
+pub struct AuditEntry<S, O, A> {
     pub id: AuditEntryId,
-    pub subject: Subject,
-    pub object: Object,
-    pub action: Action,
+    pub subject: S,
+    pub object: O,
+    pub action: A,
     pub authorized: bool,
     pub recorded_at: DateTime<Utc>,
 }
 
 #[derive(Clone)]
-pub struct Audit {
+pub struct Audit<S, O, A> {
     pool: sqlx::PgPool,
+    _subject: PhantomData<S>,
+    _object: PhantomData<O>,
+    _action: PhantomData<A>,
 }
 
-impl Audit {
+impl<S, O, A> Audit<S, O, A>
+where
+    S: FromStr + fmt::Display + Clone,
+    O: FromStr + fmt::Display,
+    A: FromStr + fmt::Display,
+    <S as FromStr>::Err: fmt::Debug,
+    <O as FromStr>::Err: fmt::Debug,
+    <A as FromStr>::Err: fmt::Debug,
+{
     pub fn new(pool: &sqlx::PgPool) -> Self {
-        Self { pool: pool.clone() }
+        Self {
+            pool: pool.clone(),
+            _subject: std::marker::PhantomData,
+            _object: std::marker::PhantomData,
+            _action: std::marker::PhantomData,
+        }
     }
 
     pub async fn record_entry(
         &self,
-        subject: &Subject,
-        object: Object,
-        action: impl Into<Action>,
+        subject: &S,
+        object: impl Into<O>,
+        action: impl Into<A>,
         authorized: bool,
-    ) -> Result<AuditInfo, AuditError> {
+    ) -> Result<AuditInfo<S>, AuditError> {
         let mut db = self.pool.begin().await?;
         let info = self
             .record_entry_in_tx(&mut db, subject, object, action, authorized)
@@ -50,12 +66,14 @@ impl Audit {
     pub async fn record_entry_in_tx(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        subject: &Subject,
-        object: Object,
-        action: impl Into<Action>,
+        subject: &S,
+        object: impl Into<O>,
+        action: impl Into<A>,
         authorized: bool,
-    ) -> Result<AuditInfo, AuditError> {
+    ) -> Result<AuditInfo<S>, AuditError> {
+        let object = object.into();
         let action = action.into();
+
         let record = sqlx::query!(
             r#"
                 INSERT INTO audit_entries (subject, object, action, authorized)
@@ -70,13 +88,13 @@ impl Audit {
         .fetch_one(&mut **db)
         .await?;
 
-        Ok(AuditInfo::from((record.id, *subject)))
+        Ok(AuditInfo::from((record.id, subject.clone())))
     }
 
     pub async fn list(
         &self,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, AuditError> {
+    ) -> Result<es_entity::PaginatedQueryRet<AuditEntry<S, O, A>, AuditCursor>, AuditError> {
         let after_id: Option<AuditEntryId> = query.after.map(|cursor| cursor.id);
         let limit = i64::try_from(query.first)?;
 
@@ -114,7 +132,7 @@ impl Audit {
             None
         };
 
-        let audit_entries: Vec<AuditEntry> = events
+        let audit_entries: Vec<AuditEntry<S, O, A>> = events
             .into_iter()
             .map(|raw_event| AuditEntry {
                 id: raw_event.id,
@@ -133,7 +151,7 @@ impl Audit {
         })
     }
 
-    pub async fn find_all<T: From<AuditEntry>>(
+    pub async fn find_all<T: From<AuditEntry<S, O, A>>>(
         &self,
         ids: &[AuditEntryId],
     ) -> Result<HashMap<AuditEntryId, T>, AuditError> {

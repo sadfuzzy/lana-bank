@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{ledger::customer::CustomerLedgerAccountIds, primitives::*};
+use crate::{audit::AuditInfo, ledger::customer::CustomerLedgerAccountIds, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

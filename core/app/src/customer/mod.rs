@@ -8,11 +8,11 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 use crate::{
-    audit::Audit,
+    audit::{Audit, AuditInfo},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
-    primitives::{AuditInfo, CustomerId, KycLevel, Subject},
+    primitives::{CustomerId, KycLevel, Subject},
 };
 
 pub use config::*;

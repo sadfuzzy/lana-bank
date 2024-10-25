@@ -8,7 +8,7 @@ mod jobs;
 mod repo;
 
 use crate::{
-    audit::Audit,
+    audit::{Audit, AuditInfo},
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
     constants::CREDIT_FACILITY_CVL_JOB_ID,
     customer::Customers,
@@ -18,8 +18,7 @@ use crate::{
     ledger::{credit_facility::*, Ledger},
     price::Price,
     primitives::{
-        AuditInfo, CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents,
-        UserId,
+        CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
     },
     terms::TermValues,
     user::{UserRepo, Users},

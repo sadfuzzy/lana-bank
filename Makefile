@@ -18,6 +18,7 @@ setup-db:
 
 sqlx-prepare:
 	cd lib/job && cargo sqlx prepare
+	cd core/audit && cargo sqlx prepare
 	cd core/app && cargo sqlx prepare
 
 reset-tf-state:

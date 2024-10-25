@@ -2,7 +2,7 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::{entity::*, primitives::*, storage::LocationInCloud};
+use crate::{audit::AuditInfo, entity::*, primitives::*, storage::LocationInCloud};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},
@@ -329,6 +329,8 @@ impl NewReport {
 
 #[cfg(test)]
 mod test {
+    use crate::audit::AuditEntryId;
+
     use super::*;
 
     fn dummy_audit_info() -> AuditInfo {

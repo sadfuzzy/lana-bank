@@ -8,6 +8,7 @@ use std::collections::HashSet;
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
@@ -1013,6 +1014,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
+        audit::AuditEntryId,
         credit_facility::*,
         terms::{Duration, InterestInterval},
     };

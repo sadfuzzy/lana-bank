@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     credit_facility::{
         CreditFacilityAccountIds, CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence,
         CreditFacilityReceivable,
@@ -261,7 +262,10 @@ mod test {
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::terms::{Duration, InterestInterval};
+    use crate::{
+        audit::AuditEntryId,
+        terms::{Duration, InterestInterval},
+    };
 
     use super::*;
 

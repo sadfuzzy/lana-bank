@@ -4,7 +4,10 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use super::error::*;
-use crate::primitives::{AuditInfo, CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId};
+use crate::{
+    audit::AuditInfo,
+    primitives::{CustomerId, LedgerAccountId, LedgerTxId, UsdCents, WithdrawId},
+};
 
 #[derive(async_graphql::Enum, Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 pub enum WithdrawalStatus {

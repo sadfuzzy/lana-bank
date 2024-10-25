@@ -5,11 +5,11 @@ use crate::primitives::AuditEntryId;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuditCursor {
-    pub(super) id: AuditEntryId,
+    pub id: AuditEntryId,
 }
 
-impl From<&AuditEntry> for AuditCursor {
-    fn from(entry: &AuditEntry) -> Self {
+impl<S, O, A> From<&AuditEntry<S, O, A>> for AuditCursor {
+    fn from(entry: &AuditEntry<S, O, A>) -> Self {
         Self { id: entry.id }
     }
 }

@@ -3,11 +3,12 @@ mod error;
 mod repo;
 
 use crate::{
+    audit::AuditInfo,
     authorization::{Authorization, DepositAction, Object},
     customer::Customers,
     data_export::Export,
     ledger::Ledger,
-    primitives::{AuditInfo, CustomerId, DepositId, Subject, UsdCents},
+    primitives::{CustomerId, DepositId, Subject, UsdCents},
 };
 
 pub use entity::*;

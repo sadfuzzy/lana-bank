@@ -1,14 +1,22 @@
 use async_graphql::{types::connection::*, Context, Object};
 
 use super::{
-    account_set::*, audit::AuditEntry, credit_facility::*, customer::*, deposit::*, loan::*,
-    price::*, report::*, shareholder_equity::*, terms_template::TermsTemplate, user::*,
+    account_set::*,
+    audit::{AuditCursor, AuditEntry},
+    credit_facility::*,
+    customer::*,
+    deposit::*,
+    loan::*,
+    price::*,
+    report::*,
+    shareholder_equity::*,
+    terms_template::TermsTemplate,
+    user::*,
     withdraw::*,
 };
 
 use crate::{
     app::LavaApp,
-    audit::AuditCursor,
     credit_facility::CreditFacilityByCreatedAtCursor,
     primitives::{
         CreditFacilityId, CustomerId, DocumentId, LoanId, ReportId, TermsTemplateId, UserId,
@@ -45,31 +53,40 @@ impl Query {
     async fn audit(
         &self,
         ctx: &Context<'_>,
-        first: i64,
+        first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<Connection<AuditCursor, AuditEntry>> {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .list_audit(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after.map(crate::audit::AuditCursor::from),
+                        },
+                    )
+                    .await?;
 
-        let after_cursor = after
-            .map(|cursor| cursor.parse::<AuditCursor>())
-            .transpose()?;
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = AuditCursor::from(&entry);
+                        Edge::new(cursor, AuditEntry::from(entry))
+                    }));
 
-        let query_args = es_entity::PaginatedQueryArgs {
-            first: first.try_into().expect("convert to usize failed"),
-            after: after_cursor,
-        };
-
-        let res = app.list_audit(sub, query_args).await?;
-
-        let mut connection = Connection::new(false, res.has_next_page);
-        for entry in res.entities {
-            let cursor = AuditCursor::from(&entry);
-            let audit_entry = AuditEntry::from(entry);
-            connection.edges.push(Edge::new(cursor, audit_entry));
-        }
-
-        Ok(connection)
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 
     async fn loan(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Loan>> {

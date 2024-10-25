@@ -1979,6 +1979,7 @@ dependencies = [
  "hex",
  "hmac",
  "jsonwebtoken 9.3.0",
+ "lava-audit",
  "lava-job",
  "lava-tracing",
  "ory-kratos-client",
@@ -2001,6 +2002,17 @@ dependencies = [
  "tower-http",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "lava-audit"
+version = "0.1.143-dev"
+dependencies = [
+ "chrono",
+ "es-entity",
+ "serde",
+ "sqlx",
+ "thiserror",
 ]
 
 [[package]]

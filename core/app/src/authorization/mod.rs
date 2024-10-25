@@ -13,8 +13,10 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use tracing::instrument;
 
-use super::audit::Audit;
-use crate::primitives::{AuditInfo, Role, Subject};
+use crate::{
+    audit::{Audit, AuditInfo},
+    primitives::{Role, Subject},
+};
 
 pub use action::*;
 use error::AuthorizationError;

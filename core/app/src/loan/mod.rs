@@ -10,7 +10,7 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use crate::{
-    audit::Audit,
+    audit::{Audit, AuditInfo},
     authorization::{Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object},
     constants::CVL_JOB_ID,
     customer::Customers,

@@ -8,6 +8,7 @@ use std::collections::HashSet;
 use es_entity::*;
 
 use crate::{
+    audit::AuditInfo,
     ledger::{
         customer::CustomerLedgerAccountIds,
         loan::{LoanAccountIds, LoanCollateralUpdate, LoanPaymentAmounts, LoanRepayment},
@@ -890,7 +891,7 @@ impl IntoEvents<LoanEvent> for NewLoan {
 mod test {
     use rust_decimal_macros::dec;
 
-    use crate::loan::*;
+    use crate::{audit::AuditEntryId, loan::*};
 
     use super::*;
 

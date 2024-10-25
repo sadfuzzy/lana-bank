@@ -5,9 +5,9 @@ use std::{collections::HashMap, sync::Arc};
 use super::{audit::AuditEntry, user::User};
 use crate::{
     app::LavaApp,
-    audit::error::AuditError,
+    audit::{error::AuditError, AuditEntryId},
     customer::error::CustomerError,
-    primitives::{AuditEntryId, CustomerId, UserId},
+    primitives::{CustomerId, UserId},
     server::shared_graphql::customer::Customer,
     user::error::UserError,
 };

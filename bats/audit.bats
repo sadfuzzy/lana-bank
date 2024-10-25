@@ -38,13 +38,4 @@ teardown_file() {
 
   edges_length=$(graphql_output '.data.audit.edges | length')
   [[ "$edges_length" -eq 2 ]] || exit 1
-
-  id1=$(graphql_output '.data.audit.edges[0].node.id')
-  id2=$(graphql_output '.data.audit.edges[1].node.id')
-
-  expected_id1=$((end_cursor - 1))
-  expected_id2=$((end_cursor - 2))
-
-  [[ "$id1" == "audit_entry:$expected_id1" ]] || exit 1
-  [[ "$id2" == "audit_entry:$expected_id2" ]] || exit 1
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{audit::AuditInfo, primitives::*};
 
 use std::collections::HashSet;
 

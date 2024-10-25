@@ -3,7 +3,6 @@
 
 pub mod app;
 pub mod applicant;
-pub mod audit;
 pub mod authorization;
 pub mod cli;
 pub mod constants;
@@ -28,4 +27,17 @@ pub mod withdraw;
 
 pub mod job {
     pub use lava_job::*;
+}
+
+pub mod audit {
+    use crate::{
+        authorization::{Action, Object},
+        primitives::Subject,
+    };
+
+    pub use lava_audit::{error, AuditEntryId};
+    pub type Audit = lava_audit::Audit<Subject, Object, Action>;
+    pub type AuditEntry = lava_audit::AuditEntry<Subject, Object, Action>;
+    pub type AuditInfo = lava_audit::AuditInfo<Subject>;
+    pub type AuditCursor = lava_audit::AuditCursor;
 }

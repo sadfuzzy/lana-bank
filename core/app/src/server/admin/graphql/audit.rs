@@ -1,4 +1,7 @@
-use async_graphql::{dataloader::DataLoader, ComplexObject, Context, SimpleObject, Union, ID};
+use async_graphql::{
+    connection::CursorType, dataloader::DataLoader, ComplexObject, Context, SimpleObject, Union, ID,
+};
+use serde::{Deserialize, Serialize};
 
 use crate::{
     primitives::Subject as DomainSubject,
@@ -75,8 +78,43 @@ impl From<crate::audit::AuditEntry> for AuditEntry {
     }
 }
 
-impl ToGlobalId for crate::primitives::AuditEntryId {
+impl ToGlobalId for crate::audit::AuditEntryId {
     fn to_global_id(&self) -> async_graphql::types::ID {
         async_graphql::types::ID::from(format!("audit_entry:{}", self))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AuditCursor {
+    id: crate::audit::AuditEntryId,
+}
+
+impl From<&crate::audit::AuditEntry> for AuditCursor {
+    fn from(entry: &crate::audit::AuditEntry) -> Self {
+        Self { id: entry.id }
+    }
+}
+impl From<AuditCursor> for crate::audit::AuditCursor {
+    fn from(cursor: AuditCursor) -> Self {
+        Self { id: cursor.id }
+    }
+}
+
+impl CursorType for AuditCursor {
+    type Error = String;
+
+    fn encode_cursor(&self) -> String {
+        use base64::{engine::general_purpose, Engine as _};
+        let json = serde_json::to_string(&self).expect("could not serialize token");
+        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
+    }
+
+    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
+        use base64::{engine::general_purpose, Engine as _};
+        let bytes = general_purpose::STANDARD_NO_PAD
+            .decode(s.as_bytes())
+            .map_err(|e| e.to_string())?;
+        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
     }
 }

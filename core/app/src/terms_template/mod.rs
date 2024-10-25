@@ -3,9 +3,10 @@ pub mod error;
 mod repo;
 
 use crate::{
+    audit::AuditInfo,
     authorization::{Authorization, Object, TermsTemplateAction},
     data_export::Export,
-    primitives::{AuditInfo, Subject, TermsTemplateId},
+    primitives::{Subject, TermsTemplateId},
     terms::TermValues,
 };
 

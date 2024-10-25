@@ -2,7 +2,6 @@ pub mod graphql;
 
 mod auth;
 mod config;
-pub mod convert;
 mod sumsub;
 
 use async_graphql::*;
