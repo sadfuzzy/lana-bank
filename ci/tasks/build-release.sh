@@ -8,7 +8,7 @@ if [[ -f version/version ]];then
 fi
 
 REPO=${REPO:-repo}
-BINARY=lava-core
+BINARY=lava-app
 OUT=${OUT:-none}
 WORKSPACE="$(pwd)"
 
