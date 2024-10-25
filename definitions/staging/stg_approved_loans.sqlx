@@ -117,6 +117,18 @@ WITH approved AS (
 
 	GROUP BY loan_id
 
+), completed AS (
+
+	SELECT DISTINCT id AS loan_id,
+
+	FROM ${ref({
+		name: "loan_events",
+		schema: envs.currentImportSchema
+	})}
+
+	WHERE recorded_at < asof
+		AND event_type = "completed"
+
 )
 
 SELECT loan_id
@@ -134,6 +146,7 @@ SELECT loan_id
 	, COALESCE(total_collateral, 0) AS total_collateral
 	, customer_id
 	, most_recent_collateral_deposit
+	, completed.loan_id IS NOT NULL AS completed
 
 FROM approved
 	JOIN initial USING (loan_id)
@@ -141,4 +154,5 @@ FROM approved
 	LEFT JOIN interest USING (loan_id)
 	LEFT JOIN collateral USING (loan_id)
 	LEFT JOIN collateral_deposits USING (loan_id)
+	LEFT JOIN completed USING (loan_id)
 );

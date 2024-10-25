@@ -24,4 +24,6 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 	FROM ${ref("stg_approved_loans")}(asof)
 
+	WHERE NOT completed
+
 )

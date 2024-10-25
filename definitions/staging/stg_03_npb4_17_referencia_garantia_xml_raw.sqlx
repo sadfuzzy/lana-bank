@@ -14,12 +14,16 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 		FROM ${ref("stg_approved_loans")}(asof)
 
+		WHERE NOT completed
+
 		UNION ALL
 
 		SELECT loan_id, total_collateral,
 			facility AS loan_amount,
 
 		FROM ${ref("stg_approved_credit_facilities")}(asof)
+
+		WHERE NOT completed
 
 	)
 

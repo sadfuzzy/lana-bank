@@ -19,6 +19,8 @@ WITH loans_and_credit_facilities AS (
 
 	FROM ${ref("stg_approved_loans")}(asof)
 
+	WHERE NOT completed
+
 	UNION ALL
 
 	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
@@ -30,6 +32,8 @@ WITH loans_and_credit_facilities AS (
 		total_interest_incurred - total_interest_paid AS remaining_interest_balance,
 
 	FROM ${ref("stg_approved_credit_facilities")}(asof)
+
+	WHERE NOT completed
 
 )
 
