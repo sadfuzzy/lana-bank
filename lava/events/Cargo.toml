@@ -1,0 +1,13 @@
+[package]
+name = "lava-events"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+governance = { path = "../../core/governance" }
+
+serde = { workspace = true }

@@ -9,12 +9,14 @@ fail-on-warnings = []
 
 [dependencies]
 rbac-types = { path = "../rbac-types" }
+lava-events = { path = "../events" }
 
 governance = { path = "../../core/governance" }
 shared-primitives = { path = "../../core/shared-primitives" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
+outbox = { path = "../../lib/outbox" }
 es-entity = { path = "../../lib/es-entity" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

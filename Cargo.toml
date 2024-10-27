@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "lava/app",
   "lava/rbac-types",
+  "lava/events",
 
   "core/governance",
   "core/shared-primitives",

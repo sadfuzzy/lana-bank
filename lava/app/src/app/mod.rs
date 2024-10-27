@@ -6,6 +6,8 @@ use tracing::instrument;
 
 use authz::PermissionCheck;
 use governance::Governance;
+use lava_events::LavaEvent;
+use outbox::Outbox;
 
 use crate::{
     applicant::Applicants,
@@ -49,7 +51,8 @@ pub struct LavaApp {
     report: Reports,
     terms_templates: TermsTemplates,
     documents: Documents,
-    _governance: Governance<Authorization>,
+    _outbox: Outbox<LavaEvent>,
+    _governance: Governance<Authorization, LavaEvent>,
 }
 
 impl LavaApp {
@@ -93,7 +96,8 @@ impl LavaApp {
             &price,
             &users,
         );
-        let governance = Governance::new(&pool, &authz);
+        let outbox = Outbox::init(&pool).await?;
+        let governance = Governance::new(&pool, &authz, &outbox);
         jobs.start_poll().await?;
 
         loans.spawn_global_jobs().await?;
@@ -117,6 +121,7 @@ impl LavaApp {
             credit_facilities,
             terms_templates,
             documents,
+            _outbox: outbox,
             _governance: governance,
         })
     }

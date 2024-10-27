@@ -70,7 +70,15 @@ where
         })
     }
 
-    pub async fn persist_events(
+    pub async fn persist(
+        &self,
+        db: &mut Transaction<'_, Postgres>,
+        event: impl Into<P>,
+    ) -> Result<(), sqlx::Error> {
+        self.persist_all(db, std::iter::once(event)).await
+    }
+
+    pub async fn persist_all(
         &self,
         db: &mut Transaction<'_, Postgres>,
         events: impl IntoIterator<Item = impl Into<P>>,

@@ -8,10 +8,12 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
+shared-primitives = { path = "../shared-primitives" }
+
+outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 es-entity = { path = "../../lib/es-entity" }
-shared-primitives = { path = "../shared-primitives" }
 
 uuid = { workspace = true }
 sqlx = { workspace = true }

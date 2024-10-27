@@ -4,6 +4,7 @@
 mod approval_process;
 mod committee;
 pub mod error;
+mod event;
 mod policy;
 mod primitives;
 
@@ -11,33 +12,60 @@ use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
+use outbox::Outbox;
 
 pub use approval_process::*;
 pub use committee::*;
 use error::*;
+pub use event::*;
 pub use policy::*;
 pub use primitives::*;
 
-#[derive(Clone)]
-pub struct Governance<Perms>
+pub struct Governance<Perms, E>
 where
     Perms: PermissionCheck,
+    E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
 {
     pool: sqlx::PgPool,
     committee_repo: CommitteeRepo,
     policy_repo: PolicyRepo,
     process_repo: ApprovalProcessRepo,
     authz: Perms,
+    outbox: Outbox<E>,
 }
 
-impl<Perms> Governance<Perms>
+impl<Perms, E> Clone for Governance<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
+{
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+            committee_repo: self.committee_repo.clone(),
+            policy_repo: self.policy_repo.clone(),
+            process_repo: self.process_repo.clone(),
+            authz: self.authz.clone(),
+            outbox: self.outbox.clone(),
+        }
+    }
+}
+
+impl<Perms, E> Governance<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: audit::SystemSubject,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
+    E: serde::de::DeserializeOwned
+        + serde::Serialize
+        + Send
+        + Sync
+        + 'static
+        + Unpin
+        + From<GovernanceEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let committee_repo = CommitteeRepo::new(pool);
         let policy_repo = PolicyRepo::new(pool);
         let process_repo = ApprovalProcessRepo::new(pool);
@@ -48,6 +76,7 @@ where
             policy_repo,
             process_repo,
             authz: authz.clone(),
+            outbox: outbox.clone(),
         }
     }
 
@@ -103,6 +132,15 @@ where
             .await?;
         let process = policy.spawn_process(audit_info);
         let process = self.process_repo.create_in_tx(db, process).await?;
+        self.outbox
+            .persist(
+                db,
+                GovernanceEvent::ApprovalProcessConcluded {
+                    id: process.id,
+                    approved: false,
+                },
+            )
+            .await?;
         Ok(process)
     }
 

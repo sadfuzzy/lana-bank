@@ -1451,6 +1451,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity",
+ "outbox",
  "serde",
  "serde_json",
  "shared-primitives",
@@ -2065,7 +2066,9 @@ dependencies = [
  "hmac",
  "job",
  "jsonwebtoken 9.3.0",
+ "lava-events",
  "ory-kratos-client",
+ "outbox",
  "rand",
  "rbac-types",
  "reqwest 0.12.8",
@@ -2087,6 +2090,14 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
+]
+
+[[package]]
+name = "lava-events"
+version = "0.1.0"
+dependencies = [
+ "governance",
+ "serde",
 ]
 
 [[package]]
