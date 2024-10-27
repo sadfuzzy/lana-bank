@@ -22,4 +22,6 @@ pub enum ApplicationError {
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ApplicationError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
+    #[error("ApplicationError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
 }

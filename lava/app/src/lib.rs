@@ -31,11 +31,11 @@ pub mod job {
 
 pub mod audit {
     use crate::{
-        authorization::{Action, Object},
+        authorization::{LavaAction, LavaObject},
         primitives::Subject,
     };
 
     pub use audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
-    pub type Audit = audit::Audit<Subject, Object, Action>;
-    pub type AuditEntry = audit::AuditEntry<Subject, Object, Action>;
+    pub type Audit = audit::Audit<Subject, LavaObject, LavaAction>;
+    pub type AuditEntry = audit::AuditEntry<Subject, LavaObject, LavaAction>;
 }

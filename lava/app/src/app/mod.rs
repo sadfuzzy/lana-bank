@@ -5,6 +5,7 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use authz::PermissionCheck;
+use governance::Governance;
 
 use crate::{
     applicant::Applicants,
@@ -48,6 +49,7 @@ pub struct LavaApp {
     report: Reports,
     terms_templates: TermsTemplates,
     documents: Documents,
+    _governance: Governance<Authorization>,
 }
 
 impl LavaApp {
@@ -91,6 +93,7 @@ impl LavaApp {
             &price,
             &users,
         );
+        let governance = Governance::init(&pool, &authz).await?;
         jobs.start_poll().await?;
 
         loans.spawn_global_jobs().await?;
@@ -114,6 +117,7 @@ impl LavaApp {
             credit_facilities,
             terms_templates,
             documents,
+            _governance: governance,
         })
     }
 

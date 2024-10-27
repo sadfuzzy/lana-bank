@@ -48,7 +48,7 @@ teardown_file() {
   [[ "$audit_entries" != "null" ]] || exit 1
 
   action=$(graphql_output '.data.customer.audit[0].action')
-  [[ "$action" == "customer:create" ]] || exit 1
+  [[ "$action" == "app:customer:create" ]] || exit 1
 
   authorized=$(graphql_output '.data.customer.audit[0].authorized')
   [[ "$authorized" == "true" ]] || exit 1

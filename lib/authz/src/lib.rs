@@ -157,11 +157,13 @@ where
     pub async fn check_all_permissions(
         &self,
         sub: &Audit::Subject,
-        object: Audit::Object,
-        actions: &[Audit::Action],
+        object: impl Into<Audit::Object>,
+        actions: &[impl Into<Audit::Action> + std::fmt::Debug + Copy],
     ) -> Result<bool, AuthorizationError> {
+        let object = object.into();
         for action in actions {
-            match self.enforce_permission(sub, object, *action).await {
+            let action = Into::<Audit::Action>::into(*action);
+            match self.enforce_permission(sub, object, action).await {
                 Ok(_) => continue,
                 Err(AuthorizationError::NotAuthorized) => return Ok(false),
                 Err(e) => return Err(e),
@@ -198,7 +200,7 @@ where
 {
     type Audit = Audit;
 
-    #[instrument(name = "lava.authz.enforce_permission", skip(self))]
+    #[instrument(name = "authz.enforce_permission", skip(self))]
     async fn enforce_permission(
         &self,
         sub: &<Self::Audit as AuditSvc>::Subject,
@@ -219,7 +221,7 @@ where
         }
     }
 
-    #[instrument(name = "lava.authz.inspect_permission", skip(self))]
+    #[instrument(name = "authz.inspect_permission", skip(self))]
     async fn evaluate_permission(
         &self,
         sub: &<Self::Audit as AuditSvc>::Subject,

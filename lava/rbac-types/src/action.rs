@@ -53,6 +53,12 @@ macro_rules! impl_trivial_action {
                 AppAction::$variant(action)
             }
         }
+
+        impl From<$from_type> for LavaAction {
+            fn from(action: $from_type) -> Self {
+                LavaAction::App(AppAction::$variant(action))
+            }
+        }
     };
 }
 
