@@ -11,8 +11,8 @@ fail-on-warnings = []
 lava-tracing = { path = "../../lib/tracing-rs", features = ["http"] }
 lava-job = { path = "../../lib/job" }
 es-entity = { path = "../../lib/es-entity" }
-lava-audit = { path = "../audit" }
-lava-authz = { path = "../authz" }
+lava-audit = { path = "../../lib/audit" }
+lava-authz = { path = "../../lib/authz" }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }

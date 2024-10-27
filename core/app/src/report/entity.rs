@@ -229,7 +229,7 @@ impl Report {
                     report_name,
                     path_in_bucket,
                     bucket,
-                    audit_info,
+                    audit_info: audit_info.clone(),
                     recorded_at: Utc::now(),
                 }),
                 ReportFileUpload::Failure {
@@ -238,7 +238,7 @@ impl Report {
                 } => self.events.push(ReportEvent::FileUploadFailed {
                     report_name,
                     reason,
-                    audit_info,
+                    audit_info: audit_info.clone(),
                     recorded_at: Utc::now(),
                 }),
             }
@@ -336,7 +336,7 @@ mod test {
     fn dummy_audit_info() -> AuditInfo {
         AuditInfo {
             audit_entry_id: AuditEntryId::from(1),
-            sub: Subject::from(UserId::new()),
+            sub: "sub".to_string(),
         }
     }
 

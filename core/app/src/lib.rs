@@ -35,9 +35,7 @@ pub mod audit {
         primitives::Subject,
     };
 
-    pub use lava_audit::{error, AuditEntryId};
+    pub use lava_audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
     pub type Audit = lava_audit::Audit<Subject, Object, Action>;
     pub type AuditEntry = lava_audit::AuditEntry<Subject, Object, Action>;
-    pub type AuditInfo = lava_audit::AuditInfo<Subject>;
-    pub type AuditCursor = lava_audit::AuditCursor;
 }

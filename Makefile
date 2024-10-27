@@ -18,8 +18,9 @@ setup-db:
 
 sqlx-prepare:
 	cd lib/job && cargo sqlx prepare
-	cd core/audit && cargo sqlx prepare
+	cd lib/audit && cargo sqlx prepare
 	cd core/app && cargo sqlx prepare
+	cd core/governance && cargo sqlx prepare
 
 reset-tf-state:
 	rm -rf tf/terraform.tfstate

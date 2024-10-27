@@ -2,6 +2,8 @@ mod helpers;
 
 use serial_test::file_serial;
 
+use lava_authz::PermissionCheck;
+
 use lava_app::{
     audit::*,
     authorization::{error::AuthorizationError, init as init_authz, *},

@@ -550,9 +550,9 @@ impl Loan {
                     principal_amount: principal,
                     interest_amount: interest,
                     recorded_at,
-                    audit_info,
+                    audit_info: audit_info.clone(),
                 });
-                self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
+                self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
             }
             LoanRepayment::Final {
                 payment_tx_id,
@@ -573,7 +573,7 @@ impl Loan {
                     principal_amount: principal,
                     interest_amount: interest,
                     recorded_at,
-                    audit_info,
+                    audit_info: audit_info.clone(),
                 });
                 self.confirm_collateral_update(
                     LoanCollateralUpdate {
@@ -584,7 +584,7 @@ impl Loan {
                         action: CollateralAction::Remove,
                     },
                     recorded_at,
-                    audit_info,
+                    audit_info.clone(),
                     price,
                     upgrade_buffer_cvl_pct,
                 );
@@ -620,7 +620,7 @@ impl Loan {
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: AuditInfo,
+        audit_info: &AuditInfo,
     ) -> Option<LoanCollaterizationState> {
         let current_collateralization = self.collateralization();
         let calculated_collateralization = &self.calculate_collaterization(price);
@@ -634,7 +634,7 @@ impl Loan {
                 outstanding: self.outstanding(),
                 price,
                 recorded_at: Utc::now(),
-                audit_info,
+                audit_info: audit_info.clone(),
             });
 
             return Some(*calculated_collateralization);
@@ -647,7 +647,7 @@ impl Loan {
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: AuditInfo,
+        audit_info: &AuditInfo,
     ) -> Option<LoanCollaterizationState> {
         let collateral = self.collateral();
         let current_collateralization = self.collateralization();
@@ -696,7 +696,7 @@ impl Loan {
                         outstanding: self.outstanding(),
                         price,
                         recorded_at: Utc::now(),
-                        audit_info,
+                        audit_info: audit_info.clone(),
                     });
 
                     Some(*calculated_collateralization)
@@ -716,7 +716,7 @@ impl Loan {
                     outstanding: self.outstanding(),
                     price,
                     recorded_at: Utc::now(),
-                    audit_info,
+                    audit_info: audit_info.clone(),
                 });
 
                 Some(*calculated_collateralization)
@@ -802,10 +802,10 @@ impl Loan {
             abs_diff,
             action,
             recorded_at: executed_at,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info)
     }
 }
 impl TryFromEvents<LoanEvent> for Loan {
@@ -911,7 +911,7 @@ mod test {
     fn dummy_audit_info() -> AuditInfo {
         AuditInfo {
             audit_entry_id: AuditEntryId::from(1),
-            sub: Subject::from(UserId::new()),
+            sub: "sub".to_string(),
         }
     }
 
@@ -1171,7 +1171,7 @@ mod test {
         loan.maybe_update_collateralization(
             default_price(),
             default_upgrade_buffer_cvl_pct(),
-            dummy_audit_info(),
+            &dummy_audit_info(),
         );
         assert_eq!(
             loan.collateralization(),
@@ -1305,7 +1305,7 @@ mod test {
                     loan.maybe_update_collateralization(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );
@@ -1453,7 +1453,7 @@ mod test {
                     loan.maybe_update_collateralization(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );
@@ -1469,7 +1469,7 @@ mod test {
                     loan.maybe_update_collateralization(
                         test_prices().below_margin_called,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     Some(LoanCollaterizationState::UnderMarginCallThreshold)
                 );
@@ -1485,7 +1485,7 @@ mod test {
                     loan.maybe_update_collateralization(
                         test_prices().below_liquidation,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     Some(LoanCollaterizationState::UnderLiquidationThreshold)
                 );
@@ -1499,14 +1499,14 @@ mod test {
                 loan.maybe_update_collateralization(
                     test_prices().below_margin_called,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info(),
+                    &dummy_audit_info(),
                 );
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
                         test_prices().above_margin_called_and_below_buffer,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );
@@ -1520,14 +1520,14 @@ mod test {
                 loan.maybe_update_collateralization(
                     test_prices().below_margin_called,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info(),
+                    &dummy_audit_info(),
                 );
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
                         test_prices().above_margin_called_and_buffer,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     Some(LoanCollaterizationState::FullyCollateralized)
                 );
@@ -1541,14 +1541,14 @@ mod test {
                 loan.maybe_update_collateralization(
                     test_prices().below_margin_called,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info(),
+                    &dummy_audit_info(),
                 );
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
                         test_prices().below_liquidation,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     Some(LoanCollaterizationState::UnderLiquidationThreshold)
                 );
@@ -1562,14 +1562,14 @@ mod test {
                 loan.maybe_update_collateralization(
                     test_prices().below_liquidation,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info(),
+                    &dummy_audit_info(),
                 );
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );
@@ -1583,14 +1583,14 @@ mod test {
                 loan.maybe_update_collateralization(
                     test_prices().below_liquidation,
                     default_upgrade_buffer_cvl_pct(),
-                    dummy_audit_info(),
+                    &dummy_audit_info(),
                 );
 
                 assert_eq!(
                     loan.maybe_update_collateralization(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );
@@ -1601,7 +1601,7 @@ mod test {
                     loan.maybe_update_collateralization_with_liquidation_override(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     Some(LoanCollaterizationState::FullyCollateralized)
                 );
@@ -1632,7 +1632,7 @@ mod test {
                     loan.maybe_update_collateralization(
                         test_prices().above_fully_collateralized,
                         default_upgrade_buffer_cvl_pct(),
-                        dummy_audit_info()
+                        &dummy_audit_info()
                     ),
                     None
                 );

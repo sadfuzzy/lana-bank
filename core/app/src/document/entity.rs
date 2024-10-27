@@ -50,7 +50,6 @@ pub struct Document {
     pub id: DocumentId,
     pub customer_id: CustomerId,
     pub filename: String,
-    pub audit_info: AuditInfo,
     pub status: DocumentStatus,
     pub(super) path_in_bucket: String,
     pub(super) bucket: String,
@@ -111,7 +110,6 @@ impl TryFromEvents<DocumentEvent> for Document {
                 DocumentEvent::Initialized {
                     id,
                     customer_id,
-                    audit_info,
                     sanitized_filename,
                     path_in_bucket,
                     bucket,
@@ -121,15 +119,12 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .id(*id)
                         .customer_id(*customer_id)
                         .filename(sanitized_filename.clone())
-                        .audit_info(*audit_info)
                         .path_in_bucket(path_in_bucket.clone())
                         .bucket(bucket.clone())
                         .status(DocumentStatus::Active);
                 }
-                DocumentEvent::Archived { audit_info } => {
-                    builder = builder
-                        .status(DocumentStatus::Archived)
-                        .audit_info(*audit_info);
+                DocumentEvent::Archived { .. } => {
+                    builder = builder.status(DocumentStatus::Archived)
                 }
                 _ => (),
             }

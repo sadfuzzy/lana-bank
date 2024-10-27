@@ -494,7 +494,7 @@ impl CreditFacility {
                 disbursement_id: id,
                 idx,
                 amount,
-                audit_info,
+                audit_info: audit_info.clone(),
             });
 
         Ok(NewDisbursement::builder()
@@ -584,7 +584,7 @@ impl CreditFacility {
                 interest_accrual_id: id,
                 idx,
                 started_at: accrual_starts_at,
-                audit_info,
+                audit_info: audit_info.clone(),
             });
 
         Ok(Some(
@@ -723,11 +723,11 @@ impl CreditFacility {
             tx_ref: repayment.tx_ref,
             disbursement_amount: repayment.amounts.disbursement,
             interest_amount: repayment.amounts.interest,
-            audit_info,
+            audit_info: audit_info.clone(),
             recorded_in_ledger_at: recorded_at,
         });
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info);
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
     }
 
     fn count_recorded_payments(&self) -> usize {
@@ -760,7 +760,7 @@ impl CreditFacility {
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: AuditInfo,
+        audit_info: &AuditInfo,
     ) -> Option<CollateralizationState> {
         let facility_cvl = self.facility_cvl_data().cvl(price);
         let last_collateralization_state = self.last_collateralization_state();
@@ -796,7 +796,7 @@ impl CreditFacility {
                     outstanding: self.outstanding(),
                     price,
                     recorded_at: Utc::now(),
-                    audit_info,
+                    audit_info: audit_info.clone(),
                 });
 
             return Some(calculated_collateralization);
@@ -876,10 +876,10 @@ impl CreditFacility {
             abs_diff,
             action,
             recorded_in_ledger_at: executed_at,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
 
-        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, audit_info)
+        self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info)
     }
 
     fn is_completed(&self) -> bool {
@@ -949,7 +949,7 @@ impl CreditFacility {
                 action: CollateralAction::Remove,
             },
             executed_at,
-            audit_info,
+            audit_info.clone(),
             price,
             upgrade_buffer_cvl_pct,
         );
@@ -1071,7 +1071,7 @@ mod test {
     fn dummy_audit_info() -> AuditInfo {
         AuditInfo {
             audit_entry_id: AuditEntryId::from(1),
-            sub: Subject::from(UserId::new()),
+            sub: "sub".to_string(),
         }
     }
 

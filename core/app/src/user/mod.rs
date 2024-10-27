@@ -5,8 +5,10 @@ mod repo;
 
 use std::collections::HashMap;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
-    audit::{Audit, AuditInfo},
+    audit::{Audit, AuditInfo, AuditSvc},
     authorization::{error::AuthorizationError, Authorization, Object, UserAction},
     data_export::Export,
     primitives::{Role, Subject, SystemNode, UserId},
@@ -58,7 +60,7 @@ impl Users {
         if self.find_by_email(&email).await?.is_none() {
             let new_user = NewUser::builder()
                 .email(&email)
-                .audit_info(audit_info)
+                .audit_info(audit_info.clone())
                 .build()
                 .expect("Could not build user");
             let mut db = self.pool.begin().await?;

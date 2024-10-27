@@ -2,6 +2,8 @@ mod entity;
 mod error;
 mod repo;
 
+use lava_authz::PermissionCheck;
+
 use error::DocumentError;
 use repo::DocumentsRepo;
 

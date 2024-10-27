@@ -82,8 +82,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
         let audit_info = self
             .audit
-            .record_entry_in_tx(
-                &mut db_tx,
+            .record_entry(
                 &Subject::System(SystemNode::Core),
                 Object::CreditFacility,
                 CreditFacilityAction::RecordInterest,
@@ -102,15 +101,19 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
         self.ledger
             .record_credit_facility_interest_incurrence(interest_incurrence.clone())
             .await?;
-        let interest_accrual = accrual.confirm_incurrence(interest_incurrence, audit_info);
+        let interest_accrual = accrual.confirm_incurrence(interest_incurrence, audit_info.clone());
 
         if let Some(interest_accrual) = interest_accrual {
             self.ledger
                 .record_credit_facility_interest_accrual(interest_accrual.clone())
                 .await?;
-            accrual.confirm_accrual(interest_accrual.clone(), audit_info);
+            accrual.confirm_accrual(interest_accrual.clone(), audit_info.clone());
 
-            credit_facility.confirm_interest_accrual(interest_accrual, accrual.idx, audit_info);
+            credit_facility.confirm_interest_accrual(
+                interest_accrual,
+                accrual.idx,
+                audit_info.clone(),
+            );
             self.credit_facility_repo
                 .update_in_tx(&mut db_tx, &mut credit_facility)
                 .await?;

@@ -92,8 +92,7 @@ impl JobRunner for GenerateReportJobRunner {
 
                 let audit_info = self
                     .audit
-                    .record_entry_in_tx(
-                        &mut db_tx,
+                    .record_entry(
                         &Subject::System(SystemNode::Core),
                         Object::Report,
                         ReportAction::Compile,
@@ -119,8 +118,7 @@ impl JobRunner for GenerateReportJobRunner {
 
                 let audit_info = self
                     .audit
-                    .record_entry_in_tx(
-                        &mut db_tx,
+                    .record_entry(
                         &Subject::System(SystemNode::Core),
                         Object::Report,
                         ReportAction::Invoke,
@@ -146,8 +144,7 @@ impl JobRunner for GenerateReportJobRunner {
 
                 let audit_info = self
                     .audit
-                    .record_entry_in_tx(
-                        &mut db_tx,
+                    .record_entry(
                         &Subject::System(SystemNode::Core),
                         Object::Report,
                         ReportAction::Upload,

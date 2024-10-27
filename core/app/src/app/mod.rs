@@ -4,6 +4,8 @@ mod error;
 use sqlx::PgPool;
 use tracing::instrument;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
@@ -137,6 +139,8 @@ impl LavaApp {
         sub: &Subject,
         query: es_entity::PaginatedQueryArgs<AuditCursor>,
     ) -> Result<es_entity::PaginatedQueryRet<AuditEntry, AuditCursor>, ApplicationError> {
+        use crate::audit::AuditSvc;
+
         self.authz
             .enforce_permission(sub, Object::Audit, Action::Audit(AuditAction::List))
             .await?;

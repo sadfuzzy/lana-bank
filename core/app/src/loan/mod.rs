@@ -9,6 +9,8 @@ mod repo;
 use sqlx::PgPool;
 use tracing::instrument;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
     audit::{Audit, AuditInfo},
     authorization::{Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object},
@@ -205,7 +207,7 @@ impl Loans {
         let price = self.price.usd_cents_per_btc().await?;
 
         if let Some(loan_approval) =
-            loan.add_approval(user.id, user.current_roles(), audit_info, price)?
+            loan.add_approval(user.id, user.current_roles(), audit_info.clone(), price)?
         {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
@@ -313,7 +315,7 @@ impl Loans {
             .maybe_update_collateralization_with_liquidation_override(
                 price,
                 self.config.upgrade_buffer_cvl_pct,
-                audit_info,
+                &audit_info,
             )
             .is_some()
         {

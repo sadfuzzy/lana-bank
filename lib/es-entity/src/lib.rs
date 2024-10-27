@@ -17,19 +17,71 @@ pub use traits::*;
 
 #[macro_export]
 macro_rules! es_query (
-    // in Rust 1.45 we can now invoke proc macros in expression position
     ($db:expr, $query:expr) => ({
         $crate::expand_es_query!(executor = $db, sql = $query)
     });
-    // RFC: this semantically should be `$($args:expr),*` (with `$(,)?` to allow trailing comma)
-    // but that doesn't work in 1.45 because `expr` fragments get wrapped in a way that changes
-    // their hygiene, which is fixed in 1.46 so this is technically just a temp. workaround.
-    // My question is: do we care?
-    // I was hoping using the `expr` fragment might aid code completion but it doesn't in my
-    // experience, at least not with IntelliJ-Rust at the time of writing (version 0.3.126.3220-201)
-    // so really the only benefit is making the macros _slightly_ self-documenting, but it's
-    // not like it makes them magically understandable at-a-glance.
     ($db:expr, $query:expr, $($args:tt)*) => ({
         $crate::expand_es_query!(executor = $db, sql = $query, args = [$($args)*])
     })
 );
+
+#[macro_export]
+macro_rules! entity_id {
+    ($name:ident) => {
+        #[derive(
+            sqlx::Type,
+            Debug,
+            Clone,
+            Copy,
+            PartialEq,
+            Eq,
+            PartialOrd,
+            Ord,
+            Hash,
+            serde::Deserialize,
+            serde::Serialize,
+        )]
+        #[serde(transparent)]
+        #[sqlx(transparent)]
+        pub struct $name(uuid::Uuid);
+
+        impl $name {
+            #[allow(clippy::new_without_default)]
+            pub fn new() -> Self {
+                uuid::Uuid::new_v4().into()
+            }
+        }
+
+        impl From<uuid::Uuid> for $name {
+            fn from(uuid: uuid::Uuid) -> Self {
+                Self(uuid)
+            }
+        }
+
+        impl From<$name> for uuid::Uuid {
+            fn from(id: $name) -> Self {
+                id.0
+            }
+        }
+
+        impl From<&$name> for uuid::Uuid {
+            fn from(id: &$name) -> Self {
+                id.0
+            }
+        }
+
+        impl std::fmt::Display for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+
+        impl std::str::FromStr for $name {
+            type Err = uuid::Error;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                Ok(Self(uuid::Uuid::parse_str(s)?))
+            }
+        }
+    };
+}

@@ -89,8 +89,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             let mut db = current_job.pool().begin().await?;
             let audit_info = self
                 .audit
-                .record_entry_in_tx(
-                    &mut db,
+                .record_entry(
                     &Subject::System(SystemNode::Core),
                     Object::CreditFacility,
                     CreditFacilityAction::UpdateCollateralizationState,
@@ -105,7 +104,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                     .maybe_update_collateralization(
                         price,
                         self.config.upgrade_buffer_cvl_pct,
-                        audit_info,
+                        &audit_info,
                     )
                     .is_some()
                 {

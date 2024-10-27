@@ -1,0 +1,25 @@
+use async_trait::async_trait;
+
+use lava_audit::{AuditInfo, AuditSvc};
+
+use super::error::AuthorizationError;
+
+#[async_trait]
+pub trait PermissionCheck: Clone + Sync {
+    type Audit: AuditSvc;
+
+    async fn enforce_permission(
+        &self,
+        sub: &<Self::Audit as AuditSvc>::Subject,
+        object: impl Into<<Self::Audit as AuditSvc>::Object> + std::fmt::Debug + Send,
+        action: impl Into<<Self::Audit as AuditSvc>::Action> + std::fmt::Debug + Send,
+    ) -> Result<AuditInfo, AuthorizationError>;
+
+    async fn evaluate_permission(
+        &self,
+        sub: &<Self::Audit as AuditSvc>::Subject,
+        object: impl Into<<Self::Audit as AuditSvc>::Object> + std::fmt::Debug + Send,
+        action: impl Into<<Self::Audit as AuditSvc>::Action> + std::fmt::Debug + Send,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, AuthorizationError>;
+}

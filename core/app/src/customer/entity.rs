@@ -36,13 +36,13 @@ pub enum CustomerEvent {
 }
 
 impl CustomerEvent {
-    fn audit_info(&self) -> AuditInfo {
+    fn audit_info(&self) -> &AuditInfo {
         match self {
-            CustomerEvent::Initialized { audit_info, .. } => *audit_info,
-            CustomerEvent::KycStarted { audit_info, .. } => *audit_info,
-            CustomerEvent::KycApproved { audit_info, .. } => *audit_info,
-            CustomerEvent::KycDeclined { audit_info, .. } => *audit_info,
-            CustomerEvent::TelegramIdUpdated { audit_info, .. } => *audit_info,
+            CustomerEvent::Initialized { audit_info, .. } => audit_info,
+            CustomerEvent::KycStarted { audit_info, .. } => audit_info,
+            CustomerEvent::KycApproved { audit_info, .. } => audit_info,
+            CustomerEvent::KycDeclined { audit_info, .. } => audit_info,
+            CustomerEvent::TelegramIdUpdated { audit_info, .. } => audit_info,
         }
     }
 }
@@ -75,7 +75,7 @@ impl Customer {
     pub fn audit_info(&self) -> Vec<AuditInfo> {
         self.events
             .iter_persisted()
-            .map(|e| e.event.audit_info())
+            .map(|e| e.event.audit_info().clone())
             .collect()
     }
 
@@ -176,7 +176,6 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) telegram_id: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
-    #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
 

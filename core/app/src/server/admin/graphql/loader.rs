@@ -2,6 +2,8 @@ use async_graphql::dataloader::Loader;
 
 use std::{collections::HashMap, sync::Arc};
 
+use lava_audit::AuditSvc;
+
 use super::{audit::AuditEntry, user::User};
 use crate::{
     app::LavaApp,

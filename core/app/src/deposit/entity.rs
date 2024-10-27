@@ -31,7 +31,6 @@ pub struct Deposit {
     pub reference: String,
     pub credit_account_id: LedgerAccountId,
     pub(super) events: EntityEvents<DepositEvent>,
-    pub audit_info: AuditInfo,
 }
 
 impl std::fmt::Display for Deposit {
@@ -58,7 +57,6 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     customer_id,
                     amount,
                     credit_account_id,
-                    audit_info,
                     reference,
                     ..
                 } => {
@@ -67,7 +65,6 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .customer_id(*customer_id)
                         .amount(*amount)
                         .credit_account_id(*credit_account_id)
-                        .audit_info(*audit_info)
                         .reference(reference.clone());
                 }
             }

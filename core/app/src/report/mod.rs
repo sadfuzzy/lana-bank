@@ -6,6 +6,8 @@ mod jobs;
 mod repo;
 pub mod upload;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
@@ -153,7 +155,7 @@ impl Reports {
                 url,
             });
 
-            report.download_link_generated(audit_info, location);
+            report.download_link_generated(audit_info.clone(), location);
         }
 
         self.repo.update_in_tx(&mut db_tx, &mut report).await?;

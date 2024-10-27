@@ -7,6 +7,8 @@ mod interest_accrual;
 mod jobs;
 mod repo;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
     audit::{Audit, AuditInfo},
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
@@ -238,9 +240,12 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
         let price = self.price.usd_cents_per_btc().await?;
 
-        if let Some(credit_facility_approval) =
-            credit_facility.add_approval(user.id, user.current_roles(), audit_info, price)?
-        {
+        if let Some(credit_facility_approval) = credit_facility.add_approval(
+            user.id,
+            user.current_roles(),
+            audit_info.clone(),
+            price,
+        )? {
             self.ledger
                 .approve_credit_facility(credit_facility_approval.clone())
                 .await?;
@@ -361,23 +366,23 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
 
         if let Some(disbursement_data) =
-            disbursement.add_approval(user.id, user.current_roles(), audit_info)?
+            disbursement.add_approval(user.id, user.current_roles(), audit_info.clone())?
         {
             let executed_at = self
                 .ledger
                 .record_disbursement(disbursement_data.clone())
                 .await?;
-            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info);
+            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info.clone());
 
             credit_facility.confirm_disbursement(
                 &disbursement,
                 disbursement_data.tx_id,
                 executed_at,
-                audit_info,
+                audit_info.clone(),
             );
 
             let new_accrual = credit_facility
-                .start_interest_accrual(audit_info)?
+                .start_interest_accrual(audit_info.clone())?
                 .expect("Accrual start date is before facility expiry date");
             let accrual = self
                 .interest_accrual_repo

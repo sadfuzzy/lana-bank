@@ -1,0 +1,19 @@
+[package]
+name = "governance"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+lava-audit = { path = "../../lib/audit" }
+lava-authz = { path = "../../lib/authz" }
+es-entity = { path = "../../lib/es-entity" }
+
+uuid = { workspace = true }
+sqlx = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_builder = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+strum = { workspace = true }

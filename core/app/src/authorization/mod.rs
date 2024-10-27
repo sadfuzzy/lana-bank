@@ -12,7 +12,7 @@ pub use action::*;
 use lava_authz::error::AuthorizationError;
 pub use object::*;
 
-pub type Authorization = lava_authz::Authorization<Subject, Role, Object, Action>;
+pub type Authorization = lava_authz::Authorization<Audit, Role>;
 
 pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
     let authz = Authorization::init(pool, audit).await?;

@@ -7,8 +7,10 @@ mod repo;
 use std::collections::HashMap;
 use tracing::instrument;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
-    audit::{Audit, AuditInfo},
+    audit::{Audit, AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
@@ -114,8 +116,7 @@ impl Customers {
 
         let audit_info = &self
             .audit
-            .record_entry_in_tx(
-                &mut db,
+            .record_entry(
                 &Subject::System(crate::primitives::SystemNode::Kratos),
                 Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
@@ -128,7 +129,7 @@ impl Customers {
             .id(id)
             .email(email)
             .account_ids(ledger_account_ids)
-            .audit_info(*audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build customer");
 
@@ -217,8 +218,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry_in_tx(
-                db,
+            .record_entry(
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
@@ -243,8 +243,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry_in_tx(
-                db,
+            .record_entry(
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
@@ -269,8 +268,7 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry_in_tx(
-                db,
+            .record_entry(
                 &Subject::System(crate::primitives::SystemNode::Sumsub),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),

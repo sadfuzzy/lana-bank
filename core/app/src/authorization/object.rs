@@ -2,8 +2,6 @@ use std::{fmt::Display, str::FromStr};
 
 use crate::primitives::{CustomerId, LoanId};
 
-use super::error::AuthorizationError;
-
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -37,24 +35,20 @@ impl Display for Object {
 }
 
 impl FromStr for Object {
-    type Err = AuthorizationError;
+    type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut elems = s.split('/');
         let entity = elems.next().expect("missing first element");
         use ObjectDiscriminants::*;
-        let res = match entity.parse()? {
+        let res = match entity.parse().expect("invalid entity") {
             Applicant => Object::Applicant,
             Loan => {
                 let loan_ref = elems
                     .next()
-                    .ok_or(AuthorizationError::ObjectParseError {
-                        value: s.to_string(),
-                    })?
+                    .ok_or("could not parse Object")?
                     .parse()
-                    .map_err(|_| AuthorizationError::ObjectParseError {
-                        value: s.to_string(),
-                    })?;
+                    .map_err(|_| "could not parse Object")?;
                 Object::Loan(loan_ref)
             }
             TermsTemplate => Object::TermsTemplate,
@@ -62,13 +56,9 @@ impl FromStr for Object {
             Customer => {
                 let customer_ref = elems
                     .next()
-                    .ok_or(AuthorizationError::ObjectParseError {
-                        value: s.to_string(),
-                    })?
+                    .ok_or("could not parse Object")?
                     .parse()
-                    .map_err(|_| AuthorizationError::ObjectParseError {
-                        value: s.to_string(),
-                    })?;
+                    .map_err(|_| "could not parse Object")?;
                 Object::Customer(customer_ref)
             }
             Deposit => Object::Deposit,

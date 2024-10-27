@@ -2,6 +2,8 @@ mod entity;
 mod error;
 mod repo;
 
+use lava_authz::PermissionCheck;
+
 use crate::{
     audit::AuditInfo,
     authorization::{Authorization, DepositAction, Object},
