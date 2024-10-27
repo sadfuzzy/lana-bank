@@ -14,7 +14,6 @@ use authz::PermissionCheck;
 use crate::{
     audit::{Audit, AuditInfo},
     authorization::{Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object},
-    constants::CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
     job::Jobs,
@@ -88,10 +87,8 @@ impl Loans {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_in_tx::<cvl::LoanProcessingJobInitializer, _>(
+            .create_and_spawn_unique_in_tx::<cvl::LoanProcessingJobInitializer, _>(
                 &mut db_tx,
-                CVL_JOB_ID,
-                "cvl-update-job".to_string(),
                 cvl::LoanJobConfig {
                     job_interval: std::time::Duration::from_secs(30),
                     upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
@@ -215,7 +212,6 @@ impl Loans {
                 .create_and_spawn_in_tx::<interest::LoanProcessingJobInitializer, _>(
                     &mut db_tx,
                     loan.id,
-                    format!("loan-interest-processing-{}", loan.id),
                     interest::LoanJobConfig { loan_id: loan.id },
                 )
                 .await?;

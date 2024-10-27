@@ -4,7 +4,6 @@ use cached::proc_macro::cached;
 mod job;
 
 use crate::{
-    constants::PRICE_JOB_ID,
     data_export::Export,
     job::Jobs,
     primitives::{PriceOfOneBTC, UsdCents},
@@ -40,10 +39,8 @@ impl Price {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_in_tx::<job::ExportPriceInitializer, _>(
+            .create_and_spawn_unique_in_tx::<job::ExportPriceInitializer, _>(
                 &mut db_tx,
-                PRICE_JOB_ID,
-                "export-price-job".to_string(),
                 job::ExportPriceJobConfig::default(),
             )
             .await

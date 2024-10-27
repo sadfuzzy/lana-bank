@@ -77,7 +77,7 @@ impl<'a> ToTokens for FindByFn<'a> {
             tokens.append_all(quote! {
                 pub async fn #fn_name(
                     &self,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
                     self.#fn_via(self.pool(), #column_name).await
                 }
@@ -85,7 +85,7 @@ impl<'a> ToTokens for FindByFn<'a> {
                 pub async fn #fn_in_tx(
                     &self,
                     db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
                     self.#fn_via(&mut **db, #column_name).await
                 }
@@ -93,12 +93,13 @@ impl<'a> ToTokens for FindByFn<'a> {
                 async fn #fn_via(
                     &self,
                     executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                    #column_name: #column_type
+                    #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
+                    let #column_name = #column_name.borrow();
                     es_entity::es_query!(
                             executor,
                             #query,
-                            #column_name as #column_type,
+                            #column_name as &#column_type,
                     )
                         .fetch_one()
                         .await
@@ -140,7 +141,7 @@ mod tests {
         let expected = quote! {
             pub async fn find_by_id(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(self.pool(), id).await
             }
@@ -148,7 +149,7 @@ mod tests {
             pub async fn find_by_id_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(&mut **db, id).await
             }
@@ -156,12 +157,13 @@ mod tests {
             async fn find_by_id_via(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await
@@ -193,7 +195,7 @@ mod tests {
         let expected = quote! {
             pub async fn find_by_id(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(self.pool(), id).await
             }
@@ -201,7 +203,7 @@ mod tests {
             pub async fn find_by_id_in_tx(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via(&mut **db, id).await
             }
@@ -209,12 +211,13 @@ mod tests {
             async fn find_by_id_via(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1 AND deleted = FALSE",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await
@@ -222,7 +225,7 @@ mod tests {
 
             pub async fn find_by_id_include_deleted(
                 &self,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via_include_deleted(self.pool(), id).await
             }
@@ -230,7 +233,7 @@ mod tests {
             pub async fn find_by_id_in_tx_include_deleted(
                 &self,
                 db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 self.find_by_id_via_include_deleted(&mut **db, id).await
             }
@@ -238,12 +241,13 @@ mod tests {
             async fn find_by_id_via_include_deleted(
                 &self,
                 executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
-                id: EntityId
+                id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
+                let id = id.borrow();
                 es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
-                        id as EntityId,
+                        id as &EntityId,
                 )
                     .fetch_one()
                     .await

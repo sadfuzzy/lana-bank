@@ -138,7 +138,6 @@ impl Applicants {
             .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
                 &mut db,
                 JobId::new(),
-                format!("sumsub-export:{}", callback_id),
                 SumsubExportConfig::Webhook {
                     callback_id: *callback_id,
                 },
@@ -234,7 +233,6 @@ impl Applicants {
                     .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
                         db,
                         JobId::new(),
-                        format!("sumsub-export:{}", external_user_id),
                         SumsubExportConfig::SensitiveInfo {
                             customer_id: external_user_id,
                         },

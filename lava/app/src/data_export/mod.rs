@@ -113,7 +113,6 @@ impl Export {
                 .create_and_spawn_in_tx::<DataExportInitializer, _>(
                     db,
                     JobId::new(),
-                    format!("export:{}:{}", id, sequence),
                     DataExportConfig {
                         table_name: std::borrow::Cow::Borrowed(table_name),
                         cala_url: self.cala_url.clone(),
@@ -160,7 +159,6 @@ impl Export {
                 .create_and_spawn_in_tx::<DataExportInitializer, _>(
                     db,
                     JobId::new(),
-                    format!("export:{}:{}", id, sequence),
                     DataExportConfig {
                         table_name: std::borrow::Cow::Borrowed(table_name),
                         cala_url: self.cala_url.clone(),

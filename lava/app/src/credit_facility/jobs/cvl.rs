@@ -47,7 +47,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner {
-            config: job.data()?,
+            config: job.config()?,
             repo: self.repo.clone(),
             price: self.price.clone(),
             audit: self.audit.clone(),

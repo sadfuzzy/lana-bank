@@ -12,7 +12,6 @@ use authz::PermissionCheck;
 use crate::{
     audit::{Audit, AuditInfo},
     authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
-    constants::CREDIT_FACILITY_CVL_JOB_ID,
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -100,10 +99,8 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_in_tx::<cvl::CreditFacilityProcessingJobInitializer, _>(
+            .create_and_spawn_unique_in_tx::<cvl::CreditFacilityProcessingJobInitializer, _>(
                 &mut db_tx,
-                CREDIT_FACILITY_CVL_JOB_ID,
-                "credit-facility-cvl-update-job".to_string(),
                 cvl::CreditFacilityJobConfig {
                     job_interval: std::time::Duration::from_secs(30),
                     upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
@@ -392,7 +389,6 @@ impl CreditFacilities {
                 .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
                     &mut db_tx,
                     credit_facility.id,
-                    format!("credit-facility-interest-processing-{}", credit_facility.id),
                     interest::CreditFacilityJobConfig {
                         credit_facility_id: credit_facility.id,
                     },

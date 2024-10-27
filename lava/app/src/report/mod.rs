@@ -11,7 +11,6 @@ use authz::PermissionCheck;
 use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
-    constants::CREATE_REPORT_JOB_ID,
     entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
@@ -63,10 +62,8 @@ impl Reports {
         let mut db_tx = self.pool.begin().await?;
         match self
             .jobs
-            .create_and_spawn_in_tx::<report_jobs::create::CreateReportInitializer, _>(
+            .create_and_spawn_unique_in_tx::<report_jobs::create::CreateReportInitializer, _>(
                 &mut db_tx,
-                CREATE_REPORT_JOB_ID,
-                "create-report-job".to_string(),
                 report_jobs::create::CreateReportJobConfig {
                     job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
                 },
@@ -99,7 +96,6 @@ impl Reports {
             .create_and_spawn_in_tx::<report_jobs::generate::GenerateReportInitializer, _>(
                 &mut db,
                 report.id,
-                "generate_report".to_string(),
                 report_jobs::generate::GenerateReportConfig {
                     report_id: report.id,
                 },

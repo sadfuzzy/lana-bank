@@ -34,7 +34,7 @@ impl JobInitializer for DataExportInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(DataExportJobRunner {
-            config: job.data()?,
+            config: job.config()?,
         }))
     }
 }

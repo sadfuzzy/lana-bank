@@ -43,7 +43,7 @@ impl JobInitializer for SumsubExportInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(SumsubExportJobRunner {
-            config: job.data()?,
+            config: job.config()?,
             export: self.export.clone(),
             sumsub_client: self.sumsub_client.clone(),
             applicants: self.applicants.clone(),

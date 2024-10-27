@@ -7,7 +7,7 @@ pub struct CurrentJob {
     id: JobId,
     attempt: u32,
     pool: PgPool,
-    data_json: Option<serde_json::Value>,
+    execution_data_json: Option<serde_json::Value>,
 }
 
 impl CurrentJob {
@@ -15,13 +15,13 @@ impl CurrentJob {
         id: JobId,
         attempt: u32,
         pool: PgPool,
-        data: Option<serde_json::Value>,
+        execution_data: Option<serde_json::Value>,
     ) -> Self {
         Self {
             id,
             attempt,
             pool,
-            data_json: data,
+            execution_data_json: execution_data,
         }
     }
 
@@ -29,37 +29,38 @@ impl CurrentJob {
         self.attempt
     }
 
-    pub fn data<T: DeserializeOwned>(&self) -> Result<Option<T>, serde_json::Error> {
-        if let Some(data) = self.data_json.as_ref() {
-            serde_json::from_value(data.clone()).map(Some)
+    pub fn execution_data<T: DeserializeOwned>(&self) -> Result<Option<T>, serde_json::Error> {
+        if let Some(execution_data) = self.execution_data_json.as_ref() {
+            serde_json::from_value(execution_data.clone()).map(Some)
         } else {
             Ok(None)
         }
     }
 
-    pub async fn update_data<T: Serialize>(
+    pub async fn update_execution_data<T: Serialize>(
         &mut self,
         db: &mut Transaction<'_, Postgres>,
-        data: T,
+        execution_data: T,
     ) -> Result<(), JobError> {
-        let data_json = serde_json::to_value(data).map_err(JobError::CouldNotSerializeData)?;
+        let execution_data_json = serde_json::to_value(execution_data)
+            .map_err(JobError::CouldNotSerializeExecutionData)?;
         sqlx::query!(
             r#"
-          UPDATE jobs
-          SET data_json = $1
+          UPDATE job_executions
+          SET execution_data_json = $1
           WHERE id = $2
         "#,
-            data_json,
-            self.id as JobId
+            execution_data_json,
+            &self.id as &JobId
         )
         .execute(&mut **db)
         .await?;
-        self.data_json = Some(data_json);
+        self.execution_data_json = Some(execution_data_json);
         Ok(())
     }
 
-    pub fn id(&self) -> JobId {
-        self.id
+    pub fn id(&self) -> &JobId {
+        &self.id
     }
 
     pub fn pool(&self) -> &PgPool {

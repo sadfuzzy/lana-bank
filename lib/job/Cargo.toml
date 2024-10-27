@@ -8,6 +8,9 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
+es-entity = { path = "../es-entity" }
+
+derive_builder = { workspace = true }
 tracing = { workspace = true }
 chrono = { workspace = true }
 sqlx = { workspace = true }

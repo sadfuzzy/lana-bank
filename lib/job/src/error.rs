@@ -13,13 +13,17 @@ pub enum JobError {
     #[error("JobError - JobInitError: {0}")]
     JobInitError(String),
     #[error("JobError - BadData: {0}")]
-    CouldNotSerializeData(serde_json::Error),
+    CouldNotSerializeExecutionData(serde_json::Error),
+    #[error("JobError - BadConfig: {0}")]
+    CouldNotSerializeConfig(serde_json::Error),
     #[error("JobError - NoInitializerPresent")]
     NoInitializerPresent,
     #[error("JobError - JobExecutionError: {0}")]
     JobExecutionError(String),
     #[error("JobError - DuplicateId")]
     DuplicateId,
+    #[error("JobError - NotFound")]
+    NotFound,
 }
 
 impl From<Box<dyn std::error::Error>> for JobError {
@@ -38,5 +42,16 @@ impl From<sqlx::Error> for JobError {
             }
         }
         Self::Sqlx(error)
+    }
+}
+
+impl From<es_entity::EsEntityError> for JobError {
+    fn from(e: es_entity::EsEntityError) -> Self {
+        match e {
+            es_entity::EsEntityError::NotFound => JobError::NotFound,
+            es_entity::EsEntityError::UninitializedFieldError(e) => {
+                panic!("Inconsistent data when initializing a Job entity: {:?}", e)
+            }
+        }
     }
 }

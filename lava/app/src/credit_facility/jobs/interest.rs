@@ -50,7 +50,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner {
-            config: job.data()?,
+            config: job.config()?,
             credit_facility_repo: self.credit_facility_repo.clone(),
             interest_accrual_repo: self.interest_accrual_repo.clone(),
             ledger: self.ledger.clone(),

@@ -1954,6 +1954,8 @@ version = "0.1.143-dev"
 dependencies = [
  "async-trait",
  "chrono",
+ "derive_builder",
+ "es-entity",
  "rand",
  "serde",
  "serde_json",
