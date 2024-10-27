@@ -10,6 +10,7 @@ fail-on-warnings = []
 [dependencies]
 governance = { path = "../../core/governance" }
 shared-primitives = { path = "../../core/shared-primitives" }
+audit = { path = "../../lib/audit" }
 
 strum = { workspace = true }
 uuid = { workspace = true }

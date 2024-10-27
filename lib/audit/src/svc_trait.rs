@@ -4,6 +4,10 @@ use std::{collections::HashMap, fmt, str::FromStr};
 
 use crate::{error::AuditError, primitives::*, AuditEntry};
 
+pub trait SystemSubject {
+    fn system() -> Self;
+}
+
 #[async_trait]
 pub trait AuditSvc: Clone + Sync {
     type Subject: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync;

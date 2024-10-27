@@ -200,6 +200,10 @@ where
 {
     type Audit = Audit;
 
+    fn audit(&self) -> &Self::Audit {
+        &self.audit
+    }
+
     #[instrument(name = "authz.enforce_permission", skip(self))]
     async fn enforce_permission(
         &self,

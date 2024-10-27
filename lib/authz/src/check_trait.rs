@@ -8,6 +8,8 @@ use super::error::AuthorizationError;
 pub trait PermissionCheck: Clone + Sync {
     type Audit: AuditSvc;
 
+    fn audit(&self) -> &Self::Audit;
+
     async fn enforce_permission(
         &self,
         sub: &<Self::Audit as AuditSvc>::Subject,

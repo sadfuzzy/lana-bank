@@ -8,7 +8,7 @@ mod primitives;
 mod svc_trait;
 
 pub use primitives::*;
-pub use svc_trait::AuditSvc;
+pub use svc_trait::*;
 
 #[derive(Clone)]
 pub struct Audit<S, O, A> {

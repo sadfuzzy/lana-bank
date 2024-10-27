@@ -71,6 +71,12 @@ impl Subject {
     }
 }
 
+impl audit::SystemSubject for Subject {
+    fn system() -> Self {
+        Self::core()
+    }
+}
+
 impl std::str::FromStr for Subject {
     type Err = ParseSubjectError;
 

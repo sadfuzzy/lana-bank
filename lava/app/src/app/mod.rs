@@ -93,7 +93,7 @@ impl LavaApp {
             &price,
             &users,
         );
-        let governance = Governance::init(&pool, &authz).await?;
+        let governance = Governance::new(&pool, &authz);
         jobs.start_poll().await?;
 
         loans.spawn_global_jobs().await?;
