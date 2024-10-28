@@ -61,6 +61,43 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
+type ApprovalProcess {
+	id: ID!
+	approvalProcessId: UUID!
+	processType: String!
+	createdAt: Timestamp!
+	committee: Committee
+}
+
+type ApprovalProcessConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ApprovalProcessEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ApprovalProcess!]!
+}
+
+"""
+An edge in a connection.
+"""
+type ApprovalProcessEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: ApprovalProcess!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -903,6 +940,8 @@ type Query {
 	customers(first: Int!, after: String): CustomerConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
+	approvalProcess(id: UUID!): ApprovalProcess
+	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	loans(first: Int!, after: String): LoanConnection!
 	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance

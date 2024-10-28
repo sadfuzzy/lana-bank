@@ -90,6 +90,34 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export type ApprovalProcess = {
+  __typename?: 'ApprovalProcess';
+  approvalProcessId: Scalars['UUID']['output'];
+  committee?: Maybe<Committee>;
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  processType: Scalars['String']['output'];
+};
+
+export type ApprovalProcessConnection = {
+  __typename?: 'ApprovalProcessConnection';
+  /** A list of edges. */
+  edges: Array<ApprovalProcessEdge>;
+  /** A list of nodes. */
+  nodes: Array<ApprovalProcess>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type ApprovalProcessEdge = {
+  __typename?: 'ApprovalProcessEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: ApprovalProcess;
+};
+
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
@@ -1078,6 +1106,8 @@ export type ProfitAndLossStatement = {
 export type Query = {
   __typename?: 'Query';
   accountSet?: Maybe<AccountSetAndSubAccounts>;
+  approvalProcess?: Maybe<ApprovalProcess>;
+  approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
@@ -1115,6 +1145,17 @@ export type QueryAccountSetArgs = {
   accountSetId: Scalars['UUID']['input'];
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryApprovalProcessArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryApprovalProcessesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 

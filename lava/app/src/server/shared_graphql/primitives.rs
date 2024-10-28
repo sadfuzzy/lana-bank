@@ -84,6 +84,16 @@ impl From<UUID> for CommitteeId {
         Self::from(uuid.0)
     }
 }
+impl From<&UUID> for ApprovalProcessId {
+    fn from(uuid: &UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
+impl From<UUID> for ApprovalProcessId {
+    fn from(uuid: UUID) -> Self {
+        Self::from(uuid.0)
+    }
+}
 impl From<UUID> for ReportId {
     fn from(uuid: UUID) -> Self {
         Self::from(uuid.0)

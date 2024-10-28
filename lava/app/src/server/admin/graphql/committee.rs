@@ -13,7 +13,7 @@ use crate::{
 
 use super::{user::User, LavaDataLoader};
 
-#[derive(SimpleObject)]
+#[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct Committee {
     id: ID,

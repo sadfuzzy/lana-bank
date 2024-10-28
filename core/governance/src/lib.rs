@@ -11,13 +11,14 @@ mod primitives;
 use sqlx::Acquire;
 use tracing::instrument;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use outbox::Outbox;
 
 pub use approval_process::*;
+pub use committee::error as committee_error;
 pub use committee::*;
 use error::*;
 pub use event::*;
@@ -390,5 +391,63 @@ where
 
         let committees = self.committee_repo.list_by_created_at(query).await?;
         Ok(committees)
+    }
+
+    #[instrument(name = "governance.find_all_committees", skip(self), err)]
+    pub async fn find_all_committees<T: From<Committee>>(
+        &self,
+        ids: &[CommitteeId],
+    ) -> Result<HashMap<CommitteeId, T>, CommitteeError> {
+        self.committee_repo.find_all(ids).await
+    }
+
+    #[instrument(name = "governance.find_approval_process_by_id", skip(self), err)]
+    pub async fn find_approval_process_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
+    ) -> Result<Option<ApprovalProcess>, GovernanceError> {
+        let process_id = process_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
+                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Read),
+            )
+            .await?;
+
+        match self.process_repo.find_by_id(process_id).await {
+            Ok(process) => Ok(Some(process)),
+            Err(ApprovalProcessError::NotFound) => Ok(None),
+            Err(e) => Err(GovernanceError::ApprovalProcessError(e)),
+        }
+    }
+
+    #[instrument(name = "governance.list_approval_processes", skip(self), err)]
+    pub async fn list_approval_processes(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<
+            approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+        >,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            ApprovalProcess,
+            approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+        >,
+        GovernanceError,
+    > {
+        self.authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
+                GovernanceAction::ApprovalProcess(ApprovalProcessAction::List),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+
+        let approval_processes = self.process_repo.list_by_created_at(query).await?;
+        Ok(approval_processes)
     }
 }

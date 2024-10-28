@@ -13,7 +13,7 @@ use crate::{ApprovalProcessType, ApprovalRules};
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ApprovalProcessId")]
-pub enum ApprovalProcessEvent {
+pub(crate) enum ApprovalProcessEvent {
     Initialized {
         id: ApprovalProcessId,
         policy_id: PolicyId,
@@ -48,7 +48,13 @@ pub struct ApprovalProcess {
 }
 
 impl ApprovalProcess {
-    pub fn check_concluded(
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("No events for committee")
+    }
+
+    pub(crate) fn check_concluded(
         &mut self,
         eligible: HashSet<UserId>,
         audit_info: AuditInfo,
@@ -75,7 +81,7 @@ impl ApprovalProcess {
             .any(|event| matches!(event, ApprovalProcessEvent::Concluded { .. }))
     }
 
-    pub fn approve(
+    pub(crate) fn approve(
         &mut self,
         eligible_members: &HashSet<UserId>,
         approver_id: UserId,
@@ -101,7 +107,7 @@ impl ApprovalProcess {
         Ok(())
     }
 
-    pub fn deny(
+    pub(crate) fn deny(
         &mut self,
         eligible_members: &HashSet<UserId>,
         denier_id: UserId,
@@ -125,12 +131,6 @@ impl ApprovalProcess {
         });
 
         Ok(())
-    }
-
-    pub fn needs_approvals(&self, eligible_members: HashSet<UserId>) -> bool {
-        self.rules
-            .is_approved_or_denied(&eligible_members, &self.approvers(), &self.deniers())
-            .is_none()
     }
 
     pub fn approvers(&self) -> HashSet<UserId> {

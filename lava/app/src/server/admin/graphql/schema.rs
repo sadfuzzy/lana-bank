@@ -2,6 +2,7 @@ use async_graphql::{types::connection::*, Context, Object};
 
 use super::{
     account_set::*,
+    approval_process::*,
     audit::{AuditCursor, AuditEntry},
     committee::*,
     credit_facility::*,
@@ -263,6 +264,67 @@ impl Query {
                             committee.created_at(),
                         ));
                         Edge::new(cursor, Committee::from(committee))
+                    }));
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+
+    async fn approval_process(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ApprovalProcess>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let process = app
+            .governance()
+            .find_approval_process_by_id(sub, id)
+            .await?;
+        Ok(process.map(ApprovalProcess::from))
+    }
+
+    async fn approval_processes(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ApprovalProcessByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
+    > {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .governance()
+                    .list_approval_processes(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after.map(
+                                governance::approval_process_cursor::ApprovalProcessByCreatedAtCursor::from,
+                            ),
+                        },
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|approval_process| {
+                        let cursor = ApprovalProcessByCreatedAtCursor::from((
+                            approval_process.id,
+                            approval_process.created_at(),
+                        ));
+                        Edge::new(cursor, ApprovalProcess::from(approval_process))
                     }));
 
                 Ok::<_, async_graphql::Error>(connection)

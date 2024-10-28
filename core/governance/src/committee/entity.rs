@@ -14,7 +14,7 @@ use super::error::CommitteeError;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CommitteeId")]
-pub enum CommitteeEvent {
+pub(crate) enum CommitteeEvent {
     Initialized {
         id: CommitteeId,
         name: String,
@@ -56,7 +56,7 @@ impl Committee {
         false
     }
 
-    pub fn add_user(
+    pub(crate) fn add_user(
         &mut self,
         user_id: UserId,
         audit_info: AuditInfo,
@@ -73,7 +73,7 @@ impl Committee {
         Ok(())
     }
 
-    pub fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
+    pub(crate) fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
         if !self.members().contains(&user_id) {
             return;
         }

@@ -18,6 +18,12 @@ impl ApprovalProcessType {
     }
 }
 
+impl Display for ApprovalProcessType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -74,6 +80,8 @@ pub enum PolicyAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ApprovalProcessAction {
     Create,
+    Read,
+    List,
     Approve,
     Deny,
     Conclude,
