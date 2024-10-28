@@ -61,7 +61,7 @@ impl JobExecutor {
           INSERT INTO job_executions (id, reschedule_after)
           VALUES ($1, COALESCE($2, NOW()))
         "#,
-            &job.id as &JobId,
+            job.id as JobId,
             schedule_at
         )
         .execute(&mut **db)
@@ -150,7 +150,7 @@ impl JobExecutor {
         let rows = sqlx::query!(
             r#"
               WITH selected_jobs AS (
-                  SELECT je.id, je.execution_data_json AS data_json
+                  SELECT je.id, je.execution_state_json AS data_json
                   FROM job_executions je
                   JOIN jobs ON je.id = jobs.id
                   WHERE reschedule_after < NOW()
@@ -206,12 +206,11 @@ impl JobExecutor {
             .try_read()
             .expect("cannot read registry")
             .init_job(&job)?;
-        let id = job.id.clone();
+        let id = job.id;
         let job_type = job.job_type.clone();
         let all_jobs = Arc::clone(running_jobs);
         let pool = pool.clone();
         let registry = Arc::clone(registry);
-        let job_id = id.clone();
         let handle = tokio::spawn(async move {
             let res = Self::execute_job(
                 job,
@@ -229,7 +228,7 @@ impl JobExecutor {
                     Ok(db) => {
                         let _ = Self::fail_job(
                             db,
-                            &job_id,
+                            id,
                             attempt,
                             e,
                             repo,
@@ -246,7 +245,7 @@ impl JobExecutor {
                     }
                 }
             }
-            write_lock.remove(&job_id);
+            write_lock.remove(&id);
         });
         running_jobs
             .write()
@@ -273,7 +272,7 @@ impl JobExecutor {
         span.record("job_type", tracing::field::display(&job.job_type));
         span.record("attempt", attempt);
         let current_job_pool = pool.clone();
-        let current_job = CurrentJob::new(id.clone(), attempt, current_job_pool, payload);
+        let current_job = CurrentJob::new(id, attempt, current_job_pool, payload);
 
         match runner.run(current_job).await.map_err(|e| {
             let error = e.to_string();
@@ -356,7 +355,7 @@ impl JobExecutor {
 
     async fn fail_job(
         mut db: Transaction<'_, Postgres>,
-        id: &JobId,
+        id: JobId,
         attempt: u32,
         error: JobError,
         repo: JobRepo,
@@ -374,7 +373,7 @@ impl JobExecutor {
                 SET state = 'pending', reschedule_after = $2, attempt_index = $3
                 WHERE id = $1
               "#,
-                id as &JobId,
+                id as JobId,
                 reschedule_at,
                 (attempt + 1) as i32
             )
@@ -386,7 +385,7 @@ impl JobExecutor {
                 DELETE FROM job_executions
                 WHERE id = $1
               "#,
-                id as &JobId
+                id as JobId
             )
             .execute(&mut *db)
             .await?;

@@ -45,7 +45,7 @@ impl Price {
             )
             .await
         {
-            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(crate::job::error::JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e.into()),
             _ => (),
         }

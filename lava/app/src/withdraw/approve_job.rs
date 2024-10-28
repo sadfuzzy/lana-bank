@@ -76,7 +76,7 @@ impl JobRunner for WithdrawApprovalJobRunner {
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_data::<WithdrawApprovalJobData>()?
+            .execution_state::<WithdrawApprovalJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -100,7 +100,7 @@ impl JobRunner for WithdrawApprovalJobRunner {
                     let mut db = self.pool.begin().await?;
                     self.repo.update_in_tx(&mut db, &mut withdraw).await?;
                     state.sequence = message.sequence;
-                    current_job.update_execution_data(&mut db, state).await?;
+                    current_job.update_execution_state(&mut db, state).await?;
                     db.commit().await?;
                 }
                 _ => {}

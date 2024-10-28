@@ -11,7 +11,7 @@
     ],
     "parameters": {
       "Left": [
-        "Varchar",
+        "Uuid",
         "Int8",
         "TextArray",
         "JsonbArray"

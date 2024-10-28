@@ -108,7 +108,7 @@ impl CreditFacilities {
             )
             .await
         {
-            Err(JobError::DuplicateId) => (),
+            Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e.into()),
             _ => (),
         }

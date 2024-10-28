@@ -400,7 +400,12 @@ mod tests {
     fn columns_from_list() {
         let input: syn::Meta = parse_quote!(columns(
             name = "String",
-            email(ty = "String", list_by = false, create(accessor = "email()"))
+            email(
+                ty = "String",
+                list_by = false,
+                create(accessor = "email()"),
+                update(persist = false)
+            )
         ));
         let columns = Columns::from_meta(&input).expect("Failed to parse Fields");
         assert_eq!(columns.all.len(), 2);
@@ -416,5 +421,6 @@ mod tests {
                 .to_string(),
             quote!(email()).to_string()
         );
+        assert!(!columns.all[1].opts.persist_on_update());
     }
 }

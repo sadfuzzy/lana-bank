@@ -12,8 +12,8 @@ pub enum JobError {
     JobTypeMismatch(JobType, JobType),
     #[error("JobError - JobInitError: {0}")]
     JobInitError(String),
-    #[error("JobError - BadData: {0}")]
-    CouldNotSerializeExecutionData(serde_json::Error),
+    #[error("JobError - BadState: {0}")]
+    CouldNotSerializeExecutionState(serde_json::Error),
     #[error("JobError - BadConfig: {0}")]
     CouldNotSerializeConfig(serde_json::Error),
     #[error("JobError - NoInitializerPresent")]
@@ -22,6 +22,8 @@ pub enum JobError {
     JobExecutionError(String),
     #[error("JobError - DuplicateId")]
     DuplicateId,
+    #[error("JobError - DuplicateUniqueJobType")]
+    DuplicateUniqueJobType,
     #[error("JobError - NotFound")]
     NotFound,
 }
@@ -36,6 +38,9 @@ impl From<sqlx::Error> for JobError {
     fn from(error: sqlx::Error) -> Self {
         if let Some(err) = error.as_database_error() {
             if let Some(constraint) = err.constraint() {
+                if constraint.contains("type") {
+                    return Self::DuplicateUniqueJobType;
+                }
                 if constraint.contains("id") {
                     return Self::DuplicateId;
                 }

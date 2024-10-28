@@ -16,7 +16,8 @@ impl JobType {
         JobType(Cow::Borrowed(job_type))
     }
 
-    pub(super) fn from_string(job_type: String) -> Self {
+    #[cfg(test)]
+    pub(crate) fn from_owned(job_type: String) -> Self {
         JobType(Cow::Owned(job_type))
     }
 }
@@ -77,7 +78,7 @@ impl TryFromEvents<JobEvent> for Job {
                     ..
                 } => {
                     builder = builder
-                        .id(id.clone())
+                        .id(*id)
                         .job_type(job_type.clone())
                         .config(config.clone())
                 }
@@ -93,6 +94,8 @@ impl TryFromEvents<JobEvent> for Job {
 pub struct NewJob {
     #[builder(setter(into))]
     pub(super) id: JobId,
+    #[builder(default)]
+    pub(super) unique_per_type: bool,
     pub(super) job_type: JobType,
     #[builder(setter(custom))]
     pub(super) config: serde_json::Value,
@@ -115,7 +118,7 @@ impl NewJobBuilder {
 impl IntoEvents<JobEvent> for NewJob {
     fn into_events(self) -> EntityEvents<JobEvent> {
         EntityEvents::init(
-            self.id.clone(),
+            self.id,
             [JobEvent::Initialized {
                 id: self.id,
                 job_type: self.job_type,

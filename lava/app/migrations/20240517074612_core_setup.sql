@@ -224,12 +224,15 @@ CREATE TABLE report_events (
 );
 
 CREATE TABLE jobs (
-  id VARCHAR NOT NULL UNIQUE,
+  id UUID NOT NULL UNIQUE,
+  unique_per_type BOOLEAN NOT NULL,
   job_type VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE UNIQUE INDEX idx_unique_job_type ON jobs (job_type) WHERE unique_per_type = TRUE;
+
 CREATE TABLE job_events (
-  id VARCHAR NOT NULL REFERENCES jobs(id),
+  id UUID NOT NULL REFERENCES jobs(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -240,10 +243,10 @@ CREATE TABLE job_events (
 CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 
 CREATE TABLE job_executions (
-  id VARCHAR REFERENCES jobs(id) NOT NULL UNIQUE,
+  id UUID REFERENCES jobs(id) NOT NULL UNIQUE,
   attempt_index INT NOT NULL DEFAULT 1,
   state JobExecutionState NOT NULL DEFAULT 'pending',
-  execution_data_json JSONB,
+  execution_state_json JSONB,
   reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
