@@ -8,12 +8,14 @@ mod event;
 mod policy;
 mod primitives;
 
+use sqlx::Acquire;
 use tracing::instrument;
+
+use std::collections::HashSet;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use outbox::Outbox;
-use shared_primitives::ApprovalProcessId;
 
 pub use approval_process::*;
 pub use committee::*;
@@ -130,16 +132,95 @@ where
             )
             .await?;
         let process = policy.spawn_process(id.into(), audit_info);
-        let process = self.process_repo.create_in_tx(db, process).await?;
-        self.outbox
-            .persist(
-                db,
-                GovernanceEvent::ApprovalProcessConcluded {
-                    id: process.id,
-                    approved: true,
-                },
+        let mut process = self.process_repo.create_in_tx(db, process).await?;
+        if self
+            .maybe_fire_concluded_event(db.begin().await?, HashSet::new(), &mut process)
+            .await?
+        {
+            self.process_repo.update_in_tx(db, &mut process).await?;
+        }
+        Ok(process)
+    }
+
+    #[instrument(name = "governance.approve_process", skip(self), err)]
+    pub async fn approve_process(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        process_id: ApprovalProcessId,
+    ) -> Result<ApprovalProcess, GovernanceError>
+    where
+        UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        let audit_info = self
+            .authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
+                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve),
+                true,
             )
+            .await?
+            .expect("audit info missing");
+        let user_id = UserId::from(sub);
+        let mut process = self.process_repo.find_by_id(process_id).await?;
+        let eligible = if let Some(committee_id) = process.committee_id {
+            self.committee_repo
+                .find_by_id(committee_id)
+                .await?
+                .members()
+        } else {
+            HashSet::new()
+        };
+        process.approve(&eligible, user_id, audit_info)?;
+        let mut db = self.pool.begin().await?;
+        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
+        self.process_repo
+            .update_in_tx(&mut db, &mut process)
+            .await?;
+        db.commit().await?;
+
+        Ok(process)
+    }
+
+    #[instrument(name = "governance.deny_process", skip(self), err)]
+    pub async fn deny_process(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        process_id: ApprovalProcessId,
+    ) -> Result<ApprovalProcess, GovernanceError>
+    where
+        UserId: for<'a> From<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        let audit_info = self
+            .authz
+            .evaluate_permission(
+                sub,
+                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
+                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny),
+                true,
+            )
+            .await?
+            .expect("audit info missing");
+        let user_id = UserId::from(sub);
+        let mut process = self.process_repo.find_by_id(process_id).await?;
+        let eligible = if let Some(committee_id) = process.committee_id {
+            self.committee_repo
+                .find_by_id(committee_id)
+                .await?
+                .members()
+        } else {
+            HashSet::new()
+        };
+        process.deny(&eligible, user_id, audit_info)?;
+        let mut db = self.pool.begin().await?;
+        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            .await?;
+        self.process_repo
+            .update_in_tx(&mut db, &mut process)
+            .await?;
+        db.commit().await?;
+
         Ok(process)
     }
 
@@ -174,5 +255,38 @@ where
             .await?;
         db.commit().await?;
         Ok(committee)
+    }
+
+    async fn maybe_fire_concluded_event(
+        &self,
+        mut db: sqlx::Transaction<'_, sqlx::Postgres>,
+        eligible: HashSet<UserId>,
+        process: &mut ApprovalProcess,
+    ) -> Result<bool, GovernanceError> {
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                &mut db,
+                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process.id)),
+                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude),
+            )
+            .await?;
+        let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
+            self.outbox
+                .persist(
+                    &mut db,
+                    GovernanceEvent::ApprovalProcessConcluded {
+                        id: process.id,
+                        approved,
+                    },
+                )
+                .await?;
+            db.commit().await?;
+            true
+        } else {
+            false
+        };
+        Ok(res)
     }
 }

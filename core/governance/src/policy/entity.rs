@@ -18,6 +18,11 @@ impl ApprovalProcessType {
     pub const fn new(job_type: &'static str) -> Self {
         ApprovalProcessType(Cow::Borrowed(job_type))
     }
+
+    #[cfg(test)]
+    pub(crate) fn from_owned(job_type: String) -> Self {
+        ApprovalProcessType(Cow::Owned(job_type))
+    }
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]

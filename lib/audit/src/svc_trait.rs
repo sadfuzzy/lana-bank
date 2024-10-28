@@ -16,6 +16,21 @@ pub trait AuditSvc: Clone + Sync {
 
     fn pool(&self) -> &sqlx::PgPool;
 
+    async fn record_system_entry(
+        &self,
+        object: impl Into<Self::Object> + Send,
+        action: impl Into<Self::Action> + Send,
+    ) -> Result<AuditInfo, AuditError>
+    where
+        Self::Subject: SystemSubject,
+    {
+        let subject = Self::Subject::system();
+        let object = object.into();
+        let action = action.into();
+
+        self.record_entry(&subject, object, action, true).await
+    }
+
     async fn record_entry(
         &self,
         subject: &Self::Subject,
@@ -40,6 +55,53 @@ pub trait AuditSvc: Clone + Sync {
             authorized,
         )
         .fetch_one(self.pool())
+        .await?;
+
+        Ok(AuditInfo::from((record.id, sub)))
+    }
+
+    async fn record_system_entry_in_tx(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        object: impl Into<Self::Object> + Send,
+        action: impl Into<Self::Action> + Send,
+    ) -> Result<AuditInfo, AuditError>
+    where
+        Self::Subject: SystemSubject,
+    {
+        let subject = Self::Subject::system();
+        let object = object.into();
+        let action = action.into();
+
+        self.record_entry_in_tx(tx, &subject, object, action, true)
+            .await
+    }
+
+    async fn record_entry_in_tx(
+        &self,
+        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        subject: &Self::Subject,
+        object: impl Into<Self::Object> + Send,
+        action: impl Into<Self::Action> + Send,
+        authorized: bool,
+    ) -> Result<AuditInfo, AuditError> {
+        let subject = subject.clone();
+        let object = object.into();
+        let action = action.into();
+
+        let sub = subject.to_string();
+        let record = sqlx::query!(
+            r#"
+                INSERT INTO audit_entries (subject, object, action, authorized)
+                VALUES ($1, $2, $3, $4)
+                RETURNING id, subject
+                "#,
+            &sub,
+            object.to_string(),
+            action.to_string(),
+            authorized,
+        )
+        .fetch_one(&mut **tx)
         .await?;
 
         Ok(AuditInfo::from((record.id, sub)))

@@ -43,19 +43,8 @@ impl Committee {
             .expect("No events for committee")
     }
 
-    fn is_user_added(&self, user_id: UserId) -> bool {
-        for event in self.events.iter_all() {
-            if let CommitteeEvent::UserAdded { user_id: id, .. } = event {
-                if *id == user_id {
-                    return true;
-                }
-            }
-        }
-        false
-    }
-
     pub fn add_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
-        if self.is_user_added(user_id) {
+        if self.members().contains(&user_id) {
             return;
         }
 
@@ -66,7 +55,7 @@ impl Committee {
     }
 
     pub fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
-        if !self.is_user_added(user_id) {
+        if !self.members().contains(&user_id) {
             return;
         }
         self.events.push(CommitteeEvent::UserRemoved {
@@ -75,7 +64,7 @@ impl Committee {
         });
     }
 
-    pub fn users(&self) -> HashSet<UserId> {
+    pub fn members(&self) -> HashSet<UserId> {
         let mut users = HashSet::new();
 
         for event in self.events.iter_all() {

@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-pub use shared_primitives::{AllOrOne, CommitteeId, PolicyId, UserId};
+pub use shared_primitives::{AllOrOne, ApprovalProcessId, CommitteeId, PolicyId, UserId};
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -54,11 +54,14 @@ pub enum PolicyAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ApprovalProcessAction {
     Create,
+    Approve,
+    Deny,
+    Conclude,
 }
 
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
-pub type ApprovalProcessAllOrOne = AllOrOne<PolicyId>;
+pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

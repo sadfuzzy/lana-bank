@@ -6,6 +6,12 @@ pub enum ApprovalProcessError {
     Sqlx(#[from] sqlx::Error),
     #[error("ApprovalProcessError - NotFound")]
     NotFound,
+    #[error("ApprovalProcessError - AlreadyVoted")]
+    AlreadyVoted,
+    #[error("ApprovalProcessError - NotEligible")]
+    NotEligible,
+    #[error("ApprovalProcessError - AlreadyConcluded")]
+    AlreadyConcluded,
 }
 
 impl From<es_entity::EsEntityError> for ApprovalProcessError {

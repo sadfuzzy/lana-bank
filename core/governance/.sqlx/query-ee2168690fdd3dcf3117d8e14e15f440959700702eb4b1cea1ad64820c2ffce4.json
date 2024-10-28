@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT committee_id, id FROM approval_processes WHERE ((committee_id IS NOT DISTINCT FROM $3) AND COALESCE(id > $2, true) OR COALESCE(committee_id > $3, committee_id IS NOT NULL)) ORDER BY committee_id NULLS FIRST, id LIMIT $1) SELECT i.id AS \"entity_id: ApprovalProcessId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN approval_process_events e ON i.id = e.id ORDER BY i.committee_id nulls first, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT committee_id, id FROM approval_processes WHERE ((committee_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id LIMIT $2) SELECT i.id AS \"entity_id: ApprovalProcessId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN approval_process_events e ON i.id = e.id ORDER BY i.id, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,8 +26,8 @@
     ],
     "parameters": {
       "Left": [
-        "Int8",
         "Uuid",
+        "Int8",
         "Uuid"
       ]
     },
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "3e61b04036eec8820077fb9a85c5a4fb9aecfed3bf1c8c51f0d741b7357360e5"
+  "hash": "ee2168690fdd3dcf3117d8e14e15f440959700702eb4b1cea1ad64820c2ffce4"
 }
