@@ -58,6 +58,10 @@ impl FromStr for GovernanceAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum CommitteeAction {
     Create,
+    AddUser,
+    RemoveUser,
+    Read,
+    List,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -140,8 +144,4 @@ impl From<ApprovalProcessAction> for GovernanceAction {
     fn from(action: ApprovalProcessAction) -> Self {
         GovernanceAction::ApprovalProcess(action)
     }
-}
-
-pub(crate) fn g_action(a: impl Into<GovernanceAction>) -> GovernanceAction {
-    a.into()
 }

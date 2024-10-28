@@ -1,6 +1,7 @@
 mod account;
 mod account_set;
 pub(in crate::server) mod audit;
+mod committee;
 pub(in crate::server) mod credit_facility;
 mod customer;
 mod deposit;

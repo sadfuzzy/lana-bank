@@ -127,6 +127,12 @@ const NavigationLinks = () => {
         { href: "/trial-balance", label: "Trial Balance" },
       ],
     },
+    {
+      href: "/committees",
+      label: "Committees",
+      icon: IoPersonOutline,
+      visible: true,
+    },
   ]
 
   const isActiveLink = (href: string) => {

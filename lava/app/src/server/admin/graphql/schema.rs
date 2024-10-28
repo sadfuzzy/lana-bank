@@ -3,6 +3,7 @@ use async_graphql::{types::connection::*, Context, Object};
 use super::{
     account_set::*,
     audit::{AuditCursor, AuditEntry},
+    committee::*,
     credit_facility::*,
     customer::*,
     deposit::*,
@@ -206,6 +207,64 @@ impl Query {
                         let cursor = CustomerByEmailCursor::from((user.id, user.email.as_ref()));
                         Edge::new(cursor, Customer::from(user))
                     }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
+
+    async fn committee(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<Committee>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let committee = app.governance().find_committee_by_id(sub, id).await?;
+        Ok(committee.map(Committee::from))
+    }
+
+    async fn committees(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CommitteeByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
+    > {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .governance()
+                    .list_committees(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after.map(
+                                governance::committee_cursor::CommitteeByCreatedAtCursor::from,
+                            ),
+                        },
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|committee| {
+                        let cursor = CommitteeByCreatedAtCursor::from((
+                            committee.id,
+                            committee.created_at(),
+                        ));
+                        Edge::new(cursor, Committee::from(committee))
+                    }));
+
                 Ok::<_, async_graphql::Error>(connection)
             },
         )
@@ -1056,5 +1115,50 @@ impl Mutation {
             .update_term_values(sub, TermsTemplateId::from(input.id), term_values)
             .await?;
         Ok(TermsTemplateUpdatePayload::from(terms))
+    }
+
+    async fn committee_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeCreateInput,
+    ) -> async_graphql::Result<CommitteeCreatePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app.governance().create_committee(sub, input.name).await?;
+
+        Ok(CommitteeCreatePayload::from(committee))
+    }
+
+    async fn committee_add_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeAddUserInput,
+    ) -> async_graphql::Result<CommitteeAddUserPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .add_user_to_committee(sub, input.committee_id, input.user_id)
+            .await?;
+
+        Ok(CommitteeAddUserPayload::from(committee))
+    }
+
+    async fn committee_remove_user(
+        &self,
+        ctx: &Context<'_>,
+        input: CommitteeRemoveUserInput,
+    ) -> async_graphql::Result<CommitteeRemoveUserPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = app
+            .governance()
+            .remove_user_from_committee(sub, input.committee_id, input.user_id)
+            .await?;
+
+        Ok(CommitteeRemoveUserPayload::from(committee))
     }
 }

@@ -51,7 +51,7 @@ pub struct LavaApp {
     terms_templates: TermsTemplates,
     documents: Documents,
     _outbox: Outbox,
-    _governance: Governance,
+    governance: Governance,
 }
 
 impl LavaApp {
@@ -132,8 +132,12 @@ impl LavaApp {
             terms_templates,
             documents,
             _outbox: outbox,
-            _governance: governance,
+            governance,
         })
+    }
+
+    pub fn governance(&self) -> &Governance {
+        &self.governance
     }
 
     pub fn customers(&self) -> &Customers {

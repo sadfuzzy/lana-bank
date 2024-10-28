@@ -177,6 +177,69 @@ type CollateralizationUpdated {
 	recordedAt: Timestamp!
 }
 
+type Committee {
+	id: ID!
+	committeeId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	users: [User!]!
+}
+
+input CommitteeAddUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeAddUserPayload {
+	committee: Committee!
+}
+
+type CommitteeConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CommitteeEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Committee!]!
+}
+
+input CommitteeCreateInput {
+	name: String!
+}
+
+type CommitteeCreatePayload {
+	committee: Committee!
+}
+
+"""
+An edge in a connection.
+"""
+type CommitteeEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Committee!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input CommitteeRemoveUserInput {
+	committeeId: UUID!
+	userId: UUID!
+}
+
+type CommitteeRemoveUserPayload {
+	committee: Committee!
+}
+
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
@@ -786,6 +849,9 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
+	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
+	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 }
 
 type Outstanding {
@@ -835,6 +901,8 @@ type Query {
 	termsTemplates: [TermsTemplate!]!
 	user(id: UUID!): User
 	customers(first: Int!, after: String): CustomerConnection!
+	committee(id: UUID!): Committee
+	committees(first: Int!, after: String): CommitteeConnection!
 	loans(first: Int!, after: String): LoanConnection!
 	creditFacilities(first: Int!, after: String): CreditFacilityConnection!
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance

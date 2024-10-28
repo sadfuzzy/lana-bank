@@ -1,4 +1,5 @@
 use authz::error::AuthorizationError;
+use governance::{CommitteeAction, CommitteeAllOrOne, GovernanceAction, GovernanceObject};
 
 use super::*;
 use crate::primitives::Role;
@@ -81,7 +82,41 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
     authz
         .add_permission_to_role(&role, Object::Report, ReportAction::GenerateDownloadLink)
         .await?;
-
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Committee(CommitteeAllOrOne::All),
+            GovernanceAction::Committee(CommitteeAction::Create),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Committee(CommitteeAllOrOne::All),
+            GovernanceAction::Committee(CommitteeAction::List),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Committee(CommitteeAllOrOne::All),
+            GovernanceAction::Committee(CommitteeAction::Read),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Committee(CommitteeAllOrOne::All),
+            GovernanceAction::Committee(CommitteeAction::AddUser),
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            GovernanceObject::Committee(CommitteeAllOrOne::All),
+            GovernanceAction::Committee(CommitteeAction::RemoveUser),
+        )
+        .await?;
     Ok(())
 }
 

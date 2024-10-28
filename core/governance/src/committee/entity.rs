@@ -9,6 +9,8 @@ use audit::AuditInfo;
 
 use crate::primitives::{CommitteeId, UserId};
 
+use super::error::CommitteeError;
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CommitteeId")]
@@ -43,15 +45,32 @@ impl Committee {
             .expect("No events for committee")
     }
 
-    pub fn add_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
-        if self.members().contains(&user_id) {
-            return;
+    fn is_user_added(&self, user_id: UserId) -> bool {
+        for event in self.events.iter_all() {
+            if let CommitteeEvent::UserAdded { user_id: id, .. } = event {
+                if *id == user_id {
+                    return true;
+                }
+            }
+        }
+        false
+    }
+
+    pub fn add_user(
+        &mut self,
+        user_id: UserId,
+        audit_info: AuditInfo,
+    ) -> Result<(), CommitteeError> {
+        if self.is_user_added(user_id) {
+            return Err(CommitteeError::UserAlreadyAdded(user_id));
         }
 
         self.events.push(CommitteeEvent::UserAdded {
             user_id,
             audit_info,
         });
+
+        Ok(())
     }
 
     pub fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {

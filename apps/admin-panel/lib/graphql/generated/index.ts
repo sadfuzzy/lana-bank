@@ -204,6 +204,63 @@ export type CollateralizationUpdated = {
   state: LoanCollaterizationState;
 };
 
+export type Committee = {
+  __typename?: 'Committee';
+  committeeId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  users: Array<User>;
+};
+
+export type CommitteeAddUserInput = {
+  committeeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeAddUserPayload = {
+  __typename?: 'CommitteeAddUserPayload';
+  committee: Committee;
+};
+
+export type CommitteeConnection = {
+  __typename?: 'CommitteeConnection';
+  /** A list of edges. */
+  edges: Array<CommitteeEdge>;
+  /** A list of nodes. */
+  nodes: Array<Committee>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type CommitteeCreateInput = {
+  name: Scalars['String']['input'];
+};
+
+export type CommitteeCreatePayload = {
+  __typename?: 'CommitteeCreatePayload';
+  committee: Committee;
+};
+
+/** An edge in a connection. */
+export type CommitteeEdge = {
+  __typename?: 'CommitteeEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Committee;
+};
+
+export type CommitteeRemoveUserInput = {
+  committeeId: Scalars['UUID']['input'];
+  userId: Scalars['UUID']['input'];
+};
+
+export type CommitteeRemoveUserPayload = {
+  __typename?: 'CommitteeRemoveUserPayload';
+  committee: Committee;
+};
+
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   approvals: Array<CreditFacilityApproval>;
@@ -789,6 +846,9 @@ export enum LoanStatus {
 export type Mutation = {
   __typename?: 'Mutation';
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
+  committeeAddUser: CommitteeAddUserPayload;
+  committeeCreate: CommitteeCreatePayload;
+  committeeRemoveUser: CommitteeRemoveUserPayload;
   creditFacilityApprove: CreditFacilityApprovePayload;
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
@@ -824,6 +884,21 @@ export type Mutation = {
 
 export type MutationCollateralizationStateUpdateArgs = {
   input: CollateralizationStateUpdateInput;
+};
+
+
+export type MutationCommitteeAddUserArgs = {
+  input: CommitteeAddUserInput;
+};
+
+
+export type MutationCommitteeCreateArgs = {
+  input: CommitteeCreateInput;
+};
+
+
+export type MutationCommitteeRemoveUserArgs = {
+  input: CommitteeRemoveUserInput;
 };
 
 
@@ -1007,6 +1082,8 @@ export type Query = {
   balanceSheet?: Maybe<BalanceSheet>;
   cashFlowStatement?: Maybe<CashFlowStatement>;
   chartOfAccounts?: Maybe<ChartOfAccounts>;
+  committee?: Maybe<Committee>;
+  committees: CommitteeConnection;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
@@ -1056,6 +1133,17 @@ export type QueryBalanceSheetArgs = {
 export type QueryCashFlowStatementArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryCommitteeArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCommitteesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -1486,6 +1574,42 @@ export type GetOffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: stri
 
 
 export type GetOffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts?: { __typename?: 'ChartOfAccounts', name: string, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string } | { __typename: 'AccountSet', id: string, name: string, hasSubAccounts: boolean }> }> } | null };
+
+export type GetCommitteeDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
+
+export type CommitteeAddUserMutationVariables = Exact<{
+  input: CommitteeAddUserInput;
+}>;
+
+
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+
+export type CreateCommitteeMutationVariables = Exact<{
+  input: CommitteeCreateInput;
+}>;
+
+
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+
+export type CommitteesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type CommitteeRemoveUserMutationVariables = Exact<{
+  input: CommitteeRemoveUserInput;
+}>;
+
+
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
 
 export type GetCreditFacilityDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2259,6 +2383,224 @@ export function useGetOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apol
 export type GetOffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsQuery>;
 export type GetOffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useGetOffBalanceSheetChartOfAccountsLazyQuery>;
 export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<GetOffBalanceSheetChartOfAccountsQuery, GetOffBalanceSheetChartOfAccountsQueryVariables>;
+export const GetCommitteeDetailsDocument = gql`
+    query GetCommitteeDetails($id: UUID!) {
+  committee(id: $id) {
+    id
+    committeeId
+    createdAt
+    name
+    users {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCommitteeDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetCommitteeDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommitteeDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommitteeDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCommitteeDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>(GetCommitteeDetailsDocument, options);
+      }
+export function useGetCommitteeDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>(GetCommitteeDetailsDocument, options);
+        }
+export type GetCommitteeDetailsQueryHookResult = ReturnType<typeof useGetCommitteeDetailsQuery>;
+export type GetCommitteeDetailsLazyQueryHookResult = ReturnType<typeof useGetCommitteeDetailsLazyQuery>;
+export type GetCommitteeDetailsQueryResult = Apollo.QueryResult<GetCommitteeDetailsQuery, GetCommitteeDetailsQueryVariables>;
+export const CommitteeAddUserDocument = gql`
+    mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
+  committeeAddUser(input: $input) {
+    committee {
+      id
+      committeeId
+      users {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CommitteeAddUserMutationFn = Apollo.MutationFunction<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+
+/**
+ * __useCommitteeAddUserMutation__
+ *
+ * To run a mutation, you first call `useCommitteeAddUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeAddUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [committeeAddUserMutation, { data, loading, error }] = useCommitteeAddUserMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCommitteeAddUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>(CommitteeAddUserDocument, options);
+      }
+export type CommitteeAddUserMutationHookResult = ReturnType<typeof useCommitteeAddUserMutation>;
+export type CommitteeAddUserMutationResult = Apollo.MutationResult<CommitteeAddUserMutation>;
+export type CommitteeAddUserMutationOptions = Apollo.BaseMutationOptions<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
+export const CreateCommitteeDocument = gql`
+    mutation CreateCommittee($input: CommitteeCreateInput!) {
+  committeeCreate(input: $input) {
+    committee {
+      id
+      committeeId
+      createdAt
+      users {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CreateCommitteeMutationFn = Apollo.MutationFunction<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
+
+/**
+ * __useCreateCommitteeMutation__
+ *
+ * To run a mutation, you first call `useCreateCommitteeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCommitteeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCommitteeMutation, { data, loading, error }] = useCreateCommitteeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateCommitteeMutation(baseOptions?: Apollo.MutationHookOptions<CreateCommitteeMutation, CreateCommitteeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCommitteeMutation, CreateCommitteeMutationVariables>(CreateCommitteeDocument, options);
+      }
+export type CreateCommitteeMutationHookResult = ReturnType<typeof useCreateCommitteeMutation>;
+export type CreateCommitteeMutationResult = Apollo.MutationResult<CreateCommitteeMutation>;
+export type CreateCommitteeMutationOptions = Apollo.BaseMutationOptions<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
+export const CommitteesDocument = gql`
+    query Committees($first: Int!, $after: String) {
+  committees(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        committeeId
+        createdAt
+        name
+        users {
+          userId
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useCommitteesQuery__
+ *
+ * To run a query within a React component, call `useCommitteesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCommitteesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCommitteesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCommitteesQuery(baseOptions: Apollo.QueryHookOptions<CommitteesQuery, CommitteesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CommitteesQuery, CommitteesQueryVariables>(CommitteesDocument, options);
+      }
+export function useCommitteesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CommitteesQuery, CommitteesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CommitteesQuery, CommitteesQueryVariables>(CommitteesDocument, options);
+        }
+export type CommitteesQueryHookResult = ReturnType<typeof useCommitteesQuery>;
+export type CommitteesLazyQueryHookResult = ReturnType<typeof useCommitteesLazyQuery>;
+export type CommitteesQueryResult = Apollo.QueryResult<CommitteesQuery, CommitteesQueryVariables>;
+export const CommitteeRemoveUserDocument = gql`
+    mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
+  committeeRemoveUser(input: $input) {
+    committee {
+      id
+      committeeId
+      users {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export type CommitteeRemoveUserMutationFn = Apollo.MutationFunction<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
+
+/**
+ * __useCommitteeRemoveUserMutation__
+ *
+ * To run a mutation, you first call `useCommitteeRemoveUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCommitteeRemoveUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [committeeRemoveUserMutation, { data, loading, error }] = useCommitteeRemoveUserMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCommitteeRemoveUserMutation(baseOptions?: Apollo.MutationHookOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>(CommitteeRemoveUserDocument, options);
+      }
+export type CommitteeRemoveUserMutationHookResult = ReturnType<typeof useCommitteeRemoveUserMutation>;
+export type CommitteeRemoveUserMutationResult = Apollo.MutationResult<CommitteeRemoveUserMutation>;
+export type CommitteeRemoveUserMutationOptions = Apollo.BaseMutationOptions<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
 export const GetCreditFacilityDetailsDocument = gql`
     query GetCreditFacilityDetails($id: UUID!) {
   creditFacility(id: $id) {
