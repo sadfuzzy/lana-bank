@@ -194,14 +194,12 @@ where
     {
         let audit_info = self
             .authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = if let Some(committee_id) = process.committee_id {

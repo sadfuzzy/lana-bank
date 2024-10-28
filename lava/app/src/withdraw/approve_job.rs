@@ -4,7 +4,7 @@ use futures::StreamExt;
 use governance::GovernanceEvent;
 use job::*;
 use lava_events::LavaEvent;
-use rbac_types::{AppObject, Subject, WithdrawAction};
+use rbac_types::{AppObject, WithdrawAction};
 
 use crate::{
     audit::{Audit, AuditSvc},
@@ -88,17 +88,16 @@ impl JobRunner for WithdrawApprovalJobRunner {
                     ref process_type,
                 })) if process_type == &super::APPROVE_WITHDRAW_PROCESS => {
                     let mut withdraw = self.repo.find_by_approval_process_id(id).await?;
+                    let mut db = self.pool.begin().await?;
                     let audit_info = self
                         .audit
-                        .record_entry(
-                            &Subject::core(),
+                        .record_system_entry_in_tx(
+                            &mut db,
                             AppObject::Withdraw,
                             WithdrawAction::ConcludeApprovalProcess,
-                            true,
                         )
                         .await?;
                     withdraw.approval_process_concluded(approved, audit_info);
-                    let mut db = self.pool.begin().await?;
                     self.repo.update_in_tx(&mut db, &mut withdraw).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(&mut db, state).await?;

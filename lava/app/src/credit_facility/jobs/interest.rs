@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, InterestAccrualRepo, Subject},
+    credit_facility::{repo::*, InterestAccrualRepo},
     job::*,
     ledger::*,
     primitives::CreditFacilityId,
@@ -82,11 +82,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::core(),
+            .record_system_entry_in_tx(
+                &mut db_tx,
                 Object::CreditFacility,
                 CreditFacilityAction::RecordInterest,
-                true,
             )
             .await?;
 

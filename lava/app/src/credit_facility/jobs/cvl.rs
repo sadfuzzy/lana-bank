@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor, Subject},
+    credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor},
     job::*,
     price::Price,
     terms::CVLPct,
@@ -88,11 +88,10 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             let mut db = current_job.pool().begin().await?;
             let audit_info = self
                 .audit
-                .record_entry(
-                    &Subject::core(),
+                .record_system_entry_in_tx(
+                    &mut db,
                     Object::CreditFacility,
                     CreditFacilityAction::UpdateCollateralizationState,
-                    true,
                 )
                 .await?;
 
