@@ -8,8 +8,12 @@ pub enum WithdrawError {
     Sqlx(#[from] sqlx::Error),
     #[error("WithdrawError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
+    #[error("WithdrawError - GovernanceError: {0}")]
+    GovernanceError(#[from] governance::error::GovernanceError),
     #[error("WithdrawError - UserError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("WithdrawError - NotApproved: {0}")]
+    NotApproved(WithdrawId),
     #[error("WithdrawError - AlreadyConfirmed: {0}")]
     AlreadyConfirmed(WithdrawId),
     #[error("WithdrawError - AlreadyCancelled: {0}")]

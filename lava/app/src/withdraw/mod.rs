@@ -1,21 +1,28 @@
+mod approve_job;
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
 use authz::PermissionCheck;
+use governance::ApprovalProcessType;
 
 use crate::{
     audit::AuditInfo,
     authorization::{Authorization, Object, WithdrawAction},
     customer::Customers,
     data_export::Export,
+    governance::Governance,
+    job::Jobs,
     ledger::Ledger,
+    outbox::Outbox,
     primitives::{CustomerId, Subject, UsdCents, WithdrawId},
 };
 
 pub use entity::*;
 use error::WithdrawError;
 pub use repo::{cursor::*, WithdrawRepo};
+
+const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
 #[derive(Clone)]
 pub struct Withdraws {
@@ -24,24 +31,57 @@ pub struct Withdraws {
     customers: Customers,
     ledger: Ledger,
     authz: Authorization,
+    governance: Governance,
+    jobs: Jobs,
 }
 
 impl Withdraws {
-    pub fn new(
+    #[allow(clippy::too_many_arguments)]
+    pub async fn init(
         pool: &sqlx::PgPool,
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
         export: &Export,
-    ) -> Self {
+        governance: &Governance,
+        jobs: &Jobs,
+        outbox: &Outbox,
+    ) -> Result<Self, WithdrawError> {
         let repo = WithdrawRepo::new(pool, export);
-        Self {
+        jobs.add_initializer(approve_job::WithdrawApprovalJobInitializer::new(
+            pool,
+            &repo,
+            authz.audit(),
+            outbox,
+        ));
+        let _ = governance.init_policy(APPROVE_WITHDRAW_PROCESS).await;
+        Ok(Self {
             pool: pool.clone(),
             repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
             authz: authz.clone(),
+            governance: governance.clone(),
+            jobs: jobs.clone(),
+        })
+    }
+
+    pub async fn spawn_global_jobs(&self) -> Result<(), WithdrawError> {
+        let mut db_tx = self.pool.begin().await?;
+        match self
+            .jobs
+            .create_and_spawn_unique_in_tx::<approve_job::WithdrawApprovalJobInitializer, _>(
+                &mut db_tx,
+                serde_json::json!({}),
+            )
+            .await
+        {
+            Err(crate::job::error::JobError::DuplicateId) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
         }
+        db_tx.commit().await?;
+        Ok(())
     }
 
     pub fn repo(&self) -> &WithdrawRepo {
@@ -72,8 +112,10 @@ impl Withdraws {
             .expect("audit info missing");
         let customer_id = customer_id.into();
         let customer = self.customers.repo().find_by_id(customer_id).await?;
+        let id = WithdrawId::new();
         let new_withdraw = NewWithdraw::builder()
-            .id(WithdrawId::new())
+            .id(id)
+            .approval_process_id(id)
             .customer_id(customer_id)
             .amount(amount)
             .reference(reference)
@@ -83,6 +125,9 @@ impl Withdraws {
             .expect("Could not build Withdraw");
 
         let mut db_tx = self.pool.begin().await?;
+        self.governance
+            .start_process(&mut db_tx, id, APPROVE_WITHDRAW_PROCESS)
+            .await?;
         let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
 
         let customer_balances = self

@@ -1,3 +1,51 @@
+CREATE TABLE committees (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE committee_events (
+  id UUID NOT NULL REFERENCES committees(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE policies (
+  id UUID PRIMARY KEY,
+  committee_id UUID REFERENCES committees(id),
+  process_type VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE policy_events (
+  id UUID NOT NULL REFERENCES policies(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE approval_processes (
+  id UUID PRIMARY KEY,
+  policy_id UUID REFERENCES policies(id),
+  committee_id UUID REFERENCES committees(id),
+  process_type VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE approval_process_events (
+  id UUID NOT NULL REFERENCES approval_processes(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
@@ -114,6 +162,7 @@ CREATE TABLE interest_accrual_events (
 CREATE TABLE withdraws (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
+  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -167,54 +216,6 @@ CREATE TABLE reports (
 
 CREATE TABLE report_events (
   id UUID NOT NULL REFERENCES reports(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE committees (
-  id UUID PRIMARY KEY,
-  name VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE committee_events (
-  id UUID NOT NULL REFERENCES committees(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE policies (
-  id UUID PRIMARY KEY,
-  committee_id UUID REFERENCES committees(id),
-  process_type VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE policy_events (
-  id UUID NOT NULL REFERENCES policies(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE approval_processes (
-  id UUID PRIMARY KEY,
-  policy_id UUID REFERENCES policies(id),
-  committee_id UUID REFERENCES committees(id),
-  process_type VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE approval_process_events (
-  id UUID NOT NULL REFERENCES approval_processes(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

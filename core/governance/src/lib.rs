@@ -13,6 +13,7 @@ use tracing::instrument;
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use outbox::Outbox;
+use shared_primitives::ApprovalProcessId;
 
 pub use approval_process::*;
 pub use committee::*;
@@ -80,42 +81,40 @@ where
         }
     }
 
-    #[instrument(name = "governance.create_policy", skip(self), err)]
-    pub async fn create_policy(
+    #[instrument(name = "governance.init_policy", skip(self), err)]
+    pub async fn init_policy(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process_type: ApprovalProcessType,
-        rules: ApprovalRules,
-        committee_id: Option<CommitteeId>,
     ) -> Result<Policy, GovernanceError> {
+        let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
         let audit_info = self
             .authz
-            .evaluate_permission(
-                sub,
+            .audit()
+            .record_entry(
+                &sub,
                 GovernanceObject::Policy(PolicyAllOrOne::All),
                 g_action(PolicyAction::Create),
                 true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .committee_id(committee_id)
-            .rules(rules)
+            .rules(ApprovalRules::Automatic)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new policy");
 
-        let policy = self.policy_repo.create_in_tx(db, new_policy).await?;
+        let policy = self.policy_repo.create(new_policy).await?;
         Ok(policy)
     }
 
+    #[instrument(name = "governance.start_process", skip(self), err)]
     pub async fn start_process(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        id: impl Into<ApprovalProcessId> + std::fmt::Debug,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
         let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
@@ -130,14 +129,14 @@ where
                 true,
             )
             .await?;
-        let process = policy.spawn_process(audit_info);
+        let process = policy.spawn_process(id.into(), audit_info);
         let process = self.process_repo.create_in_tx(db, process).await?;
         self.outbox
             .persist(
                 db,
                 GovernanceEvent::ApprovalProcessConcluded {
                     id: process.id,
-                    approved: false,
+                    approved: true,
                 },
             )
             .await?;

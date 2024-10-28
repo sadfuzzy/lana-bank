@@ -19,6 +19,12 @@ es_entity::entity_id! { ReportId }
 
 pub use job::JobId;
 
+impl From<WithdrawId> for ApprovalProcessId {
+    fn from(id: WithdrawId) -> Self {
+        ApprovalProcessId::from(id.0)
+    }
+}
+
 impl From<LoanId> for JobId {
     fn from(id: LoanId) -> Self {
         JobId::from(id.0)

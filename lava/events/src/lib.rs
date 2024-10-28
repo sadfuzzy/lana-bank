@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "module")]
 pub enum LavaEvent {
     Governance(governance::GovernanceEvent),
 }

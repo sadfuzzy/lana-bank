@@ -4,7 +4,7 @@ use es_entity::*;
 
 use crate::{
     data_export::Export,
-    primitives::{CustomerId, WithdrawId},
+    primitives::{ApprovalProcessId, CustomerId, WithdrawId},
 };
 
 use super::{entity::*, error::*};
@@ -17,6 +17,7 @@ const BQ_TABLE_NAME: &str = "withdraw_events";
     err = "WithdrawError",
     columns(
         customer_id(ty = "CustomerId", list_for),
+        approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
         reference(ty = "String", create(accessor = "reference()")),
     ),
     post_persist_hook = "export"

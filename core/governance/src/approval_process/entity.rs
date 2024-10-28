@@ -19,6 +19,9 @@ pub enum ApprovalProcessEvent {
         committee_id: Option<CommitteeId>,
         audit_info: AuditInfo,
     },
+    Concluded {
+        approved: bool,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -37,8 +40,19 @@ impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
         for event in events.iter_all() {
             match event {
                 ApprovalProcessEvent::Initialized {
-                    id, process_type, ..
-                } => builder = builder.id(*id).process_type(process_type.clone()),
+                    id,
+                    process_type,
+                    policy_id,
+                    committee_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .process_type(process_type.clone())
+                        .policy_id(*policy_id)
+                        .committee_id(*committee_id)
+                }
+                ApprovalProcessEvent::Concluded { .. } => {}
             }
         }
         builder.events(events).build()
@@ -66,16 +80,18 @@ impl NewApprovalProcess {
 
 impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
     fn into_events(self) -> EntityEvents<ApprovalProcessEvent> {
-        EntityEvents::init(
-            self.id,
-            [ApprovalProcessEvent::Initialized {
-                id: self.id,
-                policy_id: self.policy_id,
-                process_type: self.process_type,
-                rules: self.rules,
-                committee_id: self.committee_id,
-                audit_info: self.audit_info,
-            }],
-        )
+        let auto_approved = self.rules == ApprovalRules::Automatic;
+        let mut events = vec![ApprovalProcessEvent::Initialized {
+            id: self.id,
+            policy_id: self.policy_id,
+            process_type: self.process_type,
+            rules: self.rules,
+            committee_id: self.committee_id,
+            audit_info: self.audit_info,
+        }];
+        if auto_approved {
+            events.push(ApprovalProcessEvent::Concluded { approved: true });
+        }
+        EntityEvents::init(self.id, events)
     }
 }

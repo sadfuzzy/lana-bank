@@ -231,6 +231,7 @@ impl_trivial_action!(DocumentAction, Document);
 #[strum(serialize_all = "kebab-case")]
 pub enum WithdrawAction {
     Read,
+    ConcludeApprovalProcess,
     Initiate,
     Confirm,
     List,

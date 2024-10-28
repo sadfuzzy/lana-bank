@@ -5,9 +5,6 @@ use sqlx::PgPool;
 use tracing::instrument;
 
 use authz::PermissionCheck;
-use governance::Governance;
-use lava_events::LavaEvent;
-use outbox::Outbox;
 
 use crate::{
     applicant::Applicants,
@@ -18,9 +15,11 @@ use crate::{
     data_export::Export,
     deposit::Deposits,
     document::Documents,
+    governance::Governance,
     job::Jobs,
     ledger::Ledger,
     loan::Loans,
+    outbox::Outbox,
     price::Price,
     primitives::Subject,
     report::Reports,
@@ -51,8 +50,8 @@ pub struct LavaApp {
     report: Reports,
     terms_templates: TermsTemplates,
     documents: Documents,
-    _outbox: Outbox<LavaEvent>,
-    _governance: Governance<Authorization, LavaEvent>,
+    _outbox: Outbox,
+    _governance: Governance,
 }
 
 impl LavaApp {
@@ -61,10 +60,22 @@ impl LavaApp {
         let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);
         let authz = init_authz(&pool, &audit).await?;
+        let outbox = Outbox::init(&pool).await?;
+        let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &audit, &export);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdraws = Withdraws::new(&pool, &customers, &ledger, &authz, &export);
+        let withdraws = Withdraws::init(
+            &pool,
+            &customers,
+            &ledger,
+            &authz,
+            &export,
+            &governance,
+            &jobs,
+            &outbox,
+        )
+        .await?;
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::new(&pool, &jobs, &export);
         let storage = Storage::new(&config.storage);
@@ -96,10 +107,9 @@ impl LavaApp {
             &price,
             &users,
         );
-        let outbox = Outbox::init(&pool).await?;
-        let governance = Governance::new(&pool, &authz, &outbox);
         jobs.start_poll().await?;
 
+        withdraws.spawn_global_jobs().await?;
         loans.spawn_global_jobs().await?;
         report.spawn_global_jobs().await?;
         price.spawn_global_jobs().await?;

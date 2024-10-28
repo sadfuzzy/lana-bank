@@ -24,4 +24,6 @@ pub enum ApplicationError {
     PriceError(#[from] crate::price::error::PriceError),
     #[error("ApplicationError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("ApplicationError - WithdrawError: {0}")]
+    WithdrawError(#[from] crate::withdraw::error::WithdrawError),
 }

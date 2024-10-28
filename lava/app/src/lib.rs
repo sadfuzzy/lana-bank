@@ -24,8 +24,19 @@ pub mod terms_template;
 pub mod user;
 pub mod withdraw;
 
+pub mod outbox {
+    pub type Outbox = outbox::Outbox<lava_events::LavaEvent>;
+}
+
 pub mod job {
     pub use job::*;
+}
+
+pub mod governance {
+    use crate::authorization::Authorization;
+    use lava_events::LavaEvent;
+
+    pub type Governance = governance::Governance<Authorization, LavaEvent>;
 }
 
 pub mod audit {

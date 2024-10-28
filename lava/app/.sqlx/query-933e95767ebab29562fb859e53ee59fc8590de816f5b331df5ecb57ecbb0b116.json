@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT job_type, id FROM jobs WHERE (COALESCE((job_type, id) > ($3, $2), $2 IS NULL)) ORDER BY job_type, id LIMIT $1) SELECT i.id AS \"entity_id: JobId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN job_events e ON i.id = e.id ORDER BY i.job_type, i.id, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM withdraws WHERE approval_process_id = $1) SELECT i.id AS \"entity_id: WithdrawId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN withdraw_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: JobId",
-        "type_info": "Varchar"
+        "name": "entity_id: WithdrawId",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
@@ -26,9 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Int8",
-        "Text",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -38,5 +36,5 @@
       false
     ]
   },
-  "hash": "6e6be1bb426412cb30f43f6d83252a5849069614a356a87533ab44490b17fa6c"
+  "hash": "933e95767ebab29562fb859e53ee59fc8590de816f5b331df5ecb57ecbb0b116"
 }

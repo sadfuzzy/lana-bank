@@ -103,9 +103,10 @@ teardown_file() {
   )
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-  [[ "$status" == "INITIATED" ]] || exit 1
+  [[ "$status" == "PENDING_APPROVAL" ]] || exit 1
   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
@@ -157,7 +158,7 @@ teardown_file() {
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-  [[ "$status" == "INITIATED" ]] || exit 1
+  [[ "$status" == "PENDING_APPROVAL" ]] || exit 1
   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')

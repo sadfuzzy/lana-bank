@@ -12,8 +12,8 @@ pub enum LavaObject {
 }
 
 impl From<AppObject> for LavaObject {
-    fn from(action: AppObject) -> Self {
-        LavaObject::App(action)
+    fn from(object: AppObject) -> Self {
+        LavaObject::App(object)
     }
 }
 impl From<GovernanceObject> for LavaObject {

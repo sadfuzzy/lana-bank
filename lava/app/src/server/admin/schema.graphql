@@ -1141,9 +1141,10 @@ type WithdrawalInitiatePayload {
 }
 
 enum WithdrawalStatus {
-	INITIATED
-	CANCELLED
+	PENDING_APPROVAL
+	PENDING_CONFIRMATION
 	CONFIRMED
+	CANCELLED
 }
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

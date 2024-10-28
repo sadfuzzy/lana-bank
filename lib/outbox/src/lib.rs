@@ -5,7 +5,7 @@ mod event;
 mod listener;
 mod repo;
 
-use futures::{Stream, StreamExt};
+use futures::{stream::BoxStream, StreamExt};
 use serde::{de::DeserializeOwned, Serialize};
 use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
 use tokio::sync::broadcast;
@@ -83,22 +83,23 @@ where
         db: &mut Transaction<'_, Postgres>,
         events: impl IntoIterator<Item = impl Into<P>>,
     ) -> Result<(), sqlx::Error> {
-        let events = self
+        let _ = self
             .repo
             .persist_events(db, events.into_iter().map(Into::into))
             .await?;
 
-        let mut new_highest_sequence = EventSequence::BEGIN;
-        for event in events {
-            new_highest_sequence = event.sequence;
-            let _ = self
-                .event_sender
-                .send(event.into())
-                .map_err(|_| ())
-                .expect("event receiver dropped");
-        }
-        self.highest_known_sequence
-            .fetch_max(u64::from(new_highest_sequence), Ordering::AcqRel);
+        // Optimization but needs AtomicOperation
+        //         let mut new_highest_sequence = EventSequence::BEGIN;
+        //         for event in events {
+        //             new_highest_sequence = event.sequence;
+        //             let _ = self
+        //                 .event_sender
+        //                 .send(event.into())
+        //                 .map_err(|_| ())
+        //                 .expect("event receiver dropped");
+        //         }
+        //         self.highest_known_sequence
+        //             .fetch_max(u64::from(new_highest_sequence), Ordering::AcqRel);
         Ok(())
     }
 
@@ -121,13 +122,13 @@ where
     pub async fn listen_persisted(
         &self,
         start_after: Option<EventSequence>,
-    ) -> Result<impl Stream<Item = Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
+    ) -> Result<BoxStream<'_, Arc<PersistentOutboxEvent<P>>>, sqlx::Error> {
         let listener = self.listen_all(start_after).await?;
-        Ok(listener.filter_map(|event| async move {
+        Ok(Box::pin(listener.filter_map(|event| async move {
             match event {
                 OutboxEvent::Persistent(persistent_event) => Some(persistent_event),
             }
-        }))
+        })))
     }
 
     async fn spawn_pg_listener(

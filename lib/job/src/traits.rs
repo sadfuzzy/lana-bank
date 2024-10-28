@@ -46,6 +46,14 @@ pub struct RetrySettings {
 }
 
 impl RetrySettings {
+    pub fn repeat_indefinitely() -> Self {
+        Self {
+            n_attempts: None,
+            n_warn_attempts: None,
+            ..Default::default()
+        }
+    }
+
     pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
         use rand::Rng;
         let base_backoff_ms = self.min_backoff.as_millis() * 2u128.pow(attempt - 1);
