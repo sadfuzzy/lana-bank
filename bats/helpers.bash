@@ -21,9 +21,9 @@ reset_pg() {
 }
 
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/lava-app"
+  server_location="${REPO_ROOT}/target/debug/lava-cli"
   if [[ ! -z ${CARGO_TARGET_DIR} ]]; then
-    server_location="${CARGO_TARGET_DIR}/debug/lava-app"
+    server_location="${CARGO_TARGET_DIR}/debug/lava-cli"
   fi
 
   bash -c ${server_location} $@
@@ -33,12 +33,12 @@ start_server() {
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
     server_process_and_status=$(
-      ps a | grep 'target/debug/lava-app' | grep -v grep
+      ps a | grep 'target/debug/lava-cli' | grep -v grep
       echo ${PIPESTATUS[2]}
     )
   elif [ -n "$ZSH_VERSION" ]; then
     server_process_and_status=$(
-      ps a | grep 'target/debug/lava-app' | grep -v grep
+      ps a | grep 'target/debug/lava-cli' | grep -v grep
       echo ${pipestatus[3]}
     )
   else

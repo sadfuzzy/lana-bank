@@ -56,6 +56,8 @@ pub struct LavaApp {
 
 impl LavaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
+        sqlx::migrate!().run(&pool).await?;
+
         let mut jobs = Jobs::new(&pool, config.job_execution);
         let export = Export::new(config.ledger.cala_url.clone(), &jobs);
         let audit = Audit::new(&pool);

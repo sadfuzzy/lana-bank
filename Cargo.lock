@@ -2098,6 +2098,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "lava-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "lava-app",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sqlx",
+ "tokio",
+ "tracing-utils",
+]
+
+[[package]]
 name = "lava-events"
 version = "0.1.0"
 dependencies = [

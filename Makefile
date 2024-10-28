@@ -46,7 +46,7 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-app -- --config ./bats/lava.yml
+	cargo run --bin lava-cli -- --config ./bats/lava.yml
 
 check-code: public-sdl admin-sdl
 	git diff --exit-code lava/app/src/server/public/schema.graphql
@@ -84,7 +84,7 @@ test-in-ci: start-deps setup-db run-tf
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lava-app --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --locked --bin lava-cli --target x86_64-unknown-linux-musl
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh

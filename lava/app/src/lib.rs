@@ -4,7 +4,6 @@
 pub mod app;
 pub mod applicant;
 pub mod authorization;
-pub mod cli;
 pub mod credit_facility;
 pub mod customer;
 pub mod data_export;

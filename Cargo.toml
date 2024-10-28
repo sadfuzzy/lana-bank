@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+  "lava/cli",
   "lava/app",
   "lava/rbac-types",
   "lava/events",
