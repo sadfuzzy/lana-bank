@@ -7,7 +7,7 @@ interface StatusBadgeProps extends BadgeProps {
 
 const getVariant = (status: WithdrawalStatus) => {
   switch (status) {
-    case WithdrawalStatus.Initiated:
+    case WithdrawalStatus.PendingApproval:
       return "default"
     case WithdrawalStatus.Confirmed:
       return "success"

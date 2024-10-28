@@ -114,7 +114,8 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                   Show Customer
                 </Button>
                 <div>
-                  {withdrawalDetails.withdrawal.status === WithdrawalStatus.Initiated && (
+                  {withdrawalDetails.withdrawal.status ===
+                    WithdrawalStatus.PendingApproval && (
                     <Button
                       onClick={() =>
                         withdrawalDetails.withdrawal &&
@@ -125,7 +126,8 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                       Confirm
                     </Button>
                   )}
-                  {withdrawalDetails.withdrawal.status === WithdrawalStatus.Initiated && (
+                  {withdrawalDetails.withdrawal.status ===
+                    WithdrawalStatus.PendingApproval && (
                     <Button
                       onClick={() =>
                         withdrawalDetails.withdrawal &&
