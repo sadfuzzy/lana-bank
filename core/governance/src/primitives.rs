@@ -74,6 +74,9 @@ pub enum CommitteeAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum PolicyAction {
     Create,
+    Read,
+    List,
+    UpdatePolicyRules,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]

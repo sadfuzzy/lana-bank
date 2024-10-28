@@ -113,6 +113,80 @@ where
         Ok(policy)
     }
 
+    #[instrument(name = "governance.find_policy", skip(self), err)]
+    pub async fn find_policy(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<PolicyId> + std::fmt::Debug,
+    ) -> Result<Option<Policy>, GovernanceError> {
+        let policy_id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::Policy(PolicyAllOrOne::ById(policy_id)),
+                GovernanceAction::Policy(PolicyAction::Read),
+            )
+            .await?;
+
+        match self.policy_repo.find_by_id(policy_id).await {
+            Ok(policy) => Ok(Some(policy)),
+            Err(PolicyError::NotFound) => Ok(None),
+            Err(e) => Err(GovernanceError::PolicyError(e)),
+        }
+    }
+
+    #[instrument(name = "governance.list_policies", skip(self), err)]
+    pub async fn list_policies_by_created_at(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<policy_cursor::PolicyByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Policy, policy_cursor::PolicyByCreatedAtCursor>,
+        GovernanceError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::Policy(PolicyAllOrOne::All),
+                GovernanceAction::Policy(PolicyAction::List),
+            )
+            .await?;
+        let policies = self.policy_repo.list_by_created_at(query).await?;
+
+        Ok(policies)
+    }
+
+    pub async fn assign_committee_to_policy(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        policy_id: impl Into<PolicyId>,
+        committee_id: impl Into<CommitteeId>,
+        threshold: usize,
+    ) -> Result<Policy, GovernanceError> {
+        let policy_id = policy_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                GovernanceObject::Policy(PolicyAllOrOne::ById(policy_id)),
+                GovernanceAction::Policy(PolicyAction::UpdatePolicyRules),
+            )
+            .await?;
+
+        let committee_id = committee_id.into();
+        let _ = self.committee_repo.find_by_id(committee_id).await?;
+        let mut policy = self.policy_repo.find_by_id(policy_id).await?;
+        policy.assign_committee(committee_id, threshold, audit_info);
+
+        let mut db_tx = self.pool.begin().await?;
+        self.policy_repo
+            .update_in_tx(&mut db_tx, &mut policy)
+            .await?;
+        db_tx.commit().await?;
+
+        Ok(policy)
+    }
+
     #[instrument(name = "governance.start_process", skip(self), err)]
     pub async fn start_process(
         &self,
@@ -154,14 +228,12 @@ where
     {
         let audit_info = self
             .authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = if let Some(committee_id) = process.committee_id {
@@ -231,14 +303,12 @@ where
     ) -> Result<Committee, GovernanceError> {
         let audit_info = self
             .authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::All),
                 GovernanceAction::Committee(CommitteeAction::Create),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let new_committee = NewCommittee::builder()
             .id(CommitteeId::new())
@@ -299,14 +369,12 @@ where
         let committee_id = committee_id.into();
         let audit_info = self
             .authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
                 GovernanceAction::Committee(CommitteeAction::AddUser),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
         committee.add_user(user_id.into(), audit_info)?;
@@ -325,14 +393,12 @@ where
         let committee_id = committee_id.into();
         let audit_info = self
             .authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
                 GovernanceAction::Committee(CommitteeAction::RemoveUser),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
         committee.remove_user(user_id.into(), audit_info);
@@ -349,14 +415,12 @@ where
     ) -> Result<Option<Committee>, GovernanceError> {
         let committee_id = committee_id.into();
         self.authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
                 GovernanceAction::Committee(CommitteeAction::Read),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         match self.committee_repo.find_by_id(committee_id).await {
             Ok(committee) => Ok(Some(committee)),
@@ -380,14 +444,12 @@ where
         GovernanceError,
     > {
         self.authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::Committee(CommitteeAllOrOne::All),
                 GovernanceAction::Committee(CommitteeAction::List),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let committees = self.committee_repo.list_by_created_at(query).await?;
         Ok(committees)
@@ -438,14 +500,12 @@ where
         GovernanceError,
     > {
         self.authz
-            .evaluate_permission(
+            .enforce_permission(
                 sub,
                 GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
                 GovernanceAction::ApprovalProcess(ApprovalProcessAction::List),
-                true,
             )
-            .await?
-            .expect("audit info missing");
+            .await?;
 
         let approval_processes = self.process_repo.list_by_created_at(query).await?;
         Ok(approval_processes)

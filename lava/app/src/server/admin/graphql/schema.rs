@@ -9,6 +9,7 @@ use super::{
     customer::*,
     deposit::*,
     loan::*,
+    policy::*,
     price::*,
     report::*,
     shareholder_equity::*,
@@ -661,6 +662,55 @@ impl Query {
             .await?;
         Ok(document.map(Document::from))
     }
+
+    async fn policy(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Policy>> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let policy = app.governance().find_policy(sub, id).await?;
+        Ok(policy.map(Policy::from))
+    }
+
+    async fn policies(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<PolicyByCreatedAtCursor, Policy, EmptyFields, EmptyFields>>
+    {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let res = app
+                    .governance()
+                    .list_policies_by_created_at(
+                        sub,
+                        es_entity::PaginatedQueryArgs {
+                            first,
+                            after: after
+                                .map(governance::policy_cursor::PolicyByCreatedAtCursor::from),
+                        },
+                    )
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|policy| {
+                        let cursor = PolicyByCreatedAtCursor::from(&policy);
+                        Edge::new(cursor, Policy::from(policy))
+                    }));
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }
 }
 
 pub struct Mutation;
@@ -1219,5 +1269,21 @@ impl Mutation {
             .await?;
 
         Ok(CommitteeRemoveUserPayload::from(committee))
+    }
+
+    async fn policy_assign_committee(
+        &self,
+        ctx: &Context<'_>,
+        input: PolicyAssignCommitteeInput,
+    ) -> async_graphql::Result<PolicyAssignCommitteePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let policy = app
+            .governance()
+            .assign_committee_to_policy(sub, input.policy_id, input.committee_id, input.threshold)
+            .await?;
+
+        Ok(PolicyAssignCommitteePayload::from(policy))
     }
 }

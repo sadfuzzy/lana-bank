@@ -18,6 +18,11 @@ pub enum PolicyEvent {
         committee_id: Option<CommitteeId>,
         audit_info: AuditInfo,
     },
+    ApprovalRulesUpdated {
+        committee_id: Option<CommitteeId>,
+        rules: ApprovalRules,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -32,6 +37,12 @@ pub struct Policy {
 }
 
 impl Policy {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("No events for policy")
+    }
+
     pub(crate) fn spawn_process(
         &self,
         id: ApprovalProcessId,
@@ -45,6 +56,21 @@ impl Policy {
             .audit_info(audit_info)
             .build()
             .expect("failed to build new approval process")
+    }
+
+    pub fn assign_committee(
+        &mut self,
+        committee_id: CommitteeId,
+        threshold: usize,
+        audit_info: AuditInfo,
+    ) {
+        self.committee_id = Some(committee_id);
+        self.rules = ApprovalRules::CommitteeThreshold { threshold };
+        self.events.push(PolicyEvent::ApprovalRulesUpdated {
+            committee_id: self.committee_id,
+            rules: self.rules.clone(),
+            audit_info,
+        });
     }
 }
 
@@ -64,6 +90,11 @@ impl TryFromEvents<PolicyEvent> for Policy {
                         .process_type(process_type.clone())
                         .rules(rules.clone())
                 }
+                PolicyEvent::ApprovalRulesUpdated {
+                    committee_id,
+                    rules,
+                    ..
+                } => builder = builder.committee_id(*committee_id).rules(rules.clone()),
             }
         }
         builder.events(events).build()
@@ -100,5 +131,46 @@ impl IntoEvents<PolicyEvent> for NewPolicy {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn init_events() -> EntityEvents<PolicyEvent> {
+        EntityEvents::init(
+            PolicyId::new(),
+            [PolicyEvent::Initialized {
+                id: PolicyId::new(),
+                process_type: ApprovalProcessType::new("test"),
+                rules: ApprovalRules::Automatic,
+                committee_id: None,
+                audit_info: dummy_audit_info(),
+            }],
+        )
+    }
+
+    #[test]
+    fn update_policy() {
+        let mut policy = Policy::try_from_events(init_events()).unwrap();
+        let committee_id = CommitteeId::new();
+        let threshold = 1;
+        let audit_info = dummy_audit_info();
+        policy.assign_committee(committee_id, threshold, audit_info.clone());
+        assert_eq!(policy.committee_id, Some(committee_id));
+        assert_eq!(
+            policy.rules,
+            ApprovalRules::CommitteeThreshold { threshold }
+        );
     }
 }

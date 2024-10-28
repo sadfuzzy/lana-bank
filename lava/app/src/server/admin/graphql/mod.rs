@@ -8,6 +8,7 @@ mod customer;
 mod deposit;
 pub(in crate::server) mod loader;
 mod loan;
+mod policy;
 mod price;
 mod report;
 mod schema;

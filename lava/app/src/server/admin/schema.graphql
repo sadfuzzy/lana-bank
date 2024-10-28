@@ -889,6 +889,7 @@ type Mutation {
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
+	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 }
 
 type Outstanding {
@@ -919,6 +920,52 @@ type PageInfo {
 
 enum Period {
 	MONTHS
+}
+
+type Policy {
+	id: ID!
+	policyId: UUID!
+	processType: String!
+	committeeId: UUID
+}
+
+input PolicyAssignCommitteeInput {
+	policyId: UUID!
+	committeeId: UUID!
+	threshold: Int!
+}
+
+type PolicyAssignCommitteePayload {
+	policy: Policy!
+}
+
+type PolicyConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [PolicyEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Policy!]!
+}
+
+"""
+An edge in a connection.
+"""
+type PolicyEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Policy!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type ProfitAndLossStatement {
@@ -961,6 +1008,8 @@ type Query {
 	report(id: UUID!): Report
 	termsTemplate(id: UUID!): TermsTemplate
 	document(id: UUID!): Document
+	policy(id: UUID!): Policy
+	policies(first: Int!, after: String): PolicyConnection!
 }
 
 type RealtimePrice {

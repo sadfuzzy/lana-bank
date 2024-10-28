@@ -895,6 +895,7 @@ export type Mutation = {
   loanCollateralUpdate: LoanCollateralUpdatePayload;
   loanCreate: LoanCreatePayload;
   loanPartialPayment: LoanPartialPaymentPayload;
+  policyAssignCommittee: PolicyAssignCommitteePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
@@ -1020,6 +1021,11 @@ export type MutationLoanPartialPaymentArgs = {
 };
 
 
+export type MutationPolicyAssignCommitteeArgs = {
+  input: PolicyAssignCommitteeInput;
+};
+
+
 export type MutationReportDownloadLinksGenerateArgs = {
   input: ReportDownloadLinksGenerateInput;
 };
@@ -1096,6 +1102,44 @@ export enum Period {
   Months = 'MONTHS'
 }
 
+export type Policy = {
+  __typename?: 'Policy';
+  committeeId?: Maybe<Scalars['UUID']['output']>;
+  id: Scalars['ID']['output'];
+  policyId: Scalars['UUID']['output'];
+  processType: Scalars['String']['output'];
+};
+
+export type PolicyAssignCommitteeInput = {
+  committeeId: Scalars['UUID']['input'];
+  policyId: Scalars['UUID']['input'];
+  threshold: Scalars['Int']['input'];
+};
+
+export type PolicyAssignCommitteePayload = {
+  __typename?: 'PolicyAssignCommitteePayload';
+  policy: Policy;
+};
+
+export type PolicyConnection = {
+  __typename?: 'PolicyConnection';
+  /** A list of edges. */
+  edges: Array<PolicyEdge>;
+  /** A list of nodes. */
+  nodes: Array<Policy>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type PolicyEdge = {
+  __typename?: 'PolicyEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Policy;
+};
+
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   categories: Array<StatementCategory>;
@@ -1127,6 +1171,8 @@ export type Query = {
   me: User;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
+  policies: PolicyConnection;
+  policy?: Maybe<Policy>;
   profitAndLossStatement?: Maybe<ProfitAndLossStatement>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
@@ -1245,6 +1291,17 @@ export type QueryLoansArgs = {
 export type QueryOffBalanceSheetTrialBalanceArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
+};
+
+
+export type QueryPoliciesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryPolicyArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
