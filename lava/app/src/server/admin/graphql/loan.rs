@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, *};
+use async_graphql::*;
 
 use crate::server::shared_graphql::{
     loan::*,
@@ -57,45 +57,7 @@ impl From<crate::loan::Loan> for LoanPartialPaymentPayload {
     }
 }
 
-pub use crate::loan::LoanByCreatedAtCursor;
-impl CursorType for LoanByCreatedAtCursor {
-    type Error = String;
-
-    fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
-        let json = serde_json::to_string(&self).expect("could not serialize token");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
-
 pub use crate::loan::LoanByCollateralizationRatioCursor;
-impl CursorType for LoanByCollateralizationRatioCursor {
-    type Error = String;
-
-    fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
-        let json = serde_json::to_string(&self).expect("could not serialize token");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
 
 #[derive(InputObject)]
 pub struct LoanCollateralUpdateInput {

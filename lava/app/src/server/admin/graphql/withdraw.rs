@@ -1,10 +1,11 @@
-use async_graphql::{types::connection::*, *};
-use serde::{Deserialize, Serialize};
+use async_graphql::*;
 
 use crate::{
-    primitives::{UsdCents, WithdrawId},
+    primitives::UsdCents,
     server::shared_graphql::{primitives::UUID, withdraw::Withdrawal},
 };
+
+pub use crate::withdraw::WithdrawByIdCursor;
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
@@ -59,41 +60,5 @@ impl From<crate::withdraw::Withdraw> for WithdrawalCancelPayload {
         Self {
             withdrawal: Withdrawal::from(withdrawal),
         }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub(super) struct WithdrawByIdCursor {
-    pub id: WithdrawId,
-}
-
-impl CursorType for WithdrawByIdCursor {
-    type Error = String;
-
-    fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
-        let json = serde_json::to_string(&self).expect("could not serialize token");
-        general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
-    }
-
-    fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
-        let bytes = general_purpose::STANDARD_NO_PAD
-            .decode(s.as_bytes())
-            .map_err(|e| e.to_string())?;
-        let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-        serde_json::from_str(&json).map_err(|e| e.to_string())
-    }
-}
-
-impl From<WithdrawId> for WithdrawByIdCursor {
-    fn from(id: WithdrawId) -> Self {
-        Self { id }
-    }
-}
-
-impl From<WithdrawByIdCursor> for crate::withdraw::WithdrawByIdCursor {
-    fn from(cursor: WithdrawByIdCursor) -> Self {
-        Self { id: cursor.id }
     }
 }

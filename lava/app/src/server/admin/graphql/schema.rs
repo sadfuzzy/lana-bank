@@ -205,7 +205,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|user| {
-                        let cursor = CustomerByEmailCursor::from((user.id, user.email.as_ref()));
+                        let cursor = CustomerByEmailCursor::from(&user);
                         Edge::new(cursor, Customer::from(user))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
@@ -259,10 +259,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|committee| {
-                        let cursor = CommitteeByCreatedAtCursor::from((
-                            committee.id,
-                            committee.created_at(),
-                        ));
+                        let cursor = CommitteeByCreatedAtCursor::from(&committee);
                         Edge::new(cursor, Committee::from(committee))
                     }));
 
@@ -512,7 +509,7 @@ impl Query {
             .ledger()
             .account_set_and_sub_accounts_with_balance(
                 sub,
-                account_set_id.into(),
+                uuid::Uuid::from(&account_set_id).into(),
                 0,
                 None,
                 from.clone().into_inner(),
@@ -606,7 +603,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|withdraw| {
-                        let cursor = WithdrawByIdCursor::from(withdraw.id);
+                        let cursor = WithdrawByIdCursor::from(&withdraw);
                         Edge::new(cursor, Withdrawal::from(withdraw))
                     }));
                 Ok::<_, async_graphql::Error>(connection)

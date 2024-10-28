@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
+graphql = ["es-entity-macros/graphql", "dep:async-graphql", "dep:base64"]
 
 [dependencies]
 es-entity-macros = { path = "../es-entity-macros" }
@@ -17,6 +18,8 @@ serde =  { workspace = true }
 serde_json =  { workspace = true }
 derive_builder = { workspace = true }
 uuid = { workspace = true }
+async-graphql = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

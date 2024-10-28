@@ -1131,6 +1131,8 @@ name = "es-entity"
 version = "0.1.143-dev"
 dependencies = [
  "anyhow",
+ "async-graphql",
+ "base64 0.22.1",
  "chrono",
  "derive_builder",
  "es-entity-macros",

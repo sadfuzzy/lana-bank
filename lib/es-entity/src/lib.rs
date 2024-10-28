@@ -25,6 +25,28 @@ macro_rules! es_query (
     })
 );
 
+#[cfg(feature = "graphql")]
+pub mod graphql {
+    pub use async_graphql;
+    pub use base64;
+
+    #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+    #[serde(transparent)]
+    pub struct UUID(uuid::Uuid);
+    async_graphql::scalar!(UUID);
+    impl<T: Into<uuid::Uuid>> From<T> for UUID {
+        fn from(id: T) -> Self {
+            let uuid = id.into();
+            Self(uuid)
+        }
+    }
+    impl From<&UUID> for uuid::Uuid {
+        fn from(id: &UUID) -> Self {
+            id.0
+        }
+    }
+}
+
 #[macro_export]
 macro_rules! entity_id {
     ($name:ident) => {
@@ -67,6 +89,20 @@ macro_rules! entity_id {
         impl From<&$name> for uuid::Uuid {
             fn from(id: &$name) -> Self {
                 id.0
+            }
+        }
+
+        #[cfg(feature = "graphql")]
+        impl From<$crate::graphql::UUID> for $name {
+            fn from(id: $crate::graphql::UUID) -> Self {
+                $name(uuid::Uuid::from(&id))
+            }
+        }
+
+        #[cfg(feature = "graphql")]
+        impl From<&$crate::graphql::UUID> for $name {
+            fn from(id: &$crate::graphql::UUID) -> Self {
+                $name(uuid::Uuid::from(id))
             }
         }
 

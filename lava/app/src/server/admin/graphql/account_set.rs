@@ -151,7 +151,7 @@ impl AccountSetAndSubAccounts {
                 let res = app
                     .ledger()
                     .paginated_account_set_and_sub_accounts_with_balance(
-                        self.id.clone().into(),
+                        uuid::Uuid::from(&self.id).into(),
                         self.from,
                         self.until,
                         es_entity::PaginatedQueryArgs {

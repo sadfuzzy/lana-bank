@@ -84,6 +84,14 @@ impl<'a> ToTokens for EsRepo<'a> {
         let find_all_fn = &self.find_all_fn;
         let post_persist_hook = &self.post_persist_hook;
         let cursors = self.list_by_fns.iter().map(|l| l.cursor());
+        #[cfg(feature = "graphql")]
+        let gql_cursors: Vec<_> = self
+            .list_by_fns
+            .iter()
+            .map(|l| l.cursor().gql_cursor())
+            .collect();
+        #[cfg(not(feature = "graphql"))]
+        let gql_cursors: Vec<TokenStream> = Vec::new();
         let list_by_fns = &self.list_by_fns;
         let list_for_fns = &self.list_for_fns;
 
@@ -97,6 +105,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 use super::*;
 
                 #(#cursors)*
+                #(#gql_cursors)*
             }
 
             mod repo_types {

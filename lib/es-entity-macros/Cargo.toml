@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
+graphql = []
 
 [lib]
 proc-macro = true
