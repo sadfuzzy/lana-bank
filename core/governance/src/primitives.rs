@@ -1,6 +1,22 @@
-use std::{fmt::Display, str::FromStr};
+use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use shared_primitives::{AllOrOne, ApprovalProcessId, CommitteeId, PolicyId, UserId};
+
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
+#[sqlx(transparent)]
+#[serde(transparent)]
+pub struct ApprovalProcessType(Cow<'static, str>);
+impl ApprovalProcessType {
+    pub const fn new(job_type: &'static str) -> Self {
+        ApprovalProcessType(Cow::Borrowed(job_type))
+    }
+
+    #[cfg(test)]
+    pub(crate) fn from_owned(job_type: String) -> Self {
+        ApprovalProcessType(Cow::Owned(job_type))
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

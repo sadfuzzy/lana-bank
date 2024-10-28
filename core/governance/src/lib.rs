@@ -279,6 +279,7 @@ where
                     GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
+                        process_type: process.process_type.clone(),
                     },
                 )
                 .await?;

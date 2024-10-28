@@ -2,9 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use shared_primitives::{ApprovalProcessId, CommitteeId, PolicyId};
-
-use crate::policy::ApprovalProcessType;
+use crate::primitives::*;
 
 use super::{entity::*, error::*};
 

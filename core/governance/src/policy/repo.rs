@@ -2,7 +2,7 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use shared_primitives::{CommitteeId, PolicyId};
+use crate::primitives::*;
 
 use super::{entity::*, error::*};
 

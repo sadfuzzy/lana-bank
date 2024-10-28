@@ -1,29 +1,11 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use std::borrow::Cow;
-
 use audit::AuditInfo;
 use es_entity::*;
-use shared_primitives::{ApprovalProcessId, CommitteeId, PolicyId};
 
 use super::rules::ApprovalRules;
-use crate::approval_process::NewApprovalProcess;
-
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(transparent)]
-#[serde(transparent)]
-pub struct ApprovalProcessType(Cow<'static, str>);
-impl ApprovalProcessType {
-    pub const fn new(job_type: &'static str) -> Self {
-        ApprovalProcessType(Cow::Borrowed(job_type))
-    }
-
-    #[cfg(test)]
-    pub(crate) fn from_owned(job_type: String) -> Self {
-        ApprovalProcessType(Cow::Owned(job_type))
-    }
-}
+use crate::{approval_process::NewApprovalProcess, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

@@ -85,7 +85,8 @@ impl JobRunner for WithdrawApprovalJobRunner {
                 Some(LavaEvent::Governance(GovernanceEvent::ApprovalProcessConcluded {
                     id,
                     approved,
-                })) => {
+                    ref process_type,
+                })) if process_type == &super::APPROVE_WITHDRAW_PROCESS => {
                     let mut withdraw = self.repo.find_by_approval_process_id(id).await?;
                     let audit_info = self
                         .audit
