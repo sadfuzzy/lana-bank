@@ -127,7 +127,11 @@ impl Deposits {
 
         Ok(self
             .repo
-            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .list_for_customer_id_by_created_at(
+                customer_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities)
     }
@@ -140,6 +144,8 @@ impl Deposits {
         self.authz
             .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;
-        self.repo.list_by_created_at(query).await
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 }

@@ -256,7 +256,11 @@ impl Withdraws {
 
         Ok(self
             .repo
-            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .list_for_customer_id_by_created_at(
+                customer_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities)
     }
@@ -264,11 +268,14 @@ impl Withdraws {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<WithdrawByIdCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Withdraw, WithdrawByIdCursor>, WithdrawError> {
+        query: es_entity::PaginatedQueryArgs<WithdrawByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Withdraw, WithdrawByCreatedAtCursor>, WithdrawError>
+    {
         self.authz
             .enforce_permission(sub, Object::Withdraw, WithdrawAction::List)
             .await?;
-        self.repo.list_by_id(query).await
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 }

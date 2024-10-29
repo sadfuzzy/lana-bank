@@ -1,0 +1,42 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT collateralization_ratio, id FROM loans WHERE ((collateralization_ratio IS NOT DISTINCT FROM $3) AND COALESCE(id < $2, true) OR COALESCE(collateralization_ratio < $3, collateralization_ratio IS NOT NULL)) ORDER BY collateralization_ratio DESC NULLS LAST, id DESC LIMIT $1) SELECT i.id AS \"entity_id: LoanId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN loan_events e ON i.id = e.id ORDER BY i.collateralization_ratio desc nulls last, i.id desc, i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: LoanId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid",
+        "Numeric"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "0092a8a2e3bfef3f5631164e0ab03bc535e9088db85291042c9ee127fd448562"
+}

@@ -546,7 +546,11 @@ impl CreditFacilities {
 
         Ok(self
             .credit_facility_repo
-            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .list_for_customer_id_by_created_at(
+                customer_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities)
     }
@@ -563,7 +567,9 @@ impl CreditFacilities {
         self.authz
             .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
             .await?;
-        self.credit_facility_repo.list_by_created_at(query).await
+        self.credit_facility_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 
     pub async fn user_can_complete(
@@ -640,7 +646,11 @@ impl CreditFacilities {
 
         let disbursements = self
             .disbursement_repo
-            .list_for_credit_facility_id_by_idx(credit_facility_id, Default::default())
+            .list_for_credit_facility_id_by_created_at(
+                credit_facility_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities;
         Ok(disbursements)

@@ -393,7 +393,11 @@ impl Loans {
 
         Ok(self
             .loan_repo
-            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .list_for_customer_id_by_created_at(
+                customer_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities)
     }
@@ -407,7 +411,9 @@ impl Loans {
         self.authz
             .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
-        self.loan_repo.list_by_created_at(query).await
+        self.loan_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 
     #[instrument(name = "lava.loan.list_by_collateralization_ratio", skip(self), err)]
@@ -420,6 +426,8 @@ impl Loans {
         self.authz
             .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
             .await?;
-        self.loan_repo.list_by_collateralization_ratio(query).await
+        self.loan_repo
+            .list_by_collateralization_ratio(query, es_entity::ListDirection::Ascending)
+            .await
     }
 }

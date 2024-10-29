@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::shared_graphql::{primitives::UUID, withdraw::Withdrawal};
 use lava_app::primitives::UsdCents;
 
-pub use lava_app::withdraw::WithdrawByIdCursor;
+pub use lava_app::withdraw::WithdrawByCreatedAtCursor;
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {

@@ -77,12 +77,13 @@ impl JobRunner for LoanProcessingJobRunner {
         while has_next_page {
             let mut loans = self
                 .repo
-                .list_by_collateralization_ratio(es_entity::PaginatedQueryArgs::<
-                    LoanByCollateralizationRatioCursor,
-                > {
-                    first: 10,
-                    after,
-                })
+                .list_by_collateralization_ratio(
+                    es_entity::PaginatedQueryArgs::<LoanByCollateralizationRatioCursor> {
+                        first: 10,
+                        after,
+                    },
+                    es_entity::ListDirection::Ascending,
+                )
                 .await?;
             (after, has_next_page) = (loans.end_cursor, loans.has_next_page);
             let mut db = current_job.pool().begin().await?;

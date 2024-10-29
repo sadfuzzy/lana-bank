@@ -204,7 +204,9 @@ impl Customers {
                 CustomerAction::List,
             )
             .await?;
-        self.repo.list_by_email(query).await
+        self.repo
+            .list_by_email(query, es_entity::ListDirection::Ascending)
+            .await
     }
 
     pub async fn start_kyc(

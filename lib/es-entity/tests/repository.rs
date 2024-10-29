@@ -101,7 +101,9 @@ async fn list_by_created_at() -> anyhow::Result<()> {
 
     let repo = Users { pool: pool.clone() };
 
-    let res = repo.list_by_created_at(Default::default()).await;
+    let res = repo
+        .list_by_created_at(Default::default(), es_entity::ListDirection::Descending)
+        .await;
 
     assert!(res.is_ok());
 

@@ -144,7 +144,10 @@ where
                 GovernanceAction::POLICY_LIST,
             )
             .await?;
-        let policies = self.policy_repo.list_by_created_at(query).await?;
+        let policies = self
+            .policy_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?;
 
         Ok(policies)
     }
@@ -439,7 +442,10 @@ where
             )
             .await?;
 
-        let committees = self.committee_repo.list_by_created_at(query).await?;
+        let committees = self
+            .committee_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?;
         Ok(committees)
     }
 
@@ -495,7 +501,10 @@ where
             )
             .await?;
 
-        let approval_processes = self.process_repo.list_by_created_at(query).await?;
+        let approval_processes = self
+            .process_repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?;
         Ok(approval_processes)
     }
 

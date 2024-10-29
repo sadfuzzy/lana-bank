@@ -50,8 +50,6 @@ impl<'a> ToTokens for ListForFn<'a> {
 
         let destructure_tokens = self.cursor().destructure_tokens();
         let select_columns = cursor.select_columns();
-        let order_by = cursor.order_by();
-        let condition = cursor.condition(1);
         let arg_tokens = cursor.query_arg_tokens();
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
@@ -65,19 +63,33 @@ impl<'a> ToTokens for ListForFn<'a> {
                 Span::call_site(),
             );
 
-            let query = format!(
+            let asc_query = format!(
                 r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
                 for_column_name,
                 select_columns,
                 self.table_name,
                 for_column_name,
-                condition,
+                cursor.condition(1, true),
                 if delete == DeleteOption::No {
                     self.delete.not_deleted_condition()
                 } else {
                     ""
                 },
-                order_by,
+                cursor.order_by(true)
+            );
+            let desc_query = format!(
+                r#"SELECT {}, {} FROM {} WHERE (({} = $1) AND ({})){} ORDER BY {} LIMIT $2"#,
+                for_column_name,
+                select_columns,
+                self.table_name,
+                for_column_name,
+                cursor.condition(1, false),
+                if delete == DeleteOption::No {
+                    self.delete.not_deleted_condition()
+                } else {
+                    ""
+                },
+                cursor.order_by(false)
             );
 
             tokens.append_all(quote! {
@@ -85,17 +97,32 @@ impl<'a> ToTokens for ListForFn<'a> {
                     &self,
                     #for_column_name: #for_column_type,
                     cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+                    direction: es_entity::ListDirection,
                 ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
                     #destructure_tokens
 
-                    let (entities, has_next_page) = es_entity::es_query!(
-                        self.pool(),
-                        #query,
-                        #for_column_name as #for_column_type,
-                        #arg_tokens
-                    )
-                        .fetch_n(first)
-                        .await?;
+                    let (entities, has_next_page) = match direction {
+                        es_entity::ListDirection::Ascending => {
+                            es_entity::es_query!(
+                                self.pool(),
+                                #asc_query,
+                                #for_column_name as #for_column_type,
+                                #arg_tokens
+                            )
+                                .fetch_n(first)
+                                .await?
+                        },
+                        es_entity::ListDirection::Descending => {
+                            es_entity::es_query!(
+                                self.pool(),
+                                #desc_query,
+                                #for_column_name as #for_column_type,
+                                #arg_tokens
+                            )
+                                .fetch_n(first)
+                                .await?
+                        }
+                    };
 
                     let end_cursor = entities.last().map(cursor::#cursor_ident::from);
 
@@ -149,6 +176,7 @@ mod tests {
                 &self,
                 customer_id: Uuid,
                 cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+                direction: es_entity::ListDirection,
             ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
@@ -156,15 +184,31 @@ mod tests {
                 } else {
                     None
                 };
-                let (entities, has_next_page) = es_entity::es_query!(
-                    self.pool(),
-                    "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id LIMIT $2",
-                    customer_id as Uuid,
-                    (first + 1) as i64,
-                    id as Option<EntityId>,
-                )
-                    .fetch_n(first)
-                    .await?;
+                let (entities, has_next_page) = match direction {
+                    es_entity::ListDirection::Ascending => {
+                        es_entity::es_query!(
+                            self.pool(),
+                            "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id > $3, true))) ORDER BY id ASC LIMIT $2",
+                            customer_id as Uuid,
+                            (first + 1) as i64,
+                            id as Option<EntityId>,
+                        )
+                            .fetch_n(first)
+                            .await?
+                    },
+                    es_entity::ListDirection::Descending => {
+                        es_entity::es_query!(
+                            self.pool(),
+                            "SELECT customer_id, id FROM entities WHERE ((customer_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2",
+                            customer_id as Uuid,
+                            (first + 1) as i64,
+                            id as Option<EntityId>,
+                        )
+                            .fetch_n(first)
+                            .await?
+                    }
+                };
+
                 let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,

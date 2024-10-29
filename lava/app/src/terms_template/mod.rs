@@ -130,6 +130,10 @@ impl TermsTemplates {
         self.authz
             .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::List)
             .await?;
-        Ok(self.repo.list_by_name(Default::default()).await?.entities)
+        Ok(self
+            .repo
+            .list_by_name(Default::default(), es_entity::ListDirection::Ascending)
+            .await?
+            .entities)
     }
 }

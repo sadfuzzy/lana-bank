@@ -182,7 +182,11 @@ where
             .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_LIST)
             .await?;
 
-        Ok(self.repo.list_by_email(Default::default()).await?.entities)
+        Ok(self
+            .repo
+            .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
+            .await?
+            .entities)
     }
 
     pub async fn can_assign_role_to_user(

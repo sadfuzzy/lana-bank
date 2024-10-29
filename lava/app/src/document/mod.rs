@@ -91,7 +91,11 @@ impl Documents {
 
         Ok(self
             .repo
-            .list_for_customer_id_by_created_at(customer_id, Default::default())
+            .list_for_customer_id_by_created_at(
+                customer_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
             .await?
             .entities)
     }

@@ -1,3 +1,10 @@
+#[derive(Default)]
+pub enum ListDirection {
+    #[default]
+    Ascending,
+    Descending,
+}
+
 #[derive(Debug)]
 pub struct PaginatedQueryArgs<T: std::fmt::Debug> {
     pub first: usize,
