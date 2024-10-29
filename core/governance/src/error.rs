@@ -14,4 +14,6 @@ pub enum GovernanceError {
     ApprovalProcessError(#[from] crate::approval_process::error::ApprovalProcessError),
     #[error("GovernanceError - Audit: {0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("GovernanceError - SubjectIsNotUser")]
+    SubjectIsNotUser,
 }

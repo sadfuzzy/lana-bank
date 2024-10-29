@@ -1283,4 +1283,29 @@ impl Mutation {
 
         Ok(PolicyAssignCommitteePayload::from(policy))
     }
+
+    async fn approval_process_approve(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessApproveInput,
+    ) -> async_graphql::Result<ApprovalProcessApprovePayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let approval_process = app
+            .governance()
+            .approve_process(sub, input.process_id)
+            .await?;
+        Ok(ApprovalProcessApprovePayload::from(approval_process))
+    }
+
+    async fn approval_process_deny(
+        &self,
+        ctx: &Context<'_>,
+        input: ApprovalProcessDenyInput,
+    ) -> async_graphql::Result<ApprovalProcessDenyPayload> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+        let approval_process = app.governance().deny_process(sub, input.process_id).await?;
+        Ok(ApprovalProcessDenyPayload::from(approval_process))
+    }
 }

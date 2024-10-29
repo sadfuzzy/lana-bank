@@ -69,6 +69,14 @@ type ApprovalProcess {
 	createdAt: Timestamp!
 }
 
+input ApprovalProcessApproveInput {
+	processId: UUID!
+}
+
+type ApprovalProcessApprovePayload {
+	approvalProcess: ApprovalProcess!
+}
+
 type ApprovalProcessConnection {
 	"""
 	Information to aid in pagination.
@@ -82,6 +90,14 @@ type ApprovalProcessConnection {
 	A list of nodes.
 	"""
 	nodes: [ApprovalProcess!]!
+}
+
+input ApprovalProcessDenyInput {
+	processId: UUID!
+}
+
+type ApprovalProcessDenyPayload {
+	approvalProcess: ApprovalProcess!
 }
 
 """
@@ -897,6 +913,8 @@ type Mutation {
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
+	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
 }
 
 type Outstanding {

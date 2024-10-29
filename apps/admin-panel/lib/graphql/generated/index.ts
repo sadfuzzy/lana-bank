@@ -99,6 +99,15 @@ export type ApprovalProcess = {
   rules: ApprovalRules;
 };
 
+export type ApprovalProcessApproveInput = {
+  processId: Scalars['UUID']['input'];
+};
+
+export type ApprovalProcessApprovePayload = {
+  __typename?: 'ApprovalProcessApprovePayload';
+  approvalProcess: ApprovalProcess;
+};
+
 export type ApprovalProcessConnection = {
   __typename?: 'ApprovalProcessConnection';
   /** A list of edges. */
@@ -107,6 +116,15 @@ export type ApprovalProcessConnection = {
   nodes: Array<ApprovalProcess>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+export type ApprovalProcessDenyInput = {
+  processId: Scalars['UUID']['input'];
+};
+
+export type ApprovalProcessDenyPayload = {
+  __typename?: 'ApprovalProcessDenyPayload';
+  approvalProcess: ApprovalProcess;
 };
 
 /** An edge in a connection. */
@@ -881,6 +899,8 @@ export enum LoanStatus {
 
 export type Mutation = {
   __typename?: 'Mutation';
+  approvalProcessApprove: ApprovalProcessApprovePayload;
+  approvalProcessDeny: ApprovalProcessDenyPayload;
   collateralizationStateUpdate: CollateralizationStateUpdatePayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -916,6 +936,16 @@ export type Mutation = {
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
+};
+
+
+export type MutationApprovalProcessApproveArgs = {
+  input: ApprovalProcessApproveInput;
+};
+
+
+export type MutationApprovalProcessDenyArgs = {
+  input: ApprovalProcessDenyInput;
 };
 
 

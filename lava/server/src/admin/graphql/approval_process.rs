@@ -37,12 +37,14 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
     }
 }
 
-// #[derive(InputObject)]
-// pub struct ApprovalProcessApprove {}
+#[derive(InputObject)]
+pub struct ApprovalProcessApproveInput {
+    pub process_id: UUID,
+}
 
 #[derive(SimpleObject)]
 pub struct ApprovalProcessApprovePayload {
-    pub approval_process: ApprovalProcess,
+    approval_process: ApprovalProcess,
 }
 
 impl From<governance::ApprovalProcess> for ApprovalProcessApprovePayload {
@@ -53,21 +55,20 @@ impl From<governance::ApprovalProcess> for ApprovalProcessApprovePayload {
     }
 }
 
-// #[derive(InputObject)]
-// pub struct ApprovalProcessRemoveUserInput {
-//     pub committee_id: UUID,
-//     pub user_id: UUID,
-// }
+#[derive(InputObject)]
+pub struct ApprovalProcessDenyInput {
+    pub process_id: UUID,
+}
 
-// #[derive(SimpleObject)]
-// pub struct ApprovalProcessRemoveUserPayload {
-//     pub committee: ApprovalProcess,
-// }
+#[derive(SimpleObject)]
+pub struct ApprovalProcessDenyPayload {
+    approval_process: ApprovalProcess,
+}
 
-// impl From<governance::ApprovalProcess> for ApprovalProcessRemoveUserPayload {
-//     fn from(committee: governance::ApprovalProcess) -> Self {
-//         Self {
-//             committee: committee.into(),
-//         }
-//     }
-// }
+impl From<governance::ApprovalProcess> for ApprovalProcessDenyPayload {
+    fn from(process: governance::ApprovalProcess) -> Self {
+        Self {
+            approval_process: process.into(),
+        }
+    }
+}
