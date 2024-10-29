@@ -4,7 +4,7 @@ import React from "react"
 
 import { AddUserCommitteeDialog } from "../add-user"
 
-import { GetCommitteeDetailsQuery, useMeQuery } from "@/lib/graphql/generated"
+import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
@@ -16,8 +16,6 @@ type CommitteeDetailsProps = {
 
 export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committee }) => {
   const [openAddUserDialog, setOpenAddUserDialog] = React.useState(false)
-
-  const { data: me } = useMeQuery()
 
   return (
     <div className="flex">
@@ -36,7 +34,7 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
       </Card>
 
       <div className="flex flex-col space-y-2 mt-1 ml-4">
-        {me?.me.canAssignRoleToUser && (
+        <>
           <Button
             variant="primary"
             className="w-full"
@@ -44,7 +42,7 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
           >
             Add Member
           </Button>
-        )}
+        </>
       </div>
 
       <AddUserCommitteeDialog

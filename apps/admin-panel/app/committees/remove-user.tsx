@@ -14,6 +14,7 @@ import {
 import {
   CommitteesDocument,
   GetCommitteeDetailsDocument,
+  GetPolicyDetailsDocument,
   useCommitteeRemoveUserMutation,
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
@@ -60,7 +61,11 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
             userId,
           },
         },
-        refetchQueries: [CommitteesDocument, GetCommitteeDetailsDocument],
+        refetchQueries: [
+          CommitteesDocument,
+          GetCommitteeDetailsDocument,
+          GetPolicyDetailsDocument,
+        ],
       })
 
       if (data?.committeeRemoveUser.committee) {

@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import {
+  ApprovalRules,
   CollateralAction,
   CollateralizationState,
   GetRealtimePriceUpdatesQuery,
@@ -127,4 +128,20 @@ export const calculateInitialCollateralRequired = ({
     (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
 
   return Math.floor(requiredCollateralInSats)
+}
+
+export const formatRule = (rule: ApprovalRules | null | undefined): string => {
+  if (!rule) {
+    return "No rules defined"
+  }
+
+  if (rule.__typename === "CommitteeThreshold") {
+    return `${rule.threshold} Members required`
+  }
+
+  if (rule.__typename === "SystemApproval") {
+    return `System ${rule.autoApprove ? "Auto" : "Manual"} Approval`
+  }
+
+  return "Unknown rule type"
 }

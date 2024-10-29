@@ -16,6 +16,8 @@ import { RiAdminLine } from "react-icons/ri"
 
 import { PiHandDeposit, PiHandWithdraw } from "react-icons/pi"
 import { HiOutlineDocumentReport } from "react-icons/hi"
+import { MdOutlinePolicy } from "react-icons/md"
+import { FiUsers } from "react-icons/fi"
 
 import { gql } from "@apollo/client"
 
@@ -117,6 +119,18 @@ const NavigationLinks = () => {
       visible: true,
     },
     {
+      href: "/committees",
+      label: "Committees",
+      icon: FiUsers,
+      visible: true,
+    },
+    {
+      href: "/policies",
+      label: "Policies",
+      icon: MdOutlinePolicy,
+      visible: true,
+    },
+    {
       label: "Financials",
       icon: IoCashOutline,
       visible: visibleItems?.financials,
@@ -126,12 +140,6 @@ const NavigationLinks = () => {
         { href: "/profit-and-loss", label: "Profit and Loss" },
         { href: "/trial-balance", label: "Trial Balance" },
       ],
-    },
-    {
-      href: "/committees",
-      label: "Committees",
-      icon: IoPersonOutline,
-      visible: true,
     },
   ]
 

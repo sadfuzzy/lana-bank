@@ -1967,6 +1967,28 @@ export type CollateralizationStateUpdateMutationVariables = Exact<{
 
 export type CollateralizationStateUpdateMutation = { __typename?: 'Mutation', collateralizationStateUpdate: { __typename?: 'CollateralizationStateUpdatePayload', loan: { __typename?: 'Loan', loanId: string, collateralizationState: LoanCollaterizationState } } };
 
+export type PolicyAssignCommitteeMutationVariables = Exact<{
+  input: PolicyAssignCommitteeInput;
+}>;
+
+
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, processType: string } } };
+
+export type GetPolicyDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+
+export type PoliciesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PoliciesQuery = { __typename?: 'Query', policies: { __typename?: 'PolicyConnection', edges: Array<{ __typename?: 'PolicyEdge', cursor: string, node: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string } } | { __typename?: 'SystemApproval', autoApprove: boolean } } }>, pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null } } };
+
 export type PnlAccountSetQueryVariables = Exact<{
   accountSetId: Scalars['UUID']['input'];
   first: Scalars['Int']['input'];
@@ -4344,6 +4366,162 @@ export function useCollateralizationStateUpdateMutation(baseOptions?: Apollo.Mut
 export type CollateralizationStateUpdateMutationHookResult = ReturnType<typeof useCollateralizationStateUpdateMutation>;
 export type CollateralizationStateUpdateMutationResult = Apollo.MutationResult<CollateralizationStateUpdateMutation>;
 export type CollateralizationStateUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
+export const PolicyAssignCommitteeDocument = gql`
+    mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
+  policyAssignCommittee(input: $input) {
+    policy {
+      id
+      policyId
+      processType
+    }
+  }
+}
+    `;
+export type PolicyAssignCommitteeMutationFn = Apollo.MutationFunction<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+
+/**
+ * __usePolicyAssignCommitteeMutation__
+ *
+ * To run a mutation, you first call `usePolicyAssignCommitteeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePolicyAssignCommitteeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [policyAssignCommitteeMutation, { data, loading, error }] = usePolicyAssignCommitteeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePolicyAssignCommitteeMutation(baseOptions?: Apollo.MutationHookOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>(PolicyAssignCommitteeDocument, options);
+      }
+export type PolicyAssignCommitteeMutationHookResult = ReturnType<typeof usePolicyAssignCommitteeMutation>;
+export type PolicyAssignCommitteeMutationResult = Apollo.MutationResult<PolicyAssignCommitteeMutation>;
+export type PolicyAssignCommitteeMutationOptions = Apollo.BaseMutationOptions<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
+export const GetPolicyDetailsDocument = gql`
+    query GetPolicyDetails($id: UUID!) {
+  policy(id: $id) {
+    id
+    policyId
+    processType
+    rules {
+      ... on CommitteeThreshold {
+        threshold
+        committee {
+          id
+          committeeId
+          createdAt
+          name
+          users {
+            userId
+            email
+            roles
+          }
+        }
+      }
+      ... on SystemApproval {
+        autoApprove
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetPolicyDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetPolicyDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPolicyDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPolicyDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPolicyDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>(GetPolicyDetailsDocument, options);
+      }
+export function useGetPolicyDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>(GetPolicyDetailsDocument, options);
+        }
+export type GetPolicyDetailsQueryHookResult = ReturnType<typeof useGetPolicyDetailsQuery>;
+export type GetPolicyDetailsLazyQueryHookResult = ReturnType<typeof useGetPolicyDetailsLazyQuery>;
+export type GetPolicyDetailsQueryResult = Apollo.QueryResult<GetPolicyDetailsQuery, GetPolicyDetailsQueryVariables>;
+export const PoliciesDocument = gql`
+    query Policies($first: Int!, $after: String) {
+  policies(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        policyId
+        processType
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              id
+              committeeId
+              createdAt
+              name
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasPreviousPage
+      hasNextPage
+      startCursor
+      endCursor
+    }
+  }
+}
+    `;
+
+/**
+ * __usePoliciesQuery__
+ *
+ * To run a query within a React component, call `usePoliciesQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePoliciesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePoliciesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePoliciesQuery(baseOptions: Apollo.QueryHookOptions<PoliciesQuery, PoliciesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PoliciesQuery, PoliciesQueryVariables>(PoliciesDocument, options);
+      }
+export function usePoliciesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PoliciesQuery, PoliciesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PoliciesQuery, PoliciesQueryVariables>(PoliciesDocument, options);
+        }
+export type PoliciesQueryHookResult = ReturnType<typeof usePoliciesQuery>;
+export type PoliciesLazyQueryHookResult = ReturnType<typeof usePoliciesLazyQuery>;
+export type PoliciesQueryResult = Apollo.QueryResult<PoliciesQuery, PoliciesQueryVariables>;
 export const PnlAccountSetDocument = gql`
     query PnlAccountSet($accountSetId: UUID!, $first: Int!, $after: String, $from: Timestamp!, $until: Timestamp) {
   accountSet(accountSetId: $accountSetId, from: $from, until: $until) {
