@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     applicant::SumsubConfig, credit_facility::CreditFacilityConfig, customer::CustomerConfig,
     job::JobExecutorConfig, ledger::LedgerConfig, loan::LoanConfig, report::ReportConfig,
-    service_account::ServiceAccountConfig, storage::config::StorageConfig, user::UserConfig,
+    service_account::ServiceAccountConfig, storage::config::StorageConfig,
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
@@ -28,4 +28,10 @@ pub struct AppConfig {
     pub report: ReportConfig,
     #[serde(default)]
     pub storage: StorageConfig,
+}
+
+#[derive(Clone, Default, Debug, Deserialize, Serialize)]
+pub struct UserConfig {
+    #[serde(default)]
+    pub superuser_email: Option<String>,
 }

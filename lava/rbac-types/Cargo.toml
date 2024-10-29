@@ -9,6 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 governance = { path = "../../core/governance" }
+core-user = { path = "../../core/user" }
 shared-primitives = { path = "../../core/shared-primitives" }
 audit = { path = "../../lib/audit" }
 

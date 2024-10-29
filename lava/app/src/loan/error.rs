@@ -52,6 +52,8 @@ pub enum LoanError {
     BelowMarginLimit,
     #[error("LoanError - NotFound")]
     NotFound,
+    #[error("LoanError - SubjectIsNotUser")]
+    SubjectIsNotUser,
 }
 
 impl From<es_entity::EsEntityError> for LoanError {

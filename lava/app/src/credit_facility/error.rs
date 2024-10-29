@@ -62,6 +62,8 @@ pub enum CreditFacilityError {
     InterestAccrualWithInvalidFutureStartDate,
     #[error("CreditFacilityError - NotFound")]
     NotFound,
+    #[error("CreditFacilityError - SubjectIsNotUser")]
+    SubjectIsNotUser,
 }
 
 impl From<es_entity::EsEntityError> for CreditFacilityError {

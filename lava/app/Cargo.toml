@@ -12,6 +12,7 @@ rbac-types = { path = "../rbac-types" }
 lava-events = { path = "../events" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
+core-user = { path = "../../core/user", features = ["graphql"] }
 shared-primitives = { path = "../../core/shared-primitives", features = ["graphql"] }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }

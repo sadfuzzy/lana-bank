@@ -19,11 +19,15 @@ pub mod service_account;
 pub mod storage;
 pub mod terms;
 pub mod terms_template;
-pub mod user;
 pub mod withdraw;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lava_events::LavaEvent>;
+}
+
+pub mod user {
+    pub use core_user::{error, User};
+    pub type Users = core_user::Users<crate::audit::Audit, lava_events::LavaEvent>;
 }
 
 pub mod job {

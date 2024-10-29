@@ -9,7 +9,7 @@ use sqlx_adapter::{
     },
     SqlxAdapter,
 };
-use std::{fmt, marker::PhantomData, str::FromStr, sync::Arc};
+use std::{fmt, marker::PhantomData, sync::Arc};
 use tokio::sync::RwLock;
 use tracing::instrument;
 
@@ -35,7 +35,7 @@ where
 impl<Audit, R> Authorization<Audit, R>
 where
     Audit: AuditSvc,
-    R: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync,
+    R: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
@@ -99,13 +99,13 @@ where
     pub async fn assign_role_to_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: &R,
+        role: impl std::borrow::Borrow<R>,
     ) -> Result<(), AuthorizationError> {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![sub.to_string(), role.to_string()])
+            .add_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -119,13 +119,13 @@ where
     pub async fn revoke_role_from_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: &R,
+        role: impl std::borrow::Borrow<R>,
     ) -> Result<(), AuthorizationError> {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![sub.to_string(), role.to_string()])
+            .remove_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -136,7 +136,10 @@ where
     pub async fn roles_for_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-    ) -> Result<Vec<R>, AuthorizationError> {
+    ) -> Result<Vec<R>, AuthorizationError>
+    where
+        R: std::str::FromStr,
+    {
         let sub = sub.into();
         let sub_uuid = sub.to_string();
         let enforcer = self.enforcer.read().await;
@@ -196,7 +199,7 @@ where
 impl<Audit, R> PermissionCheck for Authorization<Audit, R>
 where
     Audit: AuditSvc,
-    R: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync,
+    R: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
     type Audit = Audit;
 

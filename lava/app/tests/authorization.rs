@@ -7,9 +7,9 @@ use authz::PermissionCheck;
 use lava_app::{
     audit::*,
     authorization::{error::AuthorizationError, init as init_authz, *},
-    data_export::Export,
-    job::*,
-    user::{UserConfig, Users},
+    outbox::Outbox,
+    primitives::*,
+    user::Users,
 };
 use uuid::Uuid;
 
@@ -20,23 +20,12 @@ fn random_email() -> String {
 async fn init_users(
     pool: &sqlx::PgPool,
     authz: &Authorization,
-    audit: &Audit,
 ) -> anyhow::Result<(Users, Subject)> {
-    let superuser_email = "superuser@test.io";
-    let jobs = Jobs::new(pool, JobExecutorConfig::default());
-    let export = Export::new("".to_string(), &jobs);
-    let users = Users::init(
-        pool,
-        UserConfig {
-            superuser_email: Some("superuser@test.io".to_string()),
-        },
-        authz,
-        audit,
-        &export,
-    )
-    .await?;
+    let superuser_email = "superuser@test.io".to_string();
+    let outbox = Outbox::init(&pool).await?;
+    let users = Users::init(&pool, &authz, &outbox, Some(superuser_email.clone())).await?;
     let superuser = users
-        .find_by_email(superuser_email)
+        .find_by_email(&superuser_email)
         .await?
         .expect("Superuser not found");
     Ok((users, Subject::from(superuser.id)))
@@ -60,14 +49,14 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (_, superuser_subject) = init_users(&pool, &authz, &audit).await?;
+    let (_, superuser_subject) = init_users(&pool, &authz).await?;
 
     // Superuser can create users
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            Object::User,
-            Action::User(UserAction::Create)
+            UserObject::all_users(),
+            CoreUserAction::USER_CREATE,
         )
         .await
         .is_ok());
@@ -76,8 +65,8 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            Object::User,
-            Action::User(UserAction::AssignRole)
+            UserObject::all_users(),
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -86,8 +75,8 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            Object::User,
-            Action::User(UserAction::AssignRole)
+            UserObject::user(UserId::new()),
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -101,26 +90,16 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
+    let (users, superuser_subject) = init_users(&pool, &authz).await?;
 
-    let admin_subject = create_user_with_role(&users, &superuser_subject, Role::Admin).await?;
+    let admin_subject = create_user_with_role(&users, &superuser_subject, LavaRole::ADMIN).await?;
 
     // Admin can create users
     assert!(authz
         .enforce_permission(
             &admin_subject,
-            Object::User,
-            Action::User(UserAction::Create)
-        )
-        .await
-        .is_ok());
-
-    // Admin can assign Bank Manager role
-    assert!(authz
-        .enforce_permission(
-            &admin_subject,
-            Object::User,
-            Action::User(UserAction::AssignRole)
+            UserObject::all_users(),
+            CoreUserAction::USER_CREATE,
         )
         .await
         .is_ok());
@@ -129,8 +108,16 @@ async fn admin_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &admin_subject,
-            Object::User,
-            Action::User(UserAction::AssignRole)
+            UserObject::all_users(),
+            CoreUserAction::USER_ASSIGN_ROLE,
+        )
+        .await
+        .is_ok());
+    assert!(authz
+        .enforce_permission(
+            &admin_subject,
+            UserObject::user(UserId::new()),
+            CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
         .is_ok());
@@ -144,18 +131,18 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz, &audit).await?;
+    let (users, superuser_subject) = init_users(&pool, &authz).await?;
 
     let bank_manager_subject =
-        create_user_with_role(&users, &superuser_subject, Role::BankManager).await?;
+        create_user_with_role(&users, &superuser_subject, LavaRole::BANK_MANAGER).await?;
 
     // Bank Manager cannot create users
     assert!(matches!(
         authz
             .enforce_permission(
                 &bank_manager_subject,
-                Object::User,
-                Action::User(UserAction::Create)
+                UserObject::all_users(),
+                CoreUserAction::USER_CREATE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)
@@ -166,8 +153,8 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
         authz
             .enforce_permission(
                 &bank_manager_subject,
-                Object::User,
-                Action::User(UserAction::AssignRole)
+                UserObject::all_users(),
+                CoreUserAction::USER_ASSIGN_ROLE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)

@@ -21,7 +21,6 @@ use crate::{
     price::Price,
     primitives::*,
     terms::*,
-    user::*,
 };
 
 pub use config::*;
@@ -40,7 +39,6 @@ pub struct Loans {
     pool: PgPool,
     jobs: Jobs,
     authz: Authorization,
-    user_repo: UserRepo,
     price: Price,
     config: LoanConfig,
 }
@@ -57,7 +55,6 @@ impl Loans {
         audit: &Audit,
         export: &Export,
         price: &Price,
-        users: &Users,
     ) -> Result<Self, LoanError> {
         let loan_repo = LoanRepo::new(pool, export);
         jobs.add_initializer_and_spawn_unique(
@@ -80,7 +77,6 @@ impl Loans {
             pool: pool.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
-            user_repo: users.repo().clone(),
             price: price.clone(),
             config,
         })
@@ -179,15 +175,11 @@ impl Loans {
 
         let mut loan = self.loan_repo.find_by_id(loan_id).await?;
 
-        let subject_id = uuid::Uuid::from(sub);
-        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
-
         let mut db_tx = self.pool.begin().await?;
         let price = self.price.usd_cents_per_btc().await?;
 
-        if let Some(loan_approval) =
-            loan.add_approval(user.id, user.current_roles(), audit_info.clone(), price)?
-        {
+        let user_id = UserId::try_from(sub).map_err(|_| LoanError::SubjectIsNotUser)?;
+        if let Some(loan_approval) = loan.add_approval(user_id, audit_info.clone(), price)? {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
             self.jobs

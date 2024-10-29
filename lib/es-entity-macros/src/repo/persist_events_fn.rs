@@ -41,7 +41,7 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
                 let id = events.id();
                 let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
-                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
 
                 let rows = sqlx::query!(
                     #query,
@@ -85,7 +85,7 @@ mod tests {
                 let id = events.id();
                 let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
-                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
 
                 let rows = sqlx::query!(
                     "INSERT INTO entity_events (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",

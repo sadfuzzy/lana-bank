@@ -136,7 +136,7 @@ impl<'a> CursorStruct<'a> {
 
                 fn encode_cursor(&self) -> String {
                     use es_entity::graphql::base64::{engine::general_purpose, Engine as _};
-                    let json = serde_json::to_string(&self).expect("could not serialize token");
+                    let json = es_entity::prelude::serde_json::to_string(&self).expect("could not serialize token");
                     general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
                 }
 
@@ -146,7 +146,7 @@ impl<'a> CursorStruct<'a> {
                         .decode(s.as_bytes())
                         .map_err(|e| e.to_string())?;
                     let json = String::from_utf8(bytes).map_err(|e| e.to_string())?;
-                    serde_json::from_str(&json).map_err(|e| e.to_string())
+                    es_entity::prelude::serde_json::from_str(&json).map_err(|e| e.to_string())
                 }
             }
         }
@@ -350,7 +350,7 @@ mod tests {
             #[derive(Debug, serde::Serialize, serde::Deserialize)]
             pub struct EntityByCreatedAtCursor {
                 pub id: EntityId,
-                pub created_at: chrono::DateTime<chrono::Utc>,
+                pub created_at: es_entity::prelude::chrono::DateTime<es_entity::prelude::chrono::Utc>,
             }
 
             impl From<&Entity> for EntityByCreatedAtCursor {

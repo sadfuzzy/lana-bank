@@ -81,7 +81,6 @@ type CreditFacility {
 }
 
 type CreditFacilityApproval {
-	userId: UUID!
 	approvedAt: Timestamp!
 	user: User!
 }
@@ -186,7 +185,6 @@ type Disbursed {
 }
 
 type DisbursementApproval {
-	userId: UUID!
 	approvedAt: Timestamp!
 	user: User!
 }
@@ -283,7 +281,6 @@ type Loan {
 }
 
 type LoanApproval {
-	userId: UUID!
 	approvedAt: Timestamp!
 	user: User!
 }
@@ -353,12 +350,7 @@ type Query {
 	me: Customer
 }
 
-enum Role {
-	SUPERUSER
-	ADMIN
-	BANK_MANAGER
-	ACCOUNTANT
-}
+scalar Role
 
 scalar Satoshis
 

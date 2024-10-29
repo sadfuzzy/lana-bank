@@ -1,0 +1,28 @@
+[package]
+name = "core-user"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+graphql = ["shared-primitives/graphql", "es-entity/graphql", "dep:async-graphql"]
+
+[dependencies]
+shared-primitives = { path = "../shared-primitives" }
+
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
+es-entity = { path = "../../lib/es-entity" }
+
+strum = { workspace = true }
+serde = { workspace = true }
+derive_builder = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+async-graphql = { workspace = true, optional = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }

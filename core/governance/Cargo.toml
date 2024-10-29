@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-graphql = ["es-entity/graphql"]
+graphql = ["shared-primitives/graphql", "es-entity/graphql"]
 
 [dependencies]
 shared-primitives = { path = "../shared-primitives" }

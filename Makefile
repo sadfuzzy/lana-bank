@@ -21,6 +21,7 @@ sqlx-prepare:
 	cd lib/audit && cargo sqlx prepare
 	cd lib/outbox && cargo sqlx prepare
 	cd core/governance && cargo sqlx prepare
+	cd core/user && cargo sqlx prepare
 	cd lava/app && cargo sqlx prepare
 
 reset-tf-state:

@@ -3,14 +3,34 @@
 
 use serde::{Deserialize, Serialize};
 
+use governance::GovernanceEvent;
+use outbox::OutboxEventMarker;
+use shared_primitives::event::CoreUserEvent;
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "module")]
 pub enum LavaEvent {
-    Governance(governance::GovernanceEvent),
+    Governance(GovernanceEvent),
+    User(CoreUserEvent),
 }
 
-impl From<governance::GovernanceEvent> for LavaEvent {
-    fn from(event: governance::GovernanceEvent) -> Self {
-        Self::Governance(event)
-    }
+macro_rules! impl_event_marker {
+    ($from_type:ty, $variant:ident) => {
+        impl OutboxEventMarker<$from_type> for LavaEvent {
+            fn as_event(&self) -> Option<&$from_type> {
+                match self {
+                    Self::$variant(ref event) => Some(event),
+                    _ => None,
+                }
+            }
+        }
+        impl From<$from_type> for LavaEvent {
+            fn from(event: $from_type) -> Self {
+                Self::$variant(event)
+            }
+        }
+    };
 }
+
+impl_event_marker!(GovernanceEvent, Governance);
+impl_event_marker!(CoreUserEvent, User);

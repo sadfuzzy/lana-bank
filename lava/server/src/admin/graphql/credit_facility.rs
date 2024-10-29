@@ -140,7 +140,8 @@ pub struct CreditFacilityDisbursementExecuted {
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct CreditFacilityApproval {
-    user_id: UUID,
+    #[graphql(skip)]
+    user_id: lava_app::primitives::UserId,
     approved_at: Timestamp,
 }
 
@@ -148,9 +149,10 @@ pub struct CreditFacilityApproval {
 impl CreditFacilityApproval {
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         let user = app
             .users()
-            .find_by_id_internal(UserId::from(&self.user_id))
+            .find_by_id(sub, self.user_id)
             .await?
             .expect("should always find user for a given UserId");
         Ok(User::from(user))
@@ -394,7 +396,8 @@ pub struct CreditFacilityDisbursement {
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct DisbursementApproval {
-    user_id: UUID,
+    #[graphql(skip)]
+    user_id: lava_app::primitives::UserId,
     approved_at: Timestamp,
 }
 
@@ -402,9 +405,10 @@ pub struct DisbursementApproval {
 impl DisbursementApproval {
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         let user = app
             .users()
-            .find_by_id_internal(UserId::from(&self.user_id))
+            .find_by_id(sub, self.user_id)
             .await?
             .expect("should always find user for a given UserId");
         Ok(User::from(user))
@@ -456,7 +460,7 @@ impl From<lava_app::credit_facility::Disbursement> for CreditFacilityDisbursemen
 impl From<lava_app::credit_facility::DisbursementApproval> for DisbursementApproval {
     fn from(disbursement_approval: lava_app::credit_facility::DisbursementApproval) -> Self {
         Self {
-            user_id: UUID::from(disbursement_approval.user_id),
+            user_id: disbursement_approval.user_id,
             approved_at: disbursement_approval.approved_at.into(),
         }
     }
@@ -503,7 +507,7 @@ impl From<lava_app::credit_facility::CreditFacility> for CreditFacilityCollatera
 impl From<lava_app::credit_facility::CreditFacilityApproval> for CreditFacilityApproval {
     fn from(approver: lava_app::credit_facility::CreditFacilityApproval) -> Self {
         CreditFacilityApproval {
-            user_id: UUID::from(approver.user_id),
+            user_id: approver.user_id,
             approved_at: approver.approved_at.into(),
         }
     }

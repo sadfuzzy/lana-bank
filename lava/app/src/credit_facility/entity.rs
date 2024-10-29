@@ -3,13 +3,10 @@ use derive_builder::Builder;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashSet;
-
 use es_entity::*;
 
 use crate::{
     audit::AuditInfo,
-    authorization::Role,
     ledger::{credit_facility::*, customer::CustomerLedgerAccountIds},
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
@@ -35,7 +32,6 @@ pub enum CreditFacilityEvent {
     },
     ApprovalAdded {
         approving_user_id: UserId,
-        approving_user_roles: HashSet<Role>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -345,26 +341,9 @@ impl CreditFacility {
     }
 
     fn approval_threshold_met(&self) -> bool {
-        let mut n_admin = 0;
-        let mut n_bank_manager = 0;
-
-        for event in self.events.iter_all() {
-            if let CreditFacilityEvent::ApprovalAdded {
-                approving_user_roles,
-                ..
-            } = event
-            {
-                if approving_user_roles.contains(&Role::Superuser) {
-                    return true;
-                } else if approving_user_roles.contains(&Role::Admin) {
-                    n_admin += 1;
-                } else {
-                    n_bank_manager += 1;
-                }
-            }
-        }
-
-        n_admin >= 1 && n_admin + n_bank_manager >= 2
+        self.events
+            .iter_all()
+            .any(|event| matches!(event, CreditFacilityEvent::ApprovalAdded { .. }))
     }
 
     fn has_user_previously_approved(&self, user_id: UserId) -> bool {
@@ -386,7 +365,6 @@ impl CreditFacility {
     pub(super) fn add_approval(
         &mut self,
         approving_user_id: UserId,
-        approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
     ) -> Result<Option<CreditFacilityApprovalData>, CreditFacilityError> {
@@ -408,7 +386,6 @@ impl CreditFacility {
 
         self.events.push(CreditFacilityEvent::ApprovalAdded {
             approving_user_id,
-            approving_user_roles,
             audit_info,
             recorded_at: Utc::now(),
         });
@@ -1313,8 +1290,6 @@ mod test {
     #[test]
     fn collateralization_ratio_when_active_disbursement() {
         let mut events = initial_events();
-        let mut roles = std::collections::HashSet::new();
-        roles.insert(Role::Admin);
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
@@ -1327,13 +1302,11 @@ mod test {
             },
             CreditFacilityEvent::ApprovalAdded {
                 approving_user_id: UserId::new(),
-                approving_user_roles: roles.clone(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::ApprovalAdded {
                 approving_user_id: UserId::new(),
-                approving_user_roles: roles,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -1512,33 +1485,13 @@ mod test {
     mod approve {
         use super::*;
 
-        fn bank_manager_role() -> HashSet<Role> {
-            let mut roles = HashSet::new();
-            roles.insert(Role::BankManager);
-            roles
-        }
-
-        fn admin_role() -> HashSet<Role> {
-            let mut roles = HashSet::new();
-            roles.insert(Role::Admin);
-            roles
-        }
-
         fn add_approvals(credit_facility: &mut CreditFacility) -> CreditFacilityApprovalData {
-            let first_approval = credit_facility.add_approval(
-                UserId::new(),
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let first_approval =
+                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
             assert!(first_approval.is_ok());
 
-            let second_approval = credit_facility.add_approval(
-                UserId::new(),
-                admin_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let second_approval =
+                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
             assert!(second_approval.is_ok());
 
             second_approval
@@ -1586,12 +1539,8 @@ mod test {
                 dummy_audit_info(),
             );
 
-            let third_approval = credit_facility.add_approval(
-                UserId::new(),
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let third_approval =
+                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
             assert!(matches!(
                 third_approval,
                 Err(CreditFacilityError::AlreadyApproved)
@@ -1629,12 +1578,8 @@ mod test {
         #[test]
         fn cannot_approve_if_credit_facility_has_no_collateral() {
             let mut credit_facility = facility_from(&initial_events());
-            let res = credit_facility.add_approval(
-                UserId::new(),
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let res =
+                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
             assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
         }
 
@@ -1653,12 +1598,8 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
 
-            let first_approval = credit_facility.add_approval(
-                UserId::new(),
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let first_approval =
+                credit_facility.add_approval(UserId::new(), dummy_audit_info(), default_price());
             assert!(matches!(
                 first_approval,
                 Err(CreditFacilityError::BelowMarginLimit)
@@ -1679,21 +1620,11 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
             let _first_admin_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    admin_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
+                .add_approval(UserId::new(), dummy_audit_info(), default_price())
                 .unwrap();
 
             let _second_admin_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    admin_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
+                .add_approval(UserId::new(), dummy_audit_info(), default_price())
                 .unwrap();
 
             assert!(credit_facility.approval_threshold_met());
@@ -1713,84 +1644,14 @@ mod test {
                 default_upgrade_buffer_cvl_pct(),
             );
             let _admin_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    admin_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
+                .add_approval(UserId::new(), dummy_audit_info(), default_price())
                 .unwrap();
 
             let _bank_manager_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    bank_manager_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
+                .add_approval(UserId::new(), dummy_audit_info(), default_price())
                 .unwrap();
 
             assert!(credit_facility.approval_threshold_met());
-        }
-
-        #[test]
-        fn user_with_both_admin_and_bank_manager_role_cannot_approve() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let admin_and_bank_manager =
-                admin_role().union(&bank_manager_role()).cloned().collect();
-            let _approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    admin_and_bank_manager,
-                    dummy_audit_info(),
-                    default_price(),
-                )
-                .unwrap();
-
-            assert!(!credit_facility.approval_threshold_met());
-        }
-
-        #[test]
-        fn two_bank_managers_cannot_approve() {
-            let mut credit_facility = facility_from(&initial_events());
-            let credit_facility_collateral_update = credit_facility
-                .initiate_collateral_update(Satoshis::from(10000))
-                .unwrap();
-            credit_facility.confirm_collateral_update(
-                credit_facility_collateral_update,
-                Utc::now(),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-            );
-            let _first_bank_manager_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    bank_manager_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
-                .unwrap();
-            let _second_bank_manager_approval = credit_facility
-                .add_approval(
-                    UserId::new(),
-                    bank_manager_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
-                .unwrap();
-
-            assert!(!credit_facility.approval_threshold_met());
         }
 
         #[test]
@@ -1809,21 +1670,13 @@ mod test {
 
             let user_id = UserId::new();
 
-            let first_approval = credit_facility.add_approval(
-                user_id,
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let first_approval =
+                credit_facility.add_approval(user_id, dummy_audit_info(), default_price());
 
             assert!(first_approval.is_ok());
 
-            let second_approval = credit_facility.add_approval(
-                user_id,
-                bank_manager_role(),
-                dummy_audit_info(),
-                default_price(),
-            );
+            let second_approval =
+                credit_facility.add_approval(user_id, dummy_audit_info(), default_price());
 
             assert!(matches!(
                 second_approval,
@@ -1866,12 +1719,6 @@ mod test {
     mod repayment {
         use super::*;
 
-        fn superuser_role() -> HashSet<Role> {
-            let mut roles = HashSet::new();
-            roles.insert(Role::Superuser);
-            roles
-        }
-
         fn credit_facility_with_interest_accrual(
             facility_approved_at: DateTime<Utc>,
         ) -> CreditFacility {
@@ -1903,12 +1750,7 @@ mod test {
 
             let approving_user_id = UserId::new();
             let credit_facility_approval = credit_facility
-                .add_approval(
-                    approving_user_id,
-                    superuser_role(),
-                    dummy_audit_info(),
-                    default_price(),
-                )
+                .add_approval(approving_user_id, dummy_audit_info(), default_price())
                 .unwrap()
                 .unwrap();
             credit_facility.confirm_approval(
@@ -1927,7 +1769,7 @@ mod test {
             let mut disbursement =
                 Disbursement::try_from_events(new_disbursement.into_events()).unwrap();
             let disbursement_data = disbursement
-                .add_approval(approving_user_id, superuser_role(), dummy_audit_info())
+                .add_approval(approving_user_id, dummy_audit_info())
                 .unwrap()
                 .unwrap();
             disbursement.confirm_approval(

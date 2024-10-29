@@ -33,6 +33,31 @@ pub enum GovernanceAction {
     ApprovalProcess(ApprovalProcessAction),
 }
 
+impl GovernanceAction {
+    pub const COMMITTEE_CREATE: Self = GovernanceAction::Committee(CommitteeAction::Create);
+    pub const COMMITTEE_READ: Self = GovernanceAction::Committee(CommitteeAction::Read);
+    pub const COMMITTEE_LIST: Self = GovernanceAction::Committee(CommitteeAction::List);
+    pub const COMMITTEE_ADD_USER: Self = GovernanceAction::Committee(CommitteeAction::AddUser);
+    pub const COMMITTEE_REMOVE_USER: Self =
+        GovernanceAction::Committee(CommitteeAction::RemoveUser);
+
+    pub const POLICY_CREATE: Self = GovernanceAction::Policy(PolicyAction::Create);
+    pub const POLICY_READ: Self = GovernanceAction::Policy(PolicyAction::Read);
+    pub const POLICY_LIST: Self = GovernanceAction::Policy(PolicyAction::List);
+    pub const POLICY_UPDATE_RULES: Self = GovernanceAction::Policy(PolicyAction::UpdatePolicyRules);
+
+    pub const APPROVAL_PROCESS_CREATE: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::Create);
+    pub const APPROVAL_PROCESS_READ: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::Read);
+    pub const APPROVAL_PROCESS_LIST: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::List);
+    pub const APPROVAL_PROCESS_APPROVE: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve);
+    pub const APPROVAL_PROCESS_DENY: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny);
+}
+
 impl Display for GovernanceAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", GovernanceActionDiscriminants::from(self))?;
@@ -101,6 +126,32 @@ pub enum GovernanceObject {
     Committee(CommitteeAllOrOne),
     Policy(PolicyAllOrOne),
     ApprovalProcess(ApprovalProcessAllOrOne),
+}
+
+impl GovernanceObject {
+    pub fn all_committees() -> Self {
+        GovernanceObject::Committee(AllOrOne::All)
+    }
+
+    pub fn committee(id: CommitteeId) -> Self {
+        GovernanceObject::Committee(AllOrOne::ById(id))
+    }
+
+    pub fn all_policies() -> Self {
+        GovernanceObject::Policy(AllOrOne::All)
+    }
+
+    pub fn policy(id: PolicyId) -> Self {
+        GovernanceObject::Policy(AllOrOne::ById(id))
+    }
+
+    pub fn all_approval_processes() -> Self {
+        GovernanceObject::ApprovalProcess(AllOrOne::All)
+    }
+
+    pub fn approval_process(id: ApprovalProcessId) -> Self {
+        GovernanceObject::ApprovalProcess(AllOrOne::ById(id))
+    }
 }
 
 impl Display for GovernanceObject {

@@ -20,6 +20,7 @@ export type Scalars = {
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
   DisbursementIdx: { input: any; output: any; }
+  Role: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -347,7 +348,6 @@ export type CreditFacilityApproval = {
   __typename?: 'CreditFacilityApproval';
   approvedAt: Scalars['Timestamp']['output'];
   user: User;
-  userId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityApproveInput = {
@@ -622,7 +622,6 @@ export type DisbursementApproval = {
   __typename?: 'DisbursementApproval';
   approvedAt: Scalars['Timestamp']['output'];
   user: User;
-  userId: Scalars['UUID']['output'];
 };
 
 export enum DisbursementStatus {
@@ -784,7 +783,6 @@ export type LoanApproval = {
   __typename?: 'LoanApproval';
   approvedAt: Scalars['Timestamp']['output'];
   user: User;
-  userId: Scalars['UUID']['output'];
 };
 
 export type LoanApproveInput = {
@@ -1419,13 +1417,6 @@ export enum ReportProgress {
   Running = 'RUNNING'
 }
 
-export enum Role {
-  Accountant = 'ACCOUNTANT',
-  Admin = 'ADMIN',
-  BankManager = 'BANK_MANAGER',
-  Superuser = 'SUPERUSER'
-}
-
 export type ShareholderEquityAddInput = {
   amount: Scalars['UsdCents']['input'];
   reference: Scalars['String']['input'];
@@ -1564,14 +1555,14 @@ export type User = {
   canRevokeRoleFromUser: Scalars['Boolean']['output'];
   canUpdateTermsTemplate: Scalars['Boolean']['output'];
   email: Scalars['String']['output'];
-  roles: Array<Role>;
+  roles: Array<Scalars['Role']['output']>;
   userId: Scalars['UUID']['output'];
   visibleNavigationItems: VisibleNavigationItems;
 };
 
 export type UserAssignRoleInput = {
   id: Scalars['UUID']['input'];
-  role: Role;
+  role: Scalars['Role']['input'];
 };
 
 export type UserAssignRolePayload = {
@@ -1590,7 +1581,7 @@ export type UserCreatePayload = {
 
 export type UserRevokeRoleInput = {
   id: Scalars['UUID']['input'];
-  role: Role;
+  role: Scalars['Role']['input'];
 };
 
 export type UserRevokeRolePayload = {
@@ -1685,7 +1676,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<any> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -1721,21 +1712,21 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> } | null };
 
 export type CommitteeAddUserMutationVariables = Exact<{
   input: CommitteeAddUserInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
 }>;
 
 
-export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> } } };
 
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1750,14 +1741,14 @@ export type CommitteeRemoveUserMutationVariables = Exact<{
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> } } };
 
 export type GetCreditFacilityDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<Role>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvals: Array<{ __typename?: 'DisbursementApproval', approvedAt: any, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'CreditFacilityApproval', approvedAt: any, user: { __typename?: 'User', roles: Array<any>, email: string, userId: string } }>, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvals: Array<{ __typename?: 'DisbursementApproval', approvedAt: any, user: { __typename?: 'User', userId: string, email: string, roles: Array<any> } }> }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
 
 export type CreditFacilityApproveMutationVariables = Exact<{
   input: CreditFacilityApproveInput;
@@ -1857,7 +1848,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, userCanCreateLoan: boolean, userCanRecordDeposit: boolean, userCanInitiateWithdrawal: boolean, userCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<any> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer?: { __typename?: 'Customer', customerId: string, email: string } | null }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -1922,7 +1913,7 @@ export type GetLoanDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }>, repaymentPlan: Array<{ __typename?: 'LoanRepaymentInPlan', repaymentType: LoanRepaymentType, status: LoanRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }> } | null };
+export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, userCanApprove: boolean, userCanUpdateCollateral: boolean, userCanUpdateCollateralizationState: boolean, userCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<any> } }>, repaymentPlan: Array<{ __typename?: 'LoanRepaymentInPlan', repaymentType: LoanRepaymentType, status: LoanRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }> } | null };
 
 export type LoanApproveMutationVariables = Exact<{
   input: LoanApproveInput;
@@ -1979,7 +1970,7 @@ export type GetPolicyDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, processType: string, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
 
 export type PoliciesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2075,33 +2066,33 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<any> } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
 }>;
 
 
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<any> } } };
 
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> };
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<any> }> };
 
 export type UserAssignRoleMutationVariables = Exact<{
   input: UserAssignRoleInput;
 }>;
 
 
-export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<any> } } };
 
 export type UserRevokeRoleMutationVariables = Exact<{
   input: UserRevokeRoleInput;
 }>;
 
 
-export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<any> } } };
 
 export type GetWithdrawalDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2154,7 +2145,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<any>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;

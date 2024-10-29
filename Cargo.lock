@@ -876,6 +876,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
+name = "core-user"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "audit",
+ "authz",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "serde",
+ "shared-primitives",
+ "sqlx",
+ "strum",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2060,6 +2079,7 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-storage",
+ "core-user",
  "derive_builder",
  "es-entity",
  "futures",
@@ -2116,7 +2136,9 @@ name = "lava-events"
 version = "0.2.3-dev"
 dependencies = [
  "governance",
+ "outbox",
  "serde",
+ "shared-primitives",
 ]
 
 [[package]]
@@ -3020,6 +3042,7 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "audit",
+ "core-user",
  "governance",
  "serde",
  "shared-primitives",

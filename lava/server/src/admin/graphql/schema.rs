@@ -141,11 +141,8 @@ impl Query {
 
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
-        let auth_ctx: &AdminAuthContext = ctx.data()?;
-
-        let my_id = auth_ctx.authenticated_user_id();
-        let user = app.users().find_by_id_internal(my_id).await?;
-        let user = user.expect("User always exists");
+        let AdminAuthContext { sub } = ctx.data()?;
+        let user = app.users().find_for_subject(sub).await?;
         Ok(User::from(user))
     }
 

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use thiserror::Error;
 
-pub use rbac_types::{Role, Subject};
+pub use rbac_types::{LavaRole, Role, Subject};
 pub use shared_primitives::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]

@@ -12,25 +12,14 @@ use shared_primitives::{CustomerId, UserId};
 pub use action::*;
 pub use object::*;
 
-#[derive(
-    async_graphql::Enum,
-    Serialize,
-    Deserialize,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    strum::EnumString,
-    strum::Display,
-)]
-#[strum(serialize_all = "kebab-case")]
-pub enum Role {
-    Superuser,
-    Admin,
-    BankManager,
-    Accountant,
+pub use core_user::Role;
+
+pub struct LavaRole;
+impl LavaRole {
+    pub const SUPERUSER: Role = Role::SUPERUSER;
+    pub const ACCOUNANT: Role = Role::new("accountant");
+    pub const ADMIN: Role = Role::new("admin");
+    pub const BANK_MANAGER: Role = Role::new("bank_manager");
 }
 
 impl std::fmt::Display for SystemNode {

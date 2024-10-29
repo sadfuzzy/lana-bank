@@ -1,5 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
+use core_user::CoreUserAction;
 use governance::GovernanceAction;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -8,6 +9,7 @@ use governance::GovernanceAction;
 pub enum LavaAction {
     App(AppAction),
     Governance(GovernanceAction),
+    User(CoreUserAction),
 }
 
 impl From<AppAction> for LavaAction {
@@ -20,6 +22,11 @@ impl From<GovernanceAction> for LavaAction {
         LavaAction::Governance(action)
     }
 }
+impl From<CoreUserAction> for LavaAction {
+    fn from(action: CoreUserAction) -> Self {
+        LavaAction::User(action)
+    }
+}
 
 impl Display for LavaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -28,6 +35,7 @@ impl Display for LavaAction {
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
+            User(action) => action.fmt(f),
         }
     }
 }
@@ -41,6 +49,7 @@ impl FromStr for LavaAction {
         let res = match module.parse()? {
             App => LavaAction::from(action.parse::<AppAction>()?),
             Governance => LavaAction::from(action.parse::<GovernanceAction>()?),
+            User => LavaAction::from(action.parse::<CoreUserAction>()?),
         };
         Ok(res)
     }
@@ -68,7 +77,6 @@ macro_rules! impl_trivial_action {
 pub enum AppAction {
     Loan(LoanAction),
     TermsTemplate(TermsTemplateAction),
-    User(UserAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
     Withdraw(WithdrawAction),
@@ -86,7 +94,6 @@ impl Display for AppAction {
         match self {
             Loan(action) => action.fmt(f),
             TermsTemplate(action) => action.fmt(f),
-            User(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Withdraw(action) => action.fmt(f),
@@ -110,7 +117,6 @@ impl FromStr for AppAction {
         let res = match entity.parse()? {
             Loan => AppAction::from(action.parse::<LoanAction>()?),
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
-            User => AppAction::from(action.parse::<UserAction>()?),
             Customer => AppAction::from(action.parse::<CustomerAction>()?),
             Deposit => AppAction::from(action.parse::<DepositAction>()?),
             Withdraw => AppAction::from(action.parse::<WithdrawAction>()?),
@@ -176,19 +182,6 @@ pub enum AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum UserAction {
-    Read,
-    Create,
-    List,
-    Update,
-    AssignRole,
-    RevokeRole,
-}
-
-impl_trivial_action!(UserAction, User);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -282,16 +275,6 @@ mod test {
         test_to_and_from_string(
             LavaAction::App(AppAction::Loan(LoanAction::List)),
             "app:loan:list",
-        )?;
-
-        // UserAction
-        test_to_and_from_string(
-            LavaAction::App(AppAction::User(UserAction::AssignRole)),
-            "app:user:assign-role",
-        )?;
-        test_to_and_from_string(
-            LavaAction::App(AppAction::User(UserAction::Read)),
-            "app:user:read",
         )?;
         Ok(())
     }

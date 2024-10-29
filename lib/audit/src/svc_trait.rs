@@ -10,7 +10,7 @@ pub trait SystemSubject {
 
 #[async_trait]
 pub trait AuditSvc: Clone + Sync {
-    type Subject: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync;
+    type Subject: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync + SystemSubject;
     type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync;
     type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync;
 
@@ -20,10 +20,7 @@ pub trait AuditSvc: Clone + Sync {
         &self,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
-    ) -> Result<AuditInfo, AuditError>
-    where
-        Self::Subject: SystemSubject,
-    {
+    ) -> Result<AuditInfo, AuditError> {
         let subject = Self::Subject::system();
         let object = object.into();
         let action = action.into();
@@ -65,10 +62,7 @@ pub trait AuditSvc: Clone + Sync {
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
-    ) -> Result<AuditInfo, AuditError>
-    where
-        Self::Subject: SystemSubject,
-    {
+    ) -> Result<AuditInfo, AuditError> {
         let subject = Self::Subject::system();
         let object = object.into();
         let action = action.into();

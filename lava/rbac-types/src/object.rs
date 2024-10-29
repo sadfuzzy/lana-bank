@@ -1,5 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
+use core_user::UserObject;
 use governance::GovernanceObject;
 use shared_primitives::{AllOrOne, CustomerId, LoanId};
 
@@ -9,6 +10,7 @@ use shared_primitives::{AllOrOne, CustomerId, LoanId};
 pub enum LavaObject {
     App(AppObject),
     Governance(GovernanceObject),
+    User(UserObject),
 }
 
 impl From<AppObject> for LavaObject {
@@ -21,6 +23,11 @@ impl From<GovernanceObject> for LavaObject {
         LavaObject::Governance(action)
     }
 }
+impl From<UserObject> for LavaObject {
+    fn from(action: UserObject) -> Self {
+        LavaObject::User(action)
+    }
+}
 
 impl Display for LavaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -29,6 +36,7 @@ impl Display for LavaObject {
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
+            User(action) => action.fmt(f),
         }
     }
 }
@@ -42,6 +50,7 @@ impl FromStr for LavaObject {
         let res = match module.parse().expect("invalid module") {
             App => LavaObject::from(object.parse::<AppObject>()?),
             Governance => LavaObject::from(object.parse::<GovernanceObject>()?),
+            User => LavaObject::from(object.parse::<UserObject>()?),
         };
         Ok(res)
     }
@@ -54,7 +63,6 @@ pub enum AppObject {
     Applicant,
     Loan(LoanAllOrOne),
     TermsTemplate,
-    User,
     Customer(CustomerAllOrOne),
     Document,
     Deposit,
@@ -97,7 +105,6 @@ impl FromStr for AppObject {
                 AppObject::Loan(loan_ref)
             }
             TermsTemplate => AppObject::TermsTemplate,
-            User => AppObject::User,
             Customer => {
                 let customer_ref = elems
                     .next()

@@ -4,6 +4,12 @@ use std::sync::Arc;
 
 es_entity::entity_id! { OutboxEventId }
 
+pub trait OutboxEventMarker<E>:
+    serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin + From<E>
+{
+    fn as_event(&self) -> Option<&E>;
+}
+
 pub enum OutboxEvent<P>
 where
     P: Serialize + DeserializeOwned + Send,
@@ -52,6 +58,22 @@ where
             sequence: self.sequence,
             payload: self.payload.clone(),
             recorded_at: self.recorded_at,
+        }
+    }
+}
+
+impl<T> PersistentOutboxEvent<T>
+where
+    T: Serialize + DeserializeOwned + Send,
+{
+    pub fn as_event<E>(&self) -> Option<&E>
+    where
+        T: OutboxEventMarker<E>,
+    {
+        if let Some(payload) = &self.payload {
+            payload.as_event()
+        } else {
+            None
         }
     }
 }

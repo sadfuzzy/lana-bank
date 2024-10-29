@@ -83,7 +83,7 @@ impl LavaApp {
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &audit, &jobs, &storage).await?;
-        let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
+        let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -92,7 +92,6 @@ impl LavaApp {
             &authz,
             &audit,
             &customers,
-            &users,
             &ledger,
             &price,
         )
@@ -108,7 +107,6 @@ impl LavaApp {
             &audit,
             &export,
             &price,
-            &users,
         )
         .await?;
         jobs.start_poll().await?;

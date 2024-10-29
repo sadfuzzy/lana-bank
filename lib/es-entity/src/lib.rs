@@ -6,6 +6,12 @@ mod events;
 mod query;
 mod traits;
 
+pub mod prelude {
+    pub use chrono;
+    pub use serde_json;
+    pub use sqlx;
+}
+
 pub use error::*;
 pub use es_entity_macros::expand_es_query;
 pub use es_entity_macros::EsEntity;

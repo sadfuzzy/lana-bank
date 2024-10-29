@@ -216,7 +216,9 @@ impl Column {
         Column {
             name: syn::Ident::new("created_at", proc_macro2::Span::call_site()),
             opts: ColumnOpts {
-                ty: syn::parse_quote!(chrono::DateTime<chrono::Utc>),
+                ty: syn::parse_quote!(
+                    es_entity::prelude::chrono::DateTime<es_entity::prelude::chrono::Utc>
+                ),
                 is_id: false,
                 list_by: Some(true),
                 find_by: Some(false),

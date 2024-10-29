@@ -1,11 +1,9 @@
 use authz::error::AuthorizationError;
-use governance::{
-    ApprovalProcessAction, ApprovalProcessAllOrOne, CommitteeAction, CommitteeAllOrOne,
-    GovernanceAction, GovernanceObject, PolicyAction, PolicyAllOrOne,
-};
+use core_user::{CoreUserAction, UserEntityAction, UserObject};
+use governance::{GovernanceAction, GovernanceObject};
 
 use super::*;
-use crate::primitives::Role;
+use rbac_types::LavaRole;
 
 pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationError> {
     seed_roles(authz).await?;
@@ -15,10 +13,10 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
 
 async fn seed_role_hierarchy(authz: &Authorization) -> Result<(), AuthorizationError> {
     authz
-        .add_role_hierarchy(Role::Admin, Role::Superuser)
+        .add_role_hierarchy(LavaRole::ADMIN, LavaRole::SUPERUSER)
         .await?;
     authz
-        .add_role_hierarchy(Role::BankManager, Role::Admin)
+        .add_role_hierarchy(LavaRole::BANK_MANAGER, LavaRole::ADMIN)
         .await?;
 
     Ok(())
@@ -34,37 +32,69 @@ async fn seed_roles(authz: &Authorization) -> Result<(), AuthorizationError> {
 }
 
 async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = Role::Superuser;
+    let role = LavaRole::SUPERUSER;
 
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::AssignRole)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::USER_ASSIGN_ROLE,
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::RevokeRole)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::USER_REVOKE_ROLE,
+        )
         .await?;
     Ok(())
 }
 
 async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = Role::Admin;
+    let role = LavaRole::ADMIN;
 
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::Create)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::Create),
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::List)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::List),
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::Read)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::Read),
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::Update)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::Update),
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::AssignRole)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::AssignRole),
+        )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::User, UserAction::RevokeRole)
+        .add_permission_to_role(
+            &role,
+            UserObject::all_users(),
+            CoreUserAction::User(UserEntityAction::RevokeRole),
+        )
         .await?;
 
     authz
@@ -88,114 +118,107 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Committee(CommitteeAllOrOne::All),
-            GovernanceAction::Committee(CommitteeAction::Create),
+            GovernanceObject::all_committees(),
+            GovernanceAction::COMMITTEE_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Committee(CommitteeAllOrOne::All),
-            GovernanceAction::Committee(CommitteeAction::List),
+            GovernanceObject::all_committees(),
+            GovernanceAction::COMMITTEE_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Committee(CommitteeAllOrOne::All),
-            GovernanceAction::Committee(CommitteeAction::Read),
+            GovernanceObject::all_committees(),
+            GovernanceAction::COMMITTEE_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Committee(CommitteeAllOrOne::All),
-            GovernanceAction::Committee(CommitteeAction::AddUser),
+            GovernanceObject::all_committees(),
+            GovernanceAction::COMMITTEE_ADD_USER,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Committee(CommitteeAllOrOne::All),
-            GovernanceAction::Committee(CommitteeAction::RemoveUser),
+            GovernanceObject::all_committees(),
+            GovernanceAction::COMMITTEE_REMOVE_USER,
         )
         .await?;
 
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Policy(PolicyAllOrOne::All),
-            GovernanceAction::Policy(PolicyAction::Create),
+            GovernanceObject::all_policies(),
+            GovernanceAction::POLICY_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Policy(PolicyAllOrOne::All),
-            GovernanceAction::Policy(PolicyAction::UpdatePolicyRules),
+            GovernanceObject::all_policies(),
+            GovernanceAction::POLICY_UPDATE_RULES,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Policy(PolicyAllOrOne::All),
-            GovernanceAction::Policy(PolicyAction::Read),
+            GovernanceObject::all_policies(),
+            GovernanceAction::POLICY_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::Policy(PolicyAllOrOne::All),
-            GovernanceAction::Policy(PolicyAction::List),
+            GovernanceObject::all_policies(),
+            GovernanceAction::POLICY_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::Create),
+            GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::List),
+            GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::Read),
+            GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve),
+            GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_APPROVE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude),
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-            GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny),
+            GovernanceObject::all_approval_processes(),
+            GovernanceAction::APPROVAL_PROCESS_DENY,
         )
         .await?;
     Ok(())
 }
 
 async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = Role::BankManager;
+    let role = LavaRole::BANK_MANAGER;
 
     authz
         .add_permission_to_role(
@@ -379,7 +402,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
 }
 
 async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = Role::Accountant;
+    let role = LavaRole::ACCOUNANT;
 
     authz
         .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Read)

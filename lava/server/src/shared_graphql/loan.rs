@@ -151,7 +151,8 @@ pub struct CollateralizationUpdated {
 #[derive(SimpleObject)]
 #[graphql(complex)]
 pub struct LoanApproval {
-    user_id: UUID,
+    #[graphql(skip)]
+    user_id: UserId,
     approved_at: Timestamp,
 }
 
@@ -237,9 +238,10 @@ impl Loan {
 impl LoanApproval {
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
         let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
         let user = app
             .users()
-            .find_by_id_internal(UserId::from(&self.user_id))
+            .find_by_id(sub, self.user_id)
             .await?
             .expect("should always find user for a given UserId");
         Ok(User::from(user))
@@ -405,7 +407,7 @@ impl From<lava_app::loan::CollateralizationUpdated> for CollateralizationUpdated
 impl From<lava_app::loan::LoanApproval> for LoanApproval {
     fn from(approver: lava_app::loan::LoanApproval) -> Self {
         LoanApproval {
-            user_id: UUID::from(approver.user_id),
+            user_id: approver.user_id,
             approved_at: approver.approved_at.into(),
         }
     }

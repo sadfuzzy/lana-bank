@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use outbox::Outbox;
+use outbox::{Outbox, OutboxEventMarker};
 
 pub use approval_process::*;
 pub use committee::error as committee_error;
@@ -59,16 +59,9 @@ where
 impl<Perms, E> Governance<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject: audit::SystemSubject,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<GovernanceObject>,
-    E: serde::de::DeserializeOwned
-        + serde::Serialize
-        + Send
-        + Sync
-        + 'static
-        + Unpin
-        + From<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let committee_repo = CommitteeRepo::new(pool);
@@ -90,15 +83,14 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
-        let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
+        let mut db = self.pool.begin().await?;
         let audit_info = self
             .authz
             .audit()
-            .record_entry(
-                &sub,
-                GovernanceObject::Policy(PolicyAllOrOne::All),
-                GovernanceAction::Policy(PolicyAction::Create),
-                true,
+            .record_system_entry_in_tx(
+                &mut db,
+                GovernanceObject::all_policies(),
+                GovernanceAction::POLICY_CREATE,
             )
             .await?;
 
@@ -110,7 +102,8 @@ where
             .build()
             .expect("Could not build new policy");
 
-        let policy = self.policy_repo.create(new_policy).await?;
+        let policy = self.policy_repo.create_in_tx(&mut db, new_policy).await?;
+        db.commit().await?;
         Ok(policy)
     }
 
@@ -124,8 +117,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Policy(PolicyAllOrOne::ById(policy_id)),
-                GovernanceAction::Policy(PolicyAction::Read),
+                GovernanceObject::policy(policy_id),
+                GovernanceAction::POLICY_READ,
             )
             .await?;
 
@@ -148,8 +141,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Policy(PolicyAllOrOne::All),
-                GovernanceAction::Policy(PolicyAction::List),
+                GovernanceObject::all_policies(),
+                GovernanceAction::POLICY_LIST,
             )
             .await?;
         let policies = self.policy_repo.list_by_created_at(query).await?;
@@ -169,8 +162,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Policy(PolicyAllOrOne::ById(policy_id)),
-                GovernanceAction::Policy(PolicyAction::UpdatePolicyRules),
+                GovernanceObject::policy(policy_id),
+                GovernanceAction::POLICY_UPDATE_RULES,
             )
             .await?;
 
@@ -202,8 +195,8 @@ where
             .audit()
             .record_entry(
                 &sub,
-                GovernanceObject::Policy(PolicyAllOrOne::All),
-                GovernanceAction::Policy(PolicyAction::Create),
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_CREATE,
                 true,
             )
             .await?;
@@ -232,8 +225,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve),
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_APPROVE,
             )
             .await?;
         let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
@@ -272,8 +265,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny),
+                GovernanceObject::approval_process(process_id),
+                GovernanceAction::APPROVAL_PROCESS_DENY,
             )
             .await?;
         let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
@@ -308,8 +301,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Committee(CommitteeAllOrOne::All),
-                GovernanceAction::Committee(CommitteeAction::Create),
+                GovernanceObject::all_committees(),
+                GovernanceAction::COMMITTEE_CREATE,
             )
             .await?;
 
@@ -375,8 +368,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
-                GovernanceAction::Committee(CommitteeAction::AddUser),
+                GovernanceObject::committee(committee_id),
+                GovernanceAction::COMMITTEE_ADD_USER,
             )
             .await?;
 
@@ -399,8 +392,8 @@ where
             .authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
-                GovernanceAction::Committee(CommitteeAction::RemoveUser),
+                GovernanceObject::committee(committee_id),
+                GovernanceAction::COMMITTEE_REMOVE_USER,
             )
             .await?;
 
@@ -421,8 +414,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Committee(CommitteeAllOrOne::ById(committee_id)),
-                GovernanceAction::Committee(CommitteeAction::Read),
+                GovernanceObject::committee(committee_id),
+                GovernanceAction::COMMITTEE_READ,
             )
             .await?;
 
@@ -450,8 +443,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::Committee(CommitteeAllOrOne::All),
-                GovernanceAction::Committee(CommitteeAction::List),
+                GovernanceObject::all_committees(),
+                GovernanceAction::COMMITTEE_LIST,
             )
             .await?;
 
@@ -477,8 +470,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process_id)),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Read),
+                GovernanceObject::approval_process(process_id),
+                GovernanceAction::APPROVAL_PROCESS_READ,
             )
             .await?;
 
@@ -506,8 +499,8 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::All),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::List),
+                GovernanceObject::all_approval_processes(),
+                GovernanceAction::APPROVAL_PROCESS_LIST,
             )
             .await?;
 

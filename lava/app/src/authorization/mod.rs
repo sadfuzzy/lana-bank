@@ -4,6 +4,7 @@ use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
+pub use core_user::{CoreUserAction, UserObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
 pub type Authorization = authz::Authorization<Audit, Role>;
@@ -44,11 +45,8 @@ pub async fn get_visible_navigation_items(
         user: authz
             .check_all_permissions(
                 sub,
-                Object::User,
-                &[
-                    Action::User(UserAction::Read),
-                    Action::User(UserAction::List),
-                ],
+                UserObject::all_users(),
+                &[CoreUserAction::USER_READ, CoreUserAction::USER_LIST],
             )
             .await?,
         customer: authz

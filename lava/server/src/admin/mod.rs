@@ -72,13 +72,6 @@ impl AdminAuthContext {
             sub: Subject::User(sub.into()),
         }
     }
-
-    pub fn authenticated_user_id(&self) -> UserId {
-        match &self.sub {
-            Subject::User(id) => *id,
-            _ => panic!("AdminAuthContext is always a User"),
-        }
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -2,8 +2,6 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashSet;
-
 use es_entity::*;
 
 use crate::{
@@ -35,7 +33,6 @@ pub enum DisbursementEvent {
     },
     ApprovalAdded {
         approving_user_id: UserId,
-        approving_user_roles: HashSet<Role>,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
@@ -120,26 +117,9 @@ impl Disbursement {
     }
 
     fn approval_threshold_met(&self) -> bool {
-        let mut n_admin = 0;
-        let mut n_bank_manager = 0;
-
-        for event in self.events.iter_all() {
-            if let DisbursementEvent::ApprovalAdded {
-                approving_user_roles,
-                ..
-            } = event
-            {
-                if approving_user_roles.contains(&Role::Superuser) {
-                    return true;
-                } else if approving_user_roles.contains(&Role::Admin) {
-                    n_admin += 1;
-                } else {
-                    n_bank_manager += 1;
-                }
-            }
-        }
-
-        n_admin >= 1 && n_admin + n_bank_manager >= 2
+        self.events
+            .iter_all()
+            .any(|event| matches!(event, DisbursementEvent::ApprovalAdded { .. }))
     }
 
     pub fn is_approved(&self) -> bool {
@@ -155,7 +135,6 @@ impl Disbursement {
     pub fn add_approval(
         &mut self,
         approving_user_id: UserId,
-        approving_user_roles: HashSet<Role>,
         audit_info: AuditInfo,
     ) -> Result<Option<DisbursementData>, DisbursementError> {
         if self.has_user_previously_approved(approving_user_id) {
@@ -168,7 +147,6 @@ impl Disbursement {
 
         self.events.push(DisbursementEvent::ApprovalAdded {
             approving_user_id,
-            approving_user_roles,
             recorded_at: Utc::now(),
             audit_info,
         });
@@ -285,16 +263,8 @@ mod test {
     #[test]
     fn admin_and_bank_manager_can_approve() {
         let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let _admin_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::Admin].into_iter().collect(),
-            dummy_audit_info(),
-        );
-        let _bank_manager_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::BankManager].into_iter().collect(),
-            dummy_audit_info(),
-        );
+        let _admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
+        let _bank_manager_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
 
         assert!(disbursement.approval_threshold_met());
     }
@@ -302,16 +272,8 @@ mod test {
     #[test]
     fn two_admin_can_approve() {
         let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let _first_admin_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::Admin].into_iter().collect(),
-            dummy_audit_info(),
-        );
-        let _second_admin_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::Admin].into_iter().collect(),
-            dummy_audit_info(),
-        );
+        let _first_admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
+        let _second_admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
 
         assert!(disbursement.approval_threshold_met());
     }
@@ -320,42 +282,14 @@ mod test {
     fn user_cannot_approve_twice() {
         let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
         let user_id = UserId::new();
-        let first_approval = disbursement.add_approval(
-            user_id,
-            [Role::Admin].into_iter().collect(),
-            dummy_audit_info(),
-        );
+        let first_approval = disbursement.add_approval(user_id, dummy_audit_info());
         assert!(first_approval.is_ok());
 
-        let result = disbursement.add_approval(
-            user_id,
-            [Role::Admin].into_iter().collect(),
-            dummy_audit_info(),
-        );
+        let result = disbursement.add_approval(user_id, dummy_audit_info());
 
         assert!(matches!(
             result,
             Err(DisbursementError::UserCannotApproveTwice)
         ));
-    }
-
-    #[test]
-    fn two_bank_managers_cannot_approve() {
-        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let first_bank_manager_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::BankManager].into_iter().collect(),
-            dummy_audit_info(),
-        );
-        assert!(first_bank_manager_approval.is_ok());
-
-        let second_bank_manager_approval = disbursement.add_approval(
-            UserId::new(),
-            [Role::BankManager].into_iter().collect(),
-            dummy_audit_info(),
-        );
-        assert!(second_bank_manager_approval.is_ok());
-
-        assert!(!disbursement.approval_threshold_met());
     }
 }

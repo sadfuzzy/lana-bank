@@ -22,7 +22,6 @@ use crate::{
         CreditFacilityId, CustomerId, DisbursementIdx, Satoshis, Subject, UsdCents, UserId,
     },
     terms::TermValues,
-    user::{UserRepo, Users},
 };
 
 pub use config::*;
@@ -45,7 +44,6 @@ pub struct CreditFacilities {
     disbursement_repo: DisbursementRepo,
     interest_accrual_repo: InterestAccrualRepo,
     jobs: Jobs,
-    user_repo: UserRepo,
     ledger: Ledger,
     price: Price,
     config: CreditFacilityConfig,
@@ -61,7 +59,6 @@ impl CreditFacilities {
         authz: &Authorization,
         audit: &Audit,
         customers: &Customers,
-        users: &Users,
         ledger: &Ledger,
         price: &Price,
     ) -> Result<Self, CreditFacilityError> {
@@ -95,7 +92,6 @@ impl CreditFacilities {
             disbursement_repo,
             jobs: jobs.clone(),
             interest_accrual_repo,
-            user_repo: users.repo().clone(),
             ledger: ledger.clone(),
             price: price.clone(),
             config,
@@ -216,18 +212,13 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let subject_id = uuid::Uuid::from(sub);
-        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
-
         let mut db_tx = self.pool.begin().await?;
         let price = self.price.usd_cents_per_btc().await?;
 
-        if let Some(credit_facility_approval) = credit_facility.add_approval(
-            user.id,
-            user.current_roles(),
-            audit_info.clone(),
-            price,
-        )? {
+        let user_id = UserId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotUser)?;
+        if let Some(credit_facility_approval) =
+            credit_facility.add_approval(user_id, audit_info.clone(), price)?
+        {
             self.ledger
                 .approve_credit_facility(credit_facility_approval.clone())
                 .await?;
@@ -340,16 +331,12 @@ impl CreditFacilities {
             .disbursement_id_from_idx(disbursement_idx)
             .ok_or_else(|| disbursement::error::DisbursementError::NotFound)?;
 
-        let subject_id = uuid::Uuid::from(sub);
-        let user = self.user_repo.find_by_id(UserId::from(subject_id)).await?;
-
         let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
 
         let mut db_tx = self.pool.begin().await?;
 
-        if let Some(disbursement_data) =
-            disbursement.add_approval(user.id, user.current_roles(), audit_info.clone())?
-        {
+        let user_id = UserId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotUser)?;
+        if let Some(disbursement_data) = disbursement.add_approval(user_id, audit_info.clone())? {
             let executed_at = self
                 .ledger
                 .record_disbursement(disbursement_data.clone())
