@@ -8,7 +8,7 @@ ARG VERSION
 ENV VERSION ${VERSION}
 RUN mkdir lava-home && mkdir lava && cd lava \
   && gh release download --repo GaloyMoney/lava-bank ${VERSION}\
-  && mv lava-cli-x86_64-unknown-linux-musl-${VERSION}.tar.gz lava-core.tar.gz \
+  && mv lava-cli-x86_64-unknown-linux-musl-${VERSION}.tar.gz lava-cli.tar.gz \
   && tar --strip-components=1 -xf lava-cli.tar.gz \
   && mv lava-cli /usr/local/bin && cd ../ && rm -rf ./lava
 
