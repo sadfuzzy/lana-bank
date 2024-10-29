@@ -22,6 +22,7 @@ pub use committee::error as committee_error;
 pub use committee::*;
 use error::*;
 pub use event::*;
+pub use policy::error as policy_error;
 pub use policy::*;
 pub use primitives::*;
 

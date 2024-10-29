@@ -47,7 +47,7 @@ pub struct Loans {
 
 impl Loans {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
+    pub async fn init(
         pool: &PgPool,
         config: LoanConfig,
         jobs: &Jobs,
@@ -58,19 +58,22 @@ impl Loans {
         export: &Export,
         price: &Price,
         users: &Users,
-    ) -> Self {
+    ) -> Result<Self, LoanError> {
         let loan_repo = LoanRepo::new(pool, export);
-        jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
-            ledger,
-            loan_repo.clone(),
-            audit,
-        ));
+        jobs.add_initializer_and_spawn_unique(
+            interest::LoanProcessingJobInitializer::new(ledger, loan_repo.clone(), audit),
+            cvl::LoanJobConfig {
+                job_interval: std::time::Duration::from_secs(30),
+                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+            },
+        )
+        .await?;
         jobs.add_initializer(cvl::LoanProcessingJobInitializer::new(
             loan_repo.clone(),
             price,
             audit,
         ));
-        Self {
+        Ok(Self {
             loan_repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
@@ -80,28 +83,7 @@ impl Loans {
             user_repo: users.repo().clone(),
             price: price.clone(),
             config,
-        }
-    }
-
-    pub async fn spawn_global_jobs(&self) -> Result<(), LoanError> {
-        let mut db_tx = self.pool.begin().await?;
-        match self
-            .jobs
-            .create_and_spawn_unique_in_tx::<cvl::LoanProcessingJobInitializer, _>(
-                &mut db_tx,
-                cvl::LoanJobConfig {
-                    job_interval: std::time::Duration::from_secs(30),
-                    upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
-                },
-            )
-            .await
-        {
-            Err(crate::job::error::JobError::DuplicateUniqueJobType) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-        db_tx.commit().await?;
-        Ok(())
+        })
     }
 
     pub async fn user_can_create_loan_for_customer(

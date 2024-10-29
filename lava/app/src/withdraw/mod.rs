@@ -32,7 +32,7 @@ pub struct Withdraws {
     ledger: Ledger,
     authz: Authorization,
     governance: Governance,
-    jobs: Jobs,
+    _jobs: Jobs,
 }
 
 impl Withdraws {
@@ -48,13 +48,20 @@ impl Withdraws {
         outbox: &Outbox,
     ) -> Result<Self, WithdrawError> {
         let repo = WithdrawRepo::new(pool, export);
-        jobs.add_initializer(approve_job::WithdrawApprovalJobInitializer::new(
-            pool,
-            &repo,
-            authz.audit(),
-            outbox,
-        ));
-        let _ = governance.init_policy(APPROVE_WITHDRAW_PROCESS).await;
+        jobs.add_initializer_and_spawn_unique(
+            approve_job::WithdrawApprovalJobInitializer::new(pool, &repo, authz.audit(), outbox),
+            serde_json::json!({}),
+        )
+        .await?;
+
+        match governance.init_policy(APPROVE_WITHDRAW_PROCESS).await {
+            Err(governance::error::GovernanceError::PolicyError(
+                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
+            )) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+
         Ok(Self {
             pool: pool.clone(),
             repo,
@@ -62,26 +69,8 @@ impl Withdraws {
             ledger: ledger.clone(),
             authz: authz.clone(),
             governance: governance.clone(),
-            jobs: jobs.clone(),
+            _jobs: jobs.clone(),
         })
-    }
-
-    pub async fn spawn_global_jobs(&self) -> Result<(), WithdrawError> {
-        let mut db_tx = self.pool.begin().await?;
-        match self
-            .jobs
-            .create_and_spawn_unique_in_tx::<approve_job::WithdrawApprovalJobInitializer, _>(
-                &mut db_tx,
-                serde_json::json!({}),
-            )
-            .await
-        {
-            Err(crate::job::error::JobError::DuplicateUniqueJobType) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-        db_tx.commit().await?;
-        Ok(())
     }
 
     pub fn repo(&self) -> &WithdrawRepo {

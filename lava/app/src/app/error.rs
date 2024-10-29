@@ -12,6 +12,8 @@ pub enum ApplicationError {
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("ApplicationError - CustomerError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
+    #[error("ApplicationError - CreditFacilityError: {0}")]
+    CreditFacilityError(#[from] crate::credit_facility::error::CreditFacilityError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
     #[error("ApplicationError - AuthorizationError: {0}")]

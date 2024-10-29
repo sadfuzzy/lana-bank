@@ -33,49 +33,33 @@ pub struct Reports {
 }
 
 impl Reports {
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         config: &ReportConfig,
         authz: &Authorization,
         audit: &Audit,
         jobs: &Jobs,
         storage: &Storage,
-    ) -> Self {
+    ) -> Result<Self, ReportError> {
         let repo = ReportRepo::new(pool);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
             &repo, config, audit, storage,
         ));
-        jobs.add_initializer(report_jobs::create::CreateReportInitializer::new(
-            &repo, jobs, audit,
-        ));
+        jobs.add_initializer_and_spawn_unique(
+            report_jobs::create::CreateReportInitializer::new(&repo, jobs, audit),
+            report_jobs::create::CreateReportJobConfig {
+                job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
+            },
+        )
+        .await?;
 
-        Self {
+        Ok(Self {
             repo,
             pool: pool.clone(),
             authz: authz.clone(),
             jobs: jobs.clone(),
             storage: storage.clone(),
-        }
-    }
-
-    pub async fn spawn_global_jobs(&self) -> Result<(), ReportError> {
-        let mut db_tx = self.pool.begin().await?;
-        match self
-            .jobs
-            .create_and_spawn_unique_in_tx::<report_jobs::create::CreateReportInitializer, _>(
-                &mut db_tx,
-                report_jobs::create::CreateReportJobConfig {
-                    job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
-                },
-            )
-            .await
-        {
-            Err(crate::job::error::JobError::DuplicateUniqueJobType) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-        db_tx.commit().await?;
-        Ok(())
+        })
     }
 
     pub async fn create(&self, sub: &Subject) -> Result<Report, ReportError> {

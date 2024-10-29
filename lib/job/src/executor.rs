@@ -10,7 +10,7 @@ use super::{
 };
 
 #[derive(Clone)]
-pub struct JobExecutor {
+pub(crate) struct JobExecutor {
     config: JobExecutorConfig,
     pool: PgPool,
     registry: Arc<RwLock<JobRegistry>>,
@@ -20,7 +20,7 @@ pub struct JobExecutor {
 }
 
 impl JobExecutor {
-    pub(super) fn new(
+    pub fn new(
         pool: &PgPool,
         config: JobExecutorConfig,
         registry: Arc<RwLock<JobRegistry>>,

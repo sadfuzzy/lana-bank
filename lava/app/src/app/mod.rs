@@ -79,12 +79,12 @@ impl LavaApp {
         )
         .await?;
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
-        let price = Price::new(&pool, &jobs, &export);
+        let price = Price::init(&pool, &jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
-        let report = Reports::new(&pool, &config.report, &authz, &audit, &jobs, &storage);
+        let report = Reports::init(&pool, &config.report, &authz, &audit, &jobs, &storage).await?;
         let users = Users::init(&pool, config.user, &authz, &audit, &export).await?;
-        let credit_facilities = CreditFacilities::new(
+        let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
             &jobs,
@@ -95,9 +95,10 @@ impl LavaApp {
             &users,
             &ledger,
             &price,
-        );
+        )
+        .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);
-        let loans = Loans::new(
+        let loans = Loans::init(
             &pool,
             config.loan,
             &jobs,
@@ -108,13 +109,9 @@ impl LavaApp {
             &export,
             &price,
             &users,
-        );
+        )
+        .await?;
         jobs.start_poll().await?;
-
-        withdraws.spawn_global_jobs().await?;
-        loans.spawn_global_jobs().await?;
-        report.spawn_global_jobs().await?;
-        price.spawn_global_jobs().await?;
 
         Ok(Self {
             _pool: pool,

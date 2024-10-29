@@ -15,42 +15,32 @@ use error::PriceError;
 #[derive(Clone)]
 pub struct Price {
     bfx: BfxClient,
-    pool: sqlx::PgPool,
-    jobs: Jobs,
+    _pool: sqlx::PgPool,
+    _jobs: Jobs,
 }
 
 impl Price {
-    pub fn new(pool: &sqlx::PgPool, jobs: &Jobs, export: &Export) -> Self {
+    pub async fn init(
+        pool: &sqlx::PgPool,
+        jobs: &Jobs,
+        export: &Export,
+    ) -> Result<Self, PriceError> {
         let price = Self {
             bfx: BfxClient::new(),
-            pool: pool.clone(),
-            jobs: jobs.clone(),
+            _pool: pool.clone(),
+            _jobs: jobs.clone(),
         };
 
-        jobs.add_initializer(job::ExportPriceInitializer::new(&price, export));
-        price
+        jobs.add_initializer_and_spawn_unique(
+            job::ExportPriceInitializer::new(&price, export),
+            job::ExportPriceJobConfig::default(),
+        )
+        .await?;
+        Ok(price)
     }
 
     pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
         usd_cents_per_btc_cached(&self.bfx).await
-    }
-
-    pub async fn spawn_global_jobs(&self) -> Result<(), PriceError> {
-        let mut db_tx = self.pool.begin().await?;
-        match self
-            .jobs
-            .create_and_spawn_unique_in_tx::<job::ExportPriceInitializer, _>(
-                &mut db_tx,
-                job::ExportPriceJobConfig::default(),
-            )
-            .await
-        {
-            Err(crate::job::error::JobError::DuplicateUniqueJobType) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-        db_tx.commit().await?;
-        Ok(())
     }
 }
 

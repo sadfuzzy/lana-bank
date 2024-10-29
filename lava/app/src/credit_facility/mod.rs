@@ -53,7 +53,7 @@ pub struct CreditFacilities {
 
 impl CreditFacilities {
     #[allow(clippy::too_many_arguments)]
-    pub fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditFacilityConfig,
         jobs: &Jobs,
@@ -64,15 +64,22 @@ impl CreditFacilities {
         users: &Users,
         ledger: &Ledger,
         price: &Price,
-    ) -> Self {
+    ) -> Result<Self, CreditFacilityError> {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
         let disbursement_repo = DisbursementRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
-        jobs.add_initializer(cvl::CreditFacilityProcessingJobInitializer::new(
-            credit_facility_repo.clone(),
-            price,
-            audit,
-        ));
+        jobs.add_initializer_and_spawn_unique(
+            cvl::CreditFacilityProcessingJobInitializer::new(
+                credit_facility_repo.clone(),
+                price,
+                audit,
+            ),
+            cvl::CreditFacilityJobConfig {
+                job_interval: std::time::Duration::from_secs(30),
+                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+            },
+        )
+        .await?;
         jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
             ledger,
             credit_facility_repo.clone(),
@@ -80,7 +87,7 @@ impl CreditFacilities {
             audit,
         ));
 
-        Self {
+        Ok(Self {
             pool: pool.clone(),
             authz: authz.clone(),
             customers: customers.clone(),
@@ -92,28 +99,7 @@ impl CreditFacilities {
             ledger: ledger.clone(),
             price: price.clone(),
             config,
-        }
-    }
-
-    pub async fn spawn_global_jobs(&self) -> Result<(), CreditFacilityError> {
-        let mut db_tx = self.pool.begin().await?;
-        match self
-            .jobs
-            .create_and_spawn_unique_in_tx::<cvl::CreditFacilityProcessingJobInitializer, _>(
-                &mut db_tx,
-                cvl::CreditFacilityJobConfig {
-                    job_interval: std::time::Duration::from_secs(30),
-                    upgrade_buffer_cvl_pct: self.config.upgrade_buffer_cvl_pct,
-                },
-            )
-            .await
-        {
-            Err(JobError::DuplicateUniqueJobType) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-        db_tx.commit().await?;
-        Ok(())
+        })
     }
 
     pub async fn user_can_create(
