@@ -309,7 +309,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -321,7 +321,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1128,7 +1128,7 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1146,7 +1146,7 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "convert_case",
  "darling",
@@ -1446,7 +1446,7 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "governance"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -1955,7 +1955,7 @@ checksum = "49f1f14873335454500d59611f1cf4a4b0f786f9ac11f4312a78e4cf2566695b"
 
 [[package]]
 name = "job"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2044,7 +2044,7 @@ dependencies = [
 
 [[package]]
 name = "lava-app"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2097,7 +2097,7 @@ dependencies = [
 
 [[package]]
 name = "lava-cli"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "clap",
@@ -2113,7 +2113,7 @@ dependencies = [
 
 [[package]]
 name = "lava-events"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "governance",
  "serde",
@@ -2121,7 +2121,7 @@ dependencies = [
 
 [[package]]
 name = "lava-server"
-version = "0.1.0"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2558,7 +2558,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3015,7 +3015,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -3689,7 +3689,7 @@ dependencies = [
 
 [[package]]
 name = "shared-primitives"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "es-entity",
  "job",
@@ -4632,7 +4632,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.2.1-dev"
+version = "0.2.2-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
