@@ -135,7 +135,7 @@ impl Applicants {
         let mut db = self.pool.begin().await?;
 
         self.jobs
-            .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
+            .create_and_spawn_in_tx(
                 &mut db,
                 JobId::new(),
                 SumsubExportConfig::Webhook {
@@ -230,7 +230,7 @@ impl Applicants {
                 }
 
                 self.jobs
-                    .create_and_spawn_in_tx::<SumsubExportInitializer, _>(
+                    .create_and_spawn_in_tx(
                         db,
                         JobId::new(),
                         SumsubExportConfig::SensitiveInfo {

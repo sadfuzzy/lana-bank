@@ -17,6 +17,9 @@ pub struct ExportPriceJobConfig {
     #[serde(default = "default_export_price_interval")]
     pub job_interval_secs: Duration,
 }
+impl JobConfig for ExportPriceJobConfig {
+    type Initializer = ExportPriceInitializer;
+}
 
 fn default_export_price_interval() -> Duration {
     Duration::from_secs(60)

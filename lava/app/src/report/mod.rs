@@ -77,7 +77,7 @@ impl Reports {
         let mut db = self.pool.begin().await?;
         let report = self.repo.create_in_tx(&mut db, new_report).await?;
         self.jobs
-            .create_and_spawn_in_tx::<report_jobs::generate::GenerateReportInitializer, _>(
+            .create_and_spawn_in_tx(
                 &mut db,
                 report.id,
                 report_jobs::generate::GenerateReportConfig {

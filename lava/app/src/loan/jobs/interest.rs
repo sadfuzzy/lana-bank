@@ -14,6 +14,9 @@ use crate::{
 pub struct LoanJobConfig {
     pub loan_id: LoanId,
 }
+impl JobConfig for LoanJobConfig {
+    type Initializer = LoanProcessingJobInitializer;
+}
 
 pub struct LoanProcessingJobInitializer {
     ledger: Ledger,

@@ -183,7 +183,7 @@ impl Loans {
             let executed_at = self.ledger.approve_loan(loan_approval.clone()).await?;
             loan.confirm_approval(loan_approval, executed_at, audit_info);
             self.jobs
-                .create_and_spawn_in_tx::<interest::LoanProcessingJobInitializer, _>(
+                .create_and_spawn_in_tx(
                     &mut db_tx,
                     loan.id,
                     interest::LoanJobConfig { loan_id: loan.id },

@@ -16,6 +16,9 @@ use crate::{
 pub struct CreateReportJobConfig {
     pub job_interval: CreateReportInterval,
 }
+impl JobConfig for CreateReportJobConfig {
+    type Initializer = CreateReportInitializer;
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -101,7 +104,7 @@ impl JobRunner for CreateReportJobRunner {
         let report = self.repo.create_in_tx(&mut db_tx, new_report).await?;
 
         self.jobs
-            .create_and_spawn_in_tx::<super::generate::GenerateReportInitializer, _>(
+            .create_and_spawn_in_tx(
                 &mut db_tx,
                 report.id,
                 super::generate::GenerateReportConfig {

@@ -359,7 +359,7 @@ impl CreditFacilities {
                 .await?;
             match self
                 .jobs
-                .create_and_spawn_at_in_tx::<interest::CreditFacilityProcessingJobInitializer, _>(
+                .create_and_spawn_at_in_tx(
                     &mut db_tx,
                     credit_facility.id,
                     interest::CreditFacilityJobConfig {

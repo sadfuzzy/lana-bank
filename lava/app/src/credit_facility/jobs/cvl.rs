@@ -19,6 +19,9 @@ pub struct CreditFacilityJobConfig {
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
 }
+impl JobConfig for CreditFacilityJobConfig {
+    type Initializer = CreditFacilityProcessingJobInitializer;
+}
 
 pub struct CreditFacilityProcessingJobInitializer {
     repo: CreditFacilityRepo,

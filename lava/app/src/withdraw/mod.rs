@@ -50,7 +50,7 @@ impl Withdraws {
         let repo = WithdrawRepo::new(pool, export);
         jobs.add_initializer_and_spawn_unique(
             approve_job::WithdrawApprovalJobInitializer::new(pool, &repo, authz.audit(), outbox),
-            serde_json::json!({}),
+            approve_job::WithdrawApprovalJobConfig,
         )
         .await?;
 

@@ -13,6 +13,12 @@ use crate::{
 
 use super::repo::WithdrawRepo;
 
+#[derive(serde::Serialize)]
+pub(super) struct WithdrawApprovalJobConfig;
+impl JobConfig for WithdrawApprovalJobConfig {
+    type Initializer = WithdrawApprovalJobInitializer;
+}
+
 pub(super) struct WithdrawApprovalJobInitializer {
     pool: sqlx::PgPool,
     repo: WithdrawRepo,

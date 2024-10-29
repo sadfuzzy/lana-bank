@@ -19,6 +19,9 @@ use crate::report::{
 pub struct GenerateReportConfig {
     pub(in crate::report) report_id: ReportId,
 }
+impl JobConfig for GenerateReportConfig {
+    type Initializer = GenerateReportInitializer;
+}
 
 pub struct GenerateReportInitializer {
     repo: ReportRepo,

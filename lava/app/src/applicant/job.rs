@@ -15,6 +15,9 @@ pub enum SumsubExportConfig {
     Webhook { callback_id: i64 },
     SensitiveInfo { customer_id: CustomerId },
 }
+impl JobConfig for SumsubExportConfig {
+    type Initializer = SumsubExportInitializer;
+}
 
 pub struct SumsubExportInitializer {
     pub(super) export: Export,

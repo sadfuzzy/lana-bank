@@ -57,7 +57,7 @@ pub struct Export {
 
 impl Export {
     pub fn new(cala_url: String, jobs: &Jobs) -> Self {
-        jobs.add_initializer(DataExportInitializer::new());
+        jobs.add_initializer(DataExportInitializer);
         Self {
             cala_url,
             jobs: jobs.clone(),
@@ -110,7 +110,7 @@ impl Export {
                 recorded_at,
             };
             self.jobs
-                .create_and_spawn_in_tx::<DataExportInitializer, _>(
+                .create_and_spawn_in_tx(
                     db,
                     JobId::new(),
                     DataExportConfig {
@@ -156,7 +156,7 @@ impl Export {
                 recorded_at,
             };
             self.jobs
-                .create_and_spawn_in_tx::<DataExportInitializer, _>(
+                .create_and_spawn_in_tx(
                     db,
                     JobId::new(),
                     DataExportConfig {

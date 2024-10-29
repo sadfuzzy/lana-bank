@@ -19,6 +19,9 @@ pub struct LoanJobConfig {
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
 }
+impl JobConfig for LoanJobConfig {
+    type Initializer = LoanProcessingJobInitializer;
+}
 
 pub struct LoanProcessingJobInitializer {
     repo: LoanRepo,

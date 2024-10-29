@@ -15,13 +15,11 @@ pub struct DataExportConfig {
     pub(super) data: ExportEntityEventData,
 }
 
-pub struct DataExportInitializer {}
-
-impl DataExportInitializer {
-    pub fn new() -> Self {
-        Self {}
-    }
+impl JobConfig for DataExportConfig {
+    type Initializer = DataExportInitializer;
 }
+
+pub struct DataExportInitializer;
 
 const DATA_EXPORT_JOB: JobType = JobType::new("data-export");
 impl JobInitializer for DataExportInitializer {

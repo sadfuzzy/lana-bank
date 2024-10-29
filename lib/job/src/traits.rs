@@ -21,6 +21,10 @@ pub trait JobInitializer: Send + Sync + 'static {
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>>;
 }
 
+pub trait JobConfig: serde::Serialize {
+    type Initializer: JobInitializer;
+}
+
 pub enum JobCompletion {
     Complete,
     CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
