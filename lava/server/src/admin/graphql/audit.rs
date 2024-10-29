@@ -10,7 +10,7 @@ use super::{loader::LavaDataLoader, user::User};
 
 #[derive(SimpleObject)]
 pub struct System {
-    name: String,
+    name: &'static str,
 }
 
 #[derive(Union)]
@@ -52,11 +52,8 @@ impl AuditEntry {
                     Some(customer) => Ok(Subject::Customer(customer)),
                 }
             }
-            DomainSubject::System(node) => {
-                let system = System {
-                    // FIXME: this is the ID, also return name of the node
-                    name: node.to_string(),
-                };
+            DomainSubject::System => {
+                let system = System { name: "lava" };
                 Ok(Subject::System(system))
             }
         }

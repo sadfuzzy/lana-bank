@@ -89,7 +89,7 @@ where
             .await?)
     }
 
-    #[instrument("core_user.create_user", skip(self))]
+    #[instrument(name = "core_user.create_user", skip(self))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -114,7 +114,7 @@ where
         Ok(user)
     }
 
-    #[instrument("core_user.find_for_subject", skip(self))]
+    #[instrument(name = "core_user.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -129,7 +129,7 @@ where
         self.repo.find_by_id(id).await
     }
 
-    #[instrument("core_user.find_by_id", skip(self))]
+    #[instrument(name = "core_user.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -146,16 +146,18 @@ where
         }
     }
 
-    #[instrument("core_user.find_by_email", skip(self))]
+    #[instrument(name = "core_user.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
-        // sub: &<Audit as AuditSvc>::Subject,
+        sub: Option<&<Audit as AuditSvc>::Subject>,
         email: &String,
     ) -> Result<Option<User>, UserError> {
-        // let id = id.into();
-        // self.authz
-        //     .enforce_permission(sub, UserObject::user(id), CoreUserAction::USER_READ)
-        //     .await?;
+        if let Some(sub) = sub {
+            self.authz
+                .enforce_permission(sub, UserObject::all_users(), CoreUserAction::USER_READ)
+                .await?;
+        }
+
         match self.repo.find_by_email(email).await {
             Ok(user) => Ok(Some(user)),
             Err(UserError::NotFound) => Ok(None),
@@ -163,7 +165,7 @@ where
         }
     }
 
-    #[instrument("core_user.find_all", skip(self))]
+    #[instrument(name = "core_user.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
         ids: &[UserId],
@@ -171,7 +173,7 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument("core_user.list_users", skip(self))]
+    #[instrument(name = "core_user.list_users", skip(self))]
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -200,7 +202,7 @@ where
             .await?)
     }
 
-    #[instrument("core_user.assign_role_to_user", skip(self))]
+    #[instrument(name = "core_user.assign_role_to_user", skip(self))]
     pub async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -246,7 +248,7 @@ where
             .await?)
     }
 
-    #[instrument("core_user.revoke_role_from_user", skip(self))]
+    #[instrument(name = "core_user.revoke_role_from_user", skip(self))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,

@@ -70,16 +70,7 @@ impl From<Role> for LavaRole {
     }
 }
 
-impl std::fmt::Display for SystemNode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SystemNode::Init => SYSTEM_INIT.fmt(f),
-            SystemNode::Core => SYSTEM_CORE.fmt(f),
-            SystemNode::Kratos => SYSTEM_KRATOS.fmt(f),
-            SystemNode::Sumsub => SYSTEM_SUMSUB.fmt(f),
-        }
-    }
-}
+const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
 
 #[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
@@ -87,30 +78,12 @@ impl std::fmt::Display for SystemNode {
 pub enum Subject {
     Customer(CustomerId),
     User(UserId),
-    System(SystemNode),
-}
-
-impl Subject {
-    pub const fn core() -> Self {
-        Subject::System(SystemNode::Core)
-    }
-
-    pub const fn init() -> Self {
-        Subject::System(SystemNode::Init)
-    }
-
-    pub const fn kratos() -> Self {
-        Subject::System(SystemNode::Kratos)
-    }
-
-    pub const fn sumsub() -> Self {
-        Subject::System(SystemNode::Sumsub)
-    }
+    System,
 }
 
 impl audit::SystemSubject for Subject {
     fn system() -> Self {
-        Self::core()
+        Subject::System
     }
 }
 
@@ -123,18 +96,12 @@ impl std::str::FromStr for Subject {
             return Err(ParseSubjectError::InvalidSubjectFormat);
         }
 
-        let id = parts[1].parse()?;
+        let id: uuid::Uuid = parts[1].parse()?;
         use SubjectDiscriminants::*;
         let res = match SubjectDiscriminants::from_str(parts[0])? {
             Customer => Subject::Customer(CustomerId::from(id)),
             User => Subject::User(UserId::from(id)),
-            System => match id {
-                SYSTEM_INIT => Subject::System(SystemNode::Init),
-                SYSTEM_CORE => Subject::System(SystemNode::Core),
-                SYSTEM_KRATOS => Subject::System(SystemNode::Kratos),
-                SYSTEM_SUMSUB => Subject::System(SystemNode::Sumsub),
-                _ => return Err(ParseSubjectError::UnknownSystemNodeId(id)),
-            },
+            System => Subject::System,
         };
         Ok(res)
     }
@@ -146,8 +113,6 @@ pub enum ParseSubjectError {
     Strum(#[from] strum::ParseError),
     #[error("ParseSubjectError - Uuid: {0}")]
     Uuid(#[from] uuid::Error),
-    #[error("ParseSubjectError - UnknownSystemNodeId: {0}")]
-    UnknownSystemNodeId(uuid::Uuid),
     #[error("ParseSubjectError - InvalidSubjectFormat")]
     InvalidSubjectFormat,
 }
@@ -169,43 +134,10 @@ impl std::fmt::Display for Subject {
         let id: uuid::Uuid = match self {
             Subject::Customer(id) => id.into(),
             Subject::User(id) => id.into(),
-            Subject::System(id) => match id {
-                SystemNode::Init => SYSTEM_INIT,
-                SystemNode::Core => SYSTEM_CORE,
-                SystemNode::Kratos => SYSTEM_KRATOS,
-                SystemNode::Sumsub => SYSTEM_SUMSUB,
-            },
+            Subject::System => SYSTEM_SUBJECT_ID,
         };
         write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), id)?;
         Ok(())
-    }
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum SystemNode {
-    Init,
-    Core,
-    Kratos,
-    Sumsub,
-}
-
-const SYSTEM_INIT: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
-const SYSTEM_CORE: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
-const SYSTEM_KRATOS: Uuid = uuid!("00000000-0000-0000-0000-000000000003");
-const SYSTEM_SUMSUB: Uuid = uuid!("00000000-0000-0000-0000-000000000004");
-
-impl From<&Subject> for uuid::Uuid {
-    fn from(s: &Subject) -> Self {
-        match s {
-            Subject::Customer(id) => uuid::Uuid::from(id),
-            Subject::User(id) => uuid::Uuid::from(id),
-            Subject::System(node) => match node {
-                SystemNode::Init => SYSTEM_INIT,
-                SystemNode::Core => SYSTEM_CORE,
-                SystemNode::Kratos => SYSTEM_KRATOS,
-                SystemNode::Sumsub => SYSTEM_SUMSUB,
-            },
-        }
     }
 }
 

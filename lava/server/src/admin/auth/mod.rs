@@ -6,6 +6,7 @@ use axum::{
     Extension, Router,
 };
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use crate::jwks::JwtDecoderState;
 use lava_app::app::LavaApp;
@@ -58,16 +59,14 @@ pub struct UserCallbackPayload {
     transient_payload: serde_json::Value,
 }
 
+#[instrument(name = "admin.auth.user_callback", skip(app))]
 pub async fn user_callback(
     Extension(app): Extension<LavaApp>,
     Json(payload): Json<UserCallbackPayload>,
 ) -> Result<Response, StatusCode> {
-    // Log the received HTTP method and JSON payload
-    println!("Received user callback with payload: {:?}", payload);
-
     let email = payload.email;
 
-    match app.users().find_by_email(&email).await {
+    match app.users().find_by_email(None, &email).await {
         Ok(Some(_user)) => Ok(StatusCode::OK.into_response()),
         Ok(None) => {
             println!("User not found: {:?}", email);
@@ -99,7 +98,7 @@ pub async fn user_id_from_email(
     Json(mut payload): Json<HydratorPayload>,
 ) -> impl IntoResponse {
     let email = &payload.subject;
-    match app.users().find_by_email(email).await {
+    match app.users().find_by_email(None, email).await {
         Ok(Some(user)) => {
             if let serde_json::Value::Object(ref mut extra) = payload.extra {
                 extra.insert(

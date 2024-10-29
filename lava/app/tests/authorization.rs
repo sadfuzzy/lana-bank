@@ -7,7 +7,6 @@ use authz::PermissionCheck;
 use lava_app::{
     audit::*,
     authorization::{error::AuthorizationError, init as init_authz, *},
-    outbox::Outbox,
     primitives::*,
     user::Users,
 };
@@ -15,20 +14,6 @@ use uuid::Uuid;
 
 fn random_email() -> String {
     format!("{}@integrationtest.com", Uuid::new_v4())
-}
-
-async fn init_users(
-    pool: &sqlx::PgPool,
-    authz: &Authorization,
-) -> anyhow::Result<(Users, Subject)> {
-    let superuser_email = "superuser@test.io".to_string();
-    let outbox = Outbox::init(&pool).await?;
-    let users = Users::init(&pool, &authz, &outbox, Some(superuser_email.clone())).await?;
-    let superuser = users
-        .find_by_email(&superuser_email)
-        .await?
-        .expect("Superuser not found");
-    Ok((users, Subject::from(superuser.id)))
 }
 
 async fn create_user_with_role(
@@ -49,7 +34,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (_, superuser_subject) = init_users(&pool, &authz).await?;
+    let (_, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
     // Superuser can create users
     assert!(authz
@@ -90,7 +75,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz).await?;
+    let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
     let admin_subject = create_user_with_role(&users, &superuser_subject, LavaRole::ADMIN).await?;
 
@@ -131,7 +116,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
     let authz = init_authz(&pool, &audit).await?;
-    let (users, superuser_subject) = init_users(&pool, &authz).await?;
+    let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
     let bank_manager_subject =
         create_user_with_role(&users, &superuser_subject, LavaRole::BANK_MANAGER).await?;

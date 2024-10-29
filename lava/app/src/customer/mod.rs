@@ -116,11 +116,10 @@ impl Customers {
 
         let audit_info = &self
             .audit
-            .record_entry(
-                &Subject::kratos(),
+            .record_system_entry_in_tx(
+                &mut db,
                 Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
-                true,
             )
             .await?;
 
@@ -218,11 +217,10 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::sumsub(),
+            .record_system_entry_in_tx(
+                db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
-                true,
             )
             .await?;
 
@@ -243,11 +241,10 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::sumsub(),
+            .record_system_entry_in_tx(
+                db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
-                true,
             )
             .await?;
 
@@ -268,11 +265,10 @@ impl Customers {
 
         let audit_info = self
             .audit
-            .record_entry(
-                &Subject::sumsub(),
+            .record_system_entry_in_tx(
+                db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
-                true,
             )
             .await?;
 
