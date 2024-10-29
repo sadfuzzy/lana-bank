@@ -2070,7 +2070,6 @@ dependencies = [
  "hex",
  "hmac",
  "job",
- "jsonwebtoken 9.3.0",
  "lava-events",
  "ory-kratos-client",
  "outbox",
@@ -2091,7 +2090,6 @@ dependencies = [
  "strum",
  "thiserror",
  "tokio",
- "tower-http",
  "tracing",
  "tracing-utils",
  "uuid",
@@ -2104,6 +2102,7 @@ dependencies = [
  "anyhow",
  "clap",
  "lava-app",
+ "lava-server",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2118,6 +2117,34 @@ version = "0.2.1-dev"
 dependencies = [
  "governance",
  "serde",
+]
+
+[[package]]
+name = "lava-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "audit",
+ "axum",
+ "axum-extra",
+ "base64 0.22.1",
+ "chrono",
+ "es-entity",
+ "governance",
+ "jsonwebtoken 9.3.0",
+ "lava-app",
+ "reqwest 0.12.8",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-utils",
+ "uuid",
 ]
 
 [[package]]

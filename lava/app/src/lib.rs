@@ -15,7 +15,6 @@ pub mod loan;
 pub mod price;
 pub mod primitives;
 pub mod report;
-pub mod server;
 pub mod service_account;
 pub mod storage;
 pub mod terms;

@@ -6,12 +6,8 @@ use tracing_utils::TracingConfig;
 use std::path::Path;
 
 use super::db::*;
-use lava_app::{
-    app::AppConfig,
-    report::ReportConfig,
-    server::{admin::AdminServerConfig, public::PublicServerConfig},
-    storage::config::StorageConfig,
-};
+use lava_app::{app::AppConfig, report::ReportConfig, storage::config::StorageConfig};
+use lava_server::{admin::AdminServerConfig, public::PublicServerConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {

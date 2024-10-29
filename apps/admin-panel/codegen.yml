@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - "../../lava/app/src/server/admin/schema.graphql"
+  - "../../lava/server/src/admin/schema.graphql"
   - "./lib/graphql/local-schema.gql"
 documents:
   - "app/**/*.{ts,tsx}"

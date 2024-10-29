@@ -73,7 +73,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
 
     handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
-            lava_app::server::admin::run(config.admin_server, admin_app)
+            lava_server::admin::run(config.admin_server, admin_app)
                 .await
                 .context("Admin server error"),
         );
@@ -82,7 +82,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let public_send = send.clone();
     handles.push(tokio::spawn(async move {
         let _ = public_send.try_send(
-            lava_app::server::public::run(config.public_server, public_app)
+            lava_server::public::run(config.public_server, public_app)
                 .await
                 .context("Public server error"),
         );

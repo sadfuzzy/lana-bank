@@ -49,8 +49,8 @@ run-server:
 	cargo run --bin lava-cli -- --config ./bats/lava.yml
 
 check-code: public-sdl admin-sdl
-	git diff --exit-code lava/app/src/server/public/schema.graphql
-	git diff --exit-code lava/app/src/server/admin/schema.graphql
+	git diff --exit-code lava/server/src/public/schema.graphql
+	git diff --exit-code lava/server/src/admin/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -66,10 +66,10 @@ e2e-in-ci: bump-cala-docker-image clean-deps start-deps build run-tf
 	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
 
 public-sdl:
-	SQLX_OFFLINE=true cargo run --bin write_public_sdl > lava/app/src/server/public/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_public_sdl > lava/server/src/public/schema.graphql
 
 admin-sdl:
-	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > lava/app/src/server/admin/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_admin_sdl > lava/server/src/admin/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
 bump-cala-schema:

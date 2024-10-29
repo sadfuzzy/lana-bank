@@ -21,6 +21,7 @@ pub enum CollateralizationState {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
 pub struct AnnualRatePct(Decimal);
+async_graphql::scalar!(AnnualRatePct);
 
 impl AnnualRatePct {
     pub fn interest_for_time_period(&self, principal: UsdCents, days: u32) -> UsdCents {
@@ -65,6 +66,7 @@ impl CVLData {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct CVLPct(Decimal);
+async_graphql::scalar!(CVLPct);
 
 impl fmt::Display for CVLPct {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -322,20 +324,20 @@ impl InterestInterval {
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
 pub struct TermValues {
     #[builder(setter(into))]
-    pub(crate) annual_rate: AnnualRatePct,
+    pub annual_rate: AnnualRatePct,
     #[builder(setter(into))]
-    pub(crate) duration: Duration,
+    pub duration: Duration,
     #[builder(setter(into))]
-    pub(crate) accrual_interval: InterestInterval,
+    pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
-    pub(crate) incurrence_interval: InterestInterval,
+    pub incurrence_interval: InterestInterval,
     // overdue_penalty_rate: LoanAnnualRate,
     #[builder(setter(into))]
-    pub(crate) liquidation_cvl: CVLPct,
+    pub liquidation_cvl: CVLPct,
     #[builder(setter(into))]
-    pub(crate) margin_call_cvl: CVLPct,
+    pub margin_call_cvl: CVLPct,
     #[builder(setter(into))]
-    pub(crate) initial_cvl: CVLPct,
+    pub initial_cvl: CVLPct,
 }
 
 impl TermValues {

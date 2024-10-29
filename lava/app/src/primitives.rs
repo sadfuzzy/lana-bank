@@ -12,6 +12,7 @@ pub use shared_primitives::*;
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct DisbursementIdx(i32);
+async_graphql::scalar!(DisbursementIdx);
 
 impl fmt::Display for DisbursementIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -105,6 +106,7 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SignedSatoshis(i64);
+async_graphql::scalar!(SignedSatoshis);
 
 impl From<Satoshis> for SignedSatoshis {
     fn from(sats: Satoshis) -> Self {
@@ -173,6 +175,7 @@ pub enum ConversionError {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct Satoshis(u64);
+async_graphql::scalar!(Satoshis);
 
 impl fmt::Display for Satoshis {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
@@ -240,6 +243,7 @@ impl TryFrom<SignedSatoshis> for Satoshis {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct SignedUsdCents(i64);
+async_graphql::scalar!(SignedUsdCents);
 
 impl SignedUsdCents {
     pub const ZERO: Self = Self(0);
@@ -286,6 +290,7 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct UsdCents(u64);
+async_graphql::scalar!(UsdCents);
 
 impl std::ops::SubAssign for UsdCents {
     fn sub_assign(&mut self, other: Self) {
