@@ -39,7 +39,7 @@ const WithdrawalDropdown: React.FC<WithdrawalDropdownProps> = ({
         >
           View Withdrawal Details
         </DropdownMenuItem>
-        {withdrawal.status === WithdrawalStatus.PendingApproval && (
+        {withdrawal.status === WithdrawalStatus.PendingConfirmation && (
           <>
             <DropdownMenuItem onClick={onConfirm}>Confirm Withdraw</DropdownMenuItem>
             <DropdownMenuItem onClick={onCancel}>Cancel Withdraw</DropdownMenuItem>

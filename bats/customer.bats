@@ -10,6 +10,17 @@ teardown_file() {
   stop_server
 }
 
+wait_for_approval() {
+  variables=$(
+    jq -n \
+      --arg withdrawId "$1" \
+    '{ id: $withdrawId }'
+  )
+  exec_admin_graphql 'find-withdraw' "$variables"
+  status=$(graphql_output '.data.withdrawal.status')
+  [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
+}
+
 @test "customer: unauthorized" {
   cache_value "alice" "invalid-token"
   exec_graphql 'alice' 'me'
@@ -165,6 +176,8 @@ teardown_file() {
   [[ "$pending_usd_balance" == "150000" ]] || exit 1
 
   assert_accounts_balanced
+
+  retry 5 1 wait_for_approval $withdrawal_id
 
   variables=$(
     jq -n \

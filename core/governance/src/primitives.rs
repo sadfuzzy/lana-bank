@@ -56,6 +56,8 @@ impl GovernanceAction {
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Approve);
     pub const APPROVAL_PROCESS_DENY: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny);
+    pub const APPROVAL_PROCESS_CONCLUDE: Self =
+        GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
 }
 
 impl Display for GovernanceAction {

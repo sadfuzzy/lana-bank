@@ -13,6 +13,8 @@ const getVariant = (status: WithdrawalStatus) => {
       return "success"
     case WithdrawalStatus.Cancelled:
       return "destructive"
+    case WithdrawalStatus.Denied:
+      return "destructive"
     default:
       return "default"
   }

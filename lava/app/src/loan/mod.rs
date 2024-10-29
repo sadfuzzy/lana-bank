@@ -57,19 +57,19 @@ impl Loans {
         price: &Price,
     ) -> Result<Self, LoanError> {
         let loan_repo = LoanRepo::new(pool, export);
+        jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
+            ledger,
+            loan_repo.clone(),
+            audit,
+        ));
         jobs.add_initializer_and_spawn_unique(
-            interest::LoanProcessingJobInitializer::new(ledger, loan_repo.clone(), audit),
+            cvl::LoanProcessingJobInitializer::new(loan_repo.clone(), price, audit),
             cvl::LoanJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
             },
         )
         .await?;
-        jobs.add_initializer(cvl::LoanProcessingJobInitializer::new(
-            loan_repo.clone(),
-            price,
-            audit,
-        ));
         Ok(Self {
             loan_repo,
             customers: customers.clone(),

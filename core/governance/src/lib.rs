@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use std::collections::{HashMap, HashSet};
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
@@ -78,7 +78,6 @@ where
         }
     }
 
-    #[instrument(name = "governance.init_policy", skip(self), err)]
     pub async fn init_policy(
         &self,
         process_type: ApprovalProcessType,
@@ -150,11 +149,12 @@ where
         Ok(policies)
     }
 
+    #[instrument(name = "governance.assign_committee_to_policy", skip(self), err)]
     pub async fn assign_committee_to_policy(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        policy_id: impl Into<PolicyId>,
-        committee_id: impl Into<CommitteeId>,
+        policy_id: impl Into<PolicyId> + std::fmt::Debug,
+        committee_id: impl Into<CommitteeId> + std::fmt::Debug,
         threshold: usize,
     ) -> Result<Policy, GovernanceError> {
         let policy_id = policy_id.into();
@@ -188,22 +188,20 @@ where
         id: impl Into<ApprovalProcessId> + std::fmt::Debug,
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
-        let sub = <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system();
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
         let audit_info = self
             .authz
             .audit()
-            .record_entry(
-                &sub,
+            .record_system_entry(
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
-                true,
             )
             .await?;
         let process = policy.spawn_process(id.into(), audit_info);
         let mut process = self.process_repo.create_in_tx(db, process).await?;
+        let eligible = self.eligible_voters_for_process(&process).await?;
         if self
-            .maybe_fire_concluded_event(db.begin().await?, HashSet::new(), &mut process)
+            .maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?
         {
             self.process_repo.update_in_tx(db, &mut process).await?;
@@ -231,14 +229,7 @@ where
             .await?;
         let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
-        let eligible = if let Some(committee_id) = process.committee_id() {
-            self.committee_repo
-                .find_by_id(committee_id)
-                .await?
-                .members()
-        } else {
-            HashSet::new()
-        };
+        let eligible = self.eligible_voters_for_process(&process).await?;
         process.approve(&eligible, user_id, audit_info)?;
         let mut db = self.pool.begin().await?;
         self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
@@ -333,8 +324,8 @@ where
             .audit()
             .record_system_entry_in_tx(
                 &mut db,
-                GovernanceObject::ApprovalProcess(ApprovalProcessAllOrOne::ById(process.id)),
-                GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude),
+                GovernanceObject::approval_process(process.id),
+                GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
         let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
@@ -506,5 +497,20 @@ where
 
         let approval_processes = self.process_repo.list_by_created_at(query).await?;
         Ok(approval_processes)
+    }
+
+    async fn eligible_voters_for_process(
+        &self,
+        process: &ApprovalProcess,
+    ) -> Result<HashSet<UserId>, GovernanceError> {
+        let res = if let Some(committee_id) = process.committee_id() {
+            self.committee_repo
+                .find_by_id(committee_id)
+                .await?
+                .members()
+        } else {
+            HashSet::new()
+        };
+        Ok(res)
     }
 }

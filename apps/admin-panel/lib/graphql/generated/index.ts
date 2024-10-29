@@ -1666,9 +1666,25 @@ export type WithdrawalInitiatePayload = {
 export enum WithdrawalStatus {
   Cancelled = 'CANCELLED',
   Confirmed = 'CONFIRMED',
+  Denied = 'DENIED',
   PendingApproval = 'PENDING_APPROVAL',
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
+
+export type ApprovalProcessApproveMutationVariables = Exact<{
+  input: ApprovalProcessApproveInput;
+}>;
+
+
+export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } } };
+
+export type ApprovalProcessesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, processType: string, createdAt: any } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2247,6 +2263,92 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${RangedBtcBalancesFragmentDoc}
 ${RangedUsdBalancesFragmentDoc}`;
+export const ApprovalProcessApproveDocument = gql`
+    mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
+  approvalProcessApprove(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      processType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessApproveMutationFn = Apollo.MutationFunction<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+
+/**
+ * __useApprovalProcessApproveMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessApproveMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessApproveMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessApproveMutation, { data, loading, error }] = useApprovalProcessApproveMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessApproveMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>(ApprovalProcessApproveDocument, options);
+      }
+export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useApprovalProcessApproveMutation>;
+export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
+export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+export const ApprovalProcessesDocument = gql`
+    query ApprovalProcesses($first: Int!, $after: String) {
+  approvalProcesses(first: $first, after: $after) {
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    edges {
+      cursor
+      node {
+        id
+        approvalProcessId
+        processType
+        createdAt
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useApprovalProcessesQuery__
+ *
+ * To run a query within a React component, call `useApprovalProcessesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useApprovalProcessesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useApprovalProcessesQuery(baseOptions: Apollo.QueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
+      }
+export function useApprovalProcessesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
+        }
+export type ApprovalProcessesQueryHookResult = ReturnType<typeof useApprovalProcessesQuery>;
+export type ApprovalProcessesLazyQueryHookResult = ReturnType<typeof useApprovalProcessesLazyQuery>;
+export type ApprovalProcessesQueryResult = Apollo.QueryResult<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>;
 export const AuditLogsDocument = gql`
     query AuditLogs($first: Int!, $after: String) {
   audit(first: $first, after: $after) {

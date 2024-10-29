@@ -131,6 +131,12 @@ const NavigationLinks = () => {
       visible: true,
     },
     {
+      href: "/approval-process",
+      label: "Approval Process",
+      icon: MdOutlinePolicy,
+      visible: true,
+    },
+    {
       label: "Financials",
       icon: IoCashOutline,
       visible: visibleItems?.financials,
