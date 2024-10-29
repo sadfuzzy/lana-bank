@@ -1084,10 +1084,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let UserAssignRoleInput { id, role } = input;
-        let user = app
-            .users()
-            .assign_role_to_user(sub, id.into(), role)
-            .await?;
+        let user = app.users().assign_role_to_user(sub, id, role).await?;
         Ok(UserAssignRolePayload::from(user))
     }
 
@@ -1099,10 +1096,7 @@ impl Mutation {
         let app = ctx.data_unchecked::<LavaApp>();
         let AdminAuthContext { sub } = ctx.data()?;
         let UserRevokeRoleInput { id, role } = input;
-        let user = app
-            .users()
-            .revoke_role_from_user(sub, id.into(), role)
-            .await?;
+        let user = app.users().revoke_role_from_user(sub, id, role).await?;
         Ok(UserRevokeRolePayload::from(user))
     }
 

@@ -200,12 +200,16 @@ where
             .await?)
     }
 
+    #[instrument("core_user.assign_role_to_user", skip(self))]
     pub async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        id: UserId,
-        role: Role,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role: impl Into<Role> + std::fmt::Debug,
     ) -> Result<User, UserError> {
+        let id = user_id.into();
+        let role = role.into();
+
         if role == Role::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
@@ -242,12 +246,16 @@ where
             .await?)
     }
 
+    #[instrument("core_user.revoke_role_from_user", skip(self))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        id: UserId,
-        role: Role,
+        user_id: impl Into<UserId> + std::fmt::Debug,
+        role: impl Into<Role> + std::fmt::Debug,
     ) -> Result<User, UserError> {
+        let id = user_id.into();
+        let role = role.into();
+
         if role == Role::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,

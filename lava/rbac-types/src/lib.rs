@@ -14,12 +14,60 @@ pub use object::*;
 
 pub use core_user::Role;
 
-pub struct LavaRole;
+#[derive(
+    async_graphql::Enum,
+    Serialize,
+    Deserialize,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    strum::EnumString,
+    strum::Display,
+)]
+#[strum(serialize_all = "kebab-case")]
+#[graphql(name = "Role")]
+pub enum LavaRole {
+    Superuser,
+    Admin,
+    BankManager,
+    Accountant,
+}
+
 impl LavaRole {
     pub const SUPERUSER: Role = Role::SUPERUSER;
-    pub const ACCOUNANT: Role = Role::new("accountant");
+    pub const ACCOUNTANT: Role = Role::new("accountant");
     pub const ADMIN: Role = Role::new("admin");
     pub const BANK_MANAGER: Role = Role::new("bank_manager");
+}
+
+impl From<LavaRole> for Role {
+    fn from(r: LavaRole) -> Self {
+        match r {
+            LavaRole::Superuser => LavaRole::SUPERUSER,
+            LavaRole::Admin => LavaRole::ADMIN,
+            LavaRole::BankManager => LavaRole::BANK_MANAGER,
+            LavaRole::Accountant => LavaRole::ACCOUNTANT,
+        }
+    }
+}
+
+impl From<Role> for LavaRole {
+    fn from(r: Role) -> Self {
+        if r == LavaRole::SUPERUSER {
+            LavaRole::Superuser
+        } else if r == LavaRole::ADMIN {
+            LavaRole::Admin
+        } else if r == LavaRole::BANK_MANAGER {
+            LavaRole::BankManager
+        } else if r == LavaRole::ACCOUNTANT {
+            LavaRole::Accountant
+        } else {
+            panic!("Unknown Role")
+        }
+    }
 }
 
 impl std::fmt::Display for SystemNode {

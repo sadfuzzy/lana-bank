@@ -402,7 +402,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
 }
 
 async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = LavaRole::ACCOUNANT;
+    let role = LavaRole::ACCOUNTANT;
 
     authz
         .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Read)

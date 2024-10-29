@@ -1068,7 +1068,12 @@ enum ReportProgress {
 	COMPLETE
 }
 
-scalar Role
+enum Role {
+	SUPERUSER
+	ADMIN
+	BANK_MANAGER
+	ACCOUNTANT
+}
 
 scalar Satoshis
 

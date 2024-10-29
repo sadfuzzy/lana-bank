@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-graphql = ["shared-primitives/graphql", "es-entity/graphql", "dep:async-graphql"]
+graphql = ["shared-primitives/graphql", "es-entity/graphql"]
 
 [dependencies]
 shared-primitives = { path = "../shared-primitives" }
@@ -22,7 +22,6 @@ derive_builder = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
-async-graphql = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

@@ -16,9 +16,6 @@ impl Role {
     }
 }
 
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(Role);
-
 impl Display for Role {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)

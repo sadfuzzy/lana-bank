@@ -19,3 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run check code
         run: nix develop -c make check-code
+      - name: Run apps check code
+        run: nix develop -c make check-code-apps
+
