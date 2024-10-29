@@ -12,7 +12,12 @@ use super::{entity::*, error::*};
     err = "ApprovalProcessError",
     columns(
         process_type(ty = "ApprovalProcessType"),
-        committee_id(ty = "Option<CommitteeId>", list_for),
+        committee_id(
+            ty = "Option<CommitteeId>",
+            list_for,
+            create(accessor = "committee_id()"),
+            update(accessor = "committee_id()")
+        ),
         policy_id(ty = "PolicyId")
     )
 )]

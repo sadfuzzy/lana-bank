@@ -318,10 +318,7 @@ impl Query {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|approval_process| {
-                        let cursor = ApprovalProcessByCreatedAtCursor::from((
-                            approval_process.id,
-                            approval_process.created_at(),
-                        ));
+                        let cursor = ApprovalProcessByCreatedAtCursor::from(&approval_process);
                         Edge::new(cursor, ApprovalProcess::from(approval_process))
                     }));
 

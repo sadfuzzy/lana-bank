@@ -64,9 +64,9 @@ scalar AnnualRatePct
 type ApprovalProcess {
 	id: ID!
 	approvalProcessId: UUID!
+	rules: ApprovalRules!
 	processType: String!
 	createdAt: Timestamp!
-	committee: Committee
 }
 
 type ApprovalProcessConnection {
@@ -97,6 +97,8 @@ type ApprovalProcessEdge {
 	"""
 	cursor: String!
 }
+
+union ApprovalRules = CommitteeThreshold | SystemApproval
 
 type AuditEntry {
 	id: ID!
@@ -274,6 +276,11 @@ input CommitteeRemoveUserInput {
 }
 
 type CommitteeRemoveUserPayload {
+	committee: Committee!
+}
+
+type CommitteeThreshold {
+	threshold: Int!
 	committee: Committee!
 }
 
@@ -926,7 +933,7 @@ type Policy {
 	id: ID!
 	policyId: UUID!
 	processType: String!
-	committeeId: UUID
+	rules: ApprovalRules!
 }
 
 input PolicyAssignCommitteeInput {
@@ -1087,6 +1094,10 @@ type SumsubPermalinkCreatePayload {
 
 type System {
 	name: String!
+}
+
+type SystemApproval {
+	autoApprove: Boolean!
 }
 
 type TermValues {

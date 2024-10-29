@@ -105,7 +105,7 @@ where
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .rules(ApprovalRules::Automatic)
+            .rules(ApprovalRules::System)
             .audit_info(audit_info)
             .build()
             .expect("Could not build new policy");
@@ -175,9 +175,9 @@ where
             .await?;
 
         let committee_id = committee_id.into();
-        let _ = self.committee_repo.find_by_id(committee_id).await?;
+        let committee = self.committee_repo.find_by_id(committee_id).await?;
         let mut policy = self.policy_repo.find_by_id(policy_id).await?;
-        policy.assign_committee(committee_id, threshold, audit_info);
+        policy.assign_committee(committee.id, threshold, audit_info);
 
         let mut db_tx = self.pool.begin().await?;
         self.policy_repo
@@ -237,7 +237,7 @@ where
             .await?;
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
-        let eligible = if let Some(committee_id) = process.committee_id {
+        let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)
                 .await?
@@ -276,7 +276,7 @@ where
             .await?;
         let user_id = UserId::from(sub);
         let mut process = self.process_repo.find_by_id(process_id).await?;
-        let eligible = if let Some(committee_id) = process.committee_id {
+        let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)
                 .await?
@@ -360,6 +360,7 @@ where
         };
         Ok(res)
     }
+
     #[instrument(name = "governance.add_user_to_committee", skip(self), err)]
     pub async fn add_user_to_committee(
         &self,

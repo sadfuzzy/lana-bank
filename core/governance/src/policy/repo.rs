@@ -12,7 +12,11 @@ use super::{entity::*, error::*};
     err = "PolicyError",
     columns(
         process_type(ty = "ApprovalProcessType"),
-        committee_id(ty = "Option<CommitteeId>")
+        committee_id(
+            ty = "Option<CommitteeId>",
+            create(accessor = "committee_id()"),
+            update(accessor = "committee_id()")
+        ),
     )
 )]
 pub(crate) struct PolicyRepo {
@@ -55,7 +59,7 @@ mod tests {
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type.clone())
-            .rules(crate::ApprovalRules::Automatic)
+            .rules(crate::ApprovalRules::System)
             .audit_info(dummy_audit_info())
             .build()
             .expect("Could not build new policy");
@@ -64,7 +68,7 @@ mod tests {
         let new_policy = NewPolicy::builder()
             .id(PolicyId::new())
             .process_type(process_type)
-            .rules(crate::ApprovalRules::Automatic)
+            .rules(crate::ApprovalRules::System)
             .audit_info(dummy_audit_info())
             .build()
             .expect("Could not build new policy");

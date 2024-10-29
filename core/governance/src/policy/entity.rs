@@ -15,11 +15,9 @@ pub enum PolicyEvent {
         id: PolicyId,
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
-        committee_id: Option<CommitteeId>,
         audit_info: AuditInfo,
     },
     ApprovalRulesUpdated {
-        committee_id: Option<CommitteeId>,
         rules: ApprovalRules,
         audit_info: AuditInfo,
     },
@@ -30,13 +28,15 @@ pub enum PolicyEvent {
 pub struct Policy {
     pub id: PolicyId,
     pub process_type: ApprovalProcessType,
-    #[builder(default)]
-    pub committee_id: Option<CommitteeId>,
     pub rules: ApprovalRules,
     pub(super) events: EntityEvents<PolicyEvent>,
 }
 
 impl Policy {
+    pub fn committee_id(&self) -> Option<CommitteeId> {
+        self.rules.committee_id()
+    }
+
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
             .entity_first_persisted_at()
@@ -64,10 +64,11 @@ impl Policy {
         threshold: usize,
         audit_info: AuditInfo,
     ) {
-        self.committee_id = Some(committee_id);
-        self.rules = ApprovalRules::CommitteeThreshold { threshold };
+        self.rules = ApprovalRules::CommitteeThreshold {
+            threshold,
+            committee_id,
+        };
         self.events.push(PolicyEvent::ApprovalRulesUpdated {
-            committee_id: self.committee_id,
             rules: self.rules.clone(),
             audit_info,
         });
@@ -90,11 +91,9 @@ impl TryFromEvents<PolicyEvent> for Policy {
                         .process_type(process_type.clone())
                         .rules(rules.clone())
                 }
-                PolicyEvent::ApprovalRulesUpdated {
-                    committee_id,
-                    rules,
-                    ..
-                } => builder = builder.committee_id(*committee_id).rules(rules.clone()),
+                PolicyEvent::ApprovalRulesUpdated { rules, .. } => {
+                    builder = builder.rules(rules.clone())
+                }
             }
         }
         builder.events(events).build()
@@ -106,8 +105,6 @@ pub struct NewPolicy {
     #[builder(setter(into))]
     pub(super) id: PolicyId,
     pub(super) process_type: ApprovalProcessType,
-    #[builder(default, setter(into))]
-    pub(super) committee_id: Option<CommitteeId>,
     pub(super) rules: ApprovalRules,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -116,6 +113,10 @@ pub struct NewPolicy {
 impl NewPolicy {
     pub fn builder() -> NewPolicyBuilder {
         NewPolicyBuilder::default()
+    }
+
+    pub fn committee_id(&self) -> Option<CommitteeId> {
+        self.rules.committee_id()
     }
 }
 
@@ -127,7 +128,6 @@ impl IntoEvents<PolicyEvent> for NewPolicy {
                 id: self.id,
                 process_type: self.process_type,
                 rules: self.rules,
-                committee_id: self.committee_id,
                 audit_info: self.audit_info,
             }],
         )
@@ -153,8 +153,7 @@ mod test {
             [PolicyEvent::Initialized {
                 id: PolicyId::new(),
                 process_type: ApprovalProcessType::new("test"),
-                rules: ApprovalRules::Automatic,
-                committee_id: None,
+                rules: ApprovalRules::System,
                 audit_info: dummy_audit_info(),
             }],
         )
@@ -167,10 +166,13 @@ mod test {
         let threshold = 1;
         let audit_info = dummy_audit_info();
         policy.assign_committee(committee_id, threshold, audit_info.clone());
-        assert_eq!(policy.committee_id, Some(committee_id));
+        assert_eq!(policy.committee_id(), Some(committee_id));
         assert_eq!(
             policy.rules,
-            ApprovalRules::CommitteeThreshold { threshold }
+            ApprovalRules::CommitteeThreshold {
+                threshold,
+                committee_id
+            }
         );
     }
 }
