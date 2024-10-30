@@ -54,6 +54,29 @@ pub mod graphql {
 }
 
 #[macro_export]
+macro_rules! from_es_entity_error {
+    ($name:ident) => {
+        impl From<es_entity::EsEntityError> for $name {
+            fn from(e: es_entity::EsEntityError) -> Self {
+                match e {
+                    es_entity::EsEntityError::NotFound => $name::NotFound,
+                    es_entity::EsEntityError::UninitializedFieldError(e) => {
+                        panic!(
+                            "{} - Inconsistent data when during entity hydration. Missing builder.<field>(<arg>) in TryFromEvents?: {:?}",
+                            stringify!($name),
+                            e
+                        )
+                    }
+                    es_entity::EsEntityError::EventDeserialization(e) => {
+                        panic!("{} - Could not deserialize Event. Bad / old state in DB? Incompatible event schema change?: {:?}", stringify!($name), e)
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[macro_export]
 macro_rules! entity_id {
     ($name:ident) => {
         #[derive(

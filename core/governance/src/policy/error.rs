@@ -10,19 +10,7 @@ pub enum PolicyError {
     DuplicateApprovalProcessType,
 }
 
-impl From<es_entity::EsEntityError> for PolicyError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => PolicyError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a Policy entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(PolicyError);
 
 impl From<sqlx::Error> for PolicyError {
     fn from(error: sqlx::Error) -> Self {

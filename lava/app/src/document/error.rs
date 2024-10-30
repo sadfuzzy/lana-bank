@@ -12,16 +12,4 @@ pub enum DocumentError {
     NotFound,
 }
 
-impl From<es_entity::EsEntityError> for DocumentError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => DocumentError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a Document entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(DocumentError);

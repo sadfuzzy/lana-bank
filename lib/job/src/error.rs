@@ -50,13 +50,4 @@ impl From<sqlx::Error> for JobError {
     }
 }
 
-impl From<es_entity::EsEntityError> for JobError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => JobError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!("Inconsistent data when initializing a Job entity: {:?}", e)
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(JobError);

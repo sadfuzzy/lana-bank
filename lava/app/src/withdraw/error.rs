@@ -28,16 +28,4 @@ pub enum WithdrawError {
     NotFound,
 }
 
-impl From<es_entity::EsEntityError> for WithdrawError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => WithdrawError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a Withdraw entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(WithdrawError);

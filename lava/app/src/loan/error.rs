@@ -56,13 +56,4 @@ pub enum LoanError {
     SubjectIsNotUser,
 }
 
-impl From<es_entity::EsEntityError> for LoanError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => LoanError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!("Inconsistent data when initializing a Loan entity: {:?}", e)
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(LoanError);

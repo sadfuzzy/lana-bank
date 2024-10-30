@@ -131,7 +131,7 @@ where
                 entity_id: e.entity_id,
                 recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
-                event: serde_json::from_value(e.event).expect("Could not deserialize event"),
+                event: serde_json::from_value(e.event)?,
             });
         }
         if let Some(current) = current {
@@ -169,7 +169,7 @@ where
                 entity_id: e.entity_id,
                 recorded_at: e.recorded_at,
                 sequence: e.sequence as usize,
-                event: serde_json::from_value(e.event).expect("Could not deserialize event"),
+                event: serde_json::from_value(e.event)?,
             });
         }
         if let Some(current) = current.take() {

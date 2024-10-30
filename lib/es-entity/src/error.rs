@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum EsEntityError {
     #[error("EsEntityError - UninitializedFieldError: {0}")]
     UninitializedFieldError(#[from] derive_builder::UninitializedFieldError),
+    #[error("EsEntityError - Deserialization: {0}")]
+    EventDeserialization(#[from] serde_json::Error),
     #[error("EntityError - NotFound")]
     NotFound,
 }

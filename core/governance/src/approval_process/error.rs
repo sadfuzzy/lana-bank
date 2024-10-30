@@ -14,16 +14,4 @@ pub enum ApprovalProcessError {
     AlreadyConcluded,
 }
 
-impl From<es_entity::EsEntityError> for ApprovalProcessError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => ApprovalProcessError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a ApprovalProcess entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(ApprovalProcessError);

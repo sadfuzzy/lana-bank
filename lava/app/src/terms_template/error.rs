@@ -20,16 +20,4 @@ pub enum TermsTemplateError {
     JobError(#[from] crate::job::error::JobError),
 }
 
-impl From<es_entity::EsEntityError> for TermsTemplateError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => TermsTemplateError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a TermsTemplate entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(TermsTemplateError);

@@ -14,16 +14,4 @@ pub enum InterestAccrualError {
     NotFound,
 }
 
-impl From<es_entity::EsEntityError> for InterestAccrualError {
-    fn from(e: es_entity::EsEntityError) -> Self {
-        match e {
-            es_entity::EsEntityError::NotFound => InterestAccrualError::NotFound,
-            es_entity::EsEntityError::UninitializedFieldError(e) => {
-                panic!(
-                    "Inconsistent data when initializing a InterestAccrual entity: {:?}",
-                    e
-                )
-            }
-        }
-    }
-}
+es_entity::from_es_entity_error!(InterestAccrualError);
