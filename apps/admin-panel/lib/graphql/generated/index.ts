@@ -161,6 +161,7 @@ export type ApprovalProcessVoter = {
   didVote: Scalars['Boolean']['output'];
   stillEligible: Scalars['Boolean']['output'];
   user: User;
+  votedAt?: Maybe<Scalars['Timestamp']['output']>;
 };
 
 export type ApprovalRules = CommitteeThreshold | SystemApproval;

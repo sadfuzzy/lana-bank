@@ -36,6 +36,7 @@ type ApprovalProcessVoter {
 	didVote: Boolean!
 	didApprove: Boolean!
 	didDeny: Boolean!
+	votedAt: Timestamp
 	user: User!
 }
 

@@ -52,6 +52,20 @@ impl ApprovalProcess {
             .expect("No events for committee")
     }
 
+    pub fn user_voted_at(&self, user_id: UserId) -> Option<chrono::DateTime<chrono::Utc>> {
+        self.events
+            .iter_persisted()
+            .filter_map(|event| match event.event {
+                ApprovalProcessEvent::Approved { approver_id, .. } if approver_id == user_id => {
+                    Some(event.recorded_at)
+                }
+                ApprovalProcessEvent::Denied { denier_id, .. } if denier_id == user_id => {
+                    Some(event.recorded_at)
+                }
+                _ => None,
+            })
+            .next()
+    }
     pub fn target_ref(&self) -> &str {
         if let ApprovalProcessEvent::Initialized { target_ref, .. } =
             self.events.iter_all().next().expect("No events")

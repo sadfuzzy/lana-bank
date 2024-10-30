@@ -92,6 +92,7 @@ impl ApprovalProcess {
                     did_approve: approvers.remove(&user_id),
                     did_deny: deniers.remove(&user_id),
                     user_id,
+                    voted_at: self.entity.user_voted_at(user_id).map(Into::into),
                 })
                 .collect();
             voters.extend(
@@ -103,6 +104,7 @@ impl ApprovalProcess {
                         did_vote: true,
                         did_approve: true,
                         did_deny: false,
+                        voted_at: self.entity.user_voted_at(user_id).map(Into::into),
                     })
                     .chain(deniers.into_iter().map(|user_id| ApprovalProcessVoter {
                         user_id,
@@ -110,6 +112,7 @@ impl ApprovalProcess {
                         did_vote: true,
                         did_approve: false,
                         did_deny: true,
+                        voted_at: self.entity.user_voted_at(user_id).map(Into::into),
                     })),
             );
             Ok(voters)
@@ -164,6 +167,7 @@ pub struct ApprovalProcessVoter {
     did_vote: bool,
     did_approve: bool,
     did_deny: bool,
+    voted_at: Option<Timestamp>,
 }
 
 #[ComplexObject]
