@@ -1,8 +1,12 @@
 "use client"
 import { useState } from "react"
 import { gql } from "@apollo/client"
+import { IoEllipsisHorizontal } from "react-icons/io5"
+
+import { useRouter } from "next/navigation"
 
 import { ApprovalDialog } from "./approve"
+import { DenialDialog } from "./deny"
 
 import {
   Table,
@@ -14,9 +18,15 @@ import {
 } from "@/components/primitive/table"
 import { Card, CardContent } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/primitive/dropdown-menu"
 import { PageHeading } from "@/components/page-heading"
-import { useApprovalProcessesQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import { ApprovalProcess, useApprovalProcessesQuery } from "@/lib/graphql/generated"
+import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
   query ApprovalProcesses($first: Int!, $after: String) {
@@ -32,6 +42,16 @@ gql`
           approvalProcessId
           approvalProcessType
           createdAt
+          canVote
+          target {
+            __typename
+            ... on Withdrawal {
+              withdrawalId
+            }
+            ... on CreditFacility {
+              creditFacilityId
+            }
+          }
         }
       }
     }
@@ -39,8 +59,11 @@ gql`
 `
 
 export default function ApprovalProcessesTable() {
-  const [selectedProcess, setSelectedProcess] = useState<string | null>(null)
-
+  const [selectedProcessForApproval, setSelectedProcessForApproval] =
+    useState<ApprovalProcess | null>(null)
+  const [selectedProcessForDenial, setSelectedProcessForDenial] =
+    useState<ApprovalProcess | null>(null)
+  const router = useRouter()
   const { data, loading, error, fetchMore, refetch } = useApprovalProcessesQuery({
     variables: { first: 20 },
     fetchPolicy: "cache-and-network",
@@ -71,7 +94,6 @@ export default function ApprovalProcessesTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Process ID</TableHead>
                 <TableHead>Process Type</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Actions</TableHead>
@@ -79,17 +101,46 @@ export default function ApprovalProcessesTable() {
             </TableHeader>
             <TableBody>
               {data?.approvalProcesses.edges.map(({ node: process }) => (
-                <TableRow key={process.approvalProcessId}>
-                  <TableCell>{process.approvalProcessId}</TableCell>
-                  <TableCell>{process.approvalProcessType}</TableCell>
+                <TableRow
+                  key={process.approvalProcessId}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    router.push(processTypeLink(process as ApprovalProcess))
+                  }}
+                >
+                  <TableCell>{formatProcessType(process.approvalProcessType)}</TableCell>
                   <TableCell>{formatDate(process.createdAt)}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      onClick={() => setSelectedProcess(process.approvalProcessId)}
-                    >
-                      Approve
-                    </Button>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="ghost">
+                          <IoEllipsisHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="text-sm">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setSelectedProcessForApproval(process as ApprovalProcess)
+                          }
+                        >
+                          Approve
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setSelectedProcessForDenial(process as ApprovalProcess)
+                          }
+                        >
+                          Deny
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            router.push(processTypeLink(process as ApprovalProcess))
+                          }}
+                        >
+                          View details
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -106,14 +157,38 @@ export default function ApprovalProcessesTable() {
         </CardContent>
       </Card>
 
-      <ApprovalDialog
-        processId={selectedProcess || ""}
-        openApprovalDialog={Boolean(selectedProcess)}
-        setOpenApprovalDialog={() => {
-          setSelectedProcess(null)
-        }}
-        refetch={refetch}
-      />
+      {selectedProcessForApproval && (
+        <ApprovalDialog
+          approvalProcess={selectedProcessForApproval}
+          openApprovalDialog={Boolean(selectedProcessForApproval)}
+          setOpenApprovalDialog={() => {
+            setSelectedProcessForApproval(null)
+          }}
+          refetch={refetch}
+        />
+      )}
+
+      {selectedProcessForDenial && (
+        <DenialDialog
+          approvalProcess={selectedProcessForDenial}
+          openDenialDialog={Boolean(selectedProcessForDenial)}
+          setOpenDenialDialog={() => {
+            setSelectedProcessForDenial(null)
+          }}
+          refetch={refetch}
+        />
+      )}
     </main>
   )
+}
+
+const processTypeLink = (process: ApprovalProcess) => {
+  switch (process.target.__typename) {
+    case "CreditFacility":
+      return `/credit-facilities/${process.target.creditFacilityId}`
+    case "Withdrawal":
+      return `/withdrawals/${process.target.withdrawalId}`
+    default:
+      return "/approval-process"
+  }
 }

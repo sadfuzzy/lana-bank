@@ -2,6 +2,7 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 import {
+  ApprovalProcessType,
   ApprovalRules,
   CollateralAction,
   CollateralizationState,
@@ -136,7 +137,7 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
   }
 
   if (rule.__typename === "CommitteeThreshold") {
-    return `${rule.threshold} Members required`
+    return `${rule.threshold} ${rule.threshold === 1 ? "member" : "members"} required`
   }
 
   if (rule.__typename === "SystemApproval") {
@@ -144,4 +145,13 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
   }
 
   return "Unknown rule type"
+}
+
+export const formatProcessType = (processType: ApprovalProcessType) => {
+  switch (processType) {
+    case ApprovalProcessType.CreditFacilityApproval:
+      return "Credit Facility"
+    case ApprovalProcessType.WithdrawApproval:
+      return "Withdrawal"
+  }
 }

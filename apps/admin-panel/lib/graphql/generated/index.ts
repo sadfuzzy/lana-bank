@@ -714,6 +714,13 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type GovernanceNavigationItems = {
+  __typename?: 'GovernanceNavigationItems';
+  approvalProcess: Scalars['Boolean']['output'];
+  committee: Scalars['Boolean']['output'];
+  policy: Scalars['Boolean']['output'];
+};
+
 export type IncrementalPayment = {
   __typename?: 'IncrementalPayment';
   cents: Scalars['UsdCents']['output'];
@@ -1609,6 +1616,7 @@ export type VisibleNavigationItems = {
   customer: Scalars['Boolean']['output'];
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];
+  governance: GovernanceNavigationItems;
   loan: Scalars['Boolean']['output'];
   term: Scalars['Boolean']['output'];
   user: Scalars['Boolean']['output'];
@@ -1693,13 +1701,20 @@ export type ApprovalProcessApproveMutationVariables = Exact<{
 
 export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
 
+export type ApprovalProcessDenyMutationVariables = Exact<{
+  input: ApprovalProcessDenyInput;
+}>;
+
+
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
+
 export type ApprovalProcessesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, canVote: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1779,7 +1794,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, approvalProcessId: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvals: Array<{ __typename?: 'DisbursementApproval', approvedAt: any, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, approvalProcessId: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursement: boolean, userCanApproveDisbursement: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, canVote: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvals: Array<{ __typename?: 'DisbursementApproval', approvedAt: any, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
 
 export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
   input: CreditFacilityCollateralUpdateInput;
@@ -2123,7 +2138,7 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: any, status: WithdrawalStatus, reference: string, userCanConfirm: boolean, userCanCancel: boolean, customer?: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, canVote: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
@@ -2169,7 +2184,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, canCreateUser: boolean, canCreateCustomer: boolean, canAssignRoleToUser: boolean, canRevokeRoleFromUser: boolean, canCreateTermsTemplate: boolean, canUpdateTermsTemplate: boolean, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -2309,6 +2324,44 @@ export function useApprovalProcessApproveMutation(baseOptions?: Apollo.MutationH
 export type ApprovalProcessApproveMutationHookResult = ReturnType<typeof useApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationResult = Apollo.MutationResult<ApprovalProcessApproveMutation>;
 export type ApprovalProcessApproveMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessApproveMutation, ApprovalProcessApproveMutationVariables>;
+export const ApprovalProcessDenyDocument = gql`
+    mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!) {
+  approvalProcessDeny(input: $input) {
+    approvalProcess {
+      id
+      approvalProcessId
+      approvalProcessType
+      createdAt
+    }
+  }
+}
+    `;
+export type ApprovalProcessDenyMutationFn = Apollo.MutationFunction<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
+
+/**
+ * __useApprovalProcessDenyMutation__
+ *
+ * To run a mutation, you first call `useApprovalProcessDenyMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useApprovalProcessDenyMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [approvalProcessDenyMutation, { data, loading, error }] = useApprovalProcessDenyMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useApprovalProcessDenyMutation(baseOptions?: Apollo.MutationHookOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>(ApprovalProcessDenyDocument, options);
+      }
+export type ApprovalProcessDenyMutationHookResult = ReturnType<typeof useApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationResult = Apollo.MutationResult<ApprovalProcessDenyMutation>;
+export type ApprovalProcessDenyMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
 export const ApprovalProcessesDocument = gql`
     query ApprovalProcesses($first: Int!, $after: String) {
   approvalProcesses(first: $first, after: $after) {
@@ -2323,6 +2376,16 @@ export const ApprovalProcessesDocument = gql`
         approvalProcessId
         approvalProcessType
         createdAt
+        canVote
+        target {
+          __typename
+          ... on Withdrawal {
+            withdrawalId
+          }
+          ... on CreditFacility {
+            creditFacilityId
+          }
+        }
       }
     }
   }
@@ -2883,6 +2946,39 @@ export const GetCreditFacilityDetailsDocument = gql`
       disbursed
     }
     collateralToMatchInitialCvl @client
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      createdAt
+      canVote
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
+            }
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
     balance {
       facilityRemaining {
         usdBalance
@@ -5276,6 +5372,39 @@ export const GetWithdrawalDetailsDocument = gql`
       customerId
       applicantId
     }
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      createdAt
+      canVote
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
+            }
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
   }
 }
     `;
@@ -5598,6 +5727,11 @@ export const MeDocument = gql`
       audit
       financials
       creditFacilities
+      governance {
+        committee
+        policy
+        approvalProcess
+      }
     }
   }
 }

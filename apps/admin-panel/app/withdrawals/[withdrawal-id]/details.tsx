@@ -3,17 +3,26 @@
 import { useState } from "react"
 import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
+import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
 
 import { WithdrawalStatusBadge } from "../status-badge"
 import { WithdrawalConfirmDialog } from "../confirm"
 import { WithdrawalCancelDialog } from "../cancel"
 
-import { useGetWithdrawalDetailsQuery, WithdrawalStatus } from "@/lib/graphql/generated"
+import {
+  ApprovalProcess,
+  ApprovalProcessStatus,
+  useGetWithdrawalDetailsQuery,
+  WithdrawalStatus,
+} from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
-import { Card, CardContent, CardHeader } from "@/components/primitive/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Separator } from "@/components/primitive/separator"
 import { Button } from "@/components/primitive/button"
 import Balance from "@/components/balance/balance"
+import { formatRole } from "@/lib/utils"
+import ApprovalDialog from "@/app/approval-process/approve"
+import DenialDialog from "@/app/approval-process/deny"
 
 gql`
   query GetWithdrawalDetails($id: UUID!) {
@@ -29,6 +38,39 @@ gql`
         email
         customerId
         applicantId
+      }
+      approvalProcess {
+        approvalProcessId
+        approvalProcessType
+        createdAt
+        canVote
+        status
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              name
+              currentMembers {
+                email
+                roles
+              }
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
+        voters {
+          stillEligible
+          didVote
+          didApprove
+          didDeny
+          user {
+            userId
+            email
+            roles
+          }
+        }
       }
     }
   }
@@ -52,6 +94,8 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
     useState<WithdrawalWithCustomer | null>(null)
   const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
     useState<WithdrawalWithCustomer | null>(null)
+  const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
+  const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
   return (
     <>
@@ -138,6 +182,24 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                       Cancel
                     </Button>
                   )}
+                  {withdrawalDetails?.withdrawal?.approvalProcess.status ===
+                    ApprovalProcessStatus.InProgress &&
+                    withdrawalDetails?.withdrawal.approvalProcess.canVote && (
+                      <>
+                        <Button
+                          onClick={() => setOpenApprovalDialog(true)}
+                          className="ml-2"
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          onClick={() => setOpenDenialDialog(true)}
+                          className="ml-2"
+                        >
+                          Deny
+                        </Button>
+                      </>
+                    )}
                 </div>
               </div>
             </CardContent>
@@ -149,6 +211,64 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
           )
         )}
       </Card>
+      {withdrawalDetails?.withdrawal?.approvalProcess.rules.__typename ===
+        "CommitteeThreshold" && (
+        <Card className="mt-4">
+          <CardHeader>
+            <CardTitle className="text-primary font-normal">
+              Approval process decision from the{" "}
+              {withdrawalDetails.withdrawal.approvalProcess.rules.committee.name}{" "}
+              Committee
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {withdrawalDetails.withdrawal.approvalProcess.voters
+              .filter((voter) => {
+                if (
+                  withdrawalDetails.withdrawal?.approvalProcess.status ===
+                    ApprovalProcessStatus.InProgress ||
+                  ([
+                    ApprovalProcessStatus.Approved,
+                    ApprovalProcessStatus.Denied,
+                  ].includes(
+                    withdrawalDetails.withdrawal?.approvalProcess
+                      .status as ApprovalProcessStatus,
+                  ) &&
+                    voter.didVote)
+                ) {
+                  return true
+                }
+                return false
+              })
+              .map((voter) => (
+                <div key={voter.user.userId} className="flex items-center space-x-3 p-2">
+                  {voter.didApprove ? (
+                    <FaCheckCircle className="h-6 w-6 text-green-500" />
+                  ) : voter.didDeny ? (
+                    <FaBan className="h-6 w-6 text-red-500" />
+                  ) : !voter.didVote ? (
+                    <FaQuestion className="h-6 w-6 text-textColor-secondary" />
+                  ) : (
+                    <>{/* Impossible */}</>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium">{voter.user.email}</p>
+                    <p className="text-sm text-textColor-secondary">
+                      {voter.user.roles.map(formatRole).join(", ")}
+                    </p>
+                    {
+                      <p className="text-xs text-textColor-secondary">
+                        {voter.didApprove && "Approved"}
+                        {voter.didDeny && "Denied"}
+                        {!voter.didVote && "Has not voted yet"}
+                      </p>
+                    }
+                  </div>
+                </div>
+              ))}
+          </CardContent>
+        </Card>
+      )}
       {openWithdrawalConfirmDialog && (
         <WithdrawalConfirmDialog
           refetch={refetchWithdrawal}
@@ -165,6 +285,26 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
           setOpenWithdrawalCancelDialog={() => setOpenWithdrawalCancelDialog(null)}
         />
       )}
+      <ApprovalDialog
+        approvalProcess={
+          withdrawalDetails?.withdrawal?.approvalProcess as ApprovalProcess
+        }
+        openApprovalDialog={openApprovalDialog}
+        setOpenApprovalDialog={() => {
+          setOpenApprovalDialog(false)
+        }}
+        refetch={refetchWithdrawal}
+      />
+      <DenialDialog
+        approvalProcess={
+          withdrawalDetails?.withdrawal?.approvalProcess as ApprovalProcess
+        }
+        openDenialDialog={openDenialDialog}
+        setOpenDenialDialog={() => {
+          setOpenDenialDialog(false)
+        }}
+        refetch={refetchWithdrawal}
+      />
     </>
   )
 }

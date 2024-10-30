@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { usePoliciesQuery } from "@/lib/graphql/generated"
+import { formatProcessType } from "@/lib/utils"
 
 gql`
   query Policies($first: Int!, $after: String) {
@@ -103,9 +104,8 @@ function PoliciesPage() {
             <Table className="mt-6">
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
                   <TableHead>Process Type</TableHead>
-                  <TableHead>Committee</TableHead>
+                  <TableHead>Rule</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -115,12 +115,17 @@ function PoliciesPage() {
                     onClick={() => router.push(`/policies/${policy.policyId}`)}
                     className="cursor-pointer"
                   >
-                    <TableCell>{policy.policyId}</TableCell>
-                    <TableCell>{policy.approvalProcessType}</TableCell>
-                    <TableCell>
-                      {policy.rules.__typename === "CommitteeThreshold"
-                        ? policy.rules.committee.name
-                        : "-"}
+                    <TableCell>{formatProcessType(policy.approvalProcessType)}</TableCell>
+                    <TableCell
+                      className={
+                        policy.rules.__typename === "CommitteeThreshold"
+                          ? ""
+                          : "text-textColor-secondary"
+                      }
+                    >
+                      {policy.rules.__typename === "CommitteeThreshold" &&
+                        `${policy.rules.committee.name} Committee`}
+                      {policy.rules.__typename === "SystemApproval" && "System"}
                     </TableCell>
                   </TableRow>
                 ))}
