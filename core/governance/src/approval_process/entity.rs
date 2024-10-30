@@ -66,6 +66,12 @@ impl ApprovalProcess {
         self.rules.committee_id()
     }
 
+    pub fn can_user_vote(&self, user_id: UserId, eligible: HashSet<UserId>) -> bool {
+        eligible.contains(&user_id)
+            && !self.approvers().contains(&user_id)
+            && !self.deniers().contains(&user_id)
+    }
+
     pub(crate) fn check_concluded(
         &mut self,
         eligible: HashSet<UserId>,

@@ -523,6 +523,23 @@ where
         self.process_repo.find_all(ids).await
     }
 
+    pub async fn can_vote(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        process: &ApprovalProcess,
+        committee: Option<&Committee>,
+    ) -> Result<bool, GovernanceError>
+    where
+        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        if let Some(committee) = committee {
+            let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
+            Ok(process.can_user_vote(user_id, committee.members()))
+        } else {
+            Ok(false)
+        }
+    }
+
     async fn eligible_voters_for_process(
         &self,
         process: &ApprovalProcess,

@@ -94,6 +94,7 @@ export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
   approvalProcessType: ApprovalProcessType;
+  canVote: Scalars['Boolean']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   policy: Policy;

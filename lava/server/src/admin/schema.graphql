@@ -69,6 +69,7 @@ type ApprovalProcess {
 	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
 	policy: Policy!
+	canVote: Boolean!
 	voters: [ApprovalProcessVoter!]!
 	target: ApprovalProcessTarget!
 }

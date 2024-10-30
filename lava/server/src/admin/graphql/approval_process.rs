@@ -2,12 +2,18 @@ use async_graphql::{dataloader::DataLoader, *};
 
 use std::sync::Arc;
 
-use crate::shared_graphql::{
-    convert::ToGlobalId,
-    primitives::{Timestamp, UUID},
-    withdraw::Withdrawal,
+use crate::{
+    admin::AdminAuthContext,
+    shared_graphql::{
+        convert::ToGlobalId,
+        primitives::{Timestamp, UUID},
+        withdraw::Withdrawal,
+    },
 };
-use lava_app::primitives::{ApprovalProcessId, CreditFacilityId, UserId, WithdrawId};
+use lava_app::{
+    app::LavaApp,
+    primitives::{ApprovalProcessId, CreditFacilityId, UserId, WithdrawId},
+};
 
 use super::{
     credit_facility::CreditFacility,
@@ -46,6 +52,27 @@ impl ApprovalProcess {
         Ok(policy)
     }
 
+    async fn can_vote(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let app = ctx.data_unchecked::<LavaApp>();
+        let AdminAuthContext { sub } = ctx.data()?;
+
+        let committee = if let Some(committee_id) = self.entity.committee_id() {
+            let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+            let committee = loader
+                .load_one(committee_id)
+                .await?
+                .expect("committee not found");
+            Some(committee.entity)
+        } else {
+            None
+        };
+
+        Ok(app
+            .governance()
+            .can_vote(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
+            .await?)
+    }
+
     async fn voters(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ApprovalProcessVoter>> {
         if let Some(committee_id) = self.entity.committee_id() {
             let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
@@ -56,14 +83,15 @@ impl ApprovalProcess {
             let mut approvers = self.entity.approvers();
             let mut deniers = self.entity.deniers();
             let mut voters: Vec<_> = committee
-                .user_ids
-                .iter()
+                .entity
+                .members()
+                .into_iter()
                 .map(|user_id| ApprovalProcessVoter {
-                    user_id: *user_id,
                     still_eligible: true,
-                    did_vote: approvers.contains(user_id) || deniers.contains(user_id),
-                    did_approve: approvers.remove(user_id),
-                    did_deny: deniers.remove(user_id),
+                    did_vote: approvers.contains(&user_id) || deniers.contains(&user_id),
+                    did_approve: approvers.remove(&user_id),
+                    did_deny: deniers.remove(&user_id),
+                    user_id,
                 })
                 .collect();
             voters.extend(
