@@ -193,6 +193,7 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
     }
 }
 
+#[allow(clippy::large_enum_variant)]
 #[derive(async_graphql::Union, Clone)]
 pub(super) enum ApprovalProcessTarget {
     Withdrawal(Withdrawal),

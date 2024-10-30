@@ -57,6 +57,9 @@ check-code: public-sdl admin-sdl
 	SQLX_OFFLINE=true cargo clippy --all-features
 	SQLX_OFFLINE=true cargo audit
 
+clippy:
+	SQLX_OFFLINE=true cargo clippy --all-features
+
 build:
 	SQLX_OFFLINE=true cargo build --locked
 
