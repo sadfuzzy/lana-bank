@@ -13,7 +13,7 @@ RUN mkdir lava-home && mkdir lava && cd lava \
   && mv lava-cli /usr/local/bin && cd ../ && rm -rf ./lava
 
 FROM gcr.io/distroless/static
-  COPY --from=load /usr/local/bin/lava-cli /bin/lava-app
+  COPY --from=load /usr/local/bin/lava-cli /bin/lava-cli
   COPY --from=load --chown=1000:0 --chmod=755 /lava-home /lava
   USER 1000
   ARG VERSION
