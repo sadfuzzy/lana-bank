@@ -38,6 +38,8 @@ pub mod governance {
     use crate::authorization::Authorization;
     use lava_events::LavaEvent;
     pub type Governance = governance::Governance<Authorization, LavaEvent>;
+    pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
+    pub use crate::withdraw::APPROVE_WITHDRAW_PROCESS;
 }
 
 pub mod audit {

@@ -31,7 +31,7 @@ gql`
           committeeId
           createdAt
           name
-          users {
+          currentMembers {
             userId
           }
         }
@@ -132,7 +132,7 @@ function CommitteesPage() {
                     <TableCell>{committee.committeeId}</TableCell>
                     <TableCell>{committee.name}</TableCell>
                     <TableCell>{formatDate(committee.createdAt)}</TableCell>
-                    <TableCell>{committee.users.length}</TableCell>
+                    <TableCell>{committee.currentMembers.length}</TableCell>
                   </TableRow>
                 ))}
                 {data.committees.pageInfo.hasNextPage && (

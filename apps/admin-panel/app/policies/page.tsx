@@ -23,7 +23,7 @@ gql`
         node {
           id
           policyId
-          processType
+          approvalProcessType
           rules {
             ... on CommitteeThreshold {
               threshold
@@ -116,7 +116,7 @@ function PoliciesPage() {
                     className="cursor-pointer"
                   >
                     <TableCell>{policy.policyId}</TableCell>
-                    <TableCell>{policy.processType}</TableCell>
+                    <TableCell>{policy.approvalProcessType}</TableCell>
                     <TableCell>
                       {policy.rules.__typename === "CommitteeThreshold"
                         ? policy.rules.committee.name

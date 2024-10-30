@@ -15,18 +15,18 @@ pub use governance::committee_cursor::CommitteeByCreatedAtCursor;
 pub struct Committee {
     id: ID,
     committee_id: UUID,
-    #[graphql(skip)]
-    user_ids: Vec<UUID>,
     created_at: Timestamp,
     name: String,
+    #[graphql(skip)]
+    pub user_ids: Vec<UserId>,
 }
 
 #[ComplexObject]
 impl Committee {
-    async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
+    async fn current_members(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
         let users = loader
-            .load_many(self.user_ids.iter().map(UserId::from))
+            .load_many(self.user_ids.iter().copied())
             .await?
             .into_values()
             .map(User::from)
@@ -47,7 +47,7 @@ impl From<governance::Committee> for Committee {
         Self {
             id: committee.id.to_global_id(),
             committee_id: committee.id.into(),
-            user_ids: committee.members().iter().map(|user| user.into()).collect(),
+            user_ids: committee.members().into_iter().collect(),
             created_at: committee.created_at().into(),
             name: committee.name,
         }

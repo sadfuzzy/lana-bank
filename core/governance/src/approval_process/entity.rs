@@ -18,6 +18,7 @@ pub(crate) enum ApprovalProcessEvent {
         policy_id: PolicyId,
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
+        target_ref: String,
         audit_info: AuditInfo,
     },
     Approved {
@@ -49,6 +50,16 @@ impl ApprovalProcess {
         self.events
             .entity_first_persisted_at()
             .expect("No events for committee")
+    }
+
+    pub fn target_ref(&self) -> &str {
+        if let ApprovalProcessEvent::Initialized { target_ref, .. } =
+            self.events.iter_all().next().expect("No events")
+        {
+            target_ref
+        } else {
+            panic!("No events")
+        }
     }
 
     pub fn committee_id(&self) -> Option<CommitteeId> {
@@ -179,7 +190,7 @@ impl TryFromEvents<ApprovalProcessEvent> for ApprovalProcess {
                         .id(*id)
                         .process_type(process_type.clone())
                         .policy_id(*policy_id)
-                        .rules(rules.clone());
+                        .rules(*rules);
                 }
                 ApprovalProcessEvent::Approved { .. } => {}
                 ApprovalProcessEvent::Denied { .. } => {}
@@ -197,6 +208,8 @@ pub(crate) struct NewApprovalProcess {
     pub(super) policy_id: PolicyId,
     pub(super) process_type: ApprovalProcessType,
     pub(super) rules: ApprovalRules,
+    #[builder(setter(into))]
+    pub(super) target_ref: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -220,6 +233,7 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
                 policy_id: self.policy_id,
                 process_type: self.process_type,
                 rules: self.rules,
+                target_ref: self.target_ref,
                 audit_info: self.audit_info,
             }],
         )
@@ -246,6 +260,7 @@ mod tests {
                 policy_id: PolicyId::new(),
                 process_type: ApprovalProcessType::from_owned("type".to_string()),
                 rules,
+                target_ref: "target_ref".to_string(),
                 audit_info: dummy_audit_info(),
             }],
         )
@@ -307,8 +322,9 @@ mod tests {
 
     #[test]
     fn approve_already_concluded() {
-        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::System))
-            .expect("Could not build approval process");
+        let mut process =
+            ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
+                .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
         let approver = UserId::new();
         let audit_info = dummy_audit_info();
@@ -373,8 +389,9 @@ mod tests {
 
     #[test]
     fn deny_already_concluded() {
-        let mut process = ApprovalProcess::try_from_events(init_events(ApprovalRules::System))
-            .expect("Could not build approval process");
+        let mut process =
+            ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
+                .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
         let denier = UserId::new();
         let audit_info = dummy_audit_info();

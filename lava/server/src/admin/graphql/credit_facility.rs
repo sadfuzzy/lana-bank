@@ -1,5 +1,6 @@
-use async_graphql::*;
+use async_graphql::{dataloader::DataLoader, *};
 
+use super::{approval_process::ApprovalProcess, loader::LavaDataLoader};
 use crate::{
     admin::{graphql::user::User, AdminAuthContext},
     shared_graphql::{
@@ -65,12 +66,12 @@ pub struct CreditFacilityCreateInput {
     pub terms: TermsInput,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
-    pub approval_process_id: UUID,
+    approval_process_id: UUID,
     activated_at: Option<Timestamp>,
     expires_at: Option<Timestamp>,
     created_at: Timestamp,
@@ -82,14 +83,16 @@ pub struct CreditFacility {
     can_be_completed: bool,
     transactions: Vec<CreditFacilityHistoryEntry>,
     #[graphql(skip)]
-    customer_id: UUID,
-    #[graphql(skip)]
     account_ids: lava_app::ledger::credit_facility::CreditFacilityAccountIds,
     #[graphql(skip)]
     cvl_data: FacilityCVLData,
+    #[graphql(skip)]
+    domain_approval_process_id: governance::ApprovalProcessId,
+    #[graphql(skip)]
+    domain_customer_id: CustomerId,
 }
 
-#[derive(async_graphql::Union)]
+#[derive(async_graphql::Union, Clone)]
 pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
@@ -98,14 +101,14 @@ pub enum CreditFacilityHistoryEntry {
     Disbursement(CreditFacilityDisbursementExecuted),
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityCollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: Timestamp,
@@ -113,14 +116,14 @@ pub struct CreditFacilityCollateralUpdated {
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityOrigination {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityCollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
@@ -130,7 +133,7 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub price: UsdCents,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct CreditFacilityDisbursementExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
@@ -148,17 +151,22 @@ impl CreditFacility {
         Ok(CreditFacilityBalance::from(balance))
     }
 
-    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let app = ctx.data_unchecked::<LavaApp>();
-        let user = app
-            .customers()
-            .find_by_id(None, CustomerId::from(&self.customer_id))
-            .await?;
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let process = loader
+            .load_one(self.domain_approval_process_id)
+            .await?
+            .expect("process not found");
+        Ok(process)
+    }
 
-        match user {
-            Some(user) => Ok(Customer::from(user)),
-            None => panic!("user not found for a loan. should not be possible"),
-        }
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<DataLoader<LavaDataLoader>>();
+        let customer = loader
+            .load_one(self.domain_customer_id)
+            .await?
+            .expect("customer not found");
+        Ok(customer)
     }
 
     async fn disbursements(
@@ -296,7 +304,8 @@ impl From<lava_app::credit_facility::CreditFacility> for CreditFacility {
             facility_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
-            customer_id: UUID::from(credit_facility.customer_id),
+            domain_customer_id: credit_facility.customer_id,
+            domain_approval_process_id: credit_facility.approval_process_id,
         }
     }
 }

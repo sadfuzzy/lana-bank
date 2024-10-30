@@ -28,7 +28,7 @@ gql`
       policy {
         id
         policyId
-        processType
+        approvalProcessType
       }
     }
   }

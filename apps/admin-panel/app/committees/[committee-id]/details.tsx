@@ -28,7 +28,7 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
             <DetailItem label="Committee ID" value={committee.committeeId} />
             <DetailItem label="Name" value={committee.name} />
             <DetailItem label="Created At" value={formatDate(committee.createdAt)} />
-            <DetailItem label="Total Members" value={committee.users.length} />
+            <DetailItem label="Total Members" value={committee.currentMembers.length} />
           </DetailsGroup>
         </CardContent>
       </Card>

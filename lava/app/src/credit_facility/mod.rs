@@ -7,6 +7,8 @@ mod interest_accrual;
 mod jobs;
 mod repo;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
 use governance::ApprovalProcessType;
 
@@ -38,7 +40,7 @@ pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
 
-const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
+pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
 
 #[derive(Clone)]
@@ -174,7 +176,12 @@ impl CreditFacilities {
 
         let mut db_tx = self.pool.begin().await?;
         self.governance
-            .start_process(&mut db_tx, id, APPROVE_CREDIT_FACILITY_PROCESS)
+            .start_process(
+                &mut db_tx,
+                id,
+                id.to_string(),
+                APPROVE_CREDIT_FACILITY_PROCESS,
+            )
             .await?;
         let credit_facility = self
             .credit_facility_repo
@@ -642,5 +649,12 @@ impl CreditFacilities {
             .await?
             .entities;
         Ok(disbursements)
+    }
+
+    pub async fn find_all<T: From<CreditFacility>>(
+        &self,
+        ids: &[CreditFacilityId],
+    ) -> Result<HashMap<CreditFacilityId, T>, CreditFacilityError> {
+        self.credit_facility_repo.find_all(ids).await
     }
 }

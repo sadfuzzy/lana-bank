@@ -7,15 +7,15 @@ use super::{committee::Committee, LavaDataLoader};
 
 pub use governance::policy_cursor::PolicyByCreatedAtCursor;
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct Policy {
     id: ID,
     policy_id: UUID,
-    process_type: String,
+    approval_process_type: ApprovalProcessType,
     rules: ApprovalRules,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 #[graphql(complex)]
 pub(super) struct CommitteeThreshold {
     threshold: usize,
@@ -30,20 +30,38 @@ impl CommitteeThreshold {
         let committee = loader
             .load_one(self.committee_id)
             .await?
-            .map(Committee::from);
-        Ok(committee.expect("committee not found"))
+            .expect("committee not found");
+        Ok(committee)
     }
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub(super) struct SystemApproval {
     auto_approve: bool,
 }
 
-#[derive(async_graphql::Union)]
+#[derive(async_graphql::Union, Clone)]
 pub(super) enum ApprovalRules {
     CommitteeThreshold(CommitteeThreshold),
     System(SystemApproval),
+}
+
+#[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
+pub enum ApprovalProcessType {
+    WithdrawApproval,
+    CreditFacilityApproval,
+}
+
+impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
+    fn from(process_type: &governance::ApprovalProcessType) -> Self {
+        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
+            Self::WithdrawApproval
+        } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
+            Self::CreditFacilityApproval
+        } else {
+            panic!("Unknown ApprovalProcessType")
+        }
+    }
 }
 
 #[derive(InputObject)]
@@ -69,7 +87,7 @@ impl From<governance::Policy> for Policy {
         Self {
             id: policy.id.to_global_id(),
             policy_id: policy.id.into(),
-            process_type: policy.process_type.to_string(),
+            approval_process_type: ApprovalProcessType::from(&policy.process_type),
             rules: ApprovalRules::from(policy.rules),
         }
     }
@@ -93,7 +111,7 @@ impl From<governance::ApprovalRules> for ApprovalRules {
                 threshold,
                 committee_id,
             }),
-            governance::ApprovalRules::System => {
+            governance::ApprovalRules::SystemAutoApprove => {
                 ApprovalRules::System(SystemApproval { auto_approve: true })
             }
         }

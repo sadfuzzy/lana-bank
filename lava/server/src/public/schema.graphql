@@ -5,6 +5,41 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
+type ApprovalProcess {
+	id: ID!
+	approvalProcessId: UUID!
+	rules: ApprovalRules!
+	approvalProcessType: ApprovalProcessType!
+	status: ApprovalProcessStatus!
+	createdAt: Timestamp!
+	policy: Policy!
+	voters: [ApprovalProcessVoter!]!
+	target: ApprovalProcessTarget!
+}
+
+enum ApprovalProcessStatus {
+	APPROVED
+	DENIED
+	IN_PROGRESS
+}
+
+union ApprovalProcessTarget = Withdrawal | CreditFacility
+
+enum ApprovalProcessType {
+	WITHDRAW_APPROVAL
+	CREDIT_FACILITY_APPROVAL
+}
+
+type ApprovalProcessVoter {
+	stillEligible: Boolean!
+	didVote: Boolean!
+	didApprove: Boolean!
+	didDeny: Boolean!
+	user: User!
+}
+
+union ApprovalRules = CommitteeThreshold | SystemApproval
+
 type AuditEntry {
 	id: ID!
 	object: String!
@@ -54,6 +89,19 @@ type CollateralizationUpdated {
 	recordedAt: Timestamp!
 }
 
+type Committee {
+	id: ID!
+	committeeId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	currentMembers: [User!]!
+}
+
+type CommitteeThreshold {
+	threshold: Int!
+	committee: Committee!
+}
+
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
@@ -69,6 +117,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	transactions: [CreditFacilityHistoryEntry!]!
 	balance: CreditFacilityBalance!
+	approvalProcess: ApprovalProcess!
 	customer: Customer!
 	disbursements: [CreditFacilityDisbursement!]!
 	currentCvl: FacilityCVL!
@@ -339,6 +388,13 @@ enum Period {
 	MONTHS
 }
 
+type Policy {
+	id: ID!
+	policyId: UUID!
+	approvalProcessType: ApprovalProcessType!
+	rules: ApprovalRules!
+}
+
 type Query {
 	loan(id: UUID!): Loan
 	me: Customer
@@ -362,6 +418,10 @@ type SumsubTokenCreatePayload {
 
 type System {
 	name: String!
+}
+
+type SystemApproval {
+	autoApprove: Boolean!
 }
 
 type TermValues {
@@ -412,11 +472,13 @@ type VisibleNavigationItems {
 type Withdrawal {
 	customerId: UUID!
 	withdrawalId: UUID!
+	approvalProcessId: UUID!
 	amount: UsdCents!
 	status: WithdrawalStatus!
 	reference: String!
 	createdAt: Timestamp!
 	customer: Customer
+	approvalProcess: ApprovalProcess!
 	userCanConfirm: Boolean!
 	userCanCancel: Boolean!
 }

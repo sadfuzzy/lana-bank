@@ -26,7 +26,7 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
         <CardContent>
           <DetailsGroup>
             <DetailItem label="Policy ID" value={policy.policyId} />
-            <DetailItem label="Process Type" value={policy.processType} />
+            <DetailItem label="Process Type" value={policy.approvalProcessType} />
             <DetailItem label="Rule" value={formatRule(policy.rules as ApprovalRules)} />
             {policyRuleType === "CommitteeThreshold" && (
               <DetailItem

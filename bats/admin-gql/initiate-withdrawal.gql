@@ -2,6 +2,7 @@ mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
   withdrawalInitiate(input: $input) {
     withdrawal {
       withdrawalId
+      approvalProcessId
       status
       customer {
         customerId

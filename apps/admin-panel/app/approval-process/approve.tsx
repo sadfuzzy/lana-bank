@@ -19,7 +19,7 @@ gql`
       approvalProcess {
         id
         approvalProcessId
-        processType
+        approvalProcessType
         createdAt
       }
     }

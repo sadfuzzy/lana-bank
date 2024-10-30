@@ -43,6 +43,7 @@ impl From<Decimal> for AnnualRatePct {
     }
 }
 
+#[derive(Clone)]
 pub struct CVLData {
     amount: UsdCents,
     collateral: Satoshis,

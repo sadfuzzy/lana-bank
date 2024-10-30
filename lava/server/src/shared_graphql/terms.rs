@@ -2,7 +2,7 @@ use async_graphql::*;
 
 pub use lava_app::terms::{AnnualRatePct, CVLPct, InterestInterval};
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub struct TermValues {
     annual_rate: AnnualRatePct,
     accrual_interval: InterestInterval,
@@ -24,7 +24,7 @@ pub struct TermsInput {
     pub initial_cvl: CVLPct,
 }
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Clone)]
 pub(super) struct Duration {
     period: Period,
     units: u32,

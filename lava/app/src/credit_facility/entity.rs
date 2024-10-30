@@ -161,6 +161,7 @@ impl CreditFacilityReceivable {
     }
 }
 
+#[derive(Clone)]
 pub struct FacilityCVLData {
     pub total: CVLData,
     pub disbursed: CVLData,

@@ -30,7 +30,7 @@ gql`
         node {
           id
           approvalProcessId
-          processType
+          approvalProcessType
           createdAt
         }
       }
@@ -81,7 +81,7 @@ export default function ApprovalProcessesTable() {
               {data?.approvalProcesses.edges.map(({ node: process }) => (
                 <TableRow key={process.approvalProcessId}>
                   <TableCell>{process.approvalProcessId}</TableCell>
-                  <TableCell>{process.processType}</TableCell>
+                  <TableCell>{process.approvalProcessType}</TableCell>
                   <TableCell>{formatDate(process.createdAt)}</TableCell>
                   <TableCell>
                     <Button

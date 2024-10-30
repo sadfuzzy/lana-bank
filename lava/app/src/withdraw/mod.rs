@@ -3,6 +3,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
 use governance::ApprovalProcessType;
 
@@ -22,7 +24,7 @@ pub use entity::*;
 use error::WithdrawError;
 pub use repo::{cursor::*, WithdrawRepo};
 
-const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
+pub const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
 #[derive(Clone)]
 pub struct Withdraws {
@@ -115,7 +117,7 @@ impl Withdraws {
 
         let mut db_tx = self.pool.begin().await?;
         self.governance
-            .start_process(&mut db_tx, id, APPROVE_WITHDRAW_PROCESS)
+            .start_process(&mut db_tx, id, id.to_string(), APPROVE_WITHDRAW_PROCESS)
             .await?;
         let withdraw = self.repo.create_in_tx(&mut db_tx, new_withdraw).await?;
 
@@ -277,5 +279,12 @@ impl Withdraws {
         self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await
+    }
+
+    pub async fn find_all<T: From<Withdraw>>(
+        &self,
+        ids: &[WithdrawId],
+    ) -> Result<HashMap<WithdrawId, T>, WithdrawError> {
+        self.repo.find_all(ids).await
     }
 }

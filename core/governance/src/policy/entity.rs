@@ -46,13 +46,15 @@ impl Policy {
     pub(crate) fn spawn_process(
         &self,
         id: ApprovalProcessId,
+        target_ref: String,
         audit_info: AuditInfo,
     ) -> NewApprovalProcess {
         NewApprovalProcess::builder()
             .id(id)
+            .target_ref(target_ref)
             .policy_id(self.id)
             .process_type(self.process_type.clone())
-            .rules(self.rules.clone())
+            .rules(self.rules)
             .audit_info(audit_info)
             .build()
             .expect("failed to build new approval process")
@@ -69,7 +71,7 @@ impl Policy {
             committee_id,
         };
         self.events.push(PolicyEvent::ApprovalRulesUpdated {
-            rules: self.rules.clone(),
+            rules: self.rules,
             audit_info,
         });
     }
@@ -89,11 +91,9 @@ impl TryFromEvents<PolicyEvent> for Policy {
                     builder = builder
                         .id(*id)
                         .process_type(process_type.clone())
-                        .rules(rules.clone())
+                        .rules(*rules)
                 }
-                PolicyEvent::ApprovalRulesUpdated { rules, .. } => {
-                    builder = builder.rules(rules.clone())
-                }
+                PolicyEvent::ApprovalRulesUpdated { rules, .. } => builder = builder.rules(*rules),
             }
         }
         builder.events(events).build()
@@ -153,7 +153,7 @@ mod test {
             [PolicyEvent::Initialized {
                 id: PolicyId::new(),
                 process_type: ApprovalProcessType::new("test"),
-                rules: ApprovalRules::System,
+                rules: ApprovalRules::SystemAutoApprove,
                 audit_info: dummy_audit_info(),
             }],
         )

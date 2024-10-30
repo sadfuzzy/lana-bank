@@ -1,6 +1,6 @@
 mod account;
 mod account_set;
-mod approval_process;
+pub mod approval_process;
 pub mod audit;
 mod committee;
 pub mod credit_facility;

@@ -4,21 +4,21 @@ use std::collections::HashSet;
 
 use shared_primitives::CommitteeId;
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum ApprovalRules {
     CommitteeThreshold {
         committee_id: CommitteeId,
         threshold: usize,
     },
-    System,
+    SystemAutoApprove,
 }
 
 impl ApprovalRules {
     pub fn committee_id(&self) -> Option<CommitteeId> {
         match self {
             ApprovalRules::CommitteeThreshold { committee_id, .. } => Some(*committee_id),
-            ApprovalRules::System => None,
+            ApprovalRules::SystemAutoApprove => None,
         }
     }
 
@@ -29,7 +29,7 @@ impl ApprovalRules {
         denying_members: &HashSet<Id>,
     ) -> Option<bool> {
         match self {
-            ApprovalRules::System => Some(true),
+            ApprovalRules::SystemAutoApprove => Some(true),
             ApprovalRules::CommitteeThreshold { threshold, .. } => {
                 let approved_eligible = eligible_members.intersection(approving_members).count();
                 if approved_eligible >= *threshold {
@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn test_automatic() {
-        let rules = ApprovalRules::System;
+        let rules = ApprovalRules::SystemAutoApprove;
 
         assert_eq!(
             rules.is_approved_or_denied(&make_set(&[1, 2, 3]), &HashSet::new(), &HashSet::new()),

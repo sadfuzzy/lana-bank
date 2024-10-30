@@ -16,7 +16,7 @@ gql`
       committeeId
       createdAt
       name
-      users {
+      currentMembers {
         userId
         email
         roles
