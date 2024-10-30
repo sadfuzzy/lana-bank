@@ -8,7 +8,9 @@ use lava_app::primitives::ApprovalProcessId;
 
 use super::policy::ApprovalRules;
 
-pub use governance::approval_process_cursor::ApprovalProcessByCreatedAtCursor;
+pub use governance::{
+    approval_process_cursor::ApprovalProcessByCreatedAtCursor, ApprovalProcessStatus,
+};
 
 #[derive(SimpleObject)]
 pub struct ApprovalProcess {
@@ -16,6 +18,7 @@ pub struct ApprovalProcess {
     approval_process_id: UUID,
     rules: ApprovalRules,
     process_type: String,
+    status: ApprovalProcessStatus,
     created_at: Timestamp,
 }
 
@@ -31,6 +34,7 @@ impl From<governance::ApprovalProcess> for ApprovalProcess {
             id: process.id.to_global_id(),
             approval_process_id: process.id.into(),
             process_type: process.process_type.to_string(),
+            status: process.status(),
             created_at: process.created_at().into(),
             rules: process.rules.into(),
         }

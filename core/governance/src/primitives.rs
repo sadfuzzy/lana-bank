@@ -3,6 +3,23 @@ use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use shared_primitives::{AllOrOne, ApprovalProcessId, CommitteeId, PolicyId, UserId};
 
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ApprovalProcessStatus {
+    Approved,
+    Denied,
+    InProgress,
+}
+
+impl ApprovalProcessStatus {
+    pub fn is_concluded(&self) -> bool {
+        matches!(
+            self,
+            ApprovalProcessStatus::Approved | ApprovalProcessStatus::Denied
+        )
+    }
+}
+
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]

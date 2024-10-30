@@ -97,6 +97,7 @@ export type ApprovalProcess = {
   id: Scalars['ID']['output'];
   processType: Scalars['String']['output'];
   rules: ApprovalRules;
+  status: ApprovalProcessStatus;
 };
 
 export type ApprovalProcessApproveInput = {
@@ -135,6 +136,12 @@ export type ApprovalProcessEdge = {
   /** The item at the end of the edge */
   node: ApprovalProcess;
 };
+
+export enum ApprovalProcessStatus {
+  Approved = 'APPROVED',
+  Denied = 'DENIED',
+  InProgress = 'IN_PROGRESS'
+}
 
 export type ApprovalRules = CommitteeThreshold | SystemApproval;
 

@@ -5,10 +5,9 @@ use std::collections::HashSet;
 
 use audit::AuditInfo;
 use es_entity::*;
-use shared_primitives::{ApprovalProcessId, CommitteeId, PolicyId, UserId};
 
 use super::error::ApprovalProcessError;
-use crate::{ApprovalProcessType, ApprovalRules};
+use crate::{policy::ApprovalRules, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -61,7 +60,7 @@ impl ApprovalProcess {
         eligible: HashSet<UserId>,
         audit_info: AuditInfo,
     ) -> Option<bool> {
-        if !self.is_concluded() {
+        if !self.status().is_concluded() {
             if let Some(approved) =
                 self.rules
                     .is_approved_or_denied(&eligible, &self.approvers(), &self.deniers())
@@ -76,11 +75,19 @@ impl ApprovalProcess {
         None
     }
 
-    fn is_concluded(&self) -> bool {
-        self.events
-            .iter_all()
-            .rev()
-            .any(|event| matches!(event, ApprovalProcessEvent::Concluded { .. }))
+    pub fn status(&self) -> ApprovalProcessStatus {
+        for event in self.events.iter_all().rev() {
+            match event {
+                ApprovalProcessEvent::Concluded { approved: true, .. } => {
+                    return ApprovalProcessStatus::Approved
+                }
+                ApprovalProcessEvent::Concluded {
+                    approved: false, ..
+                } => return ApprovalProcessStatus::Denied,
+                _ => {}
+            }
+        }
+        ApprovalProcessStatus::InProgress
     }
 
     pub(crate) fn approve(
@@ -89,7 +96,7 @@ impl ApprovalProcess {
         approver_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.is_concluded() {
+        if self.status().is_concluded() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 
@@ -115,7 +122,7 @@ impl ApprovalProcess {
         denier_id: UserId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
-        if self.is_concluded() {
+        if self.status().is_concluded() {
             return Err(ApprovalProcessError::AlreadyConcluded);
         }
 

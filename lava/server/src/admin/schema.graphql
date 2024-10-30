@@ -66,6 +66,7 @@ type ApprovalProcess {
 	approvalProcessId: UUID!
 	rules: ApprovalRules!
 	processType: String!
+	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
 }
 
@@ -112,6 +113,12 @@ type ApprovalProcessEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum ApprovalProcessStatus {
+	APPROVED
+	DENIED
+	IN_PROGRESS
 }
 
 union ApprovalRules = CommitteeThreshold | SystemApproval
