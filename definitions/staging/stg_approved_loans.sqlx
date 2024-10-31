@@ -22,13 +22,8 @@ WITH approved AS (
 	SELECT DISTINCT id AS loan_id
 		, CAST(JSON_VALUE(event, "$.principal") AS NUMERIC) AS principal
 		, recorded_at AS start_timestamp
-		, CASE
-			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
-			THEN TIMESTAMP_ADD(
-				DATE(recorded_at),
-				INTERVAL CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) MONTH
-			)
-		END AS end_date
+		, JSON_VALUE(event, "$.terms.duration.type") AS duration_type
+		, CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) AS duration_value
 		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
 		, JSON_VALUE(event, "$.terms.incurrence_interval.type") AS incurrence_interval
 		, JSON_VALUE(event, "$.terms.accrual_interval.type") AS accrual_interval
@@ -133,7 +128,15 @@ WITH approved AS (
 
 SELECT loan_id
 	, start_timestamp
-	, end_date
+	, duration_type
+	, duration_value
+	, CASE
+		WHEN duration_type = "months"
+		THEN TIMESTAMP_ADD(
+			DATE(start_timestamp),
+			INTERVAL duration_value MONTH
+		)
+	END AS end_date
 	, incurrence_interval
 	, accrual_interval
 	, most_recent_interest_payment_timestamp
