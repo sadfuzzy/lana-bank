@@ -443,7 +443,7 @@ mod test {
             assert_eq!(period.end, expected_end_of_day);
 
             confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
-            expected_end_of_day = expected_end_of_day + chrono::Duration::days(1);
+            expected_end_of_day += chrono::Duration::days(1);
         }
 
         let expected_accrual_sum = UsdCents::ZERO;
@@ -489,7 +489,7 @@ mod test {
             assert_eq!(period.end, expected_end_of_day);
 
             confirmed_incurrence = accrual.confirm_incurrence(incurrence, dummy_audit_info());
-            expected_end_of_day = expected_end_of_day + chrono::Duration::days(1);
+            expected_end_of_day += chrono::Duration::days(1);
         }
 
         let expected_accrual_sum = expected_daily_interest * (end_day + 1 - start_day).into();

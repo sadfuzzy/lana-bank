@@ -41,6 +41,8 @@ command = [
     "cargo", "clippy",
     "--all-targets",
     "--color", "always",
+    "--",
+    "-A", "clippy::inconsistent_digit_grouping"
 ]
 need_stdout = false
 
