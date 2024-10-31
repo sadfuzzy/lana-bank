@@ -31,10 +31,10 @@ gql`
       collateral
       status
       collateralizationState
-      userCanApprove
-      userCanUpdateCollateral
-      userCanUpdateCollateralizationState
-      userCanRecordPaymentOrCompleteLoan
+      subjectCanApprove
+      subjectCanUpdateCollateral
+      subjectCanUpdateCollateralizationState
+      subjectCanRecordPaymentOrCompleteLoan
       customer {
         customerId
         email

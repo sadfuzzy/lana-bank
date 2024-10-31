@@ -104,7 +104,7 @@ function CommitteesPage() {
 
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Committees</PageHeading>
-        {me?.me.canCreateUser && (
+        {me?.me.subjectCanCreateUser && (
           <Button onClick={() => setOpenCreateCommitteeDialog(true)}>Create New</Button>
         )}
       </div>

@@ -523,7 +523,7 @@ where
         self.process_repo.find_all(ids).await
     }
 
-    pub async fn can_vote(
+    pub async fn subject_can_vote(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process: &ApprovalProcess,

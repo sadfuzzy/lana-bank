@@ -42,7 +42,7 @@ gql`
           approvalProcessId
           approvalProcessType
           createdAt
-          canVote
+          subjectCanVote
           target {
             __typename
             ... on Withdrawal {

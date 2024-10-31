@@ -10,13 +10,6 @@ query AuditLogs($first: Int!, $after: String) {
             email
             roles
           }
-          ... on Customer {
-            customerId
-            email
-            status
-            level
-            applicantId
-          }
           ... on System {
             name
           }

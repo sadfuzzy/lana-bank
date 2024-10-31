@@ -402,7 +402,7 @@ wait_for_interest() {
       }
     }'
   )
-  exec_admin_graphql 'collateralization-state-update' "$variables"
-  collateralization_state=$(graphql_output '.data.collateralizationStateUpdate.loan.collateralizationState')
+  exec_admin_graphql 'collateralization-state-trigger-refresh' "$variables"
+  collateralization_state=$(graphql_output '.data.loanCollateralizationStateTriggerRefresh.loan.collateralizationState')
   [[ "$collateralization_state" == "FULLY_COLLATERALIZED" ]] || exit 1
 }

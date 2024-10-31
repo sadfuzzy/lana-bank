@@ -9,7 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 lava-app = { path = "../app" }
-lava-server = { path = "../server" }
+admin-server = { path = "../admin-server" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 

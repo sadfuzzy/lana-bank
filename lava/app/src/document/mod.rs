@@ -1,19 +1,23 @@
 mod entity;
-mod error;
+pub mod error;
 mod repo;
 
+use tracing::instrument;
+
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
-
-use error::DocumentError;
-use repo::DocumentsRepo;
-
-pub use entity::*;
 
 use crate::{
     authorization::{Authorization, DocumentAction, Object},
     primitives::{CustomerId, DocumentId, Subject},
     storage::Storage,
 };
+
+use error::DocumentError;
+use repo::DocumentsRepo;
+
+pub use entity::*;
 
 #[derive(Clone)]
 pub struct Documents {
@@ -33,11 +37,12 @@ impl Documents {
         }
     }
 
+    #[instrument(name = "documents.create", skip(self, content), err)]
     pub async fn create(
         &self,
         sub: &Subject,
         content: Vec<u8>,
-        customer_id: impl Into<CustomerId>,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         filename: String,
     ) -> Result<Document, DocumentError> {
         let audit_info = self
@@ -64,23 +69,25 @@ impl Documents {
         Ok(document)
     }
 
+    #[instrument(name = "documents.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: DocumentId,
+        id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<Option<Document>, DocumentError> {
         self.authz
             .enforce_permission(sub, Object::Document, DocumentAction::Read)
             .await?;
 
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(document) => Ok(Some(document)),
             Err(DocumentError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }
 
-    pub async fn list_by_customer_id(
+    #[instrument(name = "documents.list_for_customer_id", skip(self), err)]
+    pub async fn list_for_customer_id(
         &self,
         sub: &Subject,
         customer_id: CustomerId,
@@ -100,6 +107,7 @@ impl Documents {
             .entities)
     }
 
+    #[instrument(name = "documents.generate_download_link", skip(self), err)]
     pub async fn generate_download_link(
         &self,
         sub: &Subject,
@@ -126,10 +134,11 @@ impl Documents {
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
 
+    #[instrument(name = "documents.delete", skip(self), err)]
     pub async fn delete(
         &self,
         sub: &Subject,
-        document_id: DocumentId,
+        document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<(), DocumentError> {
         let audit_info = self
             .authz
@@ -137,7 +146,7 @@ impl Documents {
             .await?;
 
         let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
-        let mut document = self.repo.find_by_id(document_id).await?;
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();
         self.storage.remove(document_location).await?;
@@ -149,23 +158,30 @@ impl Documents {
         Ok(())
     }
 
+    #[instrument(name = "documents.archive", skip(self), err)]
     pub async fn archive(
         &self,
         sub: &Subject,
-        document_id: DocumentId,
+        document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<Document, DocumentError> {
         let audit_info = self
             .authz
             .enforce_permission(sub, Object::Document, DocumentAction::Archive)
             .await?;
 
-        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
-        let mut document = self.repo.find_by_id(document_id).await?;
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         document.archive(audit_info);
-        self.repo.update_in_tx(&mut db, &mut document).await?;
-        db.commit().await?;
+        self.repo.update(&mut document).await?;
 
         Ok(document)
+    }
+
+    #[instrument(name = "documents.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Document>>(
+        &self,
+        ids: &[DocumentId],
+    ) -> Result<HashMap<DocumentId, T>, DocumentError> {
+        self.repo.find_all(ids).await
     }
 }

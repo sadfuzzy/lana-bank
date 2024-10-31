@@ -6,15 +6,13 @@ use tracing_utils::TracingConfig;
 use std::path::Path;
 
 use super::db::*;
+use admin_server::AdminServerConfig;
 use lava_app::{app::AppConfig, report::ReportConfig, storage::config::StorageConfig};
-use lava_server::{admin::AdminServerConfig, public::PublicServerConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
     #[serde(default)]
     pub db: DbConfig,
-    #[serde(default)]
-    pub public_server: PublicServerConfig,
     #[serde(default)]
     pub admin_server: AdminServerConfig,
     #[serde(default)]

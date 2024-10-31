@@ -93,10 +93,10 @@ type LoanRowProps = {
     }
     status: LoanStatus
     loanTerms: Loan["loanTerms"]
-    userCanApprove: boolean
-    userCanUpdateCollateral: boolean
-    userCanUpdateCollateralizationState: boolean
-    userCanRecordPaymentOrCompleteLoan: boolean
+    subjectCanApprove: boolean
+    subjectCanUpdateCollateral: boolean
+    subjectCanUpdateCollateralizationState: boolean
+    subjectCanRecordPaymentOrCompleteLoan: boolean
   }
   refetch: () => void
 }
@@ -164,7 +164,7 @@ const LoanRow: React.FC<LoanRowProps> = ({ loan, refetch }) => {
                       <span>View Details</span>
                     </Link>
                   </DropdownMenuItem>
-                  {loan.userCanRecordPaymentOrCompleteLoan &&
+                  {loan.subjectCanRecordPaymentOrCompleteLoan &&
                     loan.status === LoanStatus.Active && (
                       <DropdownMenuItem onClick={(e) => e.preventDefault()}>
                         <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
@@ -172,26 +172,27 @@ const LoanRow: React.FC<LoanRowProps> = ({ loan, refetch }) => {
                         </LoanPartialPaymentDialog>
                       </DropdownMenuItem>
                     )}
-                  {loan.userCanApprove && loan.status === LoanStatus.New && (
+                  {loan.subjectCanApprove && loan.status === LoanStatus.New && (
                     <DropdownMenuItem onClick={(e) => e.preventDefault()}>
                       <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
                         <span>Approve Loan</span>
                       </LoanApproveDialog>
                     </DropdownMenuItem>
                   )}
-                  {loan.userCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
-                    <DropdownMenuItem
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setOpenCollateralUpdateDialog({
-                          loanId: loan.loanId,
-                          existingCollateral: loan.balance.collateral.btcBalance,
-                        })
-                      }}
-                    >
-                      Update Collateral
-                    </DropdownMenuItem>
-                  )}
+                  {loan.subjectCanUpdateCollateral &&
+                    loan.status !== LoanStatus.Closed && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setOpenCollateralUpdateDialog({
+                            loanId: loan.loanId,
+                            existingCollateral: loan.balance.collateral.btcBalance,
+                          })
+                        }}
+                      >
+                        Update Collateral
+                      </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

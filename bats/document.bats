@@ -50,7 +50,7 @@ teardown_file() {
 
   # Execute the GraphQL mutation for file upload
   response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")  
-  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.id')
+  document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
   [[ "$document_id" != "" ]] || exit 1
   
   # Clean up the temporary file
@@ -64,7 +64,7 @@ teardown_file() {
     }')
 
   exec_admin_graphql 'document' "$variables"
-  fetched_document_id=$(graphql_output .data.document.id)
+  fetched_document_id=$(graphql_output .data.document.documentId)
   [[ "$fetched_document_id" == "$document_id" ]] || exit 1
 
   fetched_customer_id=$(graphql_output .data.document.customerId)
@@ -82,7 +82,7 @@ teardown_file() {
   documents_count=$(graphql_output '.data.customer.documents | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
 
-  first_document_id=$(graphql_output '.data.customer.documents[0].id')
+  first_document_id=$(graphql_output '.data.customer.documents[0].documentId')
   [[ "$first_document_id" == "$document_id" ]] || exit 1
 
   # Generate download link for the document
@@ -112,7 +112,6 @@ teardown_file() {
     }')
 
   exec_admin_graphql 'document-archive' "$variables"
-  echo "$output"
 
   status=$(graphql_output .data.documentArchive.document.status)
   [[ "$status" == "ARCHIVED" ]] || exit 1
@@ -140,7 +139,6 @@ teardown_file() {
     }')
 
   exec_admin_graphql 'documents-for-customer' "$variables"
-  echo "$output"
 
   # Check if the deleted document is not in the list
   documents=$(graphql_output '.data.customer.documents')

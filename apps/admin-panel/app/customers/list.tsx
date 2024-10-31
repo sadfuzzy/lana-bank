@@ -188,14 +188,14 @@ function CustomerTable({
                             <Link href={`/customers/${customer.customerId}`}>
                               <DropdownMenuItem>View details</DropdownMenuItem>
                             </Link>
-                            {customer.userCanCreateLoan && (
+                            {customer.subjectCanCreateLoan && (
                               <DropdownMenuItem onClick={(e) => e.preventDefault()}>
                                 <CreateLoanDialog customerId={customer.customerId}>
                                   <span>Create Loan</span>
                                 </CreateLoanDialog>
                               </DropdownMenuItem>
                             )}
-                            {customer.userCanRecordDeposit && (
+                            {customer.subjectCanRecordDeposit && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   setOpenRecordDepositDialog(customer.customerId)
@@ -204,7 +204,7 @@ function CustomerTable({
                                 Record Deposit
                               </DropdownMenuItem>
                             )}
-                            {customer.userCanInitiateWithdrawal && (
+                            {customer.subjectCanInitiateWithdrawal && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   setOpenWithdrawalInitiateDialog(customer.customerId)
@@ -213,7 +213,7 @@ function CustomerTable({
                                 Record Withdrawal
                               </DropdownMenuItem>
                             )}
-                            {customer.userCanCreateCreditFacility && (
+                            {customer.subjectCanCreateCreditFacility && (
                               <DropdownMenuItem
                                 onClick={() =>
                                   setOpenCreateCreditFacilityDialog(customer.customerId)

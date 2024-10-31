@@ -41,6 +41,7 @@ gql`
       name
       termsId
       createdAt
+      subjectCanUpdateTermsTemplate
       values {
         annualRate
         accrualInterval
@@ -89,7 +90,7 @@ function TermPage() {
       />
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Terms Template</PageHeading>
-        {me?.me.canCreateTermsTemplate && (
+        {me?.me.subjectCanCreateTermsTemplate && (
           <Button onClick={() => setOpenCreateTermsTemplateDialog(true)}>
             Create New
           </Button>
@@ -144,7 +145,7 @@ function TermPage() {
                               View details
                             </Link>
                           </DropdownMenuItem>
-                          {me?.me.canUpdateTermsTemplate && (
+                          {termsTemplate.subjectCanUpdateTermsTemplate && (
                             <DropdownMenuItem
                               onClick={() =>
                                 setOpenUpdateTermsTemplateDialog(termsTemplate)

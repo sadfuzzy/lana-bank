@@ -23,7 +23,7 @@ export default function ProfilePage() {
             <p className="text-lg">
               Role:{" "}
               <span className="font-semibold">
-                {user.me.roles.map((role) => formatRole(role)).join(", ")}
+                {user.me.user.roles.map((role) => formatRole(role)).join(", ")}
               </span>
             </p>
           )}

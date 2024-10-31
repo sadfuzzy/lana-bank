@@ -32,8 +32,8 @@ gql`
       amount
       status
       reference
-      userCanConfirm
-      userCanCancel
+      subjectCanConfirm
+      subjectCanCancel
       customer {
         email
         customerId
@@ -43,7 +43,7 @@ gql`
         approvalProcessId
         approvalProcessType
         createdAt
-        canVote
+        subjectCanVote
         status
         rules {
           ... on CommitteeThreshold {
@@ -184,7 +184,7 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                   )}
                   {withdrawalDetails?.withdrawal?.approvalProcess.status ===
                     ApprovalProcessStatus.InProgress &&
-                    withdrawalDetails?.withdrawal.approvalProcess.canVote && (
+                    withdrawalDetails?.withdrawal.approvalProcess.subjectCanVote && (
                       <>
                         <Button
                           onClick={() => setOpenApprovalDialog(true)}

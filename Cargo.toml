@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
   "lava/cli",
-  "lava/server",
+  "lava/admin-server",
   "lava/app",
   "lava/rbac-types",
   "lava/events",
@@ -17,7 +17,8 @@ members = [
   "lib/tracing-utils",
   "lib/es-entity",
   "lib/es-entity-macros",
-  "lib/outbox"
+  "lib/outbox",
+  "lib/jwks-utils"
 ]
 
 [workspace.dependencies]

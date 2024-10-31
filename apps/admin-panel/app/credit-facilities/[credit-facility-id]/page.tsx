@@ -39,7 +39,7 @@ gql`
         approvalProcessId
         approvalProcessType
         createdAt
-        canVote
+        subjectCanVote
         status
         rules {
           ... on CommitteeThreshold {
@@ -153,10 +153,10 @@ gql`
           txId
         }
       }
-      userCanUpdateCollateral
-      userCanInitiateDisbursement
-      userCanRecordPayment
-      userCanComplete
+      subjectCanUpdateCollateral
+      subjectCanInitiateDisbursement
+      subjectCanRecordPayment
+      subjectCanComplete
     }
   }
 `

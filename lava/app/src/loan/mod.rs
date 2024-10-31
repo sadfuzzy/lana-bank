@@ -9,6 +9,8 @@ mod repo;
 use sqlx::PgPool;
 use tracing::instrument;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
 
 use crate::{
@@ -82,7 +84,7 @@ impl Loans {
         })
     }
 
-    pub async fn user_can_create_loan_for_customer(
+    pub async fn subject_can_create_loan_for_customer(
         &self,
         sub: &Subject,
         customer_id: CustomerId,
@@ -99,7 +101,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.create_loan_for_customer", skip(self), err)]
+    #[instrument(name = "loan.create_loan_for_customer", skip(self), err)]
     pub async fn create_loan_for_customer(
         &self,
         sub: &Subject,
@@ -110,11 +112,11 @@ impl Loans {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .user_can_create_loan_for_customer(sub, customer_id, true)
+            .subject_can_create_loan_for_customer(sub, customer_id, true)
             .await?
             .expect("audit info missing");
 
-        let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
+        let customer = match self.customers.find_by_id(sub, customer_id).await? {
             Some(customer) => customer,
             None => return Err(LoanError::CustomerNotFound(customer_id)),
         };
@@ -143,7 +145,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_approve(
+    pub async fn subject_can_approve(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -160,7 +162,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.add_approval", skip(self), err)]
+    #[instrument(name = "loan.add_approval", skip(self), err)]
     pub async fn add_approval(
         &self,
         sub: &Subject,
@@ -169,7 +171,7 @@ impl Loans {
         let loan_id = loan_id.into();
 
         let audit_info = self
-            .user_can_approve(sub, loan_id, true)
+            .subject_can_approve(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -196,7 +198,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_update_collateral(
+    pub async fn subject_can_update_collateral(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -213,7 +215,7 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
+    #[instrument(name = "loan.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &Subject,
@@ -221,7 +223,7 @@ impl Loans {
         updated_collateral: Satoshis,
     ) -> Result<Loan, LoanError> {
         let audit_info = self
-            .user_can_update_collateral(sub, loan_id, true)
+            .subject_can_update_collateral(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -249,7 +251,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_update_collateralization_state(
+    pub async fn subject_can_update_collateralization_state(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -266,14 +268,15 @@ impl Loans {
             .await?)
     }
 
-    #[instrument(name = "lava.loan.update_collateral", skip(self), err)]
-    pub async fn update_collateralization_state(
+    #[instrument(name = "loan.trigger_collateralization_state_refresh", skip(self), err)]
+    pub async fn trigger_collateralization_state_refresh(
         &self,
         sub: &Subject,
-        loan_id: LoanId,
+        loan_id: impl Into<LoanId> + std::fmt::Debug,
     ) -> Result<Loan, LoanError> {
+        let loan_id = loan_id.into();
         let audit_info = self
-            .user_can_update_collateralization_state(sub, loan_id, true)
+            .subject_can_update_collateralization_state(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -295,7 +298,7 @@ impl Loans {
         Ok(loan)
     }
 
-    pub async fn user_can_record_payment_or_complete_loan(
+    pub async fn subject_can_record_payment_or_complete_loan(
         &self,
         sub: &Subject,
         loan_id: LoanId,
@@ -312,16 +315,19 @@ impl Loans {
             .await?)
     }
 
+    #[instrument(name = "loan.record_payment_or_complete_loan", skip(self), err)]
     pub async fn record_payment_or_complete_loan(
         &self,
         sub: &Subject,
-        loan_id: LoanId,
+        loan_id: impl Into<LoanId> + std::fmt::Debug,
         amount: UsdCents,
     ) -> Result<Loan, LoanError> {
+        let loan_id = loan_id.into();
+
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .user_can_record_payment_or_complete_loan(sub, loan_id, true)
+            .subject_can_record_payment_or_complete_loan(sub, loan_id, true)
             .await?
             .expect("audit info missing");
 
@@ -357,16 +363,16 @@ impl Loans {
         Ok(loan)
     }
 
+    #[instrument(name = "loan.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
-        id: LoanId,
+        sub: &Subject,
+        id: impl Into<LoanId> + std::fmt::Debug,
     ) -> Result<Option<Loan>, LoanError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(sub, Object::Loan(LoanAllOrOne::ById(id)), LoanAction::Read)
-                .await?;
-        }
+        let id = id.into();
+        self.authz
+            .enforce_permission(sub, Object::Loan(LoanAllOrOne::ById(id)), LoanAction::Read)
+            .await?;
 
         match self.loan_repo.find_by_id(id).await {
             Ok(loan) => Ok(Some(loan)),
@@ -375,21 +381,16 @@ impl Loans {
         }
     }
 
-    #[instrument(name = "lava.loan.list_for_customer", skip(self), err)]
+    #[instrument(name = "loan.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
-        sub: Option<&Subject>,
-        customer_id: CustomerId,
+        sub: &Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Vec<Loan>, LoanError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                    LoanAction::List,
-                )
-                .await?;
-        }
+        let customer_id = customer_id.into();
+        self.authz
+            .enforce_permission(sub, Object::Loan(LoanAllOrOne::All), LoanAction::List)
+            .await?;
 
         Ok(self
             .loan_repo
@@ -402,7 +403,7 @@ impl Loans {
             .entities)
     }
 
-    #[instrument(name = "lava.loan.list", skip(self), err)]
+    #[instrument(name = "loan.list", skip(self), err)]
     pub async fn list(
         &self,
         sub: &Subject,
@@ -416,7 +417,7 @@ impl Loans {
             .await
     }
 
-    #[instrument(name = "lava.loan.list_by_collateralization_ratio", skip(self), err)]
+    #[instrument(name = "loan.list_by_collateralization_ratio", skip(self), err)]
     pub async fn list_by_collateralization_ratio(
         &self,
         sub: &Subject,
@@ -429,5 +430,12 @@ impl Loans {
         self.loan_repo
             .list_by_collateralization_ratio(query, es_entity::ListDirection::Ascending)
             .await
+    }
+
+    pub async fn find_all<T: From<Loan>>(
+        &self,
+        ids: &[LoanId],
+    ) -> Result<HashMap<LoanId, T>, LoanError> {
+        self.loan_repo.find_all(ids).await
     }
 }

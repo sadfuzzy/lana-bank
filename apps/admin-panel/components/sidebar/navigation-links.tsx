@@ -30,15 +30,14 @@ import { useMeQuery } from "@/lib/graphql/generated"
 gql`
   query Me {
     me {
-      userId
-      email
-      roles
-      canCreateUser
-      canCreateCustomer
-      canAssignRoleToUser
-      canRevokeRoleFromUser
-      canCreateTermsTemplate
-      canUpdateTermsTemplate
+      user {
+        userId
+        email
+        roles
+      }
+      subjectCanCreateUser
+      subjectCanCreateCustomer
+      subjectCanCreateTermsTemplate
       visibleNavigationItems {
         loan
         term

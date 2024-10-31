@@ -1,0 +1,10 @@
+mutation LoanCollateralizationStateTriggerRefresh(
+  $input: LoanCollateralizationStateTriggerRefreshInput!
+) {
+  loanCollateralizationStateTriggerRefresh(input: $input) {
+    loan {
+      loanId
+      collateralizationState
+    }
+  }
+}

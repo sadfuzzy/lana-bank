@@ -24,6 +24,7 @@ gql`
       name
       termsId
       createdAt
+      subjectCanUpdateTermsTemplate
       values {
         duration {
           units

@@ -34,6 +34,35 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
+name = "admin-server"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "audit",
+ "axum",
+ "axum-extra",
+ "base64 0.22.1",
+ "chrono",
+ "es-entity",
+ "governance",
+ "jsonwebtoken 9.3.0",
+ "jwks-utils",
+ "lava-app",
+ "reqwest 0.12.9",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2031,6 +2060,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "jwks-utils"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "axum-extra",
+ "jsonwebtoken 9.3.0",
+ "reqwest 0.12.9",
+ "serde",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "lalrpop"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2119,10 +2161,10 @@ dependencies = [
 name = "lava-cli"
 version = "0.2.6-dev"
 dependencies = [
+ "admin-server",
  "anyhow",
  "clap",
  "lava-app",
- "lava-server",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2139,34 +2181,6 @@ dependencies = [
  "outbox",
  "serde",
  "shared-primitives",
-]
-
-[[package]]
-name = "lava-server"
-version = "0.2.6-dev"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-graphql-axum",
- "audit",
- "axum",
- "axum-extra",
- "base64 0.22.1",
- "chrono",
- "es-entity",
- "governance",
- "jsonwebtoken 9.3.0",
- "lava-app",
- "reqwest 0.12.9",
- "rust_decimal",
- "serde",
- "serde_json",
- "thiserror",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-utils",
- "uuid",
 ]
 
 [[package]]

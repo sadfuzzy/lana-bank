@@ -61,20 +61,20 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
         </div>
       </Card>
       <div className="flex flex-col space-y-2 mt-1">
-        {customer.userCanCreateLoan && (
+        {customer.subjectCanCreateLoan && (
           <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
             <Button>New Loan</Button>
           </CreateLoanDialog>
         )}
-        {customer.userCanRecordDeposit && (
+        {customer.subjectCanRecordDeposit && (
           <Button onClick={() => setOpenRecordDepositDialog(true)}>Record Deposit</Button>
         )}
-        {customer.userCanInitiateWithdrawal && (
+        {customer.subjectCanInitiateWithdrawal && (
           <Button onClick={() => setOpenWithdrawalInitiateDialog(true)}>
             Initiate Withdrawal
           </Button>
         )}
-        {customer.userCanCreateCreditFacility && (
+        {customer.subjectCanCreateCreditFacility && (
           <Button
             className="w-full"
             onClick={() => setOpenCreateCreditFacilityDialog(true)}

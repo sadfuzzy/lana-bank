@@ -15,7 +15,7 @@ use governance::ApprovalProcessType;
 
 use crate::{
     audit::{Audit, AuditInfo, AuditSvc},
-    authorization::{Authorization, CreditFacilityAction, CustomerAllOrOne, Object},
+    authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
     entity::EntityError,
@@ -25,7 +25,8 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementIdx, PriceOfOneBTC, Satoshis, Subject, UsdCents,
+        CreditFacilityId, CustomerId, DisbursementId, DisbursementIdx, PriceOfOneBTC, Satoshis,
+        Subject, UsdCents,
     },
     terms::TermValues,
 };
@@ -141,7 +142,7 @@ impl CreditFacilities {
         })
     }
 
-    pub async fn user_can_create(
+    pub async fn subject_can_create(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -168,11 +169,11 @@ impl CreditFacilities {
         let customer_id = customer_id.into();
 
         let audit_info = self
-            .user_can_create(sub, true)
+            .subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
-        let customer = match self.customers.find_by_id(Some(sub), customer_id).await? {
+        let customer = match self.customers.find_by_id(sub, customer_id).await? {
             Some(customer) => customer,
             None => return Err(CreditFacilityError::CustomerNotFound(customer_id)),
         };
@@ -215,23 +216,21 @@ impl CreditFacilities {
     #[instrument(name = "lava.credit_facility.find", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
-        id: CreditFacilityId,
+        sub: &Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<CreditFacility>, CreditFacilityError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
-                .await?;
-        }
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
 
-        match self.credit_facility_repo.find_by_id(id).await {
+        match self.credit_facility_repo.find_by_id(id.into()).await {
             Ok(loan) => Ok(Some(loan)),
             Err(CreditFacilityError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),
         }
     }
 
-    pub async fn user_can_initiate_disbursement(
+    pub async fn subject_can_initiate_disbursement(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -255,7 +254,7 @@ impl CreditFacilities {
         amount: UsdCents,
     ) -> Result<Disbursement, CreditFacilityError> {
         let audit_info = self
-            .user_can_initiate_disbursement(sub, true)
+            .subject_can_initiate_disbursement(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -296,9 +295,10 @@ impl CreditFacilities {
     pub async fn confirm_disbursement(
         &self,
         sub: &Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
         disbursement_idx: DisbursementIdx,
     ) -> Result<Disbursement, CreditFacilityError> {
+        let credit_facility_id = credit_facility_id.into();
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
@@ -348,7 +348,7 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
-    pub async fn user_can_update_collateral(
+    pub async fn subject_can_update_collateral(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -372,7 +372,7 @@ impl CreditFacilities {
         updated_collateral: Satoshis,
     ) -> Result<CreditFacility, CreditFacilityError> {
         let audit_info = self
-            .user_can_update_collateral(sub, true)
+            .subject_can_update_collateral(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -417,7 +417,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    pub async fn user_can_record_payment(
+    pub async fn subject_can_record_payment(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -443,7 +443,7 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
 
         let audit_info = self
-            .user_can_record_payment(sub, true)
+            .subject_can_record_payment(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -502,18 +502,12 @@ impl CreditFacilities {
     #[instrument(name = "lava.credit_facility.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
-        sub: Option<&Subject>,
+        sub: &Subject,
         customer_id: CustomerId,
     ) -> Result<Vec<CreditFacility>, CreditFacilityError> {
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(customer_id)),
-                    CreditFacilityAction::List,
-                )
-                .await?;
-        }
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::List)
+            .await?;
 
         Ok(self
             .credit_facility_repo
@@ -543,7 +537,7 @@ impl CreditFacilities {
             .await
     }
 
-    pub async fn user_can_complete(
+    pub async fn subject_can_complete(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -568,7 +562,7 @@ impl CreditFacilities {
         let credit_facility_id = credit_facility_id.into();
 
         let audit_info = self
-            .user_can_complete(sub, true)
+            .subject_can_complete(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -632,5 +626,12 @@ impl CreditFacilities {
         ids: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, T>, CreditFacilityError> {
         self.credit_facility_repo.find_all(ids).await
+    }
+
+    pub async fn find_all_disbursements<T: From<Disbursement>>(
+        &self,
+        ids: &[DisbursementId],
+    ) -> Result<HashMap<DisbursementId, T>, CreditFacilityError> {
+        Ok(self.disbursement_repo.find_all(ids).await?)
     }
 }

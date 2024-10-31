@@ -86,7 +86,7 @@ teardown_file() {
   [[ "$applicant_id" != "null" ]] || exit 1
 
   level=$(graphql_output '.data.customer.level')
-  [[ "$level" == "ZERO" ]] || exit 1
+  [[ "$level" == "NOT_KYCED" ]] || exit 1
 
     status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1
@@ -150,7 +150,7 @@ teardown_file() {
   exec_admin_graphql 'customer' "$variables"
 
   level=$(graphql_output '.data.customer.level')
-  [[ "$level" == "ONE" ]] || exit 1
+  [[ "$level" == "BASIC" ]] || exit 1
 
     status=$(graphql_output '.data.customer.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
@@ -179,7 +179,7 @@ teardown_file() {
   exec_admin_graphql 'customer' "$variables"
 
   level=$(graphql_output '.data.customer.level')
-  [[ "$level" == "ONE" ]] || exit 1
+  [[ "$level" == "BASIC" ]] || exit 1
 
   status=$(graphql_output '.data.customer.status')
   [[ "$status" == "INACTIVE" ]] || exit 1

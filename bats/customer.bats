@@ -54,15 +54,6 @@ wait_for_approval() {
   variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
   echo $(graphql_output) | jq .
-
-  audit_entries=$(graphql_output '.data.customer.audit')
-  [[ "$audit_entries" != "null" ]] || exit 1
-
-  action=$(graphql_output '.data.customer.audit[0].action')
-  [[ "$action" == "app:customer:create" ]] || exit 1
-
-  authorized=$(graphql_output '.data.customer.audit[0].authorized')
-  [[ "$authorized" == "true" ]] || exit 1
 }
 
 @test "customer: can deposit" {

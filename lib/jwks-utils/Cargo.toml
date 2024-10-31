@@ -1,0 +1,18 @@
+[package]
+name = "jwks-utils"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+
+axum = { workspace = true }
+axum-extra = { workspace = true }
+jsonwebtoken = { workspace = true }
+serde = { workspace = true }
+reqwest = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }

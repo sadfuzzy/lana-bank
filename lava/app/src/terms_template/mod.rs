@@ -2,7 +2,10 @@ pub mod entity;
 pub mod error;
 mod repo;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
+use tracing::instrument;
 
 use crate::{
     audit::AuditInfo,
@@ -33,7 +36,7 @@ impl TermsTemplates {
         }
     }
 
-    pub async fn user_can_create_terms_template(
+    pub async fn subject_can_create_terms_template(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -56,7 +59,7 @@ impl TermsTemplates {
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .user_can_create_terms_template(sub, true)
+            .subject_can_create_terms_template(sub, true)
             .await?
             .expect("audit info missing");
         let new_terms_template = NewTermsTemplate::builder()
@@ -73,7 +76,7 @@ impl TermsTemplates {
         Ok(terms_template)
     }
 
-    pub async fn user_can_update_terms_template(
+    pub async fn subject_can_update_terms_template(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -96,7 +99,7 @@ impl TermsTemplates {
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .user_can_update_terms_template(sub, true)
+            .subject_can_update_terms_template(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -111,15 +114,16 @@ impl TermsTemplates {
         Ok(terms_template)
     }
 
+    #[instrument(name = "terms_template::find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: TermsTemplateId,
+        id: impl Into<TermsTemplateId> + std::fmt::Debug,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
         self.authz
             .enforce_permission(sub, Object::TermsTemplate, TermsTemplateAction::Read)
             .await?;
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(template) => Ok(Some(template)),
             Err(TermsTemplateError::CouldNotFindById(_)) => Ok(None),
             Err(e) => Err(e),
@@ -135,5 +139,12 @@ impl TermsTemplates {
             .list_by_name(Default::default(), es_entity::ListDirection::Ascending)
             .await?
             .entities)
+    }
+
+    pub async fn find_all<T: From<TermsTemplate>>(
+        &self,
+        ids: &[TermsTemplateId],
+    ) -> Result<HashMap<TermsTemplateId, T>, TermsTemplateError> {
+        self.repo.find_all(ids).await
     }
 }

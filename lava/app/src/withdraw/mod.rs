@@ -79,7 +79,7 @@ impl Withdraws {
         &self.repo
     }
 
-    pub async fn user_can_initiate(
+    pub async fn subject_can_initiate(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -98,7 +98,7 @@ impl Withdraws {
         reference: Option<String>,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .user_can_initiate(sub, true)
+            .subject_can_initiate(sub, true)
             .await?
             .expect("audit info missing");
         let customer_id = customer_id.into();
@@ -146,7 +146,7 @@ impl Withdraws {
         Ok(withdraw)
     }
 
-    pub async fn user_can_confirm(
+    pub async fn subject_can_confirm(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -163,7 +163,7 @@ impl Withdraws {
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .user_can_confirm(sub, true)
+            .subject_can_confirm(sub, true)
             .await?
             .expect("audit info missing");
         let id = withdrawal_id.into();
@@ -188,7 +188,7 @@ impl Withdraws {
         Ok(withdrawal)
     }
 
-    pub async fn user_can_cancel(
+    pub async fn subject_can_cancel(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -205,7 +205,7 @@ impl Withdraws {
         withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
-            .user_can_cancel(sub, true)
+            .subject_can_cancel(sub, true)
             .await?
             .expect("audit info missing");
 

@@ -99,7 +99,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 Approve
               </Button>
             )}
-          {creditFacilityDetails.userCanUpdateCollateral && (
+          {creditFacilityDetails.subjectCanUpdateCollateral && (
             <Button
               variant="primary"
               className="w-full"
@@ -108,7 +108,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               Update Collateral
             </Button>
           )}
-          {creditFacilityDetails.userCanInitiateDisbursement &&
+          {creditFacilityDetails.subjectCanInitiateDisbursement &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
                 variant="primary"
@@ -118,7 +118,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 Initiate Disbursement
               </Button>
             )}
-          {creditFacilityDetails.userCanComplete &&
+          {creditFacilityDetails.subjectCanComplete &&
             creditFacilityDetails.canBeCompleted && (
               <Button
                 variant="primary"
@@ -128,7 +128,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 Complete Credit Facility
               </Button>
             )}
-          {creditFacilityDetails.userCanRecordPayment &&
+          {creditFacilityDetails.subjectCanRecordPayment &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
                 variant="primary"
@@ -140,7 +140,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             )}
           {creditFacilityDetails.approvalProcess.status ===
             ApprovalProcessStatus.InProgress &&
-            creditFacilityDetails.approvalProcess.canVote && (
+            creditFacilityDetails.approvalProcess.subjectCanVote && (
               <>
                 <Button onClick={() => setOpenApprovalDialog(true)} className="ml-2">
                   Approve

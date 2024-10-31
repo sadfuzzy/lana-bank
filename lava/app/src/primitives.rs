@@ -50,7 +50,7 @@ pub enum LedgerAccountSetMemberType {
     AccountSet,
 }
 
-#[derive(Debug, Deserialize, Clone, Copy, Serialize)]
+#[derive(async_graphql::Enum, Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 pub enum KycLevel {
     NotKyced,
     Basic,
@@ -91,7 +91,7 @@ impl std::fmt::Display for KycLevel {
     }
 }
 
-#[derive(Debug)]
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AccountStatus {
     Active,
     Inactive,

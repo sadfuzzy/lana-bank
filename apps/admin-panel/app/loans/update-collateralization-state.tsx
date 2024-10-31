@@ -15,8 +15,10 @@ import { useCollateralizationStateUpdateMutation } from "@/lib/graphql/generated
 import { DetailItem, DetailsGroup } from "@/components/details"
 
 gql`
-  mutation CollateralizationStateUpdate($input: CollateralizationStateUpdateInput!) {
-    collateralizationStateUpdate(input: $input) {
+  mutation CollateralizationStateUpdate(
+    $input: LoanCollateralizationStateTriggerRefreshInput!
+  ) {
+    loanCollateralizationStateTriggerRefresh(input: $input) {
       loan {
         loanId
         collateralizationState

@@ -64,22 +64,23 @@ export const LoanDetailsCard: React.FC<LoanDetailsCardProps> = ({ loan, refetch 
         </>
       </Card>
       <div className="flex flex-col space-y-2 mt-1 ml-4">
-        {loan.userCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
+        {loan.subjectCanUpdateCollateral && loan.status !== LoanStatus.Closed && (
           <Button onClick={() => setOpenCollateralUpdateDialog(true)}>
             Update Collateral
           </Button>
         )}
-        {loan.userCanRecordPaymentOrCompleteLoan && loan.status === LoanStatus.Active && (
-          <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
-            <Button>Make Payment</Button>
-          </LoanPartialPaymentDialog>
-        )}
-        {loan.userCanApprove && loan.status === LoanStatus.New && (
+        {loan.subjectCanRecordPaymentOrCompleteLoan &&
+          loan.status === LoanStatus.Active && (
+            <LoanPartialPaymentDialog refetch={refetch} loanId={loan.loanId}>
+              <Button>Make Payment</Button>
+            </LoanPartialPaymentDialog>
+          )}
+        {loan.subjectCanApprove && loan.status === LoanStatus.New && (
           <LoanApproveDialog refetch={refetch} loanDetails={loan as Loan}>
             <Button>Approve Loan</Button>
           </LoanApproveDialog>
         )}
-        {loan.userCanUpdateCollateralizationState &&
+        {loan.subjectCanUpdateCollateralizationState &&
           loan.status === LoanStatus.Active &&
           loan.collateralizationState ===
             LoanCollaterizationState.UnderLiquidationThreshold && (

@@ -78,7 +78,7 @@ function UsersPage() {
 
   return (
     <div>
-      {me?.me.canCreateUser && (
+      {me?.me.subjectCanCreateTermsTemplate && (
         <CreateUserDialog
           setOpenCreateUserDialog={setOpenCreateUserDialog}
           openCreateUserDialog={openCreateUserDialog}

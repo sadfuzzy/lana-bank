@@ -73,7 +73,7 @@ where
         Ok(users)
     }
 
-    pub async fn can_create_user(
+    pub async fn subject_can_create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -96,7 +96,7 @@ where
         email: impl Into<String> + std::fmt::Debug,
     ) -> Result<User, UserError> {
         let audit_info = self
-            .can_create_user(sub, true)
+            .subject_can_create_user(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -189,7 +189,7 @@ where
             .entities)
     }
 
-    pub async fn can_assign_role_to_user(
+    pub async fn subject_can_assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<Option<UserId>>,
@@ -222,7 +222,7 @@ where
             ));
         }
         let audit_info = self
-            .can_assign_role_to_user(sub, id, true)
+            .subject_can_assign_role_to_user(sub, id, true)
             .await?
             .expect("audit info missing");
 
@@ -235,7 +235,7 @@ where
         Ok(user)
     }
 
-    pub async fn can_revoke_role_from_user(
+    pub async fn subject_can_revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<Option<UserId>>,
@@ -268,7 +268,7 @@ where
             ));
         }
         let audit_role = self
-            .can_revoke_role_from_user(sub, id, true)
+            .subject_can_revoke_role_from_user(sub, id, true)
             .await?
             .expect("audit info missing");
 

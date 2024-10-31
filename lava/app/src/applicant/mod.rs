@@ -7,6 +7,7 @@ mod sumsub_auth;
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
 use sqlx::{Postgres, Transaction};
+use tracing::instrument;
 
 use crate::{
     customer::{error::CustomerError, Customers},
@@ -272,9 +273,10 @@ impl Applicants {
             .await
     }
 
+    #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
-        customer_id: impl Into<CustomerId>,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let level_name = SumsubKycLevel::BasicKycLevel;
 

@@ -22,10 +22,10 @@ gql`
       status
       level
       applicantId
-      userCanCreateLoan
-      userCanRecordDeposit
-      userCanInitiateWithdrawal
-      userCanCreateCreditFacility
+      subjectCanCreateLoan
+      subjectCanRecordDeposit
+      subjectCanInitiateWithdrawal
+      subjectCanCreateCreditFacility
       balance {
         checking {
           settled
@@ -43,10 +43,10 @@ gql`
       status
       level
       applicantId
-      userCanCreateLoan
-      userCanRecordDeposit
-      userCanInitiateWithdrawal
-      userCanCreateCreditFacility
+      subjectCanCreateLoan
+      subjectCanRecordDeposit
+      subjectCanInitiateWithdrawal
+      subjectCanCreateCreditFacility
       balance {
         checking {
           settled
@@ -62,10 +62,10 @@ gql`
         customerId
         email
         telegramId
-        userCanCreateLoan
-        userCanRecordDeposit
-        userCanInitiateWithdrawal
-        userCanCreateCreditFacility
+        subjectCanCreateLoan
+        subjectCanRecordDeposit
+        subjectCanInitiateWithdrawal
+        subjectCanCreateCreditFacility
         balance {
           checking {
             settled
@@ -147,7 +147,7 @@ function CustomerPage({ searchParams }: { searchParams: { search?: string } }) {
               X Clear
             </Button>
           )}
-          {me?.me.canCreateCustomer && (
+          {me?.me.subjectCanCreateCustomer && (
             <Button onClick={handleOpenCreateCustomerDialog}>Create New</Button>
           )}
         </div>

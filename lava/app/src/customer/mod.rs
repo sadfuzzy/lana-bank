@@ -58,7 +58,7 @@ impl Customers {
         &self.repo
     }
 
-    pub async fn user_can_create_customer(
+    pub async fn subject_can_create_customer(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -74,15 +74,15 @@ impl Customers {
             .await?)
     }
 
-    #[instrument(name = "lava.customer.create_customer_through_admin", skip(self), err)]
-    pub async fn create_customer_through_admin(
+    #[instrument(name = "lava.customer.create", skip(self), err)]
+    pub async fn create(
         &self,
         sub: &Subject,
         email: String,
         telegram_id: String,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
-            .user_can_create_customer(sub, true)
+            .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
         let customer_id = self.kratos.create_identity(&email).await?.into();
@@ -138,22 +138,20 @@ impl Customers {
         customer
     }
 
+    #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: Option<&Subject>,
+        sub: &Subject,
         id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         let id = id.into();
-
-        if let Some(sub) = sub {
-            self.authz
-                .enforce_permission(
-                    sub,
-                    Object::Customer(CustomerAllOrOne::ById(id)),
-                    CustomerAction::Read,
-                )
-                .await?;
-        }
+        self.authz
+            .enforce_permission(
+                sub,
+                Object::Customer(CustomerAllOrOne::ById(id)),
+                CustomerAction::Read,
+            )
+            .await?;
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
             Err(CustomerError::NotFound) => Ok(None),
@@ -161,6 +159,7 @@ impl Customers {
         }
     }
 
+    #[instrument(name = "customer.find_by_email", skip(self), err)]
     pub async fn find_by_email(
         &self,
         sub: &Subject,
@@ -287,12 +286,14 @@ impl Customers {
         self.repo.find_all(ids).await
     }
 
+    #[instrument(name = "customer.update", skip(self), err)]
     pub async fn update(
         &self,
         sub: &Subject,
-        customer_id: CustomerId,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
         new_telegram_id: String,
     ) -> Result<Customer, CustomerError> {
+        let customer_id = customer_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -305,10 +306,7 @@ impl Customers {
         let mut customer = self.repo.find_by_id(customer_id).await?;
         customer.update_telegram_id(new_telegram_id, audit_info);
 
-        let mut db = self.pool.begin().await?;
-        self.repo.update_in_tx(&mut db, &mut customer).await?;
-
-        db.commit().await?;
+        self.repo.update(&mut customer).await?;
 
         Ok(customer)
     }

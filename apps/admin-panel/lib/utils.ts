@@ -149,11 +149,11 @@ export const formatRule = (rule: ApprovalRules | null | undefined): string => {
 
 export const formatProcessType = (processType: ApprovalProcessType) => {
   switch (processType) {
-    case ApprovalProcessType.CreditFacility:
+    case ApprovalProcessType.CreditFacilityApproval:
       return "Credit Facility"
-    case ApprovalProcessType.Withdraw:
+    case ApprovalProcessType.WithdrawalApproval:
       return "Withdrawal"
-    case ApprovalProcessType.Disbursement:
+    case ApprovalProcessType.DisbursementApproval:
       return "Disbursement"
   }
 }

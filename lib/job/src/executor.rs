@@ -191,6 +191,7 @@ impl JobExecutor {
     #[instrument(
         name = "job_executor.start_job",
         skip(registry, running_jobs, job, repo),
+        fields(job_id, job_type),
         err
     )]
     async fn start_job(
@@ -207,6 +208,9 @@ impl JobExecutor {
             .expect("cannot read registry")
             .init_job(&job)?;
         let id = job.id;
+        let span = Span::current();
+        span.record("job_id", tracing::field::display(&id));
+        span.record("job_type", tracing::field::display(&job.job_type));
         let job_type = job.job_type.clone();
         let all_jobs = Arc::clone(running_jobs);
         let pool = pool.clone();

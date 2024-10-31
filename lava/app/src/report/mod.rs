@@ -7,6 +7,7 @@ mod repo;
 pub mod upload;
 
 use authz::PermissionCheck;
+use tracing::instrument;
 
 use crate::{
     audit::*,
@@ -62,6 +63,7 @@ impl Reports {
         })
     }
 
+    #[instrument(name = "report.create", skip(self))]
     pub async fn create(&self, sub: &Subject) -> Result<Report, ReportError> {
         let audit_info = self
             .authz
@@ -89,16 +91,17 @@ impl Reports {
         Ok(report)
     }
 
+    #[instrument(name = "report.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &Subject,
-        id: ReportId,
+        id: impl Into<ReportId> + std::fmt::Debug,
     ) -> Result<Option<Report>, ReportError> {
         self.authz
             .enforce_permission(sub, Object::Report, ReportAction::Read)
             .await?;
 
-        match self.repo.find_by_id(id).await {
+        match self.repo.find_by_id(id.into()).await {
             Ok(report) => Ok(Some(report)),
             Err(ReportError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
             Err(e) => Err(e),

@@ -28,13 +28,6 @@ gql`
               email
               roles
             }
-            ... on Customer {
-              customerId
-              email
-              status
-              level
-              applicantId
-            }
             ... on System {
               name
             }
@@ -99,9 +92,6 @@ function LogsPage() {
                   <TableCell>{item.node.subject.__typename}</TableCell>
                   <TableCell>
                     {item.node.subject.__typename === "User"
-                      ? item.node.subject.email
-                      : ""}
-                    {item.node.subject.__typename === "Customer"
                       ? item.node.subject.email
                       : ""}
                     {item.node.subject.__typename === "System"

@@ -1,6 +1,6 @@
 query Document($id: UUID!) {
   document(id: $id) {
-    id
+    documentId
     customerId
     filename
     status

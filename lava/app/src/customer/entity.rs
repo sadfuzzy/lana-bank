@@ -35,18 +35,6 @@ pub enum CustomerEvent {
     },
 }
 
-impl CustomerEvent {
-    fn audit_info(&self) -> &AuditInfo {
-        match self {
-            CustomerEvent::Initialized { audit_info, .. } => audit_info,
-            CustomerEvent::KycStarted { audit_info, .. } => audit_info,
-            CustomerEvent::KycApproved { audit_info, .. } => audit_info,
-            CustomerEvent::KycDeclined { audit_info, .. } => audit_info,
-            CustomerEvent::TelegramIdUpdated { audit_info, .. } => audit_info,
-        }
-    }
-}
-
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {
@@ -70,13 +58,6 @@ impl core::fmt::Display for Customer {
 impl Customer {
     pub fn may_create_loan(&self) -> bool {
         true
-    }
-
-    pub fn audit_info(&self) -> Vec<AuditInfo> {
-        self.events
-            .iter_persisted()
-            .map(|e| e.event.audit_info().clone())
-            .collect()
     }
 
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {

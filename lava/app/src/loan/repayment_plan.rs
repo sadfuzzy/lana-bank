@@ -4,7 +4,8 @@ use super::{LoanEvent, UsdCents};
 
 const INTEREST_DUE_IN: chrono::Duration = chrono::Duration::hours(24);
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+#[graphql(name = "LoanRepaymentStatus")]
 pub enum RepaymentStatus {
     Upcoming,
     Due,
