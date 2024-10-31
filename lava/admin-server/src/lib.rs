@@ -37,6 +37,7 @@ pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> 
     let cors = CorsLayer::permissive();
 
     let app = Router::new()
+        .route("/health", get(health_check))
         .route(
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
@@ -92,4 +93,8 @@ async fn playground() -> impl axum::response::IntoResponse {
         async_graphql::http::GraphQLPlaygroundConfig::new("/admin/graphql")
             .with_setting("request.credentials", "include"),
     ))
+}
+
+async fn health_check() -> &'static str {
+    "OK"
 }
