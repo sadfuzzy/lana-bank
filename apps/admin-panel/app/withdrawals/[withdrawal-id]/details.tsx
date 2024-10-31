@@ -184,7 +184,8 @@ const WithdrawalDetailsCard: React.FC<LoanDetailsProps> = ({ withdrawalId }) => 
                   )}
                   {withdrawalDetails?.withdrawal?.approvalProcess.status ===
                     ApprovalProcessStatus.InProgress &&
-                    withdrawalDetails?.withdrawal.approvalProcess.subjectCanSubmitDecision && (
+                    withdrawalDetails?.withdrawal.approvalProcess
+                      .subjectCanSubmitDecision && (
                       <>
                         <Button
                           onClick={() => setOpenApprovalDialog(true)}
