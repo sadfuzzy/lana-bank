@@ -13,17 +13,13 @@ use crate::{
 
 use super::DisbursementError;
 
-pub struct DisbursementApproval {
-    pub user_id: UserId,
-    pub approved_at: DateTime<Utc>,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DisbursementId")]
 pub enum DisbursementEvent {
     Initialized {
         id: DisbursementId,
+        approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
         idx: DisbursementIdx,
         amount: UsdCents,
@@ -31,15 +27,15 @@ pub enum DisbursementEvent {
         customer_account_ids: CustomerLedgerAccountIds,
         audit_info: AuditInfo,
     },
-    ApprovalAdded {
-        approving_user_id: UserId,
-        recorded_at: DateTime<Utc>,
+    ApprovalProcessConcluded {
+        approval_process_id: ApprovalProcessId,
+        approved: bool,
         audit_info: AuditInfo,
     },
-    Approved {
-        tx_id: LedgerTxId,
+    Confirmed {
+        ledger_tx_id: LedgerTxId,
         audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
+        confirmed_at: DateTime<Utc>,
     },
 }
 
@@ -47,6 +43,7 @@ pub enum DisbursementEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Disbursement {
     pub id: DisbursementId,
+    pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
     pub idx: DisbursementIdx,
     pub amount: UsdCents,
@@ -62,6 +59,7 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
             match event {
                 DisbursementEvent::Initialized {
                     id,
+                    approval_process_id,
                     facility_id,
                     idx,
                     amount,
@@ -71,14 +69,15 @@ impl TryFromEvents<DisbursementEvent> for Disbursement {
                 } => {
                     builder = builder
                         .id(*id)
+                        .approval_process_id(*approval_process_id)
                         .facility_id(*facility_id)
                         .idx(*idx)
                         .amount(*amount)
                         .account_ids(*account_ids)
                         .customer_account_ids(*customer_account_ids)
                 }
-                DisbursementEvent::ApprovalAdded { .. } => (),
-                DisbursementEvent::Approved { .. } => (),
+                DisbursementEvent::ApprovalProcessConcluded { .. } => (),
+                DisbursementEvent::Confirmed { .. } => (),
             }
         }
         builder.events(events).build()
@@ -92,106 +91,76 @@ impl Disbursement {
             .expect("entity_first_persisted_at not found")
     }
 
-    fn has_user_previously_approved(&self, user_id: UserId) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                DisbursementEvent::ApprovalAdded {
-                    approving_user_id, ..
-                } => {
-                    if user_id == *approving_user_id {
-                        return true;
-                    }
-                }
-                _ => continue,
-            }
-        }
-        false
-    }
-
     pub fn status(&self) -> DisbursementStatus {
-        if self.is_approved() {
-            DisbursementStatus::Approved
+        if self.is_confirmed() {
+            DisbursementStatus::Confirmed
         } else {
-            DisbursementStatus::New
+            match self.is_approved() {
+                Some(true) => DisbursementStatus::Approved,
+                Some(false) => DisbursementStatus::Denied,
+                None => DisbursementStatus::New,
+            }
         }
     }
 
-    fn approval_threshold_met(&self) -> bool {
+    pub(crate) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
         self.events
-            .iter_all()
-            .any(|event| matches!(event, DisbursementEvent::ApprovalAdded { .. }))
+            .push(DisbursementEvent::ApprovalProcessConcluded {
+                approval_process_id: self.id.into(),
+                approved,
+                audit_info,
+            });
     }
 
-    pub fn is_approved(&self) -> bool {
+    pub(super) fn is_approved(&self) -> Option<bool> {
+        for event in self.events.iter_all() {
+            if let DisbursementEvent::ApprovalProcessConcluded { approved, .. } = event {
+                return Some(*approved);
+            }
+        }
+        None
+    }
+    pub(super) fn is_confirmed(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
-                DisbursementEvent::Approved { .. } => return true,
+                DisbursementEvent::Confirmed { .. } => return true,
                 _ => continue,
             }
         }
         false
     }
 
-    pub fn add_approval(
-        &mut self,
-        approving_user_id: UserId,
-        audit_info: AuditInfo,
-    ) -> Result<Option<DisbursementData>, DisbursementError> {
-        if self.has_user_previously_approved(approving_user_id) {
-            return Err(DisbursementError::UserCannotApproveTwice);
+    pub fn disbursement_data(&self) -> Result<DisbursementData, DisbursementError> {
+        if self.is_confirmed() {
+            return Err(DisbursementError::AlreadyConfirmed);
         }
 
-        if self.is_approved() {
-            return Err(DisbursementError::AlreadyApproved);
+        match self.is_approved() {
+            None => return Err(DisbursementError::ApprovalInProgress),
+            Some(false) => return Err(DisbursementError::Denied),
+            _ => (),
         }
 
-        self.events.push(DisbursementEvent::ApprovalAdded {
-            approving_user_id,
-            recorded_at: Utc::now(),
-            audit_info,
-        });
-
-        if self.approval_threshold_met() {
-            return Ok(Some(DisbursementData {
-                tx_ref: format!("disbursement-{}", self.id),
-                tx_id: LedgerTxId::new(),
-                amount: self.amount,
-                account_ids: self.account_ids,
-                customer_account_ids: self.customer_account_ids,
-            }));
-        }
-        Ok(None)
+        Ok(DisbursementData {
+            tx_ref: format!("disbursement-{}", self.id),
+            tx_id: LedgerTxId::new(),
+            amount: self.amount,
+            account_ids: self.account_ids,
+            customer_account_ids: self.customer_account_ids,
+        })
     }
 
-    pub fn confirm_approval(
+    pub fn confirm(
         &mut self,
         &DisbursementData { tx_id, .. }: &DisbursementData,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
-        self.events.push(DisbursementEvent::Approved {
-            tx_id,
+        self.events.push(DisbursementEvent::Confirmed {
+            ledger_tx_id: tx_id,
+            confirmed_at: executed_at,
             audit_info,
-            recorded_at: executed_at,
         });
-    }
-
-    pub fn approvals(&self) -> Vec<DisbursementApproval> {
-        let mut approvals = Vec::new();
-        for event in self.events.iter_all() {
-            if let DisbursementEvent::ApprovalAdded {
-                approving_user_id,
-                recorded_at,
-                ..
-            } = event
-            {
-                approvals.push(DisbursementApproval {
-                    user_id: *approving_user_id,
-                    approved_at: *recorded_at,
-                });
-            }
-        }
-        approvals
     }
 }
 
@@ -199,6 +168,8 @@ impl Disbursement {
 pub struct NewDisbursement {
     #[builder(setter(into))]
     pub(super) id: DisbursementId,
+    #[builder(setter(into))]
+    pub(crate) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) idx: DisbursementIdx,
@@ -221,6 +192,7 @@ impl IntoEvents<DisbursementEvent> for NewDisbursement {
             self.id,
             [DisbursementEvent::Initialized {
                 id: self.id,
+                approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
                 idx: self.idx,
                 amount: self.amount,
@@ -245,51 +217,83 @@ mod test {
         }
     }
 
-    fn init_events() -> EntityEvents<DisbursementEvent> {
-        EntityEvents::init(
-            DisbursementId::new(),
-            [DisbursementEvent::Initialized {
-                id: DisbursementId::new(),
-                facility_id: CreditFacilityId::new(),
-                idx: DisbursementIdx::FIRST,
-                amount: UsdCents::from(100_000),
-                account_ids: CreditFacilityAccountIds::new(),
-                customer_account_ids: CustomerLedgerAccountIds::new(),
-                audit_info: dummy_audit_info(),
-            }],
-        )
+    fn disbursement_from(events: &Vec<DisbursementEvent>) -> Disbursement {
+        Disbursement::try_from_events(EntityEvents::init(DisbursementId::new(), events.clone()))
+            .unwrap()
+    }
+
+    fn initial_events() -> Vec<DisbursementEvent> {
+        let id = DisbursementId::new();
+        vec![DisbursementEvent::Initialized {
+            id,
+            approval_process_id: id.into(),
+            facility_id: CreditFacilityId::new(),
+            idx: DisbursementIdx::FIRST,
+            amount: UsdCents::from(100_000),
+            account_ids: CreditFacilityAccountIds::new(),
+            customer_account_ids: CustomerLedgerAccountIds::new(),
+            audit_info: dummy_audit_info(),
+        }]
     }
 
     #[test]
-    fn admin_and_bank_manager_can_approve() {
-        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let _admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
-        let _bank_manager_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
-
-        assert!(disbursement.approval_threshold_met());
+    fn errors_when_not_confirmed_yet() {
+        let disbursement = disbursement_from(&initial_events());
+        assert!(matches!(
+            disbursement.disbursement_data(),
+            Err(DisbursementError::ApprovalInProgress)
+        ));
     }
 
     #[test]
-    fn two_admin_can_approve() {
-        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let _first_admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
-        let _second_admin_approval = disbursement.add_approval(UserId::new(), dummy_audit_info());
-
-        assert!(disbursement.approval_threshold_met());
-    }
-
-    #[test]
-    fn user_cannot_approve_twice() {
-        let mut disbursement = Disbursement::try_from_events(init_events()).unwrap();
-        let user_id = UserId::new();
-        let first_approval = disbursement.add_approval(user_id, dummy_audit_info());
-        assert!(first_approval.is_ok());
-
-        let result = disbursement.add_approval(user_id, dummy_audit_info());
+    fn errors_if_denied() {
+        let mut events = initial_events();
+        events.push(DisbursementEvent::ApprovalProcessConcluded {
+            approval_process_id: ApprovalProcessId::new(),
+            approved: false,
+            audit_info: dummy_audit_info(),
+        });
+        let disbursement = disbursement_from(&events);
 
         assert!(matches!(
-            result,
-            Err(DisbursementError::UserCannotApproveTwice)
+            disbursement.disbursement_data(),
+            Err(DisbursementError::Denied)
         ));
+    }
+
+    #[test]
+    fn errors_if_already_confirmed() {
+        let mut events = initial_events();
+        events.extend([
+            DisbursementEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: true,
+                audit_info: dummy_audit_info(),
+            },
+            DisbursementEvent::Confirmed {
+                ledger_tx_id: LedgerTxId::new(),
+                confirmed_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let disbursement = disbursement_from(&events);
+
+        assert!(matches!(
+            disbursement.disbursement_data(),
+            Err(DisbursementError::AlreadyConfirmed)
+        ));
+    }
+
+    #[test]
+    fn can_confirm() {
+        let mut events = initial_events();
+        events.extend([DisbursementEvent::ApprovalProcessConcluded {
+            approval_process_id: ApprovalProcessId::new(),
+            approved: true,
+            audit_info: dummy_audit_info(),
+        }]);
+        let disbursement = disbursement_from(&events);
+
+        assert!(disbursement.disbursement_data().is_ok(),);
     }
 }

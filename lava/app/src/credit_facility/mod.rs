@@ -26,7 +26,6 @@ use crate::{
     price::Price,
     primitives::{
         CreditFacilityId, CustomerId, DisbursementIdx, PriceOfOneBTC, Satoshis, Subject, UsdCents,
-        UserId,
     },
     terms::TermValues,
 };
@@ -44,6 +43,8 @@ use tracing::instrument;
 
 pub const APPROVE_CREDIT_FACILITY_PROCESS: ApprovalProcessType =
     ApprovalProcessType::new("credit-facility");
+pub const APPROVE_DISBURSEMENT_PROCESS: ApprovalProcessType =
+    ApprovalProcessType::new("disbursement");
 
 #[derive(Clone)]
 pub struct CreditFacilities {
@@ -97,7 +98,7 @@ impl CreditFacilities {
             audit,
         ));
         jobs.add_initializer_and_spawn_unique(
-            approve::CreditFacilityApprovalJobInitializer::new(
+            approve_credit_facility::CreditFacilityApprovalJobInitializer::new(
                 pool,
                 &credit_facility_repo,
                 &interest_accrual_repo,
@@ -107,12 +108,23 @@ impl CreditFacilities {
                 authz.audit(),
                 outbox,
             ),
-            approve::CreditFacilityApprovalJobConfig,
+            approve_credit_facility::CreditFacilityApprovalJobConfig,
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            approve_disbursement::DisbursementApprovalJobInitializer::new(
+                pool,
+                &disbursement_repo,
+                authz.audit(),
+                outbox,
+            ),
+            approve_disbursement::DisbursementApprovalJobConfig,
         )
         .await?;
         let _ = governance
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
+        let _ = governance.init_policy(APPROVE_DISBURSEMENT_PROCESS).await;
 
         Ok(Self {
             pool: pool.clone(),
@@ -260,6 +272,14 @@ impl CreditFacilities {
         let mut db_tx = self.pool.begin().await?;
         let new_disbursement =
             credit_facility.initiate_disbursement(amount, chrono::Utc::now(), audit_info)?;
+        self.governance
+            .start_process(
+                &mut db_tx,
+                new_disbursement.approval_process_id,
+                new_disbursement.approval_process_id.to_string(),
+                APPROVE_DISBURSEMENT_PROCESS,
+            )
+            .await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
@@ -272,38 +292,13 @@ impl CreditFacilities {
         Ok(disbursement)
     }
 
-    pub async fn user_can_approve_disbursement(
-        &self,
-        sub: &Subject,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, CreditFacilityError> {
-        Ok(self
-            .authz
-            .evaluate_permission(
-                sub,
-                Object::CreditFacility,
-                CreditFacilityAction::ApproveDisbursement,
-                enforce,
-            )
-            .await?)
-    }
-
-    #[instrument(
-        name = "lava.credit_facility.add_disbursement_approval",
-        skip(self),
-        err
-    )]
-    pub async fn add_disbursement_approval(
+    #[instrument(name = "lava.credit_facility.confirm_disbursement", skip(self), err)]
+    pub async fn confirm_disbursement(
         &self,
         sub: &Subject,
         credit_facility_id: CreditFacilityId,
         disbursement_idx: DisbursementIdx,
     ) -> Result<Disbursement, CreditFacilityError> {
-        let audit_info = self
-            .user_can_approve_disbursement(sub, true)
-            .await?
-            .expect("audit info missing");
-
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
@@ -317,13 +312,22 @@ impl CreditFacilities {
 
         let mut db_tx = self.pool.begin().await?;
 
-        let user_id = UserId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotUser)?;
-        if let Some(disbursement_data) = disbursement.add_approval(user_id, audit_info.clone())? {
+        if let Ok(disbursement_data) = disbursement.disbursement_data() {
+            let audit_info = self
+                .authz
+                .audit()
+                .record_system_entry_in_tx(
+                    &mut db_tx,
+                    Object::CreditFacility,
+                    CreditFacilityAction::ConfirmDisbursement,
+                )
+                .await?;
+
             let executed_at = self
                 .ledger
                 .record_disbursement(disbursement_data.clone())
                 .await?;
-            disbursement.confirm_approval(&disbursement_data, executed_at, audit_info.clone());
+            disbursement.confirm(&disbursement_data, executed_at, audit_info.clone());
 
             credit_facility.confirm_disbursement(
                 &disbursement,

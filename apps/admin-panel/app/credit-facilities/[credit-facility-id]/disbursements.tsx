@@ -1,9 +1,8 @@
 import React, { useState } from "react"
 import { IoCheckmark } from "react-icons/io5"
 
-import { CreditFacilityDisbursementApproveDialog } from "../disbursement-approve"
-
 import { DisbursementDetailsDialog } from "../disbursement-details"
+import { CreditFacilityDisbursementConfirmDialog } from "../disbursement-approve"
 
 import {
   Table,
@@ -105,7 +104,7 @@ export const CreditFacilityDisbursements: React.FC<CreditFacilityDisbursementsPr
       </Card>
 
       {selectedApprovalDisbursement && (
-        <CreditFacilityDisbursementApproveDialog
+        <CreditFacilityDisbursementConfirmDialog
           setOpenDialog={handleCloseApproveDialog}
           openDialog={true}
           creditFacilityId={creditFacility.creditFacilityId}
