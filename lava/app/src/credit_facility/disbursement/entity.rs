@@ -217,9 +217,8 @@ mod test {
         }
     }
 
-    fn disbursement_from(events: &Vec<DisbursementEvent>) -> Disbursement {
-        Disbursement::try_from_events(EntityEvents::init(DisbursementId::new(), events.clone()))
-            .unwrap()
+    fn disbursement_from(events: Vec<DisbursementEvent>) -> Disbursement {
+        Disbursement::try_from_events(EntityEvents::init(DisbursementId::new(), events)).unwrap()
     }
 
     fn initial_events() -> Vec<DisbursementEvent> {
@@ -238,7 +237,7 @@ mod test {
 
     #[test]
     fn errors_when_not_confirmed_yet() {
-        let disbursement = disbursement_from(&initial_events());
+        let disbursement = disbursement_from(initial_events());
         assert!(matches!(
             disbursement.disbursement_data(),
             Err(DisbursementError::ApprovalInProgress)
@@ -253,7 +252,7 @@ mod test {
             approved: false,
             audit_info: dummy_audit_info(),
         });
-        let disbursement = disbursement_from(&events);
+        let disbursement = disbursement_from(events);
 
         assert!(matches!(
             disbursement.disbursement_data(),
@@ -276,7 +275,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let disbursement = disbursement_from(&events);
+        let disbursement = disbursement_from(events);
 
         assert!(matches!(
             disbursement.disbursement_data(),
@@ -292,7 +291,7 @@ mod test {
             approved: true,
             audit_info: dummy_audit_info(),
         }]);
-        let disbursement = disbursement_from(&events);
+        let disbursement = disbursement_from(events);
 
         assert!(disbursement.disbursement_data().is_ok(),);
     }

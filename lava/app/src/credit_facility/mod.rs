@@ -18,7 +18,6 @@ use crate::{
     authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
-    entity::EntityError,
     governance::Governance,
     job::{error::JobError, *},
     ledger::{credit_facility::*, Ledger},
@@ -225,7 +224,7 @@ impl CreditFacilities {
 
         match self.credit_facility_repo.find_by_id(id.into()).await {
             Ok(loan) => Ok(Some(loan)),
-            Err(CreditFacilityError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(CreditFacilityError::NotFound) => Ok(None),
             Err(e) => Err(e),
         }
     }

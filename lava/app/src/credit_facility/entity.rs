@@ -1056,8 +1056,8 @@ mod test {
         CVLPct::new(5)
     }
 
-    fn facility_from(events: &Vec<CreditFacilityEvent>) -> CreditFacility {
-        CreditFacility::try_from_events(EntityEvents::init(CreditFacilityId::new(), events.clone()))
+    fn facility_from(events: Vec<CreditFacilityEvent>) -> CreditFacility {
+        CreditFacility::try_from_events(EntityEvents::init(CreditFacilityId::new(), events))
             .unwrap()
     }
 
@@ -1103,7 +1103,7 @@ mod test {
             audit_info: dummy_audit_info(),
         });
         assert!(matches!(
-            facility_from(&events).initiate_disbursement(
+            facility_from(events.clone()).initiate_disbursement(
                 UsdCents::ONE,
                 Utc::now(),
                 dummy_audit_info()
@@ -1117,7 +1117,7 @@ mod test {
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
-        assert!(facility_from(&events)
+        assert!(facility_from(events)
             .initiate_disbursement(UsdCents::ONE, Utc::now(), dummy_audit_info())
             .is_ok());
     }
@@ -1143,7 +1143,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
 
         assert_eq!(credit_facility.interest_accrued(), UsdCents::from(30));
     }
@@ -1167,7 +1167,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
 
         assert_eq!(
             credit_facility.outstanding(),
@@ -1203,7 +1203,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
 
         assert_eq!(
             credit_facility.outstanding_from_due().disbursed,
@@ -1236,7 +1236,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             },
         ]);
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
 
         assert_eq!(
             credit_facility.outstanding_from_due().disbursed,
@@ -1246,7 +1246,7 @@ mod test {
 
     #[test]
     fn collateral() {
-        let mut credit_facility = facility_from(&initial_events());
+        let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
 
         let credit_facility_collateral_update = credit_facility
@@ -1277,7 +1277,7 @@ mod test {
     #[test]
     fn collateralization_ratio() {
         let events = initial_events();
-        let mut credit_facility = facility_from(&events);
+        let mut credit_facility = facility_from(events);
         assert_eq!(
             credit_facility.collateralization_ratio(),
             Some(Decimal::ZERO)
@@ -1335,7 +1335,7 @@ mod test {
             },
         ]);
 
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
         assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(50)));
     }
 
@@ -1347,7 +1347,7 @@ mod test {
             audit_info: dummy_audit_info(),
             activated_at: Utc::now(),
         }]);
-        let mut credit_facility = facility_from(&events);
+        let mut credit_facility = facility_from(events);
 
         let first_period = credit_facility
             .next_interest_accrual_period()
@@ -1396,7 +1396,7 @@ mod test {
             audit_info: dummy_audit_info(),
             activated_at: Utc::now(),
         }]);
-        let mut credit_facility = facility_from(&events);
+        let mut credit_facility = facility_from(events);
 
         let new_accrual = credit_facility
             .start_interest_accrual(dummy_audit_info())
@@ -1482,7 +1482,7 @@ mod test {
 
     #[test]
     fn check_activated_at() {
-        let mut credit_facility = facility_from(&initial_events());
+        let mut credit_facility = facility_from(initial_events());
         assert_eq!(credit_facility.activated_at, None);
         assert_eq!(credit_facility.expires_at, None);
 
@@ -1515,7 +1515,7 @@ mod test {
                 audit_info: dummy_audit_info(),
             }
         });
-        let credit_facility = facility_from(&events);
+        let credit_facility = facility_from(events);
 
         let res = credit_facility.activation_data(default_price());
         assert!(matches!(res, Err(CreditFacilityError::NoCollateral)));
@@ -1523,7 +1523,7 @@ mod test {
 
     #[test]
     fn reject_credit_facility_activate_below_margin_limit() {
-        let mut credit_facility = facility_from(&initial_events());
+        let mut credit_facility = facility_from(initial_events());
 
         let credit_facility_collateral_update = credit_facility
             .initiate_collateral_update(Satoshis::from(100))
@@ -1546,7 +1546,7 @@ mod test {
 
     #[test]
     fn status() {
-        let mut credit_facility = facility_from(&initial_events());
+        let mut credit_facility = facility_from(initial_events());
         assert_eq!(
             credit_facility.status(),
             CreditFacilityStatus::PendingCollateralization
@@ -1577,7 +1577,7 @@ mod test {
 
         #[test]
         fn errors_when_not_approved_yet() {
-            let credit_facility = facility_from(&initial_events());
+            let credit_facility = facility_from(initial_events());
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
                 Err(CreditFacilityError::ApprovalInProgress)
@@ -1592,7 +1592,7 @@ mod test {
                 approved: false,
                 audit_info: dummy_audit_info(),
             });
-            let credit_facility = facility_from(&events);
+            let credit_facility = facility_from(events);
 
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
@@ -1608,7 +1608,7 @@ mod test {
                 approved: true,
                 audit_info: dummy_audit_info(),
             });
-            let credit_facility = facility_from(&events);
+            let credit_facility = facility_from(events);
 
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
@@ -1635,7 +1635,7 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(&events);
+            let credit_facility = facility_from(events);
 
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
@@ -1667,7 +1667,7 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(&events);
+            let credit_facility = facility_from(events);
 
             assert!(matches!(
                 credit_facility.activation_data(default_price()),
@@ -1695,7 +1695,7 @@ mod test {
                     audit_info: dummy_audit_info(),
                 },
             ]);
-            let credit_facility = facility_from(&events);
+            let credit_facility = facility_from(events);
 
             assert!(credit_facility.activation_data(default_price()).is_ok(),);
         }
@@ -1789,7 +1789,7 @@ mod test {
 
         #[test]
         fn initiate_repayment_errors_when_no_disbursements() {
-            let credit_facility = facility_from(&initial_events());
+            let credit_facility = facility_from(initial_events());
 
             let repayment_amount = UsdCents::from(5);
             assert!(credit_facility

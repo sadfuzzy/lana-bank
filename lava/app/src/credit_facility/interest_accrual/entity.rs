@@ -294,12 +294,9 @@ mod test {
         }
     }
 
-    fn accrual_from(events: &Vec<InterestAccrualEvent>) -> InterestAccrual {
-        InterestAccrual::try_from_events(EntityEvents::init(
-            InterestAccrualId::new(),
-            events.clone(),
-        ))
-        .unwrap()
+    fn accrual_from(events: Vec<InterestAccrualEvent>) -> InterestAccrual {
+        InterestAccrual::try_from_events(EntityEvents::init(InterestAccrualId::new(), events))
+            .unwrap()
     }
 
     fn initial_events() -> Vec<InterestAccrualEvent> {
@@ -318,7 +315,7 @@ mod test {
 
     #[test]
     fn next_incurrence_period_at_start() {
-        let accrual = accrual_from(&initial_events());
+        let accrual = accrual_from(initial_events());
         assert_eq!(
             accrual.next_incurrence_period().unwrap().start,
             accrual.started_at
@@ -340,7 +337,7 @@ mod test {
             incurred_at: first_incurrence_at,
             audit_info: dummy_audit_info(),
         }]);
-        let accrual = accrual_from(&events);
+        let accrual = accrual_from(events);
 
         assert_eq!(
             accrual.next_incurrence_period().unwrap(),
@@ -369,7 +366,7 @@ mod test {
             incurred_at: final_incurrence_at,
             audit_info: dummy_audit_info(),
         }]);
-        let accrual = accrual_from(&events);
+        let accrual = accrual_from(events);
 
         assert_eq!(accrual.next_incurrence_period(), None);
     }
@@ -377,7 +374,7 @@ mod test {
     #[test]
     fn zero_amount_incurrence() {
         let account_ids = CreditFacilityAccountIds::new();
-        let mut accrual = accrual_from(&initial_events());
+        let mut accrual = accrual_from(initial_events());
         let incurrence @ CreditFacilityInterestIncurrence {
             interest, period, ..
         } = accrual.initiate_incurrence(
@@ -420,7 +417,7 @@ mod test {
     #[test]
     fn accrual_is_zero_for_zero_outstanding() {
         let account_ids = CreditFacilityAccountIds::new();
-        let mut accrual = accrual_from(&initial_events());
+        let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
         let start_day = start.day();
@@ -466,7 +463,7 @@ mod test {
             .interest_for_time_period(disbursed_outstanding, 1);
 
         let account_ids = CreditFacilityAccountIds::new();
-        let mut accrual = accrual_from(&initial_events());
+        let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
         let start_day = start.day();

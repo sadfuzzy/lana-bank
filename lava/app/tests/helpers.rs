@@ -14,8 +14,8 @@ pub async fn init_users(
     authz: &Authorization,
 ) -> anyhow::Result<(Users, Subject)> {
     let superuser_email = "superuser@test.io".to_string();
-    let outbox = Outbox::init(&pool).await?;
-    let users = Users::init(&pool, &authz, &outbox, Some(superuser_email.clone())).await?;
+    let outbox = Outbox::init(pool).await?;
+    let users = Users::init(pool, authz, &outbox, Some(superuser_email.clone())).await?;
     let superuser = users
         .find_by_email(None, &superuser_email)
         .await?
