@@ -140,7 +140,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             )}
           {creditFacilityDetails.approvalProcess.status ===
             ApprovalProcessStatus.InProgress &&
-            creditFacilityDetails.approvalProcess.subjectCanVote && (
+            creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
               <>
                 <Button onClick={() => setOpenApprovalDialog(true)} className="ml-2">
                   Approve

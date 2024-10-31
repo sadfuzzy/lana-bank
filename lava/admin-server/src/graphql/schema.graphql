@@ -69,7 +69,7 @@ type ApprovalProcess {
 	createdAt: Timestamp!
 	rules: ApprovalRules!
 	policy: Policy!
-	subjectCanVote: Boolean!
+	subjectCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
 	target: ApprovalProcessTarget!
 }

@@ -39,7 +39,7 @@ gql`
         approvalProcessId
         approvalProcessType
         createdAt
-        subjectCanVote
+        subjectCanSubmitDecision
         status
         rules {
           ... on CommitteeThreshold {
