@@ -18,3 +18,5 @@ target/
 tilt.log
 
 node_modules/
+
+.bacon-locations
