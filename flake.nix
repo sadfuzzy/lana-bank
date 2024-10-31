@@ -41,6 +41,7 @@
           cargo-nextest
           cargo-audit
           cargo-watch
+          bacon
           typos
           postgresql
           docker-compose
