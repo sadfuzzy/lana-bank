@@ -63,7 +63,7 @@ pub struct AdminJwtClaims {
     pub subject: String,
 }
 
-#[instrument(name = "lava.server_admin.graphql", skip_all, fields(error, error.level, error.message))]
+#[instrument(name = "server_admin.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,

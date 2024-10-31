@@ -5,7 +5,7 @@ use opentelemetry::{global, trace::TracerProvider, KeyValue};
 use opentelemetry_sdk::{
     propagation::TraceContextPropagator,
     resource::{EnvResourceDetector, SdkProvidedResourceDetector},
-    trace::Config,
+    trace::{Config, Sampler},
     Resource,
 };
 use opentelemetry_semantic_conventions::resource::{SERVICE_NAME, SERVICE_NAMESPACE};
@@ -34,7 +34,11 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     let provider = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-        .with_trace_config(Config::default().with_resource(telemetry_resource(&config)))
+        .with_trace_config(
+            Config::default()
+                .with_resource(telemetry_resource(&config))
+                .with_sampler(Sampler::AlwaysOn),
+        )
         .install_batch(opentelemetry_sdk::runtime::Tokio)?;
     let telemetry =
         tracing_opentelemetry::layer().with_tracer(provider.tracer(config.service_name));

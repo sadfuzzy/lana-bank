@@ -499,7 +499,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    #[instrument(name = "lava.credit_facility.list_for_customer", skip(self), err)]
+    #[instrument(name = "credit_facility.list_for_customer", skip(self), err)]
     pub async fn list_for_customer(
         &self,
         sub: &Subject,
