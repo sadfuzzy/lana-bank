@@ -57,25 +57,23 @@ pub mod graphql {
 #[macro_export]
 macro_rules! from_es_entity_error {
     ($name:ident) => {
-        impl From<$crate::EsEntityError> for $name {
-            fn from(e: $crate::EsEntityError) -> Self {
-                match e {
-                    $crate::EsEntityError::NotFound => $name::NotFound,
-                    $crate::EsEntityError::ConcurrentModification => panic!("{} - ConcurrentModification error. This should not happen", stringify!($name)),
-                    $crate::EsEntityError::UninitializedFieldError(e) => {
-                        panic!(
-                            "{} - Inconsistent data when during entity hydration. Missing builder.<field>(<arg>) in TryFromEvents?: {:?}",
-                            stringify!($name),
-                            e
-                        )
-                    }
-                    $crate::EsEntityError::EventDeserialization(e) => {
-                        panic!("{} - Could not deserialize Event. Bad / old state in DB? Incompatible event schema change?: {:?}", stringify!($name), e)
-                    }
-                }
+        impl $name {
+            pub fn was_not_found(&self) -> bool {
+                matches!(self, $name::EsEntityError($crate::EsEntityError::NotFound))
+            }
+            pub fn was_concurrent_modification(&self) -> bool {
+                matches!(
+                    self,
+                    $name::EsEntityError($crate::EsEntityError::ConcurrentModification)
+                )
             }
         }
-    }
+        impl From<es_entity::EsEntityError> for $name {
+            fn from(e: es_entity::EsEntityError) -> Self {
+                $name::EsEntityError(e)
+            }
+        }
+    };
 }
 
 #[macro_export]

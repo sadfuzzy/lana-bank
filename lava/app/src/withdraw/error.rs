@@ -6,6 +6,8 @@ use crate::primitives::{UsdCents, WithdrawId};
 pub enum WithdrawError {
     #[error("WithdrawError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("WithdrawError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("WithdrawError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("WithdrawError - GovernanceError: {0}")]
@@ -24,8 +26,6 @@ pub enum WithdrawError {
     InsufficientBalance(UsdCents, UsdCents),
     #[error("WithdrawError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("WithdrawError - NotFound")]
-    NotFound,
 }
 
 es_entity::from_es_entity_error!(WithdrawError);

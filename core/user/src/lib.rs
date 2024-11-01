@@ -143,7 +143,7 @@ where
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -162,7 +162,7 @@ where
 
         match self.repo.find_by_email(email).await {
             Ok(user) => Ok(Some(user)),
-            Err(UserError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -297,7 +297,7 @@ where
             .await?;
 
         let user = match self.repo.find_by_email_in_tx(&mut db, &email).await {
-            Err(UserError::NotFound) => {
+            Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
                     .email(&email)
                     .audit_info(audit_info.clone())

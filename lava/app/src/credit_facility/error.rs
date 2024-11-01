@@ -6,6 +6,8 @@ use crate::primitives::{CustomerId, Satoshis, UsdCents};
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CreditFacilityError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
     #[error("CreditFacilityError - LedgerError: {0}")]
@@ -62,8 +64,6 @@ pub enum CreditFacilityError {
     InterestAccrualInProgress,
     #[error("CreditFacilityError - InterestAccrualWithInvalidFutureStartDate")]
     InterestAccrualWithInvalidFutureStartDate,
-    #[error("CreditFacilityError - NotFound")]
-    NotFound,
     #[error("CreditFacilityError - SubjectIsNotUser")]
     SubjectIsNotUser,
 }

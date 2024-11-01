@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum ApprovalProcessError {
     #[error("ApprovalProcessError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("ApprovalProcessError - NotFound")]
-    NotFound,
+    #[error("ApprovalProcessError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("ApprovalProcessError - AlreadyVoted")]
     AlreadyVoted,
     #[error("ApprovalProcessError - NotEligible")]

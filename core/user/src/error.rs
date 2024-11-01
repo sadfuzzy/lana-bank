@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum UserError {
     #[error("UserError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("UserError - NotFound")]
-    NotFound,
+    #[error("UserError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("UserError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("UserError - AuditError: {0}")]

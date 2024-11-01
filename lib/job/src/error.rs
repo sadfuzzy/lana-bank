@@ -6,6 +6,8 @@ use super::entity::JobType;
 pub enum JobError {
     #[error("JobError - Sqlx: {0}")]
     Sqlx(sqlx::Error),
+    #[error("JobError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("JobError - InvalidPollInterval: {0}")]
     InvalidPollInterval(String),
     #[error("JobError - InvalidJobType: expected '{0}' but initializer was '{1}'")]
@@ -24,9 +26,9 @@ pub enum JobError {
     DuplicateId,
     #[error("JobError - DuplicateUniqueJobType")]
     DuplicateUniqueJobType,
-    #[error("JobError - NotFound")]
-    NotFound,
 }
+
+es_entity::from_es_entity_error!(JobError);
 
 impl From<Box<dyn std::error::Error>> for JobError {
     fn from(error: Box<dyn std::error::Error>) -> Self {
@@ -49,5 +51,3 @@ impl From<sqlx::Error> for JobError {
         Self::Sqlx(error)
     }
 }
-
-es_entity::from_es_entity_error!(JobError);

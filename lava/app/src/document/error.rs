@@ -4,12 +4,12 @@ use thiserror::Error;
 pub enum DocumentError {
     #[error("DocumentError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("DocumentError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("DocumentError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("DocumentError - StorageError: {0}")]
     StorageError(#[from] crate::storage::StorageError),
-    #[error("DocumentError - NotFound")]
-    NotFound,
 }
 
 es_entity::from_es_entity_error!(DocumentError);

@@ -242,7 +242,7 @@ impl Withdraws {
 
         match self.repo.find_by_id(id.into()).await {
             Ok(withdrawal) => Ok(Some(withdrawal)),
-            Err(WithdrawError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }

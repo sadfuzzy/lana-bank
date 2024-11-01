@@ -81,7 +81,7 @@ impl Documents {
 
         match self.repo.find_by_id(id.into()).await {
             Ok(document) => Ok(Some(document)),
-            Err(DocumentError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }

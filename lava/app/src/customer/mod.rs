@@ -154,7 +154,7 @@ impl Customers {
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -175,7 +175,7 @@ impl Customers {
 
         match self.repo.find_by_email(email).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -186,7 +186,7 @@ impl Customers {
     ) -> Result<Option<Customer>, CustomerError> {
         match self.repo.find_by_id(id.into()).await {
             Ok(customer) => Ok(Some(customer)),
-            Err(CustomerError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }

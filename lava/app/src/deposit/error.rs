@@ -6,6 +6,8 @@ use crate::primitives::DepositId;
 pub enum DepositError {
     #[error("DepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("DepositError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("DepositError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("DepositError - UserError: {0}")]
@@ -16,8 +18,6 @@ pub enum DepositError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("DepositError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("DepositError - NotFound")]
-    NotFound,
 }
 
 es_entity::from_es_entity_error!(DepositError);

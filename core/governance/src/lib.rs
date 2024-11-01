@@ -121,7 +121,7 @@ where
 
         match self.policy_repo.find_by_id(policy_id).await {
             Ok(policy) => Ok(Some(policy)),
-            Err(PolicyError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(GovernanceError::PolicyError(e)),
         }
     }
@@ -427,7 +427,7 @@ where
 
         match self.committee_repo.find_by_id(committee_id).await {
             Ok(committee) => Ok(Some(committee)),
-            Err(CommitteeError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(GovernanceError::CommitteeError(e)),
         }
     }
@@ -486,7 +486,7 @@ where
 
         match self.process_repo.find_by_id(process_id).await {
             Ok(process) => Ok(Some(process)),
-            Err(ApprovalProcessError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(GovernanceError::ApprovalProcessError(e)),
         }
     }

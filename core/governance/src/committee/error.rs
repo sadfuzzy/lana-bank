@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum CommitteeError {
     #[error("CommitteeError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CommitteeError - NotFound")]
-    NotFound,
+    #[error("CommitteeError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("CommitteeError - MemberAlreadyAdded: {0}")]
     MemberAlreadyAdded(crate::primitives::CommitteeMemberId),
 }

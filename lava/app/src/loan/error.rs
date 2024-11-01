@@ -6,6 +6,8 @@ use crate::primitives::*;
 pub enum LoanError {
     #[error("LoanError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("LoanError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("LoanError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("LoanError - UserError: {0}")]

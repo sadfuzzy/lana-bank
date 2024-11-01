@@ -224,7 +224,7 @@ impl CreditFacilities {
 
         match self.credit_facility_repo.find_by_id(id.into()).await {
             Ok(loan) => Ok(Some(loan)),
-            Err(CreditFacilityError::NotFound) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
@@ -305,7 +305,11 @@ impl CreditFacilities {
 
         let disbursement_id = credit_facility
             .disbursement_id_from_idx(disbursement_idx)
-            .ok_or_else(|| disbursement::error::DisbursementError::NotFound)?;
+            .ok_or_else(|| {
+                disbursement::error::DisbursementError::EsEntityError(
+                    es_entity::EsEntityError::NotFound,
+                )
+            })?;
 
         let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
 

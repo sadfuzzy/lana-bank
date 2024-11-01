@@ -4,10 +4,10 @@ use thiserror::Error;
 pub enum CustomerError {
     #[error("CustomerError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CustomerError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("CustomerError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
-    #[error("CustomerError - NotFound")]
-    NotFound,
     #[error("CustomerError - UnexpectedCurrency")]
     UnexpectedCurrency,
     #[error("CustomerError - KratosClientError: {0}")]

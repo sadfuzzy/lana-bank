@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum PolicyError {
     #[error("PolicyError - Sqlx: {0}")]
     Sqlx(sqlx::Error),
-    #[error("PolicyError - NotFound")]
-    NotFound,
+    #[error("PolicyError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
 }

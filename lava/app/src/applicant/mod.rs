@@ -10,7 +10,7 @@ use sqlx::{Postgres, Transaction};
 use tracing::instrument;
 
 use crate::{
-    customer::{error::CustomerError, Customers},
+    customer::Customers,
     data_export::Export,
     job::Jobs,
     primitives::{CustomerId, JobId},
@@ -175,7 +175,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -199,7 +199,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -224,7 +224,7 @@ impl Applicants {
 
                 match res {
                     Ok(_) => (),
-                    Err(CustomerError::NotFound) if sandbox_mode.unwrap_or(false) => {
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),

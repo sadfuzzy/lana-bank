@@ -6,6 +6,8 @@ use crate::primitives::ReportId;
 pub enum ReportError {
     #[error("ReportError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("ReportError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("ReportError - SerdeJson: {0}")]
     Deserialization(#[from] serde_json::Error),
     #[error("ReportError - DataformCompilation: {0}")]
