@@ -12,6 +12,7 @@ use tracing::instrument;
 use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
+    data_export::Export,
     entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
@@ -41,8 +42,9 @@ impl Reports {
         audit: &Audit,
         jobs: &Jobs,
         storage: &Storage,
+        export: &Export,
     ) -> Result<Self, ReportError> {
-        let repo = ReportRepo::new(pool);
+        let repo = ReportRepo::new(pool, export);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
             &repo, config, audit, storage,
         ));
@@ -112,7 +114,12 @@ impl Reports {
         self.authz
             .enforce_permission(sub, Object::Report, ReportAction::List)
             .await?;
-        self.repo.list().await
+
+        Ok(self
+            .repo
+            .list_by_created_at(Default::default(), es_entity::ListDirection::Ascending)
+            .await?
+            .entities)
     }
 
     pub async fn generate_download_links(

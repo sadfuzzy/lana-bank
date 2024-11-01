@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO reports (id)\n            VALUES ($1)",
+  "query": "INSERT INTO reports (id) VALUES ($1)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -10,5 +10,5 @@
     },
     "nullable": []
   },
-  "hash": "9c1c6f2c6325d37aae8768991838684f80969e6ea8b06aeca148fb51118bf7cb"
+  "hash": "d38a12c507a1023ccd38de7a6c831d9c4e50ae1b568f1ba6edcb34609b68fc61"
 }

@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+use es_entity::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{audit::AuditInfo, entity::*, primitives::*, storage::LocationInCloud};
+use crate::{audit::AuditInfo, primitives::*, storage::LocationInCloud};
 
 use super::{
     dataform_client::{CompilationResult, WorkflowInvocation},
@@ -37,8 +38,9 @@ pub struct GeneratedReportDownloadLinks {
     pub links: Vec<ReportDownloadLink>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "ReportId")]
 pub enum ReportEvent {
     Initialized {
         id: ReportId,
@@ -91,13 +93,6 @@ pub enum ReportEvent {
     },
 }
 
-impl EntityEvent for ReportEvent {
-    type EntityId = ReportId;
-    fn event_table_name() -> &'static str {
-        "report_events"
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(super) enum ReportGenerationProcessStep {
     Compilation,
@@ -105,26 +100,22 @@ pub(super) enum ReportGenerationProcessStep {
     Upload,
 }
 
-#[derive(Builder)]
-#[builder(pattern = "owned", build_fn(error = "EntityError"))]
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Report {
     pub id: ReportId,
     pub(super) events: EntityEvents<ReportEvent>,
 }
 
-impl Entity for Report {
-    type Event = ReportEvent;
-}
-
 impl Report {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
-            .entity_first_persisted_at
+            .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
 
     pub(super) fn next_step(&self) -> ReportGenerationProcessStep {
-        let last_step = self.events.iter().rev().find_map(|event| match event {
+        let last_step = self.events.iter_all().rev().find_map(|event| match event {
             ReportEvent::CompilationCompleted { .. } | ReportEvent::InvocationFailed { .. } => {
                 Some(ReportGenerationProcessStep::Invocation)
             }
@@ -139,7 +130,7 @@ impl Report {
     }
 
     pub fn last_error(&self) -> Option<String> {
-        for e in self.events.iter().rev() {
+        for e in self.events.iter_all().rev() {
             if let ReportEvent::CompilationFailed { error, .. } = e {
                 return Some(format!("CompilationFailed: {}", error));
             }
@@ -157,7 +148,7 @@ impl Report {
     }
 
     pub fn progress(&self) -> ReportProgress {
-        for e in self.events.iter().rev() {
+        for e in self.events.iter_all().rev() {
             if let ReportEvent::FileUploaded { .. } = e {
                 return ReportProgress::Complete;
             }
@@ -186,7 +177,7 @@ impl Report {
     }
 
     pub fn compilation_result(&self) -> CompilationResult {
-        for e in self.events.iter().rev() {
+        for e in self.events.iter_all().rev() {
             if let ReportEvent::CompilationCompleted { result, .. } = e {
                 return result.clone();
             }
@@ -255,7 +246,7 @@ impl Report {
 
     pub(super) fn download_links(&self) -> Vec<ReportLocationInCloud> {
         self.events
-            .iter()
+            .iter_all()
             .filter_map(|e| match e {
                 ReportEvent::FileUploaded {
                     report_name,
@@ -287,13 +278,11 @@ impl Report {
     }
 }
 
-impl TryFrom<EntityEvents<ReportEvent>> for Report {
-    type Error = EntityError;
-
-    fn try_from(events: EntityEvents<ReportEvent>) -> Result<Self, Self::Error> {
+impl TryFromEvents<ReportEvent> for Report {
+    fn try_from_events(events: EntityEvents<ReportEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ReportBuilder::default();
 
-        for event in events.iter() {
+        for event in events.iter_all() {
             if let ReportEvent::Initialized { id, .. } = event {
                 builder = builder.id(*id)
             }
@@ -315,8 +304,10 @@ impl NewReport {
     pub fn builder() -> NewReportBuilder {
         NewReportBuilder::default()
     }
+}
 
-    pub(super) fn initial_events(self) -> EntityEvents<ReportEvent> {
+impl IntoEvents<ReportEvent> for NewReport {
+    fn into_events(self) -> EntityEvents<ReportEvent> {
         EntityEvents::init(
             self.id,
             [ReportEvent::Initialized {
@@ -341,7 +332,7 @@ mod test {
     }
 
     fn init_report(events: Vec<ReportEvent>) -> Report {
-        Report::try_from(EntityEvents::init(ReportId::new(), events)).unwrap()
+        Report::try_from_events(EntityEvents::init(ReportId::new(), events)).unwrap()
     }
 
     #[test]
