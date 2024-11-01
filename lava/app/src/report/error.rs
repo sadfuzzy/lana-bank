@@ -22,8 +22,6 @@ pub enum ReportError {
     Base64Decode(#[from] base64::DecodeError),
     #[error("ReportError - FromUtf8Error : {0}")]
     FromUtf8Error(#[from] std::string::FromUtf8Error),
-    #[error("ReportError - EntityError: {0}")]
-    EntityError(#[from] crate::entity::EntityError),
     #[error("ReportError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("ReportError - JobError: {0}")]

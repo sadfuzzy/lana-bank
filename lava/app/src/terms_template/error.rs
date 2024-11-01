@@ -8,8 +8,6 @@ pub enum TermsTemplateError {
     Sqlx(#[from] sqlx::Error),
     #[error("TermsTemplateError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
-    #[error("TermsTemplateError - EntityError: {0}")]
-    EntityError(#[from] crate::entity::EntityError),
     #[error("TermsTemplateError - CouldNotFindById: {0}")]
     CouldNotFindById(TermsTemplateId),
     #[error("TermsTemplateError - AuthorizationError: {0}")]

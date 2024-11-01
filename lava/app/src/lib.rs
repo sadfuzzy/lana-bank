@@ -9,7 +9,6 @@ pub mod customer;
 pub mod data_export;
 pub mod deposit;
 pub mod document;
-pub mod entity;
 pub mod ledger;
 pub mod loan;
 pub mod price;

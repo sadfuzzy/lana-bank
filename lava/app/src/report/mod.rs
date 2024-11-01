@@ -13,7 +13,6 @@ use crate::{
     audit::*,
     authorization::{Authorization, Object, ReportAction},
     data_export::Export,
-    entity::EntityError,
     job::Jobs,
     primitives::{ReportId, Subject},
     storage::Storage,
@@ -105,7 +104,7 @@ impl Reports {
 
         match self.repo.find_by_id(id.into()).await {
             Ok(report) => Ok(Some(report)),
-            Err(ReportError::EntityError(EntityError::NoEntityEventsPresent)) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
     }
