@@ -121,6 +121,7 @@ impl JobRunner for CreditFacilityApprovalJobRunner {
                     id,
                     approved,
                     ref process_type,
+                    ..
                 })) if process_type == &APPROVE_CREDIT_FACILITY_PROCESS => {
                     let mut db_tx = self.pool.begin().await?;
 

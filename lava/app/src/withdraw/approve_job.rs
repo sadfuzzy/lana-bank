@@ -92,6 +92,7 @@ impl JobRunner for WithdrawApprovalJobRunner {
                     id,
                     approved,
                     ref process_type,
+                    ..
                 })) if process_type == &super::APPROVE_WITHDRAW_PROCESS => {
                     let mut withdraw = self.repo.find_by_approval_process_id(id).await?;
                     let mut db = self.pool.begin().await?;

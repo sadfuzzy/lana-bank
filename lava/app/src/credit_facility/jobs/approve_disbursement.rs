@@ -97,6 +97,7 @@ impl JobRunner for DisbursementApprovalJobRunner {
                     id,
                     approved,
                     ref process_type,
+                    ..
                 })) if process_type == &APPROVE_DISBURSEMENT_PROCESS => {
                     let mut db_tx = self.pool.begin().await?;
 

@@ -148,7 +148,20 @@ impl ApprovalProcess {
                     .expect("credit facility not found");
                 Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
             }
-            ApprovalProcessType::DisbursementApproval => todo!(),
+            ApprovalProcessType::DisbursementApproval => {
+                let disbursement = loader
+                    .load_one(
+                        self.entity
+                            .target_ref()
+                            .parse::<DisbursementId>()
+                            .expect("invalid target ref"),
+                    )
+                    .await?
+                    .expect("disbursement not found");
+                Ok(ApprovalProcessTarget::CreditFacilityDisbursement(
+                    disbursement,
+                ))
+            }
         }
     }
 }
@@ -205,6 +218,7 @@ impl ApprovalProcessVoter {
 pub(super) enum ApprovalProcessTarget {
     Withdrawal(Withdrawal),
     CreditFacility(CreditFacility),
+    CreditFacilityDisbursement(CreditFacilityDisbursement),
 }
 
 #[derive(InputObject)]

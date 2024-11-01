@@ -9,5 +9,6 @@ pub enum GovernanceEvent {
         id: ApprovalProcessId,
         process_type: ApprovalProcessType,
         approved: bool,
+        target_ref: String,
     },
 }

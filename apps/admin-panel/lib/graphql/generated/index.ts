@@ -147,7 +147,7 @@ export enum ApprovalProcessStatus {
   InProgress = 'IN_PROGRESS'
 }
 
-export type ApprovalProcessTarget = CreditFacility | Withdrawal;
+export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursement | Withdrawal;
 
 export enum ApprovalProcessType {
   CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
@@ -1719,7 +1719,7 @@ export type ApprovalProcessesQueryVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'CreditFacilityDisbursement' } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];

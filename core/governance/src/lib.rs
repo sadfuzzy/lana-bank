@@ -346,6 +346,7 @@ where
                         id: process.id,
                         approved,
                         process_type: process.process_type.clone(),
+                        target_ref: process.target_ref().to_string(),
                     },
                 )
                 .await?;
