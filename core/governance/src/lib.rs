@@ -226,7 +226,8 @@ where
         process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
-        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        CommitteeMemberId:
+            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
         let audit_info = self
@@ -237,10 +238,11 @@ where
                 GovernanceAction::APPROVAL_PROCESS_APPROVE,
             )
             .await?;
-        let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
+        let member_id = CommitteeMemberId::try_from(sub)
+            .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
-        process.approve(&eligible, user_id, audit_info)?;
+        process.approve(&eligible, member_id, audit_info)?;
         let mut db = self.pool.begin().await?;
         self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
@@ -259,7 +261,8 @@ where
         process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
-        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        CommitteeMemberId:
+            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
         let audit_info = self
@@ -270,7 +273,8 @@ where
                 GovernanceAction::APPROVAL_PROCESS_DENY,
             )
             .await?;
-        let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
+        let member_id = CommitteeMemberId::try_from(sub)
+            .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
@@ -280,7 +284,7 @@ where
         } else {
             HashSet::new()
         };
-        process.deny(&eligible, user_id, audit_info)?;
+        process.deny(&eligible, member_id, audit_info)?;
         let mut db = self.pool.begin().await?;
         self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
@@ -326,7 +330,7 @@ where
     async fn maybe_fire_concluded_event(
         &self,
         mut db: sqlx::Transaction<'_, sqlx::Postgres>,
-        eligible: HashSet<UserId>,
+        eligible: HashSet<CommitteeMemberId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
         let audit_info = self
@@ -358,12 +362,12 @@ where
         Ok(res)
     }
 
-    #[instrument(name = "governance.add_user_to_committee", skip(self), err)]
-    pub async fn add_user_to_committee(
+    #[instrument(name = "governance.add_member_to_committee", skip(self), err)]
+    pub async fn add_member_to_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         committee_id: impl Into<CommitteeId> + std::fmt::Debug,
-        user_id: impl Into<UserId> + std::fmt::Debug,
+        member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let committee_id = committee_id.into();
         let audit_info = self
@@ -371,23 +375,23 @@ where
             .enforce_permission(
                 sub,
                 GovernanceObject::committee(committee_id),
-                GovernanceAction::COMMITTEE_ADD_USER,
+                GovernanceAction::COMMITTEE_ADD_MEMBER,
             )
             .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.add_user(user_id.into(), audit_info)?;
+        committee.add_member(member_id.into(), audit_info)?;
         self.committee_repo.update(&mut committee).await?;
 
         Ok(committee)
     }
 
-    #[instrument(name = "governance.remove_user_from_committee", skip(self), err)]
-    pub async fn remove_user_from_committee(
+    #[instrument(name = "governance.remove_member_from_committee", skip(self), err)]
+    pub async fn remove_member_from_committee(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         committee_id: impl Into<CommitteeId> + std::fmt::Debug,
-        user_id: impl Into<UserId> + std::fmt::Debug,
+        member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let committee_id = committee_id.into();
         let audit_info = self
@@ -395,12 +399,12 @@ where
             .enforce_permission(
                 sub,
                 GovernanceObject::committee(committee_id),
-                GovernanceAction::COMMITTEE_REMOVE_USER,
+                GovernanceAction::COMMITTEE_REMOVE_MEMBER,
             )
             .await?;
 
         let mut committee = self.committee_repo.find_by_id(committee_id).await?;
-        committee.remove_user(user_id.into(), audit_info);
+        committee.remove_member(member_id.into(), audit_info);
         self.committee_repo.update(&mut committee).await?;
 
         Ok(committee)
@@ -531,11 +535,13 @@ where
         committee: Option<&Committee>,
     ) -> Result<bool, GovernanceError>
     where
-        UserId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+        CommitteeMemberId:
+            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         if let Some(committee) = committee {
-            let user_id = UserId::try_from(sub).map_err(|_| GovernanceError::SubjectIsNotUser)?;
-            Ok(process.can_user_vote(user_id, committee.members()))
+            let member_id = CommitteeMemberId::try_from(sub)
+                .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
+            Ok(process.can_member_vote(member_id, committee.members()))
         } else {
             Ok(false)
         }
@@ -544,7 +550,7 @@ where
     async fn eligible_voters_for_process(
         &self,
         process: &ApprovalProcess,
-    ) -> Result<HashSet<UserId>, GovernanceError> {
+    ) -> Result<HashSet<CommitteeMemberId>, GovernanceError> {
         let res = if let Some(committee_id) = process.committee_id() {
             self.committee_repo
                 .find_by_id(committee_id)

@@ -140,14 +140,14 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         .add_permission_to_role(
             &role,
             GovernanceObject::all_committees(),
-            GovernanceAction::COMMITTEE_ADD_USER,
+            GovernanceAction::COMMITTEE_ADD_MEMBER,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
             GovernanceObject::all_committees(),
-            GovernanceAction::COMMITTEE_REMOVE_USER,
+            GovernanceAction::COMMITTEE_REMOVE_MEMBER,
         )
         .await?;
 

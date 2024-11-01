@@ -6,15 +6,13 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
-graphql = ["shared-primitives/graphql", "es-entity/graphql", "dep:async-graphql"]
+graphql = ["es-entity/graphql", "dep:async-graphql"]
 
 [dependencies]
-shared-primitives = { path = "../shared-primitives" }
-
-outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 es-entity = { path = "../../lib/es-entity" }
+outbox = { path = "../../lib/outbox" }
 
 uuid = { workspace = true }
 sqlx = { workspace = true }

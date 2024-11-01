@@ -13,7 +13,7 @@ lava-app = { path = "../app" }
 governance = { path = "../../core/governance" }
 
 audit = { path = "../../lib/audit" }
-es-entity = { path = "../../lib/es-entity" }
+es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
 tracing-utils = { path = "../../lib/tracing-utils" }
 jwks-utils = { path = "../../lib/jwks-utils" }
 

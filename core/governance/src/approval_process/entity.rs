@@ -22,11 +22,11 @@ pub(crate) enum ApprovalProcessEvent {
         audit_info: AuditInfo,
     },
     Approved {
-        approver_id: UserId,
+        approver_id: CommitteeMemberId,
         audit_info: AuditInfo,
     },
     Denied {
-        denier_id: UserId,
+        denier_id: CommitteeMemberId,
         audit_info: AuditInfo,
     },
     Concluded {
@@ -52,14 +52,17 @@ impl ApprovalProcess {
             .expect("No events for committee")
     }
 
-    pub fn user_voted_at(&self, user_id: UserId) -> Option<chrono::DateTime<chrono::Utc>> {
+    pub fn member_voted_at(
+        &self,
+        member_id: CommitteeMemberId,
+    ) -> Option<chrono::DateTime<chrono::Utc>> {
         self.events
             .iter_persisted()
             .filter_map(|event| match event.event {
-                ApprovalProcessEvent::Approved { approver_id, .. } if approver_id == user_id => {
+                ApprovalProcessEvent::Approved { approver_id, .. } if approver_id == member_id => {
                     Some(event.recorded_at)
                 }
-                ApprovalProcessEvent::Denied { denier_id, .. } if denier_id == user_id => {
+                ApprovalProcessEvent::Denied { denier_id, .. } if denier_id == member_id => {
                     Some(event.recorded_at)
                 }
                 _ => None,
@@ -80,15 +83,19 @@ impl ApprovalProcess {
         self.rules.committee_id()
     }
 
-    pub fn can_user_vote(&self, user_id: UserId, eligible: HashSet<UserId>) -> bool {
-        eligible.contains(&user_id)
-            && !self.approvers().contains(&user_id)
-            && !self.deniers().contains(&user_id)
+    pub fn can_member_vote(
+        &self,
+        member_id: CommitteeMemberId,
+        eligible: HashSet<CommitteeMemberId>,
+    ) -> bool {
+        eligible.contains(&member_id)
+            && !self.approvers().contains(&member_id)
+            && !self.deniers().contains(&member_id)
     }
 
     pub(crate) fn check_concluded(
         &mut self,
-        eligible: HashSet<UserId>,
+        eligible: HashSet<CommitteeMemberId>,
         audit_info: AuditInfo,
     ) -> Option<bool> {
         if !self.status().is_concluded() {
@@ -123,8 +130,8 @@ impl ApprovalProcess {
 
     pub(crate) fn approve(
         &mut self,
-        eligible_members: &HashSet<UserId>,
-        approver_id: UserId,
+        eligible_members: &HashSet<CommitteeMemberId>,
+        approver_id: CommitteeMemberId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
         if self.status().is_concluded() {
@@ -149,8 +156,8 @@ impl ApprovalProcess {
 
     pub(crate) fn deny(
         &mut self,
-        eligible_members: &HashSet<UserId>,
-        denier_id: UserId,
+        eligible_members: &HashSet<CommitteeMemberId>,
+        denier_id: CommitteeMemberId,
         audit_info: AuditInfo,
     ) -> Result<(), ApprovalProcessError> {
         if self.status().is_concluded() {
@@ -173,7 +180,7 @@ impl ApprovalProcess {
         Ok(())
     }
 
-    pub fn approvers(&self) -> HashSet<UserId> {
+    pub fn approvers(&self) -> HashSet<CommitteeMemberId> {
         self.events
             .iter_all()
             .filter_map(|event| match event {
@@ -183,7 +190,7 @@ impl ApprovalProcess {
             .collect()
     }
 
-    pub fn deniers(&self) -> HashSet<UserId> {
+    pub fn deniers(&self) -> HashSet<CommitteeMemberId> {
         self.events
             .iter_all()
             .filter_map(|event| match event {
@@ -294,7 +301,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let approver = UserId::new();
+        let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible = [approver].iter().copied().collect();
         assert!(process
@@ -311,7 +318,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let approver = UserId::new();
+        let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         assert!(matches!(
             process.approve(&HashSet::new(), approver, audit_info.clone()),
@@ -328,7 +335,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let approver = UserId::new();
+        let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(process
@@ -346,7 +353,7 @@ mod tests {
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
-        let approver = UserId::new();
+        let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(matches!(
@@ -363,7 +370,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let denier = UserId::new();
+        let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible = [denier].iter().copied().collect();
         assert!(process.deny(&eligible, denier, audit_info.clone()).is_ok());
@@ -378,7 +385,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let denier = UserId::new();
+        let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         assert!(matches!(
             process.deny(&HashSet::new(), denier, audit_info.clone()),
@@ -395,7 +402,7 @@ mod tests {
                 committee_id: CommitteeId::new(),
             }))
             .expect("Could not build approval process");
-        let denier = UserId::new();
+        let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(process
@@ -413,7 +420,7 @@ mod tests {
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
         process.check_concluded(HashSet::new(), dummy_audit_info());
-        let denier = UserId::new();
+        let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(matches!(

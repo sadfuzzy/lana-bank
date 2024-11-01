@@ -5,8 +5,11 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use thiserror::Error;
 
+pub use core_user::UserId;
+pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
+pub use job::JobId;
+pub use lava_ids::*;
 pub use rbac_types::{LavaRole, Role, Subject};
-pub use shared_primitives::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]

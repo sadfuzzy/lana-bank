@@ -932,7 +932,7 @@ impl Mutation {
             Committee,
             ctx,
             app.governance()
-                .add_user_to_committee(sub, input.committee_id, input.user_id)
+                .add_member_to_committee(sub, input.committee_id, input.user_id)
         )
     }
 
@@ -947,7 +947,7 @@ impl Mutation {
             Committee,
             ctx,
             app.governance()
-                .remove_user_from_committee(sub, input.committee_id, input.user_id)
+                .remove_member_from_committee(sub, input.committee_id, input.user_id)
         )
     }
 

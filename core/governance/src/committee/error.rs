@@ -6,8 +6,8 @@ pub enum CommitteeError {
     Sqlx(#[from] sqlx::Error),
     #[error("CommitteeError - NotFound")]
     NotFound,
-    #[error("CommitteeError - UserAlreadyAdded: {0}")]
-    UserAlreadyAdded(crate::primitives::UserId),
+    #[error("CommitteeError - MemberAlreadyAdded: {0}")]
+    MemberAlreadyAdded(crate::primitives::CommitteeMemberId),
 }
 
 es_entity::from_es_entity_error!(CommitteeError);

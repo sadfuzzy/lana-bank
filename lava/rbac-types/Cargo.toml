@@ -8,10 +8,12 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
+lava-ids = { path = "../ids" }
+
 governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
-shared-primitives = { path = "../../core/shared-primitives" }
 audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
 
 strum = { workspace = true }
 uuid = { workspace = true }

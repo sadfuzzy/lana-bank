@@ -3,9 +3,9 @@
 
 use serde::{Deserialize, Serialize};
 
+use core_user::CoreUserEvent;
 use governance::GovernanceEvent;
 use outbox::OutboxEventMarker;
-use shared_primitives::event::CoreUserEvent;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "module")]

@@ -1,8 +1,9 @@
 use std::{fmt::Display, str::FromStr};
 
+use authz::AllOrOne;
 use core_user::UserObject;
 use governance::GovernanceObject;
-use shared_primitives::{AllOrOne, CustomerId, LoanId};
+use lava_ids::{CustomerId, LoanId};
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

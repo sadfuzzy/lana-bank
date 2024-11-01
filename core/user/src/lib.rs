@@ -3,6 +3,7 @@
 
 mod entity;
 pub mod error;
+mod event;
 mod primitives;
 mod repo;
 
@@ -15,6 +16,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use entity::*;
 use error::*;
+pub use event::*;
 pub use primitives::*;
 use repo::*;
 

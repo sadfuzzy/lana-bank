@@ -1,3 +1,4 @@
+mod all_or_one;
 mod check_trait;
 pub mod error;
 
@@ -17,6 +18,7 @@ use audit::{AuditInfo, AuditSvc};
 
 use error::AuthorizationError;
 
+pub use all_or_one::*;
 pub use check_trait::PermissionCheck;
 
 const MODEL: &str = include_str!("./rbac.conf");

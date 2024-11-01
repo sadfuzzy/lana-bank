@@ -6,10 +6,10 @@ members = [
   "lava/app",
   "lava/rbac-types",
   "lava/events",
+  "lava/ids",
 
   "core/user",
   "core/governance",
-  "core/shared-primitives",
 
   "lib/authz",
   "lib/audit",

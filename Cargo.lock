@@ -913,9 +913,9 @@ dependencies = [
  "authz",
  "derive_builder",
  "es-entity",
+ "governance",
  "outbox",
  "serde",
- "shared-primitives",
  "sqlx",
  "strum",
  "thiserror",
@@ -1505,7 +1505,6 @@ dependencies = [
  "outbox",
  "serde",
  "serde_json",
- "shared-primitives",
  "sqlx",
  "strum",
  "thiserror",
@@ -2133,6 +2132,7 @@ dependencies = [
  "hmac",
  "job",
  "lava-events",
+ "lava-ids",
  "ory-kratos-client",
  "outbox",
  "rand",
@@ -2147,7 +2147,6 @@ dependencies = [
  "serde_yaml",
  "serial_test",
  "sha2",
- "shared-primitives",
  "sqlx",
  "strum",
  "thiserror",
@@ -2177,10 +2176,21 @@ dependencies = [
 name = "lava-events"
 version = "0.2.9-dev"
 dependencies = [
+ "core-user",
  "governance",
  "outbox",
  "serde",
- "shared-primitives",
+]
+
+[[package]]
+name = "lava-ids"
+version = "0.1.0"
+dependencies = [
+ "es-entity",
+ "governance",
+ "job",
+ "serde",
+ "sqlx",
 ]
 
 [[package]]
@@ -3056,10 +3066,11 @@ dependencies = [
  "anyhow",
  "async-graphql",
  "audit",
+ "authz",
  "core-user",
  "governance",
+ "lava-ids",
  "serde",
- "shared-primitives",
  "strum",
  "thiserror",
  "uuid",
@@ -3722,17 +3733,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
-]
-
-[[package]]
-name = "shared-primitives"
-version = "0.2.9-dev"
-dependencies = [
- "es-entity",
- "job",
- "serde",
- "sqlx",
- "uuid",
 ]
 
 [[package]]

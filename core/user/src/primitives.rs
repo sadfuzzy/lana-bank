@@ -2,7 +2,17 @@ use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use shared_primitives::{event::CoreUserEvent, AllOrOne, UserId};
+pub use authz::AllOrOne;
+
+#[cfg(feature = "governance")]
+es_entity::entity_id! {
+    UserId;
+
+    UserId => governance::CommitteeMemberId,
+    governance::CommitteeMemberId => UserId
+}
+#[cfg(not(feature = "governance"))]
+es_entity::entity_id! { UserId }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]

@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-pub use shared_primitives::{AllOrOne, ApprovalProcessId, CommitteeId, PolicyId, UserId};
+use authz::AllOrOne;
+es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -54,9 +55,9 @@ impl GovernanceAction {
     pub const COMMITTEE_CREATE: Self = GovernanceAction::Committee(CommitteeAction::Create);
     pub const COMMITTEE_READ: Self = GovernanceAction::Committee(CommitteeAction::Read);
     pub const COMMITTEE_LIST: Self = GovernanceAction::Committee(CommitteeAction::List);
-    pub const COMMITTEE_ADD_USER: Self = GovernanceAction::Committee(CommitteeAction::AddUser);
-    pub const COMMITTEE_REMOVE_USER: Self =
-        GovernanceAction::Committee(CommitteeAction::RemoveUser);
+    pub const COMMITTEE_ADD_MEMBER: Self = GovernanceAction::Committee(CommitteeAction::AddMember);
+    pub const COMMITTEE_REMOVE_MEMBER: Self =
+        GovernanceAction::Committee(CommitteeAction::RemoveMember);
 
     pub const POLICY_CREATE: Self = GovernanceAction::Policy(PolicyAction::Create);
     pub const POLICY_READ: Self = GovernanceAction::Policy(PolicyAction::Read);
@@ -108,8 +109,8 @@ impl FromStr for GovernanceAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum CommitteeAction {
     Create,
-    AddUser,
-    RemoveUser,
+    AddMember,
+    RemoveMember,
     Read,
     List,
 }

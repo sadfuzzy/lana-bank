@@ -7,7 +7,7 @@ use es_entity::*;
 
 use audit::AuditInfo;
 
-use crate::primitives::{CommitteeId, UserId};
+use crate::primitives::{CommitteeId, CommitteeMemberId};
 
 use super::error::CommitteeError;
 
@@ -20,12 +20,12 @@ pub(crate) enum CommitteeEvent {
         name: String,
         audit_info: AuditInfo,
     },
-    UserAdded {
-        user_id: UserId,
+    MemberAdded {
+        member_id: CommitteeMemberId,
         audit_info: AuditInfo,
     },
-    UserRemoved {
-        user_id: UserId,
+    MemberRemoved {
+        member_id: CommitteeMemberId,
         audit_info: AuditInfo,
     },
 }
@@ -45,43 +45,43 @@ impl Committee {
             .expect("No events for committee")
     }
 
-    pub(crate) fn add_user(
+    pub(crate) fn add_member(
         &mut self,
-        user_id: UserId,
+        member_id: CommitteeMemberId,
         audit_info: AuditInfo,
     ) -> Result<(), CommitteeError> {
-        if self.members().contains(&user_id) {
-            return Err(CommitteeError::UserAlreadyAdded(user_id));
+        if self.members().contains(&member_id) {
+            return Err(CommitteeError::MemberAlreadyAdded(member_id));
         }
 
-        self.events.push(CommitteeEvent::UserAdded {
-            user_id,
+        self.events.push(CommitteeEvent::MemberAdded {
+            member_id,
             audit_info,
         });
 
         Ok(())
     }
 
-    pub(crate) fn remove_user(&mut self, user_id: UserId, audit_info: AuditInfo) {
-        if !self.members().contains(&user_id) {
+    pub(crate) fn remove_member(&mut self, member_id: CommitteeMemberId, audit_info: AuditInfo) {
+        if !self.members().contains(&member_id) {
             return;
         }
-        self.events.push(CommitteeEvent::UserRemoved {
-            user_id,
+        self.events.push(CommitteeEvent::MemberRemoved {
+            member_id,
             audit_info,
         });
     }
 
-    pub fn members(&self) -> HashSet<UserId> {
+    pub fn members(&self) -> HashSet<CommitteeMemberId> {
         let mut members = HashSet::new();
 
         for event in self.events.iter_all() {
             match event {
-                CommitteeEvent::UserAdded { user_id, .. } => {
-                    members.insert(*user_id);
+                CommitteeEvent::MemberAdded { member_id, .. } => {
+                    members.insert(*member_id);
                 }
-                CommitteeEvent::UserRemoved { user_id, .. } => {
-                    members.remove(user_id);
+                CommitteeEvent::MemberRemoved { member_id, .. } => {
+                    members.remove(member_id);
                 }
                 _ => {}
             }
@@ -98,8 +98,8 @@ impl TryFromEvents<CommitteeEvent> for Committee {
                 CommitteeEvent::Initialized { id, name, .. } => {
                     builder = builder.id(*id).name(name.clone())
                 }
-                CommitteeEvent::UserAdded { .. } => {}
-                CommitteeEvent::UserRemoved { .. } => {}
+                CommitteeEvent::MemberAdded { .. } => {}
+                CommitteeEvent::MemberRemoved { .. } => {}
             }
         }
         builder.events(events).build()

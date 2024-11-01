@@ -7,7 +7,8 @@ mod object;
 use serde::{Deserialize, Serialize};
 use uuid::{uuid, Uuid};
 
-use shared_primitives::{CustomerId, UserId};
+use core_user::UserId;
+use lava_ids::CustomerId;
 
 pub use action::*;
 pub use object::*;
@@ -147,6 +148,17 @@ impl TryFrom<&Subject> for UserId {
     fn try_from(value: &Subject) -> Result<Self, Self::Error> {
         match value {
             Subject::User(id) => Ok(*id),
+            _ => Err("Subject is not User"),
+        }
+    }
+}
+
+impl TryFrom<&Subject> for governance::CommitteeMemberId {
+    type Error = &'static str;
+
+    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
+        match value {
+            Subject::User(id) => Ok(Self::from(*id)),
             _ => Err("Subject is not User"),
         }
     }

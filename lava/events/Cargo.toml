@@ -9,7 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 governance = { path = "../../core/governance" }
-shared-primitives = { path = "../../core/shared-primitives" }
+core-user = { path = "../../core/user" }
 outbox = { path = "../../lib/outbox" }
 
 serde = { workspace = true }

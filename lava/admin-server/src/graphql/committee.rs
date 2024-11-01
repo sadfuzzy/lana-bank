@@ -36,7 +36,7 @@ impl Committee {
     async fn current_members(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         let users = loader
-            .load_many(self.entity.members().into_iter())
+            .load_many(self.entity.members().into_iter().map(UserId::from))
             .await?
             .into_values()
             .map(User::from)

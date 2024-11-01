@@ -8,6 +8,8 @@ pub enum EsEntityError {
     EventDeserialization(#[from] serde_json::Error),
     #[error("EntityError - NotFound")]
     NotFound,
+    #[error("EntityError - ConcurrentModification")]
+    ConcurrentModification,
 }
 
 #[derive(Error, Debug)]

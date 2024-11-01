@@ -86,33 +86,33 @@ impl ApprovalProcess {
                 .entity
                 .members()
                 .into_iter()
-                .map(|user_id| ApprovalProcessVoter {
+                .map(|member_id| ApprovalProcessVoter {
                     still_eligible: true,
-                    did_vote: approvers.contains(&user_id) || deniers.contains(&user_id),
-                    did_approve: approvers.remove(&user_id),
-                    did_deny: deniers.remove(&user_id),
-                    user_id,
-                    voted_at: self.entity.user_voted_at(user_id).map(Into::into),
+                    did_vote: approvers.contains(&member_id) || deniers.contains(&member_id),
+                    did_approve: approvers.remove(&member_id),
+                    did_deny: deniers.remove(&member_id),
+                    user_id: UserId::from(member_id),
+                    voted_at: self.entity.member_voted_at(member_id).map(Into::into),
                 })
                 .collect();
             voters.extend(
                 approvers
                     .into_iter()
-                    .map(|user_id| ApprovalProcessVoter {
-                        user_id,
+                    .map(|member_id| ApprovalProcessVoter {
+                        user_id: UserId::from(member_id),
                         still_eligible: false,
                         did_vote: true,
                         did_approve: true,
                         did_deny: false,
-                        voted_at: self.entity.user_voted_at(user_id).map(Into::into),
+                        voted_at: self.entity.member_voted_at(member_id).map(Into::into),
                     })
-                    .chain(deniers.into_iter().map(|user_id| ApprovalProcessVoter {
-                        user_id,
+                    .chain(deniers.into_iter().map(|member_id| ApprovalProcessVoter {
+                        user_id: UserId::from(member_id),
                         still_eligible: false,
                         did_vote: true,
                         did_approve: false,
                         did_deny: true,
-                        voted_at: self.entity.user_voted_at(user_id).map(Into::into),
+                        voted_at: self.entity.member_voted_at(member_id).map(Into::into),
                     })),
             );
             Ok(voters)

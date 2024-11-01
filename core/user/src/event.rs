@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::ids::UserId;
+use crate::primitives::UserId;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]

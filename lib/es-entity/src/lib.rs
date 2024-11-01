@@ -10,6 +10,7 @@ pub mod prelude {
     pub use chrono;
     pub use serde_json;
     pub use sqlx;
+    pub use uuid;
 }
 
 pub use error::*;
@@ -38,15 +39,15 @@ pub mod graphql {
 
     #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
     #[serde(transparent)]
-    pub struct UUID(uuid::Uuid);
+    pub struct UUID(crate::prelude::uuid::Uuid);
     async_graphql::scalar!(UUID);
-    impl<T: Into<uuid::Uuid>> From<T> for UUID {
+    impl<T: Into<crate::prelude::uuid::Uuid>> From<T> for UUID {
         fn from(id: T) -> Self {
             let uuid = id.into();
             Self(uuid)
         }
     }
-    impl From<&UUID> for uuid::Uuid {
+    impl From<&UUID> for crate::prelude::uuid::Uuid {
         fn from(id: &UUID) -> Self {
             id.0
         }
@@ -56,18 +57,19 @@ pub mod graphql {
 #[macro_export]
 macro_rules! from_es_entity_error {
     ($name:ident) => {
-        impl From<es_entity::EsEntityError> for $name {
-            fn from(e: es_entity::EsEntityError) -> Self {
+        impl From<$crate::EsEntityError> for $name {
+            fn from(e: $crate::EsEntityError) -> Self {
                 match e {
-                    es_entity::EsEntityError::NotFound => $name::NotFound,
-                    es_entity::EsEntityError::UninitializedFieldError(e) => {
+                    $crate::EsEntityError::NotFound => $name::NotFound,
+                    $crate::EsEntityError::ConcurrentModification => panic!("{} - ConcurrentModification error. This should not happen", stringify!($name)),
+                    $crate::EsEntityError::UninitializedFieldError(e) => {
                         panic!(
                             "{} - Inconsistent data when during entity hydration. Missing builder.<field>(<arg>) in TryFromEvents?: {:?}",
                             stringify!($name),
                             e
                         )
                     }
-                    es_entity::EsEntityError::EventDeserialization(e) => {
+                    $crate::EsEntityError::EventDeserialization(e) => {
                         panic!("{} - Could not deserialize Event. Bad / old state in DB? Incompatible event schema change?: {:?}", stringify!($name), e)
                     }
                 }
@@ -78,75 +80,89 @@ macro_rules! from_es_entity_error {
 
 #[macro_export]
 macro_rules! entity_id {
-    ($name:ident) => {
-        #[derive(
-            sqlx::Type,
-            Debug,
-            Clone,
-            Copy,
-            PartialEq,
-            Eq,
-            PartialOrd,
-            Ord,
-            Hash,
-            serde::Deserialize,
-            serde::Serialize,
-        )]
-        #[serde(transparent)]
-        #[sqlx(transparent)]
-        pub struct $name(uuid::Uuid);
+    // Match identifiers without conversions
+    ($($name:ident),+ $(,)?) => {
+        $crate::entity_id! { $($name),+ ; }
+    };
+    ($($name:ident),+ $(,)? ; $($from:ty => $to:ty),* $(,)?) => {
+        $(
+            #[derive(
+                sqlx::Type,
+                Debug,
+                Clone,
+                Copy,
+                PartialEq,
+                Eq,
+                PartialOrd,
+                Ord,
+                Hash,
+                serde::Deserialize,
+                serde::Serialize,
+            )]
+            #[serde(transparent)]
+            #[sqlx(transparent)]
+            pub struct $name($crate::prelude::uuid::Uuid);
 
-        impl $name {
-            #[allow(clippy::new_without_default)]
-            pub fn new() -> Self {
-                uuid::Uuid::new_v4().into()
+            impl $name {
+                #[allow(clippy::new_without_default)]
+                pub fn new() -> Self {
+                    $crate::prelude::uuid::Uuid::new_v4().into()
+                }
             }
-        }
 
-        impl From<uuid::Uuid> for $name {
-            fn from(uuid: uuid::Uuid) -> Self {
-                Self(uuid)
+            impl From<$crate::prelude::uuid::Uuid> for $name {
+                fn from(uuid: $crate::prelude::uuid::Uuid) -> Self {
+                    Self(uuid)
+                }
             }
-        }
 
-        impl From<$name> for uuid::Uuid {
-            fn from(id: $name) -> Self {
-                id.0
+            impl From<$name> for $crate::prelude::uuid::Uuid {
+                fn from(id: $name) -> Self {
+                    id.0
+                }
             }
-        }
 
-        impl From<&$name> for uuid::Uuid {
-            fn from(id: &$name) -> Self {
-                id.0
+            impl From<&$name> for $crate::prelude::uuid::Uuid {
+                fn from(id: &$name) -> Self {
+                    id.0
+                }
             }
-        }
 
-        #[cfg(feature = "graphql")]
-        impl From<$crate::graphql::UUID> for $name {
-            fn from(id: $crate::graphql::UUID) -> Self {
-                $name(uuid::Uuid::from(&id))
+            #[cfg(feature = "graphql")]
+            impl From<$crate::graphql::UUID> for $name {
+                fn from(id: $crate::graphql::UUID) -> Self {
+                    $name($crate::prelude::uuid::Uuid::from(&id))
+                }
             }
-        }
 
-        #[cfg(feature = "graphql")]
-        impl From<&$crate::graphql::UUID> for $name {
-            fn from(id: &$crate::graphql::UUID) -> Self {
-                $name(uuid::Uuid::from(id))
+            #[cfg(feature = "graphql")]
+            impl From<&$crate::graphql::UUID> for $name {
+                fn from(id: &$crate::graphql::UUID) -> Self {
+                    $name($crate::prelude::uuid::Uuid::from(id))
+                }
             }
-        }
 
-        impl std::fmt::Display for $name {
-            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                write!(f, "{}", self.0)
+            impl std::fmt::Display for $name {
+                fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                    write!(f, "{}", self.0)
+                }
             }
-        }
 
-        impl std::str::FromStr for $name {
-            type Err = uuid::Error;
+            impl std::str::FromStr for $name {
+                type Err = $crate::prelude::uuid::Error;
 
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
-                Ok(Self(uuid::Uuid::parse_str(s)?))
+                fn from_str(s: &str) -> Result<Self, Self::Err> {
+                    Ok(Self($crate::prelude::uuid::Uuid::parse_str(s)?))
+                }
             }
-        }
+        )+
+        // Implement additional conversions
+        $(
+            impl From<$from> for $to {
+                fn from(id: $from) -> Self {
+                    <$to>::from($crate::prelude::uuid::Uuid::from(id))
+                }
+            }
+        )*
     };
 }

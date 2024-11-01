@@ -3,16 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-#[derive(Debug, Clone, Copy, PartialEq, sqlx::Type, Deserialize, Serialize, Hash, Eq)]
-#[sqlx(transparent)]
-#[serde(transparent)]
-pub struct UserId(uuid::Uuid);
-
-impl From<uuid::Uuid> for UserId {
-    fn from(uuid: uuid::Uuid) -> Self {
-        Self(uuid)
-    }
-}
+es_entity::entity_id! { UserId }
 
 #[derive(EsEvent, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
