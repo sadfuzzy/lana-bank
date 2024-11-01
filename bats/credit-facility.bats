@@ -84,8 +84,6 @@ teardown_file() {
   echo $(graphql_output)
   disbursement_index=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.index')
   [[ "$disbursement_index" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.status')
-  [[ "$status" == "NEW" ]] || exit 1
 
   cache_value 'disbursement_index' "$disbursement_index"
 }

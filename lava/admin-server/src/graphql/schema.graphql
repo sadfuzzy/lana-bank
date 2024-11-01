@@ -329,12 +329,12 @@ type CreditFacility {
 	activatedAt: Timestamp
 	expiresAt: Timestamp
 	createdAt: Timestamp!
-	status: CreditFacilityStatus!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
 	collateral: Satoshis!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
+	status: CreditFacilityStatus!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
 	disbursements: [CreditFacilityDisbursement!]!
@@ -417,8 +417,8 @@ type CreditFacilityDisbursement {
 	id: ID!
 	index: DisbursementIdx!
 	amount: UsdCents!
-	status: DisbursementStatus!
 	createdAt: Timestamp!
+	status: DisbursementStatus!
 	approvalProcess: ApprovalProcess!
 }
 
@@ -1285,9 +1285,9 @@ type Withdrawal {
 	customerId: UUID!
 	approvalProcessId: UUID!
 	amount: UsdCents!
-	status: WithdrawalStatus!
 	createdAt: Timestamp!
 	reference: String!
+	status: WithdrawalStatus!
 	customer: Customer!
 	approvalProcess: ApprovalProcess!
 	subjectCanConfirm: Boolean!

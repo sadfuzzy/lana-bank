@@ -33,6 +33,16 @@ pub struct EntityEvents<T: EsEvent> {
     new_events: Vec<T>,
 }
 
+impl<T: Clone + EsEvent> Clone for EntityEvents<T> {
+    fn clone(&self) -> Self {
+        Self {
+            entity_id: self.entity_id.clone(),
+            persisted_events: self.persisted_events.clone(),
+            new_events: self.new_events.clone(),
+        }
+    }
+}
+
 impl<T> EntityEvents<T>
 where
     T: EsEvent,

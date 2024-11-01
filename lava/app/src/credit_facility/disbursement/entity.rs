@@ -91,6 +91,11 @@ impl Disbursement {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn is_approval_process_concluded(&self) -> bool {
+        self.events
+            .iter_all()
+            .any(|e| matches!(e, DisbursementEvent::ApprovalProcessConcluded { .. }))
+    }
     pub fn status(&self) -> DisbursementStatus {
         if self.is_confirmed() {
             DisbursementStatus::Confirmed
@@ -103,13 +108,29 @@ impl Disbursement {
         }
     }
 
-    pub(crate) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
+    pub(crate) fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+        audit_info: AuditInfo,
+    ) -> Result<(), DisbursementError> {
+        for event in self.events.iter_all() {
+            if let DisbursementEvent::ApprovalProcessConcluded {
+                approved: check, ..
+            } = event
+            {
+                if check != &approved {
+                    return Err(DisbursementError::InconsistentIdempotency);
+                }
+                return Ok(());
+            }
+        }
         self.events
             .push(DisbursementEvent::ApprovalProcessConcluded {
-                approval_process_id: self.id.into(),
+                approval_process_id: self.approval_process_id,
                 approved,
                 audit_info,
             });
+        Ok(())
     }
 
     pub(super) fn is_approved(&self) -> Option<bool> {

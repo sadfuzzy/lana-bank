@@ -15,6 +15,7 @@ pub mod prelude {
 
 pub use error::*;
 pub use es_entity_macros::expand_es_query;
+pub use es_entity_macros::retry_on_concurrent_modification;
 pub use es_entity_macros::EsEntity;
 pub use es_entity_macros::EsEvent;
 pub use es_entity_macros::EsRepo;
@@ -37,7 +38,7 @@ pub mod graphql {
     pub use async_graphql;
     pub use base64;
 
-    #[derive(Debug, serde::Serialize, serde::Deserialize, Clone)]
+    #[derive(Debug, serde::Serialize, serde::Deserialize, Clone, Copy)]
     #[serde(transparent)]
     pub struct UUID(crate::prelude::uuid::Uuid);
     async_graphql::scalar!(UUID);
@@ -54,6 +55,10 @@ pub mod graphql {
     }
 }
 
+// macro_rules! assert_idempotent {
+//     ($pattern:pat $(if $guard:expr)? $(,)?
+// }
+
 #[macro_export]
 macro_rules! from_es_entity_error {
     ($name:ident) => {
@@ -68,8 +73,8 @@ macro_rules! from_es_entity_error {
                 )
             }
         }
-        impl From<es_entity::EsEntityError> for $name {
-            fn from(e: es_entity::EsEntityError) -> Self {
+        impl From<$crate::EsEntityError> for $name {
+            fn from(e: $crate::EsEntityError) -> Self {
                 $name::EsEntityError(e)
             }
         }
@@ -159,6 +164,11 @@ macro_rules! entity_id {
             impl From<$from> for $to {
                 fn from(id: $from) -> Self {
                     <$to>::from($crate::prelude::uuid::Uuid::from(id))
+                }
+            }
+            impl From<$to> for $from {
+                fn from(id: $to) -> Self {
+                    <$from>::from($crate::prelude::uuid::Uuid::from(id))
                 }
             }
         )*

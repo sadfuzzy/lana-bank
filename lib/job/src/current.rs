@@ -37,7 +37,7 @@ impl CurrentJob {
         }
     }
 
-    pub async fn update_execution_state<T: Serialize>(
+    pub async fn update_execution_state_in_tx<T: Serialize>(
         &mut self,
         db: &mut Transaction<'_, Postgres>,
         execution_state: T,
@@ -54,6 +54,27 @@ impl CurrentJob {
             &self.id as &JobId
         )
         .execute(&mut **db)
+        .await?;
+        self.execution_state_json = Some(execution_state_json);
+        Ok(())
+    }
+
+    pub async fn update_execution_state<T: Serialize>(
+        &mut self,
+        execution_state: T,
+    ) -> Result<(), JobError> {
+        let execution_state_json = serde_json::to_value(execution_state)
+            .map_err(JobError::CouldNotSerializeExecutionState)?;
+        sqlx::query!(
+            r#"
+          UPDATE job_executions
+          SET execution_state_json = $1
+          WHERE id = $2
+        "#,
+            execution_state_json,
+            &self.id as &JobId
+        )
+        .execute(&self.pool)
         .await?;
         self.execution_state_json = Some(execution_state_json);
         Ok(())

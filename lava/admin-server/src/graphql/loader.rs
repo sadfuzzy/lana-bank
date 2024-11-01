@@ -35,7 +35,7 @@ impl Loader<UserId> for LavaLoader {
 
 impl Loader<governance::CommitteeId> for LavaLoader {
     type Value = Committee;
-    type Error = Arc<governance::committee_error::CommitteeError>;
+    type Error = Arc<governance::error::GovernanceError>;
 
     async fn load(
         &self,
@@ -51,7 +51,7 @@ impl Loader<governance::CommitteeId> for LavaLoader {
 
 impl Loader<governance::PolicyId> for LavaLoader {
     type Value = Policy;
-    type Error = Arc<governance::policy_error::PolicyError>;
+    type Error = Arc<governance::error::GovernanceError>;
 
     async fn load(&self, keys: &[PolicyId]) -> Result<HashMap<PolicyId, Policy>, Self::Error> {
         self.app
@@ -64,7 +64,7 @@ impl Loader<governance::PolicyId> for LavaLoader {
 
 impl Loader<governance::ApprovalProcessId> for LavaLoader {
     type Value = ApprovalProcess;
-    type Error = Arc<governance::approval_process_error::ApprovalProcessError>;
+    type Error = Arc<governance::error::GovernanceError>;
 
     async fn load(
         &self,

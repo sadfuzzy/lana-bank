@@ -108,7 +108,8 @@ wait_for_approval() {
   echo $(graphql_output) 
   [[ "$withdrawal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-  [[ "$status" == "PENDING_APPROVAL" ]] || exit 1
+  # PENDING_APPROVAL is skipped due to status being updated on read
+  [[ "$status" == "PENDING_CONFIRMATION" ]] || exit 1
   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')
@@ -158,9 +159,8 @@ wait_for_approval() {
   exec_admin_graphql 'initiate-withdrawal' "$variables"
 
   withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+  echo $(graphql_output)
   [[ "$withdrawal_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.withdrawalInitiate.withdrawal.status')
-  [[ "$status" == "PENDING_APPROVAL" ]] || exit 1
   settled_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.settled')
   [[ "$settled_usd_balance" == "0" ]] || exit 1
   pending_usd_balance=$(graphql_output '.data.withdrawalInitiate.withdrawal.customer.balance.checking.pending')

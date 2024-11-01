@@ -24,8 +24,12 @@ pub enum WithdrawError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("WithdrawError - InsufficientBalance: {0} < {1}")]
     InsufficientBalance(UsdCents, UsdCents),
+    #[error("WithdrawError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
     #[error("WithdrawError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("WithdrawError - InconsistentIdempotency")]
+    InconsistentIdempotency,
 }
 
 es_entity::from_es_entity_error!(WithdrawError);

@@ -186,8 +186,8 @@ where
     pub async fn find_all_policies<T: From<Policy>>(
         &self,
         ids: &[PolicyId],
-    ) -> Result<HashMap<PolicyId, T>, PolicyError> {
-        self.policy_repo.find_all(ids).await
+    ) -> Result<HashMap<PolicyId, T>, GovernanceError> {
+        Ok(self.policy_repo.find_all(ids).await?)
     }
 
     #[instrument(name = "governance.start_process", skip(self), err)]
@@ -465,8 +465,8 @@ where
     pub async fn find_all_committees<T: From<Committee>>(
         &self,
         ids: &[CommitteeId],
-    ) -> Result<HashMap<CommitteeId, T>, CommitteeError> {
-        self.committee_repo.find_all(ids).await
+    ) -> Result<HashMap<CommitteeId, T>, GovernanceError> {
+        Ok(self.committee_repo.find_all(ids).await?)
     }
 
     #[instrument(name = "governance.find_approval_process_by_id", skip(self), err)]
@@ -524,8 +524,8 @@ where
     pub async fn find_all_approval_processes<T: From<ApprovalProcess>>(
         &self,
         ids: &[ApprovalProcessId],
-    ) -> Result<HashMap<ApprovalProcessId, T>, ApprovalProcessError> {
-        self.process_repo.find_all(ids).await
+    ) -> Result<HashMap<ApprovalProcessId, T>, GovernanceError> {
+        Ok(self.process_repo.find_all(ids).await?)
     }
 
     pub async fn subject_can_submit_decision(

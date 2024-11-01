@@ -25,7 +25,6 @@ pub struct CreditFacility {
     activated_at: Option<Timestamp>,
     expires_at: Option<Timestamp>,
     created_at: Timestamp,
-    status: CreditFacilityStatus,
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
     collateral: Satoshis,
@@ -48,7 +47,6 @@ impl From<DomainCreditFacility> for CreditFacility {
             expires_at,
             can_be_completed: credit_facility.can_be_completed(),
             created_at: credit_facility.created_at().into(),
-            status: credit_facility.status(),
             facility_amount: credit_facility.initial_facility(),
             collateral: credit_facility.collateral(),
             collateralization_state: credit_facility.last_collateralization_state(),
@@ -62,6 +60,16 @@ impl From<DomainCreditFacility> for CreditFacility {
 impl CreditFacility {
     async fn credit_facility_terms(&self) -> TermValues {
         self.entity.terms.into()
+    }
+
+    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityStatus> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit_facilities()
+            .ensure_up_to_date_status(&self.entity)
+            .await?
+            .map(|cf| cf.status())
+            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {

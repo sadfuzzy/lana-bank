@@ -20,3 +20,6 @@ pub trait EsEntity<E: EsEvent>: TryFromEvents<E> {
     fn events_mut(&mut self) -> &mut EntityEvents<E>;
     fn events(&self) -> &EntityEvents<E>;
 }
+
+pub trait RetryableInto<T>: Into<T> + Copy + std::fmt::Debug {}
+impl<T, O> RetryableInto<O> for T where T: Into<O> + Copy + std::fmt::Debug {}

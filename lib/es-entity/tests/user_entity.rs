@@ -1,11 +1,11 @@
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
+pub use es_entity::*;
 
 es_entity::entity_id! { UserId }
 
-#[derive(EsEvent, Deserialize, Serialize)]
+#[derive(EsEvent, Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
 pub enum UserEvent {
@@ -41,10 +41,16 @@ pub struct User {
     events: EntityEvents<UserEvent>,
 }
 
+impl User {
+    pub fn email(&self) -> &str {
+        &self.email
+    }
+}
+
 impl TryFromEvents<UserEvent> for User {
     fn try_from_events(events: EntityEvents<UserEvent>) -> Result<Self, EsEntityError> {
         let mut builder = UserBuilder::default();
-        for event in events.iter_persisted().map(|e| &e.event) {
+        for event in events.iter_all() {
             if let UserEvent::Initialized { id, email } = event {
                 builder = builder.id(*id).email(email.clone())
             }

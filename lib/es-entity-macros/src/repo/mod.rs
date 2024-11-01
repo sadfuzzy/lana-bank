@@ -147,7 +147,7 @@ impl<'a> ToTokens for EsRepo<'a> {
 
             impl #repo {
                 #[inline(always)]
-                fn pool(&self) -> &sqlx::PgPool {
+                pub fn pool(&self) -> &sqlx::PgPool {
                     &self.pool
                 }
 

@@ -5,6 +5,7 @@ mod entity;
 mod event;
 mod query;
 mod repo;
+mod retry_on_concurrent_modification;
 
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
@@ -13,6 +14,15 @@ use syn::parse_macro_input;
 pub fn es_event_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     match event::derive(ast) {
+        Ok(tokens) => tokens.into(),
+        Err(e) => e.write_errors().into(),
+    }
+}
+
+#[proc_macro_attribute]
+pub fn retry_on_concurrent_modification(_: TokenStream, input: TokenStream) -> TokenStream {
+    let ast = parse_macro_input!(input as syn::ItemFn);
+    match retry_on_concurrent_modification::make(ast) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.write_errors().into(),
     }

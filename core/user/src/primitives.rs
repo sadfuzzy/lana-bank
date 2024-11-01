@@ -7,9 +7,7 @@ pub use authz::AllOrOne;
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
     UserId;
-
     UserId => governance::CommitteeMemberId,
-    governance::CommitteeMemberId => UserId
 }
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }

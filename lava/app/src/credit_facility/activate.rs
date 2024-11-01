@@ -13,9 +13,6 @@ pub(super) async fn execute(
         return Ok(());
     };
 
-    ledger
-        .activate_credit_facility(credit_facility_activation.clone())
-        .await?;
     let audit_info = audit
         .record_system_entry_in_tx(
             db_tx,
@@ -23,7 +20,11 @@ pub(super) async fn execute(
             CreditFacilityAction::Activate,
         )
         .await?;
-    credit_facility.activate(credit_facility_activation, chrono::Utc::now(), audit_info);
+    credit_facility.activate(
+        credit_facility_activation.clone(),
+        chrono::Utc::now(),
+        audit_info,
+    );
 
     let audit_info = audit
         .record_system_entry_in_tx(
@@ -55,6 +56,10 @@ pub(super) async fn execute(
         Ok(_) | Err(JobError::DuplicateId) => (),
         Err(err) => Err(err)?,
     };
+
+    ledger
+        .activate_credit_facility(credit_facility_activation)
+        .await?;
 
     Ok(())
 }

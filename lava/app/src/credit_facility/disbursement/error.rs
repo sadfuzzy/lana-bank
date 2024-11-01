@@ -8,6 +8,8 @@ pub enum DisbursementError {
     EsEntityError(es_entity::EsEntityError),
     #[error("DisbursementError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
+    #[error("DisbursementError - InconsistentIdempotency")]
+    InconsistentIdempotency,
     #[error("DisbursementError - AlreadyConfirmed")]
     AlreadyConfirmed,
     #[error("DisbursementError - ApprovalInProgress")]

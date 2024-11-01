@@ -85,12 +85,25 @@ impl Withdraw {
         }
     }
 
-    pub(super) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
+    pub(super) fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+        audit_info: AuditInfo,
+    ) -> Result<(), WithdrawError> {
+        match self.is_approved_or_denied() {
+            Some(actual) if actual == approved => {
+                return Ok(());
+            }
+            Some(_) => return Err(WithdrawError::InconsistentIdempotency),
+            None => (),
+        }
+
         self.events.push(WithdrawEvent::ApprovalProcessConcluded {
             approval_process_id: self.id.into(),
             approved,
             audit_info,
         });
+        Ok(())
     }
 
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {
@@ -146,7 +159,7 @@ impl Withdraw {
             .any(|e| matches!(e, WithdrawEvent::Cancelled { .. }))
     }
 
-    fn is_approved_or_denied(&self) -> Option<bool> {
+    pub(super) fn is_approved_or_denied(&self) -> Option<bool> {
         self.events.iter_all().find_map(|e| {
             if let WithdrawEvent::ApprovalProcessConcluded { approved, .. } = e {
                 Some(*approved)

@@ -1,12 +1,13 @@
-mod approve_job;
 mod entity;
 pub mod error;
+mod processes;
 mod repo;
+
+use tracing::instrument;
 
 use std::collections::HashMap;
 
 use authz::PermissionCheck;
-use governance::ApprovalProcessType;
 
 use crate::{
     audit::AuditInfo,
@@ -22,9 +23,8 @@ use crate::{
 
 pub use entity::*;
 use error::WithdrawError;
+pub use processes::approval::*;
 pub use repo::{cursor::*, WithdrawRepo};
-
-pub const APPROVE_WITHDRAW_PROCESS: ApprovalProcessType = ApprovalProcessType::new("withdraw");
 
 #[derive(Clone)]
 pub struct Withdraws {
@@ -34,6 +34,7 @@ pub struct Withdraws {
     ledger: Ledger,
     authz: Authorization,
     governance: Governance,
+    approval_withdraw: ApproveWithdraw,
     _jobs: Jobs,
 }
 
@@ -50,9 +51,10 @@ impl Withdraws {
         outbox: &Outbox,
     ) -> Result<Self, WithdrawError> {
         let repo = WithdrawRepo::new(pool, export);
+        let approval_withdraw = ApproveWithdraw::new(&repo, authz.audit(), governance);
         jobs.add_initializer_and_spawn_unique(
-            approve_job::WithdrawApprovalJobInitializer::new(pool, &repo, authz.audit(), outbox),
-            approve_job::WithdrawApprovalJobConfig,
+            WithdrawApprovalJobInitializer::new(outbox, &approval_withdraw),
+            WithdrawApprovalJobConfig,
         )
         .await?;
 
@@ -71,6 +73,7 @@ impl Withdraws {
             ledger: ledger.clone(),
             authz: authz.clone(),
             governance: governance.clone(),
+            approval_withdraw,
             _jobs: jobs.clone(),
         })
     }
@@ -199,10 +202,12 @@ impl Withdraws {
             .await?)
     }
 
+    #[instrument(name = "withdraw.cancel", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification]
     pub async fn cancel(
         &self,
         sub: &Subject,
-        withdrawal_id: impl Into<WithdrawId> + std::fmt::Debug,
+        withdrawal_id: impl es_entity::RetryableInto<WithdrawId>,
     ) -> Result<Withdraw, WithdrawError> {
         let audit_info = self
             .subject_can_cancel(sub, true)
@@ -245,6 +250,13 @@ impl Withdraws {
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub async fn ensure_up_to_date_status(
+        &self,
+        withdraw: &Withdraw,
+    ) -> Result<Option<Withdraw>, WithdrawError> {
+        self.approval_withdraw.execute_from_svc(withdraw).await
     }
 
     pub async fn list_for_customer(

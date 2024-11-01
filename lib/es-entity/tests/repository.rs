@@ -74,7 +74,7 @@ async fn find_by() -> anyhow::Result<()> {
 
     assert!(matches!(
         res,
-        Err(EsRepoError::EntityError(EsEntityError::NotFound))
+        Err(EsRepoError::EsEntityError(EsEntityError::NotFound))
     ));
 
     Ok(())
@@ -119,7 +119,7 @@ async fn custom() -> anyhow::Result<()> {
     let res = repo.custom_query().await;
     assert!(matches!(
         res,
-        Err(EsRepoError::EntityError(EsEntityError::NotFound))
+        Err(EsRepoError::EsEntityError(EsEntityError::NotFound))
     ));
 
     Ok(())

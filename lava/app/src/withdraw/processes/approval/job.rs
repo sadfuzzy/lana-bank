@@ -4,34 +4,25 @@ use futures::StreamExt;
 use governance::GovernanceEvent;
 use job::*;
 use lava_events::LavaEvent;
-use rbac_types::{AppObject, WithdrawAction};
 
-use crate::{
-    audit::{Audit, AuditSvc},
-    outbox::Outbox,
-};
-
-use super::repo::WithdrawRepo;
+use super::ApproveWithdraw;
+use crate::outbox::Outbox;
 
 #[derive(serde::Serialize)]
-pub(super) struct WithdrawApprovalJobConfig;
+pub(in crate::withdraw) struct WithdrawApprovalJobConfig;
 impl JobConfig for WithdrawApprovalJobConfig {
     type Initializer = WithdrawApprovalJobInitializer;
 }
 
-pub(super) struct WithdrawApprovalJobInitializer {
-    pool: sqlx::PgPool,
-    repo: WithdrawRepo,
-    audit: Audit,
+pub(in crate::withdraw) struct WithdrawApprovalJobInitializer {
     outbox: Outbox,
+    process: ApproveWithdraw,
 }
 
 impl WithdrawApprovalJobInitializer {
-    pub fn new(pool: &sqlx::PgPool, repo: &WithdrawRepo, audit: &Audit, outbox: &Outbox) -> Self {
+    pub fn new(outbox: &Outbox, process: &ApproveWithdraw) -> Self {
         Self {
-            pool: pool.clone(),
-            repo: repo.clone(),
-            audit: audit.clone(),
+            process: process.clone(),
             outbox: outbox.clone(),
         }
     }
@@ -48,10 +39,8 @@ impl JobInitializer for WithdrawApprovalJobInitializer {
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(WithdrawApprovalJobRunner {
-            pool: self.pool.clone(),
-            repo: self.repo.clone(),
-            audit: self.audit.clone(),
             outbox: self.outbox.clone(),
+            process: self.process.clone(),
         }))
     }
 
@@ -69,10 +58,8 @@ struct WithdrawApprovalJobData {
 }
 
 pub struct WithdrawApprovalJobRunner {
-    pool: sqlx::PgPool,
-    repo: WithdrawRepo,
-    audit: Audit,
     outbox: Outbox,
+    process: ApproveWithdraw,
 }
 #[async_trait]
 impl JobRunner for WithdrawApprovalJobRunner {
@@ -94,21 +81,9 @@ impl JobRunner for WithdrawApprovalJobRunner {
                     ref process_type,
                     ..
                 })) if process_type == &super::APPROVE_WITHDRAW_PROCESS => {
-                    let mut withdraw = self.repo.find_by_approval_process_id(id).await?;
-                    let mut db = self.pool.begin().await?;
-                    let audit_info = self
-                        .audit
-                        .record_system_entry_in_tx(
-                            &mut db,
-                            AppObject::Withdraw,
-                            WithdrawAction::ConcludeApprovalProcess,
-                        )
-                        .await?;
-                    withdraw.approval_process_concluded(approved, audit_info);
-                    self.repo.update_in_tx(&mut db, &mut withdraw).await?;
+                    self.process.execute(id, approved).await?;
                     state.sequence = message.sequence;
-                    current_job.update_execution_state(&mut db, state).await?;
-                    db.commit().await?;
+                    current_job.update_execution_state(state).await?;
                 }
                 _ => {}
             }

@@ -1019,9 +1019,7 @@ impl Mutation {
     ) -> async_graphql::Result<DocumentDeletePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         // not using macro here because DocumentDeletePayload is non standard
-        app.documents()
-            .delete(sub, input.document_id.clone())
-            .await?;
+        app.documents().delete(sub, input.document_id).await?;
         Ok(DocumentDeletePayload {
             deleted_document_id: input.document_id,
         })

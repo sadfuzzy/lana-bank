@@ -1753,7 +1753,9 @@ mod test {
                 .unwrap();
             let mut disbursement =
                 Disbursement::try_from_events(new_disbursement.into_events()).unwrap();
-            disbursement.approval_process_concluded(true, dummy_audit_info());
+            disbursement
+                .approval_process_concluded(true, dummy_audit_info())
+                .unwrap();
             let disbursement_data = disbursement.disbursement_data().unwrap();
             disbursement.confirm(
                 &disbursement_data,
