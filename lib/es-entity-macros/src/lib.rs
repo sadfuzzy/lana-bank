@@ -20,9 +20,9 @@ pub fn es_event_derive(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn retry_on_concurrent_modification(_: TokenStream, input: TokenStream) -> TokenStream {
+pub fn retry_on_concurrent_modification(args: TokenStream, input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::ItemFn);
-    match retry_on_concurrent_modification::make(ast) {
+    match retry_on_concurrent_modification::make(args, ast) {
         Ok(tokens) => tokens.into(),
         Err(e) => e.write_errors().into(),
     }

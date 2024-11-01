@@ -76,7 +76,7 @@ impl ApproveCreditFacility {
         Ok(res)
     }
 
-    #[es_entity::retry_on_concurrent_modification]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
