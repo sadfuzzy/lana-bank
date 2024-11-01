@@ -131,7 +131,6 @@ const NavigationLinks = () => {
       subMenu: [
         { href: "/committees", label: "Committees" },
         { href: "/policies", label: "Policies" },
-        { href: "/approval-process", label: "Approval Process" },
       ],
     },
     {

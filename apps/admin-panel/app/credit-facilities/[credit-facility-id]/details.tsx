@@ -86,19 +86,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       </Card>
       {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
         <div className="flex flex-col space-y-2 mt-1 ml-4">
-          {[
-            CreditFacilityStatus.PendingCollateralization,
-            CreditFacilityStatus.PendingApproval,
-          ].includes(creditFacilityDetails.status) &&
-            creditFacilityDetails.collateral > 0 && (
-              <Button
-                variant="primary"
-                className="w-full"
-                onClick={() => setOpenApproveDialog(true)}
-              >
-                Approve
-              </Button>
-            )}
           {creditFacilityDetails.subjectCanUpdateCollateral && (
             <Button
               variant="primary"
