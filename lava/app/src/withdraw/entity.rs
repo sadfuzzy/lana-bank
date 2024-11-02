@@ -89,21 +89,17 @@ impl Withdraw {
         &mut self,
         approved: bool,
         audit_info: AuditInfo,
-    ) -> Result<(), WithdrawError> {
-        match self.is_approved_or_denied() {
-            Some(actual) if actual == approved => {
-                return Ok(());
-            }
-            Some(_) => return Err(WithdrawError::InconsistentIdempotency),
-            None => (),
-        }
-
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            WithdrawEvent::ApprovalProcessConcluded { .. }
+        );
         self.events.push(WithdrawEvent::ApprovalProcessConcluded {
             approval_process_id: self.id.into(),
             approved,
             audit_info,
         });
-        Ok(())
+        Idempotent::Executed(())
     }
 
     pub(super) fn confirm(&mut self, audit_info: AuditInfo) -> Result<LedgerTxId, WithdrawError> {

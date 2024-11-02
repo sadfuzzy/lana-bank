@@ -28,8 +28,6 @@ pub enum WithdrawError {
     AuditError(#[from] audit::error::AuditError),
     #[error("WithdrawError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("WithdrawError - InconsistentIdempotency")]
-    InconsistentIdempotency,
 }
 
 es_entity::from_es_entity_error!(WithdrawError);

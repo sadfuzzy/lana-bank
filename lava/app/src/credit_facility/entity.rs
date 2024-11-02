@@ -364,13 +364,22 @@ impl CreditFacility {
         }
     }
 
-    pub(super) fn approval_process_concluded(&mut self, approved: bool, audit_info: AuditInfo) {
+    pub(super) fn approval_process_concluded(
+        &mut self,
+        approved: bool,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityEvent::ApprovalProcessConcluded { .. }
+        );
         self.events
             .push(CreditFacilityEvent::ApprovalProcessConcluded {
                 approval_process_id: self.id.into(),
                 approved,
                 audit_info,
             });
+        Idempotent::Executed(())
     }
 
     pub(crate) fn activation_data(

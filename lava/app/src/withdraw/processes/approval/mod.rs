@@ -72,8 +72,11 @@ impl ApproveWithdraw {
                 WithdrawAction::ConcludeApprovalProcess,
             )
             .await?;
-        withdraw.approval_process_concluded(approved, audit_info)?;
-        if self.repo.update_in_tx(&mut db, &mut withdraw).await? {
+        if withdraw
+            .approval_process_concluded(approved, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_tx(&mut db, &mut withdraw).await?;
             db.commit().await?;
         }
         Ok(withdraw)

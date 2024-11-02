@@ -76,8 +76,11 @@ impl ApproveDisbursement {
                 CreditFacilityAction::ConcludeDisbursementApprovalProcess,
             )
             .await?;
-        disbursement.approval_process_concluded(approved, audit_info)?;
-        if self.repo.update_in_tx(&mut db, &mut disbursement).await? {
+        if disbursement
+            .approval_process_concluded(approved, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_tx(&mut db, &mut disbursement).await?;
             db.commit().await?;
         }
         Ok(disbursement)

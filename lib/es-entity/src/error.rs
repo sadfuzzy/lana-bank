@@ -10,8 +10,6 @@ pub enum EsEntityError {
     NotFound,
     #[error("EntityError - ConcurrentModification")]
     ConcurrentModification,
-    #[error("EntityError - InconsistentIdempotency")]
-    InconsistentIdempotency,
 }
 
 #[derive(Error, Debug)]

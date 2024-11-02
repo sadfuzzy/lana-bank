@@ -12,6 +12,8 @@ pub enum UserEvent {
     Initialized { id: UserId, email: String },
     RoleAssigned {},
     RoleRevoked {},
+    EmailUpdated { email: String },
+    SomeOtherEvent {},
 }
 
 #[derive(Debug)]
@@ -44,6 +46,15 @@ pub struct User {
 impl User {
     pub fn email(&self) -> &str {
         &self.email
+    }
+
+    pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            UserEvent::EmailUpdated { email } if email == &new_email,
+            UserEvent::SomeOtherEvent { .. },
+        );
+        Idempotent::Executed(())
     }
 }
 

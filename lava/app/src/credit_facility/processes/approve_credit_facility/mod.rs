@@ -95,7 +95,12 @@ impl ApproveCreditFacility {
                 CreditFacilityAction::ConcludeApprovalProcess,
             )
             .await?;
-        credit_facility.approval_process_concluded(approved, audit_info);
+        if credit_facility
+            .approval_process_concluded(approved, audit_info)
+            .was_already_applied()
+        {
+            return Ok(credit_facility);
+        }
 
         let price = self.price.usd_cents_per_btc().await?;
         activate::execute(

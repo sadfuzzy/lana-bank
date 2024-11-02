@@ -112,25 +112,18 @@ impl Disbursement {
         &mut self,
         approved: bool,
         audit_info: AuditInfo,
-    ) -> Result<(), DisbursementError> {
-        for event in self.events.iter_all() {
-            if let DisbursementEvent::ApprovalProcessConcluded {
-                approved: check, ..
-            } = event
-            {
-                if check != &approved {
-                    return Err(DisbursementError::InconsistentIdempotency);
-                }
-                return Ok(());
-            }
-        }
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            DisbursementEvent::ApprovalProcessConcluded { .. }
+        );
         self.events
             .push(DisbursementEvent::ApprovalProcessConcluded {
                 approval_process_id: self.approval_process_id,
                 approved,
                 audit_info,
             });
-        Ok(())
+        Idempotent::Executed(())
     }
 
     pub(super) fn is_approved(&self) -> Option<bool> {
