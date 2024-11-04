@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use authz::PermissionCheck;
 
 use crate::{
-    audit::{Audit, AuditInfo, AuditSvc},
+    audit::{AuditInfo, AuditSvc},
     authorization::{Authorization, CreditFacilityAction, Object},
     customer::Customers,
     data_export::Export,
@@ -69,7 +69,6 @@ impl CreditFacilities {
         jobs: &Jobs,
         export: &Export,
         authz: &Authorization,
-        audit: &Audit,
         customers: &Customers,
         ledger: &Ledger,
         price: &Price,
@@ -93,7 +92,7 @@ impl CreditFacilities {
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
                 price,
-                audit,
+                authz.audit(),
             ),
             cvl::CreditFacilityJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
@@ -105,7 +104,7 @@ impl CreditFacilities {
             ledger,
             credit_facility_repo.clone(),
             interest_accrual_repo.clone(),
-            audit,
+            authz.audit(),
         ));
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),

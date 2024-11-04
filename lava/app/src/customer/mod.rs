@@ -10,7 +10,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    audit::{Audit, AuditInfo, AuditSvc},
+    audit::{AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
     ledger::*,
@@ -30,7 +30,6 @@ pub struct Customers {
     ledger: Ledger,
     kratos: KratosClient,
     authz: Authorization,
-    audit: Audit,
 }
 
 impl Customers {
@@ -39,7 +38,6 @@ impl Customers {
         config: &CustomerConfig,
         ledger: &Ledger,
         authz: &Authorization,
-        audit: &Audit,
         export: &Export,
     ) -> Self {
         let repo = CustomerRepo::new(pool, export);
@@ -50,7 +48,6 @@ impl Customers {
             ledger: ledger.clone(),
             kratos,
             authz: authz.clone(),
-            audit: audit.clone(),
         }
     }
 
@@ -115,7 +112,8 @@ impl Customers {
         let mut db = self.pool.begin().await?;
 
         let audit_info = &self
-            .audit
+            .authz
+            .audit()
             .record_system_entry_in_tx(
                 &mut db,
                 Object::Customer(CustomerAllOrOne::All),
@@ -217,7 +215,8 @@ impl Customers {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
         let audit_info = self
-            .audit
+            .authz
+            .audit()
             .record_system_entry_in_tx(
                 db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
@@ -241,7 +240,8 @@ impl Customers {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
         let audit_info = self
-            .audit
+            .authz
+            .audit()
             .record_system_entry_in_tx(
                 db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
@@ -265,7 +265,8 @@ impl Customers {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
         let audit_info = self
-            .audit
+            .authz
+            .audit()
             .record_system_entry_in_tx(
                 db,
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),

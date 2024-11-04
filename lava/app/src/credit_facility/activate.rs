@@ -1,3 +1,5 @@
+use crate::audit::Audit;
+
 use super::*;
 
 pub(super) async fn execute(

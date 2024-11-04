@@ -1507,7 +1507,9 @@ mod test {
         );
         let approval_time = Utc::now();
 
-        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
         let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
         credit_facility.activate(credit_facility_approval, approval_time, dummy_audit_info());
         assert_eq!(credit_facility.activated_at, Some(approval_time));
@@ -1537,13 +1539,15 @@ mod test {
         let credit_facility_collateral_update = credit_facility
             .initiate_collateral_update(Satoshis::from(100))
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
+        credit_facility
+            .confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
+            .unwrap();
 
         credit_facility.approval_process_concluded(true, dummy_audit_info());
         let first_approval = credit_facility.activation_data(default_price());
@@ -1564,13 +1568,15 @@ mod test {
         let credit_facility_collateral_update = credit_facility
             .initiate_collateral_update(Satoshis::from(10000))
             .unwrap();
-        credit_facility.confirm_collateral_update(
-            credit_facility_collateral_update,
-            Utc::now(),
-            dummy_audit_info(),
-            default_price(),
-            default_upgrade_buffer_cvl_pct(),
-        );
+        credit_facility
+            .confirm_collateral_update(
+                credit_facility_collateral_update,
+                Utc::now(),
+                dummy_audit_info(),
+                default_price(),
+                default_upgrade_buffer_cvl_pct(),
+            )
+            .unwrap();
         assert_eq!(
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval

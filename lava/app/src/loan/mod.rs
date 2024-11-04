@@ -14,7 +14,7 @@ use std::collections::HashMap;
 use authz::PermissionCheck;
 
 use crate::{
-    audit::{Audit, AuditInfo},
+    audit::AuditInfo,
     authorization::{Authorization, CustomerAllOrOne, LoanAction, LoanAllOrOne, Object},
     customer::Customers,
     data_export::Export,
@@ -54,7 +54,6 @@ impl Loans {
         customers: &Customers,
         ledger: &Ledger,
         authz: &Authorization,
-        audit: &Audit,
         export: &Export,
         price: &Price,
     ) -> Result<Self, LoanError> {
@@ -62,10 +61,10 @@ impl Loans {
         jobs.add_initializer(interest::LoanProcessingJobInitializer::new(
             ledger,
             loan_repo.clone(),
-            audit,
+            authz.audit(),
         ));
         jobs.add_initializer_and_spawn_unique(
-            cvl::LoanProcessingJobInitializer::new(loan_repo.clone(), price, audit),
+            cvl::LoanProcessingJobInitializer::new(loan_repo.clone(), price, authz.audit()),
             cvl::LoanJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,

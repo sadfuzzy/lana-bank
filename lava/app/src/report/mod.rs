@@ -10,7 +10,6 @@ use authz::PermissionCheck;
 use tracing::instrument;
 
 use crate::{
-    audit::*,
     authorization::{Authorization, Object, ReportAction},
     data_export::Export,
     job::Jobs,
@@ -38,17 +37,19 @@ impl Reports {
         pool: &sqlx::PgPool,
         config: &ReportConfig,
         authz: &Authorization,
-        audit: &Audit,
         jobs: &Jobs,
         storage: &Storage,
         export: &Export,
     ) -> Result<Self, ReportError> {
         let repo = ReportRepo::new(pool, export);
         jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
-            &repo, config, audit, storage,
+            &repo,
+            config,
+            authz.audit(),
+            storage,
         ));
         jobs.add_initializer_and_spawn_unique(
-            report_jobs::create::CreateReportInitializer::new(&repo, jobs, audit),
+            report_jobs::create::CreateReportInitializer::new(&repo, jobs, authz.audit()),
             report_jobs::create::CreateReportJobConfig {
                 job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
             },
