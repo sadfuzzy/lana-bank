@@ -26,7 +26,6 @@ where
     P: Serialize + DeserializeOwned + Send + Sync + 'static,
 {
     repo: OutboxRepo<P>,
-    _pool: PgPool,
     event_sender: broadcast::Sender<OutboxEvent<P>>,
     event_receiver: Arc<broadcast::Receiver<OutboxEvent<P>>>,
     highest_known_sequence: Arc<AtomicU64>,
@@ -40,7 +39,6 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
-            _pool: self._pool.clone(),
             event_sender: self.event_sender.clone(),
             event_receiver: self.event_receiver.clone(),
             highest_known_sequence: self.highest_known_sequence.clone(),
@@ -65,7 +63,6 @@ where
             event_receiver: Arc::new(recv),
             repo,
             highest_known_sequence,
-            _pool: pool.clone(),
             buffer_size,
         })
     }

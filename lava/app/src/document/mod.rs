@@ -21,7 +21,6 @@ pub use entity::*;
 
 #[derive(Clone)]
 pub struct Documents {
-    pool: sqlx::PgPool,
     authz: Authorization,
     storage: Storage,
     repo: DocumentsRepo,
@@ -30,7 +29,6 @@ pub struct Documents {
 impl Documents {
     pub fn new(pool: &sqlx::PgPool, storage: &Storage, authz: &Authorization) -> Self {
         Self {
-            pool: pool.clone(),
             storage: storage.clone(),
             repo: DocumentsRepo::new(pool),
             authz: authz.clone(),
@@ -58,7 +56,7 @@ impl Documents {
             .audit_info(audit_info)
             .build()?;
 
-        let mut tx = self.pool.begin().await?;
+        let mut tx = self.repo.begin().await?;
         let document = self.repo.create_in_tx(&mut tx, new_document).await?;
 
         self.storage
@@ -127,7 +125,7 @@ impl Documents {
             .generate_download_link(document_location)
             .await?;
 
-        let mut tx = self.pool.begin().await?;
+        let mut tx = self.repo.begin().await?;
 
         self.repo.update_in_tx(&mut tx, &mut document).await?;
 
@@ -145,7 +143,7 @@ impl Documents {
             .enforce_permission(sub, Object::Document, DocumentAction::Delete)
             .await?;
 
-        let mut db: sqlx::Transaction<'_, sqlx::Postgres> = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();

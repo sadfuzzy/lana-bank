@@ -23,7 +23,6 @@ pub use repo::{cursor::DepositByCreatedAtCursor, DepositRepo};
 
 #[derive(Clone)]
 pub struct Deposits {
-    pool: sqlx::PgPool,
     repo: DepositRepo,
     customers: Customers,
     ledger: Ledger,
@@ -40,7 +39,6 @@ impl Deposits {
     ) -> Self {
         let repo = DepositRepo::new(pool, export);
         Self {
-            pool: pool.clone(),
             repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
@@ -87,7 +85,7 @@ impl Deposits {
             .build()
             .expect("Could not build Deposit");
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.repo.begin().await?;
         let deposit = self.repo.create_in_tx(&mut db_tx, new_deposit).await?;
 
         self.ledger

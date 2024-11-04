@@ -29,7 +29,6 @@ where
     Perms: PermissionCheck,
     E: serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin,
 {
-    pool: sqlx::PgPool,
     committee_repo: CommitteeRepo,
     policy_repo: PolicyRepo,
     process_repo: ApprovalProcessRepo,
@@ -44,7 +43,6 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            pool: self.pool.clone(),
             committee_repo: self.committee_repo.clone(),
             policy_repo: self.policy_repo.clone(),
             process_repo: self.process_repo.clone(),
@@ -67,7 +65,6 @@ where
         let process_repo = ApprovalProcessRepo::new(pool);
 
         Self {
-            pool: pool.clone(),
             committee_repo,
             policy_repo,
             process_repo,
@@ -80,7 +77,7 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
-        let mut db = self.pool.begin().await?;
+        let mut db = self.policy_repo.begin().await?;
         let audit_info = self
             .authz
             .audit()
@@ -173,7 +170,7 @@ where
         let mut policy = self.policy_repo.find_by_id(policy_id).await?;
         policy.assign_committee(committee.id, threshold, audit_info);
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.policy_repo.begin().await?;
         self.policy_repo
             .update_in_tx(&mut db_tx, &mut policy)
             .await?;
@@ -243,7 +240,7 @@ where
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         process.approve(&eligible, member_id, audit_info)?;
-        let mut db = self.pool.begin().await?;
+        let mut db = self.policy_repo.begin().await?;
         self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
         self.process_repo
@@ -285,7 +282,7 @@ where
             HashSet::new()
         };
         process.deny(&eligible, member_id, audit_info)?;
-        let mut db = self.pool.begin().await?;
+        let mut db = self.policy_repo.begin().await?;
         self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?;
         self.process_repo
@@ -318,7 +315,7 @@ where
             .build()
             .expect("Could not build new committee");
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.committee_repo.begin().await?;
         let committee = self
             .committee_repo
             .create_in_tx(&mut db, new_committee)

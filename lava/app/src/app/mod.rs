@@ -77,7 +77,7 @@ impl LavaApp {
         )
         .await?;
         let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
-        let price = Price::init(&pool, &jobs, &export).await?;
+        let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;

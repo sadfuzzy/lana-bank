@@ -25,7 +25,6 @@ pub use repo::{cursor::*, CustomerRepo};
 
 #[derive(Clone)]
 pub struct Customers {
-    pool: sqlx::PgPool,
     repo: CustomerRepo,
     ledger: Ledger,
     kratos: KratosClient,
@@ -43,7 +42,6 @@ impl Customers {
         let repo = CustomerRepo::new(pool, export);
         let kratos = KratosClient::new(&config.kratos);
         Self {
-            pool: pool.clone(),
             repo,
             ledger: ledger.clone(),
             kratos,
@@ -97,7 +95,7 @@ impl Customers {
             .build()
             .expect("Could not build customer");
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         let customer = self.repo.create_in_tx(&mut db, new_customer).await;
         db.commit().await?;
 
@@ -109,7 +107,7 @@ impl Customers {
         id: CustomerId,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
 
         let audit_info = &self
             .authz

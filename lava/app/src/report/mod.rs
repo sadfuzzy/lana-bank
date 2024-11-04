@@ -25,7 +25,6 @@ use repo::*;
 
 #[derive(Clone)]
 pub struct Reports {
-    pool: sqlx::PgPool,
     authz: Authorization,
     repo: ReportRepo,
     jobs: Jobs,
@@ -58,7 +57,6 @@ impl Reports {
 
         Ok(Self {
             repo,
-            pool: pool.clone(),
             authz: authz.clone(),
             jobs: jobs.clone(),
             storage: storage.clone(),
@@ -78,7 +76,7 @@ impl Reports {
             .build()
             .expect("Could not build report");
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         let report = self.repo.create_in_tx(&mut db, new_report).await?;
         self.jobs
             .create_and_spawn_in_tx(
@@ -134,7 +132,7 @@ impl Reports {
 
         let mut report = self.repo.find_by_id(report_id).await?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.repo.begin().await?;
 
         let mut download_links = vec![];
         for location in report.download_links() {

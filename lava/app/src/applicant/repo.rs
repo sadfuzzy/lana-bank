@@ -24,6 +24,13 @@ impl ApplicantRepo {
         Self { pool: pool.clone() }
     }
 
+    pub(super) async fn begin(
+        &self,
+    ) -> Result<sqlx::Transaction<'_, sqlx::Postgres>, ApplicantError> {
+        let db_tx = self.pool.begin().await?;
+        Ok(db_tx)
+    }
+
     pub async fn persist_webhook_data(
         &self,
         customer_id: CustomerId,

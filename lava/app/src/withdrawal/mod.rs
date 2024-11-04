@@ -28,7 +28,6 @@ pub use repo::{cursor::*, WithdrawalRepo};
 
 #[derive(Clone)]
 pub struct Withdrawals {
-    pool: sqlx::PgPool,
     repo: WithdrawalRepo,
     customers: Customers,
     ledger: Ledger,
@@ -67,7 +66,6 @@ impl Withdrawals {
         }
 
         Ok(Self {
-            pool: pool.clone(),
             repo,
             customers: customers.clone(),
             ledger: ledger.clone(),
@@ -118,7 +116,7 @@ impl Withdrawals {
             .build()
             .expect("Could not build Withdraw");
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.repo.begin().await?;
         self.governance
             .start_process(&mut db_tx, id, id.to_string(), APPROVE_WITHDRAWAL_PROCESS)
             .await?;
@@ -173,7 +171,7 @@ impl Withdrawals {
         let mut withdrawal = self.repo.find_by_id(id).await?;
         let tx_id = withdrawal.confirm(audit_info)?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.repo.begin().await?;
         self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
 
         self.ledger
@@ -218,7 +216,7 @@ impl Withdrawals {
         let mut withdrawal = self.repo.find_by_id(id).await?;
         let tx_id = withdrawal.cancel(audit_info)?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.repo.begin().await?;
         self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
 
         self.ledger

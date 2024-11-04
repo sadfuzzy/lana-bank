@@ -45,7 +45,6 @@ use tracing::instrument;
 
 #[derive(Clone)]
 pub struct CreditFacilities {
-    pool: sqlx::PgPool,
     authz: Authorization,
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
@@ -122,7 +121,6 @@ impl CreditFacilities {
         let _ = governance.init_policy(APPROVE_DISBURSEMENT_PROCESS).await;
 
         Ok(Self {
-            pool: pool.clone(),
             authz: authz.clone(),
             customers: customers.clone(),
             credit_facility_repo,
@@ -187,7 +185,7 @@ impl CreditFacilities {
             .build()
             .expect("could not build new credit facility");
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
         self.governance
             .start_process(
                 &mut db_tx,
@@ -265,7 +263,7 @@ impl CreditFacilities {
             .await?;
         balances.check_disbursement_amount(amount)?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
         let new_disbursement =
             credit_facility.initiate_disbursement(amount, chrono::Utc::now(), audit_info)?;
         self.governance
@@ -311,7 +309,7 @@ impl CreditFacilities {
 
         let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
 
         if let Ok(disbursement_data) = disbursement.disbursement_data() {
             let audit_info = self
@@ -406,7 +404,7 @@ impl CreditFacilities {
         let credit_facility_collateral_update =
             credit_facility.initiate_collateral_update(updated_collateral)?;
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
         let executed_at = self
             .ledger
             .update_credit_facility_collateral(credit_facility_collateral_update.clone())
@@ -460,7 +458,7 @@ impl CreditFacilities {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
 
         let audit_info = self
             .subject_can_record_payment(sub, true)
@@ -607,7 +605,7 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        let mut db_tx = self.pool.begin().await?;
+        let mut db_tx = self.credit_facility_repo.begin().await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;

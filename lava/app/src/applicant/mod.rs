@@ -25,7 +25,6 @@ pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 #[derive(Clone)]
 pub struct Applicants {
-    pool: sqlx::PgPool,
     sumsub_client: SumsubClient,
     users: Customers,
     repo: ApplicantRepo,
@@ -115,7 +114,6 @@ impl Applicants {
 
         Self {
             repo: ApplicantRepo::new(pool),
-            pool: pool.clone(),
             sumsub_client,
             users: users.clone(),
             jobs: jobs.clone(),
@@ -133,7 +131,7 @@ impl Applicants {
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
 
         self.jobs
             .create_and_spawn_in_tx(

@@ -32,7 +32,6 @@ es_entity::entity_id! { JobId }
 
 #[derive(Clone)]
 pub struct Jobs {
-    pool: PgPool,
     repo: JobRepo,
     executor: JobExecutor,
     registry: Arc<RwLock<JobRegistry>>,
@@ -44,7 +43,6 @@ impl Jobs {
         let registry = Arc::new(RwLock::new(JobRegistry::new()));
         let executor = JobExecutor::new(pool, config, Arc::clone(&registry), &repo);
         Self {
-            pool: pool.clone(),
             repo,
             executor,
             registry,
@@ -72,7 +70,7 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         match self.repo.create_in_tx(&mut db, new_job).await {
             Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e),

@@ -21,7 +21,6 @@ use repo::TermsTemplateRepo;
 
 #[derive(Clone)]
 pub struct TermsTemplates {
-    pool: sqlx::PgPool,
     authz: Authorization,
     repo: TermsTemplateRepo,
 }
@@ -30,7 +29,6 @@ impl TermsTemplates {
     pub fn new(pool: &sqlx::PgPool, authz: &Authorization, export: &Export) -> Self {
         let repo = TermsTemplateRepo::new(pool, export);
         Self {
-            pool: pool.clone(),
             authz: authz.clone(),
             repo,
         }
@@ -70,7 +68,7 @@ impl TermsTemplates {
             .build()
             .expect("Could not build TermsTemplate");
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         let terms_template = self.repo.create_in_tx(&mut db, new_terms_template).await?;
         db.commit().await?;
         Ok(terms_template)
@@ -106,7 +104,7 @@ impl TermsTemplates {
         let mut terms_template = self.repo.find_by_id(id).await?;
         terms_template.update_values(values, audit_info);
 
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         self.repo.update_in_tx(&mut db, &mut terms_template).await?;
 
         db.commit().await?;

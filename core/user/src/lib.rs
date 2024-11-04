@@ -25,7 +25,6 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreUserEvent>,
 {
-    pool: sqlx::PgPool,
     authz: Authorization<Audit, Role>,
     outbox: Outbox<E>,
     repo: UserRepo,
@@ -38,7 +37,6 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            pool: self.pool.clone(),
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
@@ -62,7 +60,6 @@ where
     ) -> Result<Self, UserError> {
         let repo = UserRepo::new(pool);
         let users = Self {
-            pool: pool.clone(),
             repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
@@ -107,7 +104,7 @@ where
             .audit_info(audit_info)
             .build()
             .expect("Could not build user");
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
         let user = self.repo.create_in_tx(&mut db, new_user).await?;
         self.outbox
             .persist(&mut db, CoreUserEvent::UserCreated { id: user.id })
@@ -284,7 +281,7 @@ where
     }
 
     async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
-        let mut db = self.pool.begin().await?;
+        let mut db = self.repo.begin().await?;
 
         let audit_info = self
             .authz

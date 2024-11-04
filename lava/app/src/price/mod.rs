@@ -15,19 +15,13 @@ use error::PriceError;
 #[derive(Clone)]
 pub struct Price {
     bfx: BfxClient,
-    _pool: sqlx::PgPool,
     _jobs: Jobs,
 }
 
 impl Price {
-    pub async fn init(
-        pool: &sqlx::PgPool,
-        jobs: &Jobs,
-        export: &Export,
-    ) -> Result<Self, PriceError> {
+    pub async fn init(jobs: &Jobs, export: &Export) -> Result<Self, PriceError> {
         let price = Self {
             bfx: BfxClient::new(),
-            _pool: pool.clone(),
             _jobs: jobs.clone(),
         };
 
