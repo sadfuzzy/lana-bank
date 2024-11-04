@@ -109,7 +109,7 @@ CREATE TABLE credit_facility_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE disbursements (
+CREATE TABLE disbursals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
@@ -118,8 +118,8 @@ CREATE TABLE disbursements (
   UNIQUE(credit_facility_id, idx)
 );
 
-CREATE TABLE disbursement_events (
-  id UUID NOT NULL REFERENCES disbursements(id),
+CREATE TABLE disbursal_events (
+  id UUID NOT NULL REFERENCES disbursals(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

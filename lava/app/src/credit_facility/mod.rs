@@ -1,6 +1,6 @@
 mod activate;
 mod config;
-mod disbursement;
+mod disbursal;
 mod entity;
 pub mod error;
 mod history;
@@ -24,21 +24,21 @@ use crate::{
     outbox::Outbox,
     price::Price,
     primitives::{
-        CreditFacilityId, CustomerId, DisbursementId, DisbursementIdx, PriceOfOneBTC, Satoshis,
-        Subject, UsdCents,
+        CreditFacilityId, CustomerId, DisbursalId, DisbursalIdx, PriceOfOneBTC, Satoshis, Subject,
+        UsdCents,
     },
     terms::TermValues,
 };
 
 pub use config::*;
-pub use disbursement::*;
+pub use disbursal::*;
 pub use entity::*;
 use error::*;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 pub use processes::approve_credit_facility::*;
-pub use processes::approve_disbursement::*;
+pub use processes::approve_disbursal::*;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
@@ -48,14 +48,14 @@ pub struct CreditFacilities {
     authz: Authorization,
     customers: Customers,
     credit_facility_repo: CreditFacilityRepo,
-    disbursement_repo: DisbursementRepo,
+    disbursal_repo: DisbursalRepo,
     interest_accrual_repo: InterestAccrualRepo,
     governance: Governance,
     jobs: Jobs,
     ledger: Ledger,
     price: Price,
     config: CreditFacilityConfig,
-    approve_disbursement: ApproveDisbursement,
+    approve_disbursal: ApproveDisbursal,
     approve_credit_facility: ApproveCreditFacility,
 }
 
@@ -74,10 +74,9 @@ impl CreditFacilities {
         outbox: &Outbox,
     ) -> Result<Self, CreditFacilityError> {
         let credit_facility_repo = CreditFacilityRepo::new(pool, export);
-        let disbursement_repo = DisbursementRepo::new(pool, export);
+        let disbursal_repo = DisbursalRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
-        let approve_disbursement =
-            ApproveDisbursement::new(&disbursement_repo, authz.audit(), governance);
+        let approve_disbursal = ApproveDisbursal::new(&disbursal_repo, authz.audit(), governance);
         let approve_credit_facility = ApproveCreditFacility::new(
             &credit_facility_repo,
             &interest_accrual_repo,
@@ -111,27 +110,27 @@ impl CreditFacilities {
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            DisbursementApprovalJobInitializer::new(outbox, &approve_disbursement),
-            DisbursementApprovalJobConfig,
+            DisbursalApprovalJobInitializer::new(outbox, &approve_disbursal),
+            DisbursalApprovalJobConfig,
         )
         .await?;
         let _ = governance
             .init_policy(APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
-        let _ = governance.init_policy(APPROVE_DISBURSEMENT_PROCESS).await;
+        let _ = governance.init_policy(APPROVE_DISBURSAL_PROCESS).await;
 
         Ok(Self {
             authz: authz.clone(),
             customers: customers.clone(),
             credit_facility_repo,
-            disbursement_repo,
+            disbursal_repo,
             governance: governance.clone(),
             jobs: jobs.clone(),
             interest_accrual_repo,
             ledger: ledger.clone(),
             price: price.clone(),
             config,
-            approve_disbursement,
+            approve_disbursal,
             approve_credit_facility,
         })
     }
@@ -224,7 +223,7 @@ impl CreditFacilities {
         }
     }
 
-    pub async fn subject_can_initiate_disbursement(
+    pub async fn subject_can_initiate_disbursal(
         &self,
         sub: &Subject,
         enforce: bool,
@@ -234,22 +233,22 @@ impl CreditFacilities {
             .evaluate_permission(
                 sub,
                 Object::CreditFacility,
-                CreditFacilityAction::InitiateDisbursement,
+                CreditFacilityAction::InitiateDisbursal,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.initiate_disbursement", skip(self), err)]
+    #[instrument(name = "lava.credit_facility.initiate_disbursal", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification]
-    pub async fn initiate_disbursement(
+    pub async fn initiate_disbursal(
         &self,
         sub: &Subject,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-    ) -> Result<Disbursement, CreditFacilityError> {
+    ) -> Result<Disbursal, CreditFacilityError> {
         let audit_info = self
-            .subject_can_initiate_disbursement(sub, true)
+            .subject_can_initiate_disbursal(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -261,99 +260,92 @@ impl CreditFacilities {
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        balances.check_disbursement_amount(amount)?;
+        balances.check_disbursal_amount(amount)?;
 
         let mut db_tx = self.credit_facility_repo.begin().await?;
-        let new_disbursement =
-            credit_facility.initiate_disbursement(amount, chrono::Utc::now(), audit_info)?;
+        let new_disbursal =
+            credit_facility.initiate_disbursal(amount, chrono::Utc::now(), audit_info)?;
         self.governance
             .start_process(
                 &mut db_tx,
-                new_disbursement.approval_process_id,
-                new_disbursement.approval_process_id.to_string(),
-                APPROVE_DISBURSEMENT_PROCESS,
+                new_disbursal.approval_process_id,
+                new_disbursal.approval_process_id.to_string(),
+                APPROVE_DISBURSAL_PROCESS,
             )
             .await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
-        let disbursement = self
-            .disbursement_repo
-            .create_in_tx(&mut db_tx, new_disbursement)
+        let disbursal = self
+            .disbursal_repo
+            .create_in_tx(&mut db_tx, new_disbursal)
             .await?;
 
         db_tx.commit().await?;
-        Ok(disbursement)
+        Ok(disbursal)
     }
 
-    #[instrument(name = "lava.credit_facility.confirm_disbursement", skip(self), err)]
-    pub async fn confirm_disbursement(
+    #[instrument(name = "lava.credit_facility.confirm_disbursal", skip(self), err)]
+    pub async fn confirm_disbursal(
         &self,
         sub: &Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
-        disbursement_idx: DisbursementIdx,
-    ) -> Result<Disbursement, CreditFacilityError> {
+        disbursal_idx: DisbursalIdx,
+    ) -> Result<Disbursal, CreditFacilityError> {
         let credit_facility_id = credit_facility_id.into();
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
 
-        let disbursement_id = credit_facility
-            .disbursement_id_from_idx(disbursement_idx)
+        let disbursal_id = credit_facility
+            .disbursal_id_from_idx(disbursal_idx)
             .ok_or_else(|| {
-                disbursement::error::DisbursementError::EsEntityError(
-                    es_entity::EsEntityError::NotFound,
-                )
+                disbursal::error::DisbursalError::EsEntityError(es_entity::EsEntityError::NotFound)
             })?;
 
-        let mut disbursement = self.disbursement_repo.find_by_id(disbursement_id).await?;
+        let mut disbursal = self.disbursal_repo.find_by_id(disbursal_id).await?;
 
         let mut db_tx = self.credit_facility_repo.begin().await?;
 
-        if let Ok(disbursement_data) = disbursement.disbursement_data() {
+        if let Ok(disbursal_data) = disbursal.disbursal_data() {
             let audit_info = self
                 .authz
                 .audit()
                 .record_system_entry_in_tx(
                     &mut db_tx,
                     Object::CreditFacility,
-                    CreditFacilityAction::ConfirmDisbursement,
+                    CreditFacilityAction::ConfirmDisbursal,
                 )
                 .await?;
 
-            let executed_at = self
-                .ledger
-                .record_disbursement(disbursement_data.clone())
-                .await?;
-            disbursement.confirm(&disbursement_data, executed_at, audit_info.clone());
+            let executed_at = self.ledger.record_disbursal(disbursal_data.clone()).await?;
+            disbursal.confirm(&disbursal_data, executed_at, audit_info.clone());
 
-            credit_facility.confirm_disbursement(
-                &disbursement,
-                disbursement_data.tx_id,
+            credit_facility.confirm_disbursal(
+                &disbursal,
+                disbursal_data.tx_id,
                 executed_at,
                 audit_info.clone(),
             );
         }
 
-        self.disbursement_repo
-            .update_in_tx(&mut db_tx, &mut disbursement)
+        self.disbursal_repo
+            .update_in_tx(&mut db_tx, &mut disbursal)
             .await?;
         self.credit_facility_repo
             .update_in_tx(&mut db_tx, &mut credit_facility)
             .await?;
         db_tx.commit().await?;
 
-        Ok(disbursement)
+        Ok(disbursal)
     }
 
-    pub async fn ensure_up_to_date_disbursement_status(
+    pub async fn ensure_up_to_date_disbursal_status(
         &self,
-        disbursement: &Disbursement,
-    ) -> Result<Option<Disbursement>, CreditFacilityError> {
-        self.approve_disbursement
-            .execute_from_svc(disbursement)
-            .await
+        disbursal: &Disbursal,
+    ) -> Result<Option<Disbursal>, CreditFacilityError> {
+        self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
     pub async fn ensure_up_to_date_status(
@@ -614,21 +606,21 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    pub async fn list_disbursements(
+    pub async fn list_disbursals(
         &self,
         sub: &Subject,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<Vec<Disbursement>, CreditFacilityError> {
+    ) -> Result<Vec<Disbursal>, CreditFacilityError> {
         self.authz
             .enforce_permission(
                 sub,
                 Object::CreditFacility,
-                CreditFacilityAction::ListDisbursement,
+                CreditFacilityAction::ListDisbursals,
             )
             .await?;
 
-        let disbursements = self
-            .disbursement_repo
+        let disbursals = self
+            .disbursal_repo
             .list_for_credit_facility_id_by_created_at(
                 credit_facility_id,
                 Default::default(),
@@ -636,7 +628,7 @@ impl CreditFacilities {
             )
             .await?
             .entities;
-        Ok(disbursements)
+        Ok(disbursals)
     }
 
     pub async fn find_all<T: From<CreditFacility>>(
@@ -646,10 +638,10 @@ impl CreditFacilities {
         self.credit_facility_repo.find_all(ids).await
     }
 
-    pub async fn find_all_disbursements<T: From<Disbursement>>(
+    pub async fn find_all_disbursals<T: From<Disbursal>>(
         &self,
-        ids: &[DisbursementId],
-    ) -> Result<HashMap<DisbursementId, T>, CreditFacilityError> {
-        Ok(self.disbursement_repo.find_all(ids).await?)
+        ids: &[DisbursalId],
+    ) -> Result<HashMap<DisbursalId, T>, CreditFacilityError> {
+        Ok(self.disbursal_repo.find_all(ids).await?)
     }
 }

@@ -24,9 +24,9 @@ mutation RecordCreditFacilityPaymentTemplateCreate(
           description: "Credit facility interest amount outstanding account ID."
         }
         {
-          name: "disbursementPaymentAmount"
+          name: "disbursalPaymentAmount"
           type: DECIMAL
-          description: "Amount of USD being paid against outstanding disbursement amount."
+          description: "Amount of USD being paid against outstanding disbursal amount."
         }
         {
           name: "interestPaymentAmount"
@@ -53,7 +53,7 @@ mutation RecordCreditFacilityPaymentTemplateCreate(
       entries: [
         {
           accountId: "params.checkingAccount"
-          units: "params.disbursementPaymentAmount + params.interestPaymentAmount"
+          units: "params.disbursalPaymentAmount + params.interestPaymentAmount"
           currency: "'USD'"
           entryType: "'RECORD_PAYMENT_DR'"
           direction: "DEBIT"
@@ -61,9 +61,9 @@ mutation RecordCreditFacilityPaymentTemplateCreate(
         }
         {
           accountId: "params.facilityDisbursedReceivableAccount"
-          units: "params.disbursementPaymentAmount"
+          units: "params.disbursalPaymentAmount"
           currency: "'USD'"
-          entryType: "'RECORD_DISBURSEMENT_PAYMENT_CR'"
+          entryType: "'RECORD_DISBURSAL_PAYMENT_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -91,7 +91,7 @@ mutation PostRecordCreditFacilityPaymentTransaction(
   $checkingAccount: UUID!
   $facilityDisbursedReceivableAccount: UUID!
   $facilityInterestReceivableAccount: UUID!
-  $disbursementPaymentAmount: Decimal!
+  $disbursalPaymentAmount: Decimal!
   $interestPaymentAmount: Decimal!
   $externalId: String!
 ) {
@@ -103,7 +103,7 @@ mutation PostRecordCreditFacilityPaymentTransaction(
         checkingAccount: $checkingAccount
         facilityDisbursedReceivableAccount: $facilityDisbursedReceivableAccount
         facilityInterestReceivableAccount: $facilityInterestReceivableAccount
-        disbursementPaymentAmount: $disbursementPaymentAmount
+        disbursalPaymentAmount: $disbursalPaymentAmount
         interestPaymentAmount: $interestPaymentAmount
         externalId: $externalId
       }

@@ -25,7 +25,7 @@ export const LoanDetailsTable = () => {
         <TableBody>
           <TableRow>
             <TableCell>2021-09-01</TableCell>
-            <TableCell>Loan Disbursement</TableCell>
+            <TableCell>Loan Disbursal</TableCell>
             <TableCell>0x1234</TableCell>
             <TableCell>0.1</TableCell>
             <TableCell>$1000</TableCell>
@@ -33,7 +33,7 @@ export const LoanDetailsTable = () => {
           </TableRow>
           <TableRow>
             <TableCell>2021-09-01</TableCell>
-            <TableCell>Loan Disbursement</TableCell>
+            <TableCell>Loan Disbursal</TableCell>
             <TableCell>0x1234</TableCell>
             <TableCell>0.1</TableCell>
             <TableCell>$1000</TableCell>
@@ -41,7 +41,7 @@ export const LoanDetailsTable = () => {
           </TableRow>
           <TableRow>
             <TableCell>2021-09-01</TableCell>
-            <TableCell>Loan Disbursement</TableCell>
+            <TableCell>Loan Disbursal</TableCell>
             <TableCell>0x1234</TableCell>
             <TableCell>0.1</TableCell>
             <TableCell>$1000</TableCell>

@@ -159,17 +159,17 @@ impl Loader<CreditFacilityId> for LavaLoader {
     }
 }
 
-impl Loader<DisbursementId> for LavaLoader {
-    type Value = CreditFacilityDisbursement;
+impl Loader<DisbursalId> for LavaLoader {
+    type Value = CreditFacilityDisbursal;
     type Error = Arc<lava_app::credit_facility::error::CreditFacilityError>;
 
     async fn load(
         &self,
-        keys: &[DisbursementId],
-    ) -> Result<HashMap<DisbursementId, CreditFacilityDisbursement>, Self::Error> {
+        keys: &[DisbursalId],
+    ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit_facilities()
-            .find_all_disbursements(keys)
+            .find_all_disbursals(keys)
             .await
             .map_err(Arc::new)
     }

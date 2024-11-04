@@ -29,9 +29,9 @@ pub enum LedgerError {
     )]
     WithdrawalAmountTooLarge(UsdCents, UsdCents),
     #[error(
-        "CreditFacilityError - DisbursementAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
+        "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
-    DisbursementAmountTooLarge(UsdCents, UsdCents),
+    DisbursalAmountTooLarge(UsdCents, UsdCents),
     #[error("LedgerError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("LedgerError - InsufficientBalance: {0} < {1}")]

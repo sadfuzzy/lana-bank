@@ -22,8 +22,8 @@ pub enum CreditFacilityError {
     AuditError(#[from] crate::audit::error::AuditError),
     #[error("CreditFacilityError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
-    #[error("CreditFacilityError - DisbursementError: {0}")]
-    DisbursementError(#[from] super::disbursement::error::DisbursementError),
+    #[error("CreditFacilityError - DisbursalError: {0}")]
+    DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
@@ -38,14 +38,14 @@ pub enum CreditFacilityError {
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
     Denied,
-    #[error("CreditFacilityError - DisbursementPastExpiryDate")]
-    DisbursementPastExpiryDate,
+    #[error("CreditFacilityError - DisbursalExpiryDate")]
+    DisbursalPastExpiryDate,
     #[error("CreditFacilityError - NotActivatedYet")]
     NotActivatedYet,
-    #[error("CreditFacilityError - NoDisbursementInProgress")]
-    NoDisbursementInProgress,
-    #[error("CreditFacilityError - DisbursementInProgress")]
-    DisbursementInProgress,
+    #[error("CreditFacilityError - NoDisbursalInProgress")]
+    NoDisbursalInProgress,
+    #[error("CreditFacilityError - DisbursalInProgress")]
+    DisbursalInProgress,
     #[error("CreditFacilityError - CollateralNotUpdated: before({0}), after({1})")]
     CollateralNotUpdated(Satoshis, Satoshis),
     #[error("CreditFacilityError - NoCollateral")]

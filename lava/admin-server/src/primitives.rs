@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 pub use lava_app::{
     primitives::{
         AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
-        DisbursementId, DisbursementIdx, DisbursementStatus, DocumentId, KycLevel, LavaRole,
-        PolicyId, ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
+        DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, KycLevel, LavaRole, PolicyId,
+        ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
         TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
@@ -77,7 +77,7 @@ impl_to_global_id! {
     CustomerId,
     TermsTemplateId,
     CreditFacilityId,
-    DisbursementId,
+    DisbursalId,
     audit::AuditEntryId,
     ReportId,
     DocumentId,

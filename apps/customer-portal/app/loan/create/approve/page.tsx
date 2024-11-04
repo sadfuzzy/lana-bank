@@ -154,7 +154,7 @@ const LoanContractTerms = () => {
           <li>
             Interest Accrual: Monthly Payment Schedule: Full repayment upon term end
           </li>
-          <li>Early Repayment Penalty: None Loan Disbursement Time: Within 24 to 48</li>
+          <li>Early Repayment Penalty: None Loan Disbursal Time: Within 24 to 48</li>
           <li>hours after approval</li>
         </ul>
       </CardContent>

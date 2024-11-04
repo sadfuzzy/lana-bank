@@ -5,7 +5,7 @@ import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 import { CreditFacilityApproveDialog } from "../approve"
-import { CreditFacilityDisbursementInitiateDialog } from "../disbursement-initiate"
+import { CreditFacilityDisbursalInitiateDialog } from "../disbursal-initiate"
 import { CreditFacilityCompleteDialog } from "../complete"
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
@@ -39,7 +39,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-  const [openDisbursementInitiateDialog, setOpenDisbursementInitiateDialog] =
+  const [openDisbursalInitiateDialog, setOpenDisbursalInitiateDialog] =
     React.useState(false)
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
@@ -95,14 +95,14 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
               Update Collateral
             </Button>
           )}
-          {creditFacilityDetails.subjectCanInitiateDisbursement &&
+          {creditFacilityDetails.subjectCanInitiateDisbursal &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
                 variant="primary"
                 className="w-full"
-                onClick={() => setOpenDisbursementInitiateDialog(true)}
+                onClick={() => setOpenDisbursalInitiateDialog(true)}
               >
-                Initiate Disbursement
+                Initiate Disbursal
               </Button>
             )}
           {creditFacilityDetails.subjectCanComplete &&
@@ -145,10 +145,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
       />
-      <CreditFacilityDisbursementInitiateDialog
+      <CreditFacilityDisbursalInitiateDialog
         creditFacilityId={creditFacilityId}
-        openDialog={openDisbursementInitiateDialog}
-        setOpenDialog={setOpenDisbursementInitiateDialog}
+        openDialog={openDisbursalInitiateDialog}
+        setOpenDialog={setOpenDisbursalInitiateDialog}
       />
       <CreditFacilityApproveDialog
         creditFacilityDetails={creditFacilityDetails as CreditFacility}

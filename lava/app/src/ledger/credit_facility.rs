@@ -80,12 +80,9 @@ impl TryFrom<credit_facility_balance::ResponseData> for CreditFacilityBalance {
 }
 
 impl CreditFacilityBalance {
-    pub fn check_disbursement_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
+    pub fn check_disbursal_amount(&self, amount: UsdCents) -> Result<(), LedgerError> {
         if amount > self.facility {
-            return Err(LedgerError::DisbursementAmountTooLarge(
-                amount,
-                self.facility,
-            ));
+            return Err(LedgerError::DisbursalAmountTooLarge(amount, self.facility));
         }
         Ok(())
     }
@@ -121,7 +118,7 @@ pub struct CreditFacilityRepayment {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CreditFacilityPaymentAmounts {
     pub interest: UsdCents,
-    pub disbursement: UsdCents,
+    pub disbursal: UsdCents,
 }
 
 #[derive(Debug, Clone)]

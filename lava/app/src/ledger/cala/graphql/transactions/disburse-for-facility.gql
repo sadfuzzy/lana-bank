@@ -1,4 +1,4 @@
-mutation CreditFacilityDisbursementTemplateCreate(
+mutation CreditFacilityDisbursalTemplateCreate(
   $templateId: UUID!
   $journalId: Expression!
   $omnibusCreditFacilityAccount: Expression!
@@ -6,8 +6,8 @@ mutation CreditFacilityDisbursementTemplateCreate(
   txTemplateCreate(
     input: {
       txTemplateId: $templateId
-      code: "CREDIT_FACILITY_DISBURSEMENT"
-      description: "Payout disbursement."
+      code: "CREDIT_FACILITY_DISBURSAL"
+      description: "Payout disursal."
       params: [
         {
           name: "facilityAccount"
@@ -27,7 +27,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
         {
           name: "disbursedAmount"
           type: DECIMAL
-          description: "Amount of USD being issued for the disbursement."
+          description: "Amount of USD being issued for the disursal."
         }
         {
           name: "externalId"
@@ -51,7 +51,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
           accountId: $omnibusCreditFacilityAccount
           units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_DR'"
+          entryType: "'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -59,7 +59,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
           accountId: "params.facilityAccount"
           units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_CR'"
+          entryType: "'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -67,7 +67,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
           accountId: "params.facilityDisbursedReceivableAccount"
           units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'CREDIT_FACILITY_DISBURSEMENT_DR'"
+          entryType: "'CREDIT_FACILITY_DISBURSAL_DR'"
           direction: "DEBIT"
           layer: "SETTLED"
         }
@@ -75,7 +75,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
           accountId: "params.checkingAccount"
           units: "params.disbursedAmount"
           currency: "'USD'"
-          entryType: "'CREDIT_FACILITY_DISBURSEMENT_CR'"
+          entryType: "'CREDIT_FACILITY_DISBURSAL_CR'"
           direction: "CREDIT"
           layer: "SETTLED"
         }
@@ -90,7 +90,7 @@ mutation CreditFacilityDisbursementTemplateCreate(
   }
 }
 
-mutation PostCreditFacilityDisbursementTransaction(
+mutation PostCreditFacilityDisbursalTransaction(
   $transactionId: UUID!
   $facilityAccount: UUID!
   $facilityDisbursedReceivableAccount: UUID!
@@ -101,7 +101,7 @@ mutation PostCreditFacilityDisbursementTransaction(
   transactionPost(
     input: {
       transactionId: $transactionId
-      txTemplateCode: "CREDIT_FACILITY_DISBURSEMENT"
+      txTemplateCode: "CREDIT_FACILITY_DISBURSAL"
       params: {
         facilityAccount: $facilityAccount
         facilityDisbursedReceivableAccount: $facilityDisbursedReceivableAccount

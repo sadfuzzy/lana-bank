@@ -27,12 +27,12 @@ pub struct CollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_disbursement: UsdCents,
+    pub outstanding_disbursal: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub price: PriceOfOneBTC,
 }
 
-pub struct DisbursementExecuted {
+pub struct DisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
@@ -43,14 +43,14 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CollateralizationUpdated),
-    Disbursement(DisbursementExecuted),
+    Disbursal(DisbursalExecuted),
 }
 
 pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
-    let mut disbursements = std::collections::HashMap::new();
+    let mut disbursals = std::collections::HashMap::new();
 
     let mut initial_facility = None;
     for event in events {
@@ -82,14 +82,14 @@ pub(super) fn project<'a>(
             },
 
             CreditFacilityEvent::PaymentRecorded {
-                disbursement_amount,
+                disbursal_amount,
                 interest_amount,
                 recorded_in_ledger_at,
                 tx_id,
                 ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
-                    cents: *disbursement_amount + *interest_amount,
+                    cents: *disbursal_amount + *interest_amount,
                     recorded_at: *recorded_in_ledger_at,
                     tx_id: *tx_id,
                 }));
@@ -123,30 +123,28 @@ pub(super) fn project<'a>(
                         state: *state,
                         collateral: *collateral,
                         outstanding_interest: outstanding.interest,
-                        outstanding_disbursement: outstanding.disbursed,
+                        outstanding_disbursal: outstanding.disbursed,
                         price: *price,
                         recorded_at: *recorded_at,
                     },
                 ));
             }
-            CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
-                disbursements.insert(*idx, *amount);
+            CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
+                disbursals.insert(*idx, *amount);
             }
-            CreditFacilityEvent::DisbursementConcluded {
+            CreditFacilityEvent::DisbursalConcluded {
                 idx,
                 recorded_at,
                 tx_id,
                 ..
             } => {
-                history.push(CreditFacilityHistoryEntry::Disbursement(
-                    DisbursementExecuted {
-                        cents: disbursements
-                            .remove(idx)
-                            .expect("Disbursement must have been initiated"),
-                        recorded_at: *recorded_at,
-                        tx_id: *tx_id,
-                    },
-                ));
+                history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
+                    cents: disbursals
+                        .remove(idx)
+                        .expect("Disbursal must have been initiated"),
+                    recorded_at: *recorded_at,
+                    tx_id: *tx_id,
+                }));
             }
             _ => {}
         }

@@ -4,14 +4,14 @@ es_entity::entity_id! {
     DepositId,
     DocumentId,
     CreditFacilityId,
-    DisbursementId,
+    DisbursalId,
     InterestAccrualId,
     TermsTemplateId,
     ReportId;
 
     WithdrawalId => governance::ApprovalProcessId,
     CreditFacilityId => governance::ApprovalProcessId,
-    DisbursementId => governance::ApprovalProcessId,
+    DisbursalId => governance::ApprovalProcessId,
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
 }

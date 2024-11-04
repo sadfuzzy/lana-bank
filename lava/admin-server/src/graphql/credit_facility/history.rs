@@ -9,7 +9,7 @@ pub enum CreditFacilityHistoryEntry {
     Collateral(CreditFacilityCollateralUpdated),
     Origination(CreditFacilityOrigination),
     Collateralization(CreditFacilityCollateralizationUpdated),
-    Disbursement(CreditFacilityDisbursementExecuted),
+    Disburssal(CreditFacilityDisbursalExecuted),
 }
 
 #[derive(SimpleObject)]
@@ -39,13 +39,13 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
-    pub outstanding_disbursement: UsdCents,
+    pub outstanding_disbursal: UsdCents,
     pub recorded_at: Timestamp,
     pub price: UsdCents,
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityDisbursementExecuted {
+pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
@@ -66,8 +66,8 @@ impl From<lava_app::credit_facility::CreditFacilityHistoryEntry> for CreditFacil
             lava_app::credit_facility::CreditFacilityHistoryEntry::Collateralization(
                 collateralization,
             ) => CreditFacilityHistoryEntry::Collateralization(collateralization.into()),
-            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursement(disbursement) => {
-                CreditFacilityHistoryEntry::Disbursement(disbursement.into())
+            lava_app::credit_facility::CreditFacilityHistoryEntry::Disbursal(disbursal) => {
+                CreditFacilityHistoryEntry::Disburssal(disbursal.into())
             }
         }
     }
@@ -112,19 +112,19 @@ impl From<lava_app::credit_facility::CollateralizationUpdated>
             state: collateralization.state,
             collateral: collateralization.collateral,
             outstanding_interest: collateralization.outstanding_interest,
-            outstanding_disbursement: collateralization.outstanding_disbursement,
+            outstanding_disbursal: collateralization.outstanding_disbursal,
             recorded_at: collateralization.recorded_at.into(),
             price: collateralization.price.into_inner(),
         }
     }
 }
 
-impl From<lava_app::credit_facility::DisbursementExecuted> for CreditFacilityDisbursementExecuted {
-    fn from(disbursement: lava_app::credit_facility::DisbursementExecuted) -> Self {
+impl From<lava_app::credit_facility::DisbursalExecuted> for CreditFacilityDisbursalExecuted {
+    fn from(disbursal: lava_app::credit_facility::DisbursalExecuted) -> Self {
         Self {
-            cents: disbursement.cents,
-            recorded_at: disbursement.recorded_at.into(),
-            tx_id: UUID::from(disbursement.tx_id),
+            cents: disbursal.cents,
+            recorded_at: disbursal.recorded_at.into(),
+            tx_id: UUID::from(disbursal.tx_id),
         }
     }
 }

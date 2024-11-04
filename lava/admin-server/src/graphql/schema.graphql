@@ -125,12 +125,12 @@ enum ApprovalProcessStatus {
 	IN_PROGRESS
 }
 
-union ApprovalProcessTarget = Withdrawal | CreditFacility | CreditFacilityDisbursement
+union ApprovalProcessTarget = Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 enum ApprovalProcessType {
 	WITHDRAWAL_APPROVAL
 	CREDIT_FACILITY_APPROVAL
-	DISBURSEMENT_APPROVAL
+	DISBURSAL_APPROVAL
 }
 
 type ApprovalProcessVoter {
@@ -321,10 +321,10 @@ type CreditFacility {
 	status: CreditFacilityStatus!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
-	disbursements: [CreditFacilityDisbursement!]!
+	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!
 	subjectCanUpdateCollateral: Boolean!
-	subjectCanInitiateDisbursement: Boolean!
+	subjectCanInitiateDisbursal: Boolean!
 	subjectCanRecordPayment: Boolean!
 	subjectCanComplete: Boolean!
 	customer: Customer!
@@ -359,7 +359,7 @@ type CreditFacilityCollateralizationUpdated {
 	state: CollateralizationState!
 	collateral: Satoshis!
 	outstandingInterest: UsdCents!
-	outstandingDisbursement: UsdCents!
+	outstandingDisbursal: UsdCents!
 	recordedAt: Timestamp!
 	price: UsdCents!
 }
@@ -397,37 +397,37 @@ type CreditFacilityCreatePayload {
 	creditFacility: CreditFacility!
 }
 
-type CreditFacilityDisbursement {
+type CreditFacilityDisbursal {
 	id: ID!
-	index: DisbursementIdx!
+	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
-	status: DisbursementStatus!
+	status: DisbursalStatus!
 	approvalProcess: ApprovalProcess!
 }
 
-input CreditFacilityDisbursementConfirmInput {
+input CreditFacilityDisbursalConfirmInput {
 	creditFacilityId: UUID!
-	disbursementIdx: DisbursementIdx!
+	disbursalIdx: DisbursalIdx!
 }
 
-type CreditFacilityDisbursementConfirmPayload {
-	disbursement: CreditFacilityDisbursement!
+type CreditFacilityDisbursalConfirmPayload {
+	disbursal: CreditFacilityDisbursal!
 }
 
-type CreditFacilityDisbursementExecuted {
+type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	txId: UUID!
 }
 
-input CreditFacilityDisbursementInitiateInput {
+input CreditFacilityDisbursalInitiateInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
 }
 
-type CreditFacilityDisbursementInitiatePayload {
-	disbursement: CreditFacilityDisbursement!
+type CreditFacilityDisbursalInitiatePayload {
+	disbursal: CreditFacilityDisbursal!
 }
 
 """
@@ -444,7 +444,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursementExecuted
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -593,18 +593,18 @@ type DepositRecordPayload {
 	deposit: Deposit!
 }
 
-type Disbursed {
-	total: Total!
-	outstanding: Outstanding!
-}
+scalar DisbursalIdx
 
-scalar DisbursementIdx
-
-enum DisbursementStatus {
+enum DisbursalStatus {
 	NEW
 	APPROVED
 	DENIED
 	CONFIRMED
+}
+
+type Disbursed {
+	total: Total!
+	outstanding: Outstanding!
 }
 
 type Document {
@@ -729,8 +729,8 @@ type Mutation {
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
-	creditFacilityDisbursementInitiate(input: CreditFacilityDisbursementInitiateInput!): CreditFacilityDisbursementInitiatePayload!
-	creditFacilityDisbursementConfirm(input: CreditFacilityDisbursementConfirmInput!): CreditFacilityDisbursementConfirmPayload!
+	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
+	creditFacilityDisbursalConfirm(input: CreditFacilityDisbursalConfirmInput!): CreditFacilityDisbursalConfirmPayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!

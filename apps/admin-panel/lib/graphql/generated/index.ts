@@ -19,7 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
-  DisbursementIdx: { input: any; output: any; }
+  DisbursalIdx: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   SignedSatoshis: { input: any; output: any; }
   SignedUsdCents: { input: any; output: any; }
@@ -147,11 +147,11 @@ export enum ApprovalProcessStatus {
   InProgress = 'IN_PROGRESS'
 }
 
-export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursement | Withdrawal;
+export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursal | Withdrawal;
 
 export enum ApprovalProcessType {
   CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
-  DisbursementApproval = 'DISBURSEMENT_APPROVAL',
+  DisbursalApproval = 'DISBURSAL_APPROVAL',
   WithdrawalApproval = 'WITHDRAWAL_APPROVAL'
 }
 
@@ -334,13 +334,13 @@ export type CreditFacility = {
   creditFacilityTerms: TermValues;
   currentCvl: FacilityCvl;
   customer: Customer;
-  disbursements: Array<CreditFacilityDisbursement>;
+  disbursals: Array<CreditFacilityDisbursal>;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
   status: CreditFacilityStatus;
   subjectCanComplete: Scalars['Boolean']['output'];
-  subjectCanInitiateDisbursement: Scalars['Boolean']['output'];
+  subjectCanInitiateDisbursal: Scalars['Boolean']['output'];
   subjectCanRecordPayment: Scalars['Boolean']['output'];
   subjectCanUpdateCollateral: Scalars['Boolean']['output'];
   transactions: Array<CreditFacilityHistoryEntry>;
@@ -376,7 +376,7 @@ export type CreditFacilityCollateralUpdated = {
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
-  outstandingDisbursement: Scalars['UsdCents']['output'];
+  outstandingDisbursal: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
@@ -413,41 +413,41 @@ export type CreditFacilityCreatePayload = {
   creditFacility: CreditFacility;
 };
 
-export type CreditFacilityDisbursement = {
-  __typename?: 'CreditFacilityDisbursement';
+export type CreditFacilityDisbursal = {
+  __typename?: 'CreditFacilityDisbursal';
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
-  index: Scalars['DisbursementIdx']['output'];
-  status: DisbursementStatus;
+  index: Scalars['DisbursalIdx']['output'];
+  status: DisbursalStatus;
 };
 
-export type CreditFacilityDisbursementConfirmInput = {
+export type CreditFacilityDisbursalConfirmInput = {
   creditFacilityId: Scalars['UUID']['input'];
-  disbursementIdx: Scalars['DisbursementIdx']['input'];
+  disbursalIdx: Scalars['DisbursalIdx']['input'];
 };
 
-export type CreditFacilityDisbursementConfirmPayload = {
-  __typename?: 'CreditFacilityDisbursementConfirmPayload';
-  disbursement: CreditFacilityDisbursement;
+export type CreditFacilityDisbursalConfirmPayload = {
+  __typename?: 'CreditFacilityDisbursalConfirmPayload';
+  disbursal: CreditFacilityDisbursal;
 };
 
-export type CreditFacilityDisbursementExecuted = {
-  __typename?: 'CreditFacilityDisbursementExecuted';
+export type CreditFacilityDisbursalExecuted = {
+  __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityDisbursementInitiateInput = {
+export type CreditFacilityDisbursalInitiateInput = {
   amount: Scalars['UsdCents']['input'];
   creditFacilityId: Scalars['UUID']['input'];
 };
 
-export type CreditFacilityDisbursementInitiatePayload = {
-  __typename?: 'CreditFacilityDisbursementInitiatePayload';
-  disbursement: CreditFacilityDisbursement;
+export type CreditFacilityDisbursalInitiatePayload = {
+  __typename?: 'CreditFacilityDisbursalInitiatePayload';
+  disbursal: CreditFacilityDisbursal;
 };
 
 /** An edge in a connection. */
@@ -459,7 +459,7 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursementExecuted | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
+export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityOrigination;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
@@ -598,18 +598,18 @@ export type DepositRecordPayload = {
   deposit: Deposit;
 };
 
-export type Disbursed = {
-  __typename?: 'Disbursed';
-  outstanding: Outstanding;
-  total: Total;
-};
-
-export enum DisbursementStatus {
+export enum DisbursalStatus {
   Approved = 'APPROVED',
   Confirmed = 'CONFIRMED',
   Denied = 'DENIED',
   New = 'NEW'
 }
+
+export type Disbursed = {
+  __typename?: 'Disbursed';
+  outstanding: Outstanding;
+  total: Total;
+};
 
 export type Document = {
   __typename?: 'Document';
@@ -740,8 +740,8 @@ export type Mutation = {
   creditFacilityCollateralUpdate: CreditFacilityCollateralUpdatePayload;
   creditFacilityComplete: CreditFacilityCompletePayload;
   creditFacilityCreate: CreditFacilityCreatePayload;
-  creditFacilityDisbursementConfirm: CreditFacilityDisbursementConfirmPayload;
-  creditFacilityDisbursementInitiate: CreditFacilityDisbursementInitiatePayload;
+  creditFacilityDisbursalConfirm: CreditFacilityDisbursalConfirmPayload;
+  creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
@@ -806,13 +806,13 @@ export type MutationCreditFacilityCreateArgs = {
 };
 
 
-export type MutationCreditFacilityDisbursementConfirmArgs = {
-  input: CreditFacilityDisbursementConfirmInput;
+export type MutationCreditFacilityDisbursalConfirmArgs = {
+  input: CreditFacilityDisbursalConfirmInput;
 };
 
 
-export type MutationCreditFacilityDisbursementInitiateArgs = {
-  input: CreditFacilityDisbursementInitiateInput;
+export type MutationCreditFacilityDisbursalInitiateArgs = {
+  input: CreditFacilityDisbursalInitiateInput;
 };
 
 
@@ -1491,7 +1491,7 @@ export type ApprovalProcessesQueryVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'CreditFacilityDisbursement' } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
+export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'CreditFacilityDisbursal' } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1571,7 +1571,7 @@ export type GetCreditFacilityDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, approvalProcessId: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursement: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, disbursements: Array<{ __typename?: 'CreditFacilityDisbursement', id: string, index: any, amount: any, status: DisbursementStatus, createdAt: any, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursement: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursementExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, approvalProcessId: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, facilityAmount: any, collateral: any, createdAt: any, expiresAt?: any | null, canBeCompleted: boolean, collateralToMatchInitialCvl?: any | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, collateral: { __typename?: 'Collateral', btcBalance: any } }, customer: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, index: any, amount: any, status: DisbursalStatus, createdAt: any, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: string }> } | null };
 
 export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
   input: CreditFacilityCollateralUpdateInput;
@@ -1594,19 +1594,19 @@ export type CreditFacilityCreateMutationVariables = Exact<{
 
 export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
 
-export type CreditFacilityDisbursementConfirmMutationVariables = Exact<{
-  input: CreditFacilityDisbursementConfirmInput;
+export type CreditFacilityDisbursalConfirmMutationVariables = Exact<{
+  input: CreditFacilityDisbursalConfirmInput;
 }>;
 
 
-export type CreditFacilityDisbursementConfirmMutation = { __typename?: 'Mutation', creditFacilityDisbursementConfirm: { __typename?: 'CreditFacilityDisbursementConfirmPayload', disbursement: { __typename?: 'CreditFacilityDisbursement', id: string, index: any } } };
+export type CreditFacilityDisbursalConfirmMutation = { __typename?: 'Mutation', creditFacilityDisbursalConfirm: { __typename?: 'CreditFacilityDisbursalConfirmPayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
 
-export type CreditFacilityDisbursementInitiateMutationVariables = Exact<{
-  input: CreditFacilityDisbursementInitiateInput;
+export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
+  input: CreditFacilityDisbursalInitiateInput;
 }>;
 
 
-export type CreditFacilityDisbursementInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursementInitiate: { __typename?: 'CreditFacilityDisbursementInitiatePayload', disbursement: { __typename?: 'CreditFacilityDisbursement', id: string, index: any } } };
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
 
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2746,7 +2746,7 @@ export const GetCreditFacilityDetailsDocument = gql`
         units
       }
     }
-    disbursements {
+    disbursals {
       id
       index
       amount
@@ -2807,18 +2807,18 @@ export const GetCreditFacilityDetailsDocument = gql`
         state
         collateral
         outstandingInterest
-        outstandingDisbursement
+        outstandingDisbursal
         recordedAt
         price
       }
-      ... on CreditFacilityDisbursementExecuted {
+      ... on CreditFacilityDisbursalExecuted {
         cents
         recordedAt
         txId
       }
     }
     subjectCanUpdateCollateral
-    subjectCanInitiateDisbursement
+    subjectCanInitiateDisbursal
     subjectCanRecordPayment
     subjectCanComplete
   }
@@ -2965,78 +2965,78 @@ export function useCreditFacilityCreateMutation(baseOptions?: Apollo.MutationHoo
 export type CreditFacilityCreateMutationHookResult = ReturnType<typeof useCreditFacilityCreateMutation>;
 export type CreditFacilityCreateMutationResult = Apollo.MutationResult<CreditFacilityCreateMutation>;
 export type CreditFacilityCreateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityCreateMutation, CreditFacilityCreateMutationVariables>;
-export const CreditFacilityDisbursementConfirmDocument = gql`
-    mutation CreditFacilityDisbursementConfirm($input: CreditFacilityDisbursementConfirmInput!) {
-  creditFacilityDisbursementConfirm(input: $input) {
-    disbursement {
+export const CreditFacilityDisbursalConfirmDocument = gql`
+    mutation CreditFacilityDisbursalConfirm($input: CreditFacilityDisbursalConfirmInput!) {
+  creditFacilityDisbursalConfirm(input: $input) {
+    disbursal {
       id
       index
     }
   }
 }
     `;
-export type CreditFacilityDisbursementConfirmMutationFn = Apollo.MutationFunction<CreditFacilityDisbursementConfirmMutation, CreditFacilityDisbursementConfirmMutationVariables>;
+export type CreditFacilityDisbursalConfirmMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
 
 /**
- * __useCreditFacilityDisbursementConfirmMutation__
+ * __useCreditFacilityDisbursalConfirmMutation__
  *
- * To run a mutation, you first call `useCreditFacilityDisbursementConfirmMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityDisbursementConfirmMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditFacilityDisbursalConfirmMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursalConfirmMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [creditFacilityDisbursementConfirmMutation, { data, loading, error }] = useCreditFacilityDisbursementConfirmMutation({
+ * const [creditFacilityDisbursalConfirmMutation, { data, loading, error }] = useCreditFacilityDisbursalConfirmMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreditFacilityDisbursementConfirmMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursementConfirmMutation, CreditFacilityDisbursementConfirmMutationVariables>) {
+export function useCreditFacilityDisbursalConfirmMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditFacilityDisbursementConfirmMutation, CreditFacilityDisbursementConfirmMutationVariables>(CreditFacilityDisbursementConfirmDocument, options);
+        return Apollo.useMutation<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>(CreditFacilityDisbursalConfirmDocument, options);
       }
-export type CreditFacilityDisbursementConfirmMutationHookResult = ReturnType<typeof useCreditFacilityDisbursementConfirmMutation>;
-export type CreditFacilityDisbursementConfirmMutationResult = Apollo.MutationResult<CreditFacilityDisbursementConfirmMutation>;
-export type CreditFacilityDisbursementConfirmMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursementConfirmMutation, CreditFacilityDisbursementConfirmMutationVariables>;
-export const CreditFacilityDisbursementInitiateDocument = gql`
-    mutation CreditFacilityDisbursementInitiate($input: CreditFacilityDisbursementInitiateInput!) {
-  creditFacilityDisbursementInitiate(input: $input) {
-    disbursement {
+export type CreditFacilityDisbursalConfirmMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalConfirmMutation>;
+export type CreditFacilityDisbursalConfirmMutationResult = Apollo.MutationResult<CreditFacilityDisbursalConfirmMutation>;
+export type CreditFacilityDisbursalConfirmMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalConfirmMutation, CreditFacilityDisbursalConfirmMutationVariables>;
+export const CreditFacilityDisbursalInitiateDocument = gql`
+    mutation CreditFacilityDisbursalInitiate($input: CreditFacilityDisbursalInitiateInput!) {
+  creditFacilityDisbursalInitiate(input: $input) {
+    disbursal {
       id
       index
     }
   }
 }
     `;
-export type CreditFacilityDisbursementInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>;
+export type CreditFacilityDisbursalInitiateMutationFn = Apollo.MutationFunction<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 
 /**
- * __useCreditFacilityDisbursementInitiateMutation__
+ * __useCreditFacilityDisbursalInitiateMutation__
  *
- * To run a mutation, you first call `useCreditFacilityDisbursementInitiateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityDisbursementInitiateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCreditFacilityDisbursalInitiateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityDisbursalInitiateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [creditFacilityDisbursementInitiateMutation, { data, loading, error }] = useCreditFacilityDisbursementInitiateMutation({
+ * const [creditFacilityDisbursalInitiateMutation, { data, loading, error }] = useCreditFacilityDisbursalInitiateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCreditFacilityDisbursementInitiateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>) {
+export function useCreditFacilityDisbursalInitiateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>(CreditFacilityDisbursementInitiateDocument, options);
+        return Apollo.useMutation<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>(CreditFacilityDisbursalInitiateDocument, options);
       }
-export type CreditFacilityDisbursementInitiateMutationHookResult = ReturnType<typeof useCreditFacilityDisbursementInitiateMutation>;
-export type CreditFacilityDisbursementInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursementInitiateMutation>;
-export type CreditFacilityDisbursementInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursementInitiateMutation, CreditFacilityDisbursementInitiateMutationVariables>;
+export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeof useCreditFacilityDisbursalInitiateMutation>;
+export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
+export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const CreditFacilitiesDocument = gql`
     query CreditFacilities($first: Int!, $after: String) {
   creditFacilities(first: $first, after: $after) {

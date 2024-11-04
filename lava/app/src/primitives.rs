@@ -14,16 +14,16 @@ pub use rbac_types::{LavaRole, Role, Subject};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
-pub struct DisbursementIdx(i32);
-async_graphql::scalar!(DisbursementIdx);
+pub struct DisbursalIdx(i32);
+async_graphql::scalar!(DisbursalIdx);
 
-impl fmt::Display for DisbursementIdx {
+impl fmt::Display for DisbursalIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
-impl DisbursementIdx {
+impl DisbursalIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)
@@ -77,7 +77,7 @@ pub enum CreditFacilityStatus {
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub enum DisbursementStatus {
+pub enum DisbursalStatus {
     New,
     Approved,
     Denied,

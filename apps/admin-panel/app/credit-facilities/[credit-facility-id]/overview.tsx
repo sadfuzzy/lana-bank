@@ -7,7 +7,7 @@ import Balance from "@/components/balance/balance"
 import {
   ApprovalProcessStatus,
   CreditFacilityStatus,
-  DisbursementStatus,
+  DisbursalStatus,
   GetCreditFacilityDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -247,12 +247,12 @@ const calculatePrice = ({
 export const calculateBaseAmountInCents = ({
   status,
   facilityAmount,
-  disbursements,
+  disbursals,
   balance,
 }: {
   status: CreditFacilityStatus
   facilityAmount: number
-  disbursements: { status: DisbursementStatus }[]
+  disbursals: { status: DisbursalStatus }[]
   balance: { outstanding: { usdBalance: number } }
 }) => {
   if (
@@ -265,10 +265,10 @@ export const calculateBaseAmountInCents = ({
   }
 
   if (status === CreditFacilityStatus.Active) {
-    const hasApprovedDisbursements = disbursements.some(
-      (d) => d.status === DisbursementStatus.Approved,
+    const hasApprovedDisbursals = disbursals.some(
+      (d) => d.status === DisbursalStatus.Approved,
     )
-    return hasApprovedDisbursements ? balance.outstanding.usdBalance : facilityAmount
+    return hasApprovedDisbursals ? balance.outstanding.usdBalance : facilityAmount
   }
 
   return 0

@@ -13,8 +13,7 @@ use crate::{
 };
 
 use super::{
-    disbursement::*, history, CreditFacilityCollateralUpdate, CreditFacilityError,
-    NewInterestAccrual,
+    disbursal::*, history, CreditFacilityCollateralUpdate, CreditFacilityError, NewInterestAccrual,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -44,15 +43,15 @@ pub enum CreditFacilityEvent {
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    DisbursementInitiated {
-        disbursement_id: DisbursementId,
-        idx: DisbursementIdx,
+    DisbursalInitiated {
+        disbursal_id: DisbursalId,
+        idx: DisbursalIdx,
         approval_process_id: ApprovalProcessId,
         amount: UsdCents,
         audit_info: AuditInfo,
     },
-    DisbursementConcluded {
-        idx: DisbursementIdx,
+    DisbursalConcluded {
+        idx: DisbursalIdx,
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
@@ -91,7 +90,7 @@ pub enum CreditFacilityEvent {
     PaymentRecorded {
         tx_id: LedgerTxId,
         tx_ref: String,
-        disbursement_amount: UsdCents,
+        disbursal_amount: UsdCents,
         interest_amount: UsdCents,
         audit_info: AuditInfo,
         recorded_in_ledger_at: DateTime<Utc>,
@@ -152,12 +151,12 @@ impl CreditFacilityReceivable {
         let interest = std::cmp::min(amount, self.interest);
         remaining -= interest;
 
-        let disbursement = std::cmp::min(remaining, self.disbursed);
-        remaining -= disbursement;
+        let disbursal = std::cmp::min(remaining, self.disbursed);
+        remaining -= disbursal;
 
         Ok(CreditFacilityPaymentAmounts {
             interest,
-            disbursement,
+            disbursal,
         })
     }
 }
@@ -214,10 +213,10 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(super) fn disbursement_id_from_idx(&self, idx: DisbursementIdx) -> Option<DisbursementId> {
+    pub(super) fn disbursal_id_from_idx(&self, idx: DisbursalIdx) -> Option<DisbursalId> {
         self.events.iter_all().find_map(|event| match event {
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id: id,
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id: id,
                 idx: i,
                 ..
             } if i == &idx => Some(*id),
@@ -248,10 +247,10 @@ impl CreditFacility {
             .iter_all()
             .fold(UsdCents::from(0), |mut total_sum, event| {
                 match event {
-                    CreditFacilityEvent::DisbursementInitiated { idx, amount, .. } => {
+                    CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
                         amounts.insert(*idx, *amount);
                     }
-                    CreditFacilityEvent::DisbursementConcluded { idx, .. } => {
+                    CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
                         if let Some(amount) = amounts.remove(idx) {
                             total_sum += amount;
                         }
@@ -289,9 +288,8 @@ impl CreditFacility {
             .iter_all()
             .filter_map(|event| match event {
                 CreditFacilityEvent::PaymentRecorded {
-                    disbursement_amount,
-                    ..
-                } => Some(*disbursement_amount),
+                    disbursal_amount, ..
+                } => Some(*disbursal_amount),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
@@ -430,20 +428,20 @@ impl CreditFacility {
         });
     }
 
-    pub(super) fn initiate_disbursement(
+    pub(super) fn initiate_disbursal(
         &mut self,
         amount: UsdCents,
         initiated_at: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> Result<NewDisbursement, CreditFacilityError> {
+    ) -> Result<NewDisbursal, CreditFacilityError> {
         if let Some(expires_at) = self.expires_at {
             if initiated_at > expires_at {
-                return Err(CreditFacilityError::DisbursementPastExpiryDate);
+                return Err(CreditFacilityError::DisbursalPastExpiryDate);
             }
         }
 
-        if self.is_disbursement_in_progress() {
-            return Err(CreditFacilityError::DisbursementInProgress);
+        if self.is_disbursal_in_progress() {
+            return Err(CreditFacilityError::DisbursalInProgress);
         }
 
         let idx = self
@@ -451,24 +449,23 @@ impl CreditFacility {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::DisbursementInitiated { idx, .. } => Some(idx.next()),
+                CreditFacilityEvent::DisbursalInitiated { idx, .. } => Some(idx.next()),
                 _ => None,
             })
-            .unwrap_or(DisbursementIdx::FIRST);
+            .unwrap_or(DisbursalIdx::FIRST);
 
-        let disbursement_id = DisbursementId::new();
-        self.events
-            .push(CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id,
-                approval_process_id: disbursement_id.into(),
-                idx,
-                amount,
-                audit_info: audit_info.clone(),
-            });
+        let disbursal_id = DisbursalId::new();
+        self.events.push(CreditFacilityEvent::DisbursalInitiated {
+            disbursal_id,
+            approval_process_id: disbursal_id.into(),
+            idx,
+            amount,
+            audit_info: audit_info.clone(),
+        });
 
-        Ok(NewDisbursement::builder()
-            .id(disbursement_id)
-            .approval_process_id(disbursement_id)
+        Ok(NewDisbursal::builder()
+            .id(disbursal_id)
+            .approval_process_id(disbursal_id)
             .credit_facility_id(self.id)
             .idx(idx)
             .amount(amount)
@@ -476,31 +473,30 @@ impl CreditFacility {
             .customer_account_ids(self.customer_account_ids)
             .audit_info(audit_info)
             .build()
-            .expect("could not build new disbursement"))
+            .expect("could not build new disbursal"))
     }
 
-    pub(super) fn confirm_disbursement(
+    pub(super) fn confirm_disbursal(
         &mut self,
-        disbursement: &Disbursement,
+        disbursal: &Disbursal,
         tx_id: LedgerTxId,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
-        self.events
-            .push(CreditFacilityEvent::DisbursementConcluded {
-                idx: disbursement.idx,
-                recorded_at: executed_at,
-                tx_id,
-                audit_info,
-            });
+        self.events.push(CreditFacilityEvent::DisbursalConcluded {
+            idx: disbursal.idx,
+            recorded_at: executed_at,
+            tx_id,
+            audit_info,
+        });
     }
 
-    fn is_disbursement_in_progress(&self) -> bool {
+    fn is_disbursal_in_progress(&self) -> bool {
         for event in self.events.iter_all().rev() {
-            if let CreditFacilityEvent::DisbursementInitiated { .. } = event {
+            if let CreditFacilityEvent::DisbursalInitiated { .. } = event {
                 return true;
             }
-            if let CreditFacilityEvent::DisbursementConcluded { .. } = event {
+            if let CreditFacilityEvent::DisbursalConcluded { .. } = event {
                 return false;
             }
         }
@@ -691,7 +687,7 @@ impl CreditFacility {
         self.events.push(CreditFacilityEvent::PaymentRecorded {
             tx_id: repayment.tx_id,
             tx_ref: repayment.tx_ref,
-            disbursement_amount: repayment.amounts.disbursement,
+            disbursal_amount: repayment.amounts.disbursal,
             interest_amount: repayment.amounts.interest,
             audit_info: audit_info.clone(),
             recorded_in_ledger_at: recorded_at,
@@ -966,8 +962,8 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     )
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
-                CreditFacilityEvent::DisbursementInitiated { .. } => (),
-                CreditFacilityEvent::DisbursementConcluded { .. } => (),
+                CreditFacilityEvent::DisbursalInitiated { .. } => (),
+                CreditFacilityEvent::DisbursalConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualConcluded { .. } => (),
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
@@ -1099,35 +1095,35 @@ mod test {
     }
 
     #[test]
-    fn is_disbursement_in_progress() {
+    fn is_disbursal_in_progress() {
         let mut events = initial_events();
 
-        let first_idx = DisbursementIdx::FIRST;
-        let disbursement_id = DisbursementId::new();
-        events.push(CreditFacilityEvent::DisbursementInitiated {
-            disbursement_id,
-            approval_process_id: disbursement_id.into(),
+        let first_idx = DisbursalIdx::FIRST;
+        let disbursal_id = DisbursalId::new();
+        events.push(CreditFacilityEvent::DisbursalInitiated {
+            disbursal_id,
+            approval_process_id: disbursal_id.into(),
             idx: first_idx,
             amount: UsdCents::ONE,
             audit_info: dummy_audit_info(),
         });
         assert!(matches!(
-            facility_from(events.clone()).initiate_disbursement(
+            facility_from(events.clone()).initiate_disbursal(
                 UsdCents::ONE,
                 Utc::now(),
                 dummy_audit_info()
             ),
-            Err(CreditFacilityError::DisbursementInProgress)
+            Err(CreditFacilityError::DisbursalInProgress)
         ));
 
-        events.push(CreditFacilityEvent::DisbursementConcluded {
+        events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
             tx_id: LedgerTxId::new(),
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
         assert!(facility_from(events)
-            .initiate_disbursement(UsdCents::ONE, Utc::now(), dummy_audit_info())
+            .initiate_disbursal(UsdCents::ONE, Utc::now(), dummy_audit_info())
             .is_ok());
     }
 
@@ -1160,17 +1156,17 @@ mod test {
     #[test]
     fn outstanding() {
         let mut events = initial_events();
-        let disbursement_id = DisbursementId::new();
+        let disbursal_id = DisbursalId::new();
         events.extend([
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id,
-                approval_process_id: disbursement_id.into(),
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id,
+                approval_process_id: disbursal_id.into(),
+                idx: DisbursalIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -1191,22 +1187,22 @@ mod test {
     fn outstanding_from_due_before_expiry() {
         let mut events = initial_events();
         let activated_at = Utc::now();
-        let disbursement_id = DisbursementId::new();
+        let disbursal_id = DisbursalId::new();
         events.extend([
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
                 activated_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id,
-                approval_process_id: disbursement_id.into(),
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id,
+                approval_process_id: disbursal_id.into(),
+                idx: DisbursalIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1224,22 +1220,22 @@ mod test {
     fn outstanding_from_due_after_expiry() {
         let mut events = initial_events();
         let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
-        let disbursement_id = DisbursementId::new();
+        let disbursal_id = DisbursalId::new();
         events.extend([
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
                 activated_at,
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id,
-                approval_process_id: disbursement_id.into(),
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id,
+                approval_process_id: disbursal_id.into(),
+                idx: DisbursalIdx::FIRST,
                 amount: UsdCents::from(100),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1306,9 +1302,9 @@ mod test {
     }
 
     #[test]
-    fn collateralization_ratio_when_active_disbursement() {
+    fn collateralization_ratio_when_active_disbursal() {
         let mut events = initial_events();
-        let disbursement_id = DisbursementId::new();
+        let disbursal_id = DisbursalId::new();
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
                 tx_id: LedgerTxId::new(),
@@ -1329,15 +1325,15 @@ mod test {
                 activated_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementInitiated {
-                disbursement_id,
-                approval_process_id: disbursement_id.into(),
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalInitiated {
+                disbursal_id,
+                approval_process_id: disbursal_id.into(),
+                idx: DisbursalIdx::FIRST,
                 amount: UsdCents::from(10),
                 audit_info: dummy_audit_info(),
             },
-            CreditFacilityEvent::DisbursementConcluded {
-                idx: DisbursementIdx::FIRST,
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: DisbursalIdx::FIRST,
                 tx_id: LedgerTxId::new(),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -1549,7 +1545,9 @@ mod test {
             )
             .unwrap();
 
-        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
         let first_approval = credit_facility.activation_data(default_price());
         assert!(matches!(
             first_approval,
@@ -1581,7 +1579,9 @@ mod test {
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval
         );
-        credit_facility.approval_process_concluded(true, dummy_audit_info());
+        credit_facility
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
         let credit_facility_approval = credit_facility.activation_data(default_price()).unwrap();
         credit_facility.activate(credit_facility_approval, Utc::now(), dummy_audit_info());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
@@ -1750,7 +1750,9 @@ mod test {
                 )
                 .unwrap();
 
-            credit_facility.approval_process_concluded(true, dummy_audit_info());
+            credit_facility
+                .approval_process_concluded(true, dummy_audit_info())
+                .unwrap();
             let credit_facility_approval =
                 credit_facility.activation_data(default_price()).unwrap();
             credit_facility.activate(
@@ -1759,27 +1761,22 @@ mod test {
                 dummy_audit_info(),
             );
 
-            let new_disbursement = credit_facility
-                .initiate_disbursement(
+            let new_disbursal = credit_facility
+                .initiate_disbursal(
                     UsdCents::from(600_000_00),
                     facility_activated_at,
                     dummy_audit_info(),
                 )
                 .unwrap();
-            let mut disbursement =
-                Disbursement::try_from_events(new_disbursement.into_events()).unwrap();
-            disbursement
+            let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
+            disbursal
                 .approval_process_concluded(true, dummy_audit_info())
                 .unwrap();
-            let disbursement_data = disbursement.disbursement_data().unwrap();
-            disbursement.confirm(
-                &disbursement_data,
-                facility_activated_at,
-                dummy_audit_info(),
-            );
-            credit_facility.confirm_disbursement(
-                &disbursement,
-                disbursement_data.tx_id,
+            let disbursal_data = disbursal.disbursal_data().unwrap();
+            disbursal.confirm(&disbursal_data, facility_activated_at, dummy_audit_info());
+            credit_facility.confirm_disbursal(
+                &disbursal,
+                disbursal_data.tx_id,
                 facility_activated_at,
                 dummy_audit_info(),
             );
@@ -1805,7 +1802,7 @@ mod test {
         }
 
         #[test]
-        fn initiate_repayment_errors_when_no_disbursements() {
+        fn initiate_repayment_errors_when_no_disbursals() {
             let credit_facility = facility_from(initial_events());
 
             let repayment_amount = UsdCents::from(5);

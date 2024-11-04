@@ -65,7 +65,7 @@ teardown_file() {
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
-@test "credit-facility: can initiate disbursement" {
+@test "credit-facility: can initiate disbursal" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
   amount=50000
@@ -80,33 +80,34 @@ teardown_file() {
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-disbursement-initiate' "$variables"
+  exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
   echo $(graphql_output)
-  disbursement_index=$(graphql_output '.data.creditFacilityDisbursementInitiate.disbursement.index')
-  [[ "$disbursement_index" != "null" ]] || exit 1
+  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
+  [[ "$disbursal_index" != "null" ]] || exit 1
 
-  cache_value 'disbursement_index' "$disbursement_index"
+  cache_value 'disbursal_index' "$disbursal_index"
 }
 
-@test "credit-facility: can create and confirm disbursement" {
+@test "credit-facility: can create and confirm disbursal" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  disbursement_index=$(read_value 'disbursement_index')
+  disbursal_index=$(read_value 'disbursal_index')
 
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \
-      --argjson disbursementIdx "$disbursement_index" \
+      --argjson disbursalIdx "$disbursal_index" \
     '{
       input: {
         creditFacilityId: $creditFacilityId,
-        disbursementIdx: $disbursementIdx,
+        disbursalIdx: $disbursalIdx,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-disbursement-confirm' "$variables"
-  disbursement_id=$(graphql_output '.data.creditFacilityDisbursementConfirm.disbursement.id')
-  [[ "$disbursement_id" != "null" ]] || exit 1
-  status=$(graphql_output '.data.creditFacilityDisbursementConfirm.disbursement.status')
+  exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
+  echo $(graphql_output)
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.id')
+  [[ "$disbursal_id" != "null" ]] || exit 1
+  status=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.status')
   [[ "$status" == "CONFIRMED" ]] || exit 1
 
   assert_accounts_balanced

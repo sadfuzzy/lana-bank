@@ -356,11 +356,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_facility_disbursement_tx_template",
+        name = "lava.ledger.cala.create_facility_disbursal_tx_template",
         skip(self),
         err
     )]
-    pub async fn create_facility_disbursement_tx_template(
+    pub async fn create_facility_disbursal_tx_template(
         &self,
         template_id: TxTemplateId,
     ) -> Result<TxTemplateId, CalaError> {
@@ -375,12 +375,12 @@ impl CalaClient {
                 super::constants::OBS_CREDIT_FACILITY_ACCOUNT_CODE.to_string(),
             )),
         }?;
-        let variables = credit_facility_disbursement_template_create::Variables {
+        let variables = credit_facility_disbursal_template_create::Variables {
             template_id: Uuid::from(template_id),
             journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
             omnibus_credit_facility_account: format!("uuid(\"{}\")", obs_credit_facility_id),
         };
-        let response = Self::traced_gql_request::<CreditFacilityDisbursementTemplateCreate, _>(
+        let response = Self::traced_gql_request::<CreditFacilityDisbursalTemplateCreate, _>(
             &self.client,
             &self.url,
             variables,
@@ -394,11 +394,11 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.execute_credit_facility_disbursement_tx",
+        name = "lava.ledger.cala.execute_credit_facility_disbursal_tx",
         skip(self),
         err
     )]
-    pub async fn execute_credit_facility_disbursement_tx(
+    pub async fn execute_credit_facility_disbursal_tx(
         &self,
         transaction_id: LedgerTxId,
         facility_account_ids: CreditFacilityAccountIds,
@@ -406,7 +406,7 @@ impl CalaClient {
         disbursed_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_credit_facility_disbursement_transaction::Variables {
+        let variables = post_credit_facility_disbursal_transaction::Variables {
             transaction_id: transaction_id.into(),
             facility_account: facility_account_ids.facility_account_id.into(),
             facility_disbursed_receivable_account: facility_account_ids
@@ -416,7 +416,7 @@ impl CalaClient {
             disbursed_amount,
             external_id,
         };
-        let response = Self::traced_gql_request::<PostCreditFacilityDisbursementTransaction, _>(
+        let response = Self::traced_gql_request::<PostCreditFacilityDisbursalTransaction, _>(
             &self.client,
             &self.url,
             variables,
@@ -1237,7 +1237,7 @@ impl CalaClient {
         credit_facility_account_ids: CreditFacilityAccountIds,
         user_account_ids: CustomerLedgerAccountIds,
         interest_payment_amount: Decimal,
-        disbursement_payment_amount: Decimal,
+        disbursal_payment_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_record_credit_facility_payment_transaction::Variables {
@@ -1250,7 +1250,7 @@ impl CalaClient {
                 .disbursed_receivable_account_id
                 .into(),
             interest_payment_amount,
-            disbursement_payment_amount,
+            disbursal_payment_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostRecordCreditFacilityPaymentTransaction, _>(

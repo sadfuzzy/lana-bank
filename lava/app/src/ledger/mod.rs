@@ -6,14 +6,14 @@ mod config;
 mod constants;
 pub mod credit_facility;
 pub mod customer;
-pub mod disbursement;
+pub mod disbursal;
 pub mod error;
 pub mod primitives;
 
 use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
-use disbursement::DisbursementData;
+use disbursal::DisbursalData;
 use tracing::instrument;
 
 use crate::{
@@ -268,20 +268,20 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lava.ledger.record_disbursement", skip(self), err)]
-    pub async fn record_disbursement(
+    #[instrument(name = "lava.ledger.record_disbursal", skip(self), err)]
+    pub async fn record_disbursal(
         &self,
-        DisbursementData {
+        DisbursalData {
             amount,
             tx_ref,
             tx_id,
             account_ids,
             customer_account_ids,
-        }: DisbursementData,
+        }: DisbursalData,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
         Ok(self
             .cala
-            .execute_credit_facility_disbursement_tx(
+            .execute_credit_facility_disbursal_tx(
                 tx_id,
                 account_ids,
                 customer_account_ids,
@@ -342,7 +342,7 @@ impl Ledger {
             amounts:
                 CreditFacilityPaymentAmounts {
                     interest,
-                    disbursement,
+                    disbursal,
                 },
         }: CreditFacilityRepayment,
     ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
@@ -353,7 +353,7 @@ impl Ledger {
                 credit_facility_account_ids,
                 customer_account_ids,
                 interest.to_usd(),
-                disbursement.to_usd(),
+                disbursal.to_usd(),
                 tx_ref,
             )
             .await?)
@@ -582,9 +582,9 @@ impl Ledger {
             constants::APPROVE_CREDIT_FACILITY_CODE,
         )
         .await?;
-        Self::assert_credit_facility_disbursement_tx_template_exists(
+        Self::assert_credit_facility_disbursal_tx_template_exists(
             cala,
-            constants::CREDIT_FACILITY_DISBURSEMENT_CODE,
+            constants::CREDIT_FACILITY_DISBURSAL_CODE,
         )
         .await?;
         Self::assert_add_collateral_tx_template_exists(cala, constants::ADD_COLLATERAL_CODE)
@@ -818,7 +818,7 @@ impl Ledger {
             .map_err(|_| err)?)
     }
 
-    async fn assert_credit_facility_disbursement_tx_template_exists(
+    async fn assert_credit_facility_disbursal_tx_template_exists(
         cala: &CalaClient,
         template_code: &str,
     ) -> Result<LedgerTxTemplateId, LedgerError> {
@@ -831,7 +831,7 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala
-            .create_facility_disbursement_tx_template(template_id)
+            .create_facility_disbursal_tx_template(template_id)
             .await
         {
             Ok(id) => {

@@ -321,7 +321,7 @@ pub struct CreditFacilityBalance;
     query_path = "src/ledger/cala/graphql/transactions/disburse-for-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct CreditFacilityDisbursementTemplateCreate;
+pub struct CreditFacilityDisbursalTemplateCreate;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -329,7 +329,7 @@ pub struct CreditFacilityDisbursementTemplateCreate;
     query_path = "src/ledger/cala/graphql/transactions/disburse-for-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
-pub struct PostCreditFacilityDisbursementTransaction;
+pub struct PostCreditFacilityDisbursalTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(
