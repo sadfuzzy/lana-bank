@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 use core_user::UserObject;
 use governance::GovernanceObject;
-use lava_ids::{CustomerId, LoanId};
+use lava_ids::CustomerId;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -62,7 +62,6 @@ impl FromStr for LavaObject {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
     Applicant,
-    Loan(LoanAllOrOne),
     TermsTemplate,
     Customer(CustomerAllOrOne),
     Document,
@@ -79,7 +78,6 @@ impl Display for AppObject {
         let discriminant = AppObjectDiscriminants::from(self);
         use AppObject::*;
         match self {
-            Loan(loan_ref) => write!(f, "{}/{}", discriminant, loan_ref),
             Customer(customer_ref) => {
                 write!(f, "{}/{}", discriminant, customer_ref)
             }
@@ -97,14 +95,6 @@ impl FromStr for AppObject {
         use AppObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             Applicant => AppObject::Applicant,
-            Loan => {
-                let loan_ref = elems
-                    .next()
-                    .ok_or("could not parse AppObject")?
-                    .parse()
-                    .map_err(|_| "could not parse AppObject")?;
-                AppObject::Loan(loan_ref)
-            }
             TermsTemplate => AppObject::TermsTemplate,
             Customer => {
                 let customer_ref = elems
@@ -126,7 +116,6 @@ impl FromStr for AppObject {
     }
 }
 
-pub type LoanAllOrOne = AllOrOne<LoanId>;
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 
 #[cfg(test)]
@@ -147,8 +136,8 @@ mod test {
     fn action_serialization() -> anyhow::Result<()> {
         // App
         test_to_and_from_string(
-            LavaObject::App(AppObject::Loan(AllOrOne::All)),
-            "app/loan/*",
+            LavaObject::App(AppObject::Customer(AllOrOne::All)),
+            "app/customer/*",
         )?;
 
         // Governance

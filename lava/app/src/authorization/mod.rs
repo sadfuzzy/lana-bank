@@ -23,16 +23,6 @@ pub async fn get_visible_navigation_items(
     sub: &Subject,
 ) -> Result<VisibleNavigationItems, AuthorizationError> {
     Ok(VisibleNavigationItems {
-        loan: authz
-            .check_all_permissions(
-                sub,
-                Object::Loan(LoanAllOrOne::All),
-                &[
-                    Action::Loan(LoanAction::Read),
-                    Action::Loan(LoanAction::List),
-                ],
-            )
-            .await?,
         term: authz
             .check_all_permissions(
                 sub,
@@ -130,7 +120,6 @@ pub async fn get_visible_navigation_items(
 
 #[derive(async_graphql::SimpleObject)]
 pub struct VisibleNavigationItems {
-    pub loan: bool,
     pub term: bool,
     pub user: bool,
     pub customer: bool,

@@ -22,7 +22,6 @@ gql`
       status
       level
       applicantId
-      subjectCanCreateLoan
       subjectCanRecordDeposit
       subjectCanInitiateWithdrawal
       subjectCanCreateCreditFacility
@@ -43,7 +42,6 @@ gql`
       status
       level
       applicantId
-      subjectCanCreateLoan
       subjectCanRecordDeposit
       subjectCanInitiateWithdrawal
       subjectCanCreateCreditFacility
@@ -62,7 +60,6 @@ gql`
         customerId
         email
         telegramId
-        subjectCanCreateLoan
         subjectCanRecordDeposit
         subjectCanInitiateWithdrawal
         subjectCanCreateCreditFacility

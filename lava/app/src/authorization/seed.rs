@@ -221,43 +221,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     let role = LavaRole::BANK_MANAGER;
 
     authz
-        .add_permission_to_role(
-            &role,
-            Object::Customer(CustomerAllOrOne::All),
-            LoanAction::Create,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::List)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Approve)
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::RecordPayment,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::UpdateCollateral,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::Loan(LoanAllOrOne::All),
-            LoanAction::UpdateCollateralizationState,
-        )
-        .await?;
-    authz
         .add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Update)
         .await?;
     authz
@@ -408,12 +371,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
 async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), AuthorizationError> {
     let role = LavaRole::ACCOUNTANT;
 
-    authz
-        .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::Loan(LoanAllOrOne::All), LoanAction::List)
-        .await?;
     authz
         .add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Read)
         .await?;

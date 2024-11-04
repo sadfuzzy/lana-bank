@@ -4,7 +4,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{credit_facility::*, deposit::*, document::Document, loan::*, withdrawal::Withdrawal};
+use super::{credit_facility::*, deposit::*, document::Document, withdrawal::Withdrawal};
 
 pub use lava_app::{
     app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
@@ -59,19 +59,6 @@ impl Customer {
         Ok(CustomerBalance::from(balance))
     }
 
-    async fn loans(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Loan>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let loans: Vec<Loan> = app
-            .loans()
-            .list_for_customer(sub, self.entity.id)
-            .await?
-            .into_iter()
-            .map(Loan::from)
-            .collect();
-
-        Ok(loans)
-    }
-
     async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app
@@ -120,15 +107,6 @@ impl Customer {
             .list_for_customer_id(sub, self.entity.id)
             .await?;
         Ok(documents.into_iter().map(Document::from).collect())
-    }
-
-    async fn subject_can_create_loan(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .loans()
-            .subject_can_create_loan_for_customer(sub, self.entity.id, false)
-            .await
-            .is_ok())
     }
 
     async fn subject_can_create_credit_facility(

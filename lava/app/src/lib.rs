@@ -10,7 +10,6 @@ pub mod data_export;
 pub mod deposit;
 pub mod document;
 pub mod ledger;
-pub mod loan;
 pub mod price;
 pub mod primitives;
 pub mod report;

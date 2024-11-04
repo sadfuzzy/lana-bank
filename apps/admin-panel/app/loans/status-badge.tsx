@@ -1,16 +1,16 @@
 import { Badge, BadgeProps } from "@/components/primitive/badge"
-import { CreditFacilityStatus, LoanStatus } from "@/lib/graphql/generated"
+import { CreditFacilityStatus } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
 
 interface LoanAndCreditFacilityStatusBadgeProps extends BadgeProps {
-  status: LoanStatus | CreditFacilityStatus
+  status: CreditFacilityStatus
 }
 
-const getVariant = (status: LoanStatus | CreditFacilityStatus) => {
+const getVariant = (status: CreditFacilityStatus) => {
   switch (status) {
-    case LoanStatus.Active:
+    case CreditFacilityStatus.Active:
       return "success"
-    case LoanStatus.New:
+    case CreditFacilityStatus.PendingApproval:
       return "default"
     default:
       return "secondary"

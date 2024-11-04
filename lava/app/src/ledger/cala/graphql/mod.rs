@@ -78,14 +78,6 @@ pub struct CreateCustomerAccounts;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/loan_accounts.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct CreateLoanAccounts;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/credit-facility-accounts.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
@@ -190,22 +182,6 @@ pub struct PostCancelWithdrawTransaction;
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct ApproveLoanTemplateCreate;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/approve-loan.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostApproveLoanTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
     query_path = "src/ledger/cala/graphql/transactions/approve-credit-facility.gql",
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
@@ -250,14 +226,6 @@ pub struct RemoveCollateralTemplateCreate;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct PostRemoveCollateralTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/transactions/complete-loan.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct PostCompleteLoanTransaction;
 
 #[derive(GraphQLQuery)]
 #[graphql(
@@ -338,14 +306,6 @@ pub struct RecordCreditFacilityPaymentTemplateCreate;
     response_derives = "Debug, PartialEq, Eq, Clone"
 )]
 pub struct PostRecordCreditFacilityPaymentTransaction;
-
-#[derive(GraphQLQuery)]
-#[graphql(
-    schema_path = "src/ledger/cala/graphql/schema.graphql",
-    query_path = "src/ledger/cala/graphql/loan.gql",
-    response_derives = "Debug, PartialEq, Eq, Clone"
-)]
-pub struct LoanBalance;
 
 #[derive(GraphQLQuery)]
 #[graphql(

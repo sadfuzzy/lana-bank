@@ -8,7 +8,6 @@ import UpdateTelegramIdDialog from "./update-telegram-id"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
-import { CreateLoanDialog } from "@/app/loans/create"
 import { Button } from "@/components/primitive/button"
 import { RecordDepositDialog } from "@/app/deposits/record"
 import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
@@ -61,11 +60,6 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
         </div>
       </Card>
       <div className="flex flex-col space-y-2 mt-1">
-        {customer.subjectCanCreateLoan && (
-          <CreateLoanDialog refetch={refetch} customerId={customer.customerId}>
-            <Button>New Loan</Button>
-          </CreateLoanDialog>
-        )}
         {customer.subjectCanRecordDeposit && (
           <Button onClick={() => setOpenRecordDepositDialog(true)}>Record Deposit</Button>
         )}

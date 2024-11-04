@@ -15,9 +15,7 @@ use crate::primitives::{
     LedgerJournalId, LedgerTxId,
 };
 
-use super::{
-    constants, customer::CustomerLedgerAccountIds, loan::LoanAccountIds, CreditFacilityAccountIds,
-};
+use super::{constants, customer::CustomerLedgerAccountIds, CreditFacilityAccountIds};
 
 use error::*;
 use graphql::*;
@@ -155,56 +153,6 @@ impl CalaClient {
         Self::traced_gql_request::<CreateCustomerAccounts, _>(&self.client, &self.url, variables)
             .await?;
 
-        Ok(())
-    }
-
-    #[instrument(name = "lava.ledger.cala.create_loan_accounts", skip(self), err)]
-    pub async fn create_loan_accounts(
-        &self,
-        loan_id: impl Into<Uuid> + std::fmt::Debug,
-        LoanAccountIds {
-            collateral_account_id,
-            principal_receivable_account_id,
-            interest_receivable_account_id,
-            interest_account_id,
-        }: LoanAccountIds,
-    ) -> Result<(), CalaError> {
-        let loan_id = loan_id.into();
-        let variables = create_loan_accounts::Variables {
-            loan_collateral_account_id: Uuid::from(collateral_account_id),
-            loan_collateral_account_code: format!("LOANS.COLLATERAL.{}", loan_id),
-            loan_collateral_account_name: format!("Loan Collateral Account for {}", loan_id),
-            loans_collateral_control_account_set_id:
-                super::constants::OBS_LOANS_COLLATERAL_CONTROL_ACCOUNT_SET_ID,
-            loan_principal_receivable_account_id: Uuid::from(principal_receivable_account_id),
-            loan_principal_receivable_account_code: format!(
-                "LOANS.PRINCIPAL_RECEIVABLE.{}",
-                loan_id
-            ),
-            loan_principal_receivable_account_name: format!(
-                "Loan Principal Receivable Account for {}",
-                loan_id
-            ),
-            loans_principal_receivable_control_account_set_id:
-                super::constants::LOANS_PRINCIPAL_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
-            loan_interest_receivable_account_id: Uuid::from(interest_receivable_account_id),
-            loan_interest_receivable_account_code: format!("LOANS.INTEREST_RECEIVABLE.{}", loan_id),
-            loan_interest_receivable_account_name: format!(
-                "Loan Interest Receivable Account for {}",
-                loan_id
-            ),
-            loans_interest_receivable_control_account_set_id:
-                super::constants::LOANS_INTEREST_RECEIVABLE_CONTROL_ACCOUNT_SET_ID,
-            interest_account_id: Uuid::from(interest_account_id),
-            interest_account_code: format!("LOANS.INTEREST_INCOME.{}", loan_id),
-            interest_account_name: format!("Interest Income for Loan {}", loan_id),
-            interest_revenue_control_account_set_id:
-                super::constants::INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
-        };
-        let response =
-            Self::traced_gql_request::<CreateLoanAccounts, _>(&self.client, &self.url, variables)
-                .await?;
-        response.data.ok_or(CalaError::MissingDataField)?;
         Ok(())
     }
 
@@ -377,25 +325,6 @@ impl CalaClient {
         let response =
             Self::traced_gql_request::<CustomerBalance, _>(&self.client, &self.url, variables)
                 .await?;
-
-        response.data.map(T::try_from).transpose()
-    }
-
-    #[instrument(name = "lava.ledger.cala.get_loan_balance", skip(self), err)]
-    pub async fn get_loan_balance<T, E>(&self, account_ids: LoanAccountIds) -> Result<Option<T>, E>
-    where
-        T: TryFrom<loan_balance::ResponseData, Error = E>,
-        E: From<CalaError> + std::fmt::Display,
-    {
-        let variables = loan_balance::Variables {
-            journal_id: super::constants::CORE_JOURNAL_ID,
-            collateral_id: Uuid::from(account_ids.collateral_account_id),
-            loan_principal_receivable_id: Uuid::from(account_ids.principal_receivable_account_id),
-            loan_interest_receivable_id: Uuid::from(account_ids.interest_receivable_account_id),
-            interest_income_id: Uuid::from(account_ids.interest_account_id),
-        };
-        let response =
-            Self::traced_gql_request::<LoanBalance, _>(&self.client, &self.url, variables).await?;
 
         response.data.map(T::try_from).transpose()
     }
@@ -883,64 +812,6 @@ impl CalaClient {
     }
 
     #[instrument(
-        name = "lava.ledger.cala.create_approve_loan_template",
-        skip(self),
-        err
-    )]
-    pub async fn create_approve_loan_tx_template(
-        &self,
-        template_id: TxTemplateId,
-    ) -> Result<TxTemplateId, CalaError> {
-        let variables = approve_loan_template_create::Variables {
-            template_id: Uuid::from(template_id),
-            journal_id: format!("uuid(\"{}\")", super::constants::CORE_JOURNAL_ID),
-        };
-        let response = Self::traced_gql_request::<ApproveLoanTemplateCreate, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        response
-            .data
-            .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
-            .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.execute_approve_loan_tx", skip(self), err)]
-    pub async fn execute_approve_loan_tx(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        user_account_ids: CustomerLedgerAccountIds,
-        principal_amount: Decimal,
-        external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_approve_loan_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
-                .into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            principal_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostApproveLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        let created_at = response
-            .data
-            .map(|d| d.transaction_post.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
-    }
-
-    #[instrument(
         name = "lava.ledger.cala.create_approve_credit_facility_template",
         skip(self),
         err
@@ -1010,49 +881,6 @@ impl CalaClient {
         Ok(created_at)
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub async fn execute_complete_loan_tx(
-        &self,
-        payment_transaction_id: LedgerTxId,
-        collateral_transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        user_account_ids: CustomerLedgerAccountIds,
-        interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
-        collateral_amount: Decimal,
-        payment_external_id: String,
-        collateral_external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_complete_loan_transaction::Variables {
-            payment_transaction_id: payment_transaction_id.into(),
-            collateral_transaction_id: collateral_transaction_id.into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_interest_receivable_account: loan_account_ids
-                .interest_receivable_account_id
-                .into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
-                .into(),
-            loan_collateral_account: loan_account_ids.collateral_account_id.into(),
-            interest_payment_amount,
-            principal_payment_amount,
-            collateral_amount,
-            payment_external_id,
-            collateral_external_id,
-        };
-        let response = Self::traced_gql_request::<PostCompleteLoanTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-        let created_at = response
-            .data
-            .map(|d| d.return_collateral.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
-    }
-
     #[instrument(
         name = "lava.ledger.cala.create_add_collateral_tx_template",
         skip(self),
@@ -1090,34 +918,6 @@ impl CalaClient {
             .map(|d| d.tx_template_create.tx_template.tx_template_id)
             .map(TxTemplateId::from)
             .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.add_loan_collateral", skip(self), err)]
-    pub async fn add_loan_collateral(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        collateral_amount: Decimal,
-        external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_add_collateral_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            collateral_account: loan_account_ids.collateral_account_id.into(),
-            collateral_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostAddCollateralTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        let created_at = response
-            .data
-            .map(|d| d.transaction_post.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
     }
 
     #[instrument(
@@ -1191,34 +991,6 @@ impl CalaClient {
             .ok_or_else(|| CalaError::MissingDataField)
     }
 
-    #[instrument(name = "lava.ledger.cala.remove_loan_collateral", skip(self), err)]
-    pub async fn remove_loan_collateral(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        collateral_amount: Decimal,
-        external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_remove_collateral_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            collateral_account: loan_account_ids.collateral_account_id.into(),
-            collateral_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostRemoveCollateralTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        let created_at = response
-            .data
-            .map(|d| d.transaction_post.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
-    }
-
     #[instrument(
         name = "lava.ledger.cala.remove_credit_facility_collateral",
         skip(self),
@@ -1275,37 +1047,6 @@ impl CalaClient {
             .data
             .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.execute_incur_interest_tx", skip(self), err)]
-    pub async fn execute_incur_interest_tx(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        interest_amount: Decimal,
-        external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_incur_interest_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            loan_interest_receivable_account: loan_account_ids
-                .interest_receivable_account_id
-                .into(),
-            loan_interest_income_account: loan_account_ids.interest_account_id.into(),
-            interest_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostIncurInterestTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        let created_at = response
-            .data
-            .map(|d| d.transaction_post.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
     }
 
     #[instrument(
@@ -1483,43 +1224,6 @@ impl CalaClient {
             .data
             .map(|d| TxTemplateId::from(d.tx_template_create.tx_template.tx_template_id))
             .ok_or_else(|| CalaError::MissingDataField)
-    }
-
-    #[instrument(name = "lava.ledger.cala.execute_repay_loan_tx", skip(self), err)]
-    pub async fn execute_repay_loan_tx(
-        &self,
-        transaction_id: LedgerTxId,
-        loan_account_ids: LoanAccountIds,
-        user_account_ids: CustomerLedgerAccountIds,
-        interest_payment_amount: Decimal,
-        principal_payment_amount: Decimal,
-        external_id: String,
-    ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
-        let variables = post_record_payment_transaction::Variables {
-            transaction_id: transaction_id.into(),
-            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
-            loan_interest_receivable_account: loan_account_ids
-                .interest_receivable_account_id
-                .into(),
-            loan_principal_receivable_account: loan_account_ids
-                .principal_receivable_account_id
-                .into(),
-            interest_payment_amount,
-            principal_payment_amount,
-            external_id,
-        };
-        let response = Self::traced_gql_request::<PostRecordPaymentTransaction, _>(
-            &self.client,
-            &self.url,
-            variables,
-        )
-        .await?;
-
-        let created_at = response
-            .data
-            .map(|d| d.transaction_post.transaction.created_at)
-            .ok_or_else(|| CalaError::MissingDataField)?;
-        Ok(created_at)
     }
 
     #[instrument(

@@ -1,7 +1,0 @@
-mutation LoanCreate($input: LoanCreateInput!) {
-  loanCreate(input: $input) {
-    loan {
-      loanId
-    }
-  }
-}

@@ -92,23 +92,6 @@ CREATE TABLE user_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE loans (
-  id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  collateralization_ratio NUMERIC DEFAULT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-CREATE INDEX idx_loans_collateralization_ratio ON loans (collateralization_ratio);
-
-CREATE TABLE loan_events (
-  id UUID NOT NULL REFERENCES loans(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),

@@ -8,7 +8,6 @@ pub mod credit_facility;
 pub mod customer;
 pub mod disbursement;
 pub mod error;
-pub mod loan;
 pub mod primitives;
 
 use authz::PermissionCheck;
@@ -21,8 +20,7 @@ use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
         CollateralAction, CreditFacilityId, CustomerId, DepositId, LedgerAccountId,
-        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId, Subject, UsdCents,
-        WithdrawalId,
+        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, Subject, UsdCents, WithdrawalId,
     },
 };
 
@@ -37,7 +35,6 @@ pub use config::*;
 use credit_facility::*;
 use customer::*;
 use error::*;
-use loan::*;
 
 #[derive(Clone)]
 pub struct Ledger {
@@ -184,40 +181,6 @@ impl Ledger {
         Ok(withdrawal_id)
     }
 
-    #[instrument(name = "lava.ledger.loan_balance", skip(self), err)]
-    pub async fn get_loan_balance(
-        &self,
-        account_ids: LoanAccountIds,
-    ) -> Result<LoanBalance, LedgerError> {
-        self.cala
-            .get_loan_balance(account_ids)
-            .await?
-            .ok_or(LedgerError::AccountNotFound)
-    }
-
-    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
-    pub async fn approve_loan(
-        &self,
-        LoanApprovalData {
-            tx_id,
-            tx_ref,
-            loan_account_ids,
-            customer_account_ids,
-            initial_principal,
-        }: LoanApprovalData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_loan_tx(
-                tx_id,
-                loan_account_ids,
-                customer_account_ids,
-                initial_principal.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
     #[instrument(name = "lava.ledger.credit_facility_balance", skip(self), err)]
     pub async fn get_credit_facility_balance(
         &self,
@@ -227,104 +190,6 @@ impl Ledger {
             .get_credit_facility_balance(account_ids)
             .await?
             .ok_or(LedgerError::AccountNotFound)
-    }
-
-    #[instrument(name = "lava.ledger.approve_loan", skip(self), err)]
-    pub async fn activate_credit_facility(
-        &self,
-        CreditFacilityActivationData {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            facility,
-        }: CreditFacilityActivationData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                facility.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.record_loan_interest", skip(self), err)]
-    pub async fn record_loan_interest(
-        &self,
-        LoanInterestAccrual {
-            interest,
-            tx_ref,
-            tx_id,
-            loan_account_ids,
-        }: LoanInterestAccrual,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_incur_interest_tx(tx_id, loan_account_ids, interest.to_usd(), tx_ref)
-            .await?)
-    }
-
-    #[instrument(name = "lava.ledger.record_loan_payment", skip(self), err)]
-    pub async fn record_loan_repayment(
-        &self,
-        repayment: LoanRepayment,
-    ) -> Result<DateTime<Utc>, LedgerError> {
-        let executed_at = match repayment {
-            LoanRepayment::Partial {
-                tx_id,
-                tx_ref,
-                loan_account_ids,
-                customer_account_ids,
-                amounts:
-                    LoanPaymentAmounts {
-                        interest,
-                        principal,
-                    },
-            } => {
-                self.cala
-                    .execute_repay_loan_tx(
-                        tx_id,
-                        loan_account_ids,
-                        customer_account_ids,
-                        interest.to_usd(),
-                        principal.to_usd(),
-                        tx_ref,
-                    )
-                    .await?
-            }
-            LoanRepayment::Final {
-                payment_tx_id,
-                payment_tx_ref,
-                collateral_tx_id,
-                collateral_tx_ref,
-                collateral,
-                loan_account_ids,
-                customer_account_ids,
-                amounts:
-                    LoanPaymentAmounts {
-                        interest,
-                        principal,
-                    },
-            } => {
-                self.cala
-                    .execute_complete_loan_tx(
-                        payment_tx_id,
-                        collateral_tx_id,
-                        loan_account_ids,
-                        customer_account_ids,
-                        interest.to_usd(),
-                        principal.to_usd(),
-                        collateral.to_btc(),
-                        payment_tx_ref,
-                        collateral_tx_ref,
-                    )
-                    .await?
-            }
-        };
-        Ok(executed_at)
     }
 
     #[instrument(
@@ -350,6 +215,28 @@ impl Ledger {
                 interest.to_usd(),
                 tx_ref,
                 period.end,
+            )
+            .await?)
+    }
+
+    #[instrument(name = "lava.ledger.activate_credit_facility", skip(self), err)]
+    pub async fn activate_credit_facility(
+        &self,
+        CreditFacilityActivationData {
+            tx_id,
+            tx_ref,
+            credit_facility_account_ids,
+            customer_account_ids,
+            facility,
+        }: CreditFacilityActivationData,
+    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
+        Ok(self
+            .cala
+            .execute_approve_credit_facility_tx(
+                tx_id,
+                credit_facility_account_ids,
+                facility.to_usd(),
+                tx_ref,
             )
             .await?)
     }
@@ -402,32 +289,6 @@ impl Ledger {
                 tx_ref,
             )
             .await?)
-    }
-
-    #[instrument(name = "lava.ledger.manage_loan_collateral", skip(self), err)]
-    pub async fn update_loan_collateral(
-        &self,
-        LoanCollateralUpdate {
-            tx_id,
-            loan_account_ids,
-            abs_diff,
-            tx_ref,
-            action,
-        }: LoanCollateralUpdate,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = match action {
-            CollateralAction::Add => {
-                self.cala
-                    .add_loan_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .remove_loan_collateral(tx_id, loan_account_ids, abs_diff.to_btc(), tx_ref)
-                    .await
-            }
-        }?;
-        Ok(created_at)
     }
 
     #[instrument(
@@ -519,18 +380,6 @@ impl Ledger {
             )
             .await?;
         Ok(created_at)
-    }
-
-    #[instrument(name = "lava.ledger.create_accounts_for_loan", skip(self), err)]
-    pub async fn create_accounts_for_loan(
-        &self,
-        loan_id: LoanId,
-        loan_account_ids: LoanAccountIds,
-    ) -> Result<(), LedgerError> {
-        self.cala
-            .create_loan_accounts(loan_id, loan_account_ids)
-            .await?;
-        Ok(())
     }
 
     #[instrument(
@@ -728,7 +577,6 @@ impl Ledger {
         Self::assert_confirm_withdraw_tx_template_exists(cala, constants::CONFIRM_WITHDRAW).await?;
 
         Self::assert_cancel_withdraw_tx_template_exists(cala, constants::CANCEL_WITHDRAW).await?;
-        Self::assert_approve_loan_tx_template_exists(cala, constants::APPROVE_LOAN_CODE).await?;
         Self::assert_approve_credit_facility_tx_template_exists(
             cala,
             constants::APPROVE_CREDIT_FACILITY_CODE,
@@ -880,31 +728,6 @@ impl Ledger {
 
         let template_id = LedgerTxTemplateId::new();
         let err = match cala.create_cancel_withdraw_tx_template(template_id).await {
-            Ok(id) => {
-                return Ok(id);
-            }
-            Err(e) => e,
-        };
-
-        Ok(cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-            .map_err(|_| err)?)
-    }
-
-    async fn assert_approve_loan_tx_template_exists(
-        cala: &CalaClient,
-        template_code: &str,
-    ) -> Result<LedgerTxTemplateId, LedgerError> {
-        if let Ok(id) = cala
-            .find_tx_template_by_code::<LedgerTxTemplateId>(template_code.to_owned())
-            .await
-        {
-            return Ok(id);
-        }
-
-        let template_id = LedgerTxTemplateId::new();
-        let err = match cala.create_approve_loan_tx_template(template_id).await {
             Ok(id) => {
                 return Ok(id);
             }

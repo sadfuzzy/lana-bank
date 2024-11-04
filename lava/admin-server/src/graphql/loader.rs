@@ -8,7 +8,7 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*, document::*,
-    loan::*, policy::*, terms_template::*, user::*, withdrawal::*,
+    policy::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub type LavaDataLoader = DataLoader<LavaLoader>;
@@ -172,14 +172,5 @@ impl Loader<DisbursementId> for LavaLoader {
             .find_all_disbursements(keys)
             .await
             .map_err(Arc::new)
-    }
-}
-
-impl Loader<LoanId> for LavaLoader {
-    type Value = Loan;
-    type Error = Arc<lava_app::loan::error::LoanError>;
-
-    async fn load(&self, keys: &[LoanId]) -> Result<HashMap<LoanId, Loan>, Self::Error> {
-        self.app.loans().find_all(keys).await.map_err(Arc::new)
     }
 }

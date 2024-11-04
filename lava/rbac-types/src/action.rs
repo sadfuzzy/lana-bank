@@ -75,7 +75,6 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
-    Loan(LoanAction),
     TermsTemplate(TermsTemplateAction),
     Customer(CustomerAction),
     Deposit(DepositAction),
@@ -92,7 +91,6 @@ impl Display for AppAction {
         write!(f, "{}:", AppActionDiscriminants::from(self))?;
         use AppAction::*;
         match self {
-            Loan(action) => action.fmt(f),
             TermsTemplate(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -115,7 +113,6 @@ impl FromStr for AppAction {
         let action = elems.next().expect("missing second element");
         use AppActionDiscriminants::*;
         let res = match entity.parse()? {
-            Loan => AppAction::from(action.parse::<LoanAction>()?),
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Customer => AppAction::from(action.parse::<CustomerAction>()?),
             Deposit => AppAction::from(action.parse::<DepositAction>()?),
@@ -129,21 +126,6 @@ impl FromStr for AppAction {
         Ok(res)
     }
 }
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum LoanAction {
-    Read,
-    List,
-    Create,
-    Approve,
-    RecordPayment,
-    UpdateCollateral,
-    RecordInterest,
-    UpdateCollateralizationState,
-}
-
-impl_trivial_action!(LoanAction, Loan);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -273,10 +255,10 @@ mod test {
 
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
-        // Loan
+        // Deposit
         test_to_and_from_string(
-            LavaAction::App(AppAction::Loan(LoanAction::List)),
-            "app:loan:list",
+            LavaAction::App(AppAction::Deposit(DepositAction::List)),
+            "app:deposit:list",
         )?;
         Ok(())
     }

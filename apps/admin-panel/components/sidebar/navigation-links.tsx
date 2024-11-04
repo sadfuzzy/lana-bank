@@ -39,7 +39,6 @@ gql`
       subjectCanCreateCustomer
       subjectCanCreateTermsTemplate
       visibleNavigationItems {
-        loan
         term
         user
         customer
@@ -77,12 +76,6 @@ const NavigationLinks = () => {
       label: "Customers",
       icon: IoPersonOutline,
       visible: visibleItems?.customer,
-    },
-    {
-      href: "/loans",
-      label: "Loans",
-      icon: IoReceiptOutline,
-      visible: visibleItems?.loan,
     },
     {
       href: "/credit-facilities",

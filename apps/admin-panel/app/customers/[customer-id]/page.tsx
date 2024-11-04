@@ -6,7 +6,6 @@ import React from "react"
 
 import { CustomerDetailsCard } from "./details"
 import { CustomerAccountBalances } from "./balances"
-import { CustomerLoansTable } from "./loans"
 import { CustomerTransactionsTable } from "./transactions"
 import { KycStatus } from "./kyc-status"
 import { Documents } from "./documents"
@@ -26,7 +25,6 @@ gql`
       status
       level
       applicantId
-      subjectCanCreateLoan
       subjectCanRecordDeposit
       subjectCanInitiateWithdrawal
       subjectCanCreateCreditFacility
@@ -35,57 +33,6 @@ gql`
           settled
           pending
         }
-      }
-      loans {
-        id
-        loanId
-        createdAt
-        approvedAt
-        principal
-        expiresAt
-        collateral
-        status
-        collateralizationState
-        subjectCanApprove
-        subjectCanUpdateCollateral
-        subjectCanUpdateCollateralizationState
-        subjectCanRecordPaymentOrCompleteLoan
-        customer {
-          customerId
-          email
-        }
-        balance {
-          collateral {
-            btcBalance
-          }
-          outstanding {
-            usdBalance
-          }
-          interestIncurred {
-            usdBalance
-          }
-        }
-        loanTerms {
-          annualRate
-          accrualInterval
-          incurrenceInterval
-          liquidationCvl
-          marginCallCvl
-          initialCvl
-          duration {
-            period
-            units
-          }
-        }
-        approvals {
-          user {
-            email
-            roles
-          }
-          approvedAt
-        }
-        currentCvl
-        collateralToMatchInitialCvl @client
       }
       creditFacilities {
         id
@@ -174,7 +121,6 @@ const Customer = ({
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="balances">Balances</TabsTrigger>
-              <TabsTrigger value="loans">Loans</TabsTrigger>
               <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
               <TabsTrigger value="transactions">Transactions</TabsTrigger>
               <TabsTrigger value="kyc">KYC Status</TabsTrigger>
@@ -182,15 +128,11 @@ const Customer = ({
             </TabsList>
             <TabsContent value="overview">
               <CustomerAccountBalances balance={data.customer.balance} />
-              <CustomerLoansTable loans={data.customer.loans} refetch={refetch} />
               <CustomerTransactionsTable transactions={data.customer.transactions} />
               <KycStatus customerId={customerId} />
             </TabsContent>
             <TabsContent value="balances">
               <CustomerAccountBalances balance={data.customer.balance} />
-            </TabsContent>
-            <TabsContent value="loans">
-              <CustomerLoansTable loans={data.customer.loans} refetch={refetch} />
             </TabsContent>
             <TabsContent value="credit-facilities">
               <CustomerCreditFacilitiesTable

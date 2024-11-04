@@ -16,7 +16,6 @@ import {
   Customer,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
-  Loan,
 } from "@/lib/graphql/generated"
 
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
@@ -61,19 +60,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
     })
 
   const resolvers: Resolvers = {
-    Loan: {
-      collateralToMatchInitialCvl: async (loan: Loan, _, { cache }) => {
-        const priceInfo = await fetchData(cache)
-        if (!priceInfo) return null
-
-        return Math.floor(
-          ((loan.loanTerms.initialCvl * loan.principal) /
-            priceInfo.realtimePrice.usdCentsPerBtc /
-            CENTS_PER_USD) *
-            SATS_PER_BTC,
-        )
-      },
-    },
     CreditFacility: {
       collateralToMatchInitialCvl: async (facility: CreditFacility, _, { cache }) => {
         const priceInfo = await fetchData(cache)

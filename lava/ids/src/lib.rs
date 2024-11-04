@@ -3,7 +3,6 @@ es_entity::entity_id! {
     WithdrawalId,
     DepositId,
     DocumentId,
-    LoanId,
     CreditFacilityId,
     DisbursementId,
     InterestAccrualId,
@@ -15,5 +14,4 @@ es_entity::entity_id! {
     DisbursementId => governance::ApprovalProcessId,
     ReportId => job::JobId,
     CreditFacilityId => job::JobId,
-    LoanId => job::JobId
 }

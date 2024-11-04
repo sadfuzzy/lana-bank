@@ -32,7 +32,6 @@ import {
 } from "@/components/primitive/dropdown-menu"
 import Balance from "@/components/balance/balance"
 
-import { CreateLoanDialog } from "@/app/loans/create"
 import { WithdrawalInitiateDialog } from "@/app/withdrawals/initiate"
 import { RecordDepositDialog } from "@/app/deposits/record"
 
@@ -188,13 +187,6 @@ function CustomerTable({
                             <Link href={`/customers/${customer.customerId}`}>
                               <DropdownMenuItem>View details</DropdownMenuItem>
                             </Link>
-                            {customer.subjectCanCreateLoan && (
-                              <DropdownMenuItem onClick={(e) => e.preventDefault()}>
-                                <CreateLoanDialog customerId={customer.customerId}>
-                                  <span>Create Loan</span>
-                                </CreateLoanDialog>
-                              </DropdownMenuItem>
-                            )}
                             {customer.subjectCanRecordDeposit && (
                               <DropdownMenuItem
                                 onClick={() =>

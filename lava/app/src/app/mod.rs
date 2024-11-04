@@ -18,7 +18,6 @@ use crate::{
     governance::Governance,
     job::Jobs,
     ledger::Ledger,
-    loan::Loans,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -38,7 +37,6 @@ pub struct LavaApp {
     _jobs: Jobs,
     audit: Audit,
     authz: Authorization,
-    loans: Loans,
     customers: Customers,
     withdrawals: Withdrawals,
     deposits: Deposits,
@@ -98,17 +96,6 @@ impl LavaApp {
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);
-        let loans = Loans::init(
-            &pool,
-            config.loan,
-            &jobs,
-            &customers,
-            &ledger,
-            &authz,
-            &export,
-            &price,
-        )
-        .await?;
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -119,7 +106,6 @@ impl LavaApp {
             customers,
             withdrawals,
             deposits,
-            loans,
             ledger,
             applicants,
             users,
@@ -182,10 +168,6 @@ impl LavaApp {
 
     pub fn applicants(&self) -> &Applicants {
         &self.applicants
-    }
-
-    pub fn loans(&self) -> &Loans {
-        &self.loans
     }
 
     pub fn credit_facilities(&self) -> &CreditFacilities {

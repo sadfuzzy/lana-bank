@@ -249,30 +249,12 @@ export enum CollateralAction {
   Remove = 'REMOVE'
 }
 
-export type CollateralUpdated = {
-  __typename?: 'CollateralUpdated';
-  action: CollateralAction;
-  recordedAt: Scalars['Timestamp']['output'];
-  satoshis: Scalars['Satoshis']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
 export enum CollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
   UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
   UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
 }
-
-export type CollateralizationUpdated = {
-  __typename?: 'CollateralizationUpdated';
-  collateral: Scalars['Satoshis']['output'];
-  outstandingInterest: Scalars['UsdCents']['output'];
-  outstandingPrincipal: Scalars['UsdCents']['output'];
-  price: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  state: LoanCollaterizationState;
-};
 
 export type Committee = {
   __typename?: 'Committee';
@@ -522,10 +504,8 @@ export type Customer = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   level: KycLevel;
-  loans: Array<Loan>;
   status: AccountStatus;
   subjectCanCreateCreditFacility: Scalars['Boolean']['output'];
-  subjectCanCreateLoan: Scalars['Boolean']['output'];
   subjectCanInitiateWithdrawal: Scalars['Boolean']['output'];
   subjectCanRecordDeposit: Scalars['Boolean']['output'];
   telegramId: Scalars['String']['output'];
@@ -712,29 +692,10 @@ export type GovernanceNavigationItems = {
   policy: Scalars['Boolean']['output'];
 };
 
-export type IncrementalPayment = {
-  __typename?: 'IncrementalPayment';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
 export type Interest = {
   __typename?: 'Interest';
   outstanding: Outstanding;
   total: Total;
-};
-
-export type InterestAccrued = {
-  __typename?: 'InterestAccrued';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type InterestIncome = {
-  __typename?: 'InterestIncome';
-  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export enum InterestInterval {
@@ -766,153 +727,8 @@ export type LayeredUsdAccountAmounts = {
 
 export type Loan = {
   __typename?: 'Loan';
-  approvals: Array<LoanApproval>;
-  approvedAt?: Maybe<Scalars['Timestamp']['output']>;
-  balance: LoanBalance;
-  collateral: Scalars['Satoshis']['output'];
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
-  collateralizationState: LoanCollaterizationState;
-  createdAt: Scalars['Timestamp']['output'];
-  currentCvl: Scalars['CVLPct']['output'];
-  customer: Customer;
-  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
-  id: Scalars['ID']['output'];
-  loanId: Scalars['UUID']['output'];
-  loanTerms: TermValues;
-  principal: Scalars['UsdCents']['output'];
-  repaymentPlan: Array<LoanRepaymentInPlan>;
-  status: LoanStatus;
-  subjectCanApprove: Scalars['Boolean']['output'];
-  subjectCanRecordPaymentOrCompleteLoan: Scalars['Boolean']['output'];
-  subjectCanUpdateCollateral: Scalars['Boolean']['output'];
-  subjectCanUpdateCollateralizationState: Scalars['Boolean']['output'];
-  transactions: Array<LoanHistoryEntry>;
 };
-
-export type LoanApproval = {
-  __typename?: 'LoanApproval';
-  approvedAt: Scalars['Timestamp']['output'];
-  user: User;
-};
-
-export type LoanApproveInput = {
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanApprovePayload = {
-  __typename?: 'LoanApprovePayload';
-  loan: Loan;
-};
-
-export type LoanBalance = {
-  __typename?: 'LoanBalance';
-  collateral: Collateral;
-  interestIncurred: InterestIncome;
-  outstanding: Outstanding;
-};
-
-export type LoanCollateralUpdateInput = {
-  collateral: Scalars['Satoshis']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanCollateralUpdatePayload = {
-  __typename?: 'LoanCollateralUpdatePayload';
-  loan: Loan;
-};
-
-export type LoanCollateralizationStateTriggerRefreshInput = {
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanCollateralizationStateTriggerRefreshPayload = {
-  __typename?: 'LoanCollateralizationStateTriggerRefreshPayload';
-  loan: Loan;
-};
-
-export enum LoanCollaterizationState {
-  FullyCollateralized = 'FULLY_COLLATERALIZED',
-  NoCollateral = 'NO_COLLATERAL',
-  UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
-  UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
-}
-
-export type LoanConnection = {
-  __typename?: 'LoanConnection';
-  /** A list of edges. */
-  edges: Array<LoanEdge>;
-  /** A list of nodes. */
-  nodes: Array<Loan>;
-  /** Information to aid in pagination. */
-  pageInfo: PageInfo;
-};
-
-export type LoanCreateInput = {
-  customerId: Scalars['UUID']['input'];
-  desiredPrincipal: Scalars['UsdCents']['input'];
-  loanTerms: TermsInput;
-};
-
-export type LoanCreatePayload = {
-  __typename?: 'LoanCreatePayload';
-  loan: Loan;
-};
-
-/** An edge in a connection. */
-export type LoanEdge = {
-  __typename?: 'LoanEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: Loan;
-};
-
-export type LoanHistoryEntry = CollateralUpdated | CollateralizationUpdated | IncrementalPayment | InterestAccrued | LoanOrigination;
-
-export type LoanOrigination = {
-  __typename?: 'LoanOrigination';
-  cents: Scalars['UsdCents']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type LoanPartialPaymentInput = {
-  amount: Scalars['UsdCents']['input'];
-  loanId: Scalars['UUID']['input'];
-};
-
-export type LoanPartialPaymentPayload = {
-  __typename?: 'LoanPartialPaymentPayload';
-  loan: Loan;
-};
-
-export type LoanRepaymentInPlan = {
-  __typename?: 'LoanRepaymentInPlan';
-  accrualAt: Scalars['Timestamp']['output'];
-  dueAt: Scalars['Timestamp']['output'];
-  initial: Scalars['UsdCents']['output'];
-  outstanding: Scalars['UsdCents']['output'];
-  repaymentType: LoanRepaymentType;
-  status: LoanRepaymentStatus;
-};
-
-export enum LoanRepaymentStatus {
-  Due = 'DUE',
-  Overdue = 'OVERDUE',
-  Paid = 'PAID',
-  Upcoming = 'UPCOMING'
-}
-
-export enum LoanRepaymentType {
-  Interest = 'INTEREST',
-  Principal = 'PRINCIPAL'
-}
-
-export enum LoanStatus {
-  Active = 'ACTIVE',
-  Closed = 'CLOSED',
-  New = 'NEW'
-}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -934,11 +750,6 @@ export type Mutation = {
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
-  loanApprove: LoanApprovePayload;
-  loanCollateralUpdate: LoanCollateralUpdatePayload;
-  loanCollateralizationStateTriggerRefresh: LoanCollateralizationStateTriggerRefreshPayload;
-  loanCreate: LoanCreatePayload;
-  loanPartialPayment: LoanPartialPaymentPayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
@@ -1042,31 +853,6 @@ export type MutationDocumentDeleteArgs = {
 
 export type MutationDocumentDownloadLinkGenerateArgs = {
   input: DocumentDownloadLinksGenerateInput;
-};
-
-
-export type MutationLoanApproveArgs = {
-  input: LoanApproveInput;
-};
-
-
-export type MutationLoanCollateralUpdateArgs = {
-  input: LoanCollateralUpdateInput;
-};
-
-
-export type MutationLoanCollateralizationStateTriggerRefreshArgs = {
-  input: LoanCollateralizationStateTriggerRefreshInput;
-};
-
-
-export type MutationLoanCreateArgs = {
-  input: LoanCreateInput;
-};
-
-
-export type MutationLoanPartialPaymentArgs = {
-  input: LoanPartialPaymentInput;
 };
 
 
@@ -1215,8 +1001,6 @@ export type Query = {
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   document?: Maybe<Document>;
-  loan?: Maybe<Loan>;
-  loans: LoanConnection;
   me: Subject;
   offBalanceSheetChartOfAccounts?: Maybe<ChartOfAccounts>;
   offBalanceSheetTrialBalance?: Maybe<TrialBalance>;
@@ -1323,17 +1107,6 @@ export type QueryDepositsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
-};
-
-
-export type QueryLoanArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-
-export type QueryLoansArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
 };
 
 
@@ -1621,7 +1394,6 @@ export type VisibleNavigationItems = {
   deposit: Scalars['Boolean']['output'];
   financials: Scalars['Boolean']['output'];
   governance: GovernanceNavigationItems;
-  loan: Scalars['Boolean']['output'];
   term: Scalars['Boolean']['output'];
   user: Scalars['Boolean']['output'];
   withdraw: Scalars['Boolean']['output'];
@@ -1892,7 +1664,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanCreateLoan: boolean, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, loans: Array<{ __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, subjectCanApprove: boolean, subjectCanUpdateCollateral: boolean, subjectCanUpdateCollateralizationState: boolean, subjectCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }> }>, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -1913,14 +1685,14 @@ export type GetCustomerByCustomerEmailQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanCreateLoan: boolean, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type GetCustomerByCustomerIdQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanCreateLoan: boolean, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1928,7 +1700,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, subjectCanCreateLoan: boolean, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1951,56 +1723,6 @@ export type RecordDepositMutationVariables = Exact<{
 
 
 export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } } } };
-
-export type GetLoanDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetLoanDetailsQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, approvedAt?: any | null, principal: any, expiresAt?: any | null, collateral: any, status: LoanStatus, collateralizationState: LoanCollaterizationState, subjectCanApprove: boolean, subjectCanUpdateCollateral: boolean, subjectCanUpdateCollateralizationState: boolean, subjectCanRecordPaymentOrCompleteLoan: boolean, currentCvl: any, collateralToMatchInitialCvl?: any | null, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, transactions: Array<{ __typename?: 'CollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CollateralizationUpdated', state: LoanCollaterizationState, outstandingPrincipal: any, outstandingInterest: any, price: any, collateral: any, recordedAt: any } | { __typename?: 'IncrementalPayment', cents: any, recordedAt: any, txId: string } | { __typename?: 'InterestAccrued', cents: any, recordedAt: any, txId: string } | { __typename?: 'LoanOrigination', cents: any, recordedAt: any, txId: string }>, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, approvals: Array<{ __typename?: 'LoanApproval', approvedAt: any, user: { __typename?: 'User', email: string, roles: Array<Role> } }>, repaymentPlan: Array<{ __typename?: 'LoanRepaymentInPlan', repaymentType: LoanRepaymentType, status: LoanRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }> } | null };
-
-export type LoanApproveMutationVariables = Exact<{
-  input: LoanApproveInput;
-}>;
-
-
-export type LoanApproveMutation = { __typename?: 'Mutation', loanApprove: { __typename?: 'LoanApprovePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
-
-export type LoanCreateMutationVariables = Exact<{
-  input: LoanCreateInput;
-}>;
-
-
-export type LoanCreateMutation = { __typename?: 'Mutation', loanCreate: { __typename?: 'LoanCreatePayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-
-export type LoansQueryVariables = Exact<{
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type LoansQuery = { __typename?: 'Query', loans: { __typename?: 'LoanConnection', edges: Array<{ __typename?: 'LoanEdge', cursor: string, node: { __typename?: 'Loan', loanId: string, status: LoanStatus, createdAt: any, principal: any, currentCvl: any, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
-
-export type LoanPartialPaymentMutationVariables = Exact<{
-  input: LoanPartialPaymentInput;
-}>;
-
-
-export type LoanPartialPaymentMutation = { __typename?: 'Mutation', loanPartialPayment: { __typename?: 'LoanPartialPaymentPayload', loan: { __typename?: 'Loan', id: string, loanId: string, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
-
-export type CollateralUpdateMutationVariables = Exact<{
-  input: LoanCollateralUpdateInput;
-}>;
-
-
-export type CollateralUpdateMutation = { __typename?: 'Mutation', loanCollateralUpdate: { __typename?: 'LoanCollateralUpdatePayload', loan: { __typename?: 'Loan', loanId: string, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } } } };
-
-export type CollateralizationStateUpdateMutationVariables = Exact<{
-  input: LoanCollateralizationStateTriggerRefreshInput;
-}>;
-
-
-export type CollateralizationStateUpdateMutation = { __typename?: 'Mutation', loanCollateralizationStateTriggerRefresh: { __typename?: 'LoanCollateralizationStateTriggerRefreshPayload', loan: { __typename?: 'Loan', loanId: string, collateralizationState: LoanCollaterizationState } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -2189,7 +1911,7 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', subjectCanCreateUser: boolean, subjectCanCreateCustomer: boolean, subjectCanCreateTermsTemplate: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> }, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', loan: boolean, term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', subjectCanCreateUser: boolean, subjectCanCreateCustomer: boolean, subjectCanCreateTermsTemplate: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> }, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
@@ -3595,7 +3317,6 @@ export const GetCustomerDocument = gql`
     status
     level
     applicantId
-    subjectCanCreateLoan
     subjectCanRecordDeposit
     subjectCanInitiateWithdrawal
     subjectCanCreateCreditFacility
@@ -3604,57 +3325,6 @@ export const GetCustomerDocument = gql`
         settled
         pending
       }
-    }
-    loans {
-      id
-      loanId
-      createdAt
-      approvedAt
-      principal
-      expiresAt
-      collateral
-      status
-      collateralizationState
-      subjectCanApprove
-      subjectCanUpdateCollateral
-      subjectCanUpdateCollateralizationState
-      subjectCanRecordPaymentOrCompleteLoan
-      customer {
-        customerId
-        email
-      }
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-      loanTerms {
-        annualRate
-        accrualInterval
-        incurrenceInterval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
-      approvals {
-        user {
-          email
-          roles
-        }
-        approvedAt
-      }
-      currentCvl
-      collateralToMatchInitialCvl @client
     }
     creditFacilities {
       id
@@ -3832,7 +3502,6 @@ export const GetCustomerByCustomerEmailDocument = gql`
     status
     level
     applicantId
-    subjectCanCreateLoan
     subjectCanRecordDeposit
     subjectCanInitiateWithdrawal
     subjectCanCreateCreditFacility
@@ -3882,7 +3551,6 @@ export const GetCustomerByCustomerIdDocument = gql`
     status
     level
     applicantId
-    subjectCanCreateLoan
     subjectCanRecordDeposit
     subjectCanInitiateWithdrawal
     subjectCanCreateCreditFacility
@@ -3930,7 +3598,6 @@ export const CustomersDocument = gql`
       customerId
       email
       telegramId
-      subjectCanCreateLoan
       subjectCanRecordDeposit
       subjectCanInitiateWithdrawal
       subjectCanCreateCreditFacility
@@ -4118,429 +3785,6 @@ export function useRecordDepositMutation(baseOptions?: Apollo.MutationHookOption
 export type RecordDepositMutationHookResult = ReturnType<typeof useRecordDepositMutation>;
 export type RecordDepositMutationResult = Apollo.MutationResult<RecordDepositMutation>;
 export type RecordDepositMutationOptions = Apollo.BaseMutationOptions<RecordDepositMutation, RecordDepositMutationVariables>;
-export const GetLoanDetailsDocument = gql`
-    query GetLoanDetails($id: UUID!) {
-  loan(id: $id) {
-    id
-    loanId
-    createdAt
-    approvedAt
-    principal
-    expiresAt
-    collateral
-    status
-    collateralizationState
-    subjectCanApprove
-    subjectCanUpdateCollateral
-    subjectCanUpdateCollateralizationState
-    subjectCanRecordPaymentOrCompleteLoan
-    customer {
-      customerId
-      email
-    }
-    balance {
-      collateral {
-        btcBalance
-      }
-      outstanding {
-        usdBalance
-      }
-      interestIncurred {
-        usdBalance
-      }
-    }
-    transactions {
-      ... on IncrementalPayment {
-        cents
-        recordedAt
-        txId
-      }
-      ... on InterestAccrued {
-        cents
-        recordedAt
-        txId
-      }
-      ... on CollateralUpdated {
-        satoshis
-        recordedAt
-        action
-        txId
-      }
-      ... on LoanOrigination {
-        cents
-        recordedAt
-        txId
-      }
-      ... on CollateralizationUpdated {
-        state
-        outstandingPrincipal
-        outstandingInterest
-        price
-        collateral
-        recordedAt
-      }
-    }
-    loanTerms {
-      annualRate
-      accrualInterval
-      incurrenceInterval
-      liquidationCvl
-      marginCallCvl
-      initialCvl
-      duration {
-        period
-        units
-      }
-    }
-    approvals {
-      user {
-        email
-        roles
-      }
-      approvedAt
-    }
-    currentCvl
-    collateralToMatchInitialCvl @client
-    repaymentPlan {
-      repaymentType
-      status
-      initial
-      outstanding
-      accrualAt
-      dueAt
-    }
-  }
-}
-    `;
-
-/**
- * __useGetLoanDetailsQuery__
- *
- * To run a query within a React component, call `useGetLoanDetailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLoanDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetLoanDetailsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetLoanDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>(GetLoanDetailsDocument, options);
-      }
-export function useGetLoanDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>(GetLoanDetailsDocument, options);
-        }
-export type GetLoanDetailsQueryHookResult = ReturnType<typeof useGetLoanDetailsQuery>;
-export type GetLoanDetailsLazyQueryHookResult = ReturnType<typeof useGetLoanDetailsLazyQuery>;
-export type GetLoanDetailsQueryResult = Apollo.QueryResult<GetLoanDetailsQuery, GetLoanDetailsQueryVariables>;
-export const LoanApproveDocument = gql`
-    mutation LoanApprove($input: LoanApproveInput!) {
-  loanApprove(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanApproveMutationFn = Apollo.MutationFunction<LoanApproveMutation, LoanApproveMutationVariables>;
-
-/**
- * __useLoanApproveMutation__
- *
- * To run a mutation, you first call `useLoanApproveMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanApproveMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanApproveMutation, { data, loading, error }] = useLoanApproveMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanApproveMutation(baseOptions?: Apollo.MutationHookOptions<LoanApproveMutation, LoanApproveMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanApproveMutation, LoanApproveMutationVariables>(LoanApproveDocument, options);
-      }
-export type LoanApproveMutationHookResult = ReturnType<typeof useLoanApproveMutation>;
-export type LoanApproveMutationResult = Apollo.MutationResult<LoanApproveMutation>;
-export type LoanApproveMutationOptions = Apollo.BaseMutationOptions<LoanApproveMutation, LoanApproveMutationVariables>;
-export const LoanCreateDocument = gql`
-    mutation LoanCreate($input: LoanCreateInput!) {
-  loanCreate(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-      loanTerms {
-        annualRate
-        accrualInterval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanCreateMutationFn = Apollo.MutationFunction<LoanCreateMutation, LoanCreateMutationVariables>;
-
-/**
- * __useLoanCreateMutation__
- *
- * To run a mutation, you first call `useLoanCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanCreateMutation, { data, loading, error }] = useLoanCreateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanCreateMutation(baseOptions?: Apollo.MutationHookOptions<LoanCreateMutation, LoanCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanCreateMutation, LoanCreateMutationVariables>(LoanCreateDocument, options);
-      }
-export type LoanCreateMutationHookResult = ReturnType<typeof useLoanCreateMutation>;
-export type LoanCreateMutationResult = Apollo.MutationResult<LoanCreateMutation>;
-export type LoanCreateMutationOptions = Apollo.BaseMutationOptions<LoanCreateMutation, LoanCreateMutationVariables>;
-export const LoansDocument = gql`
-    query Loans($first: Int!, $after: String) {
-  loans(first: $first, after: $after) {
-    edges {
-      cursor
-      node {
-        loanId
-        status
-        createdAt
-        customer {
-          customerId
-          email
-        }
-        principal
-        currentCvl
-        balance {
-          collateral {
-            btcBalance
-          }
-          outstanding {
-            usdBalance
-          }
-          interestIncurred {
-            usdBalance
-          }
-        }
-      }
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
-}
-    `;
-
-/**
- * __useLoansQuery__
- *
- * To run a query within a React component, call `useLoansQuery` and pass it any options that fit your needs.
- * When your component renders, `useLoansQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useLoansQuery({
- *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
- *   },
- * });
- */
-export function useLoansQuery(baseOptions: Apollo.QueryHookOptions<LoansQuery, LoansQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<LoansQuery, LoansQueryVariables>(LoansDocument, options);
-      }
-export function useLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LoansQuery, LoansQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<LoansQuery, LoansQueryVariables>(LoansDocument, options);
-        }
-export type LoansQueryHookResult = ReturnType<typeof useLoansQuery>;
-export type LoansLazyQueryHookResult = ReturnType<typeof useLoansLazyQuery>;
-export type LoansQueryResult = Apollo.QueryResult<LoansQuery, LoansQueryVariables>;
-export const LoanPartialPaymentDocument = gql`
-    mutation loanPartialPayment($input: LoanPartialPaymentInput!) {
-  loanPartialPayment(input: $input) {
-    loan {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type LoanPartialPaymentMutationFn = Apollo.MutationFunction<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-
-/**
- * __useLoanPartialPaymentMutation__
- *
- * To run a mutation, you first call `useLoanPartialPaymentMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useLoanPartialPaymentMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [loanPartialPaymentMutation, { data, loading, error }] = useLoanPartialPaymentMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useLoanPartialPaymentMutation(baseOptions?: Apollo.MutationHookOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>(LoanPartialPaymentDocument, options);
-      }
-export type LoanPartialPaymentMutationHookResult = ReturnType<typeof useLoanPartialPaymentMutation>;
-export type LoanPartialPaymentMutationResult = Apollo.MutationResult<LoanPartialPaymentMutation>;
-export type LoanPartialPaymentMutationOptions = Apollo.BaseMutationOptions<LoanPartialPaymentMutation, LoanPartialPaymentMutationVariables>;
-export const CollateralUpdateDocument = gql`
-    mutation CollateralUpdate($input: LoanCollateralUpdateInput!) {
-  loanCollateralUpdate(input: $input) {
-    loan {
-      loanId
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-export type CollateralUpdateMutationFn = Apollo.MutationFunction<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
-
-/**
- * __useCollateralUpdateMutation__
- *
- * To run a mutation, you first call `useCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCollateralUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [collateralUpdateMutation, { data, loading, error }] = useCollateralUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CollateralUpdateMutation, CollateralUpdateMutationVariables>(CollateralUpdateDocument, options);
-      }
-export type CollateralUpdateMutationHookResult = ReturnType<typeof useCollateralUpdateMutation>;
-export type CollateralUpdateMutationResult = Apollo.MutationResult<CollateralUpdateMutation>;
-export type CollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralUpdateMutation, CollateralUpdateMutationVariables>;
-export const CollateralizationStateUpdateDocument = gql`
-    mutation CollateralizationStateUpdate($input: LoanCollateralizationStateTriggerRefreshInput!) {
-  loanCollateralizationStateTriggerRefresh(input: $input) {
-    loan {
-      loanId
-      collateralizationState
-    }
-  }
-}
-    `;
-export type CollateralizationStateUpdateMutationFn = Apollo.MutationFunction<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
-
-/**
- * __useCollateralizationStateUpdateMutation__
- *
- * To run a mutation, you first call `useCollateralizationStateUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCollateralizationStateUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [collateralizationStateUpdateMutation, { data, loading, error }] = useCollateralizationStateUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCollateralizationStateUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>(CollateralizationStateUpdateDocument, options);
-      }
-export type CollateralizationStateUpdateMutationHookResult = ReturnType<typeof useCollateralizationStateUpdateMutation>;
-export type CollateralizationStateUpdateMutationResult = Apollo.MutationResult<CollateralizationStateUpdateMutation>;
-export type CollateralizationStateUpdateMutationOptions = Apollo.BaseMutationOptions<CollateralizationStateUpdateMutation, CollateralizationStateUpdateMutationVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {
@@ -5741,7 +4985,6 @@ export const MeDocument = gql`
     subjectCanCreateCustomer
     subjectCanCreateTermsTemplate
     visibleNavigationItems {
-      loan
       term
       user
       customer

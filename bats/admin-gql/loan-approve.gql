@@ -1,8 +1,0 @@
-mutation LoanApprove($input: LoanApproveInput!) {
-  loanApprove(input: $input) {
-    loan {
-      loanId
-      collateralizationState
-    }
-  }
-}

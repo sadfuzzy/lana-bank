@@ -8,7 +8,6 @@ import {
   CollateralizationState,
   GetRealtimePriceUpdatesQuery,
   InterestInterval,
-  LoanCollaterizationState,
   Period,
 } from "./graphql/generated"
 
@@ -80,7 +79,7 @@ export const formatInterval = (interval: InterestInterval) => {
 }
 
 export const formatCollateralizationState = (
-  collateralizationState: LoanCollaterizationState | CollateralizationState,
+  collateralizationState: CollateralizationState,
 ) => {
   return collateralizationState
     .toLowerCase()
