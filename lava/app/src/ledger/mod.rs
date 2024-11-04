@@ -21,7 +21,8 @@ use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
         CollateralAction, CreditFacilityId, CustomerId, DepositId, LedgerAccountId,
-        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId, Subject, UsdCents, WithdrawId,
+        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, LoanId, Subject, UsdCents,
+        WithdrawalId,
     },
 };
 
@@ -121,11 +122,11 @@ impl Ledger {
     #[instrument(name = "lava.ledger.initiate_withdrawal_for_customer", skip(self), err)]
     pub async fn initiate_withdrawal_for_customer(
         &self,
-        withdrawal_id: WithdrawId,
+        withdrawal_id: WithdrawalId,
         customer_account_ids: CustomerLedgerAccountIds,
         amount: UsdCents,
         external_id: String,
-    ) -> Result<WithdrawId, LedgerError> {
+    ) -> Result<WithdrawalId, LedgerError> {
         self.get_bank_deposits_balance()
             .await?
             .check_withdrawal_amount(amount)?;
@@ -145,11 +146,11 @@ impl Ledger {
     pub async fn confirm_withdrawal_for_customer(
         &self,
         ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawId,
+        withdrawal_id: WithdrawalId,
         debit_account_id: LedgerAccountId,
         amount: UsdCents,
         external_id: String,
-    ) -> Result<WithdrawId, LedgerError> {
+    ) -> Result<WithdrawalId, LedgerError> {
         self.cala
             .execute_confirm_withdraw_tx(
                 ledger_tx_id,
@@ -166,11 +167,11 @@ impl Ledger {
     pub async fn cancel_withdrawal_for_customer(
         &self,
         ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawId,
+        withdrawal_id: WithdrawalId,
         debit_account_id: LedgerAccountId,
         amount: UsdCents,
         external_id: String,
-    ) -> Result<WithdrawId, LedgerError> {
+    ) -> Result<WithdrawalId, LedgerError> {
         self.cala
             .execute_cancel_withdraw_tx(
                 ledger_tx_id,

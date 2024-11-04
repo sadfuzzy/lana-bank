@@ -85,7 +85,7 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<Withdrawal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Withdrawal, ctx, app.withdraws().find_by_id(sub, id))
+        maybe_fetch_one!(Withdrawal, ctx, app.withdrawals().find_by_id(sub, id))
     }
 
     async fn withdrawals(
@@ -94,16 +94,16 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<WithdrawByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
+        Connection<WithdrawalByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            WithdrawByCreatedAtCursor,
+            WithdrawalByCreatedAtCursor,
             Withdrawal,
             ctx,
             after,
             first,
-            |query| app.withdraws().list(sub, query)
+            |query| app.withdrawals().list(sub, query)
         )
     }
 
@@ -606,7 +606,7 @@ impl Mutation {
             WithdrawalInitiatePayload,
             Withdrawal,
             ctx,
-            app.withdraws()
+            app.withdrawals()
                 .initiate(sub, input.customer_id, input.amount, input.reference)
         )
     }
@@ -621,7 +621,7 @@ impl Mutation {
             WithdrawalConfirmPayload,
             Withdrawal,
             ctx,
-            app.withdraws().confirm(sub, input.withdrawal_id)
+            app.withdrawals().confirm(sub, input.withdrawal_id)
         )
     }
 
@@ -635,7 +635,7 @@ impl Mutation {
             WithdrawalCancelPayload,
             Withdrawal,
             ctx,
-            app.withdraws().cancel(sub, input.withdrawal_id)
+            app.withdrawals().cancel(sub, input.withdrawal_id)
         )
     }
 

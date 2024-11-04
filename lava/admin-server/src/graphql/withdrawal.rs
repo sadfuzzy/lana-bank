@@ -4,8 +4,8 @@ use crate::primitives::*;
 
 use super::{approval_process::ApprovalProcess, customer::Customer, loader::LavaDataLoader};
 
-pub use lava_app::withdraw::{
-    Withdraw as DomainWithdrawal, WithdrawByCreatedAtCursor, WithdrawalStatus,
+pub use lava_app::withdrawal::{
+    Withdrawal as DomainWithdrawal, WithdrawalByCreatedAtCursor, WithdrawalStatus,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -22,8 +22,8 @@ pub struct Withdrawal {
     pub(super) entity: Arc<DomainWithdrawal>,
 }
 
-impl From<lava_app::withdraw::Withdraw> for Withdrawal {
-    fn from(withdraw: lava_app::withdraw::Withdraw) -> Self {
+impl From<lava_app::withdrawal::Withdrawal> for Withdrawal {
+    fn from(withdraw: lava_app::withdrawal::Withdrawal) -> Self {
         Withdrawal {
             id: withdraw.id.to_global_id(),
             created_at: withdraw.created_at().into(),
@@ -45,7 +45,7 @@ impl Withdrawal {
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalStatus> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .withdraws()
+            .withdrawals()
             .ensure_up_to_date_status(&self.entity)
             .await?
             .map(|w| w.status())
@@ -73,7 +73,7 @@ impl Withdrawal {
     async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .withdraws()
+            .withdrawals()
             .subject_can_confirm(sub, false)
             .await
             .is_ok())
@@ -81,7 +81,11 @@ impl Withdrawal {
 
     async fn subject_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.withdraws().subject_can_cancel(sub, false).await.is_ok())
+        Ok(app
+            .withdrawals()
+            .subject_can_cancel(sub, false)
+            .await
+            .is_ok())
     }
 }
 

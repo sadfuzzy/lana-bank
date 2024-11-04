@@ -1,6 +1,6 @@
 es_entity::entity_id! {
     CustomerId,
-    WithdrawId,
+    WithdrawalId,
     DepositId,
     DocumentId,
     LoanId,
@@ -10,7 +10,7 @@ es_entity::entity_id! {
     TermsTemplateId,
     ReportId;
 
-    WithdrawId => governance::ApprovalProcessId,
+    WithdrawalId => governance::ApprovalProcessId,
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursementId => governance::ApprovalProcessId,
     ReportId => job::JobId,

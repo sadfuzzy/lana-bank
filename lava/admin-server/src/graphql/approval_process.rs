@@ -129,7 +129,7 @@ impl ApprovalProcess {
                     .load_one(
                         self.entity
                             .target_ref()
-                            .parse::<WithdrawId>()
+                            .parse::<WithdrawalId>()
                             .expect("invalid target ref"),
                     )
                     .await?
@@ -176,7 +176,7 @@ pub enum ApprovalProcessType {
 
 impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
     fn from(process_type: &governance::ApprovalProcessType) -> Self {
-        if process_type == &lava_app::governance::APPROVE_WITHDRAW_PROCESS {
+        if process_type == &lava_app::governance::APPROVE_WITHDRAWAL_PROCESS {
             Self::WithdrawalApproval
         } else if process_type == &lava_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
             Self::CreditFacilityApproval

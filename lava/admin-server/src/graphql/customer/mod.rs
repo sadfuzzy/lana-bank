@@ -87,7 +87,7 @@ impl Customer {
     async fn withdrawals(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Withdrawal>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let withdraws = app
-            .withdraws()
+            .withdrawals()
             .list_for_customer(sub, self.entity.id)
             .await?
             .into_iter()
@@ -154,7 +154,7 @@ impl Customer {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .withdraws()
+            .withdrawals()
             .subject_can_initiate(sub, false)
             .await
             .is_ok())

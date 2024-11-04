@@ -161,7 +161,7 @@ CREATE TABLE interest_accrual_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE withdraws (
+CREATE TABLE withdrawals (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
@@ -169,8 +169,8 @@ CREATE TABLE withdraws (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE withdraw_events (
-  id UUID NOT NULL REFERENCES withdraws(id),
+CREATE TABLE withdrawal_events (
+  id UUID NOT NULL REFERENCES withdrawals(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

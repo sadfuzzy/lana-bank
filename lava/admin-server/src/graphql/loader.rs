@@ -102,15 +102,19 @@ impl Loader<CustomerId> for LavaLoader {
     }
 }
 
-impl Loader<WithdrawId> for LavaLoader {
+impl Loader<WithdrawalId> for LavaLoader {
     type Value = Withdrawal;
-    type Error = Arc<lava_app::withdraw::error::WithdrawError>;
+    type Error = Arc<lava_app::withdrawal::error::WithdrawalError>;
 
     async fn load(
         &self,
-        keys: &[WithdrawId],
-    ) -> Result<HashMap<WithdrawId, Withdrawal>, Self::Error> {
-        self.app.withdraws().find_all(keys).await.map_err(Arc::new)
+        keys: &[WithdrawalId],
+    ) -> Result<HashMap<WithdrawalId, Withdrawal>, Self::Error> {
+        self.app
+            .withdrawals()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

@@ -73,10 +73,10 @@ pub async fn get_visible_navigation_items(
         withdraw: authz
             .check_all_permissions(
                 sub,
-                Object::Withdraw,
+                Object::Withdrawal,
                 &[
-                    Action::Withdraw(WithdrawAction::Read),
-                    Action::Withdraw(WithdrawAction::List),
+                    Action::Withdrawal(WithdrawalAction::Read),
+                    Action::Withdrawal(WithdrawalAction::List),
                 ],
             )
             .await?,

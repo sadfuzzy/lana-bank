@@ -8,7 +8,7 @@ pub use lava_app::{
         AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
         DisbursementId, DisbursementIdx, DisbursementStatus, DocumentId, KycLevel, LavaRole,
         LoanId, PolicyId, ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents,
-        Subject, TermsTemplateId, UsdCents, UserId, WithdrawId,
+        Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -84,7 +84,7 @@ impl_to_global_id! {
     DocumentId,
     PolicyId,
     CommitteeId,
-    WithdrawId,
+    WithdrawalId,
     DepositId,
     ApprovalProcessId
 }

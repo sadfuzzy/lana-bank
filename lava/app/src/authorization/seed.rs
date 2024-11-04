@@ -307,19 +307,19 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(&role, Object::Deposit, DepositAction::List)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Initiate)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::Initiate)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Confirm)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::Confirm)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Cancel)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::Cancel)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::Read)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::List)
         .await?;
     authz
         .add_permission_to_role(&role, Object::Document, DocumentAction::Create)
@@ -438,10 +438,10 @@ async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), Aut
         .add_permission_to_role(&role, Object::Deposit, DepositAction::List)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::Read)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::Read)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::Withdraw, WithdrawAction::List)
+        .add_permission_to_role(&role, Object::Withdrawal, WithdrawalAction::List)
         .await?;
     authz
         .add_permission_to_role(&role, Object::Document, DocumentAction::Read)

@@ -18,7 +18,7 @@ pub mod service_account;
 pub mod storage;
 pub mod terms;
 pub mod terms_template;
-pub mod withdraw;
+pub mod withdrawal;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lava_events::LavaEvent>;
@@ -39,7 +39,7 @@ pub mod governance {
     pub type Governance = governance::Governance<Authorization, LavaEvent>;
     pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit_facility::APPROVE_DISBURSEMENT_PROCESS;
-    pub use crate::withdraw::APPROVE_WITHDRAW_PROCESS;
+    pub use crate::withdrawal::APPROVE_WITHDRAWAL_PROCESS;
 }
 
 pub mod audit {

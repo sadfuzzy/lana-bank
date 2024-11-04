@@ -67,7 +67,7 @@ pub enum AppObject {
     Customer(CustomerAllOrOne),
     Document,
     Deposit,
-    Withdraw,
+    Withdrawal,
     Report,
     Audit,
     Ledger,
@@ -115,7 +115,7 @@ impl FromStr for AppObject {
                 AppObject::Customer(customer_ref)
             }
             Deposit => AppObject::Deposit,
-            Withdraw => AppObject::Withdraw,
+            Withdrawal => AppObject::Withdrawal,
             Report => AppObject::Report,
             Audit => AppObject::Audit,
             Ledger => AppObject::Ledger,
