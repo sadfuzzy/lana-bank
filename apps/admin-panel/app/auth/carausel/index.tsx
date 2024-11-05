@@ -1,11 +1,10 @@
 "use client"
 
-import Image from "next/image"
 import MTCarousel from "@material-tailwind/react/components/Carousel"
 
-import Generate from "./vectors/generate.svg"
-import Manage from "./vectors/manage.svg"
-import OneStop from "./vectors/onestop.svg"
+import GenerateIcon from "./vectors/generate.svg"
+import ManageIcon from "./vectors/manage.svg"
+import OneStopIcon from "./vectors/onestop.svg"
 
 const Carousel: React.FC = () => {
   return (
@@ -29,14 +28,17 @@ const Carousel: React.FC = () => {
           </div>
         )}
       >
-        <CarouselItem text="One-stop view into the bank’s financials" icon={OneStop} />
+        <CarouselItem
+          text="One-stop view into the bank's financials"
+          Icon={OneStopIcon}
+        />
         <CarouselItem
           text="Manage customers, approve loans, record deposits and withdrawals"
-          icon={Manage}
+          Icon={ManageIcon}
         />
         <CarouselItem
           text="Generate regulatory reporting for government compliance"
-          icon={Generate}
+          Icon={GenerateIcon}
         />
       </MTCarousel>
     </div>
@@ -45,13 +47,14 @@ const Carousel: React.FC = () => {
 
 export default Carousel
 
-type CaraouselItemProps = {
+type CarouselItemProps = {
   text: string
-  icon: string
+  Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
 }
-const CarouselItem: React.FC<CaraouselItemProps> = ({ text, icon }) => (
+
+const CarouselItem: React.FC<CarouselItemProps> = ({ text, Icon }) => (
   <div className="flex flex-col justify-center items-center space-y-10 h-full">
-    <Image src={icon} alt={text} width="300" height="300" priority />
+    <Icon className="w-[300px] h-[300px]" />
     <div className="text-title text-body-lg text-center !text-white">{text}</div>
   </div>
 )

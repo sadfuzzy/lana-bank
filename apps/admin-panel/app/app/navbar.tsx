@@ -83,7 +83,7 @@ const NavBar = () => {
           <button onClick={() => setIsOpen(true)} aria-label="Toggle navigation menu">
             <HiOutlineMenu className="w-8 h-8 text-neutral-800" />
           </button>
-          <Logo width={21} />
+          <Logo width={30} />
           <Avatar />
         </div>
       </div>
@@ -92,7 +92,7 @@ const NavBar = () => {
       <div className="hidden md:flex md:flex-col min-h-screen justify-between">
         <div>
           <div className="flex justify-between items-center w-full p-5">
-            <Logo />
+            <Logo width={30} />
             <Avatar />
           </div>
           <NavItems />
