@@ -87,6 +87,7 @@
 }
 
 .text-mono {
+  @apply text-body;
   font-family: var(--font-roboto-mono);
 }
 

@@ -6,14 +6,19 @@ import withMT from "@material-tailwind/react/utils/withMT"
 import { aliasColors } from "./lib/ui/primitives"
 
 const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  darkMode: ["class"],
+  content: ["app/**/*.{ts,tsx}", "components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: aliasColors,
+      boxShadow: {
+        glow: "0 0 8px var(--primary)",
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "caret-blink": "caret-blink 1.25s ease-out infinite",
+      },
       textColor: ({ theme }) => ({
         "heading": theme("colors.neutral.900"),
         "body": theme("colors.neutral.800"),
@@ -44,6 +49,7 @@ const config: Config = {
         "disabled": theme("colors.blue-gray.50"),
       }),
       borderColor: ({ theme }) => ({
+        "DEFAULT": "var(--border-color)",
         "default": theme("colors.neutral.200"),
         "primary": theme("colors.primary"),
         "action-hover": theme("colors.primary.600"),
@@ -60,7 +66,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animate")],
 }
-
 export default withMT(config)

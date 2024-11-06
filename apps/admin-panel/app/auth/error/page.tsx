@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { Button } from "@/components"
+import { Button } from "@/components/new"
 
 const Error: React.FC = () => (
   <>
