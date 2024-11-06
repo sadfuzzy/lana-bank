@@ -56,9 +56,7 @@ teardown_file() {
       }
     }'
   )
-  echo 'updating collateral'
   exec_admin_graphql 'credit-facility-collateral-update' "$variables"
-  echo $(graphql_output)
   credit_facility_id=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.status')
@@ -104,7 +102,6 @@ teardown_file() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
-  echo $(graphql_output)
   disbursal_id=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.id')
   [[ "$disbursal_id" != "null" ]] || exit 1
   status=$(graphql_output '.data.creditFacilityDisbursalConfirm.disbursal.status')

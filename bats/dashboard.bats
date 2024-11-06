@@ -44,5 +44,41 @@ teardown_file() {
 
   exec_admin_graphql 'dashboard'
   new_pending_facilities=$(graphql_output '.data.dashboard.pendingFacilities')
-  [[ "$new_pending_facilities" != "pending_facilities" ]] || exit 1
+  [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
+
+  active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
+  [[ "$active_facilities" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg credit_facility_id "$credit_facility_id" \
+    '{
+      input: {
+        creditFacilityId: $credit_facility_id,
+        collateral: 50000000,
+      }
+    }'
+
+  )
+  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+
+  exec_admin_graphql 'dashboard'
+  new_active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
+  [[ "$new_active_facilities" != "$active_facilities" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg credit_facility_id "$credit_facility_id" \
+    '{
+      input: {
+        creditFacilityId: $credit_facility_id,
+      }
+    }'
+
+  )
+  exec_admin_graphql 'credit-facility-complete' "$variables"
+
+  exec_admin_graphql 'dashboard'
+  active_facilities_after_completion=$(graphql_output '.data.dashboard.activeFacilities')
+  [[ "$active_facilities_after_completion" != "$new_active_facilities" ]] || exit 1
 }

@@ -19,6 +19,8 @@ pub enum LavaEvent {
 #[serde(tag = "tag")]
 pub enum CreditEvent {
     CreditFacilityCreated,
+    CreditFacilityActivated,
+    CreditFacilityCompleted,
 }
 
 macro_rules! impl_event_marker {

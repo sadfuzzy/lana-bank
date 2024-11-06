@@ -18,6 +18,15 @@ impl DashboardValues {
                 self.pending_facilities += 1;
                 true
             }
+            LavaEvent::Credit(CreditEvent::CreditFacilityActivated { .. }) => {
+                self.pending_facilities -= 1;
+                self.active_facilities += 1;
+                true
+            }
+            LavaEvent::Credit(CreditEvent::CreditFacilityCompleted { .. }) => {
+                self.active_facilities -= 1;
+                true
+            }
             _ => false,
         }
     }

@@ -34,6 +34,8 @@ impl CreditFacilityPublisher {
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => Some(CreditEvent::CreditFacilityCreated),
+                Activated { .. } => Some(CreditEvent::CreditFacilityActivated),
+                Completed { .. } => Some(CreditEvent::CreditFacilityCompleted),
                 _ => None,
             })
             .collect::<Vec<_>>();
