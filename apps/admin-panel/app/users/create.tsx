@@ -38,7 +38,7 @@ gql`
 type CreateUserDialogProps = {
   setOpenCreateUserDialog: (isOpen: boolean) => void
   openCreateUserDialog: boolean
-  refetch: () => void
+  refetch?: () => void
 }
 
 export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
@@ -115,7 +115,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   }
 
   const finalize = (userId: string) => {
-    refetch()
+    if(refetch) refetch()
     toast.success("User created and roles assigned successfully")
     setOpenCreateUserDialog(false)
     router.push(`/users/${userId}`)

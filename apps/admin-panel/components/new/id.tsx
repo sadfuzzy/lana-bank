@@ -14,9 +14,9 @@ const ID: React.FC<IDProps> = ({ id, type }) => {
   }
 
   return (
-    <div className="text-[10px]">
-      <span className="text-mono font-light">{id.slice(0, 4)}...</span>
-      <span className="text-primary cursor-pointer" onClick={copyID}>
+    <div className="text-sm">
+      <span className="text-mono">{id.slice(0, 7)}...</span>
+      <span className="text-blue-600 cursor-pointer" onClick={copyID}>
         Copy ID
       </span>
     </div>

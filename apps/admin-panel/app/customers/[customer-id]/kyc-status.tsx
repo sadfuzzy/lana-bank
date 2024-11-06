@@ -66,7 +66,6 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
       </CardHeader>
       <CardContent>
         <DetailItem label="Level" value={data?.customer?.level.toLocaleLowerCase()} />
-        <DetailItem label="Status" value={data?.customer?.status.toLocaleLowerCase()} />
         <DetailItem
           label="KYC Application Link"
           value={

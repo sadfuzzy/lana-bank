@@ -13,8 +13,18 @@ import { Documents } from "./documents"
 import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
-import { PageHeading } from "@/components/page-heading"
+
 import { Customer as CustomerType, useGetCustomerQuery } from "@/lib/graphql/generated"
+
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/primitive/breadcrumb"
+import { basePath } from "@/env"
 import { useCreateContext } from "@/app/create"
 
 gql`
@@ -98,6 +108,26 @@ gql`
   }
 `
 
+const CustomerBreadcrumb = ({ customerEmail }: { customerEmail: string }) => {
+  return (
+    <Breadcrumb className="py-4 px-2">
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          <BreadcrumbLink href={`/dashboard`}>Dashboard</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbLink href={`/customers`}>Customers</BreadcrumbLink>
+        </BreadcrumbItem>
+        <BreadcrumbSeparator />
+        <BreadcrumbItem>
+          <BreadcrumbPage>{customerEmail}</BreadcrumbPage>
+        </BreadcrumbItem>
+      </BreadcrumbList>
+    </Breadcrumb>
+  )
+}
+
 const Customer = ({
   params,
 }: {
@@ -119,11 +149,11 @@ const Customer = ({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PageHeading>Customer Details</PageHeading>
       {loading && <p>Loading...</p>}
       {error && <div className="text-destructive">{error.message}</div>}
       {data && data.customer && (
         <>
+          <CustomerBreadcrumb customerEmail={data.customer.email} />
           <CustomerDetailsCard customer={data.customer} refetch={refetch} />
           <Tabs defaultValue="overview" className="mt-4">
             <TabsList>
@@ -136,7 +166,6 @@ const Customer = ({
             </TabsList>
             <TabsContent value="overview">
               <CustomerAccountBalances balance={data.customer.balance} />
-              <CustomerTransactionsTable transactions={data.customer.transactions} />
               <KycStatus customerId={customerId} />
             </TabsContent>
             <TabsContent value="balances">

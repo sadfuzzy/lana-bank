@@ -167,7 +167,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               </DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleConfirm}>
-              <div className="bg-secondary-foreground p-2 rounded-md text-sm">
+              <div className="rounded-md text-sm">
                 <DetailsGroup>
                   <DetailItem label="Credit Facility ID" value={creditFacilityId} />
                   <DetailItem

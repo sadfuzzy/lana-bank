@@ -87,7 +87,7 @@ function UsersPage() {
       )}
       <div className="flex justify-between items-center mb-8">
         <PageHeading className="mb-0">Users</PageHeading>
-        <Button onClick={() => setOpenCreateUserDialog(true)} variant="primary">
+        <Button onClick={() => setOpenCreateUserDialog(true)} variant="default">
           Add New User
         </Button>
       </div>
@@ -115,7 +115,7 @@ function UsersPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
                       {user.roles.length > 0
-                        ? user.roles.sort().map((role) => (
+                        ? user.roles.map((role) => (
                             <Badge variant="secondary" key={role}>
                               {formatRole(role)}
                             </Badge>

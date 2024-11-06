@@ -105,7 +105,7 @@ function TermPage() {
           ) : error ? (
             <p className="text-destructive mt-6">{error.message}</p>
           ) : data?.termsTemplates && data.termsTemplates.length > 0 ? (
-            <Table className="mt-6">
+            <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>

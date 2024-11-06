@@ -13,7 +13,6 @@ import {
   CardTitle,
 } from "@/components/primitive/card"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
-import { Separator } from "@/components/primitive/separator"
 import { Button } from "@/components/primitive/button"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
 
@@ -79,7 +78,6 @@ function TermsTemplateDetails({ id }: { id: string }) {
                 Update
               </Button>
             </CardHeader>
-            <Separator className="mb-4" />
 
             <CardContent>
               <DetailsGroup>

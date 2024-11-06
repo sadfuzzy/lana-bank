@@ -88,7 +88,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         <div className="flex flex-col space-y-2 mt-1 ml-4">
           {creditFacilityDetails.subjectCanUpdateCollateral && (
             <Button
-              variant="primary"
+              variant="outline"
               className="w-full"
               onClick={() => setOpenCollateralUpdateDialog(true)}
             >
@@ -98,7 +98,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           {creditFacilityDetails.subjectCanInitiateDisbursal &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
-                variant="primary"
+                variant="outline"
                 className="w-full"
                 onClick={() => setOpenDisbursalInitiateDialog(true)}
               >
@@ -108,7 +108,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           {creditFacilityDetails.subjectCanComplete &&
             creditFacilityDetails.canBeCompleted && (
               <Button
-                variant="primary"
+                variant="outline"
                 className="w-full"
                 onClick={() => setOpenCompleteDialog(true)}
               >
@@ -118,7 +118,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           {creditFacilityDetails.subjectCanRecordPayment &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
-                variant="primary"
+                variant="outline"
                 className="w-full"
                 onClick={() => setOpenPartialPaymentDialog(true)}
               >

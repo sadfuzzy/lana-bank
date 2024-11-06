@@ -13,7 +13,6 @@ function TermsTemplate({
 
   return (
     <main className="max-w-[70rem] m-auto">
-      <PageHeading>Terms Template Details</PageHeading>
       <TermsTemplateDetails id={termsTemplateId} />
     </main>
   )
