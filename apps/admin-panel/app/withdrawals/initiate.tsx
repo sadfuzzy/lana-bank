@@ -74,6 +74,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         onCompleted: (data) => {
           toast.success("Withdrawal initiated successfully")
           router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
+          handleCloseDialog()
         },
       })
     } catch (error) {

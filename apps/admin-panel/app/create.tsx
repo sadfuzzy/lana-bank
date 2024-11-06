@@ -43,7 +43,6 @@ const CreateButton = () => {
   }
 
   const menuItems = [
-    { label: "Disbursal", onClick: () => {} },
     {
       label: "Deposit",
       onClick: () => {

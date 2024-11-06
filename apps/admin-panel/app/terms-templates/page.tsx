@@ -4,12 +4,10 @@ import { gql } from "@apollo/client"
 
 import Link from "next/link"
 
-import { useSearchParams } from "next/navigation"
-import { IoEllipsisHorizontal } from "react-icons/io5"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { CreateTermsTemplateDialog } from "./create"
 
-import { Button } from "@/components/primitive/button"
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import {
   Card,
@@ -27,12 +25,6 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { formatPeriod } from "@/lib/utils"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
 
 gql`
@@ -61,6 +53,7 @@ gql`
 
 function TermPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
@@ -109,12 +102,17 @@ function TermPage() {
                   <TableHead>Initial CVL</TableHead>
                   <TableHead>MarginCall CVL</TableHead>
                   <TableHead>Liquidation CVL</TableHead>
-                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data?.termsTemplates.map((termsTemplate) => (
-                  <TableRow key={termsTemplate.termsId}>
+                  <TableRow
+                    key={termsTemplate.termsId}
+                    className="cursor-pointer"
+                    onClick={() =>
+                      router.push(`/terms-templates/${termsTemplate.termsId}`)
+                    }
+                  >
                     <TableCell className="hover:underline">
                       <Link href={`/terms-templates/${termsTemplate.termsId}`}>
                         {termsTemplate.name}
@@ -129,31 +127,6 @@ function TermPage() {
                     <TableCell>{termsTemplate.values.initialCvl}%</TableCell>
                     <TableCell>{termsTemplate.values.marginCallCvl}%</TableCell>
                     <TableCell>{termsTemplate.values.liquidationCvl}%</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <Button variant="ghost">
-                            <IoEllipsisHorizontal className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="text-sm">
-                          <DropdownMenuItem>
-                            <Link href={`/terms-templates/${termsTemplate.termsId}`}>
-                              View details
-                            </Link>
-                          </DropdownMenuItem>
-                          {termsTemplate.subjectCanUpdateTermsTemplate && (
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setOpenUpdateTermsTemplateDialog(termsTemplate)
-                              }
-                            >
-                              Update
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

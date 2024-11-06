@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import {
+  CreditFacilitiesDocument,
   InterestInterval,
   Period,
   useCreditFacilityCreateMutation,
@@ -49,7 +50,6 @@ type CreateCreditFacilityDialogProps = {
   setOpenCreateCreditFacilityDialog: (isOpen: boolean) => void
   openCreateCreditFacilityDialog: boolean
   customerId: string
-  refetch?: () => void
 }
 
 export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProps> = ({
@@ -68,7 +68,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   const { data: termsTemplatesData, loading: termsTemplatesLoading } =
     useTermsTemplatesQuery()
   const [createCreditFacility, { loading, error, reset }] =
-    useCreditFacilityCreateMutation()
+    useCreditFacilityCreateMutation({
+      refetchQueries: [CreditFacilitiesDocument],
+    })
   const [useTemplateTerms, setUseTemplateTerms] = useState(true)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
@@ -192,6 +194,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           router.push(
             `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
           )
+          handleCloseDialog()
         },
       })
     } catch (err) {

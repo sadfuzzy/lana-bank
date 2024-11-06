@@ -391,3 +391,7 @@
     scrollbar-width: none; /* Firefox */
   }
 }
+
+thead tr {
+  @apply hover:!bg-card;
+}

@@ -79,7 +79,6 @@ const columns: Column<Customer>[] = [
   {
     key: "status",
     label: "KYC Status",
-    filterValues: [AccountStatus.Active, AccountStatus.Inactive],
     render: (status) => (
       <div
         className={
@@ -94,6 +93,5 @@ const columns: Column<Customer>[] = [
     key: "balance",
     label: "USD Balance",
     render: (balance) => <div>${balance.checking.settled}</div>,
-    sortable: true,
   },
 ]

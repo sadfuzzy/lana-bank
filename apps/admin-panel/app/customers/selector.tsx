@@ -50,7 +50,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <PaginatedTable<Customer>
-          noHeader
+          showHeader={false}
           columns={columns}
           data={data?.customersByEmail as PaginatedData<Customer>}
           loading={loading}

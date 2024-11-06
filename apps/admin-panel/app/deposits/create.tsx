@@ -15,7 +15,11 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import { CustomersDocument, useCreateDepositMutation } from "@/lib/graphql/generated"
+import {
+  CustomersDocument,
+  DepositsDocument,
+  useCreateDepositMutation,
+} from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -70,7 +74,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
             reference,
           },
         },
-        refetchQueries: [CustomersDocument],
+        refetchQueries: [CustomersDocument, DepositsDocument],
       })
       if (result.data) {
         toast.success("Deposit created successfully")

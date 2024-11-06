@@ -45,40 +45,14 @@ export interface PaginatedData<T> {
 
 interface PaginatedTableProps<T> {
   columns: Column<T>[]
-  data?: PaginatedData<T>
   loading: boolean
+  data?: PaginatedData<T>
   pageSize: number
   fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
   onFilter?: (column: keyof T, value: T[keyof T]) => void
   onClick?: (record: T) => void
-  noHeader?: boolean
-}
-
-const LoadingSkeleton = <T,>({
-  columns,
-  pageSize,
-}: {
-  columns: Column<T>[]
-  pageSize: number
-}) => {
-  return (
-    <div>
-      <Table>
-        <TableBody>
-          {Array.from({ length: pageSize }).map((_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {columns.map((col, colIndex) => (
-                <TableCell key={colIndex}>
-                  <div className="animate-pulse rounded-md bg-muted h-4 w-full" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
+  showHeader?: boolean
 }
 
 const PaginatedTable = <T,>({
@@ -90,7 +64,7 @@ const PaginatedTable = <T,>({
   onSort,
   onFilter,
   onClick,
-  noHeader = false,
+  showHeader = true,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -102,13 +76,9 @@ const PaginatedTable = <T,>({
   const [displayData, setDisplayData] = useState<{ node: T }[]>([])
 
   useEffect(() => {
-    if (data && data.edges) {
-      const startIdx = (currentPage - 1) * pageSize
-      const endIdx = startIdx + pageSize
-      setDisplayData(data.edges.slice(startIdx, endIdx))
-    } else {
-      setDisplayData([])
-    }
+    const startIdx = (currentPage - 1) * pageSize
+    const endIdx = startIdx + pageSize
+    data && setDisplayData(data.edges.slice(startIdx, endIdx))
   }, [data, currentPage, pageSize])
 
   const handleSort = (columnKey: keyof T) => {
@@ -126,15 +96,13 @@ const PaginatedTable = <T,>({
   }
 
   const handleNextPage = async () => {
-    if (data && data.edges && data.pageInfo) {
-      const totalDataLoaded = data.edges.length
-      const maxDataRequired = currentPage * pageSize + pageSize
+    const totalDataLoaded = data?.edges.length || 0
+    const maxDataRequired = currentPage * pageSize + pageSize
 
-      if (totalDataLoaded < maxDataRequired && data.pageInfo.hasNextPage) {
-        await fetchMore(data.pageInfo.endCursor)
-      }
-      setCurrentPage((prevPage) => prevPage + 1)
+    if (totalDataLoaded < maxDataRequired && data && data.pageInfo.hasNextPage) {
+      await fetchMore(data.pageInfo.endCursor)
     }
+    setCurrentPage((prevPage) => prevPage + 1)
   }
 
   const handlePreviousPage = () => {
@@ -143,11 +111,9 @@ const PaginatedTable = <T,>({
     }
   }
 
-  if (loading) {
-    return <LoadingSkeleton columns={columns} pageSize={pageSize} />
-  }
+  if (loading) return <LoadingSkeleton columns={columns} pageSize={pageSize} />
 
-  if (!data || !data.edges || data.edges.length === 0) {
+  if (data?.edges.length === 0) {
     return <div className="text-sm">No data to display</div>
   }
 
@@ -155,7 +121,7 @@ const PaginatedTable = <T,>({
     <>
       <div>
         <Table>
-          {!noHeader && (
+          {showHeader && (
             <TableHeader>
               <TableRow>
                 {columns.map((col) => (
@@ -181,7 +147,7 @@ const PaginatedTable = <T,>({
                         </Button>
                       )}
                       {col.filterValues && (
-                        <div className="min-w-10 scale-75">
+                        <div className="w-30">
                           <Select
                             value={String(filterState[col.key] ?? "")}
                             onChange={(e) => {
@@ -240,10 +206,7 @@ const PaginatedTable = <T,>({
           variant="outline"
           size="sm"
           onClick={handleNextPage}
-          disabled={
-            (!data || !data.pageInfo || !data.pageInfo.hasNextPage) &&
-            displayData.length < pageSize
-          }
+          disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
         >
           <HiChevronRight className="h-4 w-4" />
         </Button>
@@ -255,3 +218,29 @@ const PaginatedTable = <T,>({
 export default PaginatedTable
 
 export const DEFAULT_PAGESIZE = 10
+
+const LoadingSkeleton = <T,>({
+  columns,
+  pageSize,
+}: {
+  columns: Column<T>[]
+  pageSize: number
+}) => {
+  return (
+    <div>
+      <Table>
+        <TableBody>
+          {Array.from({ length: pageSize }).map((_, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {columns.map((_, colIndex) => (
+                <TableCell key={colIndex}>
+                  <div className="animate-pulse rounded-md bg-muted h-4 w-full" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
