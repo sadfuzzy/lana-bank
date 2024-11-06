@@ -55,8 +55,8 @@ type AccountSetSubAccountEdge {
 }
 
 enum AccountStatus {
-	ACTIVE
 	INACTIVE
+	ACTIVE
 }
 
 scalar AnnualRatePct
