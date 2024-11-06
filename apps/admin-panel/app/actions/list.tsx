@@ -1,5 +1,21 @@
 import Link from "next/link"
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/primitive/table"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/primitive/card"
+
 const TABLE_ROWS = [
   { customer: "Jordan Michael", type: "Disbursement Approval", date: "2021-09-01" },
   { customer: "Alexa Liras", type: "Credit Facility Approval", date: "2021-09-01" },
@@ -20,49 +36,47 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     : TABLE_ROWS
 
   return (
-    <div className="bg-page rounded-md p-[10px] flex flex-col gap-1 w-full border">
-      <div className="text-title-md">Pending Actions</div>
-      <div className={`!text-body text-body-sm ${dashboard && "mb-2"}`}>
-        Approvals / Rejections waiting your way
-      </div>
-      <div className="overflow-auto h-full w-full">
-        <table className="w-full min-w-max table-auto text-left">
-          {!dashboard && (
-            <thead>
-              <tr>
-                <th className="pt-4 pb-2 text-heading text-title-sm">Customer</th>
-                <th className="pt-4 pb-2 text-heading text-title-sm">Type</th>
-                <th className="pt-4 pb-2 text-heading text-title-sm">Date</th>
-                <th className="pt-4 pb-2 text-heading text-title-sm"></th>
-              </tr>
-            </thead>
+    <Card>
+      <CardHeader>
+        <CardTitle>Pending Actions</CardTitle>
+        <CardDescription>Approvals / Rejections waiting your way</CardDescription>
+      </CardHeader>
+
+      <CardContent>
+        <div className="overflow-auto">
+          <Table>
+            {!dashboard && (
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead className="w-24"></TableHead>
+                </TableRow>
+              </TableHeader>
+            )}
+            <TableBody>
+              {tableRows.map((data, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="font-medium">{data.customer}</TableCell>
+                  <TableCell>{data.type}</TableCell>
+                  <TableCell>{data.date}</TableCell>
+                  <TableCell className="text-xs font-bold cursor-pointer">VIEW</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+
+          {dashboard && (
+            <div className="mt-4 flex items-center gap-2">
+              <Link href="/app/actions" className="text-sm text-muted-foreground">
+                ...{TABLE_ROWS.length - NUMBER_OF_ITEMS_IN_DASHBOARD} more
+              </Link>
+            </div>
           )}
-          <tbody>
-            {tableRows.map((data, idx) => (
-              <tr key={idx}>
-                <td className="text-body-md p-1">{data.customer}</td>
-                <td className="text-body-md p-1">{data.type}</td>
-                <td className="text-body-md p-1">{data.date}</td>
-                <td className="!text-action text-title-sm cursor-pointer pt-1">VIEW</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {dashboard && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-body-md">
-              ...{TABLE_ROWS.length - NUMBER_OF_ITEMS_IN_DASHBOARD} more
-            </span>
-            <Link
-              href="/app/actions"
-              className="uppercase !text-action text-title-sm cursor-pointer"
-            >
-              View All
-            </Link>
-          </div>
-        )}
-      </div>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 

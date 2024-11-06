@@ -34,7 +34,10 @@ const CreateButton = () => {
   return (
     <>
       <div className="relative inline-block" ref={menuRef}>
-        <Button onClick={() => setIsOpen(!isOpen)}>Create</Button>
+        <Button onClick={() => setIsOpen(!isOpen)}>
+          <HiPlus />
+          Create
+        </Button>
 
         <AnimatePresence>
           {isOpen && (

@@ -6,7 +6,6 @@ import { PiWarningCircleFill, PiCheckCircleFill } from "react-icons/pi"
 
 import { ReportCreateDialog } from "./create-dialog"
 
-import { PageHeading } from "@/components/page-heading"
 import { Select } from "@/components/primitive/select"
 import {
   ReportProgress,
@@ -16,6 +15,13 @@ import {
 } from "@/lib/graphql/generated"
 import { Button } from "@/components/primitive/button"
 import { formatDate } from "@/lib/utils"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 
 gql`
   query Reports {
@@ -90,42 +96,55 @@ const RegulatoryReportingPage: React.FC = () => {
   if (error) return <p className="text-destructive">{error.message}</p>
 
   return (
-    <main>
-      <div className="flex justify-between items-center mb-14">
-        <PageHeading className="mb-0">Regulatory Reporting</PageHeading>
-        <Button onClick={() => setOpenReportCreateDialog(true)}>Generate Report</Button>
-      </div>
-      {data?.reports && data.reports.length > 0 ? (
-        <div className="max-w-[50rem] space-y-6">
-          <ReportSelector
-            reports={data?.reports || []}
-            selectedReport={selectedReport}
-            onSelectReport={setSelectedReport}
-          />
-          {selectedReport && selectedReportDetails && (
-            <ReportDetails
-              selectedReportDetails={selectedReportDetails}
-              onGenerateLinks={handleGenerateLinks}
-              generateLinkLoading={generateLinkLoading}
-              linksData={linksData?.reportDownloadLinksGenerate}
-            />
+    <>
+      <Card>
+        <CardHeader className="flex flex-row  justify-between items-center">
+          <div className="flex flex-col gap-1">
+            <CardTitle>Report Management</CardTitle>
+            <CardDescription>
+              Generate and manage regulatory reports, track their status, and download
+              generated documents.
+            </CardDescription>
+          </div>
+          <Button className="ml-4" onClick={() => setOpenReportCreateDialog(true)}>
+            Generate Report
+          </Button>
+        </CardHeader>
+
+        <CardContent>
+          {data?.reports && data.reports.length > 0 ? (
+            <div className="max-w-[50rem] space-y-6">
+              <ReportSelector
+                reports={data?.reports || []}
+                selectedReport={selectedReport}
+                onSelectReport={setSelectedReport}
+              />
+              {selectedReport && selectedReportDetails && (
+                <ReportDetails
+                  selectedReportDetails={selectedReportDetails}
+                  onGenerateLinks={handleGenerateLinks}
+                  generateLinkLoading={generateLinkLoading}
+                  linksData={linksData?.reportDownloadLinksGenerate}
+                />
+              )}
+            </div>
+          ) : (
+            <p>No reports found</p>
           )}
-        </div>
-      ) : (
-        <p>No reports found</p>
-      )}
-      {generateLinkError && (
-        <p className="text-destructive">Error: {generateLinkError.message}</p>
-      )}
+          {generateLinkError && (
+            <p className="text-destructive mt-4">Error: {generateLinkError.message}</p>
+          )}
+        </CardContent>
+      </Card>
+
       <ReportCreateDialog
         setOpenReportCreateDialog={setOpenReportCreateDialog}
         openReportCreateDialog={openReportCreateDialog}
         refetch={refetchReports}
       />
-    </main>
+    </>
   )
 }
-
 export default RegulatoryReportingPage
 
 const ReportSelector: React.FC<{
@@ -188,7 +207,7 @@ const ReportDetails: React.FC<{
               variant={
                 selectedReportDetails.progress === ReportProgress.Running
                   ? "secondary"
-                  : "primary"
+                  : "default"
               }
               disabled={
                 generateLinkLoading ||

@@ -11,13 +11,19 @@ import {
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
 import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
-import { PageHeading } from "@/components/page-heading"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
   DateRange,
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 
 gql`
   query BalanceSheet($from: Timestamp!, $until: Timestamp) {
@@ -118,46 +124,56 @@ const BalanceSheet = ({
   )
 
   return (
-    <main>
-      <PageHeading>Balance Sheet</PageHeading>
-      <div className="mt-6 flex gap-6 items-center">
-        <div>Date Range:</div>
-        <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
-      </div>
-      <BalanceSheetHeader
-        currency={currency}
-        setCurrency={setCurrency}
-        layer={layer}
-        setLayer={setLayer}
-      />
-      <div className="flex gap-4 justify-between mt-6">
-        {assets && assets.length > 0 && (
-          <BalanceSheetColumn
-            title="Total Assets"
-            categories={assets}
-            currency={currency}
-            layer={layer}
-            dateRange={dateRange}
-            total={
-              assets[0].amounts[currency].closingBalance[layer][
-                BALANCE_FOR_CATEGORY["Assets"].TransactionType
-              ]
-            }
-          />
-        )}
-        <div className="w-1 min-h-full bg-secondary-foreground"></div>
-        {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
-          <BalanceSheetColumn
-            title="Total Liabilities & Equity"
-            categories={liabilitiesAndEquity}
-            currency={currency}
-            layer={layer}
-            total={totalLiabilitiesAndEquity}
-            dateRange={dateRange}
-          />
-        )}
-      </div>
-    </main>
+    <Card>
+      <CardHeader>
+        <CardTitle>Balance Sheet</CardTitle>
+        <CardDescription>
+          A financial statement showing the company's assets, liabilities, and equity at a
+          specific point in time.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-6 items-center">
+          <div>Date Range:</div>
+          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+        </div>
+
+        <BalanceSheetHeader
+          currency={currency}
+          setCurrency={setCurrency}
+          layer={layer}
+          setLayer={setLayer}
+        />
+
+        <div className="flex gap-4 justify-between mt-6">
+          {assets && assets.length > 0 && (
+            <BalanceSheetColumn
+              title="Total Assets"
+              categories={assets}
+              currency={currency}
+              layer={layer}
+              dateRange={dateRange}
+              total={
+                assets[0].amounts[currency].closingBalance[layer][
+                  BALANCE_FOR_CATEGORY["Assets"].TransactionType
+                ]
+              }
+            />
+          )}
+          <div className="w-0.5 min-h-full bg-secondary"></div>
+          {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
+            <BalanceSheetColumn
+              title="Total Liabilities & Equity"
+              categories={liabilitiesAndEquity}
+              currency={currency}
+              layer={layer}
+              total={totalLiabilitiesAndEquity}
+              dateRange={dateRange}
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -217,10 +233,8 @@ function BalanceSheetColumn({
       </Table>
       <Table>
         <TableBody>
-          <TableRow className="bg-secondary-foreground">
-            <TableCell className="uppercase font-bold text-textColor-secondary ">
-              {title}
-            </TableCell>
+          <TableRow className="bg-secondary">
+            <TableCell className="uppercase font-bold">{title}</TableCell>
             <TableCell className="flex flex-col gap-2 items-end text-right font-semibold">
               <Balance
                 align="end"
@@ -251,7 +265,7 @@ function CategoryRow({
 }) {
   return (
     <>
-      <TableRow className="bg-secondary-foreground">
+      <TableRow className="bg-secondary">
         <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase ">
           {category.name}
         </TableCell>

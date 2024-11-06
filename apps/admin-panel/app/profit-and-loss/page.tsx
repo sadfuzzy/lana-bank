@@ -25,6 +25,13 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
@@ -118,53 +125,61 @@ const ProfitAndLossStatement = ({
   if (!net) return <div>No data</div>
 
   return (
-    <main>
-      <div>
-        <PageHeading>Profit and Loss</PageHeading>
-        <div className="mt-6 flex gap-6 items-center">
+    <Card>
+      <CardHeader>
+        <CardTitle>Profit and Loss Statement</CardTitle>
+        <CardDescription>
+          A financial report showing revenue, expenses, and resulting profit or loss over
+          a specific time period.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex gap-6 items-center">
           <div>Date Range:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
+
         <CurrencyLayerSelection
           currency={currency}
           setCurrency={setCurrency}
           layer={layer}
           setLayer={setLayer}
         />
-      </div>
-      <Table className="mt-6">
-        <TableBody>
-          {categories?.map((category) => {
-            return (
-              <CategoryRow
-                key={category.name}
-                category={category}
-                currency={currency}
-                layer={layer}
-                dateRange={dateRange}
-                transactionType={
-                  BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
-                }
-              />
-            )
-          })}
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell className="uppercase pr-10 text-textColor-secondary">
-              NET
-            </TableCell>
-            <TableCell className="w-48">
-              <Balance
-                align="end"
-                currency={currency}
-                amount={net[currency].closingBalance[layer].netCredit}
-              />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </main>
+
+        <Table className="mt-6">
+          <TableBody>
+            {categories?.map((category) => {
+              return (
+                <CategoryRow
+                  key={category.name}
+                  category={category}
+                  currency={currency}
+                  layer={layer}
+                  dateRange={dateRange}
+                  transactionType={
+                    BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
+                  }
+                />
+              )
+            })}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell className="uppercase pr-10 text-textColor-secondary">
+                NET
+              </TableCell>
+              <TableCell className="w-48">
+                <Balance
+                  align="end"
+                  currency={currency}
+                  amount={net[currency].closingBalance[layer].netCredit}
+                />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
+      </CardContent>
+    </Card>
   )
 }
 

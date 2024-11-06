@@ -28,7 +28,7 @@ const Dashboard = () => {
 
   return (
     <div className="w-full h-full flex flex-col gap-2">
-      <div className="relative w-full border rounded-md flex flex-col justify-center items-start">
+      <div className="relative w-full flex flex-col justify-center items-start">
         <TimeRangeSelect range={range} setRange={setRange} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 w-full">
           <DashboardCard
@@ -72,18 +72,23 @@ const Dashboard = () => {
             buttonToRight
             buttonText="View Risky Loans"
             content={
-              <div className="flex w-full h-full min-h-28">
-                <div className="bg-error flex flex-col items-center justify-center w-full">
-                  <div className="text-heading-h6 !text-error">24%</div>
-                  <div className="text-body-xs">$10.2k</div>
+              <div className="flex w-full h-full min-h-48">
+                {/* Red Section */}
+                <div className="flex flex-col items-center justify-center w-full bg-red-100">
+                  <div className="text-2xl font-bold text-red-600">24%</div>
+                  <div className="text-sm text-red-600/90">$10.2k</div>
                 </div>
-                <div className="bg-warning flex flex-col items-center justify-center w-full">
-                  <div className="text-heading-h6 !text-warning">12.7%</div>
-                  <div className="text-body-xs">$3.3k</div>
+
+                {/* Yellow Section */}
+                <div className="flex flex-col items-center justify-center w-full bg-yellow-100">
+                  <div className="text-2xl font-bold text-yellow-600">12.7%</div>
+                  <div className="text-sm text-yellow-600/90">$3.3k</div>
                 </div>
-                <div className="bg-success flex flex-col items-center justify-center w-full">
-                  <div className="text-heading-h6 !text-success">63.3%</div>
-                  <div className="text-body-xs">$29k</div>
+
+                {/* Green Section */}
+                <div className="flex flex-col items-center justify-center w-full bg-green-100">
+                  <div className="text-2xl font-bold text-green-600">63.3%</div>
+                  <div className="text-sm text-green-600/90">$29k</div>
                 </div>
               </div>
             }

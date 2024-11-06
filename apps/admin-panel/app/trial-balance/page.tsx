@@ -2,7 +2,6 @@
 import React, { useCallback, useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
-import { PageHeading } from "@/components/page-heading"
 import {
   GetOffBalanceSheetTrialBalanceQuery,
   GetOnBalanceSheetTrialBalanceQuery,
@@ -28,6 +27,13 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 
 gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
@@ -269,7 +275,6 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
     </>
   )
 }
-
 function TrialBalancePage() {
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
@@ -298,33 +303,41 @@ function TrialBalancePage() {
   })
 
   return (
-    <main>
-      <PageHeading>Trial Balance</PageHeading>
-      <Tabs defaultValue="onBalanceSheet">
-        <TabsList className="mb-4">
-          <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
-          <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
-        </TabsList>
-        <TabsContent value="onBalanceSheet">
-          <TrialBalanceValues
-            data={onBalanceSheetData?.trialBalance}
-            loading={onBalanceSheetLoading}
-            error={onBalanceSheetError}
-            dateRange={dateRange}
-            setDateRange={handleDateChange}
-          />
-        </TabsContent>
-        <TabsContent value="offBalanceSheet">
-          <TrialBalanceValues
-            data={offBalanceSheetData?.offBalanceSheetTrialBalance}
-            loading={offBalanceSheetLoading}
-            error={offBalanceSheetError}
-            dateRange={dateRange}
-            setDateRange={handleDateChange}
-          />
-        </TabsContent>
-      </Tabs>
-    </main>
+    <Card>
+      <CardHeader>
+        <CardTitle>Trial Balance</CardTitle>
+        <CardDescription>
+          A summary of all accounts listing debit and credit balances to ensure accounting
+          entries are balanced.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="onBalanceSheet">
+          <TabsList className="mb-4">
+            <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
+            <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
+          </TabsList>
+          <TabsContent value="onBalanceSheet">
+            <TrialBalanceValues
+              data={onBalanceSheetData?.trialBalance}
+              loading={onBalanceSheetLoading}
+              error={onBalanceSheetError}
+              dateRange={dateRange}
+              setDateRange={handleDateChange}
+            />
+          </TabsContent>
+          <TabsContent value="offBalanceSheet">
+            <TrialBalanceValues
+              data={offBalanceSheetData?.offBalanceSheetTrialBalance}
+              loading={offBalanceSheetLoading}
+              error={offBalanceSheetError}
+              dateRange={dateRange}
+              setDateRange={handleDateChange}
+            />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   )
 }
 

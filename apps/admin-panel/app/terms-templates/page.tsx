@@ -16,7 +16,13 @@ import {
   useMeQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
-import { Card, CardContent } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import {
   Table,
   TableBody,
@@ -71,8 +77,6 @@ function TermPage() {
     if (searchParams.get("create")) setOpenCreateTermsTemplateDialog(true)
   }, [searchParams, setOpenCreateTermsTemplateDialog])
 
-  const { data: me } = useMeQuery()
-
   return (
     <main>
       {openUpdateTermsTemplateDialog && (
@@ -88,15 +92,13 @@ function TermPage() {
         setOpenCreateTermsTemplateDialog={setOpenCreateTermsTemplateDialog}
         refetch={refetch}
       />
-      <div className="flex justify-between items-center mb-8">
-        <PageHeading className="mb-0">Terms Template</PageHeading>
-        {me?.me.subjectCanCreateTermsTemplate && (
-          <Button onClick={() => setOpenCreateTermsTemplateDialog(true)}>
-            Create New
-          </Button>
-        )}
-      </div>
       <Card>
+        <CardHeader>
+          <CardTitle>Terms Templates</CardTitle>
+          <CardDescription>
+            Terms template that can be used with loan and credit facility
+          </CardDescription>
+        </CardHeader>
         <CardContent>
           {loading ? (
             <p className="mt-6">Loading...</p>
