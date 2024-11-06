@@ -40,7 +40,7 @@ impl CurrentJob {
     pub async fn update_execution_state_in_tx<T: Serialize>(
         &mut self,
         db: &mut Transaction<'_, Postgres>,
-        execution_state: T,
+        execution_state: &T,
     ) -> Result<(), JobError> {
         let execution_state_json = serde_json::to_value(execution_state)
             .map_err(JobError::CouldNotSerializeExecutionState)?;

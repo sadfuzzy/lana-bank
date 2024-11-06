@@ -23,6 +23,11 @@ pub mod outbox {
     pub type Outbox = outbox::Outbox<lava_events::LavaEvent>;
 }
 
+pub mod dashboard {
+    pub type Dashboard = dashboard::Dashboard<crate::authorization::Authorization>;
+    pub use dashboard::DashboardValues;
+}
+
 pub mod user {
     pub use core_user::{error, User};
     pub type Users = core_user::Users<crate::audit::Audit, lava_events::LavaEvent>;

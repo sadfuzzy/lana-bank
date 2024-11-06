@@ -79,10 +79,12 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 }
 
                 #update_tokens
-                let events = Self::extract_events(entity);
-                let n_events = self.persist_events(db, events).await?;
+                let n_events = {
+                    let events = Self::extract_events(entity);
+                    self.persist_events(db, events).await?
+                };
 
-                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }
@@ -159,10 +161,12 @@ mod tests {
                     .execute(&mut **db)
                     .await?;
 
-                let events = Self::extract_events(entity);
-                let n_events = self.persist_events(db, events).await?;
+                let n_events = {
+                    let events = Self::extract_events(entity);
+                    self.persist_events(db, events).await?
+                };
 
-                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }
@@ -219,10 +223,12 @@ mod tests {
                     return Ok(false);
                 }
 
-                let events = Self::extract_events(entity);
-                let n_events = self.persist_events(db, events).await?;
+                let n_events = {
+                    let events = Self::extract_events(entity);
+                    self.persist_events(db, events).await?
+                };
 
-                self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }

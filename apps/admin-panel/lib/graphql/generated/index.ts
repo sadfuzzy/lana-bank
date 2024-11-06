@@ -557,6 +557,12 @@ export type CustomerUpdatePayload = {
   customer: Customer;
 };
 
+export type Dashboard = {
+  __typename?: 'Dashboard';
+  activeFacilities: Scalars['Int']['output'];
+  pendingFacilities: Scalars['Int']['output'];
+};
+
 export type Deposit = {
   __typename?: 'Deposit';
   amount: Scalars['UsdCents']['output'];
@@ -998,6 +1004,7 @@ export type Query = {
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
+  dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
   document?: Maybe<Document>;

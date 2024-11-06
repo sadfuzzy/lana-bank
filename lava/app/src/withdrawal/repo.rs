@@ -38,6 +38,7 @@ impl WithdrawalRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _: &Withdrawal,
         events: impl Iterator<Item = &PersistedEvent<WithdrawalEvent>>,
     ) -> Result<(), WithdrawalError> {
         self.export

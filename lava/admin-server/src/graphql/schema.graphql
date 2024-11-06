@@ -544,6 +544,11 @@ type CustomerUpdatePayload {
 	customer: Customer!
 }
 
+type Dashboard {
+	activeFacilities: Int!
+	pendingFacilities: Int!
+}
+
 type Deposit {
 	id: ID!
 	depositId: UUID!
@@ -830,6 +835,7 @@ type ProfitAndLossStatement {
 
 type Query {
 	me: Subject!
+	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
 	customer(id: UUID!): Customer

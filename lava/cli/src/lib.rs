@@ -66,8 +66,7 @@ async fn run_cmd(lava_home: &str, config: Config) -> anyhow::Result<()> {
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
     let mut handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
-    let public_app = lava_app::app::LavaApp::run(pool.clone(), config.app).await?;
-    let admin_app = public_app.clone();
+    let admin_app = lava_app::app::LavaApp::run(pool.clone(), config.app).await?;
 
     let admin_send = send.clone();
 

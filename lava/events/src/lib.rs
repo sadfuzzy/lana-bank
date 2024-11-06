@@ -12,6 +12,13 @@ use outbox::OutboxEventMarker;
 pub enum LavaEvent {
     Governance(GovernanceEvent),
     User(CoreUserEvent),
+    Credit(CreditEvent),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "tag")]
+pub enum CreditEvent {
+    CreditFacilityCreated,
 }
 
 macro_rules! impl_event_marker {
@@ -34,3 +41,4 @@ macro_rules! impl_event_marker {
 
 impl_event_marker!(GovernanceEvent, Governance);
 impl_event_marker!(CoreUserEvent, User);
+impl_event_marker!(CreditEvent, Credit);

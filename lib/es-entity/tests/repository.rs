@@ -30,7 +30,8 @@ impl Users {
     async fn export(
         &self,
         _db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        _events: impl Iterator<Item = &es_entity::PersistedEvent<UserEvent>>,
+        _entity: &User,
+        _new_events: impl Iterator<Item = &es_entity::PersistedEvent<UserEvent>>,
     ) -> Result<(), EsRepoError> {
         Ok(())
     }

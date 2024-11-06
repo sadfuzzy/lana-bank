@@ -58,6 +58,10 @@ where
             })
             .collect::<Vec<_>>();
 
+        if payloads.is_empty() {
+            return Ok(Vec::new());
+        }
+
         let rows = sqlx::query!(
             r#"WITH new_events AS (
                  INSERT INTO persistent_outbox_events (payload)

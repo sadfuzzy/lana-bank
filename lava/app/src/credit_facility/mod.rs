@@ -7,6 +7,7 @@ mod history;
 mod interest_accrual;
 mod jobs;
 mod processes;
+mod publisher;
 mod repo;
 
 use std::collections::HashMap;
@@ -39,6 +40,7 @@ pub use interest_accrual::*;
 use jobs::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
+use publisher::CreditFacilityPublisher;
 pub use repo::cursor::*;
 use repo::CreditFacilityRepo;
 use tracing::instrument;
@@ -73,7 +75,8 @@ impl CreditFacilities {
         price: &Price,
         outbox: &Outbox,
     ) -> Result<Self, CreditFacilityError> {
-        let credit_facility_repo = CreditFacilityRepo::new(pool, export);
+        let publisher = CreditFacilityPublisher::new(export, outbox);
+        let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool, export);
         let interest_accrual_repo = InterestAccrualRepo::new(pool, export);
         let approve_disbursal = ApproveDisbursal::new(&disbursal_repo, authz.audit(), governance);

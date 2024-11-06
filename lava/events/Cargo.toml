@@ -12,4 +12,5 @@ governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
 outbox = { path = "../../lib/outbox" }
 
+chrono = { workspace = true }
 serde = { workspace = true }

@@ -37,6 +37,7 @@ impl DepositRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _: &Deposit,
         events: impl Iterator<Item = &PersistedEvent<DepositEvent>>,
     ) -> Result<(), DepositError> {
         self.export

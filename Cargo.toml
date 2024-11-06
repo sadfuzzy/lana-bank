@@ -7,6 +7,7 @@ members = [
   "lava/rbac-types",
   "lava/events",
   "lava/ids",
+  "lava/dashboard",
 
   "core/user",
   "core/governance",

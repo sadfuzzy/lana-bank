@@ -11,6 +11,7 @@ fail-on-warnings = []
 rbac-types = { path = "../rbac-types" }
 lava-events = { path = "../events" }
 lava-ids = { path = "../ids" }
+dashboard = { path = "../dashboard" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-user = { path = "../../core/user", features = ["graphql"] }

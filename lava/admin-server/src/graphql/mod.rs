@@ -6,6 +6,7 @@ mod authenticated_subject;
 mod committee;
 mod credit_facility;
 mod customer;
+mod dashboard;
 mod deposit;
 mod document;
 mod financials;

@@ -31,6 +31,7 @@ impl TermsTemplateRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _: &TermsTemplate,
         events: impl Iterator<Item = &PersistedEvent<TermsTemplateEvent>>,
     ) -> Result<(), TermsTemplateError> {
         self.export

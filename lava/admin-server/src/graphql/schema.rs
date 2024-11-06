@@ -6,8 +6,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, committee::*, credit_facility::*,
-    customer::*, deposit::*, document::*, financials::*, loader::*, policy::*, price::*, report::*,
-    sumsub::*, terms_template::*, user::*, withdrawal::*,
+    customer::*, dashboard::*, deposit::*, document::*, financials::*, loader::*, policy::*,
+    price::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -20,6 +20,12 @@ impl Query {
         let loader = ctx.data_unchecked::<LavaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(AuthenticatedSubject::from(user))
+    }
+
+    async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let dashboard = app.dashboard().load(sub).await?;
+        Ok(Dashboard::from(dashboard))
     }
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {

@@ -2,8 +2,8 @@ use serde::{de::DeserializeOwned, Serialize};
 
 use super::{error::EsEntityError, events::EntityEvents};
 
-pub trait EsEvent: DeserializeOwned + Serialize {
-    type EntityId: Clone + PartialEq + sqlx::Type<sqlx::Postgres> + std::hash::Hash;
+pub trait EsEvent: DeserializeOwned + Serialize + Send + Sync {
+    type EntityId: Clone + PartialEq + sqlx::Type<sqlx::Postgres> + std::hash::Hash + Send + Sync;
 }
 
 pub trait IntoEvents<E: EsEvent> {

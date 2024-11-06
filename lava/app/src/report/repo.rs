@@ -26,6 +26,7 @@ impl ReportRepo {
     async fn export(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _: &Report,
         events: impl Iterator<Item = &PersistedEvent<ReportEvent>>,
     ) -> Result<(), ReportError> {
         self.export

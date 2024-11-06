@@ -2,6 +2,8 @@ use chrono::{DateTime, Utc};
 
 use super::{error::EsEntityError, traits::*};
 
+pub type LastPersisted<'a, E> = std::slice::Iter<'a, PersistedEvent<E>>;
+
 pub struct GenericEvent<Id> {
     pub entity_id: Id,
     pub sequence: i32,
@@ -107,7 +109,7 @@ where
         self.persisted_events.iter()
     }
 
-    pub fn last_persisted(&self, n: usize) -> impl Iterator<Item = &PersistedEvent<T>> {
+    pub fn last_persisted(&self, n: usize) -> LastPersisted<T> {
         let start = self.persisted_events.len() - n;
         self.persisted_events[start..].iter()
     }

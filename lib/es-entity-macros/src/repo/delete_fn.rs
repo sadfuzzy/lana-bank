@@ -59,11 +59,18 @@ impl<'a> ToTokens for DeleteFn<'a> {
                     .execute(&mut **db)
                     .await?;
 
-                let events = Self::extract_events(&mut entity);
+                let new_events = {
+                    let events = Self::extract_events(&mut entity);
+                    events.any_new()
+                };
 
-                if events.any_new() {
-                    let n_events = self.persist_events(db, events).await?;
-                    self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                if new_events {
+                    let n_events = {
+                        let events = Self::extract_events(&mut entity);
+                        self.persist_events(db, events).await?
+                    };
+
+                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())
@@ -111,11 +118,18 @@ mod tests {
                     .execute(&mut **db)
                     .await?;
 
-                let events = Self::extract_events(&mut entity);
+                let new_events = {
+                    let events = Self::extract_events(&mut entity);
+                    events.any_new()
+                };
 
-                if events.any_new() {
-                    let n_events = self.persist_events(db, events).await?;
-                    self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                if new_events {
+                    let n_events = {
+                        let events = Self::extract_events(&mut entity);
+                        self.persist_events(db, events).await?
+                    };
+
+                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())
@@ -166,11 +180,18 @@ mod tests {
                     .execute(&mut **db)
                     .await?;
 
-                let events = Self::extract_events(&mut entity);
+                let new_events = {
+                    let events = Self::extract_events(&mut entity);
+                    events.any_new()
+                };
 
-                if events.any_new() {
-                    let n_events = self.persist_events(db, events).await?;
-                    self.execute_post_persist_hook(db, events.last_persisted(n_events)).await?;
+                if new_events {
+                    let n_events = {
+                        let events = Self::extract_events(&mut entity);
+                        self.persist_events(db, events).await?
+                    };
+
+                    self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
                 }
 
                 Ok(())

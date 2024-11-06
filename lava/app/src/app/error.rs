@@ -28,4 +28,6 @@ pub enum ApplicationError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("ApplicationError - WithdrawalError: {0}")]
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
+    #[error("ApplicationError - DashboardError: {0}")]
+    DashboardError(#[from] dashboard::error::DashboardError),
 }

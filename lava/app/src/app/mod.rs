@@ -12,6 +12,7 @@ use crate::{
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     credit_facility::CreditFacilities,
     customer::Customers,
+    dashboard::Dashboard,
     data_export::Export,
     deposit::Deposits,
     document::Documents,
@@ -50,6 +51,7 @@ pub struct LavaApp {
     documents: Documents,
     _outbox: Outbox,
     governance: Governance,
+    dashboard: Dashboard,
 }
 
 impl LavaApp {
@@ -61,6 +63,7 @@ impl LavaApp {
         let audit = Audit::new(&pool);
         let authz = init_authz(&pool, &audit).await?;
         let outbox = Outbox::init(&pool).await?;
+        let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
         let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &export);
@@ -116,7 +119,12 @@ impl LavaApp {
             documents,
             _outbox: outbox,
             governance,
+            dashboard,
         })
+    }
+
+    pub fn dashboard(&self) -> &Dashboard {
+        &self.dashboard
     }
 
     pub fn governance(&self) -> &Governance {

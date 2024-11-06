@@ -3,11 +3,9 @@ use sqlx::PgPool;
 
 use es_entity::*;
 
-use crate::{data_export::Export, primitives::*};
+use crate::primitives::*;
 
-use super::{entity::*, error::CreditFacilityError};
-
-const BQ_TABLE_NAME: &str = "credit_facility_events";
+use super::{entity::*, error::CreditFacilityError, publisher::*};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -22,29 +20,27 @@ const BQ_TABLE_NAME: &str = "credit_facility_events";
             update(accessor = "collateralization_ratio()")
         ),
     ),
-    post_persist_hook = "export"
+    post_persist_hook = "publish"
 )]
 pub struct CreditFacilityRepo {
     pool: PgPool,
-    export: Export,
+    publisher: CreditFacilityPublisher,
 }
 
 impl CreditFacilityRepo {
-    pub(super) fn new(pool: &PgPool, export: &Export) -> Self {
+    pub(super) fn new(pool: &PgPool, publisher: &CreditFacilityPublisher) -> Self {
         Self {
             pool: pool.clone(),
-            export: export.clone(),
+            publisher: publisher.clone(),
         }
     }
 
-    async fn export(
+    async fn publish(
         &self,
         db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        events: impl Iterator<Item = &PersistedEvent<CreditFacilityEvent>>,
+        entity: &CreditFacility,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
-        self.export
-            .es_entity_export(db, BQ_TABLE_NAME, events)
-            .await?;
-        Ok(())
+        self.publisher.publish(db, entity, new_events).await
     }
 }

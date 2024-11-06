@@ -1,0 +1,6 @@
+query Dashboard() {
+  dashboard {
+    activeFacilities
+    pendingFacilities
+  }
+}

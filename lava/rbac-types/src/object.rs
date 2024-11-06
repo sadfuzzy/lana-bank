@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 use core_user::UserObject;
+use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
 use lava_ids::CustomerId;
 
@@ -12,11 +13,17 @@ pub enum LavaObject {
     App(AppObject),
     Governance(GovernanceObject),
     User(UserObject),
+    Dashboard(DashboardModuleObject),
 }
 
 impl From<AppObject> for LavaObject {
     fn from(object: AppObject) -> Self {
         LavaObject::App(object)
+    }
+}
+impl From<DashboardModuleObject> for LavaObject {
+    fn from(object: DashboardModuleObject) -> Self {
+        LavaObject::Dashboard(object)
     }
 }
 impl From<GovernanceObject> for LavaObject {
@@ -38,6 +45,7 @@ impl Display for LavaObject {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
+            Dashboard(action) => action.fmt(f),
         }
     }
 }
@@ -52,6 +60,11 @@ impl FromStr for LavaObject {
             App => LavaObject::from(object.parse::<AppObject>()?),
             Governance => LavaObject::from(object.parse::<GovernanceObject>()?),
             User => LavaObject::from(object.parse::<UserObject>()?),
+            Dashboard => LavaObject::from(
+                object
+                    .parse::<DashboardModuleObject>()
+                    .map_err(|_| "could not parse DashboardModuleObject")?,
+            ),
         };
         Ok(res)
     }

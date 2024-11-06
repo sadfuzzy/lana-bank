@@ -1,5 +1,6 @@
 use authz::error::AuthorizationError;
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
+use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use governance::{GovernanceAction, GovernanceObject};
 
 use super::*;
@@ -362,6 +363,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             Object::CreditFacility,
             CreditFacilityAction::Complete,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            DashboardModuleObject::Dashboard,
+            DashboardModuleAction::DASHBOARD_READ,
         )
         .await?;
 
