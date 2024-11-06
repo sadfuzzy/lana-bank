@@ -14,7 +14,7 @@ const AuthLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
       <div className="flex flex-col h-full justify-center items-start space-y-[30px]">
         <Logo width={35} />
         {children}
-        <div className="text-body-xs">
+        <div className="text-xs">
           By continuing, you consent to our{" "}
           <a className="text-action cursor-pointer">cookie policy</a>,{" "}
           <a className="text-action cursor-pointer">terms of service</a> and{" "}

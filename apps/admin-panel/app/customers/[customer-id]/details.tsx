@@ -26,11 +26,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
   customer,
   refetch,
 }) => {
-  const [openWithdrawalInitiateDialog, setOpenWithdrawalInitiateDialog] = useState(false)
-  const [openRecordDepositDialog, setOpenRecordDepositDialog] = useState(false)
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
-  const [openCreateCreditFacilityDialog, setOpenCreateCreditFacilityDialog] =
-    useState(false)
 
   return (
     <div className="flex gap-4">

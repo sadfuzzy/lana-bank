@@ -9,13 +9,8 @@ import { IoEllipsisHorizontal } from "react-icons/io5"
 
 import { CreateTermsTemplateDialog } from "./create"
 
-import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
-import {
-  TermsTemplate,
-  useMeQuery,
-  useTermsTemplatesQuery,
-} from "@/lib/graphql/generated"
+import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import {
   Card,
   CardContent,

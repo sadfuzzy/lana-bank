@@ -2,6 +2,8 @@ import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
 
+import { useCreateContext } from "../create"
+
 import {
   Dialog,
   DialogContent,
@@ -54,6 +56,8 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
+  const { customer } = useCreateContext()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -100,7 +104,13 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   return (
     <Dialog open={openCreateDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        <DialogHeader>
+        <div
+          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-xs px-2 py-1 text-secondary"
+          style={{ width: "100.35%" }}
+        >
+          Creating deposit for {customer?.email}
+        </div>
+        <DialogHeader className="mt-4">
           <DialogTitle>Create Deposit</DialogTitle>
           <DialogDescription>
             Provide the required details to create a deposit.

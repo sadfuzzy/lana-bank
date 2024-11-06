@@ -30,9 +30,17 @@ import { HiMagnifyingGlassCircle } from "react-icons/hi2"
 import Avatar from "./avatar"
 
 import { Logo } from "@/components/new"
+import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
+import { currencyConverter } from "@/lib/utils"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)
+
+  const { data, loading } = useGetRealtimePriceUpdatesQuery()
+
+  const usdBtcRate = currencyConverter
+    .centsToUsd(data?.realtimePrice?.usdCentsPerBtc)
+    .toLocaleString()
 
   const NavItems = () => (
     <nav className="m-4">
@@ -86,9 +94,12 @@ const NavBar = () => {
           </div>
           <NavItems />
         </div>
-        <div className="p-5 text-sm text-muted-foreground">
-          USD/BTC Market Rate: $60,000.12
-        </div>
+        {!loading && (
+          <div className="p-5 text-sm text-muted-foreground">
+            USD/BTC Market Rate:{" "}
+            {String(usdBtcRate) === "NaN" ? "Not Available" : `$${usdBtcRate}`}
+          </div>
+        )}
       </div>
 
       {/* Mobile Sidebar */}
@@ -139,7 +150,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   notificationDot = false,
 }) => {
   const pathname = usePathname() || ""
-  const selected = pathname === to
+  const selected = pathname.startsWith(to)
   return (
     <Link
       href={to}

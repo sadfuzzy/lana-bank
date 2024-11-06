@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import { getCsrfToken } from "next-auth/react"
 
-import { Button, Input } from "@/components/new"
+import { Input } from "@/components/new"
 import { basePath } from "@/env"
+import { Button } from "@/components/primitive/button"
 
 const Login: React.FC = () => {
   const [csrfToken, setCsrfToken] = useState<string | null>(null)
@@ -14,10 +15,10 @@ const Login: React.FC = () => {
 
   return (
     <>
-      <h1 className="text-heading-h3">Sign In</h1>
+      <h1 className="font-semibold leading-none tracking-tight text-xl">Sign In</h1>
       <div className="space-y-[10px]">
-        <div className="text-title-md">Welcome to Lana Bank Admin Panel</div>
-        <div className="text-body-md">Enter your email address to continue</div>
+        <div className="text-md">Welcome to Lana Bank Admin Panel</div>
+        <div className="text-md font-light">Enter your email address to continue</div>
       </div>
       <form
         className="space-y-[20px] w-full"
@@ -32,7 +33,7 @@ const Login: React.FC = () => {
           autofocus
           placeholder="Please enter your email address"
         />
-        <Button type="submit" title="Submit" />
+        <Button type="submit">Submit</Button>
       </form>
     </>
   )

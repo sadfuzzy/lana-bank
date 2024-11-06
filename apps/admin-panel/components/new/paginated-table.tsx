@@ -2,6 +2,16 @@
 
 import { useState, useEffect } from "react"
 import {
+  HiChevronUp,
+  HiChevronDown,
+  HiSelector,
+  HiChevronLeft,
+  HiChevronRight,
+} from "react-icons/hi"
+
+import { Select } from "../primitive/select"
+
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,14 +20,6 @@ import {
   TableRow,
 } from "@/components/primitive/table"
 import { Button } from "@/components/primitive/button"
-import {
-  HiChevronUp,
-  HiChevronDown,
-  HiSelector,
-  HiChevronLeft,
-  HiChevronRight,
-} from "react-icons/hi"
-import { Select } from "../primitive/select"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -43,22 +45,52 @@ export interface PaginatedData<T> {
 
 interface PaginatedTableProps<T> {
   columns: Column<T>[]
-  data: PaginatedData<T>
+  data?: PaginatedData<T>
+  loading: boolean
   pageSize: number
   fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
   onFilter?: (column: keyof T, value: T[keyof T]) => void
   onClick?: (record: T) => void
+  noHeader?: boolean
+}
+
+const LoadingSkeleton = <T,>({
+  columns,
+  pageSize,
+}: {
+  columns: Column<T>[]
+  pageSize: number
+}) => {
+  return (
+    <div>
+      <Table>
+        <TableBody>
+          {Array.from({ length: pageSize }).map((_, rowIndex) => (
+            <TableRow key={rowIndex}>
+              {columns.map((col, colIndex) => (
+                <TableCell key={colIndex}>
+                  <div className="animate-pulse rounded-md bg-muted h-4 w-full" />
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
 }
 
 const PaginatedTable = <T,>({
   columns,
+  loading,
   data,
   pageSize,
   fetchMore,
   onSort,
   onFilter,
   onClick,
+  noHeader = false,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -70,10 +102,14 @@ const PaginatedTable = <T,>({
   const [displayData, setDisplayData] = useState<{ node: T }[]>([])
 
   useEffect(() => {
-    const startIdx = (currentPage - 1) * pageSize
-    const endIdx = startIdx + pageSize
-    setDisplayData(data.edges.slice(startIdx, endIdx))
-  }, [data.edges, currentPage, pageSize])
+    if (data && data.edges) {
+      const startIdx = (currentPage - 1) * pageSize
+      const endIdx = startIdx + pageSize
+      setDisplayData(data.edges.slice(startIdx, endIdx))
+    } else {
+      setDisplayData([])
+    }
+  }, [data, currentPage, pageSize])
 
   const handleSort = (columnKey: keyof T) => {
     let newDirection: "ASC" | "DESC" = "ASC"
@@ -90,13 +126,15 @@ const PaginatedTable = <T,>({
   }
 
   const handleNextPage = async () => {
-    const totalDataLoaded = data.edges.length
-    const maxDataRequired = currentPage * pageSize + pageSize
+    if (data && data.edges && data.pageInfo) {
+      const totalDataLoaded = data.edges.length
+      const maxDataRequired = currentPage * pageSize + pageSize
 
-    if (totalDataLoaded < maxDataRequired && data.pageInfo.hasNextPage) {
-      await fetchMore(data.pageInfo.endCursor)
+      if (totalDataLoaded < maxDataRequired && data.pageInfo.hasNextPage) {
+        await fetchMore(data.pageInfo.endCursor)
+      }
+      setCurrentPage((prevPage) => prevPage + 1)
     }
-    setCurrentPage((prevPage) => prevPage + 1)
   }
 
   const handlePreviousPage = () => {
@@ -105,59 +143,69 @@ const PaginatedTable = <T,>({
     }
   }
 
+  if (loading) {
+    return <LoadingSkeleton columns={columns} pageSize={pageSize} />
+  }
+
+  if (!data || !data.edges || data.edges.length === 0) {
+    return <div className="text-sm">No data to display</div>
+  }
+
   return (
     <>
       <div>
         <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((col) => (
-                <TableHead key={col.key as string}>
-                  <div className="flex items-center space-x-2">
-                    <span>{col.label}</span>
-                    {col.sortable && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleSort(col.key)}
-                      >
-                        {sortState.column === col.key ? (
-                          sortState.direction === "ASC" ? (
-                            <HiChevronUp className="h-4 w-4" />
-                          ) : (
-                            <HiChevronDown className="h-4 w-4" />
-                          )
-                        ) : (
-                          <HiSelector className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
-                    {col.filterValues && (
-                      <div className="w-30">
-                        <Select
-                          value={String(filterState[col.key] ?? "")}
-                          onChange={(e) => {
-                            const selectedValue = col.filterValues?.find(
-                              (val) => String(val) === e.target.value,
-                            )
-                            handleFilter(col.key, selectedValue as T[typeof col.key])
-                          }}
+          {!noHeader && (
+            <TableHeader>
+              <TableRow>
+                {columns.map((col) => (
+                  <TableHead key={col.key as string}>
+                    <div className="flex items-center space-x-2">
+                      <span>{col.label}</span>
+                      {col.sortable && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleSort(col.key)}
                         >
-                          <option value="">All</option>
-                          {col.filterValues.map((value, idx) => (
-                            <option key={idx} value={String(value)}>
-                              {String(value)}
-                            </option>
-                          ))}
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
+                          {sortState.column === col.key ? (
+                            sortState.direction === "ASC" ? (
+                              <HiChevronUp className="h-4 w-4" />
+                            ) : (
+                              <HiChevronDown className="h-4 w-4" />
+                            )
+                          ) : (
+                            <HiSelector className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                      {col.filterValues && (
+                        <div className="min-w-10 scale-75">
+                          <Select
+                            value={String(filterState[col.key] ?? "")}
+                            onChange={(e) => {
+                              const selectedValue = col.filterValues?.find(
+                                (val) => String(val) === e.target.value,
+                              )
+                              handleFilter(col.key, selectedValue as T[typeof col.key])
+                            }}
+                          >
+                            <option value="">All</option>
+                            {col.filterValues.map((value, idx) => (
+                              <option key={idx} value={String(value)}>
+                                {String(value)}
+                              </option>
+                            ))}
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+          )}
           <TableBody>
             {displayData.map(({ node }, idx) => (
               <TableRow
@@ -176,7 +224,7 @@ const PaginatedTable = <T,>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-center space-x-2 py-4">
+      <div className="flex items-center justify-end space-x-2 py-4">
         <Button
           variant="outline"
           size="sm"
@@ -186,13 +234,16 @@ const PaginatedTable = <T,>({
           <HiChevronLeft className="h-4 w-4" />
         </Button>
         <div className="flex items-center gap-1">
-          <span className="text-sm font-medium">Page {currentPage}</span>
+          <span className="text-sm font-medium">{currentPage}</span>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleNextPage}
-          disabled={displayData.length < pageSize && !data.pageInfo.hasNextPage}
+          disabled={
+            (!data || !data.pageInfo || !data.pageInfo.hasNextPage) &&
+            displayData.length < pageSize
+          }
         >
           <HiChevronRight className="h-4 w-4" />
         </Button>

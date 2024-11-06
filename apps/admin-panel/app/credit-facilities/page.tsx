@@ -185,9 +185,7 @@ const CreditFacilitiesPage = () => {
             value={inputCreditFacilityId}
             className="w-80"
           />
-          <Button onClick={handleSearch} variant="primary">
-            Search
-          </Button>
+          <Button onClick={handleSearch}>Search</Button>
         </div>
       </div>
 

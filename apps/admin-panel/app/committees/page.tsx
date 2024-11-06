@@ -8,7 +8,7 @@ import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
 
 import { PageHeading } from "@/components/page-heading"
-import { Committee, useMeQuery, useCommitteesQuery } from "@/lib/graphql/generated"
+import { Committee, useCommitteesQuery } from "@/lib/graphql/generated"
 import {
   Card,
   CardContent,
@@ -55,7 +55,6 @@ function CommitteesPage() {
   const [openAddUserDialog, setOpenAddUserDialog] = useState<Committee | null>(null)
 
   const router = useRouter()
-  const { data: me } = useMeQuery()
   const { data, loading, error, fetchMore } = useCommitteesQuery({
     variables: {
       first: 20,

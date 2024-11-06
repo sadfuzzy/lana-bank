@@ -128,8 +128,8 @@ const BalanceSheet = ({
       <CardHeader>
         <CardTitle>Balance Sheet</CardTitle>
         <CardDescription>
-          A financial statement showing the company's assets, liabilities, and equity at a
-          specific point in time.
+          A financial statement showing the company&apos;s assets, liabilities, and equity
+          at a specific point in time.
         </CardDescription>
       </CardHeader>
       <CardContent>

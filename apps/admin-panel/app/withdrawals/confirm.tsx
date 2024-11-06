@@ -11,12 +11,7 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import {
-  CustomersDocument,
-  GetCustomerByCustomerEmailDocument,
-  GetCustomerByCustomerIdDocument,
-  useWithdrawalConfirmMutation,
-} from "@/lib/graphql/generated"
+import { CustomersDocument, useWithdrawalConfirmMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 
@@ -68,11 +63,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
             withdrawalId: withdrawalData.withdrawalId,
           },
         },
-        refetchQueries: [
-          GetCustomerByCustomerIdDocument,
-          GetCustomerByCustomerEmailDocument,
-          CustomersDocument,
-        ],
+        refetchQueries: [CustomersDocument],
       })
       if (result.data) {
         toast.success("Withdrawal confirmed successfully")

@@ -13,7 +13,6 @@ import { CreditFacilityDisbursals } from "./disbursals"
 
 import { CreditFacilityTransactions } from "./transactions"
 
-import { PageHeading } from "@/components/page-heading"
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 

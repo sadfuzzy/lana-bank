@@ -115,7 +115,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   }
 
   const finalize = (userId: string) => {
-    if(refetch) refetch()
+    if (refetch) refetch()
     toast.success("User created and roles assigned successfully")
     setOpenCreateUserDialog(false)
     router.push(`/users/${userId}`)

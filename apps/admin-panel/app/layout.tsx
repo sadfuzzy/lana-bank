@@ -56,7 +56,6 @@ export default async function RootLayout({
         <AuthSessionProvider session={session}>
           <ApolloServerWrapper>
             <Toast />
-            <RealtimePriceUpdates />
             {PUBLIC_PAGES.includes(currentPath) ? (
               children
             ) : (
@@ -71,6 +70,7 @@ export default async function RootLayout({
 
 const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
   <CreateContextProvider>
+    <RealtimePriceUpdates />
     <div className="bg-soft h-full w-full flex flex-col md:flex-row">
       <NavBar />
       <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden">

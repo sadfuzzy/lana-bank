@@ -1,7 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
@@ -28,7 +27,7 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
   setCustomer,
   title,
 }) => {
-  const { data, fetchMore } = useCustomersQuery({
+  const { data, loading, fetchMore } = useCustomersQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
@@ -51,8 +50,10 @@ const CustomerSelector: React.FC<CustomerSelectorProps> = ({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <PaginatedTable<Customer>
+          noHeader
           columns={columns}
-          data={data?.customers as PaginatedData<Customer>}
+          data={data?.customersByEmail as PaginatedData<Customer>}
+          loading={loading}
           fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
           pageSize={DEFAULT_PAGESIZE}
           onClick={(customer) => {

@@ -1,10 +1,11 @@
+import { LuChevronDown } from "react-icons/lu"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
-import { LuChevronDown } from "react-icons/lu"
 
 export type TimeRange =
   | "LastDay"

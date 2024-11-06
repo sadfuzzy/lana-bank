@@ -1,7 +1,5 @@
 import TermsTemplateDetails from "./details"
 
-import { PageHeading } from "@/components/page-heading"
-
 function TermsTemplate({
   params,
 }: {

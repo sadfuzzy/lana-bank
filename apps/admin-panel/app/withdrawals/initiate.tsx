@@ -3,6 +3,8 @@ import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
+import { useCreateContext } from "../create"
+
 import {
   Dialog,
   DialogContent,
@@ -14,12 +16,7 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import {
-  CustomersDocument,
-  GetCustomerByCustomerEmailDocument,
-  GetCustomerByCustomerIdDocument,
-  useWithdrawalInitiateMutation,
-} from "@/lib/graphql/generated"
+import { CustomersDocument, useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -54,6 +51,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   customerId,
 }) => {
   const router = useRouter()
+  const { customer } = useCreateContext()
 
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation()
   const [amount, setAmount] = useState<string>("")
@@ -72,11 +70,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
             reference,
           },
         },
-        refetchQueries: [
-          GetCustomerByCustomerIdDocument,
-          GetCustomerByCustomerEmailDocument,
-          CustomersDocument,
-        ],
+        refetchQueries: [CustomersDocument],
         onCompleted: (data) => {
           toast.success("Withdrawal initiated successfully")
           router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
@@ -103,6 +97,12 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   return (
     <Dialog open={openWithdrawalInitiateDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
+        <div
+          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-xs px-2 py-1 text-secondary"
+          style={{ width: "100.35%" }}
+        >
+          Creating withdrawal for {customer?.email}
+        </div>
         <DialogHeader>
           <DialogTitle>Initiate Withdrawal</DialogTitle>
           <DialogDescription>

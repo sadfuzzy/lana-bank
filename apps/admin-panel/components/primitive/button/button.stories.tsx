@@ -26,7 +26,7 @@ const Template: StoryFn<typeof Button> = (args) => <Button {...args} />
 
 export const Primary = Template.bind({})
 Primary.args = {
-  variant: "primary",
+  variant: "default",
   children: "Primary",
 }
 
@@ -40,12 +40,6 @@ export const Ghost = Template.bind({})
 Ghost.args = {
   variant: "ghost",
   children: "Ghost",
-}
-
-export const Transparent = Template.bind({})
-Transparent.args = {
-  variant: "transparent",
-  children: "Transparent",
 }
 
 export const Link = Template.bind({})
@@ -62,7 +56,7 @@ Outline.args = {
 
 export const Disabled = Template.bind({})
 Disabled.args = {
-  variant: "primary",
+  variant: "default",
+  disabled: true,
   children: "Disabled",
-  enabled: false,
 }

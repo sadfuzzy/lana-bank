@@ -2,8 +2,9 @@ import { gql } from "@apollo/client"
 import React, { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
+
+import { useCreateContext } from "../create"
 
 import {
   Dialog,
@@ -57,6 +58,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   customerId,
 }) => {
   const router = useRouter()
+  const { customer } = useCreateContext()
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
@@ -254,6 +256,12 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="max-w-[38rem]">
+        <div
+          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-xs px-2 py-1 text-secondary"
+          style={{ width: "100.35%" }}
+        >
+          Creating credit facility for {customer?.email}
+        </div>
         <DialogHeader>
           <DialogTitle>Create Credit Facility</DialogTitle>
           <DialogDescription>
@@ -287,14 +295,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           )}
           {useTemplateTerms && termsTemplatesData?.termsTemplates.length === 0 ? (
             <div className="text-sm mt-1">
-              No terms templates available,{" "}
-              <Link
-                className="text-primary hover:underline"
-                href="/terms-templates?create=true"
-              >
-                create one here
-              </Link>{" "}
-              or manually specify the terms below.
+              No terms templates available please create one or manually specify the terms
+              below.
             </div>
           ) : (
             <div>

@@ -233,7 +233,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} id="fileInput" disabled={loading} />
-      <Card variant="dashed" className="mt-4 cursor-pointer">
+      <Card className="mt-4 cursor-pointer">
         <CardContent className="p-6 flex justify-center items-center w-full h-20">
           {loading ? (
             <CgSpinner className="animate-spin h-5 w-5" />
