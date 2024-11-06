@@ -7,7 +7,8 @@ use crate::primitives::*;
 use super::{credit_facility::*, deposit::*, document::Document, withdrawal::Withdrawal};
 
 pub use lava_app::{
-    app::LavaApp, customer::Customer as DomainCustomer, customer::CustomerByEmailCursor,
+    app::LavaApp,
+    customer::{Customer as DomainCustomer, CustomerComboCursor},
 };
 
 pub use balance::*;
