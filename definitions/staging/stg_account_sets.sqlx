@@ -1,0 +1,15 @@
+config {
+	type: "table",
+	tags: ["current"],
+}
+
+SELECT
+	id AS set_id,
+	JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.name") AS set_name,
+
+FROM ${ref({
+	name: "account_sets",
+	schema: envs.currentImportSchema
+})}
+
+GROUP BY id
