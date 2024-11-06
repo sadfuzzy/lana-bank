@@ -6,7 +6,7 @@ import { HiPlus } from "react-icons/hi"
 
 import { motion, AnimatePresence } from "framer-motion"
 
-import { Button } from "@/components/new"
+import { Button } from "@/components/primitive/button"
 
 const CreateButton = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -34,13 +34,7 @@ const CreateButton = () => {
   return (
     <>
       <div className="relative inline-block" ref={menuRef}>
-        <Button
-          size="md"
-          title="Create"
-          icon={<HiPlus className="text-lg" />}
-          className="py-3 px-6 w-36"
-          onClick={() => setIsOpen(!isOpen)}
-        />
+        <Button onClick={() => setIsOpen(!isOpen)}>Create</Button>
 
         <AnimatePresence>
           {isOpen && (

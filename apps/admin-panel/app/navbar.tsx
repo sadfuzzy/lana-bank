@@ -65,10 +65,10 @@ const NavBar = () => {
   return (
     <div className="md:w-64">
       {/* Mobile Top Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 shadow bg-soft md:hidden">
+      <div className="fixed top-0 left-0 right-0 z-50 border-b bg-background md:hidden">
         <div className="flex items-center justify-between px-4 py-2">
           <button onClick={() => setIsOpen(true)} aria-label="Toggle navigation menu">
-            <HiOutlineMenu className="w-8 h-8 text-neutral-800" />
+            <HiOutlineMenu className="w-8 h-8 text-foreground" />
           </button>
           <Logo width={30} />
           <Avatar />
@@ -76,7 +76,7 @@ const NavBar = () => {
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-col min-h-screen justify-between">
+      <div className="hidden md:flex md:flex-col min-h-screen justify-between bg-background">
         <div>
           <div className="flex justify-between items-center w-full p-5">
             <Logo width={30} />
@@ -84,7 +84,9 @@ const NavBar = () => {
           </div>
           <NavItems />
         </div>
-        <div className="p-5 text-body-sm">USD/BTC Market Rate: $60,000.12</div>
+        <div className="p-5 text-sm text-muted-foreground">
+          USD/BTC Market Rate: $60,000.12
+        </div>
       </div>
 
       {/* Mobile Sidebar */}
@@ -93,7 +95,7 @@ const NavBar = () => {
           <>
             {/* Overlay */}
             <motion.div
-              className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+              className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
               onClick={() => setIsOpen(false)}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -102,7 +104,7 @@ const NavBar = () => {
 
             {/* Sidebar */}
             <motion.div
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-soft h-screen overflow-y-auto shadow-lg md:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-64 bg-background h-screen overflow-y-auto border-r md:hidden"
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
@@ -142,26 +144,26 @@ const MenuItem: React.FC<MenuItemProps> = ({
       className={classNames(
         "p-2 flex items-center rounded-sm transition-colors duration-200",
         {
-          "bg-action-secondary": selected,
-          "hover:bg-action-secondary-hover": !selected,
+          "bg-secondary": selected,
+          "hover:bg-secondary/50": !selected,
         },
       )}
     >
       <div className="relative mr-3">
         <Icon
           className={classNames("w-5 h-5", {
-            "text-heading": !selected,
-            "text-on-action": selected,
+            "text-foreground": !selected,
+            "text-primary": selected,
           })}
         />
         {notificationDot && (
-          <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span className="absolute top-0 right-0 w-2 h-2 bg-destructive rounded-full"></span>
         )}
       </div>
       <span
-        className={classNames("text-body-md", {
-          "text-heading": !selected,
-          "!text-on-action": selected,
+        className={classNames("text-sm", {
+          "text-foreground": !selected,
+          "text-primary font-medium": selected,
         })}
       >
         {title}

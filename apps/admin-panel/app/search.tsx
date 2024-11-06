@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { HiSearch } from "react-icons/hi"
 
-import { Input } from "@/components/new"
+import { Input } from "@/components/primitive/input"
 
 const SearchInput: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null)
@@ -34,12 +34,12 @@ const SearchInput: React.FC = () => {
       ref={inputRef}
       type="text"
       placeholder="Search for Customer, Credit Facility, or Menu Items"
-      leftNode={<HiSearch className="text-placeholder" />}
-      rightNode={
-        <div className="flex items-center text-placeholder text-body-sm">
-          <span className="mr-1">{isMacOS ? "⌘" : "Ctrl"}</span> + K or /
-        </div>
-      }
+      // leftNode={<HiSearch className="text-placeholder" />}
+      // rightNode={
+      //   <div className="flex items-center text-placeholder text-body-sm">
+      //     <span className="mr-1">{isMacOS ? "⌘" : "Ctrl"}</span> + K or /
+      //   </div>
+      // }
     />
   )
 }

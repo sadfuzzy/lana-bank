@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from "framer-motion"
 import { gql } from "@apollo/client"
 import { signOut } from "next-auth/react"
 
-import { Button, ID, Pill } from "@/components/new"
+import { Button } from "@/components/primitive/button"
 import { useAvatarQuery } from "@/lib/graphql/generated"
+import { ID, Pill } from "@/components/new"
 
 const animationProps = {
   initial: { opacity: 0, y: -10 },
@@ -51,7 +52,6 @@ const Avatar = () => {
 
   if (!data || loading) return <></>
 
-  // TODO since we don't have a name field in the user object yet, treating beginning of email as name
   const userName = data.me.user.email.split("@")[0]
   const userEmail = data.me.user.email
   const userRoles = data.me.user.roles
@@ -69,7 +69,7 @@ const Avatar = () => {
       {...animationProps}
       ref={detailsRef}
       onClick={(e) => e.stopPropagation()}
-      className="absolute top-12 right-0 bg-page shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-10 border"
+      className="absolute top-12 right-0 bg-popover text-popover-foreground shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-10 border"
     >
       <div className="flex flex-wrap gap-2">
         {userRoles.map((role) => (
@@ -79,23 +79,30 @@ const Avatar = () => {
         ))}
       </div>
       <div className="flex items-center justify-center space-x-2">
-        <div className="text-title-md capitalize">{userName}</div>
-        {userRef && <div className="text-title-sm">#{userRef}</div>}
+        <div className="text-base font-medium capitalize">{userName}</div>
+        {userRef && <div className="text-sm font-medium">#{userRef}</div>}
       </div>
-      <div className="text-body-sm">{userEmail}</div>
+      <div className="text-sm text-muted-foreground">{userEmail}</div>
       <ID type="Your" id={userId} />
       <div className="h-2"></div>
-      <Button title="Logout" size="sm" onClick={signOut} />
+      <Button
+        variant="destructive"
+        size="sm"
+        onClick={() => signOut()}
+        className="w-full"
+      >
+        Logout
+      </Button>
     </motion.div>
   )
 
   return (
     <div
       ref={avatarRef}
-      className="relative rounded-full bg-action center !h-10 !w-10 hover:bg-action-hover cursor-pointer hover:shadow"
+      className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary hover:bg-primary/90 cursor-pointer transition-colors"
       onClick={() => setShowingDetails((prev) => !prev)}
     >
-      <span className="text-title-md !text-on-action select-none [text-shadow:_0_1px_0_rgb(0_0_0_/_40%)] uppercase">
+      <span className="select-none text-base font-semibold text-primary-foreground uppercase">
         {userNameInitials}
       </span>
       <AnimatePresence>{showingDetails && <Details />}</AnimatePresence>

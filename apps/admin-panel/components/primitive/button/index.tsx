@@ -1,33 +1,34 @@
-import React from "react"
-import { cva, VariantProps } from "class-variance-authority"
-import { Slot, Slottable } from "@radix-ui/react-slot"
-
-import { LoadingSpinner } from "../loading-spinner"
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap p-2 px-4 rounded-xl text-sm font-medium transition focus:outline-none disabled:cursor-not-allowed",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        primary:
-          "bg-primary text-button-text hover:bg-primary-disabled disabled:bg-primary-disabled",
+        default: "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
         secondary:
-          "bg-secondary hover:bg-secondary-disabled disabled:bg-secondary-disabled",
-        ghost: "bg-transparent hover:bg-secondary",
-        transparent: "bg-transparent",
-        link: "bg-transparent hover:underline",
-        outline: "bg-transparent border-2 border-primary",
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
       },
-      enabled: {
-        true: "opacity-100 cursor-pointer",
-        false: "opacity-50 cursor-not-allowed",
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
       },
     },
     defaultVariants: {
-      variant: "primary",
-      enabled: true,
+      variant: "default",
+      size: "default",
     },
   },
 )
@@ -36,32 +37,20 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
-  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ loading = false, children, className, variant, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        disabled={loading}
-        className={cn(
-          buttonVariants({ variant, className }),
-          loading && "relative text-transparent",
-        )}
         {...props}
-      >
-        {loading && (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <LoadingSpinner />
-          </div>
-        )}
-        <Slottable>{children}</Slottable>
-      </Comp>
+      />
     )
   },
 )
 Button.displayName = "Button"
 
-export { Button }
+export { Button, buttonVariants }
