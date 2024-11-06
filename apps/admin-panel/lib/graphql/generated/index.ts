@@ -1716,7 +1716,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: any } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -1740,6 +1740,13 @@ export type CustomersQueryVariables = Exact<{
 
 export type CustomersQuery = { __typename?: 'Query', customersByEmail: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type CreateDepositMutationVariables = Exact<{
+  input: DepositRecordInput;
+}>;
+
+
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } } } };
+
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -1754,13 +1761,6 @@ export type DepositQueryVariables = Exact<{
 
 
 export type DepositQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', customerId: string, depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, applicantId?: string | null } } | null };
-
-export type RecordDepositMutationVariables = Exact<{
-  input: DepositRecordInput;
-}>;
-
-
-export type RecordDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: any, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any } } } } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -3387,6 +3387,7 @@ export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<Su
 export const GetCustomerDocument = gql`
     query GetCustomer($id: UUID!) {
   customer(id: $id) {
+    id
     customerId
     email
     telegramId
@@ -3631,6 +3632,51 @@ export function useCustomersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
 export type CustomersQueryHookResult = ReturnType<typeof useCustomersQuery>;
 export type CustomersLazyQueryHookResult = ReturnType<typeof useCustomersLazyQuery>;
 export type CustomersQueryResult = Apollo.QueryResult<CustomersQuery, CustomersQueryVariables>;
+export const CreateDepositDocument = gql`
+    mutation CreateDeposit($input: DepositRecordInput!) {
+  depositRecord(input: $input) {
+    deposit {
+      depositId
+      amount
+      customer {
+        customerId
+        email
+        balance {
+          checking {
+            settled
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+export type CreateDepositMutationFn = Apollo.MutationFunction<CreateDepositMutation, CreateDepositMutationVariables>;
+
+/**
+ * __useCreateDepositMutation__
+ *
+ * To run a mutation, you first call `useCreateDepositMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateDepositMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createDepositMutation, { data, loading, error }] = useCreateDepositMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateDepositMutation(baseOptions?: Apollo.MutationHookOptions<CreateDepositMutation, CreateDepositMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateDepositMutation, CreateDepositMutationVariables>(CreateDepositDocument, options);
+      }
+export type CreateDepositMutationHookResult = ReturnType<typeof useCreateDepositMutation>;
+export type CreateDepositMutationResult = Apollo.MutationResult<CreateDepositMutation>;
+export type CreateDepositMutationOptions = Apollo.BaseMutationOptions<CreateDepositMutation, CreateDepositMutationVariables>;
 export const DepositsDocument = gql`
     query Deposits($first: Int!, $after: String) {
   deposits(first: $first, after: $after) {
@@ -3725,51 +3771,6 @@ export function useDepositLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<De
 export type DepositQueryHookResult = ReturnType<typeof useDepositQuery>;
 export type DepositLazyQueryHookResult = ReturnType<typeof useDepositLazyQuery>;
 export type DepositQueryResult = Apollo.QueryResult<DepositQuery, DepositQueryVariables>;
-export const RecordDepositDocument = gql`
-    mutation RecordDeposit($input: DepositRecordInput!) {
-  depositRecord(input: $input) {
-    deposit {
-      depositId
-      amount
-      customer {
-        customerId
-        email
-        balance {
-          checking {
-            settled
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-export type RecordDepositMutationFn = Apollo.MutationFunction<RecordDepositMutation, RecordDepositMutationVariables>;
-
-/**
- * __useRecordDepositMutation__
- *
- * To run a mutation, you first call `useRecordDepositMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useRecordDepositMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [recordDepositMutation, { data, loading, error }] = useRecordDepositMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useRecordDepositMutation(baseOptions?: Apollo.MutationHookOptions<RecordDepositMutation, RecordDepositMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<RecordDepositMutation, RecordDepositMutationVariables>(RecordDepositDocument, options);
-      }
-export type RecordDepositMutationHookResult = ReturnType<typeof useRecordDepositMutation>;
-export type RecordDepositMutationResult = Apollo.MutationResult<RecordDepositMutation>;
-export type RecordDepositMutationOptions = Apollo.BaseMutationOptions<RecordDepositMutation, RecordDepositMutationVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

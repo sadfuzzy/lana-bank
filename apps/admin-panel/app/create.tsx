@@ -1,18 +1,38 @@
 /* eslint-disable no-empty-function */
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useContext, createContext } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { HiPlus } from "react-icons/hi"
+import { usePathname } from "next/navigation"
 
 import { CreateCustomerDialog } from "./customers/create"
+import { CreateDepositDialog } from "./deposits/create"
+import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
+import { CreateCreditFacilityDialog } from "./credit-facilities/create"
+
+import CustomerSelector from "./customers/selector"
 
 import { Button } from "@/components/primitive/button"
+import { CreditFacility, Customer } from "@/lib/graphql/generated"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
+  const [createDeposit, setCreateDeposit] = useState(false)
+  const [createWithdrawal, setCreateWithdrawal] = useState(false)
+  const [createFacility, setCreateFacility] = useState(false)
+
+  const { customer, setCustomer } = useCreateContext()
+  const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
 
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const pathName = usePathname()
+  const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
+  const setCustomerToNullIfNotInCustomerDetails = () => {
+    if (userIsInCustomerDetailsPage) setCustomer(null)
+  }
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -27,11 +47,33 @@ const CreateButton = () => {
 
   const menuItems = [
     { label: "Disbursal", onClick: () => {} },
-    { label: "Deposit", onClick: () => {} },
-    { label: "Withdrawal", onClick: () => {} },
+    {
+      label: "Deposit",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateDeposit(true)
+      },
+    },
+    {
+      label: "Withdrawal",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateWithdrawal(true)
+      },
+    },
     { label: "Customer", onClick: () => setCreateCustomer(true) },
-    { label: "Credit Facility", onClick: () => {} },
+    {
+      label: "Credit Facility",
+      onClick: () => {
+        if (!customer) setOpenCustomerSelector(true)
+        setCreateFacility(true)
+      },
+    },
   ]
+
+  let creationType = ""
+  if (createDeposit) creationType = "Deposit"
+  if (createWithdrawal) creationType = "Withdrawal"
 
   return (
     <>
@@ -68,12 +110,88 @@ const CreateButton = () => {
           )}
         </AnimatePresence>
       </div>
+      <CustomerSelector
+        show={openCustomerSelector}
+        setShow={setOpenCustomerSelector}
+        setCustomer={setCustomer}
+        onClose={() => setCustomer(null)}
+        title={`Select customer for ${creationType}`}
+      />
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
         openCreateCustomerDialog={createCustomer}
       />
+      {customer && (
+        <CreateDepositDialog
+          openCreateDepositDialog={createDeposit}
+          setOpenCreateDepositDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setCreateDeposit(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
+      {customer && (
+        <WithdrawalInitiateDialog
+          openWithdrawalInitiateDialog={createWithdrawal}
+          setOpenWithdrawalInitiateDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setCreateWithdrawal(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
+      {customer && (
+        <CreateCreditFacilityDialog
+          openCreateCreditFacilityDialog={createFacility}
+          setOpenCreateCreditFacilityDialog={() => {
+            setCustomerToNullIfNotInCustomerDetails()
+            setCreateFacility(false)
+          }}
+          customerId={customer.customerId}
+        />
+      )}
     </>
   )
 }
 
 export default CreateButton
+
+type ICustomer = Customer | null
+type IFacility = CreditFacility | null
+
+type CreateContext = {
+  customer: ICustomer
+  facility: IFacility
+  setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
+  setFacility: React.Dispatch<React.SetStateAction<IFacility>>
+}
+
+const CreateContext = createContext<CreateContext>({
+  customer: null,
+  facility: null,
+  setCustomer: () => {},
+  setFacility: () => {},
+})
+
+export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
+  const [customer, setCustomer] = useState<ICustomer>(null)
+  const [facility, setFacility] = useState<IFacility>(null)
+
+  return (
+    <CreateContext.Provider
+      value={{
+        customer,
+        facility,
+        setCustomer,
+        setFacility,
+      }}
+    >
+      {children}
+    </CreateContext.Provider>
+  )
+}
+
+export const useCreateContext = () => useContext(CreateContext)
