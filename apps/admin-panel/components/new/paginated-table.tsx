@@ -38,6 +38,7 @@ interface PaginatedTableProps<T> {
   fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
   onFilter?: (column: keyof T, value: T[keyof T]) => void
+  onClick?: (record: T) => void
 }
 
 const PaginatedTable = <T,>({
@@ -47,6 +48,7 @@ const PaginatedTable = <T,>({
   fetchMore,
   onSort,
   onFilter,
+  onClick,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -150,7 +152,11 @@ const PaginatedTable = <T,>({
         </thead>
         <tbody>
           {displayData.map(({ node }, idx) => (
-            <tr key={idx} className="hover:bg-gray-100">
+            <tr
+              onClick={() => (onClick ? onClick(node) : undefined)}
+              key={idx}
+              className={`hover:bg-gray-100 ${onClick && "cursor-pointer"}`}
+            >
               {columns.map((col) => (
                 <td key={col.key as string} className="text-body-md p-1 text-body-sm">
                   {col.render ? col.render(node[col.key], node) : String(node[col.key])}
@@ -194,3 +200,5 @@ const PaginatedTable = <T,>({
 }
 
 export default PaginatedTable
+
+export const DEFAULT_PAGESIZE = 10

@@ -2,13 +2,15 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { HiPlus } from "react-icons/hi"
-
 import { motion, AnimatePresence } from "framer-motion"
+
+import { CreateCustomerDialog } from "./customers/create"
 
 import { Button } from "@/components/primitive/button"
 
 const CreateButton = () => {
+  const [createCustomer, setCreateCustomer] = useState(false)
+
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -27,7 +29,7 @@ const CreateButton = () => {
     { label: "Disbursal", onClick: () => {} },
     { label: "Deposit", onClick: () => {} },
     { label: "Withdrawal", onClick: () => {} },
-    { label: "Customer", onClick: () => {} },
+    { label: "Customer", onClick: () => setCreateCustomer(true) },
     { label: "Credit Facility", onClick: () => {} },
   ]
 
@@ -66,6 +68,10 @@ const CreateButton = () => {
           )}
         </AnimatePresence>
       </div>
+      <CreateCustomerDialog
+        setOpenCreateCustomerDialog={setCreateCustomer}
+        openCreateCustomerDialog={createCustomer}
+      />
     </>
   )
 }

@@ -25,7 +25,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   const uploadLink = createUploadLink({
     uri: coreAdminGqlUrl,
     credentials: "include",
-    fetchOptions: { cache: "no-store" },
   })
   const ssrMultipartLink = new SSRMultipartLink({
     stripDefer: true,
@@ -42,6 +41,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
       Query: {
         fields: {
+          customers: relayStylePagination(),
           loans: relayStylePagination(),
           creditFacilities: relayStylePagination(),
           committees: relayStylePagination(),
@@ -89,14 +89,6 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
   }
 
   return new ApolloClient({
-    defaultOptions: {
-      query: {
-        fetchPolicy: "no-cache",
-      },
-      watchQuery: {
-        fetchPolicy: "no-cache",
-      },
-    },
     cache,
     resolvers,
     link,

@@ -1692,27 +1692,13 @@ export type CustomerCreateMutationVariables = Exact<{
 
 export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
-export type GetCustomerByCustomerEmailQueryVariables = Exact<{
-  email: Scalars['String']['input'];
-}>;
-
-
-export type GetCustomerByCustomerEmailQuery = { __typename?: 'Query', customerByEmail?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
-
-export type GetCustomerByCustomerIdQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetCustomerByCustomerIdQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
-
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', nodes: Array<{ __typename?: 'Customer', customerId: string, email: string, telegramId: string, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3543,120 +3529,29 @@ export function useCustomerCreateMutation(baseOptions?: Apollo.MutationHookOptio
 export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCreateMutation>;
 export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
 export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
-export const GetCustomerByCustomerEmailDocument = gql`
-    query getCustomerByCustomerEmail($email: String!) {
-  customerByEmail(email: $email) {
-    customerId
-    email
-    telegramId
-    status
-    level
-    applicantId
-    subjectCanRecordDeposit
-    subjectCanInitiateWithdrawal
-    subjectCanCreateCreditFacility
-    balance {
-      checking {
-        settled
-        pending
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerByCustomerEmailQuery__
- *
- * To run a query within a React component, call `useGetCustomerByCustomerEmailQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerByCustomerEmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerByCustomerEmailQuery({
- *   variables: {
- *      email: // value for 'email'
- *   },
- * });
- */
-export function useGetCustomerByCustomerEmailQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>(GetCustomerByCustomerEmailDocument, options);
-      }
-export function useGetCustomerByCustomerEmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>(GetCustomerByCustomerEmailDocument, options);
-        }
-export type GetCustomerByCustomerEmailQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailQuery>;
-export type GetCustomerByCustomerEmailLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerEmailLazyQuery>;
-export type GetCustomerByCustomerEmailQueryResult = Apollo.QueryResult<GetCustomerByCustomerEmailQuery, GetCustomerByCustomerEmailQueryVariables>;
-export const GetCustomerByCustomerIdDocument = gql`
-    query getCustomerByCustomerId($id: UUID!) {
-  customer(id: $id) {
-    customerId
-    email
-    telegramId
-    status
-    level
-    applicantId
-    subjectCanRecordDeposit
-    subjectCanInitiateWithdrawal
-    subjectCanCreateCreditFacility
-    balance {
-      checking {
-        settled
-        pending
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerByCustomerIdQuery__
- *
- * To run a query within a React component, call `useGetCustomerByCustomerIdQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerByCustomerIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerByCustomerIdQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerByCustomerIdQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-      }
-export function useGetCustomerByCustomerIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>(GetCustomerByCustomerIdDocument, options);
-        }
-export type GetCustomerByCustomerIdQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdQuery>;
-export type GetCustomerByCustomerIdLazyQueryHookResult = ReturnType<typeof useGetCustomerByCustomerIdLazyQuery>;
-export type GetCustomerByCustomerIdQueryResult = Apollo.QueryResult<GetCustomerByCustomerIdQuery, GetCustomerByCustomerIdQueryVariables>;
 export const CustomersDocument = gql`
     query Customers($first: Int!, $after: String) {
   customers(first: $first, after: $after) {
-    nodes {
-      customerId
-      email
-      telegramId
-      subjectCanRecordDeposit
-      subjectCanInitiateWithdrawal
-      subjectCanCreateCreditFacility
-      balance {
-        checking {
-          settled
-          pending
+    edges {
+      node {
+        id
+        customerId
+        status
+        level
+        email
+        telegramId
+        applicantId
+        balance {
+          checking {
+            settled
+            pending
+          }
         }
+        subjectCanRecordDeposit
+        subjectCanInitiateWithdrawal
+        subjectCanCreateCreditFacility
       }
+      cursor
     }
     pageInfo {
       endCursor
