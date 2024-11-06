@@ -65,7 +65,7 @@ const CreditFacilities = () => {
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<CreditFacility>
         columns={columns}
-        data={data?.creditFacilities as PaginatedData<CreditFacility>}
+        data={data?.creditFacilitiesByCreatedAt as PaginatedData<CreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
