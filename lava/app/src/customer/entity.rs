@@ -42,6 +42,7 @@ pub struct Customer {
     pub email: String,
     pub telegram_id: String,
     pub account_ids: CustomerLedgerAccountIds,
+    #[builder(default)]
     pub status: AccountStatus,
     pub level: KycLevel,
     #[builder(setter(strip_option, into), default)]
@@ -117,8 +118,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .email(email.clone())
                         .telegram_id(telegram_id.clone())
                         .account_ids(*account_ids)
-                        .level(KycLevel::NotKyced)
-                        .status(AccountStatus::Inactive);
+                        .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::KycStarted { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone());
@@ -157,6 +157,8 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) telegram_id: String,
     pub(super) account_ids: CustomerLedgerAccountIds,
+    #[builder(setter(skip), default)]
+    pub(super) status: AccountStatus,
     pub(super) audit_info: AuditInfo,
 }
 

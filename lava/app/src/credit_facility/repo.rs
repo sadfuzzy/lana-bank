@@ -12,7 +12,7 @@ use super::{entity::*, error::CreditFacilityError, publisher::*};
     entity = "CreditFacility",
     err = "CreditFacilityError",
     columns(
-        customer_id(ty = "CustomerId", list_for),
+        customer_id(ty = "CustomerId", list_for, update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
         collateralization_ratio(
             ty = "Option<Decimal>",

@@ -94,10 +94,21 @@ impl std::fmt::Display for KycLevel {
     }
 }
 
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(
+    async_graphql::Enum,
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
 pub enum AccountStatus {
-    Active,
+    #[default]
     Inactive,
+    Active,
 }
 
 pub use cala_types::primitives::{
