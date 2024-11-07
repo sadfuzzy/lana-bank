@@ -5,6 +5,8 @@ import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
 import { useRouter } from "next/navigation"
 
+import { CardSkeleton } from "../dashboard/page"
+
 import {
   Table,
   TableBody,
@@ -75,7 +77,7 @@ type ListProps = {
 
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
   const router = useRouter()
-  const { data } = useAllActionsQuery()
+  const { data, loading } = useAllActionsQuery()
   const approvalProcesses =
     data?.approvalProcesses.edges
       .filter((e) => e.node.subjectCanSubmitDecision)
@@ -88,6 +90,8 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
   const tableData = quantifiedData.map((e) => e.node)
 
   const more = tableData.length - NUMBER_OF_ITEMS_IN_DASHBOARD
+
+  if (loading) return <CardSkeleton />
 
   return (
     <Card>

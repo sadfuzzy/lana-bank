@@ -110,7 +110,12 @@ const CreateButton = () => {
         show={openCustomerSelector}
         setShow={setOpenCustomerSelector}
         setCustomer={setCustomer}
-        onClose={() => setCustomer(null)}
+        onClose={() => {
+          setCustomer(null)
+          setCreateDeposit(false)
+          setCreateWithdrawal(false)
+          setCreateFacility(false)
+        }}
         title={`Select customer for ${creationType}`}
       />
 
