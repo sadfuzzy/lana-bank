@@ -1,6 +1,6 @@
 [package]
 name = "lava-ids"
-version = "0.2.17-dev"
+version = "0.2.18-dev"
 edition = "2021"
 
 [features]
