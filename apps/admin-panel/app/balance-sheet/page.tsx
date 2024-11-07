@@ -1,6 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
-import { useState, useCallback } from "react"
+import { useState, useCallback, useMemo } from "react"
 
 import { Account } from "./account"
 
@@ -93,13 +93,15 @@ const BALANCE_FOR_CATEGORY: Record<string, { TransactionType: TransactionType }>
 }
 
 export default function BalanceSheetPage() {
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const initialDateRange = useMemo(() => getInitialDateRange(), [])
+  const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
     setDateRange(newDateRange)
   }, [])
 
   const { data, loading, error } = useBalanceSheetQuery({
     variables: dateRange,
+    fetchPolicy: "cache-and-network",
   })
 
   return (

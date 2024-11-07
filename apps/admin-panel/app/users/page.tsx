@@ -41,6 +41,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 
 gql`
   query Users {
@@ -74,7 +75,7 @@ gql`
 
 function UsersPage() {
   const router = useRouter()
-  const { data: usersList, refetch } = useUsersQuery()
+  const { data: usersList, refetch, loading } = useUsersQuery()
 
   return (
     <Card>
@@ -83,46 +84,50 @@ function UsersPage() {
         <CardDescription>Manage system users and their role assignments</CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-1/4">User ID</TableHead>
-              <TableHead className="w-1/4">Email</TableHead>
-              <TableHead className="w-1/4">Roles</TableHead>
-              <TableHead className="w-1/4"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {usersList?.users.map((user) => (
-              <TableRow
-                key={user.userId}
-                className="cursor-pointer"
-                onClick={() => router.push(`/users/${user.userId}`)}
-              >
-                <TableCell>{user.userId}</TableCell>
-                <TableCell>{user.email}</TableCell>
-                <TableCell>
-                  <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
-                    {user.roles.length > 0
-                      ? user.roles.map((role) => (
-                          <Badge variant="secondary" key={role}>
-                            {formatRole(role)}
-                          </Badge>
-                        ))
-                      : "No roles Assigned"}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right pr-8">
-                  <RolesDropDown
-                    refetch={refetch}
-                    userId={user.userId}
-                    roles={user.roles}
-                  />
-                </TableCell>
+        {loading ? (
+          <TableLoadingSkeleton />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-1/4">User ID</TableHead>
+                <TableHead className="w-1/4">Email</TableHead>
+                <TableHead className="w-1/4">Roles</TableHead>
+                <TableHead className="w-1/4"></TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {usersList?.users.map((user) => (
+                <TableRow
+                  key={user.userId}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/users/${user.userId}`)}
+                >
+                  <TableCell>{user.userId}</TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
+                      {user.roles.length > 0
+                        ? user.roles.map((role) => (
+                            <Badge variant="secondary" key={role}>
+                              {formatRole(role)}
+                            </Badge>
+                          ))
+                        : "No roles Assigned"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right pr-8">
+                    <RolesDropDown
+                      refetch={refetch}
+                      userId={user.userId}
+                      roles={user.roles}
+                    />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </CardContent>
     </Card>
   )

@@ -26,6 +26,7 @@ import {
 } from "@/components/primitive/table"
 import { formatPeriod } from "@/lib/utils"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
+import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 
 gql`
   query TermsTemplates {
@@ -89,7 +90,7 @@ function TermPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="text-sm">Loading...</p>
+            <TableLoadingSkeleton />
           ) : error ? (
             <p className="text-destructive mt-6">{error.message}</p>
           ) : data?.termsTemplates && data.termsTemplates.length > 0 ? (

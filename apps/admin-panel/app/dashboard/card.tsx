@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { HiArrowRight } from "react-icons/hi"
 
+import { ReactNode } from "react"
+
 import {
   Card,
   CardContent,
@@ -20,8 +22,8 @@ import {
 } from "@/components/primitive/tooltip"
 
 type DashboardCardProps = {
-  h1?: string
-  h2?: string
+  h1?: ReactNode
+  h2?: ReactNode
   h2PopupDescription?: string
   title: string
   description: string

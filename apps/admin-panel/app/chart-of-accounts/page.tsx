@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useMemo, useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
@@ -151,18 +151,24 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
 }
 
 function ChartOfAccountsPage() {
+  const date = useMemo(() => getInitialDateRange(), [])
+
   const {
     data: onBalanceSheetData,
     loading: onBalanceSheetLoading,
     error: onBalanceSheetError,
-  } = useGetOnBalanceSheetChartOfAccountsQuery()
+  } = useGetOnBalanceSheetChartOfAccountsQuery({
+    fetchPolicy: "cache-and-network",
+  })
   const {
     data: offBalanceSheetData,
     loading: offBalanceSheetLoading,
     error: offBalanceSheetError,
-  } = useGetOffBalanceSheetChartOfAccountsQuery()
+  } = useGetOffBalanceSheetChartOfAccountsQuery({
+    fetchPolicy: "cache-and-network",
+  })
 
-  const [dateRange] = useState<DateRange>(getInitialDateRange)
+  const [dateRange] = useState<DateRange>(date)
 
   return (
     <Card>

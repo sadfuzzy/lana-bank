@@ -11,6 +11,8 @@ import {
 
 import { Select } from "../primitive/select"
 
+import { Skeleton } from "../primitive/skeleton"
+
 import {
   Table,
   TableBody,
@@ -111,7 +113,8 @@ const PaginatedTable = <T,>({
     }
   }
 
-  if (loading) return <LoadingSkeleton columns={columns} pageSize={pageSize} />
+  if (loading)
+    return <PaginatedTableLoadingSkeleton columns={columns} pageSize={pageSize} />
 
   if (data?.edges.length === 0) {
     return <div className="text-sm">No data to display</div>
@@ -219,7 +222,7 @@ export default PaginatedTable
 
 export const DEFAULT_PAGESIZE = 10
 
-const LoadingSkeleton = <T,>({
+const PaginatedTableLoadingSkeleton = <T,>({
   columns,
   pageSize,
 }: {
@@ -234,7 +237,7 @@ const LoadingSkeleton = <T,>({
             <TableRow key={rowIndex}>
               {columns.map((_, colIndex) => (
                 <TableCell key={colIndex}>
-                  <div className="animate-pulse rounded-md bg-muted h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
                 </TableCell>
               ))}
             </TableRow>
