@@ -39,7 +39,7 @@ pub enum CreditEvent {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    DisbursalSettled {
+    DisbursalExecuted {
         id: CreditFacilityId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,

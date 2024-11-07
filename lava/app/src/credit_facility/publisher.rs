@@ -49,7 +49,7 @@ impl CreditFacilityPublisher {
                     idx, recorded_at, ..
                 } => {
                     let amount = entity.disbursal_amount_from_idx(*idx);
-                    Some(CreditEvent::DisbursalSettled {
+                    Some(CreditEvent::DisbursalExecuted {
                         id: entity.id,
                         amount,
                         recorded_at: *recorded_at,

@@ -30,7 +30,7 @@ impl DashboardValues {
                 self.active_facilities -= 1;
                 true
             }
-            LavaEvent::Credit(CreditEvent::DisbursalSettled { amount, .. }) => {
+            LavaEvent::Credit(CreditEvent::DisbursalExecuted { amount, .. }) => {
                 self.total_disbursed += *amount;
                 true
             }
