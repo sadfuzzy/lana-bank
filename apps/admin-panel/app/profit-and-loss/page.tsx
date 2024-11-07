@@ -164,9 +164,7 @@ const ProfitAndLossStatement = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell className="uppercase pr-10 text-textColor-secondary">
-                NET
-              </TableCell>
+              <TableCell className="uppercase font-bold">NET</TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"

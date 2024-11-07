@@ -16,15 +16,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive
 
 import { Customer as CustomerType, useGetCustomerQuery } from "@/lib/graphql/generated"
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/primitive/breadcrumb"
 import { useCreateContext } from "@/app/create"
+import { BreadCrumbWrapper, BreadcrumbLink } from "@/components/breadcrumb-wrapper"
 
 gql`
   query GetCustomer($id: UUID!) {
@@ -108,23 +101,13 @@ gql`
 `
 
 const CustomerBreadcrumb = ({ customerEmail }: { customerEmail: string }) => {
-  return (
-    <Breadcrumb className="py-4 px-2">
-      <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink href={`/dashboard`}>Dashboard</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbLink href={`/customers`}>Customers</BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
-        <BreadcrumbItem>
-          <BreadcrumbPage>{customerEmail}</BreadcrumbPage>
-        </BreadcrumbItem>
-      </BreadcrumbList>
-    </Breadcrumb>
-  )
+  const links: BreadcrumbLink[] = [
+    { title: "Dashboard", href: "/dashboard" },
+    { title: "Customers", href: "/customers" },
+    { title: customerEmail, isCurrentPage: true },
+  ]
+
+  return <BreadCrumbWrapper links={links} />
 }
 
 const Customer = ({

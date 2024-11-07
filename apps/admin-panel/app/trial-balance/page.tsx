@@ -247,7 +247,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
         </TableBody>
         <TableFooter className="border-t-4">
           <TableRow>
-            <TableCell className="text-right uppercase font-bold pr-10">Totals</TableCell>
+            <TableCell className="uppercase font-bold">Totals</TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"

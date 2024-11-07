@@ -2,6 +2,8 @@
 
 import { gql } from "@apollo/client"
 
+import { useRouter } from "next/navigation"
+
 import { WithdrawalStatusBadge } from "./status-badge"
 
 import { Withdrawal, useWithdrawalsQuery } from "@/lib/graphql/generated"
@@ -44,6 +46,8 @@ gql`
 `
 
 const Withdrawals = () => {
+  const router = useRouter()
+
   const { data, loading, error, fetchMore } = useWithdrawalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -59,6 +63,9 @@ const Withdrawals = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
+        onClick={(withdrawal) => {
+          router.push(`/withdrawals/${withdrawal.withdrawalId}`)
+        }}
       />
     </div>
   )

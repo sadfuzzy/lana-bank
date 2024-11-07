@@ -7,18 +7,14 @@ import { IoEllipsisHorizontal } from "react-icons/io5"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-import { CreateUserDialog } from "./create"
-
 import {
   Role,
-  useMeQuery,
   useUserAssignRoleMutation,
   useUserRevokeRoleMutation,
   useUsersQuery,
 } from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
 
-import { PageHeading } from "@/components/page-heading"
 import { Button } from "@/components/primitive/button"
 import {
   Table,
@@ -38,7 +34,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/primitive/dropdown-menu"
 import { Badge } from "@/components/primitive/badge"
-import { Card, CardContent } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 
 gql`
   query Users {
@@ -73,70 +75,56 @@ gql`
 function UsersPage() {
   const router = useRouter()
   const { data: usersList, refetch } = useUsersQuery()
-  const { data: me } = useMeQuery()
-  const [openCreateUserDialog, setOpenCreateUserDialog] = useState<boolean>(false)
 
   return (
-    <div>
-      {me?.me.subjectCanCreateTermsTemplate && (
-        <CreateUserDialog
-          setOpenCreateUserDialog={setOpenCreateUserDialog}
-          openCreateUserDialog={openCreateUserDialog}
-          refetch={refetch}
-        />
-      )}
-      <div className="flex justify-between items-center mb-8">
-        <PageHeading className="mb-0">Users</PageHeading>
-        <Button onClick={() => setOpenCreateUserDialog(true)} variant="default">
-          Add New User
-        </Button>
-      </div>
-
-      <Card>
-        <CardContent className="pt-6">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/4">User ID</TableHead>
-                <TableHead className="w-1/4">Email</TableHead>
-                <TableHead className="w-1/4">Roles</TableHead>
-                <TableHead className="w-1/4"></TableHead>
+    <Card>
+      <CardHeader>
+        <CardTitle>Users</CardTitle>
+        <CardDescription>Manage system users and their role assignments</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-1/4">User ID</TableHead>
+              <TableHead className="w-1/4">Email</TableHead>
+              <TableHead className="w-1/4">Roles</TableHead>
+              <TableHead className="w-1/4"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {usersList?.users.map((user) => (
+              <TableRow
+                key={user.userId}
+                className="cursor-pointer"
+                onClick={() => router.push(`/users/${user.userId}`)}
+              >
+                <TableCell>{user.userId}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
+                    {user.roles.length > 0
+                      ? user.roles.map((role) => (
+                          <Badge variant="secondary" key={role}>
+                            {formatRole(role)}
+                          </Badge>
+                        ))
+                      : "No roles Assigned"}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right pr-8">
+                  <RolesDropDown
+                    refetch={refetch}
+                    userId={user.userId}
+                    roles={user.roles}
+                  />
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersList?.users.map((user) => (
-                <TableRow
-                  key={user.userId}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/users/${user.userId}`)}
-                >
-                  <TableCell>{user.userId}</TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
-                      {user.roles.length > 0
-                        ? user.roles.map((role) => (
-                            <Badge variant="secondary" key={role}>
-                              {formatRole(role)}
-                            </Badge>
-                          ))
-                        : "No roles Assigned"}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right pr-8">
-                    <RolesDropDown
-                      refetch={refetch}
-                      userId={user.userId}
-                      roles={user.roles}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
   )
 }
 

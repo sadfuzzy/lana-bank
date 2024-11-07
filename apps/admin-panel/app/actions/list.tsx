@@ -156,7 +156,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           </div>
         </CardContent>
       ) : (
-        <CardContent className="flex flex-col items-start justify-center w-full gap-2">
+        <CardContent className="flex flex-col items-start justify-center w-full gap-2 ">
           <HiCheckCircle className="text-6xl text-green-500" />
           <div className="text-sm">All Caught Up</div>
         </CardContent>

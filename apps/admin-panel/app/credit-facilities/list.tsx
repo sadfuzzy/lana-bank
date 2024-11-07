@@ -13,7 +13,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/new/paginated-table"
 import Balance from "@/components/balance/balance"
-import { formatCollateralizationState } from "@/lib/utils"
+import { formatCollateralizationState, formatDate } from "@/lib/utils"
 
 gql`
   query CreditFacilities($first: Int!, $after: String) {
@@ -106,6 +106,6 @@ const columns: Column<CreditFacility>[] = [
   {
     key: "createdAt",
     label: "Created At",
-    render: (date) => new Date(date).toLocaleDateString(),
+    render: (date) => formatDate(date),
   },
 ]

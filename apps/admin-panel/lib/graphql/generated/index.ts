@@ -1621,7 +1621,7 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
@@ -2721,7 +2721,9 @@ export const CommitteesDocument = gql`
     }
     pageInfo {
       endCursor
+      startCursor
       hasNextPage
+      hasPreviousPage
     }
   }
 }

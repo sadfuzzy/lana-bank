@@ -10,6 +10,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/new/paginated-table"
 import Balance from "@/components/balance/balance"
+import { formatDate } from "@/lib/utils"
 
 gql`
   query Disbursals($first: Int!, $after: String) {
@@ -65,7 +66,7 @@ const columns: Column<CreditFacilityDisbursal>[] = [
   {
     key: "createdAt",
     label: "Date",
-    render: (date) => new Date(date).toLocaleDateString(),
+    render: (date) => formatDate(date),
   },
   {
     key: "status",

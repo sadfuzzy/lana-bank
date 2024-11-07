@@ -97,7 +97,7 @@ const RegulatoryReportingPage: React.FC = () => {
 
   return (
     <>
-      <Card>
+      <Card className="max-w-7xl m-auto">
         <CardHeader className="flex flex-row  justify-between items-center">
           <div className="flex flex-col gap-1">
             <CardTitle>Report Management</CardTitle>
@@ -106,7 +106,11 @@ const RegulatoryReportingPage: React.FC = () => {
               generated documents.
             </CardDescription>
           </div>
-          <Button className="ml-4" onClick={() => setOpenReportCreateDialog(true)}>
+          <Button
+            variant="outline"
+            className="ml-4"
+            onClick={() => setOpenReportCreateDialog(true)}
+          >
             Generate Report
           </Button>
         </CardHeader>
