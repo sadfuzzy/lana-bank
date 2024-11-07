@@ -6,7 +6,6 @@ import Link from "next/link"
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 import { CreditFacilityApproveDialog } from "../approve"
 import { CreditFacilityDisbursalInitiateDialog } from "../disbursal-initiate"
-import { CreditFacilityCompleteDialog } from "../complete"
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import {
@@ -44,7 +43,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
-  const [openCompleteDialog, setOpenCompleteDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
   return (
@@ -105,16 +103,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
                 Initiate Disbursal
               </Button>
             )}
-          {creditFacilityDetails.subjectCanComplete &&
-            creditFacilityDetails.canBeCompleted && (
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setOpenCompleteDialog(true)}
-              >
-                Complete Credit Facility
-              </Button>
-            )}
           {creditFacilityDetails.subjectCanRecordPayment &&
             creditFacilityDetails.status === CreditFacilityStatus.Active && (
               <Button
@@ -154,11 +142,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         creditFacilityDetails={creditFacilityDetails as CreditFacility}
         openDialog={openApproveDialog}
         setOpenDialog={setOpenApproveDialog}
-      />
-      <CreditFacilityCompleteDialog
-        creditFacilityId={creditFacilityId}
-        openDialog={openCompleteDialog}
-        setOpenDialog={setOpenCompleteDialog}
       />
       <CreditFacilityPartialPaymentDialog
         creditFacilityId={creditFacilityId}

@@ -98,7 +98,6 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               value={startDate}
               onChange={handleStartDateChange}
               max={new Date().toISOString().split("T")[0]}
-              className="text-white caret-white appearance-none [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
           <div className="w-1/2">
@@ -112,7 +111,6 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               onChange={handleEndDateChange}
               min={startDate}
               max={new Date().toISOString().split("T")[0]}
-              className="text-white caret-white appearance-none [&::-webkit-calendar-picker-indicator]:invert"
             />
           </div>
         </div>
