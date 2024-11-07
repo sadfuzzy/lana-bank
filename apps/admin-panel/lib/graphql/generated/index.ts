@@ -1525,6 +1525,11 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
+export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, createdAt: any, target: { __typename: 'CreditFacility', creditFacilityId: string, customer: { __typename?: 'Customer', email: string } } | { __typename: 'CreditFacilityDisbursal', id: string, index: any } | { __typename: 'Withdrawal', withdrawalId: string, customer: { __typename?: 'Customer', email: string } } } }> } };
+
 export type ApprovalProcessApproveMutationVariables = Exact<{
   input: ApprovalProcessApproveInput;
 }>;
@@ -2052,6 +2057,72 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${RangedBtcBalancesFragmentDoc}
 ${RangedUsdBalancesFragmentDoc}`;
+export const AllActionsDocument = gql`
+    query AllActions {
+  approvalProcesses(first: 1000000) {
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+    }
+    edges {
+      node {
+        id
+        approvalProcessType
+        status
+        subjectCanSubmitDecision
+        createdAt
+        target {
+          __typename
+          ... on Withdrawal {
+            withdrawalId
+            customer {
+              email
+            }
+          }
+          ... on CreditFacility {
+            creditFacilityId
+            customer {
+              email
+            }
+          }
+          ... on CreditFacilityDisbursal {
+            id
+            index
+          }
+        }
+      }
+      cursor
+    }
+  }
+}
+    `;
+
+/**
+ * __useAllActionsQuery__
+ *
+ * To run a query within a React component, call `useAllActionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAllActionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAllActionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAllActionsQuery(baseOptions?: Apollo.QueryHookOptions<AllActionsQuery, AllActionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AllActionsQuery, AllActionsQueryVariables>(AllActionsDocument, options);
+      }
+export function useAllActionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AllActionsQuery, AllActionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AllActionsQuery, AllActionsQueryVariables>(AllActionsDocument, options);
+        }
+export type AllActionsQueryHookResult = ReturnType<typeof useAllActionsQuery>;
+export type AllActionsLazyQueryHookResult = ReturnType<typeof useAllActionsLazyQuery>;
+export type AllActionsQueryResult = Apollo.QueryResult<AllActionsQuery, AllActionsQueryVariables>;
 export const ApprovalProcessApproveDocument = gql`
     mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
   approvalProcessApprove(input: $input) {

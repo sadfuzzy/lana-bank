@@ -277,7 +277,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             <div className="flex items-center gap-1">
               <Input
                 type="number"
-                numeric
                 name="facility"
                 value={formValues.facility}
                 onChange={handleChange}

@@ -46,7 +46,7 @@ const NavBar = () => {
     <nav className="m-4">
       <ul className="flex flex-col space-y-[1px]">
         <MenuItem icon={HiHome} title="Dashboard" to="/dashboard" />
-        <MenuItem icon={HiCursorClick} title="Actions" to="/actions" notificationDot />
+        <MenuItem icon={HiCursorClick} title="Actions" to="/actions" />
         <MenuItem icon={HiMagnifyingGlassCircle} title="Search" to="/search" />
         <div className="h-4"></div>
         <MenuItem icon={HiUser} title="Customers" to="/customers" />
