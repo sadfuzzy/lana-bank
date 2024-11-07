@@ -82,7 +82,9 @@ impl CreditFacilityPublisher {
                 _ => None,
             })
             .collect::<Vec<_>>();
-        self.outbox.persist_all(db, publish_events).await?;
+        self.outbox
+            .publish_all_persisted(db, publish_events)
+            .await?;
         Ok(())
     }
 }

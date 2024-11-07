@@ -341,7 +341,7 @@ where
             .await?;
         let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
             self.outbox
-                .persist(
+                .publish_persisted(
                     &mut db,
                     GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,

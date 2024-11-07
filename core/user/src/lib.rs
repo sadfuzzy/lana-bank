@@ -107,7 +107,7 @@ where
         let mut db = self.repo.begin().await?;
         let user = self.repo.create_in_tx(&mut db, new_user).await?;
         self.outbox
-            .persist(&mut db, CoreUserEvent::UserCreated { id: user.id })
+            .publish_persisted(&mut db, CoreUserEvent::UserCreated { id: user.id })
             .await?;
         db.commit().await?;
         Ok(user)
@@ -323,7 +323,7 @@ where
         };
         if let Some(user) = user {
             self.outbox
-                .persist(&mut db, CoreUserEvent::UserCreated { id: user.id })
+                .publish_persisted(&mut db, CoreUserEvent::UserCreated { id: user.id })
                 .await?;
         }
         db.commit().await?;
