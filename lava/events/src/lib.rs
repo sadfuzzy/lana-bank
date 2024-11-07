@@ -4,8 +4,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use core_money::{Satoshis, UsdCents};
 use core_user::CoreUserEvent;
 use governance::GovernanceEvent;
+use lava_ids::CreditFacilityId;
 use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -17,31 +19,41 @@ pub enum LavaEvent {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub enum FacilityCollateralUpdateAction {
+    Add,
+    Remove,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "tag")]
 pub enum CreditEvent {
-    CreditFacilityCreated {
+    FacilityCreated {
+        id: CreditFacilityId,
         created_at: DateTime<Utc>,
     },
-    CreditFacilityActivated {
+    FacilityActivated {
+        id: CreditFacilityId,
         activated_at: DateTime<Utc>,
     },
-    CreditFacilityCompleted {
+    FacilityCompleted {
+        id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    DisbursalConcluded {
-        amount: u64,
+    DisbursalSettled {
+        id: CreditFacilityId,
+        amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
-    PaymentRecorded {
-        disbursal_amount: u64,
+    FacilityRepaymentRecorded {
+        id: CreditFacilityId,
+        disbursal_amount: UsdCents,
+        interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
-    CollateralAdded {
-        amount: u64,
-        recorded_at: DateTime<Utc>,
-    },
-    CollateralRemoved {
-        amount: u64,
+    FacilityCollateralUpdated {
+        new_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: FacilityCollateralUpdateAction,
         recorded_at: DateTime<Utc>,
     },
 }

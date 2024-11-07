@@ -17,8 +17,8 @@ impl From<DashboardValues> for Dashboard {
         Dashboard {
             active_facilities: values.active_facilities,
             pending_facilities: values.pending_facilities,
-            total_disbursed: values.total_disbursed.into(),
-            total_collateral: values.total_collateral.into(),
+            total_disbursed: values.total_disbursed,
+            total_collateral: values.total_collateral,
         }
     }
 }

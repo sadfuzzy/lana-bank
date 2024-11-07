@@ -11,6 +11,7 @@ members = [
 
   "core/user",
   "core/governance",
+  "core/money",
 
   "lib/authz",
   "lib/audit",
@@ -19,7 +20,7 @@ members = [
   "lib/es-entity",
   "lib/es-entity-macros",
   "lib/outbox",
-  "lib/jwks-utils"
+  "lib/jwks-utils",
 ]
 
 [workspace.dependencies]

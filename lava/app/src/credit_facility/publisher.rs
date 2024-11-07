@@ -1,6 +1,6 @@
 const BQ_TABLE_NAME: &str = "credit_facility_events";
 
-use lava_events::CreditEvent;
+use lava_events::{CreditEvent, FacilityCollateralUpdateAction};
 
 use crate::{data_export::Export, outbox::Outbox};
 
@@ -33,51 +33,62 @@ impl CreditFacilityPublisher {
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CreditEvent::CreditFacilityCreated {
+                Initialized { .. } => Some(CreditEvent::FacilityCreated {
+                    id: entity.id,
                     created_at: entity.created_at(),
                 }),
-                Activated { activated_at, .. } => Some(CreditEvent::CreditFacilityActivated {
+                Activated { activated_at, .. } => Some(CreditEvent::FacilityActivated {
+                    id: entity.id,
                     activated_at: *activated_at,
                 }),
-                Completed { completed_at, .. } => Some(CreditEvent::CreditFacilityCompleted {
+                Completed { completed_at, .. } => Some(CreditEvent::FacilityCompleted {
+                    id: entity.id,
                     completed_at: *completed_at,
                 }),
                 DisbursalConcluded {
                     idx, recorded_at, ..
                 } => {
                     let amount = entity.disbursal_amount_from_idx(*idx);
-                    Some(CreditEvent::DisbursalConcluded {
-                        amount: amount.into_inner(),
+                    Some(CreditEvent::DisbursalSettled {
+                        id: entity.id,
+                        amount,
                         recorded_at: *recorded_at,
                     })
                 }
                 PaymentRecorded {
                     disbursal_amount,
+                    interest_amount,
                     recorded_in_ledger_at,
                     ..
-                } => Some(CreditEvent::PaymentRecorded {
-                    disbursal_amount: disbursal_amount.into_inner(),
+                } => Some(CreditEvent::FacilityRepaymentRecorded {
+                    id: entity.id,
+                    disbursal_amount: *disbursal_amount,
+                    interest_amount: *interest_amount,
                     recorded_at: *recorded_in_ledger_at,
                 }),
                 CollateralUpdated {
+                    total_collateral,
                     abs_diff,
                     action,
                     recorded_in_ledger_at,
                     ..
-                } => match action {
-                    crate::primitives::CollateralAction::Add => {
-                        Some(CreditEvent::CollateralAdded {
-                            amount: abs_diff.into_inner(),
-                            recorded_at: *recorded_in_ledger_at,
-                        })
-                    }
-                    crate::primitives::CollateralAction::Remove => {
-                        Some(CreditEvent::CollateralRemoved {
-                            amount: abs_diff.into_inner(),
-                            recorded_at: *recorded_in_ledger_at,
-                        })
-                    }
-                },
+                } => {
+                    let action = match action {
+                        crate::primitives::CollateralAction::Add => {
+                            FacilityCollateralUpdateAction::Add
+                        }
+                        crate::primitives::CollateralAction::Remove => {
+                            FacilityCollateralUpdateAction::Remove
+                        }
+                    };
+
+                    Some(CreditEvent::FacilityCollateralUpdated {
+                        new_amount: *total_collateral,
+                        abs_diff: *abs_diff,
+                        action,
+                        recorded_at: *recorded_in_ledger_at,
+                    })
+                }
 
                 _ => None,
             })

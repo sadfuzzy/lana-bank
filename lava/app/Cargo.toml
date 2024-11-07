@@ -11,9 +11,11 @@ fail-on-warnings = []
 rbac-types = { path = "../rbac-types" }
 lava-events = { path = "../events" }
 lava-ids = { path = "../ids" }
+
 dashboard = { path = "../dashboard" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
+core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }

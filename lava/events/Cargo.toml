@@ -10,7 +10,9 @@ fail-on-warnings = []
 [dependencies]
 governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
+core-money = { path = "../../core/money" }
 outbox = { path = "../../lib/outbox" }
+lava-ids = { path = "../ids" }
 
 chrono = { workspace = true }
 serde = { workspace = true }
