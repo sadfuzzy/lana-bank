@@ -2,14 +2,21 @@
 
 import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
-import { AccountStatus, Customer, useCustomersQuery } from "@/lib/graphql/generated"
+import {
+  AccountStatus,
+  Customer,
+  CustomersSort,
+  useCustomersQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/new/paginated-table"
+import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   query Customers($first: Int!, $after: String, $sort: CustomersSort) {
@@ -48,10 +55,12 @@ gql`
 
 const Customers = () => {
   const router = useRouter()
+  const [sortBy, setSortBy] = useState<CustomersSort>()
 
   const { data, loading, error, fetchMore } = useCustomersQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
     },
   })
 
@@ -67,6 +76,12 @@ const Customers = () => {
         onClick={(customer) => {
           router.push(`/customers/${customer.customerId}`)
         }}
+        onSort={(column) => {
+          setSortBy({
+            by: camelToScreamingSnake(column) as CustomersSort["by"],
+            // direction,
+          })
+        }}
       />
     </div>
   )
@@ -75,7 +90,8 @@ const Customers = () => {
 export default Customers
 
 const columns: Column<Customer>[] = [
-  { key: "email", label: "Email" },
+  { key: "email", label: "Email", sortable: true },
+  { key: "telegramId", label: "Telegram", sortable: true },
   {
     key: "status",
     label: "KYC Status",

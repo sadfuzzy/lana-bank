@@ -2,10 +2,15 @@
 
 import { gql } from "@apollo/client"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 
 import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
 
-import { CreditFacility, useCreditFacilitiesQuery } from "@/lib/graphql/generated"
+import {
+  CreditFacilitiesSort,
+  CreditFacility,
+  useCreditFacilitiesQuery,
+} from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
@@ -13,7 +18,11 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/new/paginated-table"
 import Balance from "@/components/balance/balance"
-import { formatCollateralizationState, formatDate } from "@/lib/utils"
+import {
+  camelToScreamingSnake,
+  formatCollateralizationState,
+  formatDate,
+} from "@/lib/utils"
 
 gql`
   query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
@@ -53,10 +62,12 @@ gql`
 
 const CreditFacilities = () => {
   const router = useRouter()
+  const [sortBy, setSortBy] = useState<CreditFacilitiesSort>()
 
   const { data, loading, error, fetchMore } = useCreditFacilitiesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
+      sort: sortBy,
     },
   })
 
@@ -71,6 +82,14 @@ const CreditFacilities = () => {
         pageSize={DEFAULT_PAGESIZE}
         onClick={(facility) => {
           router.push(`/credit-facilities/${facility.creditFacilityId}`)
+        }}
+        onSort={(column) => {
+          setSortBy({
+            by: (column === "currentCvl"
+              ? "CVL"
+              : camelToScreamingSnake(column)) as CreditFacilitiesSort["by"],
+            // direction,
+          })
         }}
       />
     </div>
@@ -102,10 +121,12 @@ const columns: Column<CreditFacility>[] = [
     key: "currentCvl",
     label: "CVL",
     render: (cvl) => `${cvl.disbursed}%`,
+    sortable: true,
   },
   {
     key: "createdAt",
     label: "Created At",
     render: (date) => formatDate(date),
+    sortable: true,
   },
 ]

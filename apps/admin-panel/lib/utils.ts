@@ -156,3 +156,19 @@ export const formatProcessType = (processType: ApprovalProcessType) => {
       return "Disbursal"
   }
 }
+
+/**
+ * Converts a camelCase string to SCREAMING_SNAKE_CASE.
+ *
+ * @param input - The camelCase string to convert.
+ * @returns The converted SCREAMING_SNAKE_CASE string.
+ */
+export const camelToScreamingSnake = (input: string): string => {
+  if (!input) return ""
+
+  // Insert an underscore before each uppercase letter (except the first character)
+  const snakeCase = input.replace(/([a-z0-9])([A-Z])/g, "$1_$2")
+
+  // Convert the entire string to uppercase
+  return snakeCase.toUpperCase()
+}

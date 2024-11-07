@@ -41,11 +41,11 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
       },
       Query: {
         fields: {
-          customers: relayStylePagination(),
+          customers: { ...relayStylePagination(), keyArgs: ["sort"] },
+          creditFacilities: { ...relayStylePagination(), keyArgs: ["sort"] },
           deposits: relayStylePagination(),
           withdrawals: relayStylePagination(),
           loans: relayStylePagination(),
-          creditFacilities: relayStylePagination(),
           committees: relayStylePagination(),
         },
       },
