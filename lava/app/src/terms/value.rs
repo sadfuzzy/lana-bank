@@ -10,11 +10,24 @@ use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
 
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize, Eq, async_graphql::Enum)]
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Eq,
+    async_graphql::Enum,
+    strum::Display,
+    strum::EnumString,
+)]
 pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
     UnderLiquidationThreshold,
+    #[default]
     NoCollateral,
 }
 
