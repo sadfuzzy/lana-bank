@@ -9,6 +9,7 @@ import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
 import {
   CreditFacilitiesSort,
   CreditFacility,
+  SortDirection,
   useCreditFacilitiesQuery,
 } from "@/lib/graphql/generated"
 
@@ -83,12 +84,12 @@ const CreditFacilities = () => {
         onClick={(facility) => {
           router.push(`/credit-facilities/${facility.creditFacilityId}`)
         }}
-        onSort={(column) => {
+        onSort={(column, direction) => {
           setSortBy({
             by: (column === "currentCvl"
               ? "CVL"
               : camelToScreamingSnake(column)) as CreditFacilitiesSort["by"],
-            // direction,
+            direction: direction as SortDirection,
           })
         }}
       />

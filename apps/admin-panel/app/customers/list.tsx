@@ -8,6 +8,7 @@ import {
   AccountStatus,
   Customer,
   CustomersSort,
+  SortDirection,
   useCustomersQuery,
 } from "@/lib/graphql/generated"
 
@@ -76,10 +77,10 @@ const Customers = () => {
         onClick={(customer) => {
           router.push(`/customers/${customer.customerId}`)
         }}
-        onSort={(column) => {
+        onSort={(column, direction) => {
           setSortBy({
             by: camelToScreamingSnake(column) as CustomersSort["by"],
-            // direction,
+            direction: direction as SortDirection,
           })
         }}
       />
