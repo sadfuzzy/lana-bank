@@ -7,6 +7,7 @@ import {
   GetUserDetailsQuery,
   useUserAssignRoleMutation,
   useUserRevokeRoleMutation,
+  GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
 import { DetailItem } from "@/components/details"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
@@ -21,9 +22,13 @@ type UserDetailsProps = {
 
 const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
   const [assignRole, { loading: assigning, error: assignRoleError }] =
-    useUserAssignRoleMutation()
+    useUserAssignRoleMutation({
+      refetchQueries: [GetUserDetailsDocument],
+    })
   const [revokeRole, { loading: revoking, error: revokeError }] =
-    useUserRevokeRoleMutation()
+    useUserRevokeRoleMutation({
+      refetchQueries: [GetUserDetailsDocument],
+    })
 
   const handleRoleChange = async (role: Role) => {
     if (user.roles.includes(role)) {

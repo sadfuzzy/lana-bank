@@ -50,7 +50,9 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
   openRemoveUserDialog,
   setOpenRemoveUserDialog,
 }) => {
-  const [removeUser, { loading }] = useCommitteeRemoveUserMutation()
+  const [removeUser, { loading }] = useCommitteeRemoveUserMutation({
+    refetchQueries: [CommitteesDocument],
+  })
 
   const handleRemove = async () => {
     try {

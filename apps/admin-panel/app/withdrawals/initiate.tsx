@@ -16,7 +16,12 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
-import { CustomersDocument, useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
+import {
+  CustomersDocument,
+  GetWithdrawalDetailsDocument,
+  useWithdrawalInitiateMutation,
+  WithdrawalsDocument,
+} from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -53,7 +58,9 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   const router = useRouter()
   const { customer } = useCreateContext()
 
-  const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation()
+  const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
+    refetchQueries: [WithdrawalsDocument, GetWithdrawalDetailsDocument],
+  })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -99,7 +106,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
     <Dialog open={openWithdrawalInitiateDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <div
-          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
+          className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
           Creating withdrawal for {customer?.email}

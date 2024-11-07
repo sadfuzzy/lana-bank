@@ -48,7 +48,9 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
   refetch,
 }) => {
   const [assignCommittee, { loading, reset, error: assignCommitteeError }] =
-    usePolicyAssignCommitteeMutation()
+    usePolicyAssignCommitteeMutation({
+      refetchQueries: [GetPolicyDetailsDocument],
+    })
   const { data: committeeData, loading: committeesLoading } = useCommitteesQuery({
     variables: { first: 100 },
   })

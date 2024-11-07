@@ -16,6 +16,7 @@ import {
 } from "@/components/primitive/table"
 
 import {
+  GetCustomerDocument,
   GetCustomerQuery,
   useCustomerDocumentAttachMutation,
   useDocumentDeleteMutation,
@@ -60,7 +61,9 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
   const [deleteLoading, setDeleteLoading] = useState<{ [key: string]: boolean }>({})
 
   const [documentDownloadLinkGenerate] = useDocumentDownloadLinkGenerateMutation()
-  const [documentDelete] = useDocumentDeleteMutation()
+  const [documentDelete] = useDocumentDeleteMutation({
+    refetchQueries: [GetCustomerDocument],
+  })
 
   const openFile = useCallback(
     async (id: string) => {
@@ -162,7 +165,9 @@ gql`
 `
 
 const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
-  const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation()
+  const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation({
+    refetchQueries: [GetCustomerDocument],
+  })
 
   const handleFileUpload = useCallback(
     async (file: File) => {

@@ -15,6 +15,7 @@ import {
   useCreateTermsTemplateMutation,
   InterestInterval,
   Period,
+  TermsTemplatesDocument,
 } from "@/lib/graphql/generated"
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
@@ -58,7 +59,9 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   const router = useRouter()
 
   const [createTermsTemplate, { loading, reset, error: createTermsTemplateError }] =
-    useCreateTermsTemplateMutation()
+    useCreateTermsTemplateMutation({
+      refetchQueries: [TermsTemplatesDocument],
+    })
 
   const [formValues, setFormValues] = useState({
     name: "",

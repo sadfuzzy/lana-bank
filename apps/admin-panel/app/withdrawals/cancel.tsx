@@ -11,7 +11,11 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import { useWithdrawalCancelMutation } from "@/lib/graphql/generated"
+import {
+  GetWithdrawalDetailsDocument,
+  useWithdrawalCancelMutation,
+  WithdrawalsDocument,
+} from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
@@ -49,7 +53,9 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   withdrawalData,
   refetch,
 }) => {
-  const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation()
+  const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation({
+    refetchQueries: [WithdrawalsDocument, GetWithdrawalDetailsDocument],
+  })
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -13,6 +13,7 @@ import {
 } from "@/components/primitive/dialog"
 import {
   Role,
+  UsersDocument,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
@@ -48,9 +49,13 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 }) => {
   const router = useRouter()
   const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
-    useUserCreateMutation()
+    useUserCreateMutation({
+      refetchQueries: [UsersDocument],
+    })
   const [assignRole, { loading: assigningRole, reset: resetAssignRole }] =
-    useUserAssignRoleMutation()
+    useUserAssignRoleMutation({
+      refetchQueries: [UsersDocument],
+    })
 
   const [email, setEmail] = useState("")
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])

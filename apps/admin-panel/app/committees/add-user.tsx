@@ -49,7 +49,9 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   openAddUserDialog,
   refetch,
 }) => {
-  const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
+  const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation({
+    refetchQueries: [CommitteesDocument],
+  })
   const { data: userData, loading: usersLoading } = useUsersQuery()
 
   const [selectedUserId, setSelectedUserId] = useState<string>("")

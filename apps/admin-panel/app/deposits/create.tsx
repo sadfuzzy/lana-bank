@@ -55,7 +55,9 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   customerId,
   refetch,
 }) => {
-  const [createDeposit, { loading, reset }] = useCreateDepositMutation()
+  const [createDeposit, { loading, reset }] = useCreateDepositMutation({
+    refetchQueries: [DepositsDocument],
+  })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -109,7 +111,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
     <Dialog open={openCreateDepositDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <div
-          className="absolute -top-4 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
+          className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
           Creating deposit for {customer?.email}

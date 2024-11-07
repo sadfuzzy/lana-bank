@@ -15,6 +15,7 @@ import {
   InterestInterval,
   Period,
   TermsTemplate,
+  TermsTemplateDocument,
 } from "@/lib/graphql/generated"
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
@@ -60,7 +61,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   termsTemplate,
 }) => {
   const [updateTermsTemplate, { loading, reset, error: updateTermsTemplateError }] =
-    useUpdateTermsTemplateMutation()
+    useUpdateTermsTemplateMutation({
+      refetchQueries: [TermsTemplateDocument],
+    })
 
   const [formValues, setFormValues] = useState({
     name: termsTemplate.name,

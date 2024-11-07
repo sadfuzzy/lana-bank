@@ -4,6 +4,7 @@
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
+import { toast } from "sonner"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
@@ -96,11 +97,16 @@ const CreateButton = () => {
     } else if (pathName === "/committees") {
       setOpenCreateCommitteeDialog(true)
     } else if (pathName === "/deposits") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateDeposit(true)
     } else if (pathName === "/withdrawals") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateWithdrawal(true)
     } else if (pathName === "/credit-facilities") {
+      if (!customer) setOpenCustomerSelector(true)
       setCreateFacility(true)
+    } else if (pathName === "/disbursals") {
+      toast.message("Disbursals can be initiated from credit facility page")
     } else {
       setShowMenu(true)
     }

@@ -12,7 +12,10 @@ import {
 import { Button } from "@/components/primitive/button"
 import {
   ApprovalProcess,
+  CreditFacilitiesDocument,
+  DisbursalsDocument,
   useApprovalProcessApproveMutation,
+  WithdrawalsDocument,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
@@ -44,7 +47,9 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   refetch,
 }) => {
   const [error, setError] = React.useState<string | null>(null)
-  const [approveProcess, { loading }] = useApprovalProcessApproveMutation()
+  const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
+    refetchQueries: [CreditFacilitiesDocument, WithdrawalsDocument, DisbursalsDocument],
+  })
 
   const handleApprove = async () => {
     setError(null)

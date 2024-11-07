@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
 import {
+  GetUserDetailsDocument,
   Role,
   useUserAssignRoleMutation,
   useUserRevokeRoleMutation,
@@ -146,9 +147,13 @@ const RolesDropDown = ({
 }) => {
   const [checkedRoles, setCheckedRoles] = useState<Role[]>(roles)
   const [assignRole, { loading: assigning, error: assignRoleError }] =
-    useUserAssignRoleMutation()
+    useUserAssignRoleMutation({
+      refetchQueries: [GetUserDetailsDocument],
+    })
   const [revokeRole, { loading: revoking, error: revokeError }] =
-    useUserRevokeRoleMutation()
+    useUserRevokeRoleMutation({
+      refetchQueries: [GetUserDetailsDocument],
+    })
 
   const handleRoleChange = async (role: Role) => {
     if (checkedRoles.includes(role)) {

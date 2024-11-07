@@ -10,7 +10,13 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
-import { ApprovalProcess, useApprovalProcessDenyMutation } from "@/lib/graphql/generated"
+import {
+  ApprovalProcess,
+  CreditFacilitiesDocument,
+  DisbursalsDocument,
+  useApprovalProcessDenyMutation,
+  WithdrawalsDocument,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
 
@@ -41,7 +47,9 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   approvalProcess,
 }) => {
   const [error, setError] = React.useState<string | null>(null)
-  const [denyProcess, { loading }] = useApprovalProcessDenyMutation()
+  const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
+    refetchQueries: [CreditFacilitiesDocument, WithdrawalsDocument, DisbursalsDocument],
+  })
 
   const handleDeny = async () => {
     setError(null)

@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/primitive/dialog"
-import { useCreateCommitteeMutation } from "@/lib/graphql/generated"
+import { CommitteesDocument, useCreateCommitteeMutation } from "@/lib/graphql/generated"
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
@@ -47,7 +47,9 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
   const router = useRouter()
 
   const [createCommittee, { loading, reset, error: createCommitteeError }] =
-    useCreateCommitteeMutation()
+    useCreateCommitteeMutation({
+      refetchQueries: [CommitteesDocument],
+    })
 
   const [formValues, setFormValues] = useState({
     name: "",
