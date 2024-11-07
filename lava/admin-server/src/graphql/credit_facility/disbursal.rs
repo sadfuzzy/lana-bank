@@ -1,5 +1,6 @@
 use async_graphql::*;
 
+use super::CreditFacility;
 use crate::{
     graphql::{approval_process::*, loader::LavaDataLoader},
     primitives::*,
@@ -12,6 +13,7 @@ pub use lava_app::credit_facility::{
 #[graphql(complex)]
 pub struct CreditFacilityDisbursal {
     id: ID,
+    disbursal_id: UUID,
     index: DisbursalIdx,
     amount: UsdCents,
     created_at: Timestamp,
@@ -24,6 +26,7 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
     fn from(disbursal: DomainDisbursal) -> Self {
         Self {
             id: disbursal.id.to_global_id(),
+            disbursal_id: UUID::from(disbursal.id),
             index: disbursal.idx,
             amount: disbursal.amount,
             created_at: disbursal.created_at().into(),
@@ -34,6 +37,15 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
 
 #[ComplexObject]
 impl CreditFacilityDisbursal {
+    async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
+        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let facility = loader
+            .load_one(self.entity.facility_id)
+            .await?
+            .expect("committee not found");
+        Ok(facility)
+    }
+
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<DisbursalStatus> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app

@@ -399,9 +399,11 @@ type CreditFacilityCreatePayload {
 
 type CreditFacilityDisbursal {
 	id: ID!
+	disbursalId: UUID!
 	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	creditFacility: CreditFacility!
 	status: DisbursalStatus!
 	approvalProcess: ApprovalProcess!
 }

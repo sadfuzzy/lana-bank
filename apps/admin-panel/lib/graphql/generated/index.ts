@@ -418,6 +418,8 @@ export type CreditFacilityDisbursal = {
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
   createdAt: Scalars['Timestamp']['output'];
+  creditFacility: CreditFacility;
+  disbursalId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   index: Scalars['DisbursalIdx']['output'];
   status: DisbursalStatus;
