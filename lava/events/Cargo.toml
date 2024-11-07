@@ -1,6 +1,6 @@
 [package]
 name = "lava-events"
-version = "0.2.23-dev"
+version = "0.2.24-dev"
 edition = "2021"
 
 [features]
