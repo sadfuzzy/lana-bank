@@ -89,8 +89,8 @@ const Dashboard = () => {
           ) : (
             <>
               <DashboardCard
-                h1={data?.dashboard.activeFacilities}
-                h2={data?.dashboard.pendingFacilities}
+                h1={data?.dashboard.activeFacilities.toString()}
+                h2={data?.dashboard.pendingFacilities.toString()}
                 h2PopupDescription="Pending Facilities"
                 title="Active Facilities"
                 description="Credit Facilities where money has been disbursed"
