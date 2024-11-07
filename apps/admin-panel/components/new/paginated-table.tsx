@@ -93,7 +93,7 @@ const PaginatedTable = <T,>({
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T]) => {
-    setFilterState((prev) => ({ ...prev, [columnKey]: value }))
+    setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
     onFilter && onFilter(columnKey, value)
   }
 
@@ -116,7 +116,7 @@ const PaginatedTable = <T,>({
   if (loading)
     return <PaginatedTableLoadingSkeleton columns={columns} pageSize={pageSize} />
 
-  if (data?.edges.length === 0) {
+  if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
     return <div className="text-sm">No data to display</div>
   }
 
