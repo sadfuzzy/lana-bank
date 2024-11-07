@@ -1033,6 +1033,7 @@ export type Query = {
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
+  disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
@@ -1154,6 +1155,11 @@ export type QueryDepositArgs = {
 export type QueryDepositsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
+};
+
+
+export type QueryDisbursalArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 

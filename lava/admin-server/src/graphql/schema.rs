@@ -255,6 +255,19 @@ impl Query {
         )
     }
 
+    async fn disbursal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            CreditFacilityDisbursal,
+            ctx,
+            app.credit_facilities().find_disbursal_by_id(sub, id)
+        )
+    }
+
     async fn disbursals(
         &self,
         ctx: &Context<'_>,

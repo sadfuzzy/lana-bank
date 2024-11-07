@@ -885,6 +885,7 @@ type Query {
 	creditFacility(id: UUID!): CreditFacility
 	creditFacilitiesByCreatedAt(first: Int!, after: String): CreditFacilityConnection!
 	creditFacilitiesByCvl(first: Int!, after: String): CreditFacilityConnection!
+	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!

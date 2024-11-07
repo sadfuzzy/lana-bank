@@ -209,7 +209,7 @@ impl CreditFacilities {
         Ok(credit_facility)
     }
 
-    #[instrument(name = "lava.credit_facility.find", skip(self), err)]
+    #[instrument(name = "credit_facility.find", skip(self), err)]
     pub async fn find_by_id(
         &self,
         sub: &Subject,
@@ -242,7 +242,7 @@ impl CreditFacilities {
             .await?)
     }
 
-    #[instrument(name = "lava.credit_facility.initiate_disbursal", skip(self), err)]
+    #[instrument(name = "credit_facility.initiate_disbursal", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification]
     pub async fn initiate_disbursal(
         &self,
@@ -342,6 +342,23 @@ impl CreditFacilities {
         db_tx.commit().await?;
 
         Ok(disbursal)
+    }
+
+    #[instrument(name = "credit_facility.find_disbursal_by_id", skip(self), err)]
+    pub async fn find_disbursal_by_id(
+        &self,
+        sub: &Subject,
+        id: impl Into<DisbursalId> + std::fmt::Debug,
+    ) -> Result<Option<Disbursal>, CreditFacilityError> {
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
+
+        match self.disbursal_repo.find_by_id(id.into()).await {
+            Ok(loan) => Ok(Some(loan)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn ensure_up_to_date_disbursal_status(
