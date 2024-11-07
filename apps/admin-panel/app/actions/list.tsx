@@ -61,6 +61,12 @@ gql`
             ... on CreditFacilityDisbursal {
               id
               index
+              disbursalId
+              creditFacility {
+                customer {
+                  email
+                }
+              }
             }
           }
         }
@@ -118,7 +124,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
                   <TableRow key={idx}>
                     <TableCell className="font-medium">
                       {data.target.__typename === "CreditFacilityDisbursal"
-                        ? ""
+                        ? data.target.creditFacility.customer.email
                         : data.target.customer.email}
                     </TableCell>
                     <TableCell>{formatProcessType(data.approvalProcessType)}</TableCell>
@@ -140,6 +146,12 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
                           data.target.__typename === "Withdrawal"
                         )
                           router.push(`/withdrawals/${data.target.withdrawalId}`)
+                        else if (
+                          data.approvalProcessType ===
+                            ApprovalProcessType.DisbursalApproval &&
+                          data.target.__typename === "CreditFacilityDisbursal"
+                        )
+                          router.push(`/disbursals/${data.target.disbursalId}`)
                       }}
                     >
                       VIEW

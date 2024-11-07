@@ -64,7 +64,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
                     <TableCell>
                       <div className="flex flex-wrap gap-2 text-textColor-secondary items-center">
                         {user.roles.length > 0
-                          ? user.roles.sort().map((role) => (
+                          ? user.roles.map((role) => (
                               <Badge variant="secondary" key={role}>
                                 {formatRole(role)}
                               </Badge>

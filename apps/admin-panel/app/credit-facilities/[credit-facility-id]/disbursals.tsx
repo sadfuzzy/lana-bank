@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { IoCheckmark } from "react-icons/io5"
 
+import Link from "next/link"
+
 import { DisbursalDetailsDialog } from "../disbursal-details"
 import { CreditFacilityDisbursalConfirmDialog } from "../disbursal-confirm"
 import { CreditFacilityDisbursalApproveDialog } from "../disbursal-approve"
@@ -86,7 +88,11 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
             <TableBody>
               {creditFacility.disbursals.map((disbursal) => (
                 <TableRow key={disbursal.id}>
-                  <TableCell>{disbursal.id.split(":")[1]}</TableCell>
+                  <TableCell className="cursor-pointer hover:underline">
+                    <Link href={`/disbursals/${disbursal.id.split(":")[1]}`}>
+                      {disbursal.id.split(":")[1]}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     <Balance amount={disbursal.amount} currency="usd" />
                   </TableCell>
@@ -97,7 +103,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
                       ApprovalProcessStatus.InProgress ? (
                       <Button
                         className="px-2 py-1 text-primary"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => handleOpenApprovalProcessDialog(disbursal)}
                       >
                         Approval Required
@@ -107,7 +113,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
                       ) ? (
                       <Button
                         className="px-2 py-1 text-primary"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => handleOpenConfirmDialog(disbursal)}
                       >
                         Confirmation Required
@@ -115,7 +121,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
                     ) : (
                       <Button
                         className="px-2 py-1 text-success"
-                        variant="ghost"
+                        variant="outline"
                         onClick={() => handleOpenDetailsDialog(disbursal)}
                       >
                         <IoCheckmark className="h-4 w-4 mr-1" /> Approved

@@ -1538,7 +1538,7 @@ export enum WithdrawalStatus {
 export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, createdAt: any, target: { __typename: 'CreditFacility', creditFacilityId: string, customer: { __typename?: 'Customer', email: string } } | { __typename: 'CreditFacilityDisbursal', id: string, index: any } | { __typename: 'Withdrawal', withdrawalId: string, customer: { __typename?: 'Customer', email: string } } } }> } };
+export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, createdAt: any, target: { __typename: 'CreditFacility', creditFacilityId: string, customer: { __typename?: 'Customer', email: string } } | { __typename: 'CreditFacilityDisbursal', id: string, index: any, disbursalId: string, creditFacility: { __typename?: 'CreditFacility', customer: { __typename?: 'Customer', email: string } } } | { __typename: 'Withdrawal', withdrawalId: string, customer: { __typename?: 'Customer', email: string } } } }> } };
 
 export type ApprovalProcessApproveMutationVariables = Exact<{
   input: ApprovalProcessApproveInput;
@@ -1775,13 +1775,20 @@ export type DepositsQueryVariables = Exact<{
 
 export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, amount: any, reference: string, customer: { __typename?: 'Customer', email: string } } }> } };
 
+export type GetDisbursalDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursal?: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: any, createdAt: any, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: any, status: CreditFacilityStatus, customer: { __typename?: 'Customer', email: string, customerId: string } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
+
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, amount: any, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: any, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -2096,6 +2103,12 @@ export const AllActionsDocument = gql`
           ... on CreditFacilityDisbursal {
             id
             index
+            disbursalId
+            creditFacility {
+              customer {
+                email
+              }
+            }
           }
         }
       }
@@ -3816,12 +3829,96 @@ export function useDepositsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<D
 export type DepositsQueryHookResult = ReturnType<typeof useDepositsQuery>;
 export type DepositsLazyQueryHookResult = ReturnType<typeof useDepositsLazyQuery>;
 export type DepositsQueryResult = Apollo.QueryResult<DepositsQuery, DepositsQueryVariables>;
+export const GetDisbursalDetailsDocument = gql`
+    query GetDisbursalDetails($id: UUID!) {
+  disbursal(id: $id) {
+    id
+    disbursalId
+    index
+    amount
+    createdAt
+    status
+    creditFacility {
+      id
+      creditFacilityId
+      facilityAmount
+      status
+      customer {
+        email
+        customerId
+      }
+    }
+    approvalProcess {
+      approvalProcessId
+      approvalProcessType
+      createdAt
+      subjectCanSubmitDecision
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
+            }
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetDisbursalDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetDisbursalDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetDisbursalDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetDisbursalDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetDisbursalDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>(GetDisbursalDetailsDocument, options);
+      }
+export function useGetDisbursalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>(GetDisbursalDetailsDocument, options);
+        }
+export type GetDisbursalDetailsQueryHookResult = ReturnType<typeof useGetDisbursalDetailsQuery>;
+export type GetDisbursalDetailsLazyQueryHookResult = ReturnType<typeof useGetDisbursalDetailsLazyQuery>;
+export type GetDisbursalDetailsQueryResult = Apollo.QueryResult<GetDisbursalDetailsQuery, GetDisbursalDetailsQueryVariables>;
 export const DisbursalsDocument = gql`
     query Disbursals($first: Int!, $after: String) {
   disbursals(first: $first, after: $after) {
     edges {
       node {
         id
+        disbursalId
         amount
         createdAt
         status

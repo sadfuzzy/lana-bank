@@ -31,7 +31,7 @@ type CreditFacilityDisbursalApproveDialogProps = {
   disbursal: NonNullable<
     GetCreditFacilityDetailsQuery["creditFacility"]
   >["disbursals"][number]
-  refetch: () => void
+  refetch?: () => void
 }
 
 export const CreditFacilityDisbursalApproveDialog: React.FC<

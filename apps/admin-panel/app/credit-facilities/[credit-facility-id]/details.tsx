@@ -48,39 +48,37 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   return (
     <div className="flex">
       <Card className="w-full">
-        <>
-          <CardHeader className="flex-row justify-between items-center">
-            <CardTitle>Credit Facility</CardTitle>
-            <LoanAndCreditFacilityStatusBadge status={creditFacilityDetails.status} />
-          </CardHeader>
-          <CardContent>
-            <DetailsGroup>
+        <CardHeader className="flex-row justify-between items-center">
+          <CardTitle>Credit Facility</CardTitle>
+          <LoanAndCreditFacilityStatusBadge status={creditFacilityDetails.status} />
+        </CardHeader>
+        <CardContent>
+          <DetailsGroup>
+            <DetailItem
+              label="Credit Facility ID"
+              value={creditFacilityDetails.creditFacilityId}
+            />
+            <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
               <DetailItem
-                label="Credit Facility ID"
-                value={creditFacilityDetails.creditFacilityId}
+                hover={true}
+                label="Customer Email"
+                value={creditFacilityDetails.customer.email}
               />
-              <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
-                <DetailItem
-                  hover={true}
-                  label="Customer Email"
-                  value={creditFacilityDetails.customer.email}
-                />
-              </Link>
-              <DetailItem
-                label="Facility Amount"
-                value={
-                  <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />
-                }
-              />
-              <DetailItem
-                label="Collateralization State"
-                value={formatCollateralizationState(
-                  creditFacilityDetails.collateralizationState,
-                )}
-              />
-            </DetailsGroup>
-          </CardContent>
-        </>
+            </Link>
+            <DetailItem
+              label="Facility Amount"
+              value={
+                <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />
+              }
+            />
+            <DetailItem
+              label="Collateralization State"
+              value={formatCollateralizationState(
+                creditFacilityDetails.collateralizationState,
+              )}
+            />
+          </DetailsGroup>
+        </CardContent>
       </Card>
       {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
         <div className="flex flex-col space-y-2 mt-1 ml-4">
@@ -117,10 +115,18 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             ApprovalProcessStatus.InProgress &&
             creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
               <>
-                <Button onClick={() => setOpenApprovalDialog(true)} className="ml-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setOpenApprovalDialog(true)}
+                  className="ml-2"
+                >
                   Approve
                 </Button>
-                <Button onClick={() => setOpenDenialDialog(true)} className="ml-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setOpenDenialDialog(true)}
+                  className="ml-2"
+                >
                   Deny
                 </Button>
               </>

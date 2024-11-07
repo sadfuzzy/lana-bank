@@ -2,6 +2,10 @@
 
 import { gql } from "@apollo/client"
 
+import { useRouter } from "next/navigation"
+
+import { DisbursalStatusBadge } from "./status-badge"
+
 import { CreditFacilityDisbursal, useDisbursalsQuery } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
@@ -18,6 +22,7 @@ gql`
       edges {
         node {
           id
+          disbursalId
           amount
           createdAt
           status
@@ -35,6 +40,7 @@ gql`
 `
 
 const Disbursals = () => {
+  const router = useRouter()
   const { data, loading, error, fetchMore } = useDisbursalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -50,6 +56,9 @@ const Disbursals = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
+        onClick={(disbursal) => {
+          router.push(`/disbursals/${disbursal.disbursalId}`)
+        }}
       />
     </div>
   )
@@ -71,5 +80,6 @@ const columns: Column<CreditFacilityDisbursal>[] = [
   {
     key: "status",
     label: "Status",
+    render: (status) => <DisbursalStatusBadge status={status} />,
   },
 ]
