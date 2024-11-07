@@ -5,6 +5,7 @@ import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
 
+import { Skeleton } from "@/components/primitive/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
 import {
@@ -67,6 +68,38 @@ gql`
   }
 `
 
+const LoadingSkeleton = () => {
+  return (
+    <Table>
+      <TableBody>
+        {[1, 2, 3].map((categoryIndex) => (
+          <React.Fragment key={`category-${categoryIndex}`}>
+            <TableRow>
+              <TableCell className="text-primary">
+                <Skeleton className="h-6 w-48" />
+              </TableCell>
+            </TableRow>
+            {[1, 2, 3].map((accountIndex) => (
+              <TableRow key={`account-${categoryIndex}-${accountIndex}`}>
+                <TableCell className="pl-8">
+                  <div className="flex items-center justify-between">
+                    <Skeleton className="h-5 w-64" />
+                    <div className="flex gap-4">
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-5 w-24" />
+                      <Skeleton className="h-5 w-24" />
+                    </div>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </React.Fragment>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
 type ChartOfAccountsValuesProps = {
   data:
     | GetOnBalanceSheetChartOfAccountsQuery["chartOfAccounts"]
@@ -76,25 +109,25 @@ type ChartOfAccountsValuesProps = {
   error: ApolloError | undefined
   dateRange: DateRange
 }
+
 const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
   data,
   loading,
   error,
   dateRange,
 }) => {
-  if (loading) return <p>Loading...</p>
+  if (loading) return <LoadingSkeleton />
   if (error) return <p className="text-destructive">{error.message}</p>
 
   return (
     <Table>
       <TableBody>
         {data?.categories
-          // without the sort, the categories are being displayed randomly
           .toSorted(({ name: str1 }, { name: str2 }) =>
             str1 < str2 ? -1 : +(str1 > str2),
           )
           .map((category) => (
-            <>
+            <React.Fragment key={category.name}>
               <TableRow>
                 <TableCell className="text-primary font-bold uppercase tracking-widest leading-8">
                   {category.name}
@@ -110,7 +143,7 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
                   }}
                 />
               ))}
-            </>
+            </React.Fragment>
           ))}
       </TableBody>
     </Table>

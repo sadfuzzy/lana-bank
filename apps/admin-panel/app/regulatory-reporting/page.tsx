@@ -22,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { Skeleton } from "@/components/primitive/skeleton"
 
 gql`
   query Reports {
@@ -45,6 +46,43 @@ gql`
 `
 
 const REFETCH_INTERVAL = 5000
+
+const LoadingSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-4">
+        <Skeleton className="h-6 w-32" />
+        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+          <Skeleton className="h-10 w-80" />
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Skeleton className="h-6 w-32" />
+        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+          <Skeleton className="h-6 w-64" />
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Skeleton className="h-6 w-32" />
+        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-5 w-5 rounded-full" />
+            <Skeleton className="h-6 w-96" />
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-4">
+        <Skeleton className="h-6 w-32" />
+        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+          <Skeleton className="h-10 w-32" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const RegulatoryReportingPage: React.FC = () => {
   const { data, loading, error, refetch: refetchReports } = useReportsQuery()
@@ -92,13 +130,12 @@ const RegulatoryReportingPage: React.FC = () => {
     }
   }, [selectedReport, generateLinks])
 
-  if (loading) return <p>Loading...</p>
   if (error) return <p className="text-destructive">{error.message}</p>
 
   return (
     <>
       <Card className="max-w-7xl m-auto">
-        <CardHeader className="flex flex-row  justify-between items-center">
+        <CardHeader className="flex flex-row justify-between items-center">
           <div className="flex flex-col gap-1">
             <CardTitle>Report Management</CardTitle>
             <CardDescription>
@@ -116,7 +153,11 @@ const RegulatoryReportingPage: React.FC = () => {
         </CardHeader>
 
         <CardContent>
-          {data?.reports && data.reports.length > 0 ? (
+          {loading ? (
+            <div className="max-w-[50rem]">
+              <LoadingSkeleton />
+            </div>
+          ) : data?.reports && data.reports.length > 0 ? (
             <div className="max-w-[50rem] space-y-6">
               <ReportSelector
                 reports={data?.reports || []}
@@ -149,7 +190,6 @@ const RegulatoryReportingPage: React.FC = () => {
     </>
   )
 }
-export default RegulatoryReportingPage
 
 const ReportSelector: React.FC<{
   reports: Array<{ reportId: string; createdAt: string }>
@@ -288,3 +328,5 @@ const KeyValueItem: React.FC<{ label: string; value: React.ReactNode }> = ({
     </div>
   )
 }
+
+export default RegulatoryReportingPage

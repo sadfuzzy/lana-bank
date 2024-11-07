@@ -32,6 +32,7 @@ import Avatar from "./avatar"
 import { Logo } from "@/components/new"
 import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
+import { Skeleton } from "@/components/primitive/skeleton"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)
@@ -94,7 +95,9 @@ const NavBar = () => {
           </div>
           <NavItems />
         </div>
-        {!loading && (
+        {loading ? (
+          <Skeleton className="h-4 mb-5 ml-4 w-48" />
+        ) : (
           <div className="p-5 text-sm text-muted-foreground">
             USD/BTC Market Rate:{" "}
             {String(usdBtcRate) === "NaN" ? "Not Available" : `$${usdBtcRate}`}

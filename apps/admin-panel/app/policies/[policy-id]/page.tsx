@@ -8,6 +8,7 @@ import { useGetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { CommitteeUsers } from "@/app/committees/[committee-id]/users"
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { formatProcessType } from "@/lib/utils"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetPolicyDetails($id: UUID!) {
@@ -60,7 +61,9 @@ function PolicyPage({
     variables: { id: policyId },
   })
 
-  if (loading) return <p>Loading...</p>
+  if (loading) {
+    return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={0} />
+  }
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.policy) return <div>Not found</div>
 

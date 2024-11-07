@@ -9,6 +9,7 @@ import { CommitteeUsers } from "./users"
 import { useGetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetCommitteeDetails($id: UUID!) {
@@ -48,7 +49,9 @@ function CommitteePage({
     variables: { id: committeeId },
   })
 
-  if (loading) return <p>Loading...</p>
+  if (loading) {
+    return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={1} />
+  }
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.committee) return <div>Not found</div>
 

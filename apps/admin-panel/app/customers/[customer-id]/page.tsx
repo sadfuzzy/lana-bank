@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-
 import React, { useEffect } from "react"
 
 import { CustomerDetailsCard } from "./details"
@@ -9,15 +8,13 @@ import { CustomerAccountBalances } from "./balances"
 import { CustomerTransactionsTable } from "./transactions"
 import { KycStatus } from "./kyc-status"
 import { Documents } from "./documents"
-
 import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
-
 import { Customer as CustomerType, useGetCustomerQuery } from "@/lib/graphql/generated"
-
 import { useCreateContext } from "@/app/create"
 import { BreadCrumbWrapper, BreadcrumbLink } from "@/components/breadcrumb-wrapper"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetCustomer($id: UUID!) {
@@ -129,47 +126,45 @@ const Customer = ({
     return () => setCustomer(null)
   }, [data?.customer, setCustomer])
 
+  if (loading) return <DetailsPageSkeleton detailItems={3} tabs={6} />
+  if (error) return <div className="text-destructive">{error.message}</div>
+  if (!data || !data.customer) return null
+
   return (
     <main className="max-w-7xl m-auto">
-      {loading && <p>Loading...</p>}
-      {error && <div className="text-destructive">{error.message}</div>}
-      {data && data.customer && (
-        <>
-          <CustomerBreadcrumb customerEmail={data.customer.email} />
-          <CustomerDetailsCard customer={data.customer} refetch={refetch} />
-          <Tabs defaultValue="overview" className="mt-4">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="balances">Balances</TabsTrigger>
-              <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
-              <TabsTrigger value="transactions">Transactions</TabsTrigger>
-              <TabsTrigger value="kyc">KYC Status</TabsTrigger>
-              <TabsTrigger value="docs">Documents</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview">
-              <CustomerAccountBalances balance={data.customer.balance} />
-              <KycStatus customerId={customerId} />
-            </TabsContent>
-            <TabsContent value="balances">
-              <CustomerAccountBalances balance={data.customer.balance} />
-            </TabsContent>
-            <TabsContent value="credit-facilities">
-              <CustomerCreditFacilitiesTable
-                creditFacilities={data.customer.creditFacilities}
-              />
-            </TabsContent>
-            <TabsContent value="transactions">
-              <CustomerTransactionsTable transactions={data.customer.transactions} />
-            </TabsContent>
-            <TabsContent value="kyc">
-              <KycStatus customerId={customerId} />
-            </TabsContent>
-            <TabsContent value="docs">
-              <Documents customer={data.customer} refetch={refetch} />
-            </TabsContent>
-          </Tabs>
-        </>
-      )}
+      <CustomerBreadcrumb customerEmail={data.customer.email} />
+      <CustomerDetailsCard customer={data.customer} refetch={refetch} />
+      <Tabs defaultValue="overview" className="mt-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="balances">Balances</TabsTrigger>
+          <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
+          <TabsTrigger value="transactions">Transactions</TabsTrigger>
+          <TabsTrigger value="kyc">KYC Status</TabsTrigger>
+          <TabsTrigger value="docs">Documents</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview">
+          <CustomerAccountBalances balance={data.customer.balance} />
+          <KycStatus customerId={customerId} />
+        </TabsContent>
+        <TabsContent value="balances">
+          <CustomerAccountBalances balance={data.customer.balance} />
+        </TabsContent>
+        <TabsContent value="credit-facilities">
+          <CustomerCreditFacilitiesTable
+            creditFacilities={data.customer.creditFacilities}
+          />
+        </TabsContent>
+        <TabsContent value="transactions">
+          <CustomerTransactionsTable transactions={data.customer.transactions} />
+        </TabsContent>
+        <TabsContent value="kyc">
+          <KycStatus customerId={customerId} />
+        </TabsContent>
+        <TabsContent value="docs">
+          <Documents customer={data.customer} refetch={refetch} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

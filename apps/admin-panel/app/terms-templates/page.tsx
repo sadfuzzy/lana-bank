@@ -89,7 +89,7 @@ function TermPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="mt-6">Loading...</p>
+            <p className="text-sm">Loading...</p>
           ) : error ? (
             <p className="text-destructive mt-6">{error.message}</p>
           ) : data?.termsTemplates && data.termsTemplates.length > 0 ? (
@@ -132,7 +132,7 @@ function TermPage() {
               </TableBody>
             </Table>
           ) : (
-            <p className="mt-6">No data found</p>
+            <p className="text-sm">No data to display</p>
           )}
         </CardContent>
       </Card>

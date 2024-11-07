@@ -16,6 +16,7 @@ import { CreditFacilityTransactions } from "./transactions"
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetCreditFacilityDetails($id: UUID!) {
@@ -225,7 +226,7 @@ function CreditFacilityPage({
     variables: { id: creditFacilityId },
   })
 
-  if (loading) return <p>Loading...</p>
+  if (loading) return <DetailsPageSkeleton detailItems={4} tabs={3} tabsCards={1} />
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacility) return <div>Not found</div>
 

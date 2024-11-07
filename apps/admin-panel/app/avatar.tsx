@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { gql } from "@apollo/client"
 import { signOut } from "next-auth/react"
 
+import { Skeleton } from "@/components/primitive/skeleton"
+
 import { Button } from "@/components/primitive/button"
 import { useAvatarQuery } from "@/lib/graphql/generated"
 import { ID, Pill } from "@/components/new"
@@ -28,6 +30,14 @@ gql`
   }
 `
 
+const LoadingSkeleton = () => {
+  return (
+    <div className="relative">
+      <Skeleton className="h-10 w-10 rounded-full" />
+    </div>
+  )
+}
+
 const Avatar = () => {
   const { data, loading } = useAvatarQuery()
 
@@ -50,7 +60,8 @@ const Avatar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  if (!data || loading) return <></>
+  if (loading) return <LoadingSkeleton />
+  if (!data) return <></>
 
   const userName = data.me.user.email.split("@")[0]
   const userEmail = data.me.user.email

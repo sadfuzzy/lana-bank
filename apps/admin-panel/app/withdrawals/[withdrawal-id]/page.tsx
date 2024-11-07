@@ -5,6 +5,7 @@ import WithdrawalDetailsCard from "./details"
 
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetWithdrawalDetails($id: UUID!) {
@@ -80,7 +81,9 @@ function WithdrawalPage({
     variables: { id: withdrawalId },
   })
 
-  if (loading) return <p>Loading...</p>
+  if (loading) {
+    return <DetailsPageSkeleton tabs={0} tabsCards={0} />
+  }
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.withdrawal) return <div>Not found</div>
 

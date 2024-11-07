@@ -6,6 +6,7 @@ import UserDetailsCard from "./details"
 
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { useGetUserDetailsQuery } from "@/lib/graphql/generated"
+import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
   query GetUserDetails($id: UUID!) {
@@ -39,7 +40,9 @@ function UserPage({
     variables: { id: userId },
   })
 
-  if (loading) return <p>Loading...</p>
+  if (loading) {
+    return <DetailsPageSkeleton tabs={0} tabsCards={0} />
+  }
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.user) return <div>Not found</div>
 

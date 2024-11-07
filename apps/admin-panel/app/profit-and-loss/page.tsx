@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { Skeleton } from "@/components/primitive/skeleton"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
@@ -67,6 +68,59 @@ gql`
     }
   }
 `
+const LoadingSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-72" />
+        <Skeleton className="h-10 w-96" />
+      </div>
+      <Table>
+        <TableBody>
+          <TableRow>
+            <TableCell>
+              <Skeleton className="h-6 w-32" />
+            </TableCell>
+            <TableCell className="w-48">
+              <Skeleton className="h-6 w-24 ml-auto" />
+            </TableCell>
+          </TableRow>
+          {[1, 2, 3].map((i) => (
+            <TableRow key={`revenue-${i}`}>
+              <TableCell>
+                <div className="flex gap-2">
+                  <div className="w-6" />
+                  <Skeleton className="h-5 w-48" />
+                </div>
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-24 ml-auto" />
+              </TableCell>
+            </TableRow>
+          ))}
+          <TableRow>
+            <TableCell>
+              <Skeleton className="h-6 w-32" />
+            </TableCell>
+            <TableCell className="w-48">
+              <Skeleton className="h-6 w-24 ml-auto" />
+            </TableCell>
+          </TableRow>
+        </TableBody>
+        <TableFooter>
+          <TableRow>
+            <TableCell>
+              <Skeleton className="h-6 w-32" />
+            </TableCell>
+            <TableCell>
+              <Skeleton className="h-6 w-24 ml-auto" />
+            </TableCell>
+          </TableRow>
+        </TableFooter>
+      </Table>
+    </div>
+  )
+}
 
 const BALANCE_FOR_CATEGORY: {
   [key: string]: { TransactionType: TransactionType }
@@ -120,7 +174,22 @@ const ProfitAndLossStatement = ({
   const categories = data?.categories
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Profit and Loss Statement</CardTitle>
+          <CardDescription>
+            A financial report showing revenue, expenses, and resulting profit or loss
+            over a specific time period.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LoadingSkeleton />
+        </CardContent>
+      </Card>
+    )
+  }
   if (!net) return <div>No data</div>
 
   return (
@@ -193,8 +262,6 @@ const CategoryRow = ({
   transactionType: TransactionType
   dateRange: DateRange
 }) => {
-  console.log(category.name, transactionType)
-
   return (
     <>
       <TableRow>

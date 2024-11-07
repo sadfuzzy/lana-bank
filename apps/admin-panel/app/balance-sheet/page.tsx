@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { Skeleton } from "@/components/primitive/skeleton"
 
 gql`
   query BalanceSheet($from: Timestamp!, $until: Timestamp) {
@@ -60,6 +61,30 @@ gql`
     }
   }
 `
+
+const LoadingSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-72" />
+        <Skeleton className="h-10 w-96" />
+      </div>
+      <div className="flex gap-4 justify-between">
+        <div className="w-1/2 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={`left-${i}`} className="h-16 w-full" />
+          ))}
+        </div>
+        <div className="w-0.5 min-h-full bg-secondary" />
+        <div className="w-1/2 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <Skeleton key={`right-${i}`} className="h-16 w-full" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
 const BALANCE_FOR_CATEGORY: Record<string, { TransactionType: TransactionType }> = {
   Liabilities: { TransactionType: "netCredit" },
@@ -107,7 +132,24 @@ const BalanceSheet = ({
   const [layer, setLayer] = useState<Layers>("all")
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading) return <div>Loading...</div>
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Balance Sheet</CardTitle>
+          <CardDescription>
+            A financial statement showing the company&apos;s assets, liabilities, and
+            equity at a specific point in time.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <LoadingSkeleton />
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (!data?.balance) return <div>No data</div>
 
   const assets = data.categories?.filter((category) => category.name === "Assets")

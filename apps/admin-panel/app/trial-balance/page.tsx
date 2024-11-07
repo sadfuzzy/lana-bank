@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { Skeleton } from "@/components/primitive/skeleton"
 
 gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
@@ -170,6 +171,53 @@ gql`
   }
 `
 
+const LoadingSkeleton = () => {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-72" />
+        <Skeleton className="h-10 w-96" />
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>
+              <Skeleton className="h-5 w-32" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-5 w-24 ml-auto" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-5 w-24 ml-auto" />
+            </TableHead>
+            <TableHead>
+              <Skeleton className="h-5 w-24 ml-auto" />
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <TableRow key={i}>
+              <TableCell>
+                <Skeleton className="h-5 w-full" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-24 ml-auto" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-24 ml-auto" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-5 w-24 ml-auto" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
 type Layers = "all" | "settled" | "pending"
 type TrialBalanceValuesProps = {
   data:
@@ -195,7 +243,9 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const subAccounts = data?.subAccounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading) return <div>Loading...</div>
+  if (loading) {
+    return <LoadingSkeleton />
+  }
   if (!total) return <div>No data</div>
 
   return (
