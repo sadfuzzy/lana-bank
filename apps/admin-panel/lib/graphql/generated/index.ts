@@ -319,6 +319,15 @@ export type CommitteeThreshold = {
   threshold: Scalars['Int']['output'];
 };
 
+export type CreditFacilitiesSort = {
+  by?: CreditFacilitiesSortBy;
+};
+
+export enum CreditFacilitiesSortBy {
+  CreatedAt = 'CREATED_AT',
+  Cvl = 'CVL'
+}
+
 export type CreditFacility = {
   __typename?: 'CreditFacility';
   activatedAt?: Maybe<Scalars['Timestamp']['output']>;
@@ -577,6 +586,16 @@ export type CustomerUpdatePayload = {
   __typename?: 'CustomerUpdatePayload';
   customer: Customer;
 };
+
+export type CustomersSort = {
+  by?: CustomersSortBy;
+};
+
+export enum CustomersSortBy {
+  CreatedAt = 'CREATED_AT',
+  Email = 'EMAIL',
+  TelegramId = 'TELEGRAM_ID'
+}
 
 export type Dashboard = {
   __typename?: 'Dashboard';
@@ -1022,14 +1041,11 @@ export type Query = {
   chartOfAccounts?: Maybe<ChartOfAccounts>;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
-  creditFacilitiesByCreatedAt: CreditFacilityConnection;
-  creditFacilitiesByCvl: CreditFacilityConnection;
+  creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
-  customersByCreatedAt: CustomerConnection;
-  customersByEmail: CustomerConnection;
-  customersByTelegramId: CustomerConnection;
+  customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   deposits: DepositConnection;
@@ -1102,15 +1118,10 @@ export type QueryCommitteesArgs = {
 };
 
 
-export type QueryCreditFacilitiesByCreatedAtArgs = {
+export type QueryCreditFacilitiesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryCreditFacilitiesByCvlArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
+  sort?: InputMaybe<CreditFacilitiesSort>;
 };
 
 
@@ -1129,21 +1140,10 @@ export type QueryCustomerByEmailArgs = {
 };
 
 
-export type QueryCustomersByCreatedAtArgs = {
+export type QueryCustomersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryCustomersByEmailArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
-};
-
-
-export type QueryCustomersByTelegramIdArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  first: Scalars['Int']['input'];
+  sort?: InputMaybe<CustomersSort>;
 };
 
 
@@ -1678,10 +1678,11 @@ export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation',
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CreditFacilitiesSort>;
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilitiesByCreatedAt: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
@@ -1750,10 +1751,11 @@ export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
+  sort?: InputMaybe<CustomersSort>;
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customersByEmail: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3173,8 +3175,8 @@ export type CreditFacilityDisbursalInitiateMutationHookResult = ReturnType<typeo
 export type CreditFacilityDisbursalInitiateMutationResult = Apollo.MutationResult<CreditFacilityDisbursalInitiateMutation>;
 export type CreditFacilityDisbursalInitiateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityDisbursalInitiateMutation, CreditFacilityDisbursalInitiateMutationVariables>;
 export const CreditFacilitiesDocument = gql`
-    query CreditFacilities($first: Int!, $after: String) {
-  creditFacilitiesByCreatedAt(first: $first, after: $after) {
+    query CreditFacilities($first: Int!, $after: String, $sort: CreditFacilitiesSort) {
+  creditFacilities(first: $first, after: $after, sort: $sort) {
     edges {
       cursor
       node {
@@ -3222,6 +3224,7 @@ export const CreditFacilitiesDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
@@ -3634,8 +3637,8 @@ export type CustomerCreateMutationHookResult = ReturnType<typeof useCustomerCrea
 export type CustomerCreateMutationResult = Apollo.MutationResult<CustomerCreateMutation>;
 export type CustomerCreateMutationOptions = Apollo.BaseMutationOptions<CustomerCreateMutation, CustomerCreateMutationVariables>;
 export const CustomersDocument = gql`
-    query Customers($first: Int!, $after: String) {
-  customersByEmail(first: $first, after: $after) {
+    query Customers($first: Int!, $after: String, $sort: CustomersSort) {
+  customers(first: $first, after: $after, sort: $sort) {
     edges {
       node {
         id
@@ -3681,6 +3684,7 @@ export const CustomersDocument = gql`
  *   variables: {
  *      first: // value for 'first'
  *      after: // value for 'after'
+ *      sort: // value for 'sort'
  *   },
  * });
  */
