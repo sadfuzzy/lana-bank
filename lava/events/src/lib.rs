@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use core_user::CoreUserEvent;
@@ -18,9 +19,31 @@ pub enum LavaEvent {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "tag")]
 pub enum CreditEvent {
-    CreditFacilityCreated,
-    CreditFacilityActivated,
-    CreditFacilityCompleted,
+    CreditFacilityCreated {
+        created_at: DateTime<Utc>,
+    },
+    CreditFacilityActivated {
+        activated_at: DateTime<Utc>,
+    },
+    CreditFacilityCompleted {
+        completed_at: DateTime<Utc>,
+    },
+    DisbursalConcluded {
+        amount: u64,
+        recorded_at: DateTime<Utc>,
+    },
+    PaymentRecorded {
+        disbursal_amount: u64,
+        recorded_at: DateTime<Utc>,
+    },
+    CollateralAdded {
+        amount: u64,
+        recorded_at: DateTime<Utc>,
+    },
+    CollateralRemoved {
+        amount: u64,
+        recorded_at: DateTime<Utc>,
+    },
 }
 
 macro_rules! impl_event_marker {

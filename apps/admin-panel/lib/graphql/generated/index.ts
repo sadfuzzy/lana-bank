@@ -580,6 +580,8 @@ export type Dashboard = {
   __typename?: 'Dashboard';
   activeFacilities: Scalars['Int']['output'];
   pendingFacilities: Scalars['Int']['output'];
+  totalCollateral: Scalars['Satoshis']['output'];
+  totalDisbursed: Scalars['UsdCents']['output'];
 };
 
 export type Deposit = {

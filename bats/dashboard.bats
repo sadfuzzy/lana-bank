@@ -47,6 +47,7 @@ teardown_file() {
   [[ "$new_pending_facilities" != "$pending_facilities" ]] || exit 1
 
   active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
+  total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
   [[ "$active_facilities" != "null" ]] || exit 1
 
   variables=$(
@@ -65,20 +66,39 @@ teardown_file() {
   exec_admin_graphql 'dashboard'
   new_active_facilities=$(graphql_output '.data.dashboard.activeFacilities')
   [[ "$new_active_facilities" != "$active_facilities" ]] || exit 1
+  new_total_collateral=$(graphql_output '.data.dashboard.totalCollateral')
+  [[ "$new_total_collateral" != "$total_collateral" ]] || exit 1
+  total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
 
+  amount=50000
   variables=$(
     jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$amount" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
       }
     }'
-
   )
-  exec_admin_graphql 'credit-facility-complete' "$variables"
+  exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
+  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
+
+    variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson disbursalIdx "$disbursal_index" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        disbursalIdx: $disbursalIdx,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-disbursal-confirm' "$variables"
 
   exec_admin_graphql 'dashboard'
-  active_facilities_after_completion=$(graphql_output '.data.dashboard.activeFacilities')
-  [[ "$active_facilities_after_completion" != "$new_active_facilities" ]] || exit 1
+  new_total_disbursed=$(graphql_output '.data.dashboard.totalDisbursed')
+  [[ "$new_total_disbursed" != "$total_disbursed" ]] || exit 1
 }

@@ -576,6 +576,8 @@ type CustomerUpdatePayload {
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
+	totalDisbursed: UsdCents!
+	totalCollateral: Satoshis!
 }
 
 type Deposit {

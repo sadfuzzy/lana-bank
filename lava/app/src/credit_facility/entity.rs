@@ -925,6 +925,22 @@ impl CreditFacility {
             audit_info,
         });
     }
+
+    pub(super) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
+        self.events
+            .iter_all()
+            .find(|event| {
+                matches!(
+                    event,
+                    CreditFacilityEvent::DisbursalInitiated { idx: i, .. } if i == &idx
+                )
+            })
+            .and_then(|event| match event {
+                CreditFacilityEvent::DisbursalInitiated { amount, .. } => Some(*amount),
+                _ => None, // This case should never happen due to the find() predicate
+            })
+            .expect("disbursal amount not found")
+    }
 }
 
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
