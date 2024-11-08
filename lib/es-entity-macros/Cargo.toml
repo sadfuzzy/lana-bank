@@ -1,6 +1,6 @@
 [package]
 name = "es-entity-macros"
-version = "0.2.26-dev"
+version = "0.2.27-dev"
 edition = "2021"
 
 [features]
