@@ -48,12 +48,14 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
     <Card className="w-full">
       <CardHeader>
         <div className="flex items-end gap-2">
-          {h1 && <CardTitle className="text-2xl font-bold">{h1}</CardTitle>}
+          {h1 && <CardTitle className="text-3xl font-bold">{h1}</CardTitle>}
           {h2 && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="text-base text-muted-foreground mb-1">{h2}</span>
+                  <span className="text-base mb-0.5 text-[0.87rem] text-muted-foreground ml-2">
+                    {h2}
+                  </span>
                 </TooltipTrigger>
                 {h2PopupDescription && (
                   <TooltipContent className="max-w-xs">

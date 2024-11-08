@@ -57,7 +57,7 @@ const Dashboard = () => {
             <>
               <DashboardCard
                 h1={data?.dashboard.activeFacilities.toString()}
-                // h2={data?.dashboard.pendingFacilities.toString() + " Pending"}
+                h2={data?.dashboard.pendingFacilities.toString() + " Pending"}
                 title="Active Facilities"
                 description="Credit Facilities where money has been disbursed"
                 to="/credit-facilities?filter=active"
