@@ -1698,7 +1698,7 @@ export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, index: any } } };
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any } } };
 
 export type CreditFacilitiesFieldsFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: any, collateral: any, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, customer: { __typename?: 'Customer', customerId: string, email: string }, balance: { __typename?: 'CreditFacilityBalance', outstanding: { __typename?: 'Outstanding', usdBalance: any } } };
 
@@ -3214,6 +3214,7 @@ export const CreditFacilityDisbursalInitiateDocument = gql`
   creditFacilityDisbursalInitiate(input: $input) {
     disbursal {
       id
+      disbursalId
       index
     }
   }

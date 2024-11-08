@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -14,6 +15,7 @@ import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import {
+  DisbursalsDocument,
   GetCreditFacilityDetailsDocument,
   useCreditFacilityDisbursalInitiateMutation,
 } from "@/lib/graphql/generated"
@@ -26,6 +28,7 @@ gql`
     creditFacilityDisbursalInitiate(input: $input) {
       disbursal {
         id
+        disbursalId
         index
       }
     }
@@ -44,8 +47,9 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
 > = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
-      refetchQueries: [GetCreditFacilityDetailsDocument],
+      refetchQueries: [GetCreditFacilityDetailsDocument, DisbursalsDocument],
     })
+  const router = useRouter()
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
@@ -64,6 +68,9 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
           if (data.creditFacilityDisbursalInitiate) {
             toast.success("Disbursal initiated successfully")
             if (onSuccess) onSuccess()
+            router.push(
+              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
+            )
             handleCloseDialog()
           }
         },

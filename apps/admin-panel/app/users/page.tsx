@@ -91,10 +91,9 @@ function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-1/4">User ID</TableHead>
-                <TableHead className="w-1/4">Email</TableHead>
-                <TableHead className="w-1/4">Roles</TableHead>
-                <TableHead className="w-1/4"></TableHead>
+                <TableHead className="w-1/3">Email</TableHead>
+                <TableHead className="w-1/3">Roles</TableHead>
+                <TableHead className="w-1/3"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -104,7 +103,6 @@ function UsersPage() {
                   className="cursor-pointer"
                   onClick={() => router.push(`/users/${user.userId}`)}
                 >
-                  <TableCell>{user.userId}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2 text-muted-foreground items-center">

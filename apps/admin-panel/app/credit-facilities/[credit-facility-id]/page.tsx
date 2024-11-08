@@ -247,7 +247,7 @@ function CreditFacilityPage({
           <TabsTrigger value="terms">Terms</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           {data.creditFacility.disbursals.length > 0 && (
-            <TabsTrigger value="disbursals">disbursals</TabsTrigger>
+            <TabsTrigger value="disbursals">Disbursals</TabsTrigger>
           )}
         </TabsList>
         <TabsContent value="overview">

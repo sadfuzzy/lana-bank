@@ -122,8 +122,8 @@ const PaginatedTable = <T,>({
 
   return (
     <>
-      <div>
-        <Table>
+      <div className="overflow-x-auto">
+        <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader>
               <TableRow>
@@ -183,7 +183,10 @@ const PaginatedTable = <T,>({
                 className={onClick ? "cursor-pointer" : ""}
               >
                 {columns.map((col) => (
-                  <TableCell key={col.key as string}>
+                  <TableCell
+                    key={col.key as string}
+                    className="whitespace-normal break-words"
+                  >
                     {col.render ? col.render(node[col.key], node) : String(node[col.key])}
                   </TableCell>
                 ))}
