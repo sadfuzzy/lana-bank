@@ -1,0 +1,38 @@
+config {
+	type: "table",
+	description: "Errors found in Regulatory Report garantia_pignorada.xml of norm NPB4-17"
+}
+
+SELECT *, "assert_uppercase_alphanum identificacion_garantia" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_uppercase_alphanum')}(`identificacion_garantia`))
+
+UNION ALL
+
+SELECT *, "assert_niu_number nit_depositante" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_niu_number')}(`nit_depositante`))
+
+UNION ALL
+
+SELECT *, "assert_date fecha_deposito" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_deposito` AS STRING)))
+
+UNION ALL
+
+SELECT *, "assert_date fecha_vencimiento" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_date')}(CAST(`fecha_vencimiento` AS STRING)))
+
+UNION ALL
+
+SELECT *, "assert_nullable_dollar_number valor_deposito" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_nullable_dollar_number')}(CAST(`valor_deposito` AS STRING), 13))
+
+UNION ALL
+
+SELECT *, "assert_in_dim_table cod_banco stg_dim_15_npb4_17_emisores_de_avales_fianzas_y_cartas" AS error
+FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(CURRENT_TIMESTAMP())
+WHERE (${ref('udf_nbp4_17_assert_in_dim_table')}(`cod_banco`, 'stg_dim_15_npb4_17_emisores_de_avales_fianzas_y_cartas'))
