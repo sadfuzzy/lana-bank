@@ -30,6 +30,7 @@ gql`
         id
         disbursalId
         index
+        disbursalId
       }
     }
   }
@@ -45,11 +46,11 @@ type CreditFacilityDisbursalInitiateDialogProps = {
 export const CreditFacilityDisbursalInitiateDialog: React.FC<
   CreditFacilityDisbursalInitiateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+  const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument, DisbursalsDocument],
     })
-  const router = useRouter()
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
 
@@ -67,10 +68,10 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
         onCompleted: (data) => {
           if (data.creditFacilityDisbursalInitiate) {
             toast.success("Disbursal initiated successfully")
-            if (onSuccess) onSuccess()
             router.push(
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
             )
+            if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },

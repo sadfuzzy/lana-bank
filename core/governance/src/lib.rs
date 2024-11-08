@@ -239,14 +239,19 @@ where
             .map_err(|_| GovernanceError::SubjectIsNotCommitteeMember)?;
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
-        process.approve(&eligible, member_id, audit_info)?;
-        let mut db = self.policy_repo.begin().await?;
-        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
-            .await?;
-        self.process_repo
-            .update_in_tx(&mut db, &mut process)
-            .await?;
-        db.commit().await?;
+
+        if process
+            .approve(&eligible, member_id, audit_info)
+            .did_execute()
+        {
+            let mut db = self.policy_repo.begin().await?;
+            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+                .await?;
+            self.process_repo
+                .update_in_tx(&mut db, &mut process)
+                .await?;
+            db.commit().await?;
+        }
 
         Ok(process)
     }
@@ -256,6 +261,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process_id: impl Into<ApprovalProcessId> + std::fmt::Debug,
+        reason: String,
     ) -> Result<ApprovalProcess, GovernanceError>
     where
         CommitteeMemberId:
@@ -281,14 +287,18 @@ where
         } else {
             HashSet::new()
         };
-        process.deny(&eligible, member_id, audit_info)?;
-        let mut db = self.policy_repo.begin().await?;
-        self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
-            .await?;
-        self.process_repo
-            .update_in_tx(&mut db, &mut process)
-            .await?;
-        db.commit().await?;
+        if process
+            .deny(&eligible, member_id, reason, audit_info)
+            .did_execute()
+        {
+            let mut db = self.policy_repo.begin().await?;
+            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+                .await?;
+            self.process_repo
+                .update_in_tx(&mut db, &mut process)
+                .await?;
+            db.commit().await?;
+        }
 
         Ok(process)
     }
@@ -339,13 +349,16 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
-        let res = if let Some(approved) = process.check_concluded(eligible, audit_info) {
+        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
+            process.check_concluded(eligible, audit_info)
+        {
             self.outbox
                 .publish_persisted(
                     &mut db,
                     GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
+                        denied_reason,
                         process_type: process.process_type.clone(),
                         target_ref: process.target_ref().to_string(),
                     },

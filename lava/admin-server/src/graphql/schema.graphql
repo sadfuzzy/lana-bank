@@ -68,6 +68,7 @@ type ApprovalProcess {
 	status: ApprovalProcessStatus!
 	createdAt: Timestamp!
 	rules: ApprovalRules!
+	deniedReason: String
 	policy: Policy!
 	subjectCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
@@ -416,15 +417,6 @@ type CreditFacilityDisbursal {
 	creditFacility: CreditFacility!
 	status: DisbursalStatus!
 	approvalProcess: ApprovalProcess!
-}
-
-input CreditFacilityDisbursalConfirmInput {
-	creditFacilityId: UUID!
-	disbursalIdx: DisbursalIdx!
-}
-
-type CreditFacilityDisbursalConfirmPayload {
-	disbursal: CreditFacilityDisbursal!
 }
 
 type CreditFacilityDisbursalConnection {
@@ -789,14 +781,13 @@ type Mutation {
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
-	creditFacilityDisbursalConfirm(input: CreditFacilityDisbursalConfirmInput!): CreditFacilityDisbursalConfirmPayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
-	approvalProcessDeny(input: ApprovalProcessDenyInput!): ApprovalProcessDenyPayload!
+	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
 	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
 	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!

@@ -52,7 +52,7 @@ pub enum CreditFacilityEvent {
     },
     DisbursalConcluded {
         idx: DisbursalIdx,
-        tx_id: LedgerTxId,
+        tx_id: Option<LedgerTxId>,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -213,17 +213,6 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(super) fn disbursal_id_from_idx(&self, idx: DisbursalIdx) -> Option<DisbursalId> {
-        self.events.iter_all().find_map(|event| match event {
-            CreditFacilityEvent::DisbursalInitiated {
-                disbursal_id: id,
-                idx: i,
-                ..
-            } if i == &idx => Some(*id),
-            _ => None,
-        })
-    }
-
     pub fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter_all() {
             match event {
@@ -250,7 +239,11 @@ impl CreditFacility {
                     CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
                         amounts.insert(*idx, *amount);
                     }
-                    CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
+                    CreditFacilityEvent::DisbursalConcluded {
+                        idx,
+                        tx_id: Some(_),
+                        ..
+                    } => {
                         if let Some(amount) = amounts.remove(idx) {
                             total_sum += amount;
                         }
@@ -479,7 +472,7 @@ impl CreditFacility {
     pub(super) fn confirm_disbursal(
         &mut self,
         disbursal: &Disbursal,
-        tx_id: LedgerTxId,
+        tx_id: Option<LedgerTxId>,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) {
@@ -927,19 +920,27 @@ impl CreditFacility {
     }
 
     pub(super) fn disbursal_amount_from_idx(&self, idx: DisbursalIdx) -> UsdCents {
-        self.events
+        if let Some(amount) = self
+            .events
             .iter_all()
-            .find(|event| {
+            .filter_map(|event| match event {
+                CreditFacilityEvent::DisbursalInitiated { idx: i, amount, .. } if i == &idx => {
+                    Some(amount)
+                }
+                _ => None,
+            })
+            .next()
+        {
+            if self.events.iter_all().any(|event| {
                 matches!(
                     event,
-                    CreditFacilityEvent::DisbursalInitiated { idx: i, .. } if i == &idx
+                    CreditFacilityEvent::DisbursalConcluded { idx: i, tx_id: Some(_), .. } if i == &idx
                 )
-            })
-            .and_then(|event| match event {
-                CreditFacilityEvent::DisbursalInitiated { amount, .. } => Some(*amount),
-                _ => None, // This case should never happen due to the find() predicate
-            })
-            .expect("disbursal amount not found")
+            }) {
+                return *amount;
+            }
+        }
+        UsdCents::ZERO
     }
 }
 
@@ -1138,7 +1139,7 @@ mod test {
 
         events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
-            tx_id: LedgerTxId::new(),
+            tx_id: Some(LedgerTxId::new()),
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
         });
@@ -1187,7 +1188,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: LedgerTxId::new(),
+                tx_id: Some(LedgerTxId::new()),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -1223,7 +1224,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: LedgerTxId::new(),
+                tx_id: Some(LedgerTxId::new()),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1256,7 +1257,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: LedgerTxId::new(),
+                tx_id: Some(LedgerTxId::new()),
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
             },
@@ -1354,7 +1355,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: LedgerTxId::new(),
+                tx_id: Some(LedgerTxId::new()),
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
             },
@@ -1796,7 +1797,7 @@ mod test {
             disbursal.confirm(&disbursal_data, facility_activated_at, dummy_audit_info());
             credit_facility.confirm_disbursal(
                 &disbursal,
-                disbursal_data.tx_id,
+                Some(disbursal_data.tx_id),
                 facility_activated_at,
                 dummy_audit_info(),
             );
