@@ -27,7 +27,6 @@ import {
 } from "react-icons/hi"
 
 import Avatar from "./avatar"
-
 import { Logo } from "@/components/new"
 import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
@@ -35,7 +34,6 @@ import { Skeleton } from "@/components/primitive/skeleton"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)
-
   const { data, loading } = useGetRealtimePriceUpdatesQuery()
 
   const usdBtcRate = currencyConverter
@@ -85,7 +83,7 @@ const NavBar = () => {
       </div>
 
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex md:flex-col min-h-screen justify-between bg-background">
+      <div className="hidden md:flex md:flex-col min-h-screen justify-between bg-secondary/50">
         <div>
           <div className="flex justify-between items-center w-full p-5">
             <Logo width={30} />
@@ -158,8 +156,8 @@ const MenuItem: React.FC<MenuItemProps> = ({
       className={classNames(
         "p-2 flex items-center rounded-sm transition-colors duration-200",
         {
-          "bg-secondary": selected,
-          "hover:bg-secondary/50": !selected,
+          "bg-primary border": selected,
+          "hover:bg-secondary": !selected,
         },
       )}
     >
@@ -167,7 +165,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
         <Icon
           className={classNames("w-5 h-5", {
             "text-foreground": !selected,
-            "text-primary": selected,
+            "text-primary-foreground": selected,
           })}
         />
         {notificationDot && (
@@ -177,7 +175,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
       <span
         className={classNames("text-sm", {
           "text-foreground": !selected,
-          "text-primary font-medium": selected,
+          "text-primary-foreground font-medium": selected,
         })}
       >
         {title}

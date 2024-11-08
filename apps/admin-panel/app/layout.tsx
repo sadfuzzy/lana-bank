@@ -72,13 +72,15 @@ const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
     <RealtimePriceUpdates />
     <div className="bg-soft h-full w-full flex flex-col md:flex-row">
       <NavBar />
-      <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden">
-        <div className="p-2 border rounded-md flex flex-col w-full h-full">
-          <div className="md:flex gap-2 hidden pb-2 justify-between items-center">
-            <div className="">Welcome to Lana Bank</div>
+      <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden bg-secondary/50">
+        <div className="p-2 border rounded-md flex flex-col w-full h-full bg-background">
+          <div className="md:flex gap-2 hidden pb-2 justify-between items-center ">
+            <div className="font-semibold text-sm p-2 px-4 bg-secondary rounded-md ">
+              Welcome to Lana Bank
+            </div>
             <CreateButton />
           </div>
-          <main className="h-full overflow-y-auto no-scrollbar">{children}</main>
+          <main className="h-full overflow-y-auto no-scrollbar ">{children}</main>
         </div>
       </div>
     </div>
