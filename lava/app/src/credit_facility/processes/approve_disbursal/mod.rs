@@ -1,5 +1,7 @@
 mod job;
 
+use tracing::instrument;
+
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
@@ -68,6 +70,11 @@ impl ApproveDisbursal {
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[instrument(
+        name = "credit_facility.approve_disbursal",
+        skip(self),
+        fields(already_applied, disbursal_executed)
+    )]
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<DisbursalId>,
@@ -83,12 +90,15 @@ impl ApproveDisbursal {
                 CreditFacilityAction::ConcludeDisbursalApprovalProcess,
             )
             .await?;
+        let span = tracing::Span::current();
         if disbursal
             .approval_process_concluded(approved, audit_info.clone())
             .was_already_applied()
         {
+            span.record("already_applied", true);
             return Ok(disbursal);
         }
+        span.record("already_applied", false);
 
         let mut credit_facility = self
             .credit_facility_repo
@@ -97,6 +107,7 @@ impl ApproveDisbursal {
 
         match disbursal.disbursal_data() {
             Ok(disbursal_data) => {
+                span.record("disbursal_executed", true);
                 let audit_info = self
                     .audit
                     .record_system_entry_in_tx(
@@ -117,6 +128,7 @@ impl ApproveDisbursal {
                 );
             }
             Err(DisbursalError::Denied) => {
+                span.record("disbursal_executed", false);
                 credit_facility.confirm_disbursal(
                     &disbursal,
                     None,
@@ -129,11 +141,11 @@ impl ApproveDisbursal {
             }
         }
 
-        self.credit_facility_repo
-            .update_in_tx(&mut db, &mut credit_facility)
-            .await?;
         self.disbursal_repo
             .update_in_tx(&mut db, &mut disbursal)
+            .await?;
+        self.credit_facility_repo
+            .update_in_tx(&mut db, &mut credit_facility)
             .await?;
         db.commit().await?;
 
