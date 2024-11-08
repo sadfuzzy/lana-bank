@@ -1,7 +1,9 @@
 config {
-	type: "table",
-	tags: ["current"],
+	type: "operations",
+	hasOutput: true,
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH set_hierarchy_strings AS (
 
@@ -22,10 +24,10 @@ WITH set_hierarchy_strings AS (
 SELECT
 	member_id AS id_codigo_cuenta,
 	set_hierarchy_string || ":" || account_name AS nom_cuenta,
-	CASE
+	COALESCE(CASE
 		WHEN normal_balance_type = "credit" THEN settled_cr - settled_dr
 		WHEN normal_balance_type = "debit" THEN settled_dr - settled_cr
-	END AS valor,
+	END, 0) AS valor,
 
 FROM set_hierarchy_strings
 
@@ -34,8 +36,10 @@ LEFT JOIN ${ref("stg_account_sets")} USING (set_id)
 LEFT JOIN ${ref("stg_accounts")} accounts
 	ON accounts.account_id = member_id
 
-LEFT JOIN ${ref("stg_account_balances")} balances
+LEFT JOIN ${ref("stg_account_balances")}(asof) balances
 	ON balances.account_id = member_id
 
 WHERE member_type = "Account"
 	AND set_name = "Balance Sheet"
+
+);

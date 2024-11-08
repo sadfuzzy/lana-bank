@@ -1,6 +1,5 @@
 config {
 	type: "table",
-	tags: ["current"],
 }
 
 SELECT

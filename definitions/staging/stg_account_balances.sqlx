@@ -1,7 +1,9 @@
 config {
-	type: "table",
-	tags: ["current"],
+	type: "operations",
+	hasOutput: true,
 }
+
+CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 SELECT
 	JSON_VALUE(values, "$.account_id") AS account_id,
@@ -14,4 +16,8 @@ FROM ${ref({
 	schema: envs.currentImportSchema
 })}
 
+WHERE recorded_at < asof
+
 GROUP BY account_id, currency
+
+);

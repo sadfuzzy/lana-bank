@@ -1,6 +1,5 @@
 config {
 	type: "table",
-	tags: ["current"],
 }
 
 WITH RECURSIVE account_set_members AS (
