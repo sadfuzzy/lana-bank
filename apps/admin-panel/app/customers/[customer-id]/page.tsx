@@ -40,6 +40,7 @@ gql`
         creditFacilityId
         collateralizationState
         status
+        createdAt
         balance {
           collateral {
             btcBalance

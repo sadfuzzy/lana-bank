@@ -1,10 +1,10 @@
 "use client"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
-
 import Link from "next/link"
-
 import { useRouter } from "next/navigation"
+
+import DataTable, { Column } from "../data-table"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import {
@@ -14,17 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
 import { formatPeriod } from "@/lib/utils"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
-import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
 
 gql`
   query TermsTemplates {
@@ -52,10 +43,57 @@ gql`
 
 function TermPage() {
   const router = useRouter()
-
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
+
+  const columns: Column<TermsTemplate>[] = [
+    {
+      key: "name",
+      header: "Name",
+      render: (name, template) => (
+        <div className="hover:underline">
+          <Link href={`/terms-templates/${template.termsId}`}>{name}</Link>
+        </div>
+      ),
+    },
+    {
+      key: "values",
+      header: "Duration",
+      render: (values) =>
+        `${String(values.duration.units)} ${formatPeriod(values.duration.period)}`,
+    },
+    {
+      key: "values",
+      header: "Annual Rate",
+      render: (values) => `${values.annualRate}%`,
+    },
+    {
+      key: "values",
+      header: "Initial CVL",
+      render: (values) => `${values.initialCvl}%`,
+    },
+    {
+      key: "values",
+      header: "MarginCall CVL",
+      render: (values) => `${values.marginCallCvl}%`,
+    },
+    {
+      key: "values",
+      header: "Liquidation CVL",
+      render: (values) => `${values.liquidationCvl}%`,
+    },
+  ]
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent>
+          <p className="text-destructive mt-6">{error.message}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <main>
@@ -75,52 +113,14 @@ function TermPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
-            <TableLoadingSkeleton />
-          ) : error ? (
-            <p className="text-destructive mt-6">{error.message}</p>
-          ) : data?.termsTemplates && data.termsTemplates.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Duration</TableHead>
-                  <TableHead>Annual Rate</TableHead>
-                  <TableHead>Initial CVL</TableHead>
-                  <TableHead>MarginCall CVL</TableHead>
-                  <TableHead>Liquidation CVL</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data?.termsTemplates.map((termsTemplate) => (
-                  <TableRow
-                    key={termsTemplate.termsId}
-                    className="cursor-pointer"
-                    onClick={() =>
-                      router.push(`/terms-templates/${termsTemplate.termsId}`)
-                    }
-                  >
-                    <TableCell className="hover:underline">
-                      <Link href={`/terms-templates/${termsTemplate.termsId}`}>
-                        {termsTemplate.name}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      {String(termsTemplate.values.duration.units) +
-                        " " +
-                        formatPeriod(termsTemplate.values.duration.period)}
-                    </TableCell>
-                    <TableCell>{termsTemplate.values.annualRate}%</TableCell>
-                    <TableCell>{termsTemplate.values.initialCvl}%</TableCell>
-                    <TableCell>{termsTemplate.values.marginCallCvl}%</TableCell>
-                    <TableCell>{termsTemplate.values.liquidationCvl}%</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-sm">No data to display</p>
-          )}
+          <DataTable
+            data={data?.termsTemplates || []}
+            columns={columns}
+            loading={loading}
+            emptyMessage="No data to display"
+            rowClassName="cursor-pointer"
+            onRowClick={(template) => router.push(`/terms-templates/${template.termsId}`)}
+          />
         </CardContent>
       </Card>
     </main>

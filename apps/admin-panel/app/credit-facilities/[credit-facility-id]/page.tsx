@@ -119,6 +119,7 @@ gql`
       }
       disbursals {
         id
+        disbursalId
         index
         amount
         status
@@ -263,10 +264,7 @@ function CreditFacilityPage({
         </TabsContent>
         {data.creditFacility.disbursals.length > 0 && (
           <TabsContent value="disbursals">
-            <CreditFacilityDisbursals
-              creditFacility={data.creditFacility}
-              refetch={refetch}
-            />
+            <CreditFacilityDisbursals creditFacility={data.creditFacility} />
           </TabsContent>
         )}
       </Tabs>

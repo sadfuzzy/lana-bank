@@ -1,7 +1,6 @@
 "use client"
 
-import Link from "next/link"
-import { FaExternalLinkAlt } from "react-icons/fa"
+import { useRouter } from "next/navigation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import {
@@ -23,55 +22,61 @@ type CustomerTransactionsTableProps = {
 
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
   transactions,
-}) => (
-  <Card className="mt-4">
-    <CardHeader>
-      <CardTitle>Transactions</CardTitle>
-    </CardHeader>
-    {transactions.length === 0 ? (
-      <CardContent>No transactions found for this customer</CardContent>
-    ) : (
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Reference</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transactions.map((tx) => {
-              const isDeposit = "depositId" in tx
-              const id = isDeposit ? tx.depositId : tx.withdrawalId
+}) => {
+  const router = useRouter()
 
-              return (
-                <TableRow key={id}>
-                  <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                  <TableCell>{tx.__typename}</TableCell>
-                  <TableCell>{id}</TableCell>
-                  <TableCell>{tx.reference === id ? "" : tx.reference}</TableCell>
-                  <TableCell className="text-right">
-                    <Balance amount={tx.amount} currency={"usd"} />
-                  </TableCell>
-                  <TableCell>
-                    {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
-                  </TableCell>
-                  <TableCell>
-                    <Link href={isDeposit ? `/deposits` : `/withdrawals/${id}`}>
-                      <FaExternalLinkAlt className="text-primary" />
-                    </Link>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
-      </CardContent>
-    )}
-  </Card>
-)
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle>Transactions</CardTitle>
+      </CardHeader>
+      {transactions.length === 0 ? (
+        <CardContent>No transactions found for this customer</CardContent>
+      ) : (
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Date</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Reference</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {transactions.map((tx) => {
+                const isDeposit = "depositId" in tx
+                const id = isDeposit ? tx.depositId : tx.withdrawalId
+
+                return (
+                  <TableRow
+                    key={id}
+                    className={isDeposit ? "" : "cursor-pointer"}
+                    onClick={() => {
+                      if (isDeposit) {
+                        return
+                      } else {
+                        router.push(`/withdrawals/${id}`)
+                      }
+                    }}
+                  >
+                    <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                    <TableCell>{tx.__typename}</TableCell>
+                    <TableCell>{tx.reference === id ? "-" : tx.reference}</TableCell>
+                    <TableCell className="text-right">
+                      <Balance amount={tx.amount} currency={"usd"} />
+                    </TableCell>
+                    <TableCell>
+                      {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
+    </Card>
+  )
+}

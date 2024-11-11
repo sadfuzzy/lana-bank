@@ -1,22 +1,19 @@
 "use client"
 
-import Link from "next/link"
-import { FaExternalLinkAlt } from "react-icons/fa"
+import { useRouter } from "next/navigation"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+
 import Balance from "@/components/balance/balance"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"
-import { formatCollateralizationState } from "@/lib/utils"
+import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
+import DataTable, { Column } from "@/app/data-table"
+
+type CreditFacility = NonNullable<
+  GetCustomerQuery["customer"]
+>["creditFacilities"][number]
 
 type CustomerCreditFacilitiesTableProps = {
   creditFacilities: NonNullable<GetCustomerQuery["customer"]>["creditFacilities"]
@@ -24,58 +21,55 @@ type CustomerCreditFacilitiesTableProps = {
 
 export const CustomerCreditFacilitiesTable: React.FC<
   CustomerCreditFacilitiesTableProps
-> = ({ creditFacilities }) => (
-  <Card className="mt-4">
-    <CardHeader>
-      <CardTitle>Credit Facilities</CardTitle>
-    </CardHeader>
-    {creditFacilities.length === 0 ? (
-      <CardContent>No credit facilities found for this customer</CardContent>
-    ) : (
+> = ({ creditFacilities }) => {
+  const columns: Column<CreditFacility>[] = [
+    {
+      key: "status",
+      header: "Status",
+      render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
+    },
+    {
+      key: "balance",
+      header: "Outstanding Balance",
+      render: (_, facility) => (
+        <Balance amount={facility.balance.outstanding.usdBalance} currency="usd" />
+      ),
+    },
+    {
+      key: "balance",
+      header: "Collateral (BTC)",
+      render: (_, facility) => (
+        <Balance amount={facility.balance.collateral.btcBalance} currency="btc" />
+      ),
+    },
+    {
+      key: "collateralizationState",
+      header: "Collateralization State",
+      render: (state) => formatCollateralizationState(state),
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (date) => formatDate(date),
+    },
+  ]
+
+  const router = useRouter()
+  return (
+    <Card className="mt-4">
+      <CardHeader>
+        <CardTitle>Credit Facilities</CardTitle>
+      </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Credit Facility ID</TableHead>
-              <TableCell>Collateral (BTC)</TableCell>
-              <TableHead>Outstanding Balance</TableHead>
-              <TableHead>Collateralization State</TableHead>
-              <TableCell>Status</TableCell>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {creditFacilities.map((facility) => (
-              <TableRow key={facility.creditFacilityId}>
-                <TableCell>{facility.creditFacilityId}</TableCell>
-                <TableCell>
-                  <Balance
-                    amount={facility.balance.collateral.btcBalance}
-                    currency="btc"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Balance
-                    amount={facility.balance.outstanding.usdBalance}
-                    currency="usd"
-                  />
-                </TableCell>
-                <TableCell>
-                  <LoanAndCreditFacilityStatusBadge status={facility.status} />
-                </TableCell>
-                <TableCell>
-                  {formatCollateralizationState(facility.collateralizationState)}
-                </TableCell>
-                <TableCell>
-                  <Link href={`/credit-facilities/${facility.creditFacilityId}`}>
-                    <FaExternalLinkAlt className="text-primary" />
-                  </Link>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          data={creditFacilities}
+          columns={columns}
+          emptyMessage="No credit facilities found for this customer"
+          onRowClick={(facility) => {
+            router.push(`/credit-facilities/${facility.creditFacilityId}`)
+          }}
+        />
       </CardContent>
-    )}
-  </Card>
-)
+    </Card>
+  )
+}

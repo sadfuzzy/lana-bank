@@ -1,28 +1,15 @@
-import React, { useState } from "react"
-import { IoCheckmark } from "react-icons/io5"
+"use client"
 
-import Link from "next/link"
+import React from "react"
 
-import { DisbursalDetailsDialog } from "../disbursal-details"
-import { CreditFacilityDisbursalApproveDialog } from "../disbursal-approve"
+import { useRouter } from "next/navigation"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-import {
-  ApprovalProcessStatus,
-  DisbursalStatus,
-  GetCreditFacilityDetailsQuery,
-} from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
+import DataTable, { Column } from "@/app/data-table"
+import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type Disbursal = NonNullable<
   GetCreditFacilityDetailsQuery["creditFacility"]
@@ -30,33 +17,33 @@ type Disbursal = NonNullable<
 
 type CreditFacilityDisbursalsProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
-  refetch: () => void
 }
 
 export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> = ({
   creditFacility,
-  refetch,
 }) => {
-  const [selectedDetailsDisbursal, setSelectedDetailsDisbursal] =
-    useState<Disbursal | null>(null)
-  const [selectedApprovalProcessDisbursal, setSelectedApprovalProcessDisbursal] =
-    useState<Disbursal | null>(null)
+  const router = useRouter()
 
-  const handleOpenApprovalProcessDialog = (disbursal: Disbursal) => {
-    setSelectedApprovalProcessDisbursal(disbursal)
-  }
-
-  const handleCloseApprovalProcessDialog = () => {
-    setSelectedApprovalProcessDisbursal(null)
-  }
-
-  const handleOpenDetailsDialog = (disbursal: Disbursal) => {
-    setSelectedDetailsDisbursal(disbursal)
-  }
-
-  const handleCloseDetailsDialog = () => {
-    setSelectedDetailsDisbursal(null)
-  }
+  const columns: Column<Disbursal>[] = [
+    {
+      key: "amount",
+      header: "Amount",
+      render: (amount) => <Balance amount={amount} currency="usd" />,
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      render: (date) => formatDate(date),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "right",
+      render: (_, disbursal) => {
+        return <DisbursalStatusBadge status={disbursal.status} />
+      },
+    },
+  ]
 
   return (
     <>
@@ -65,81 +52,16 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
           <CardTitle>Disbursals</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[30%]">ID</TableHead>
-                <TableHead className="w-[20%]">Amount</TableHead>
-                <TableHead className="w-[20%]">Created At</TableHead>
-                <TableHead className="w-[20%] text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {creditFacility.disbursals.map((disbursal) => (
-                <TableRow key={disbursal.id}>
-                  <TableCell className="cursor-pointer hover:underline">
-                    <Link href={`/disbursals/${disbursal.id.split(":")[1]}`}>
-                      {disbursal.id.split(":")[1]}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Balance amount={disbursal.amount} currency="usd" />
-                  </TableCell>
-                  <TableCell>{formatDate(disbursal.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    {disbursal.status === DisbursalStatus.New &&
-                    disbursal.approvalProcess.status ===
-                      ApprovalProcessStatus.InProgress ? (
-                      <Button
-                        className="px-2 py-1 text-primary"
-                        variant="outline"
-                        onClick={() => handleOpenApprovalProcessDialog(disbursal)}
-                      >
-                        Approval Required
-                      </Button>
-                    ) : disbursal.status === DisbursalStatus.Confirmed ? (
-                      <Button
-                        className="px-2 py-1 text-success"
-                        variant="outline"
-                        onClick={() => handleOpenDetailsDialog(disbursal)}
-                      >
-                        <IoCheckmark className="h-4 w-4 mr-1" /> Confirmed
-                      </Button>
-                    ) : (
-                      <Button
-                        className="px-2 py-1 text-destructive"
-                        variant="outline"
-                        onClick={() => handleOpenDetailsDialog(disbursal)}
-                      >
-                        Denied
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            data={creditFacility.disbursals}
+            columns={columns}
+            emptyMessage="No disbursals found"
+            onRowClick={(disbursal) =>
+              router.push(`/disbursals/${disbursal.disbursalId}`)
+            }
+          />
         </CardContent>
       </Card>
-
-      {selectedApprovalProcessDisbursal && (
-        <CreditFacilityDisbursalApproveDialog
-          setOpenDialog={handleCloseApprovalProcessDialog}
-          openDialog={true}
-          creditFacilityId={creditFacility.creditFacilityId}
-          disbursalIdx={selectedApprovalProcessDisbursal.index}
-          disbursal={selectedApprovalProcessDisbursal}
-          refetch={refetch}
-        />
-      )}
-
-      {selectedDetailsDisbursal && (
-        <DisbursalDetailsDialog
-          setOpenDialog={handleCloseDetailsDialog}
-          openDialog={true}
-          disbursal={selectedDetailsDisbursal}
-        />
-      )}
     </>
   )
 }
