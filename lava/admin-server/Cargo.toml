@@ -1,6 +1,6 @@
 [package]
 name = "admin-server"
-version = "0.2.29-dev"
+version = "0.2.30-dev"
 edition = "2021"
 
 [features]
