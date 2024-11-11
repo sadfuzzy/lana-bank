@@ -76,6 +76,7 @@ export const CreditFacilityDisbursalApproveDialog: React.FC<
               </CardHeader>
               <CardContent>
                 {disbursal.approvalProcess.voters
+                  .sort((a, b) => a.user.email.localeCompare(b.user.email))
                   .filter((voter) => {
                     if (
                       disbursal?.approvalProcess.status ===

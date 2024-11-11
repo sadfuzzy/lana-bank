@@ -168,7 +168,7 @@ function UsersPage() {
       render: (roles) => (
         <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
           {roles.length > 0
-            ? roles.map((role) => (
+            ? roles.sort().map((role) => (
                 <Badge variant="secondary" key={role}>
                   {formatRole(role)}
                 </Badge>

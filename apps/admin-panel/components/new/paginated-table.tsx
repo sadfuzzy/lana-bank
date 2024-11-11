@@ -1,18 +1,24 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
 import {
   HiChevronUp,
   HiChevronDown,
   HiSelector,
   HiChevronLeft,
   HiChevronRight,
+  HiFilter,
 } from "react-icons/hi"
 
-import { Select } from "../primitive/select"
-
-import { Skeleton } from "../primitive/skeleton"
-
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/primitive/dropdown-menu"
+import { Button } from "@/components/primitive/button"
+import { Skeleton } from "@/components/primitive/skeleton"
 import {
   Table,
   TableBody,
@@ -21,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/primitive/table"
-import { Button } from "@/components/primitive/button"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -52,7 +57,7 @@ interface PaginatedTableProps<T> {
   pageSize: number
   fetchMore: (cursor: string) => Promise<unknown>
   onSort?: (column: keyof T, sortDirection: "ASC" | "DESC") => void
-  onFilter?: (column: keyof T, value: T[keyof T]) => void
+  onFilter?: (column: keyof T, value: T[keyof T] | undefined) => void
   onClick?: (record: T) => void
   showHeader?: boolean
 }
@@ -92,8 +97,11 @@ const PaginatedTable = <T,>({
     onSort && onSort(columnKey, newDirection)
   }
 
-  const handleFilter = (columnKey: keyof T, value: T[keyof T]) => {
-    setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
+  const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
+    setFilterState((prev) => ({
+      ...prev,
+      [columnKey]: value,
+    }))
     onFilter && onFilter(columnKey, value)
   }
 
@@ -113,9 +121,6 @@ const PaginatedTable = <T,>({
     }
   }
 
-  if (loading)
-    return <PaginatedTableLoadingSkeleton columns={columns} pageSize={pageSize} />
-
   if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
     return <div className="text-sm">No data to display</div>
   }
@@ -129,7 +134,7 @@ const PaginatedTable = <T,>({
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 justify-between">
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -140,9 +145,9 @@ const PaginatedTable = <T,>({
                         >
                           {sortState.column === col.key ? (
                             sortState.direction === "ASC" ? (
-                              <HiChevronUp className="h-4 w-4" />
+                              <HiChevronUp className="h-4 w-4 text-blue-500" />
                             ) : (
-                              <HiChevronDown className="h-4 w-4" />
+                              <HiChevronDown className="h-4 w-4 text-blue-500" />
                             )
                           ) : (
                             <HiSelector className="h-4 w-4" />
@@ -150,24 +155,33 @@ const PaginatedTable = <T,>({
                         </Button>
                       )}
                       {col.filterValues && (
-                        <div className="w-30">
-                          <Select
-                            value={String(filterState[col.key] ?? "")}
-                            onChange={(e) => {
-                              const selectedValue = col.filterValues?.find(
-                                (val) => String(val) === e.target.value,
-                              )
-                              handleFilter(col.key, selectedValue as T[typeof col.key])
-                            }}
-                          >
-                            <option value="">All</option>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <HiFilter
+                                className={`h-4 w-4 ${
+                                  filterState[col.key] ? "text-blue-500" : ""
+                                }`}
+                              />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem
+                              onSelect={() => handleFilter(col.key, undefined)}
+                            >
+                              All
+                            </DropdownMenuItem>
                             {col.filterValues.map((value, idx) => (
-                              <option key={idx} value={String(value)}>
-                                {String(value)}
-                              </option>
+                              <DropdownMenuItem
+                                key={idx}
+                                onSelect={() => handleFilter(col.key, value)}
+                                className="capitalize"
+                              >
+                                {String(value).split("_").join(" ").toLowerCase()}
+                              </DropdownMenuItem>
                             ))}
-                          </Select>
-                        </div>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       )}
                     </div>
                   </TableHead>
@@ -176,22 +190,37 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {displayData.map(({ node }, idx) => (
-              <TableRow
-                key={idx}
-                onClick={() => onClick?.(node)}
-                className={onClick ? "cursor-pointer" : ""}
-              >
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.key as string}
-                    className="whitespace-normal break-words"
+            {loading
+              ? // Render loading skeleton rows while keeping headers visible
+                Array.from({ length: displayData.length || pageSize }).map(
+                  (_, rowIndex) => (
+                    <TableRow key={rowIndex}>
+                      {columns.map((_, colIndex) => (
+                        <TableCell key={colIndex}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ),
+                )
+              : displayData.map(({ node }, idx) => (
+                  <TableRow
+                    key={idx}
+                    onClick={() => onClick?.(node)}
+                    className={onClick ? "cursor-pointer" : ""}
                   >
-                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                  </TableCell>
+                    {columns.map((col) => (
+                      <TableCell
+                        key={col.key as string}
+                        className="whitespace-normal break-words"
+                      >
+                        {col.render
+                          ? col.render(node[col.key], node)
+                          : String(node[col.key])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
                 ))}
-              </TableRow>
-            ))}
           </TableBody>
         </Table>
       </div>
@@ -224,29 +253,3 @@ const PaginatedTable = <T,>({
 export default PaginatedTable
 
 export const DEFAULT_PAGESIZE = 10
-
-const PaginatedTableLoadingSkeleton = <T,>({
-  columns,
-  pageSize,
-}: {
-  columns: Column<T>[]
-  pageSize: number
-}) => {
-  return (
-    <div>
-      <Table>
-        <TableBody>
-          {Array.from({ length: pageSize }).map((_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {columns.map((_, colIndex) => (
-                <TableCell key={colIndex}>
-                  <Skeleton className="h-4 w-full" />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
