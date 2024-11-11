@@ -190,11 +190,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           },
         },
         onCompleted: (data) => {
-          toast.success("Credit Facility created successfully")
-          router.push(
-            `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
-          )
-          handleCloseDialog()
+          if (data.creditFacilityCreate) {
+            router.push(
+              `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
+            )
+            toast.success("Credit Facility created successfully")
+            handleCloseDialog()
+          }
         },
       })
     } catch (err) {

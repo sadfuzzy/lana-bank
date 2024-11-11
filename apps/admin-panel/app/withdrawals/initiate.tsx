@@ -79,8 +79,8 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         },
         refetchQueries: [CustomersDocument],
         onCompleted: (data) => {
-          toast.success("Withdrawal initiated successfully")
           router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
+          toast.success("Withdrawal initiated successfully")
           handleCloseDialog()
         },
       })

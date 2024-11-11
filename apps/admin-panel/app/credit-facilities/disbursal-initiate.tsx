@@ -67,10 +67,10 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
         },
         onCompleted: (data) => {
           if (data.creditFacilityDisbursalInitiate) {
-            toast.success("Disbursal initiated successfully")
             router.push(
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
             )
+            toast.success("Disbursal initiated successfully")
             if (onSuccess) onSuccess()
             handleCloseDialog()
           }

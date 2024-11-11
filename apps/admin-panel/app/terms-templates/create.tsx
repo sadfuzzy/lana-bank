@@ -90,7 +90,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     setError(null)
 
     try {
-      const { data } = await createTermsTemplate({
+      await createTermsTemplate({
         variables: {
           input: {
             name: formValues.name,
@@ -106,15 +106,15 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             initialCvl: formValues.initialCvl,
           },
         },
+        onCompleted: (data) => {
+          router.push(
+            `/terms-templates/${data.termsTemplateCreate.termsTemplate.termsId}`,
+          )
+          if (refetch) refetch()
+          toast.success("Terms Template created successfully")
+          setOpenCreateTermsTemplateDialog(false)
+        },
       })
-      if (data?.termsTemplateCreate.termsTemplate) {
-        toast.success("Terms Template created successfully")
-        if (refetch) refetch()
-        setOpenCreateTermsTemplateDialog(false)
-        router.push(`/terms-templates/${data.termsTemplateCreate.termsTemplate.termsId}`)
-      } else {
-        throw new Error("Failed to create Terms Template. Please try again.")
-      }
     } catch (error) {
       console.error("Error creating Terms Template:", error)
       if (error instanceof Error) {

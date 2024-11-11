@@ -70,22 +70,23 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
     setError(null)
 
     try {
-      const { data } = await createCommittee({
+      await createCommittee({
         variables: {
           input: {
             name: formValues.name,
           },
         },
+        onCompleted: (data) => {
+          if (data?.committeeCreate.committee) {
+            router.push(`/committees/${data.committeeCreate.committee.committeeId}`)
+            if (refetch) refetch()
+            toast.success("Committee created successfully")
+            setOpenCreateCommitteeDialog(false)
+          } else {
+            throw new Error("Failed to create committee. Please try again.")
+          }
+        },
       })
-
-      if (data?.committeeCreate.committee) {
-        toast.success("Committee created successfully")
-        if (refetch) refetch()
-        setOpenCreateCommitteeDialog(false)
-        router.push(`/committees/${data.committeeCreate.committee.committeeId}`)
-      } else {
-        throw new Error("Failed to create committee. Please try again.")
-      }
     } catch (error) {
       console.error("Error creating committee:", error)
       if (error instanceof Error) {

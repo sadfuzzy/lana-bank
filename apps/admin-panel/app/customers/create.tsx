@@ -61,21 +61,23 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     }
 
     try {
-      const { data } = await createCustomer({
+      await createCustomer({
         variables: {
           input: {
             email,
             telegramId,
           },
         },
+        onCompleted: (data) => {
+          if (data?.customerCreate.customer) {
+            router.push(`/customers/${data.customerCreate.customer.customerId}`)
+            toast.success("Customer created successfully")
+            setOpenCreateCustomerDialog(false)
+          } else {
+            throw new Error("Failed to create customer. Please try again.")
+          }
+        },
       })
-      if (data?.customerCreate.customer) {
-        toast.success("Customer created successfully")
-        setOpenCreateCustomerDialog(false)
-        router.push(`/customers/${data.customerCreate.customer.customerId}`)
-      } else {
-        throw new Error("Failed to create customer. Please try again.")
-      }
     } catch (error) {
       console.error("Error creating customer:", error)
       if (error instanceof Error) {
