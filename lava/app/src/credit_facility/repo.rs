@@ -43,7 +43,7 @@ impl CreditFacilityRepo {
 
     async fn publish(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {

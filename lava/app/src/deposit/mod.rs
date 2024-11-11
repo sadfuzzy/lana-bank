@@ -85,8 +85,8 @@ impl Deposits {
             .build()
             .expect("Could not build Deposit");
 
-        let mut db_tx = self.repo.begin().await?;
-        let deposit = self.repo.create_in_tx(&mut db_tx, new_deposit).await?;
+        let mut db = self.repo.begin_op().await?;
+        let deposit = self.repo.create_in_op(&mut db, new_deposit).await?;
 
         self.ledger
             .record_deposit_for_customer(
@@ -97,7 +97,7 @@ impl Deposits {
             )
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(deposit)
     }

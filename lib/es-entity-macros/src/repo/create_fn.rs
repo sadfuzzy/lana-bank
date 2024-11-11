@@ -41,10 +41,11 @@ impl<'a> ToTokens for CreateFn<'a> {
         let args = self.columns.create_query_args();
 
         let query = format!(
-            "INSERT INTO {} ({}) VALUES ({})",
+            "INSERT INTO {} ({}, created_at) VALUES ({}, ${})",
             table_name,
             column_names.join(", "),
             placeholders,
+            column_names.len() + 1,
         );
 
         tokens.append_all(quote! {
@@ -71,31 +72,32 @@ impl<'a> ToTokens for CreateFn<'a> {
                 &self,
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
-                let mut db = self.pool().begin().await?;
-                let res = self.create_in_tx(&mut db, new_entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 new_entity: #new_entity
             ) -> Result<#entity, #error> {
                 #assignments
 
                  sqlx::query!(
                      #query,
-                     #(#args),*
+                     #(#args)*
+                     op.now()
                 )
-                .execute(&mut **db)
+                .execute(&mut **op.tx())
                 .await?;
 
                 let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(db, &mut events).await?;
+                let n_events = self.persist_events(op, &mut events).await?;
                 let entity = Self::hydrate_entity(events)?;
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 Ok(entity)
             }
         });
@@ -152,30 +154,31 @@ mod tests {
                 &self,
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
-                let mut db = self.pool().begin().await?;
-                let res = self.create_in_tx(&mut db, new_entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
 
-                sqlx::query!("INSERT INTO entities (id) VALUES ($1)",
-                    id as &EntityId
+                sqlx::query!("INSERT INTO entities (id, created_at) VALUES ($1, $2)",
+                    id as &EntityId,
+                    op.now()
                 )
-                .execute(&mut **db)
+                .execute(&mut **op.tx())
                 .await?;
 
                 let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(db, &mut events).await?;
+                let n_events = self.persist_events(op, &mut events).await?;
                 let entity = Self::hydrate_entity(events)?;
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 Ok(entity)
             }
         };
@@ -231,32 +234,33 @@ mod tests {
                 &self,
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
-                let mut db = self.pool().begin().await?;
-                let res = self.create_in_tx(&mut db, new_entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.create_in_op(&mut op, new_entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn create_in_tx(
+            pub async fn create_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 new_entity: NewEntity
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = &new_entity.id;
                 let name = &new_entity.name();
 
-                sqlx::query!("INSERT INTO entities (id, name) VALUES ($1, $2)",
+                sqlx::query!("INSERT INTO entities (id, name, created_at) VALUES ($1, $2, $3)",
                     id as &EntityId,
-                    name as &String
+                    name as &String,
+                    op.now()
                 )
-                .execute(&mut **db)
+                .execute(&mut **op.tx())
                 .await?;
 
                 let mut events = Self::convert_new(new_entity);
-                let n_events = self.persist_events(db, &mut events).await?;
+                let n_events = self.persist_events(op, &mut events).await?;
                 let entity = Self::hydrate_entity(events)?;
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
                 Ok(entity)
             }
         };

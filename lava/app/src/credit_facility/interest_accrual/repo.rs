@@ -36,7 +36,7 @@ impl InterestAccrualRepo {
 
     async fn export(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         _: &InterestAccrual,
         events: impl Iterator<Item = &PersistedEvent<InterestAccrualEvent>>,
     ) -> Result<(), InterestAccrualError> {

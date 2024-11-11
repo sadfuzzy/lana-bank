@@ -104,10 +104,10 @@ where
             .audit_info(audit_info)
             .build()
             .expect("Could not build user");
-        let mut db = self.repo.begin().await?;
-        let user = self.repo.create_in_tx(&mut db, new_user).await?;
+        let mut db = self.repo.begin_op().await?;
+        let user = self.repo.create_in_op(&mut db, new_user).await?;
         self.outbox
-            .publish_persisted(&mut db, CoreUserEvent::UserCreated { id: user.id })
+            .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id })
             .await?;
         db.commit().await?;
         Ok(user)
@@ -281,31 +281,31 @@ where
     }
 
     async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
-        let mut db = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
 
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 UserObject::all_users(),
                 CoreUserAction::USER_CREATE,
             )
             .await?;
 
-        let user = match self.repo.find_by_email_in_tx(&mut db, &email).await {
+        let user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
             Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
                     .email(&email)
                     .audit_info(audit_info.clone())
                     .build()
                     .expect("Could not build user");
-                let mut user = self.repo.create_in_tx(&mut db, new_user).await?;
+                let mut user = self.repo.create_in_op(&mut db, new_user).await?;
                 self.authz
                     .assign_role_to_subject(user.id, &Role::SUPERUSER)
                     .await?;
                 user.assign_role(Role::SUPERUSER, audit_info);
-                self.repo.update_in_tx(&mut db, &mut user).await?;
+                self.repo.update_in_op(&mut db, &mut user).await?;
                 Some(user)
             }
             Err(e) => return Err(e),
@@ -314,7 +314,7 @@ where
                     self.authz
                         .assign_role_to_subject(user.id, Role::SUPERUSER)
                         .await?;
-                    self.repo.update_in_tx(&mut db, &mut user).await?;
+                    self.repo.update_in_op(&mut db, &mut user).await?;
                     None
                 } else {
                     return Ok(());
@@ -323,7 +323,7 @@ where
         };
         if let Some(user) = user {
             self.outbox
-                .publish_persisted(&mut db, CoreUserEvent::UserCreated { id: user.id })
+                .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id })
                 .await?;
         }
         db.commit().await?;

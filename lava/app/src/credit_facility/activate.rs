@@ -4,7 +4,7 @@ use super::*;
 
 pub(super) async fn execute(
     credit_facility: &mut CreditFacility,
-    db_tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+    db: &mut es_entity::DbOp<'_>,
     ledger: &Ledger,
     audit: &Audit,
     interest_accrual_repo: InterestAccrualRepo,
@@ -17,7 +17,7 @@ pub(super) async fn execute(
 
     let audit_info = audit
         .record_system_entry_in_tx(
-            db_tx,
+            db.tx(),
             Object::CreditFacility,
             CreditFacilityAction::Activate,
         )
@@ -30,7 +30,7 @@ pub(super) async fn execute(
 
     let audit_info = audit
         .record_system_entry_in_tx(
-            db_tx,
+            db.tx(),
             Object::CreditFacility,
             CreditFacilityAction::RecordInterest,
         )
@@ -38,12 +38,10 @@ pub(super) async fn execute(
     let new_accrual = credit_facility
         .start_interest_accrual(audit_info.clone())?
         .expect("Accrual start date is before facility expiry date");
-    let accrual = interest_accrual_repo
-        .create_in_tx(db_tx, new_accrual)
-        .await?;
+    let accrual = interest_accrual_repo.create_in_op(db, new_accrual).await?;
     match jobs
-        .create_and_spawn_at_in_tx(
-            db_tx,
+        .create_and_spawn_at_in_op(
+            db,
             credit_facility.id,
             interest::CreditFacilityJobConfig {
                 credit_facility_id: credit_facility.id,

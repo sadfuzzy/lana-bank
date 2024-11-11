@@ -5,6 +5,7 @@ mod error;
 mod events;
 mod idempotent;
 mod macros;
+mod operation;
 mod query;
 mod traits;
 
@@ -23,6 +24,7 @@ pub use es_entity_macros::EsEvent;
 pub use es_entity_macros::EsRepo;
 pub use events::*;
 pub use idempotent::*;
+pub use operation::*;
 pub use query::*;
 pub use traits::*;
 

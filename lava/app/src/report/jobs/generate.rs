@@ -84,18 +84,18 @@ impl JobRunner for GenerateReportJobRunner {
     )]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut report = self.repo.find_by_id(self.config.report_id).await?;
         let mut client = DataformClient::connect(&self.report_config).await?;
 
         match report.next_step() {
             ReportGenerationProcessStep::Compilation => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db = self.repo.begin_op().await?;
 
                 let audit_info = self
                     .audit
-                    .record_system_entry_in_tx(&mut db_tx, Object::Report, ReportAction::Compile)
+                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Compile)
                     .await?;
                 match client.compile().await {
                     Ok(res) => {
@@ -105,18 +105,18 @@ impl JobRunner for GenerateReportJobRunner {
                         report.compilation_failed(e.to_string(), audit_info);
                     }
                 }
-                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
-                db_tx.commit().await?;
+                self.repo.update_in_op(&mut db, &mut report).await?;
+                db.commit().await?;
 
-                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                return Ok(JobCompletion::RescheduleNow);
             }
 
             ReportGenerationProcessStep::Invocation => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db = self.repo.begin_op().await?;
 
                 let audit_info = self
                     .audit
-                    .record_system_entry_in_tx(&mut db_tx, Object::Report, ReportAction::Invoke)
+                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Invoke)
                     .await?;
                 match client.invoke(&report.compilation_result()).await {
                     Ok(res) => {
@@ -126,18 +126,18 @@ impl JobRunner for GenerateReportJobRunner {
                         report.invocation_failed(e.to_string(), audit_info);
                     }
                 }
-                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
-                db_tx.commit().await?;
+                self.repo.update_in_op(&mut db, &mut report).await?;
+                db.commit().await?;
 
-                return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                return Ok(JobCompletion::RescheduleNow);
             }
 
             ReportGenerationProcessStep::Upload => {
-                let mut db_tx = current_job.pool().begin().await?;
+                let mut db = self.repo.begin_op().await?;
 
                 let audit_info = self
                     .audit
-                    .record_system_entry_in_tx(&mut db_tx, Object::Report, ReportAction::Upload)
+                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Upload)
                     .await?;
 
                 match upload::execute(&self.report_config, &self.storage).await {
@@ -145,15 +145,15 @@ impl JobRunner for GenerateReportJobRunner {
                     Err(e) => {
                         report.upload_failed(e.to_string(), audit_info);
 
-                        self.repo.update_in_tx(&mut db_tx, &mut report).await?;
-                        db_tx.commit().await?;
+                        self.repo.update_in_op(&mut db, &mut report).await?;
+                        db.commit().await?;
 
-                        return Ok(JobCompletion::RescheduleAt(chrono::Utc::now()));
+                        return Ok(JobCompletion::RescheduleNow);
                     }
                 }
 
-                self.repo.update_in_tx(&mut db_tx, &mut report).await?;
-                db_tx.commit().await?;
+                self.repo.update_in_op(&mut db, &mut report).await?;
+                db.commit().await?;
             }
         }
 

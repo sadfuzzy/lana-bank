@@ -68,9 +68,7 @@ impl TermsTemplates {
             .build()
             .expect("Could not build TermsTemplate");
 
-        let mut db = self.repo.begin().await?;
-        let terms_template = self.repo.create_in_tx(&mut db, new_terms_template).await?;
-        db.commit().await?;
+        let terms_template = self.repo.create(new_terms_template).await?;
         Ok(terms_template)
     }
 
@@ -104,10 +102,7 @@ impl TermsTemplates {
         let mut terms_template = self.repo.find_by_id(id).await?;
         terms_template.update_values(values, audit_info);
 
-        let mut db = self.repo.begin().await?;
-        self.repo.update_in_tx(&mut db, &mut terms_template).await?;
-
-        db.commit().await?;
+        self.repo.update(&mut terms_template).await?;
 
         Ok(terms_template)
     }

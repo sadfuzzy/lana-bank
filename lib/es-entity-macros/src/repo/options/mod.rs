@@ -16,6 +16,8 @@ pub struct RepositoryOptions {
     #[darling(default)]
     pub post_persist_hook: Option<syn::Ident>,
     #[darling(default)]
+    pub begin: Option<syn::Ident>,
+    #[darling(default)]
     pub delete: DeleteOption,
 
     #[darling(rename = "entity")]

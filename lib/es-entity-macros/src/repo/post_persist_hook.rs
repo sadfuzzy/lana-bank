@@ -30,7 +30,7 @@ impl<'a> ToTokens for PostPersistHook<'a> {
 
         let hook = if let Some(hook) = self.hook {
             quote! {
-                self.#hook(db, entity, new_events).await?;
+                self.#hook(op, entity, new_events).await?;
                 Ok(())
             }
         } else {
@@ -42,7 +42,7 @@ impl<'a> ToTokens for PostPersistHook<'a> {
         tokens.append_all(quote! {
             #[inline(always)]
             async fn execute_post_persist_hook(&self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 entity: &#entity,
                 new_events: es_entity::LastPersisted<'_, #event>
             ) -> Result<(), #error> {
@@ -76,7 +76,7 @@ mod tests {
         let expected = quote! {
             #[inline(always)]
             async fn execute_post_persist_hook(&self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 entity: &Entity,
                 new_events: es_entity::LastPersisted<'_, #event>
             ) -> Result<(), es_entity::EsRepoError> {

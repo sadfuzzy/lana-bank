@@ -86,13 +86,13 @@ impl JobRunner for CreateReportJobRunner {
     #[tracing::instrument(name = "lava.report.jobs.create.run", skip_all, fields(insert_id), err)]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut db_tx = current_job.pool().begin().await?;
+        let mut db = self.repo.begin_op().await?;
 
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(&mut db_tx, Object::Report, ReportAction::Create)
+            .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Create)
             .await?;
 
         let new_report = NewReport::builder()
@@ -101,11 +101,11 @@ impl JobRunner for CreateReportJobRunner {
             .build()
             .expect("Could not build report");
 
-        let report = self.repo.create_in_tx(&mut db_tx, new_report).await?;
+        let report = self.repo.create_in_op(&mut db, new_report).await?;
 
         self.jobs
-            .create_and_spawn_in_tx(
-                &mut db_tx,
+            .create_and_spawn_in_op(
+                &mut db,
                 report.id,
                 super::generate::GenerateReportConfig {
                     report_id: report.id,
@@ -113,8 +113,8 @@ impl JobRunner for CreateReportJobRunner {
             )
             .await?;
 
-        Ok(JobCompletion::RescheduleAtWithTx(
-            db_tx,
+        Ok(JobCompletion::RescheduleAtWithOp(
+            db,
             self.config.job_interval.timestamp(),
         ))
     }

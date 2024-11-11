@@ -34,7 +34,7 @@ impl CustomerRepo {
 
     async fn export(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         _: &Customer,
         events: impl Iterator<Item = &PersistedEvent<CustomerEvent>>,
     ) -> Result<(), CustomerError> {

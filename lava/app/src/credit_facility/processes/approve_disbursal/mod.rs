@@ -81,11 +81,11 @@ impl ApproveDisbursal {
         approved: bool,
     ) -> Result<Disbursal, CreditFacilityError> {
         let mut disbursal = self.disbursal_repo.find_by_id(id.into()).await?;
-        let mut db = self.disbursal_repo.pool().begin().await?;
+        let mut db = self.disbursal_repo.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 AppObject::CreditFacility,
                 CreditFacilityAction::ConcludeDisbursalApprovalProcess,
             )
@@ -111,7 +111,7 @@ impl ApproveDisbursal {
                 let audit_info = self
                     .audit
                     .record_system_entry_in_tx(
-                        &mut db,
+                        db.tx(),
                         AppObject::CreditFacility,
                         CreditFacilityAction::ConfirmDisbursal,
                     )
@@ -142,10 +142,10 @@ impl ApproveDisbursal {
         }
 
         self.disbursal_repo
-            .update_in_tx(&mut db, &mut disbursal)
+            .update_in_op(&mut db, &mut disbursal)
             .await?;
         self.credit_facility_repo
-            .update_in_tx(&mut db, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
         db.commit().await?;
 

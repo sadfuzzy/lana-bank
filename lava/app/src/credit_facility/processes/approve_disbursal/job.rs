@@ -89,6 +89,6 @@ impl JobRunner for DisbursalApprovalJobRunner {
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(chrono::Utc::now()))
+        Ok(JobCompletion::RescheduleNow)
     }
 }

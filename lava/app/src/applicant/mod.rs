@@ -6,7 +6,6 @@ mod sumsub_auth;
 
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
-use sqlx::{Postgres, Transaction};
 use tracing::instrument;
 
 use crate::{
@@ -131,10 +130,10 @@ impl Applicants {
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
-        let mut db = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
 
         self.jobs
-            .create_and_spawn_in_tx(
+            .create_and_spawn_in_op(
                 &mut db,
                 JobId::new(),
                 SumsubExportConfig::Webhook {
@@ -156,7 +155,7 @@ impl Applicants {
 
     async fn process_payload(
         &self,
-        db: &mut Transaction<'_, Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         payload: serde_json::Value,
     ) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload.clone())? {
@@ -229,7 +228,7 @@ impl Applicants {
                 }
 
                 self.jobs
-                    .create_and_spawn_in_tx(
+                    .create_and_spawn_in_op(
                         db,
                         JobId::new(),
                         SumsubExportConfig::SensitiveInfo {

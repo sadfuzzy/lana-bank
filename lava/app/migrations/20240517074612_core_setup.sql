@@ -1,7 +1,7 @@
 CREATE TABLE committees (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE committee_events (
@@ -9,7 +9,7 @@ CREATE TABLE committee_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -17,7 +17,7 @@ CREATE TABLE policies (
   id UUID PRIMARY KEY,
   committee_id UUID REFERENCES committees(id),
   process_type VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE policy_events (
@@ -25,7 +25,7 @@ CREATE TABLE policy_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE approval_processes (
   policy_id UUID REFERENCES policies(id),
   committee_id UUID REFERENCES committees(id),
   process_type VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE approval_process_events (
@@ -42,7 +42,7 @@ CREATE TABLE approval_process_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -51,7 +51,7 @@ CREATE TABLE customers (
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE customer_events (
@@ -59,14 +59,14 @@ CREATE TABLE customer_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
 CREATE TABLE terms_templates (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE terms_template_events (
@@ -74,14 +74,14 @@ CREATE TABLE terms_template_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE user_events (
@@ -89,7 +89,7 @@ CREATE TABLE user_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -100,7 +100,7 @@ CREATE TABLE credit_facilities (
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE credit_facility_events (
@@ -108,7 +108,7 @@ CREATE TABLE credit_facility_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -117,7 +117,7 @@ CREATE TABLE disbursals (
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   idx INT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL,
   UNIQUE(credit_facility_id, idx)
 );
 
@@ -126,7 +126,7 @@ CREATE TABLE disbursal_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -134,7 +134,7 @@ CREATE TABLE interest_accruals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
   idx INT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  created_at TIMESTAMPTZ NOT NULL,
   UNIQUE(credit_facility_id, idx)
 );
 
@@ -143,7 +143,7 @@ CREATE TABLE interest_accrual_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -152,7 +152,7 @@ CREATE TABLE withdrawals (
   customer_id UUID NOT NULL REFERENCES customers(id),
   approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
   reference VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE withdrawal_events (
@@ -160,7 +160,7 @@ CREATE TABLE withdrawal_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -168,7 +168,7 @@ CREATE TABLE deposits (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
   reference VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE deposit_events (
@@ -176,7 +176,7 @@ CREATE TABLE deposit_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -184,7 +184,7 @@ CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
   customer_id UUID NOT NULL REFERENCES customers(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX idx_documents_customer_id_deleted_id ON documents (customer_id, deleted, id);
 
@@ -193,13 +193,13 @@ CREATE TABLE document_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
 CREATE TABLE reports (
   id UUID PRIMARY KEY,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE report_events (
@@ -207,7 +207,7 @@ CREATE TABLE report_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -215,7 +215,7 @@ CREATE TABLE jobs (
   id UUID NOT NULL UNIQUE,
   unique_per_type BOOLEAN NOT NULL,
   job_type VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL
 );
 CREATE UNIQUE INDEX idx_unique_job_type ON jobs (job_type) WHERE unique_per_type = TRUE;
 
@@ -224,7 +224,7 @@ CREATE TABLE job_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
@@ -235,8 +235,8 @@ CREATE TABLE job_executions (
   attempt_index INT NOT NULL DEFAULT 1,
   state JobExecutionState NOT NULL DEFAULT 'pending',
   execution_state_json JSONB,
-  reschedule_after TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  reschedule_after TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE casbin_rule (

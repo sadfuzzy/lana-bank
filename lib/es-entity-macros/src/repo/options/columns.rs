@@ -74,7 +74,7 @@ impl Columns {
                 let ident = &column.name;
                 let ty = &column.opts.ty;
                 quote! {
-                    #ident as &#ty
+                    #ident as &#ty,
                 }
             })
             .collect()

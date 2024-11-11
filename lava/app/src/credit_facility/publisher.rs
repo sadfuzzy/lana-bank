@@ -22,7 +22,7 @@ impl CreditFacilityPublisher {
 
     pub async fn publish(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
@@ -97,7 +97,7 @@ impl CreditFacilityPublisher {
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db, publish_events)
+            .publish_all_persisted(db.tx(), publish_events)
             .await?;
         Ok(())
     }

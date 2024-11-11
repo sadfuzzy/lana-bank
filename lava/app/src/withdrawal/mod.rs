@@ -116,11 +116,11 @@ impl Withdrawals {
             .build()
             .expect("Could not build Withdraw");
 
-        let mut db_tx = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
         self.governance
-            .start_process(&mut db_tx, id, id.to_string(), APPROVE_WITHDRAWAL_PROCESS)
+            .start_process(&mut db, id, id.to_string(), APPROVE_WITHDRAWAL_PROCESS)
             .await?;
-        let withdrawal = self.repo.create_in_tx(&mut db_tx, new_withdrawal).await?;
+        let withdrawal = self.repo.create_in_op(&mut db, new_withdrawal).await?;
 
         let customer_balances = self
             .ledger
@@ -142,7 +142,7 @@ impl Withdrawals {
             )
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(withdrawal)
     }
@@ -171,8 +171,8 @@ impl Withdrawals {
         let mut withdrawal = self.repo.find_by_id(id).await?;
         let tx_id = withdrawal.confirm(audit_info)?;
 
-        let mut db_tx = self.repo.begin().await?;
-        self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
+        let mut db = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut db, &mut withdrawal).await?;
 
         self.ledger
             .confirm_withdrawal_for_customer(
@@ -184,7 +184,7 @@ impl Withdrawals {
             )
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(withdrawal)
     }
@@ -216,8 +216,8 @@ impl Withdrawals {
         let mut withdrawal = self.repo.find_by_id(id).await?;
         let tx_id = withdrawal.cancel(audit_info)?;
 
-        let mut db_tx = self.repo.begin().await?;
-        self.repo.update_in_tx(&mut db_tx, &mut withdrawal).await?;
+        let mut db = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut db, &mut withdrawal).await?;
 
         self.ledger
             .cancel_withdrawal_for_customer(
@@ -229,7 +229,7 @@ impl Withdrawals {
             )
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(withdrawal)
     }

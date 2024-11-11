@@ -7,6 +7,7 @@ mod entity;
 mod executor;
 mod registry;
 mod repo;
+mod time;
 mod traits;
 
 pub mod error;
@@ -41,7 +42,7 @@ impl Jobs {
     pub fn new(pool: &PgPool, config: JobExecutorConfig) -> Self {
         let repo = JobRepo::new(pool);
         let registry = Arc::new(RwLock::new(JobRegistry::new()));
-        let executor = JobExecutor::new(pool, config, Arc::clone(&registry), &repo);
+        let executor = JobExecutor::new(config, Arc::clone(&registry), &repo);
         Self {
             repo,
             executor,
@@ -70,8 +71,8 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let mut db = self.repo.begin().await?;
-        match self.repo.create_in_tx(&mut db, new_job).await {
+        let mut db = self.repo.begin_op().await?;
+        match self.repo.create_in_op(&mut db, new_job).await {
             Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e),
             Ok(job) => {
@@ -85,9 +86,9 @@ impl Jobs {
     }
 
     #[instrument(name = "lava.jobs.create_and_spawn", skip(self, db, config))]
-    pub async fn create_and_spawn_in_tx<C: JobConfig>(
+    pub async fn create_and_spawn_in_op<C: JobConfig>(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         id: impl Into<JobId> + std::fmt::Debug,
         config: C,
     ) -> Result<Job, JobError> {
@@ -97,7 +98,7 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let job = self.repo.create_in_tx(db, new_job).await?;
+        let job = self.repo.create_in_op(db, new_job).await?;
         self.executor
             .spawn_job::<<C as JobConfig>::Initializer>(db, &job, None)
             .await?;
@@ -105,9 +106,9 @@ impl Jobs {
     }
 
     #[instrument(name = "lava.jobs.create_and_spawn_at", skip(self, db, config))]
-    pub async fn create_and_spawn_at_in_tx<C: JobConfig>(
+    pub async fn create_and_spawn_at_in_op<C: JobConfig>(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         id: impl Into<JobId> + std::fmt::Debug,
         config: C,
         schedule_at: DateTime<Utc>,
@@ -118,7 +119,7 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let job = self.repo.create_in_tx(db, new_job).await?;
+        let job = self.repo.create_in_op(db, new_job).await?;
         self.executor
             .spawn_job::<<C as JobConfig>::Initializer>(db, &job, Some(schedule_at))
             .await?;

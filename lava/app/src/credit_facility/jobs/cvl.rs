@@ -69,7 +69,7 @@ pub struct CreditFacilityProcessingJobRunner {
 impl JobRunner for CreditFacilityProcessingJobRunner {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
         let mut has_next_page = true;
@@ -89,11 +89,11 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
             );
-            let mut db = current_job.pool().begin().await?;
+            let mut db = self.repo.begin_op().await?;
             let audit_info = self
                 .audit
                 .record_system_entry_in_tx(
-                    &mut db,
+                    db.tx(),
                     Object::CreditFacility,
                     CreditFacilityAction::UpdateCollateralizationState,
                 )
@@ -110,7 +110,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                     )
                     .is_some()
                 {
-                    self.repo.update_in_tx(&mut db, facility).await?;
+                    self.repo.update_in_op(&mut db, facility).await?;
                     at_least_one = true;
                 }
             }

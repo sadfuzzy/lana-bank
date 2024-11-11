@@ -95,8 +95,8 @@ impl Customers {
             .build()
             .expect("Could not build customer");
 
-        let mut db = self.repo.begin().await?;
-        let customer = self.repo.create_in_tx(&mut db, new_customer).await;
+        let mut db = self.repo.begin_op().await?;
+        let customer = self.repo.create_in_op(&mut db, new_customer).await;
         db.commit().await?;
 
         customer
@@ -107,13 +107,13 @@ impl Customers {
         id: CustomerId,
         email: String,
     ) -> Result<Customer, CustomerError> {
-        let mut db = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
 
         let audit_info = &self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 Object::Customer(CustomerAllOrOne::All),
                 Action::Customer(CustomerAction::Create),
             )
@@ -128,7 +128,7 @@ impl Customers {
             .build()
             .expect("Could not build customer");
 
-        let customer = self.repo.create_in_tx(&mut db, new_customer).await;
+        let customer = self.repo.create_in_op(&mut db, new_customer).await;
         db.commit().await?;
 
         customer
@@ -239,7 +239,7 @@ impl Customers {
 
     pub async fn start_kyc(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
@@ -249,7 +249,7 @@ impl Customers {
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db,
+                db.tx(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::StartKyc),
             )
@@ -257,14 +257,14 @@ impl Customers {
 
         customer.start_kyc(applicant_id, audit_info);
 
-        self.repo.update_in_tx(db, &mut customer).await?;
+        self.repo.update_in_op(db, &mut customer).await?;
 
         Ok(customer)
     }
 
     pub async fn approve_basic(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
@@ -274,7 +274,7 @@ impl Customers {
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db,
+                db.tx(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::ApproveKyc),
             )
@@ -282,14 +282,14 @@ impl Customers {
 
         customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
 
-        self.repo.update_in_tx(db, &mut customer).await?;
+        self.repo.update_in_op(db, &mut customer).await?;
 
         Ok(customer)
     }
 
     pub async fn deactivate(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
         applicant_id: String,
     ) -> Result<Customer, CustomerError> {
@@ -299,14 +299,14 @@ impl Customers {
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db,
+                db.tx(),
                 Object::Customer(CustomerAllOrOne::ById(customer_id)),
                 Action::Customer(CustomerAction::DeclineKyc),
             )
             .await?;
 
         customer.deactivate(applicant_id, audit_info);
-        self.repo.update_in_tx(db, &mut customer).await?;
+        self.repo.update_in_op(db, &mut customer).await?;
 
         Ok(customer)
     }

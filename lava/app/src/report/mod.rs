@@ -76,10 +76,10 @@ impl Reports {
             .build()
             .expect("Could not build report");
 
-        let mut db = self.repo.begin().await?;
-        let report = self.repo.create_in_tx(&mut db, new_report).await?;
+        let mut db = self.repo.begin_op().await?;
+        let report = self.repo.create_in_op(&mut db, new_report).await?;
         self.jobs
-            .create_and_spawn_in_tx(
+            .create_and_spawn_in_op(
                 &mut db,
                 report.id,
                 report_jobs::generate::GenerateReportConfig {
@@ -132,8 +132,6 @@ impl Reports {
 
         let mut report = self.repo.find_by_id(report_id).await?;
 
-        let mut db_tx = self.repo.begin().await?;
-
         let mut download_links = vec![];
         for location in report.download_links() {
             let url = self.storage.generate_download_link(&location).await?;
@@ -145,8 +143,7 @@ impl Reports {
 
             report.download_link_generated(audit_info.clone(), location);
         }
-
-        self.repo.update_in_tx(&mut db_tx, &mut report).await?;
+        self.repo.update(&mut report).await?;
         Ok(GeneratedReportDownloadLinks {
             report_id,
             links: download_links,

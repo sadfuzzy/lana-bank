@@ -42,7 +42,7 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 #query,
                 #(#args),*
             )
-                .execute(&mut **db)
+                .execute(&mut **op.tx())
                 .await?;
             })
         } else {
@@ -63,15 +63,15 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 &self,
                 entity: &mut #entity
             ) -> Result<bool, #error> {
-                let mut db = self.pool().begin().await?;
-                let res = self.update_in_tx(&mut db, entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.update_in_op(&mut op, entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 entity: &mut #entity
             ) -> Result<bool, #error> {
                 if !Self::extract_events(entity).any_new() {
@@ -81,10 +81,10 @@ impl<'a> ToTokens for UpdateFn<'a> {
                 #update_tokens
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(db, events).await?
+                    self.persist_events(op, events).await?
                 };
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }
@@ -136,15 +136,15 @@ mod tests {
                 &self,
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
-                let mut db = self.pool().begin().await?;
-                let res = self.update_in_tx(&mut db, entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.update_in_op(&mut op, entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
                 if !Self::extract_events(entity).any_new() {
@@ -158,15 +158,15 @@ mod tests {
                     id as &EntityId,
                     name as &String
                 )
-                    .execute(&mut **db)
+                    .execute(&mut **op.tx())
                     .await?;
 
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(db, events).await?
+                    self.persist_events(op, events).await?
                 };
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }
@@ -208,15 +208,15 @@ mod tests {
                 &self,
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
-                let mut db = self.pool().begin().await?;
-                let res = self.update_in_tx(&mut db, entity).await?;
-                db.commit().await?;
+                let mut op = self.begin_op().await?;
+                let res = self.update_in_op(&mut op, entity).await?;
+                op.commit().await?;
                 Ok(res)
             }
 
-            pub async fn update_in_tx(
+            pub async fn update_in_op(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 entity: &mut Entity
             ) -> Result<bool, es_entity::EsRepoError> {
                 if !Self::extract_events(entity).any_new() {
@@ -225,10 +225,10 @@ mod tests {
 
                 let n_events = {
                     let events = Self::extract_events(entity);
-                    self.persist_events(db, events).await?
+                    self.persist_events(op, events).await?
                 };
 
-                self.execute_post_persist_hook(db, &entity, entity.events().last_persisted(n_events)).await?;
+                self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
 
                 Ok(true)
             }

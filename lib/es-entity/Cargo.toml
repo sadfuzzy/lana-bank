@@ -7,9 +7,11 @@ edition = "2021"
 
 fail-on-warnings = []
 graphql = ["es-entity-macros/graphql", "dep:async-graphql", "dep:base64"]
+sim-time = [ "dep:sim-time" ]
 
 [dependencies]
 es-entity-macros = { path = "../es-entity-macros" }
+sim-time = { path = "../sim-time", optional = true }
 
 sqlx = { workspace = true }
 thiserror = { workspace = true }

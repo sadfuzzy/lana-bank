@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::time::Duration;
@@ -30,12 +30,6 @@ impl Default for ExportPriceJobConfig {
         Self {
             job_interval_secs: default_export_price_interval(),
         }
-    }
-}
-
-impl ExportPriceJobConfig {
-    fn next_run_at(&self) -> DateTime<Utc> {
-        Utc::now() + self.job_interval_secs
     }
 }
 
@@ -88,6 +82,6 @@ impl JobRunner for ExportPriceJobRunner {
             })
             .await?;
 
-        Ok(JobCompletion::RescheduleAt(self.config.next_run_at()))
+        Ok(JobCompletion::RescheduleIn(self.config.job_interval_secs))
     }
 }

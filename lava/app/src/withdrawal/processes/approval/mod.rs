@@ -63,11 +63,11 @@ impl ApproveWithdrawal {
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
-        let mut db = self.repo.pool().begin().await?;
+        let mut db = self.repo.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 AppObject::Withdrawal,
                 WithdrawalAction::ConcludeApprovalProcess,
             )
@@ -76,7 +76,7 @@ impl ApproveWithdrawal {
             .approval_process_concluded(approved, audit_info)
             .did_execute()
         {
-            self.repo.update_in_tx(&mut db, &mut withdraw).await?;
+            self.repo.update_in_op(&mut db, &mut withdraw).await?;
             db.commit().await?;
         }
         Ok(withdraw)

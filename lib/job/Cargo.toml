@@ -6,9 +6,11 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
+sim-time = [ "dep:sim-time", "es-entity/sim-time" ]
 
 [dependencies]
 es-entity = { path = "../es-entity" }
+sim-time = { path = "../sim-time", optional = true }
 
 derive_builder = { workspace = true }
 tracing = { workspace = true }

@@ -86,11 +86,11 @@ impl ApproveCreditFacility {
         if credit_facility.is_approval_process_concluded() {
             return Ok(credit_facility);
         }
-        let mut db = self.repo.pool().begin().await?;
+        let mut db = self.repo.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 AppObject::CreditFacility,
                 CreditFacilityAction::ConcludeApprovalProcess,
             )
@@ -115,7 +115,7 @@ impl ApproveCreditFacility {
         .await?;
         if self
             .repo
-            .update_in_tx(&mut db, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?
         {
             db.commit().await?;

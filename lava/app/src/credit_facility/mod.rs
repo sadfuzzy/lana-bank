@@ -193,24 +193,19 @@ impl CreditFacilities {
             .build()
             .expect("could not build new credit facility");
 
-        let mut db_tx = self.credit_facility_repo.begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
         self.governance
-            .start_process(
-                &mut db_tx,
-                id,
-                id.to_string(),
-                APPROVE_CREDIT_FACILITY_PROCESS,
-            )
+            .start_process(&mut db, id, id.to_string(), APPROVE_CREDIT_FACILITY_PROCESS)
             .await?;
         let credit_facility = self
             .credit_facility_repo
-            .create_in_tx(&mut db_tx, new_credit_facility)
+            .create_in_op(&mut db, new_credit_facility)
             .await?;
         self.ledger
             .create_accounts_for_credit_facility(credit_facility.id, credit_facility.account_ids)
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -271,26 +266,26 @@ impl CreditFacilities {
             .await?;
         balances.check_disbursal_amount(amount)?;
 
-        let mut db_tx = self.credit_facility_repo.begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
         let new_disbursal =
             credit_facility.initiate_disbursal(amount, chrono::Utc::now(), audit_info)?;
         self.governance
             .start_process(
-                &mut db_tx,
+                &mut db,
                 new_disbursal.approval_process_id,
                 new_disbursal.approval_process_id.to_string(),
                 APPROVE_DISBURSAL_PROCESS,
             )
             .await?;
         self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
         let disbursal = self
             .disbursal_repo
-            .create_in_tx(&mut db_tx, new_disbursal)
+            .create_in_op(&mut db, new_disbursal)
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
         Ok(disbursal)
     }
 
@@ -366,7 +361,7 @@ impl CreditFacilities {
         let credit_facility_collateral_update =
             credit_facility.initiate_collateral_update(updated_collateral)?;
 
-        let mut db_tx = self.credit_facility_repo.begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
         let executed_at = self
             .ledger
             .update_credit_facility_collateral(credit_facility_collateral_update.clone())
@@ -382,7 +377,7 @@ impl CreditFacilities {
 
         activate::execute(
             &mut credit_facility,
-            &mut db_tx,
+            &mut db,
             &self.ledger,
             self.authz.audit(),
             self.interest_accrual_repo.clone(),
@@ -391,9 +386,9 @@ impl CreditFacilities {
         )
         .await?;
         self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        db_tx.commit().await?;
+        db.commit().await?;
         Ok(credit_facility)
     }
 
@@ -420,7 +415,7 @@ impl CreditFacilities {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut db_tx = self.credit_facility_repo.begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
 
         let audit_info = self
             .subject_can_record_payment(sub, true)
@@ -467,14 +462,14 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
         self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
         self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(credit_facility)
     }
@@ -690,11 +685,11 @@ impl CreditFacilities {
             self.config.upgrade_buffer_cvl_pct,
         );
 
-        let mut db_tx = self.credit_facility_repo.begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo
-            .update_in_tx(&mut db_tx, &mut credit_facility)
+            .update_in_op(&mut db, &mut credit_facility)
             .await?;
-        db_tx.commit().await?;
+        db.commit().await?;
 
         Ok(credit_facility)
     }

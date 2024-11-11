@@ -77,12 +77,12 @@ where
         &self,
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
-        let mut db = self.policy_repo.begin().await?;
+        let mut db = self.policy_repo.begin_op().await?;
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                &mut db,
+                db.tx(),
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
             )
@@ -96,7 +96,7 @@ where
             .build()
             .expect("Could not build new policy");
 
-        let policy = self.policy_repo.create_in_tx(&mut db, new_policy).await?;
+        let policy = self.policy_repo.create_in_op(&mut db, new_policy).await?;
         db.commit().await?;
         Ok(policy)
     }
@@ -170,9 +170,9 @@ where
         let mut policy = self.policy_repo.find_by_id(policy_id).await?;
         policy.assign_committee(committee.id, threshold, audit_info);
 
-        let mut db_tx = self.policy_repo.begin().await?;
+        let mut db_tx = self.policy_repo.begin_op().await?;
         self.policy_repo
-            .update_in_tx(&mut db_tx, &mut policy)
+            .update_in_op(&mut db_tx, &mut policy)
             .await?;
         db_tx.commit().await?;
 
@@ -187,10 +187,10 @@ where
         Ok(self.policy_repo.find_all(ids).await?)
     }
 
-    #[instrument(name = "governance.start_process", skip(self), err)]
+    #[instrument(name = "governance.start_process", skip(self, db), err)]
     pub async fn start_process(
         &self,
-        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         id: impl Into<ApprovalProcessId> + std::fmt::Debug,
         target_ref: String,
         process_type: ApprovalProcessType,
@@ -205,13 +205,13 @@ where
             )
             .await?;
         let process = policy.spawn_process(id.into(), target_ref, audit_info);
-        let mut process = self.process_repo.create_in_tx(db, process).await?;
+        let mut process = self.process_repo.create_in_op(db, process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
-            .maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            .maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
             .await?
         {
-            self.process_repo.update_in_tx(db, &mut process).await?;
+            self.process_repo.update_in_op(db, &mut process).await?;
         }
         Ok(process)
     }
@@ -244,11 +244,11 @@ where
             .approve(&eligible, member_id, audit_info)
             .did_execute()
         {
-            let mut db = self.policy_repo.begin().await?;
-            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            let mut db = self.policy_repo.begin_op().await?;
+            self.maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
                 .await?;
             self.process_repo
-                .update_in_tx(&mut db, &mut process)
+                .update_in_op(&mut db, &mut process)
                 .await?;
             db.commit().await?;
         }
@@ -291,11 +291,11 @@ where
             .deny(&eligible, member_id, reason, audit_info)
             .did_execute()
         {
-            let mut db = self.policy_repo.begin().await?;
-            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
+            let mut db = self.policy_repo.begin_op().await?;
+            self.maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
                 .await?;
             self.process_repo
-                .update_in_tx(&mut db, &mut process)
+                .update_in_op(&mut db, &mut process)
                 .await?;
             db.commit().await?;
         }
@@ -325,10 +325,10 @@ where
             .build()
             .expect("Could not build new committee");
 
-        let mut db = self.committee_repo.begin().await?;
+        let mut db = self.committee_repo.begin_op().await?;
         let committee = self
             .committee_repo
-            .create_in_tx(&mut db, new_committee)
+            .create_in_op(&mut db, new_committee)
             .await?;
         db.commit().await?;
         Ok(committee)

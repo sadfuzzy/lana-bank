@@ -27,9 +27,13 @@ pub trait JobConfig: serde::Serialize {
 
 pub enum JobCompletion {
     Complete,
-    CompleteWithTx(sqlx::Transaction<'static, sqlx::Postgres>),
+    CompleteWithOp(es_entity::DbOp<'static>),
+    RescheduleNow,
+    RescheduleNowWithOp(es_entity::DbOp<'static>),
+    RescheduleIn(std::time::Duration),
+    RescheduleInWithOp(std::time::Duration, es_entity::DbOp<'static>),
     RescheduleAt(DateTime<Utc>),
-    RescheduleAtWithTx(sqlx::Transaction<'static, sqlx::Postgres>, DateTime<Utc>),
+    RescheduleAtWithOp(es_entity::DbOp<'static>, DateTime<Utc>),
 }
 
 #[async_trait]
@@ -66,7 +70,7 @@ impl RetrySettings {
         let jitter = rand::thread_rng().gen_range(-jitter_range..=jitter_range);
         let jittered_backoff = (base_backoff_ms as i128 + jitter).max(0) as u128;
         let final_backoff = std::cmp::min(jittered_backoff, self.max_backoff.as_millis());
-        Utc::now() + std::time::Duration::from_millis(final_backoff as u64)
+        crate::time::now() + std::time::Duration::from_millis(final_backoff as u64)
     }
 }
 

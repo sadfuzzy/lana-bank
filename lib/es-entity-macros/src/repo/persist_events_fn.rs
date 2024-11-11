@@ -25,7 +25,7 @@ impl<'a> From<&'a RepositoryOptions> for PersistEventsFn<'a> {
 impl<'a> ToTokens for PersistEventsFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let query = format!(
-            "INSERT INTO {} (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
+            "INSERT INTO {} (id, recorded_at, sequence, event_type, event) SELECT $1, $2, ROW_NUMBER() OVER () + $3, unnested.event_type, unnested.event FROM UNNEST($4::text[], $5::jsonb[]) AS unnested(event_type, event)",
             self.events_table_name,
         );
         let id_type = &self.id;
@@ -48,24 +48,26 @@ impl<'a> ToTokens for PersistEventsFn<'a> {
 
             async fn persist_events(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 events: &mut es_entity::EntityEvents<#event_type>
             ) -> Result<usize, #error> {
                 let id = events.id();
                 let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
                 let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let now = op.now();
 
                 let rows = Self::extract_concurrent_modification(
                     sqlx::query!(
                         #query,
                         #id_tokens,
+                        now,
                         offset as i32,
                         &events_types,
-                        &serialized_events
-                    ).fetch_all(&mut **db).await)?;
+                        &serialized_events,
+                    ).fetch_all(&mut **op.tx()).await)?;
 
-                let n_events = events.mark_new_events_persisted_at(rows[0].recorded_at);
+                let n_events = events.mark_new_events_persisted_at(now);
 
                 Ok(n_events)
             }
@@ -105,24 +107,26 @@ mod tests {
 
             async fn persist_events(
                 &self,
-                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                op: &mut es_entity::DbOp<'_>,
                 events: &mut es_entity::EntityEvents<EntityEvent>
             ) -> Result<usize, es_entity::EsRepoError> {
                 let id = events.id();
                 let offset = events.len_persisted();
                 let serialized_events = events.serialize_new_events();
                 let events_types = serialized_events.iter().map(|e| e.get("type").and_then(es_entity::prelude::serde_json::Value::as_str).expect("Could not read event type").to_owned()).collect::<Vec<_>>();
+                let now = op.now();
 
                 let rows = Self::extract_concurrent_modification(
                     sqlx::query!(
-                        "INSERT INTO entity_events (id, sequence, event_type, event) SELECT $1, ROW_NUMBER() OVER () + $2, unnested.event_type, unnested.event FROM UNNEST($3::text[], $4::jsonb[]) AS unnested(event_type, event) RETURNING recorded_at",
+                        "INSERT INTO entity_events (id, recorded_at, sequence, event_type, event) SELECT $1, $2, ROW_NUMBER() OVER () + $3, unnested.event_type, unnested.event FROM UNNEST($4::text[], $5::jsonb[]) AS unnested(event_type, event)",
                         id as &EntityId,
+                        now,
                         offset as i32,
                         &events_types,
-                        &serialized_events
-                    ).fetch_all(&mut **db).await)?;
+                        &serialized_events,
+                    ).fetch_all(&mut **op.tx()).await)?;
 
-                let n_events = events.mark_new_events_persisted_at(rows[0].recorded_at);
+                let n_events = events.mark_new_events_persisted_at(now);
 
                 Ok(n_events)
             }

@@ -4,7 +4,6 @@ mod job;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{Postgres, Transaction};
 use tracing::instrument;
 
 use crate::{
@@ -83,7 +82,7 @@ impl Export {
     #[instrument(name = "lava.export.export_last", skip(self, db, events), err)]
     pub async fn es_entity_export<T>(
         &self,
-        db: &mut Transaction<'_, Postgres>,
+        db: &mut es_entity::DbOp<'_>,
         table_name: &'static str,
         events: impl Iterator<Item = &es_entity::PersistedEvent<T>>,
     ) -> Result<(), JobError>
@@ -112,7 +111,7 @@ impl Export {
                 recorded_at,
             };
             self.jobs
-                .create_and_spawn_in_tx(
+                .create_and_spawn_in_op(
                     db,
                     JobId::new(),
                     DataExportConfig {

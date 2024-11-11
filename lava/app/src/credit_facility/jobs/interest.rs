@@ -74,19 +74,19 @@ pub struct CreditFacilityProcessingJobRunner {
 impl JobRunner for CreditFacilityProcessingJobRunner {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let mut db_tx = current_job.pool().begin().await?;
+        let mut db = self.credit_facility_repo.begin_op().await?;
 
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                &mut db_tx,
+                db.tx(),
                 Object::CreditFacility,
                 CreditFacilityAction::RecordInterest,
             )
@@ -117,29 +117,29 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                 audit_info.clone(),
             );
             self.credit_facility_repo
-                .update_in_tx(&mut db_tx, &mut credit_facility)
+                .update_in_op(&mut db, &mut credit_facility)
                 .await?;
         }
 
         self.interest_accrual_repo
-            .update_in_tx(&mut db_tx, &mut accrual)
+            .update_in_op(&mut db, &mut accrual)
             .await?;
 
         if let Some(period) = accrual.next_incurrence_period() {
-            Ok(JobCompletion::RescheduleAtWithTx(db_tx, period.end))
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else if let Some(new_accrual) = credit_facility.start_interest_accrual(audit_info)? {
             self.credit_facility_repo
-                .update_in_tx(&mut db_tx, &mut credit_facility)
+                .update_in_op(&mut db, &mut credit_facility)
                 .await?;
             let new_incurrence_period = self
                 .interest_accrual_repo
-                .create_in_tx(&mut db_tx, new_accrual)
+                .create_in_op(&mut db, new_accrual)
                 .await?
                 .next_incurrence_period()
                 .expect("New accrual should have first incurrence period");
 
-            Ok(JobCompletion::RescheduleAtWithTx(
-                db_tx,
+            Ok(JobCompletion::RescheduleAtWithOp(
+                db,
                 new_incurrence_period.end,
             ))
         } else {
@@ -148,7 +148,7 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
                 credit_facility.id
             );
 
-            Ok(JobCompletion::CompleteWithTx(db_tx))
+            Ok(JobCompletion::CompleteWithOp(db))
         }
     }
 }

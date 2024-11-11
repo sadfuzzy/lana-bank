@@ -56,14 +56,14 @@ impl Documents {
             .audit_info(audit_info)
             .build()?;
 
-        let mut tx = self.repo.begin().await?;
-        let document = self.repo.create_in_tx(&mut tx, new_document).await?;
+        let mut db = self.repo.begin_op().await?;
+        let document = self.repo.create_in_op(&mut db, new_document).await?;
 
         self.storage
             .upload(content, &document.path_in_bucket, "application/pdf")
             .await?;
 
-        tx.commit().await?;
+        db.commit().await?;
         Ok(document)
     }
 
@@ -125,9 +125,7 @@ impl Documents {
             .generate_download_link(document_location)
             .await?;
 
-        let mut tx = self.repo.begin().await?;
-
-        self.repo.update_in_tx(&mut tx, &mut document).await?;
+        self.repo.update(&mut document).await?;
 
         Ok(GeneratedDocumentDownloadLink { document_id, link })
     }
@@ -143,14 +141,14 @@ impl Documents {
             .enforce_permission(sub, Object::Document, DocumentAction::Delete)
             .await?;
 
-        let mut db = self.repo.begin().await?;
+        let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();
         self.storage.remove(document_location).await?;
 
         document.delete(audit_info);
-        self.repo.delete_in_tx(&mut db, document).await?;
+        self.repo.delete_in_op(&mut db, document).await?;
         db.commit().await?;
 
         Ok(())
