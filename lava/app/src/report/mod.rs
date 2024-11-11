@@ -115,7 +115,7 @@ impl Reports {
 
         Ok(self
             .repo
-            .list_by_created_at(Default::default(), es_entity::ListDirection::Ascending)
+            .list_by_created_at(Default::default(), es_entity::ListDirection::Descending)
             .await?
             .entities)
     }
