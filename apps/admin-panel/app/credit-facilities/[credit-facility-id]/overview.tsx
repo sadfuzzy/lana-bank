@@ -176,7 +176,8 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {creditFacility.approvalProcess.voters
+            {[...creditFacility.approvalProcess.voters]
+              .sort((a, b) => a.user.email.localeCompare(b.user.email))
               .filter((voter) => {
                 if (
                   creditFacility?.approvalProcess.status ===
@@ -207,7 +208,10 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                   <div>
                     <p className="text-sm font-medium">{voter.user.email}</p>
                     <p className="text-sm text-textColor-secondary">
-                      {voter.user.roles.map(formatRole).join(", ")}
+                      {[...voter.user.roles]
+                        .sort((a, b) => a.localeCompare(b))
+                        .map(formatRole)
+                        .join(", ")}
                     </p>
                     {
                       <p className="text-xs text-textColor-secondary">

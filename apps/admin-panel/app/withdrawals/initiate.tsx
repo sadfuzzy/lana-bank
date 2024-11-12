@@ -17,6 +17,7 @@ import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import {
+  AllActionsDocument,
   CustomersDocument,
   GetWithdrawalDetailsDocument,
   useWithdrawalInitiateMutation,
@@ -59,7 +60,11 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   const { customer } = useCreateContext()
 
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
-    refetchQueries: [WithdrawalsDocument, GetWithdrawalDetailsDocument],
+    refetchQueries: [
+      WithdrawalsDocument,
+      GetWithdrawalDetailsDocument,
+      AllActionsDocument,
+    ],
   })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")

@@ -11,6 +11,7 @@ import {
 } from "@/components/primitive/dialog"
 import { Button } from "@/components/primitive/button"
 import {
+  AllActionsDocument,
   ApprovalProcess,
   CreditFacilitiesDocument,
   DisbursalsDocument,
@@ -48,7 +49,12 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 }) => {
   const [error, setError] = React.useState<string | null>(null)
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
-    refetchQueries: [CreditFacilitiesDocument, WithdrawalsDocument, DisbursalsDocument],
+    refetchQueries: [
+      CreditFacilitiesDocument,
+      WithdrawalsDocument,
+      DisbursalsDocument,
+      AllActionsDocument,
+    ],
   })
 
   const handleApprove = async () => {

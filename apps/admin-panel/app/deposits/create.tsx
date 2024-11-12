@@ -16,6 +16,7 @@ import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import {
+  AllActionsDocument,
   CustomersDocument,
   DepositsDocument,
   useCreateDepositMutation,
@@ -56,7 +57,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   refetch,
 }) => {
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
-    refetchQueries: [DepositsDocument],
+    refetchQueries: [DepositsDocument, AllActionsDocument],
   })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")

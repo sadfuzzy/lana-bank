@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/primitive/input"
 import { Label } from "@/components/primitive/label"
 import {
+  AllActionsDocument,
   CreditFacilitiesDocument,
   InterestInterval,
   Period,
@@ -69,7 +70,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     useTermsTemplatesQuery()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityCreateMutation({
-      refetchQueries: [CreditFacilitiesDocument],
+      refetchQueries: [CreditFacilitiesDocument, AllActionsDocument],
     })
   const [useTemplateTerms, setUseTemplateTerms] = useState(true)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
