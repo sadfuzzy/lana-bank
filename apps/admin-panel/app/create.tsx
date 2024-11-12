@@ -51,6 +51,7 @@ const CreateButton = () => {
         if (!customer) setOpenCustomerSelector(true)
         setCreateDeposit(true)
       },
+      dataTestId: "create-deposit-button",
     },
     {
       label: "Withdrawal",
@@ -58,26 +59,36 @@ const CreateButton = () => {
         if (!customer) setOpenCustomerSelector(true)
         setCreateWithdrawal(true)
       },
+      dataTestId: "create-withdrawal-button",
     },
-    { label: "Customer", onClick: () => setCreateCustomer(true) },
+    {
+      label: "Customer",
+      onClick: () => setCreateCustomer(true),
+      dataTestIds: "create-customer-button",
+    },
+
     {
       label: "Credit Facility",
       onClick: () => {
         if (!customer) setOpenCustomerSelector(true)
         setCreateFacility(true)
       },
+      dataTestId: "create-credit-facility-button",
     },
     {
       label: "User",
       onClick: () => setOpenCreateUserDialog(true),
+      dataTestId: "create-user-button",
     },
     {
       label: "Terms Template",
       onClick: () => setOpenCreateTermsTemplateDialog(true),
+      dataTestId: "create-terms-template-button",
     },
     {
       label: "Committee",
       onClick: () => setOpenCreateCommitteeDialog(true),
+      dataTestId: "create-committee-button",
     },
   ]
 
@@ -122,7 +133,7 @@ const CreateButton = () => {
         }}
       >
         <DropdownMenuTrigger asChild>
-          <Button>
+          <Button data-testid="global-create-button">
             <HiPlus className="h-4 w-4" />
             Create
           </Button>
@@ -130,6 +141,7 @@ const CreateButton = () => {
         <DropdownMenuContent align="end" className="w-36">
           {menuItems.map((item) => (
             <DropdownMenuItem
+              data-testid={item.dataTestId}
               key={item.label}
               onClick={item.onClick}
               className="cursor-pointer"

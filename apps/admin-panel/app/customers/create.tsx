@@ -70,8 +70,8 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         },
         onCompleted: (data) => {
           if (data?.customerCreate.customer) {
-            router.push(`/customers/${data.customerCreate.customer.customerId}`)
             toast.success("Customer created successfully")
+            router.push(`/customers/${data.customerCreate.customer.customerId}`)
             setOpenCreateCustomerDialog(false)
           } else {
             throw new Error("Failed to create customer. Please try again.")
@@ -142,6 +142,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                   id="email"
                   type="email"
                   required
+                  data-testid="customer-create-email"
                   placeholder="Please enter the email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -153,6 +154,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                   id="telegramId"
                   type="text"
                   required
+                  data-testid="customer-create-telegram-id"
                   placeholder="Please enter the Telegram ID"
                   value={telegramId}
                   onChange={(e) => setTelegramId(e.target.value)}
@@ -172,7 +174,11 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                 Back
               </Button>
             )}
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="customer-create-submit-button"
+            >
               {isConfirmationStep ? "Confirm and Submit" : "Review Details"}
             </Button>
           </DialogFooter>

@@ -50,6 +50,7 @@ local_resource(
     resource_deps=[
         "next-auth-pg",
         "mailhog",
+        "core",
     ],
     links = [
         link("http://localhost:4455/admin-panel", "admin-panel"),
@@ -85,9 +86,9 @@ if is_ci:
     local_resource(
         name="cypress",
         labels=["apps-ci-test"],
-        cmd="cd ../apps/customer-portal && pnpm cypress run",
+        cmd="cd ../apps/admin-panel && pnpm cypress run",
         allow_parallel=True,
         resource_deps=[
-            "customer-portal"
+            "admin-panel"
         ],
     )
