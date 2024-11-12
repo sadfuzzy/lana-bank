@@ -1,4 +1,3 @@
-
 module.exports = {
   semi: false,
   trailingComma: "all",
@@ -12,4 +11,3 @@ module.exports = {
   proseWrap: "preserve",
   endOfLine: "lf",
 }
-

@@ -1,12 +1,17 @@
 describe("Customer Creation", () => {
-  beforeEach(() => {
-    cy.loginWithMagicLink()
-    cy.visit("/admin-panel/customers")
+  before("into dashboard", () => {
+    cy.visit(Cypress.env("MAGIC_LINK"))
+    cy.contains("Dashboard", { timeout: 10000 })
   })
 
   it("should successfully create a new customer", () => {
-    cy.get('[data-testid="global-create-button"]').click()
+    cy.visit("/customers")
+    cy.contains(
+      "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
+      { timeout: 10000 },
+    )
 
+    cy.get('[data-testid="global-create-button"]').click()
     cy.get('[data-testid="customer-create-email"]').should("be.visible")
 
     const testEmail = `test-${Date.now()}@example.com`
