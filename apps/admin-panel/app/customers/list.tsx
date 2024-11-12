@@ -18,6 +18,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/new/paginated-table"
 import { camelToScreamingSnake } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 gql`
   query Customers($first: Int!, $after: String, $sort: CustomersSort) {
@@ -109,6 +110,6 @@ const columns: Column<Customer>[] = [
   {
     key: "balance",
     label: "USD Balance",
-    render: (balance) => <div>${balance.checking.settled}</div>,
+    render: (balance) => <Balance amount={balance.checking.settled} currency="usd" />,
   },
 ]
