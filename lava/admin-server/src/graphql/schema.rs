@@ -215,13 +215,24 @@ impl Query {
         #[graphql(default_with = "Some(CreditFacilitiesSort::default())")] sort: Option<
             CreditFacilitiesSort,
         >,
+        filter: Option<CreditFacilitiesFilter>,
     ) -> async_graphql::Result<
         Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
         let sort = sort.unwrap_or_default();
+        let (filter_field, status, collateralization_state) = match filter {
+            Some(filter) => (
+                Some(filter.field),
+                filter.status,
+                filter.collateralization_state,
+            ),
+            None => (None, None, None),
+        };
+
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CreditFacilitiesSortBy::CreatedAt => {
+
+        match (sort.by, filter_field) {
+            (CreditFacilitiesSortBy::CreatedAt, None) => {
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCreatedAtCursor,
@@ -234,40 +245,10 @@ impl Query {
                         .list_by_created_at(sub, query, sort.direction)
                 )
             }
-            CreditFacilitiesSortBy::Cvl => {
-                list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCollateralizationRatioCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app.credit_facilities().list_by_collateralization_ratio(
-                        sub,
-                        query,
-                        sort.direction
-                    )
-                )
-            }
-        }
-    }
-
-    async fn credit_facilities_for_status(
-        &self,
-        ctx: &Context<'_>,
-        status: CreditFacilityStatus,
-        first: i32,
-        after: Option<String>,
-        #[graphql(default_with = "Some(CreditFacilitiesSort::default())")] sort: Option<
-            CreditFacilitiesSort,
-        >,
-    ) -> async_graphql::Result<
-        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
-    > {
-        let sort = sort.unwrap_or_default();
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CreditFacilitiesSortBy::CreatedAt => {
+            (CreditFacilitiesSortBy::CreatedAt, Some(CreditFacilitiesFilterBy::Status)) => {
+                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCreatedAtCursor,
@@ -283,43 +264,16 @@ impl Query {
                     )
                 )
             }
-            CreditFacilitiesSortBy::Cvl => {
-                list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCollateralizationRatioCursor,
-                    CreditFacility,
-                    ctx,
-                    after,
-                    first,
-                    |query| app
-                        .credit_facilities()
-                        .list_by_collateralization_ratio_for_status(
-                            sub,
-                            status,
-                            query,
-                            sort.direction
-                        )
-                )
-            }
-        }
-    }
+            (
+                CreditFacilitiesSortBy::CreatedAt,
+                Some(CreditFacilitiesFilterBy::CollateralizationState),
+            ) => {
+                let collateralization_state = collateralization_state.ok_or(
+                    CreditFacilityError::MissingValueForFilterField(
+                        "collateralization_state".to_string(),
+                    ),
+                )?;
 
-    async fn credit_facilities_for_collateralization_state(
-        &self,
-        ctx: &Context<'_>,
-        collateralization_state: CollateralizationState,
-        first: i32,
-        after: Option<String>,
-        #[graphql(default_with = "Some(CreditFacilitiesSort::default())")] sort: Option<
-            CreditFacilitiesSort,
-        >,
-    ) -> async_graphql::Result<
-        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
-    > {
-        let sort = sort.unwrap_or_default();
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        match sort.by {
-            CreditFacilitiesSortBy::CreatedAt => {
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCreatedAtCursor,
@@ -337,7 +291,51 @@ impl Query {
                         )
                 )
             }
-            CreditFacilitiesSortBy::Cvl => {
+            (CreditFacilitiesSortBy::Cvl, None) => {
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app.credit_facilities().list_by_collateralization_ratio(
+                        sub,
+                        query,
+                        sort.direction
+                    )
+                )
+            }
+            (CreditFacilitiesSortBy::Cvl, Some(CreditFacilitiesFilterBy::Status)) => {
+                let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
+                    "status".to_string(),
+                ))?;
+                list_with_combo_cursor!(
+                    CreditFacilityComboCursor,
+                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacility,
+                    ctx,
+                    after,
+                    first,
+                    |query| app
+                        .credit_facilities()
+                        .list_by_collateralization_ratio_for_status(
+                            sub,
+                            status,
+                            query,
+                            sort.direction
+                        )
+                )
+            }
+            (
+                CreditFacilitiesSortBy::Cvl,
+                Some(CreditFacilitiesFilterBy::CollateralizationState),
+            ) => {
+                let collateralization_state = collateralization_state.ok_or(
+                    CreditFacilityError::MissingValueForFilterField(
+                        "collateralization_state".to_string(),
+                    ),
+                )?;
                 list_with_combo_cursor!(
                     CreditFacilityComboCursor,
                     CreditFacilityByCollateralizationRatioCursor,

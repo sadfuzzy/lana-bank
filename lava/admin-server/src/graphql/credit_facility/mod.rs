@@ -1,5 +1,6 @@
 mod balance;
 mod disbursal;
+mod error;
 mod history;
 
 use async_graphql::*;
@@ -19,6 +20,7 @@ pub use lava_app::{
 
 pub use balance::*;
 pub use disbursal::*;
+pub use error::*;
 pub use history::*;
 
 #[derive(SimpleObject, Clone)]
@@ -233,4 +235,17 @@ pub struct CreditFacilitiesSort {
     pub by: CreditFacilitiesSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CreditFacilitiesFilterBy {
+    Status,
+    CollateralizationState,
+}
+
+#[derive(InputObject)]
+pub struct CreditFacilitiesFilter {
+    pub field: CreditFacilitiesFilterBy,
+    pub status: Option<CreditFacilityStatus>,
+    pub collateralization_state: Option<CollateralizationState>,
 }
