@@ -12,6 +12,9 @@ const nextConfig = {
   },
   output: "standalone",
   basePath: process.env.NEXT_PUBLIC_BASE_PATH,
+  compiler: {
+    reactRemoveProperties: false,
+  },
 }
 
 export default nextConfig
