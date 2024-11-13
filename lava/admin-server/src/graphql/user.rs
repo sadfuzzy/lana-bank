@@ -36,11 +36,14 @@ impl From<Arc<DomainUser>> for User {
 #[ComplexObject]
 impl User {
     async fn roles(&self) -> Vec<LavaRole> {
-        self.entity
+        let mut roles: Vec<_> = self
+            .entity
             .current_roles()
             .into_iter()
             .map(LavaRole::from)
-            .collect()
+            .collect();
+        roles.sort();
+        roles
     }
 
     async fn email(&self) -> &str {

@@ -10,6 +10,16 @@ macro_rules! idempotency_guard {
             }
         }
     };
+    ($events:expr, $( $pattern:pat $(if $guard:expr)? ),+,
+     => $break_pattern:pat $(if $break_guard:expr)?) => {
+        for event in $events {
+            match event {
+                $($pattern $(if $guard)? => return $crate::Idempotent::AlreadyApplied,)+
+                $break_pattern $(if $break_guard)? => break,
+                _ => {}
+            }
+        }
+    };
 }
 
 #[macro_export]

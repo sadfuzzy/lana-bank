@@ -25,6 +25,8 @@ pub use core_user::Role;
     PartialEq,
     Eq,
     Hash,
+    PartialOrd,
+    Ord,
     strum::EnumString,
     strum::Display,
 )]

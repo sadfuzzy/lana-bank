@@ -31,30 +31,33 @@ pub(crate) enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
-    pub(super) events: EntityEvents<UserEvent>,
+    events: EntityEvents<UserEvent>,
 }
 
 impl User {
-    pub(crate) fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
-        let mut roles = self.current_roles();
-        if roles.insert(role.clone()) {
-            self.events
-                .push(UserEvent::RoleAssigned { role, audit_info });
-            true
-        } else {
-            false
-        }
+    pub(crate) fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            UserEvent::RoleAssigned { role: assigned, .. } if assigned == &role,
+            => UserEvent::RoleRevoked { role: revoked,.. } if revoked == &role
+        );
+
+        self.events
+            .push(UserEvent::RoleAssigned { role, audit_info });
+        Idempotent::Executed(())
     }
 
-    pub(crate) fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> bool {
-        let mut roles = self.current_roles();
-        if roles.remove(&role) {
-            self.events
-                .push(UserEvent::RoleRevoked { role, audit_info });
-            true
-        } else {
-            false
-        }
+    pub(crate) fn revoke_role(&mut self, role: Role, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            UserEvent::RoleRevoked { role: revoked, .. } if revoked == &role,
+            => UserEvent::RoleAssigned { role: assigned,.. } if assigned == &role
+        );
+
+        self.events
+            .push(UserEvent::RoleRevoked { role, audit_info });
+
+        Idempotent::Executed(())
     }
 
     pub fn current_roles(&self) -> HashSet<Role> {

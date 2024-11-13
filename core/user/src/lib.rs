@@ -226,7 +226,7 @@ where
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.assign_role(role.clone(), audit_info) {
+        if user.assign_role(role.clone(), audit_info).did_execute() {
             self.authz.assign_role_to_subject(user.id, role).await?;
             self.repo.update(&mut user).await?;
         }
@@ -272,7 +272,7 @@ where
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.revoke_role(role.clone(), audit_role) {
+        if user.revoke_role(role.clone(), audit_role).did_execute() {
             self.authz.revoke_role_from_subject(user.id, role).await?;
             self.repo.update(&mut user).await?;
         }
@@ -304,13 +304,13 @@ where
                 self.authz
                     .assign_role_to_subject(user.id, &Role::SUPERUSER)
                     .await?;
-                user.assign_role(Role::SUPERUSER, audit_info);
+                let _ = user.assign_role(Role::SUPERUSER, audit_info);
                 self.repo.update_in_op(&mut db, &mut user).await?;
                 Some(user)
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
-                if user.assign_role(Role::SUPERUSER, audit_info) {
+                if user.assign_role(Role::SUPERUSER, audit_info).did_execute() {
                     self.authz
                         .assign_role_to_subject(user.id, Role::SUPERUSER)
                         .await?;
