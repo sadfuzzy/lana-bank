@@ -53,10 +53,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
-        <div>
-          <h2 className="font-semibold leading-none tracking-tight">User</h2>
-          <p className="text-textColor-secondary text-sm mt-2">{user.email}</p>
-        </div>
+        <h2 className="font-semibold leading-none tracking-tight">User</h2>
         {user.roles.includes(Role.Superuser) && (
           <Badge variant="success" className="uppercase text-sm">
             {formatRole(Role.Superuser)}

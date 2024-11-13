@@ -95,7 +95,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
-      <DialogContent>
+      <DialogContent data-testid="disbursal-dialog-content">
         <DialogHeader>
           <DialogTitle>Initiate Credit Facility Disbursal</DialogTitle>
           <DialogDescription>
@@ -113,6 +113,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
                 placeholder="Enter amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                data-testid="disbursal-amount-input"
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
@@ -122,7 +123,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
               Cancel
             </Button>
-            <Button type="submit" loading={loading}>
+            <Button type="submit" loading={loading} data-testid="disbursal-submit-button">
               Initiate Disbursal
             </Button>
           </DialogFooter>

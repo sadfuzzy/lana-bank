@@ -152,7 +152,11 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                 >
                   Back
                 </Button>
-                <Button type="submit" loading={loading}>
+                <Button
+                  type="submit"
+                  loading={loading}
+                  data-testid="confirm-update-button"
+                >
                   {loading ? "Updating..." : "Confirm"}
                 </Button>
               </DialogFooter>
@@ -169,10 +173,15 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
             <form className="flex flex-col gap-4" onSubmit={handleConfirm}>
               <div className="rounded-md text-sm">
                 <DetailsGroup>
-                  <DetailItem label="Credit Facility ID" value={creditFacilityId} />
+                  <DetailItem
+                    label="Credit Facility ID"
+                    value={creditFacilityId}
+                    data-testid="credit-facility-id"
+                  />
                   <DetailItem
                     label="Current Collateral"
                     value={<Balance amount={currentCollateral} currency="btc" />}
+                    data-testid="current-collateral-balance"
                   />
                   <DetailItem
                     label="Expected Collateral"
@@ -185,6 +194,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                         currency="btc"
                       />
                     }
+                    data-testid="expected-collateral-balance"
                   />
                 </DetailsGroup>
               </div>
@@ -197,13 +207,18 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                     onChange={(e) => setNewCollateral(e.target.value)}
                     placeholder="Enter new collateral amount"
                     step="0.00000001"
+                    data-testid="new-collateral-input"
                   />
                   <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
                 </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
-                <Button type="submit" onClick={handleConfirm}>
+                <Button
+                  type="submit"
+                  onClick={handleConfirm}
+                  data-testid="proceed-to-confirm-button"
+                >
                   Proceed to Confirm
                 </Button>
               </DialogFooter>

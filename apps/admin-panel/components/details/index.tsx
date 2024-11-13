@@ -18,12 +18,16 @@ const DetailItem = ({
   className,
   onClick = null,
   hover = false,
+  keyTestId,
+  valueTestId,
 }: {
   label: React.ReactNode
   value: React.ReactNode
   className?: string
   onClick?: null | (() => void)
   hover?: boolean
+  keyTestId?: string
+  valueTestId?: string
 }) => {
   const onClickHoverClass = onClick ? "hover:cursor-pointer hover:bg-secondary" : ""
 
@@ -38,9 +42,10 @@ const DetailItem = ({
         hoverClass,
       )}
       onClick={onClick || undefined}
+      data-testid={keyTestId}
     >
       <div className="text-muted-foreground font-normal">{label}</div>
-      <div>{value}</div>
+      <div data-testid={valueTestId}>{value}</div>
     </div>
   )
 }

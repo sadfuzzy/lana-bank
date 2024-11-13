@@ -57,6 +57,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
             />
             <DetailItem
               label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
+              valueTestId="collateral-to-reach-target"
               value={
                 <Balance
                   amount={creditFacility.collateralToMatchInitialCvl}

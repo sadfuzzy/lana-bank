@@ -56,11 +56,11 @@
           pnpm
           tilt
           pandoc
-          wkhtmltopdf
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
+          wkhtmltopdf
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration

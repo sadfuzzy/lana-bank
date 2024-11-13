@@ -39,7 +39,10 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
       <Card className="w-full">
         <CardHeader className="flex flex-row justify-between items-center">
           <CardTitle>Disbursal</CardTitle>
-          <DisbursalStatusBadge status={disbursal.status} />
+          <DisbursalStatusBadge
+            status={disbursal.status}
+            data-testid="disbursal-status-badge"
+          />
         </CardHeader>
         <CardContent>
           <DetailsGroup>
