@@ -31,7 +31,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         <CardTitle>Transactions</CardTitle>
       </CardHeader>
       {transactions.length === 0 ? (
-        <CardContent>No transactions found for this customer</CardContent>
+        <CardContent className="text-sm">No data to display</CardContent>
       ) : (
         <CardContent>
           <Table>

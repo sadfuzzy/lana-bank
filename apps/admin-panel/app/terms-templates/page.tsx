@@ -117,7 +117,6 @@ function TermPage() {
             data={data?.termsTemplates || []}
             columns={columns}
             loading={loading}
-            emptyMessage="No data to display"
             rowClassName="cursor-pointer"
             onRowClick={(template) => router.push(`/terms-templates/${template.termsId}`)}
           />

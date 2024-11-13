@@ -43,7 +43,7 @@ const DataTable = <T extends Record<string, unknown>>({
   rowClassName,
   cellClassName,
   onRowClick,
-  emptyMessage = "No data available",
+  emptyMessage = "No data to display",
   loading = false,
 }: DataTableProps<T>) => {
   if (loading) {
@@ -83,7 +83,7 @@ const DataTable = <T extends Record<string, unknown>>({
   }
 
   if (!data.length) {
-    return <div className="text-center py-8 text-muted-foreground">{emptyMessage}</div>
+    return <div className="text-sm">{emptyMessage}</div>
   }
 
   return (

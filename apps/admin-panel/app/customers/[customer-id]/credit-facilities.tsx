@@ -64,7 +64,6 @@ export const CustomerCreditFacilitiesTable: React.FC<
         <DataTable
           data={creditFacilities}
           columns={columns}
-          emptyMessage="No credit facilities found for this customer"
           onRowClick={(facility) => {
             router.push(`/credit-facilities/${facility.creditFacilityId}`)
           }}
