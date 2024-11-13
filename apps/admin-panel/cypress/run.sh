@@ -56,7 +56,7 @@ get_magiclink_local() {
 
 if [[ $BACKEND_ENV == "development" ]]; then
     echo "==================== Fetching authentication link locally from mailhog ===================="
-    LINK=$(get_magiclink)
+    LINK=$(get_magiclink_local)
     if [[ -z "$LINK" ]]; then
         echo "Error: Could not retrieve magic link"
         exit 1
@@ -76,7 +76,6 @@ if [[ $MAGIC_LINK == "" ]]; then
   exit 1
 fi
 
-
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 
@@ -87,5 +86,17 @@ echo "==================== Running cypress ===================="
 if [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
 else
+  rm -rf build_artifacts || true
+  pushd cypress/manuals
+    rm -rf screenshots || true
+    rm -rf results || true
+  popd
+
   nix develop -c pnpm run cypress:open-browserstack
+  mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+  cd cypress/manuals
+  mkdir -p results
+
+  pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf
+  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf
 fi
