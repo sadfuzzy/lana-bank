@@ -1,9 +1,4 @@
-describe("Customer Creation", () => {
-  before("into dashboard", () => {
-    cy.visit(Cypress.env("MAGIC_LINK"))
-    cy.contains("Dashboard", { timeout: 10000 })
-  })
-
+describe("Customers", () => {
   it("should successfully create a new customer", () => {
     cy.visit("/customers")
     cy.contains(

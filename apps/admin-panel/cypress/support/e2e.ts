@@ -19,3 +19,15 @@ import "./commands"
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
+beforeEach(() => {
+  cy.viewport(1920, 1080)
+
+  cy.session(
+    "loginSession",
+    () => {
+      cy.visit(Cypress.env("MAGIC_LINK"))
+      cy.contains("Dashboard", { timeout: 10000 })
+    },
+    { cacheAcrossSpecs: true },
+  )
+})

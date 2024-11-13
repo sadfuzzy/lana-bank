@@ -285,6 +285,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 onChange={handleChange}
                 placeholder="Enter the facility amount"
                 min={0}
+                data-testid="facility-amount-input"
                 required
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
@@ -494,7 +495,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 Back
               </Button>
             )}
-            <Button className="w-48" disabled={loading} type="submit" loading={loading}>
+            <Button
+              className="w-48"
+              disabled={loading}
+              type="submit"
+              loading={loading}
+              data-testid="create-credit-facility-submit"
+            >
               Create Credit Facility
             </Button>
           </DialogFooter>

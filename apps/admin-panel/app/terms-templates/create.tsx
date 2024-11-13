@@ -172,6 +172,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               placeholder="Enter the template name"
               value={formValues.name}
               onChange={handleChange}
+              data-testid="terms-template-name-input"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -186,6 +187,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the annual rate"
                   value={formValues.annualRate}
                   onChange={handleChange}
+                  data-testid="terms-template-annual-rate-input"
                 />
               </div>
               <div>
@@ -200,12 +202,14 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     min={0}
                     required
                     className="w-1/2"
+                    data-testid="terms-template-duration-units-input"
                   />
                   <Select
                     name="durationPeriod"
                     value={formValues.durationPeriod}
                     onChange={handleChange}
                     required
+                    data-testid="terms-template-duration-period-select"
                   >
                     <option value="" disabled>
                       Select period
@@ -226,6 +230,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.accrualInterval}
                   onChange={handleChange}
                   required
+                  data-testid="terms-template-accrual-interval-select"
                 >
                   <option value="" disabled>
                     Select accrual interval
@@ -245,6 +250,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.incurrenceInterval}
                   onChange={handleChange}
                   required
+                  data-testid="terms-template-incurrence-interval-select"
                 >
                   <option value="" disabled>
                     Select incurrence interval
@@ -268,6 +274,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the initial CVL"
                   value={formValues.initialCvl}
                   onChange={handleChange}
+                  data-testid="terms-template-initial-cvl-input"
                 />
               </div>
               <div>
@@ -280,6 +287,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the margin call CVL"
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
+                  data-testid="terms-template-margin-call-cvl-input"
                 />
               </div>
               <div>
@@ -292,13 +300,18 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the liquidation CVL"
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
+                  data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
             </div>
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="terms-template-submit-button"
+            >
               Create Terms Template
             </Button>
           </DialogFooter>
