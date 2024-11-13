@@ -172,3 +172,13 @@ export const camelToScreamingSnake = (input: string): string => {
   // Convert the entire string to uppercase
   return snakeCase.toUpperCase()
 }
+
+export const removeUnderscore = (str: string | undefined) => {
+  if (!str) return undefined
+
+  return str
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}

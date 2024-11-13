@@ -2,6 +2,8 @@
 
 import DepositsList from "./list"
 
+import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
+
 import {
   Card,
   CardHeader,
@@ -11,17 +13,20 @@ import {
 } from "@/components/primitive/card"
 
 const Deposits: React.FC = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Deposits</CardTitle>
-      <CardDescription>
-        Sums of money added from credit facilities into customer&apos;s accounts
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <DepositsList />
-    </CardContent>
-  </Card>
+  <>
+    <ListPageBreadcrumb currentPage="Deposits" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Deposits</CardTitle>
+        <CardDescription>
+          Sums of money added from credit facilities into customer&apos;s accounts
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <DepositsList />
+      </CardContent>
+    </Card>
+  </>
 )
 
 export default Deposits

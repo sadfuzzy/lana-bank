@@ -2,6 +2,8 @@
 
 import CustomersList from "./list"
 
+import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
+
 import {
   Card,
   CardHeader,
@@ -11,18 +13,21 @@ import {
 } from "@/components/primitive/card"
 
 const CreditFacilities: React.FC = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Credit Facilities</CardTitle>
-      <CardDescription>
-        Pre-approved financial arrangements allowing borrowers to access funds up to a
-        certain limit as needed
-      </CardDescription>
-    </CardHeader>
-    <CardContent>
-      <CustomersList />
-    </CardContent>
-  </Card>
+  <>
+    <ListPageBreadcrumb currentPage="Credit Facilities" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Credit Facilities</CardTitle>
+        <CardDescription>
+          Pre-approved financial arrangements allowing borrowers to access funds up to a
+          certain limit as needed
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <CustomersList />
+      </CardContent>
+    </Card>
+  </>
 )
 
 export default CreditFacilities

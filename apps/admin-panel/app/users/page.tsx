@@ -34,6 +34,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/primitive/card"
+import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 
 gql`
   query Users {
@@ -193,22 +194,27 @@ function UsersPage() {
   ]
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Users</CardTitle>
-        <CardDescription>Manage system users and their role assignments</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={usersList?.users || []}
-          columns={columns}
-          loading={loading}
-          emptyMessage="No users found"
-          rowClassName="cursor-pointer"
-          onRowClick={(user) => router.push(`/users/${user.userId}`)}
-        />
-      </CardContent>
-    </Card>
+    <>
+      <ListPageBreadcrumb currentPage="Users" />
+      <Card>
+        <CardHeader>
+          <CardTitle>Users</CardTitle>
+          <CardDescription>
+            Manage system users and their role assignments
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            data={usersList?.users || []}
+            columns={columns}
+            loading={loading}
+            emptyMessage="No users found"
+            rowClassName="cursor-pointer"
+            onRowClick={(user) => router.push(`/users/${user.userId}`)}
+          />
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

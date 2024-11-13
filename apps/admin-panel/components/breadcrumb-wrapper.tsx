@@ -50,4 +50,13 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
   )
 }
 
+export const ListPageBreadcrumb = ({ currentPage }: { currentPage: string }) => {
+  const links: BreadcrumbLink[] = [
+    { title: "Dashboard", href: "/dashboard" },
+    { title: currentPage, isCurrentPage: true },
+  ]
+
+  return <BreadCrumbWrapper links={links} />
+}
+
 export { BreadCrumbWrapper }

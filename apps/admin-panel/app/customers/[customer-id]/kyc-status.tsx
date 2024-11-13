@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { DetailItem } from "@/components/details"
 import { Skeleton } from "@/components/primitive/skeleton"
+import { removeUnderscore } from "@/lib/utils"
 
 gql`
   query GetKycStatusForCustomer($id: UUID!) {
@@ -65,7 +66,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
         <CardTitle>KYC Status</CardTitle>
       </CardHeader>
       <CardContent>
-        <DetailItem label="Level" value={data?.customer?.level.toLocaleLowerCase()} />
+        <DetailItem label="Level" value={removeUnderscore(data?.customer?.level)} />
         <DetailItem
           label="KYC Application Link"
           value={

@@ -16,6 +16,7 @@ import {
 } from "@/components/primitive/card"
 import { formatPeriod } from "@/lib/utils"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
+import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 
 gql`
   query TermsTemplates {
@@ -105,6 +106,7 @@ function TermPage() {
           refetch={refetch}
         />
       )}
+      <ListPageBreadcrumb currentPage="Terms Templates" />
       <Card>
         <CardHeader>
           <CardTitle>Terms Templates</CardTitle>

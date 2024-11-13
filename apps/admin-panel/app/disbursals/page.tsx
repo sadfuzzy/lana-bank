@@ -2,6 +2,8 @@
 
 import DisbursalsList from "./list"
 
+import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
+
 import {
   Card,
   CardHeader,
@@ -10,16 +12,19 @@ import {
   CardContent,
 } from "@/components/primitive/card"
 
-const Customers: React.FC = () => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Disbursals</CardTitle>
-      <CardDescription>Payments made from a credit facility to user</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <DisbursalsList />
-    </CardContent>
-  </Card>
+const Disbursals: React.FC = () => (
+  <>
+    <ListPageBreadcrumb currentPage="Disbursals" />
+    <Card>
+      <CardHeader>
+        <CardTitle>Disbursals</CardTitle>
+        <CardDescription>Payments made from a credit facility to user</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <DisbursalsList />
+      </CardContent>
+    </Card>
+  </>
 )
 
-export default Customers
+export default Disbursals
