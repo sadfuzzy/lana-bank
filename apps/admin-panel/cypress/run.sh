@@ -35,20 +35,18 @@ common_headers=(
   -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
 )
 
-echo "==================== Fetching authentication link ===================="
-
 curl -s "$ADMIN_URL" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-site: none' -H 'sec-fetch-user: ?1' -H 'upgrade-insecure-requests: 1' >> /dev/null
 curl -s "$ADMIN_URL/api/auth/signin?callbackUrl=%2F" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-site: none' -H 'sec-fetch-user: ?1' -H 'upgrade-insecure-requests: 1' >> /dev/null
 curl -s "$ADMIN_URL/api/auth/signin" -H 'accept: image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8' "${common_headers[@]}" -H "referer: $ADMIN_URL/api/auth/signin?callbackUrl=%2F" -H 'sec-fetch-dest: image' -H 'sec-fetch-mode: no-cors' -H 'sec-fetch-site: same-origin' >> /dev/null
 
 csrfToken=$(cat "$(cookie_jar 'admin')" | grep "csrf-token" | sed 's/.*next-auth.csrf-token\s*\([^%]*\)%.*/\1/')
 curl -s "$ADMIN_URL/api/auth/signin/email" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H 'content-type: application/x-www-form-urlencoded' -H "origin: $ADMIN_URL" -H "referer: $ADMIN_URL/api/auth/signin" \
-  --data-raw "csrfToken=$csrfToken&email=$email"
+  --data-raw "csrfToken=$csrfToken&email=$email" >> /dev/null
 curl -s "$ADMIN_URL/api/auth/verify-request?provider=email&type=email" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H "referer: $ADMIN_URL/api/auth/signin" -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-user: ?1' -H 'upgrade-insecure-requests: 1' >> /dev/null
 
 sleep 2
 
-get_magiclink() { 
+get_magiclink_local() { 
     curl -s http://localhost:8025/api/v2/messages | \
     jq -r '.items[0].MIME.Parts[0].Body' | \
     perl -MMIME::QuotedPrint -pe '$_=MIME::QuotedPrint::decode($_);' | \
@@ -57,22 +55,34 @@ get_magiclink() {
 }
 
 if [[ $BACKEND_ENV == "development" ]]; then
+    echo "==================== Fetching authentication link locally from mailhog ===================="
     LINK=$(get_magiclink)
     if [[ -z "$LINK" ]]; then
         echo "Error: Could not retrieve magic link"
         exit 1
     fi
 else
-    LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
+    echo "==================== Fetching authentication link from mailinator ===================="
+    pushd cypress/mailinator-fetch-inbox
+      LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
+    popd
 fi
 
-echo "==================== Running cypress on browserstack ===================="
-
 export MAGIC_LINK="$LINK"
+echo MAGIC_LINK: $MAGIC_LINK
+
+if [[ $MAGIC_LINK == "" ]]; then
+  echo "Error: Could not retrieve magic link"
+  exit 1
+fi
+
 
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
+
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
+
+echo "==================== Running cypress ===================="
 
 if [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
