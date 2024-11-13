@@ -28,7 +28,7 @@ pub fn retry_on_concurrent_modification(args: TokenStream, input: TokenStream) -
     }
 }
 
-#[proc_macro_derive(EsEntity, attributes(events))]
+#[proc_macro_derive(EsEntity, attributes(es_entity))]
 pub fn es_entity_derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as syn::DeriveInput);
     match entity::derive(ast) {

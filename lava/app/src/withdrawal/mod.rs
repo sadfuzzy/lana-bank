@@ -24,7 +24,7 @@ use crate::{
 pub use entity::*;
 use error::WithdrawalError;
 pub use processes::approval::*;
-pub use repo::{cursor::*, WithdrawalRepo};
+pub use repo::{withdrawal_cursor::*, WithdrawalRepo};
 
 #[derive(Clone)]
 pub struct Withdrawals {

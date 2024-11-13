@@ -5,11 +5,13 @@ mod error;
 mod events;
 mod idempotent;
 mod macros;
+mod nested;
 mod operation;
 mod query;
 mod traits;
 
 pub mod prelude {
+    pub use async_trait;
     pub use chrono;
     pub use serde_json;
     pub use sqlx;
@@ -24,6 +26,7 @@ pub use es_entity_macros::EsEvent;
 pub use es_entity_macros::EsRepo;
 pub use events::*;
 pub use idempotent::*;
+pub use nested::*;
 pub use operation::*;
 pub use query::*;
 pub use traits::*;

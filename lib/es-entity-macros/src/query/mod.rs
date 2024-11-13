@@ -32,6 +32,7 @@ impl ToTokens for EsQuery {
             1,
             false,
         );
+        let repo_types_mod = syn::Ident::new(&format!("{singular}_repo_types"), Span::call_site());
         let order_by = self.input.order_by();
 
         let executor = &self.input.executor;
@@ -48,14 +49,14 @@ impl ToTokens for EsQuery {
         tokens.append_all(quote! {
             {
                 let rows = sqlx::query_as!(
-                    repo_types::Repo__DbEvent,
+                    #repo_types_mod::Repo__DbEvent,
                     #query,
                     #(#args),*
                 )
                     .fetch_all(#executor)
                     .await?;
 
-                repo_types::QueryRes {
+                #repo_types_mod::QueryRes {
                     rows,
                 }
             }
@@ -84,13 +85,13 @@ mod tests {
         let expected = quote! {
             {
                 let rows = sqlx::query_as!(
-                    repo_types::Repo__DbEvent,
+                    user_repo_types::Repo__DbEvent,
                     "WITH entities AS (SELECT * FROM users WHERE id = $1) SELECT i.id AS \"entity_id: UserId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN user_events e ON i.id = e.id ORDER BY i.id, e.sequence",
                     id as UserId
                 )
                     .fetch_all(self.pool())
                     .await?;
-                repo_types::QueryRes {
+                user_repo_types::QueryRes {
                     rows,
                 }
             }
@@ -118,7 +119,7 @@ mod tests {
         let expected = quote! {
             {
                 let rows = sqlx::query_as!(
-                    repo_types::Repo__DbEvent,
+                    entity_repo_types::Repo__DbEvent,
                     "WITH entities AS (SELECT name, id FROM entities WHERE ((name, id) > ($3, $2)) OR $2 IS NULL ORDER BY name, id LIMIT $1) SELECT i.id AS \"entity_id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id ORDER BY i.name, i.id, i.id, e.sequence",
                     (first + 1) as i64,
                     id as Option<EntityId>,
@@ -126,7 +127,7 @@ mod tests {
                 )
                     .fetch_all(self.pool())
                     .await?;
-                repo_types::QueryRes {
+                entity_repo_types::QueryRes {
                     rows,
                 }
             }

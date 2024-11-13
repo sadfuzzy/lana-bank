@@ -10,7 +10,7 @@ use std::collections::HashSet;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
-pub(crate) enum UserEvent {
+pub enum UserEvent {
     Initialized {
         id: UserId,
         email: String,
@@ -101,7 +101,7 @@ impl TryFromEvents<UserEvent> for User {
 }
 
 #[derive(Debug, Builder)]
-pub(crate) struct NewUser {
+pub struct NewUser {
     #[builder(setter(into))]
     pub(super) id: UserId,
     #[builder(setter(into))]

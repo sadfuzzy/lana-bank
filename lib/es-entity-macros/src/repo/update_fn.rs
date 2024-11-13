@@ -9,6 +9,7 @@ pub struct UpdateFn<'a> {
     table_name: &'a str,
     columns: &'a Columns,
     error: &'a syn::Type,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> From<&'a RepositoryOptions> for UpdateFn<'a> {
@@ -18,6 +19,10 @@ impl<'a> From<&'a RepositoryOptions> for UpdateFn<'a> {
             error: opts.err(),
             columns: &opts.columns,
             table_name: opts.table_name(),
+            nested_fn_names: opts
+                .all_nested()
+                .map(|f| f.update_nested_fn_name())
+                .collect(),
         }
     }
 }
@@ -26,6 +31,13 @@ impl<'a> ToTokens for UpdateFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
         let error = self.error;
+
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(op, entity).await?;
+            }
+        });
+
         let update_tokens = if self.columns.updates_needed() {
             let assignments = self
                 .columns
@@ -53,7 +65,7 @@ impl<'a> ToTokens for UpdateFn<'a> {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<E>,
+                T: es_entity::EsEntity<Event = E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()
@@ -83,6 +95,8 @@ impl<'a> ToTokens for UpdateFn<'a> {
                     let events = Self::extract_events(entity);
                     self.persist_events(op, events).await?
                 };
+
+                #(#nested)*
 
                 self.execute_post_persist_hook(op, &entity, entity.events().last_persisted(n_events)).await?;
 
@@ -117,6 +131,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             columns: &columns,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -126,7 +141,7 @@ mod tests {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<E>,
+                T: es_entity::EsEntity<Event = E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()
@@ -189,6 +204,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             columns: &columns,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -198,7 +214,7 @@ mod tests {
             #[inline(always)]
             fn extract_events<T, E>(entity: &mut T) -> &mut es_entity::EntityEvents<E>
             where
-                T: es_entity::EsEntity<E>,
+                T: es_entity::EsEntity<Event = E>,
                 E: es_entity::EsEvent,
             {
                 entity.events_mut()

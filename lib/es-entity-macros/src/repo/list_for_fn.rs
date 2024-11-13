@@ -12,6 +12,8 @@ pub struct ListForFn<'a> {
     table_name: &'a str,
     error: &'a syn::Type,
     delete: DeleteOption,
+    cursor_mod: syn::Ident,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> ListForFn<'a> {
@@ -24,6 +26,8 @@ impl<'a> ListForFn<'a> {
             table_name: opts.table_name(),
             error: opts.err(),
             delete: opts.delete,
+            cursor_mod: opts.cursor_mod(),
+            nested_fn_names: opts.all_nested().map(|f| f.find_nested_fn_name()).collect(),
         }
     }
 
@@ -32,6 +36,7 @@ impl<'a> ListForFn<'a> {
             column: self.by_column,
             id: self.id,
             entity: self.entity,
+            cursor_mod: &self.cursor_mod,
         }
     }
 }
@@ -41,7 +46,27 @@ impl<'a> ToTokens for ListForFn<'a> {
         let entity = self.entity;
         let cursor = self.cursor();
         let cursor_ident = cursor.ident();
+        let cursor_mod = cursor.cursor_mod();
         let error = self.error;
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(&mut entities).await?;
+            }
+        });
+        let maybe_mut_entities = if self.nested_fn_names.is_empty() {
+            quote! { (entities, has_next_page) }
+        } else {
+            quote! { (mut entities, has_next_page) }
+        };
+        let maybe_lookup_nested = if self.nested_fn_names.is_empty() {
+            quote! {}
+        } else {
+            quote! {
+                {
+                    #(#nested)*
+                }
+            }
+        };
 
         let by_column_name = self.by_column.name();
 
@@ -96,12 +121,12 @@ impl<'a> ToTokens for ListForFn<'a> {
                 pub async fn #fn_name(
                     &self,
                     #for_column_name: #for_column_type,
-                    cursor: es_entity::PaginatedQueryArgs<cursor::#cursor_ident>,
+                    cursor: es_entity::PaginatedQueryArgs<#cursor_mod::#cursor_ident>,
                     direction: es_entity::ListDirection,
-                ) -> Result<es_entity::PaginatedQueryRet<#entity, cursor::#cursor_ident>, #error> {
+                ) -> Result<es_entity::PaginatedQueryRet<#entity, #cursor_mod::#cursor_ident>, #error> {
                     #destructure_tokens
 
-                    let (entities, has_next_page) = match direction {
+                    let #maybe_mut_entities = match direction {
                         es_entity::ListDirection::Ascending => {
                             es_entity::es_query!(
                                 self.pool(),
@@ -124,7 +149,9 @@ impl<'a> ToTokens for ListForFn<'a> {
                         }
                     };
 
-                    let end_cursor = entities.last().map(cursor::#cursor_ident::from);
+                    #maybe_lookup_nested
+
+                    let end_cursor = entities.last().map(#cursor_mod::#cursor_ident::from);
 
                     Ok(es_entity::PaginatedQueryRet {
                         entities,
@@ -157,6 +184,7 @@ mod tests {
             syn::Ident::new("customer_id", proc_macro2::Span::call_site()),
             syn::parse_str("Uuid").unwrap(),
         );
+        let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListForFn {
             entity: &entity,
@@ -166,6 +194,8 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::No,
+            cursor_mod,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -175,9 +205,9 @@ mod tests {
             pub async fn list_for_customer_id_by_id(
                 &self,
                 customer_id: Uuid,
-                cursor: es_entity::PaginatedQueryArgs<cursor::EntityByIdCursor>,
+                cursor: es_entity::PaginatedQueryArgs<cursor_mod::EntityByIdCursor>,
                 direction: es_entity::ListDirection,
-            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor::EntityByIdCursor>, es_entity::EsRepoError> {
+            ) -> Result<es_entity::PaginatedQueryRet<Entity, cursor_mod::EntityByIdCursor>, es_entity::EsRepoError> {
                 let es_entity::PaginatedQueryArgs { first, after } = cursor;
                 let id = if let Some(after) = after {
                     Some(after.id)
@@ -209,7 +239,7 @@ mod tests {
                     }
                 };
 
-                let end_cursor = entities.last().map(cursor::EntityByIdCursor::from);
+                let end_cursor = entities.last().map(cursor_mod::EntityByIdCursor::from);
                 Ok(es_entity::PaginatedQueryRet {
                     entities,
                     has_next_page,

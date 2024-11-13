@@ -6,8 +6,10 @@ mod find_all_fn;
 mod find_by_fn;
 mod list_by_fn;
 mod list_for_fn;
+mod nested;
 mod options;
 mod persist_events_fn;
+mod populate_nested;
 mod post_persist_hook;
 mod update_fn;
 
@@ -34,6 +36,8 @@ pub struct EsRepo<'a> {
     begin: begin::Begin<'a>,
     list_by_fns: Vec<list_by_fn::ListByFn<'a>>,
     list_for_fns: Vec<list_for_fn::ListForFn<'a>>,
+    nested: Vec<nested::Nested<'a>>,
+    populate_nested: Option<populate_nested::PopulateNested<'a>>,
     opts: &'a RepositoryOptions,
 }
 
@@ -59,6 +63,14 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
                     .map(|b| list_for_fn::ListForFn::new(list_for_column, b, opts))
             })
             .collect();
+        let populate_nested = opts
+            .columns
+            .parent()
+            .map(|c| populate_nested::PopulateNested::new(c, opts));
+        let nested = opts
+            .all_nested()
+            .map(|n| nested::Nested::new(n, opts))
+            .collect();
 
         Self {
             repo: &opts.ident,
@@ -72,6 +84,8 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             begin: begin::Begin::from(opts),
             list_by_fns,
             list_for_fns,
+            nested,
+            populate_nested,
             opts,
         }
     }
@@ -113,8 +127,15 @@ impl<'a> ToTokens for EsRepo<'a> {
         let id = self.opts.id();
         let error = self.opts.err();
 
+        let cursor_mod = self.opts.cursor_mod();
+        let types_mod = self.opts.repo_types_mod();
+
+        let nested = &self.nested;
+        let populate_nested = &self.populate_nested;
+        let pool_field = self.opts.pool_field();
+
         tokens.append_all(quote! {
-            pub mod cursor {
+            pub mod #cursor_mod {
                 use super::*;
 
                 #(#cursors)*
@@ -124,7 +145,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #gql_combo_cursor
             }
 
-            mod repo_types {
+            mod #types_mod {
 
                 use super::*;
 
@@ -164,7 +185,7 @@ impl<'a> ToTokens for EsRepo<'a> {
             impl #repo {
                 #[inline(always)]
                 pub fn pool(&self) -> &sqlx::PgPool {
-                    &self.pool
+                    &self.#pool_field
                 }
 
                 #begin
@@ -177,6 +198,15 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #find_all_fn
                 #(#list_by_fns)*
                 #(#list_for_fns)*
+
+                #(#nested)*
+            }
+
+            #populate_nested
+
+            impl es_entity::EsRepo for #repo {
+                type Entity = #entity;
+                type Err = #error;
             }
         });
     }

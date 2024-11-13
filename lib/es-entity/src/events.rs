@@ -121,7 +121,7 @@ where
             .chain(self.new_events.iter())
     }
 
-    pub fn load_first<E: EsEntity<T>>(
+    pub fn load_first<E: EsEntity<Event = T>>(
         events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
     ) -> Result<E, EsEntityError> {
         let mut current_id = None;
@@ -153,7 +153,7 @@ where
         }
     }
 
-    pub fn load_n<E: EsEntity<T>>(
+    pub fn load_n<E: EsEntity<Event = T>>(
         events: impl IntoIterator<Item = GenericEvent<<T as EsEvent>::EntityId>>,
         n: usize,
     ) -> Result<(Vec<E>, bool), EsEntityError> {
@@ -211,7 +211,10 @@ mod tests {
         events: EntityEvents<DummyEntityEvent>,
     }
 
-    impl EsEntity<DummyEntityEvent> for DummyEntity {
+    impl EsEntity for DummyEntity {
+        type Event = DummyEntityEvent;
+        type New = NewDummyEntity;
+
         fn events_mut(&mut self) -> &mut EntityEvents<DummyEntityEvent> {
             &mut self.events
         }
@@ -230,6 +233,17 @@ mod tests {
                 .next()
                 .expect("Could not find name");
             Ok(Self { name, events })
+        }
+    }
+
+    struct NewDummyEntity {}
+
+    impl IntoEvents<DummyEntityEvent> for NewDummyEntity {
+        fn into_events(self) -> EntityEvents<DummyEntityEvent> {
+            EntityEvents::init(
+                Uuid::new_v4(),
+                vec![DummyEntityEvent::Created("".to_owned())],
+            )
         }
     }
 

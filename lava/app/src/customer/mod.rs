@@ -21,7 +21,7 @@ pub use config::*;
 pub use entity::*;
 use error::CustomerError;
 use kratos::*;
-pub use repo::{cursor::*, CustomerRepo};
+pub use repo::{customer_cursor::*, CustomerRepo};
 
 #[derive(Clone)]
 pub struct Customers {

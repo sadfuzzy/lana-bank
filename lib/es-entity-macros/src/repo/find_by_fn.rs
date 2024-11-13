@@ -11,6 +11,7 @@ pub struct FindByFn<'a> {
     table_name: &'a str,
     error: &'a syn::Type,
     delete: DeleteOption,
+    nested_fn_names: Vec<syn::Ident>,
 }
 
 impl<'a> FindByFn<'a> {
@@ -26,6 +27,7 @@ impl<'a> FindByFn<'a> {
             table_name: opts.table_name(),
             error: opts.err(),
             delete: opts.delete,
+            nested_fn_names: opts.all_nested().map(|f| f.find_nested_fn_name()).collect(),
         }
     }
 }
@@ -36,6 +38,20 @@ impl<'a> ToTokens for FindByFn<'a> {
         let column_name = &self.column_name;
         let column_type = &self.column_type;
         let error = self.error;
+        let nested = self.nested_fn_names.iter().map(|f| {
+            quote! {
+                self.#f(&mut entities).await?;
+            }
+        });
+        let maybe_lookup_nested = if self.nested_fn_names.is_empty() {
+            quote! {}
+        } else {
+            quote! {
+                let mut entities = vec![entity];
+                #(#nested)*
+                let entity = entities.pop().unwrap();
+            }
+        };
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
             let fn_name = syn::Ident::new(
@@ -96,13 +112,15 @@ impl<'a> ToTokens for FindByFn<'a> {
                     #column_name: impl std::borrow::Borrow<#column_type>
                 ) -> Result<#entity, #error> {
                     let #column_name = #column_name.borrow();
-                    es_entity::es_query!(
+                    let entity = es_entity::es_query!(
                             executor,
                             #query,
                             #column_name as &#column_type,
                     )
                         .fetch_one()
-                        .await
+                        .await?;
+                    #maybe_lookup_nested
+                    Ok(entity)
                 }
             });
 
@@ -133,6 +151,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::No,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -160,13 +179,14 @@ mod tests {
                 id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = id.borrow();
-                es_entity::es_query!(
+                let entity = es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
                         id as &EntityId,
                 )
                     .fetch_one()
-                    .await
+                    .await?;
+                Ok(entity)
             }
         };
 
@@ -187,6 +207,7 @@ mod tests {
             table_name: "entities",
             error: &error,
             delete: DeleteOption::Soft,
+            nested_fn_names: Vec::new(),
         };
 
         let mut tokens = TokenStream::new();
@@ -214,13 +235,14 @@ mod tests {
                 id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = id.borrow();
-                es_entity::es_query!(
+                let entity = es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1 AND deleted = FALSE",
                         id as &EntityId,
                 )
                     .fetch_one()
-                    .await
+                    .await?;
+                Ok(entity)
             }
 
             pub async fn find_by_id_include_deleted(
@@ -244,13 +266,14 @@ mod tests {
                 id: impl std::borrow::Borrow<EntityId>
             ) -> Result<Entity, es_entity::EsRepoError> {
                 let id = id.borrow();
-                es_entity::es_query!(
+                let entity = es_entity::es_query!(
                         executor,
                         "SELECT id FROM entities WHERE id = $1",
                         id as &EntityId,
                 )
                     .fetch_one()
-                    .await
+                    .await?;
+                Ok(entity)
             }
         };
 
