@@ -86,7 +86,7 @@ if is_ci:
     local_resource(
         name="cypress",
         labels=["apps-ci-test"],
-        cmd="cd ../apps/admin-panel && pnpm cypress run",
+        cmd="cd ../apps/admin-panel && pnpm cypress:run",
         allow_parallel=True,
         resource_deps=[
             "admin-panel"

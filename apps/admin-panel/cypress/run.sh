@@ -2,9 +2,17 @@
 
 set -eu
 
-ADMIN_URL="https://admin.staging.lava.galoy.io"
+if [[ $BACKEND_ENV == "development" ]]; then
+  ADMIN_URL="http://localhost:4455/admin-panel"
+  MAILHOG_URL="http://localhost:8025"
+  email="admin%40galoy.io"
+else
+  ADMIN_URL="https://admin.staging.lava.galoy.io"
+  email="galoysuperuser%40mailinator.com"
+fi
 
 CACHE_DIR=/tmp/lava-cache
+rm -rf $CACHE_DIR || true
 mkdir -p $CACHE_DIR
 
 cookie_jar() {
@@ -35,12 +43,28 @@ curl -s "$ADMIN_URL/api/auth/signin" -H 'accept: image/avif,image/webp,image/apn
 
 csrfToken=$(cat "$(cookie_jar 'admin')" | grep "csrf-token" | sed 's/.*next-auth.csrf-token\s*\([^%]*\)%.*/\1/')
 curl -s "$ADMIN_URL/api/auth/signin/email" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H 'content-type: application/x-www-form-urlencoded' -H "origin: $ADMIN_URL" -H "referer: $ADMIN_URL/api/auth/signin" \
-  --data-raw "csrfToken=$csrfToken&email=galoysuperuser%40mailinator.com" >> /dev/null
+  --data-raw "csrfToken=$csrfToken&email=$email"
 curl -s "$ADMIN_URL/api/auth/verify-request?provider=email&type=email" -H 'accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' "${common_headers[@]}" -H "referer: $ADMIN_URL/api/auth/signin" -H 'sec-fetch-dest: document' -H 'sec-fetch-mode: navigate' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-user: ?1' -H 'upgrade-insecure-requests: 1' >> /dev/null
 
-pushd cypress/mailinator-fetch-inbox
-  LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
-popd
+sleep 2
+
+get_magiclink() { 
+    curl -s http://localhost:8025/api/v2/messages | \
+    jq -r '.items[0].MIME.Parts[0].Body' | \
+    perl -MMIME::QuotedPrint -pe '$_=MIME::QuotedPrint::decode($_);' | \
+    grep -o 'http://.*' | \
+    sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
+}
+
+if [[ $BACKEND_ENV == "development" ]]; then
+    LINK=$(get_magiclink)
+    if [[ -z "$LINK" ]]; then
+        echo "Error: Could not retrieve magic link"
+        exit 1
+    fi
+else
+    LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
+fi
 
 echo "==================== Running cypress on browserstack ===================="
 
@@ -49,4 +73,9 @@ export MAGIC_LINK="$LINK"
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
-nix develop -c pnpm run browserstack:run
+
+if [[ $BACKEND_ENV == "development" ]]; then
+  nix develop -c pnpm run cypress:open-local
+else
+  nix develop -c pnpm run cypress:open-browserstack
+fi
