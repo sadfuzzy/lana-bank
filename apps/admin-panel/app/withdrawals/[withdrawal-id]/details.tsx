@@ -129,8 +129,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {[...withdrawal.approvalProcess.voters]
-              .sort((a, b) => a.user.email.localeCompare(b.user.email))
+            {withdrawal.approvalProcess.voters
               .filter((voter) => {
                 if (
                   withdrawal?.approvalProcess.status ===

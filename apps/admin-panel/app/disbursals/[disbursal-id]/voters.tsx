@@ -23,8 +23,7 @@ export const VotersCard = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {[...approvalProcess.voters]
-          .sort((a, b) => a.user.email.localeCompare(b.user.email))
+        {approvalProcess.voters
           .filter((voter) => {
             if (
               approvalProcess.status === ApprovalProcessStatus.InProgress ||
@@ -51,10 +50,7 @@ export const VotersCard = ({
               <div>
                 <p className="text-sm font-medium">{voter.user.email}</p>
                 <p className="text-sm text-textColor-secondary">
-                  {[...voter.user.roles]
-                    .sort((a, b) => a.localeCompare(b))
-                    .map(formatRole)
-                    .join(", ")}
+                  {voter.user.roles.map(formatRole).join(", ")}
                 </p>
                 {
                   <p className="text-xs text-textColor-secondary">

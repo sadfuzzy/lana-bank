@@ -70,7 +70,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
             withdrawalId: withdrawalData.withdrawalId,
           },
         },
-        refetchQueries: [CustomersDocument],
+        refetchQueries: [CustomersDocument, WithdrawalsDocument],
       })
       if (result.data) {
         toast.success("Withdrawal confirmed successfully")

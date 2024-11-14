@@ -169,13 +169,11 @@ function UsersPage() {
       render: (roles) => (
         <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
           {roles.length > 0
-            ? [...roles]
-                .sort((a, b) => a.localeCompare(b))
-                .map((role) => (
-                  <Badge variant="secondary" key={role}>
-                    {formatRole(role)}
-                  </Badge>
-                ))
+            ? roles.map((role) => (
+                <Badge variant="secondary" key={role}>
+                  {formatRole(role)}
+                </Badge>
+              ))
             : "No roles Assigned"}
         </div>
       ),

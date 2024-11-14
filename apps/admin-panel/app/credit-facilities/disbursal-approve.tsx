@@ -75,8 +75,7 @@ export const CreditFacilityDisbursalApproveDialog: React.FC<
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {[...disbursal.approvalProcess.voters]
-                  .sort((a, b) => a.user.email.localeCompare(b.user.email))
+                {disbursal.approvalProcess.voters
                   .filter((voter) => {
                     if (
                       disbursal?.approvalProcess.status ===
@@ -110,10 +109,7 @@ export const CreditFacilityDisbursalApproveDialog: React.FC<
                       <div>
                         <p className="text-sm font-medium">{voter.user.email}</p>
                         <p className="text-sm text-textColor-secondary">
-                          {[...voter.user.roles]
-                            .sort((a, b) => a.localeCompare(b))
-                            .map(formatRole)
-                            .join(", ")}
+                          {voter.user.roles.map(formatRole).join(", ")}
                         </p>
                         {
                           <p className="text-xs text-textColor-secondary">
