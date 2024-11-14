@@ -100,6 +100,7 @@ const Customers = () => {
                 : null) as CustomersFilter["field"],
               [column]: value,
             })
+          else setFilter(null)
         }}
       />
     </div>

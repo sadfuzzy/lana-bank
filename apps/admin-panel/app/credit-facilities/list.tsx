@@ -108,6 +108,7 @@ const CreditFacilities = () => {
               field: camelToScreamingSnake(column) as CreditFacilitiesFilter["field"],
               [column]: value,
             })
+          else setFilter(null)
         }}
       />
     </div>
