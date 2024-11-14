@@ -22,12 +22,6 @@ import "@/lib/ui/globals.css"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
-  icons: [
-    {
-      rel: "icon",
-      url: "/favicon.ico",
-    },
-  ],
 }
 
 const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })

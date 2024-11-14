@@ -154,6 +154,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
   return (
     <Link
       href={to}
+      prefetch={true}
       className={classNames(
         "p-2 flex items-center rounded-sm transition-colors duration-200",
         {
