@@ -97,6 +97,7 @@ else
   cd cypress/manuals
   mkdir -p results
 
-  pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf
-  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf
+  pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
+  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
+  pandoc credit-facilities.md -o results/credit-facilities.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
 fi
