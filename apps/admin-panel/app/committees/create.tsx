@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+
+import { gql } from "@apollo/client"
 
 import {
   Dialog,
@@ -15,6 +15,8 @@ import { CommitteesDocument, useCreateCommitteeMutation } from "@/lib/graphql/ge
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
+
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation CreateCommittee($input: CommitteeCreateInput!) {
@@ -42,14 +44,17 @@ type CreateCommitteeDialogProps = {
 export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
   setOpenCreateCommitteeDialog,
   openCreateCommitteeDialog,
-  refetch,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenCreateCommitteeDialog(false),
+  })
 
   const [createCommittee, { loading, reset, error: createCommitteeError }] =
     useCreateCommitteeMutation({
       refetchQueries: [CommitteesDocument],
     })
+
+  const isLoading = loading || isNavigating
 
   const [formValues, setFormValues] = useState({
     name: "",
@@ -78,10 +83,8 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
         },
         onCompleted: (data) => {
           if (data?.committeeCreate.committee) {
-            router.push(`/committees/${data.committeeCreate.committee.committeeId}`)
-            if (refetch) refetch()
             toast.success("Committee created successfully")
-            setOpenCreateCommitteeDialog(false)
+            navigate(`/committees/${data.committeeCreate.committee.committeeId}`)
           } else {
             throw new Error("Failed to create committee. Please try again.")
           }
@@ -136,13 +139,14 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
               placeholder="Enter the committee name"
               value={formValues.name}
               onChange={handleChange}
+              disabled={isLoading}
             />
           </div>
 
           {error && <p className="text-destructive">{error}</p>}
 
           <DialogFooter>
-            <Button type="submit" loading={loading}>
+            <Button type="submit" loading={isLoading}>
               Create Committee
             </Button>
           </DialogFooter>

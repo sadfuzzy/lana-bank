@@ -1983,11 +1983,6 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: any } };
 
-export type MeQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', subjectCanCreateUser: boolean, subjectCanCreateCustomer: boolean, subjectCanCreateTermsTemplate: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> }, visibleNavigationItems: { __typename?: 'VisibleNavigationItems', term: boolean, user: boolean, customer: boolean, deposit: boolean, withdraw: boolean, audit: boolean, financials: boolean, creditFacilities: boolean, governance: { __typename?: 'GovernanceNavigationItems', committee: boolean, policy: boolean, approvalProcess: boolean } } } };
-
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
 }>;
@@ -5103,62 +5098,6 @@ export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQue
 export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
-export const MeDocument = gql`
-    query Me {
-  me {
-    user {
-      userId
-      email
-      roles
-    }
-    subjectCanCreateUser
-    subjectCanCreateCustomer
-    subjectCanCreateTermsTemplate
-    visibleNavigationItems {
-      term
-      user
-      customer
-      deposit
-      withdraw
-      audit
-      financials
-      creditFacilities
-      governance {
-        committee
-        policy
-        approvalProcess
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useMeQuery__
- *
- * To run a query within a React component, call `useMeQuery` and pass it any options that fit your needs.
- * When your component renders, `useMeQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useMeQuery({
- *   variables: {
- *   },
- * });
- */
-export function useMeQuery(baseOptions?: Apollo.QueryHookOptions<MeQuery, MeQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-      }
-export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery, MeQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<MeQuery, MeQueryVariables>(MeDocument, options);
-        }
-export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
-export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
-export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
 export const UpdateTermsTemplateDocument = gql`
     mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
   termsTemplateUpdate(input: $input) {

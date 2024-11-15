@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -23,6 +22,7 @@ import { Label } from "@/components/primitive/label"
 import { sendMagicLinkToEmail } from "@/lib/user/server-actions/send-magic-link"
 import { formatRole } from "@/lib/utils"
 import { Checkbox } from "@/components/primitive/check-box"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation UserCreate($input: UserCreateInput!) {
@@ -47,7 +47,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   openCreateUserDialog,
   refetch,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenCreateUserDialog(false),
+  })
+
   const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
     useUserCreateMutation({
       refetchQueries: [UsersDocument],
@@ -63,7 +66,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const [assignRoleError, setAssignRoleError] = useState<string | null>(null)
   const [isSendingMagicLink, setIsSendingMagicLink] = useState(false)
 
-  const isLoading = creatingUser || assigningRole || isSendingMagicLink
+  const isLoading = creatingUser || assigningRole || isSendingMagicLink || isNavigating
   const isSubmitDisabled = isLoading || selectedRoles.length === 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -121,9 +124,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   const finalize = (userId: string) => {
     if (refetch) refetch()
-    router.push(`/users/${userId}`)
-    toast.success("User created and roles assigned successfully")
-    setOpenCreateUserDialog(false)
+    navigate(`/users/${userId}`)
   }
 
   const handleError = (error: unknown, prefix: string) => {

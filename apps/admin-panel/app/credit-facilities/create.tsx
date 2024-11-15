@@ -1,7 +1,6 @@
-import { gql } from "@apollo/client"
 import React, { useEffect, useState } from "react"
+import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
 
 import { useCreateContext } from "../create"
@@ -35,6 +34,7 @@ import {
 } from "@/lib/utils"
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
@@ -58,7 +58,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   openCreateCreditFacilityDialog,
   customerId,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenCreateCreditFacilityDialog(false),
+  })
   const { customer } = useCreateContext()
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
@@ -72,9 +74,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     useCreditFacilityCreateMutation({
       refetchQueries: [CreditFacilitiesDocument, AllActionsDocument],
     })
+
+  const isLoading = loading || isNavigating
+
   const [useTemplateTerms, setUseTemplateTerms] = useState(true)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
+  // State and handlers are unchanged...
   const [formValues, setFormValues] = useState({
     facility: "0",
     annualRate: "",
@@ -192,11 +198,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         },
         onCompleted: (data) => {
           if (data.creditFacilityCreate) {
-            router.push(
+            toast.success("Credit Facility created successfully")
+            navigate(
               `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
             )
-            toast.success("Credit Facility created successfully")
-            handleCloseDialog()
           }
         },
       })
@@ -258,7 +263,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     initialCvl: Number(formValues.initialCvl) || 0,
     priceInfo: priceInfo,
   })
-
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="max-w-[38rem]">
@@ -497,9 +501,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             )}
             <Button
               className="w-48"
-              disabled={loading}
+              disabled={isLoading}
               type="submit"
-              loading={loading}
+              loading={isLoading}
               data-testid="create-credit-facility-submit"
             >
               Create Credit Facility

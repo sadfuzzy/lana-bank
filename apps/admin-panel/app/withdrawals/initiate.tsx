@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 import { useCreateContext } from "../create"
 
@@ -24,6 +23,7 @@ import {
   WithdrawalsDocument,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
@@ -56,7 +56,10 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   openWithdrawalInitiateDialog,
   customerId,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenWithdrawalInitiateDialog(false),
+  })
+
   const { customer } = useCreateContext()
 
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
@@ -66,6 +69,8 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
       AllActionsDocument,
     ],
   })
+
+  const isLoading = loading || isNavigating
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -84,9 +89,8 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         },
         refetchQueries: [CustomersDocument],
         onCompleted: (data) => {
-          router.push(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
           toast.success("Withdrawal initiated successfully")
-          handleCloseDialog()
+          navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
         },
       })
     } catch (error) {
@@ -133,6 +137,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
                 placeholder="Enter amount"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
+                disabled={isLoading}
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
             </div>
@@ -145,12 +150,13 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
               placeholder="Enter a reference (optional)"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Initiating..." : "Initiate Withdrawal"}
+            <Button type="submit" loading={isLoading}>
+              {isLoading ? "Processing..." : "Initiate Withdrawal"}
             </Button>
           </DialogFooter>
         </form>

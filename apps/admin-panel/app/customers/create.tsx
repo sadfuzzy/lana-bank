@@ -1,7 +1,7 @@
 import React, { useState } from "react"
-import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+
+import { gql } from "@apollo/client"
 
 import {
   Dialog,
@@ -15,6 +15,8 @@ import { CustomersDocument, useCustomerCreateMutation } from "@/lib/graphql/gene
 import { Input } from "@/components/primitive/input"
 import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
+
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation CustomerCreate($input: CustomerCreateInput!) {
@@ -39,13 +41,16 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   setOpenCreateCustomerDialog,
   openCreateCustomerDialog,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenCreateCustomerDialog(false),
+  })
 
   const [createCustomer, { loading, reset, error: createCustomerError }] =
     useCustomerCreateMutation({
       refetchQueries: [CustomersDocument],
     })
 
+  const isLoading = loading || isNavigating
   const [email, setEmail] = useState<string>("")
   const [telegramId, setTelegramId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -71,8 +76,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         onCompleted: (data) => {
           if (data?.customerCreate.customer) {
             toast.success("Customer created successfully")
-            router.push(`/customers/${data.customerCreate.customer.customerId}`)
-            setOpenCreateCustomerDialog(false)
+            navigate(`/customers/${data.customerCreate.customer.customerId}`)
           } else {
             throw new Error("Failed to create customer. Please try again.")
           }
@@ -146,6 +150,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                   placeholder="Please enter the email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -158,6 +163,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                   placeholder="Please enter the Telegram ID"
                   value={telegramId}
                   onChange={(e) => setTelegramId(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </>
@@ -170,13 +176,14 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
                 className="text-primary"
                 variant="ghost"
                 onClick={() => setIsConfirmationStep(false)}
+                disabled={isLoading}
               >
                 Back
               </Button>
             )}
             <Button
               type="submit"
-              loading={loading}
+              loading={isLoading}
               data-testid="customer-create-submit-button"
             >
               {isConfirmationStep ? "Confirm and Submit" : "Review Details"}

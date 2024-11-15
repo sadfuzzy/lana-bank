@@ -1,7 +1,6 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
-import { useRouter } from "next/navigation"
 
 import {
   Dialog,
@@ -22,6 +21,7 @@ import { Button } from "@/components/primitive/button"
 import { Label } from "@/components/primitive/label"
 import { Select } from "@/components/primitive/select"
 import { formatInterval, formatPeriod } from "@/lib/utils"
+import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
   mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
@@ -54,14 +54,17 @@ type CreateTermsTemplateDialogProps = {
 export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps> = ({
   setOpenCreateTermsTemplateDialog,
   openCreateTermsTemplateDialog,
-  refetch,
 }) => {
-  const router = useRouter()
+  const { navigate, isNavigating } = useModalNavigation({
+    closeModal: () => setOpenCreateTermsTemplateDialog(false),
+  })
 
   const [createTermsTemplate, { loading, reset, error: createTermsTemplateError }] =
     useCreateTermsTemplateMutation({
       refetchQueries: [TermsTemplatesDocument],
     })
+
+  const isLoading = loading || isNavigating
 
   const [formValues, setFormValues] = useState({
     name: "",
@@ -107,12 +110,8 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
           },
         },
         onCompleted: (data) => {
-          router.push(
-            `/terms-templates/${data.termsTemplateCreate.termsTemplate.termsId}`,
-          )
-          if (refetch) refetch()
           toast.success("Terms Template created successfully")
-          setOpenCreateTermsTemplateDialog(false)
+          navigate(`/terms-templates/${data.termsTemplateCreate.termsTemplate.termsId}`)
         },
       })
     } catch (error) {
@@ -172,6 +171,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               placeholder="Enter the template name"
               value={formValues.name}
               onChange={handleChange}
+              disabled={isLoading}
               data-testid="terms-template-name-input"
             />
           </div>
@@ -187,6 +187,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the annual rate"
                   value={formValues.annualRate}
                   onChange={handleChange}
+                  disabled={isLoading}
                   data-testid="terms-template-annual-rate-input"
                 />
               </div>
@@ -201,6 +202,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     placeholder="Duration"
                     min={0}
                     required
+                    disabled={isLoading}
                     className="w-1/2"
                     data-testid="terms-template-duration-units-input"
                   />
@@ -209,6 +211,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     value={formValues.durationPeriod}
                     onChange={handleChange}
                     required
+                    disabled={isLoading}
                     data-testid="terms-template-duration-period-select"
                   >
                     <option value="" disabled>
@@ -230,6 +233,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.accrualInterval}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   data-testid="terms-template-accrual-interval-select"
                 >
                   <option value="" disabled>
@@ -250,6 +254,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   value={formValues.incurrenceInterval}
                   onChange={handleChange}
                   required
+                  disabled={isLoading}
                   data-testid="terms-template-incurrence-interval-select"
                 >
                   <option value="" disabled>
@@ -274,6 +279,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the initial CVL"
                   value={formValues.initialCvl}
                   onChange={handleChange}
+                  disabled={isLoading}
                   data-testid="terms-template-initial-cvl-input"
                 />
               </div>
@@ -287,6 +293,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the margin call CVL"
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
+                  disabled={isLoading}
                   data-testid="terms-template-margin-call-cvl-input"
                 />
               </div>
@@ -300,6 +307,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   placeholder="Enter the liquidation CVL"
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
+                  disabled={isLoading}
                   data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
@@ -309,7 +317,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
           <DialogFooter>
             <Button
               type="submit"
-              loading={loading}
+              loading={isLoading}
               data-testid="terms-template-submit-button"
             >
               Create Terms Template
