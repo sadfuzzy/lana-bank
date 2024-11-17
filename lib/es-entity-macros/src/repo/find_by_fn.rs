@@ -6,8 +6,7 @@ use super::options::*;
 
 pub struct FindByFn<'a> {
     entity: &'a syn::Ident,
-    column_name: &'a syn::Ident,
-    column_type: &'a syn::Type,
+    column: &'a Column,
     table_name: &'a str,
     error: &'a syn::Type,
     delete: DeleteOption,
@@ -15,14 +14,9 @@ pub struct FindByFn<'a> {
 }
 
 impl<'a> FindByFn<'a> {
-    pub fn new(
-        column_name: &'a syn::Ident,
-        column_type: &'a syn::Type,
-        opts: &'a RepositoryOptions,
-    ) -> Self {
+    pub fn new(column: &'a Column, opts: &'a RepositoryOptions) -> Self {
         Self {
-            column_name,
-            column_type,
+            column,
             entity: opts.entity(),
             table_name: opts.table_name(),
             error: opts.err(),
@@ -35,8 +29,8 @@ impl<'a> FindByFn<'a> {
 impl<'a> ToTokens for FindByFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let entity = self.entity;
-        let column_name = &self.column_name;
-        let column_type = &self.column_type;
+        let column_name = &self.column.name();
+        let column_type = &self.column.ty();
         let error = self.error;
         let nested = self.nested_fn_names.iter().map(|f| {
             quote! {
@@ -135,18 +129,16 @@ impl<'a> ToTokens for FindByFn<'a> {
 mod tests {
     use super::*;
     use proc_macro2::Span;
-    use syn::{parse_quote, Ident};
+    use syn::Ident;
 
     #[test]
     fn find_by_fn() {
-        let column_name = parse_quote!(id);
-        let column_type = parse_quote!(EntityId);
+        let column = Column::for_id(syn::parse_str("EntityId").unwrap());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
-            column_name: &column_name,
-            column_type: &column_type,
+            column: &column,
             entity: &entity,
             table_name: "entities",
             error: &error,
@@ -195,14 +187,12 @@ mod tests {
 
     #[test]
     fn find_by_fn_with_soft_delete() {
-        let column_name = parse_quote!(id);
-        let column_type = parse_quote!(EntityId);
+        let column = Column::for_id(syn::parse_str("EntityId").unwrap());
         let entity = Ident::new("Entity", Span::call_site());
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
-            column_name: &column_name,
-            column_type: &column_type,
+            column: &column,
             entity: &entity,
             table_name: "entities",
             error: &error,

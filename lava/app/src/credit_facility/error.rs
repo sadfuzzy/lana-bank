@@ -8,6 +8,8 @@ pub enum CreditFacilityError {
     Sqlx(#[from] sqlx::Error),
     #[error("CreditFacilityError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("FacilityError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
     #[error("CreditFacilityError - LedgerError: {0}")]

@@ -127,9 +127,9 @@ where
     pub async fn list_policies_by_created_at(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        query: es_entity::PaginatedQueryArgs<policy_cursor::PolicyByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<policy_cursor::PoliciesByCreatedAtCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Policy, policy_cursor::PolicyByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<Policy, policy_cursor::PoliciesByCreatedAtCursor>,
         GovernanceError,
     > {
         self.authz
@@ -447,12 +447,12 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<
-            committee::committee_cursor::CommitteeByCreatedAtCursor,
+            committee::committee_cursor::CommitteesByCreatedAtCursor,
         >,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             Committee,
-            committee::committee_cursor::CommitteeByCreatedAtCursor,
+            committee::committee_cursor::CommitteesByCreatedAtCursor,
         >,
         GovernanceError,
     > {
@@ -506,12 +506,12 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<
-            approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+            approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
         >,
     ) -> Result<
         es_entity::PaginatedQueryRet<
             ApprovalProcess,
-            approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+            approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
         >,
         GovernanceError,
     > {

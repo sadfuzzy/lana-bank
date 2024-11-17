@@ -1,3 +1,4 @@
+use convert_case::{Case, Casing};
 use darling::ToTokens;
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, TokenStreamExt};
@@ -5,20 +6,28 @@ use quote::{quote, TokenStreamExt};
 use super::{list_by_fn::CursorStruct, options::*};
 
 pub struct ComboCursor<'a> {
-    pub entity: &'a syn::Ident,
-    pub cursors: Vec<CursorStruct<'a>>,
+    table_name: &'a str,
+    cursors: Vec<CursorStruct<'a>>,
 }
 
 impl<'a> ComboCursor<'a> {
     pub fn new(opts: &'a RepositoryOptions, cursors: Vec<CursorStruct<'a>>) -> Self {
         Self {
-            entity: opts.entity(),
+            table_name: opts.table_name(),
             cursors,
         }
     }
 
     pub fn ident(&self) -> syn::Ident {
-        syn::Ident::new(&format!("{}ComboCursor", self.entity), Span::call_site())
+        syn::Ident::new(
+            &format!("{}_cursor", self.table_name).to_case(Case::UpperCamel),
+            Span::call_site(),
+        )
+    }
+
+    pub fn tag(column: &Column) -> syn::Ident {
+        let tag_name = format!("By{}", column.name());
+        syn::Ident::new(&tag_name, Span::call_site())
     }
 
     pub fn variants(&self) -> TokenStream {
@@ -26,8 +35,7 @@ impl<'a> ComboCursor<'a> {
             .cursors
             .iter()
             .map(|cursor| {
-                let tag =
-                    syn::Ident::new(&format!("By{}", cursor.column.name()), Span::call_site());
+                let tag = Self::tag(cursor.column);
                 let ident = cursor.ident();
                 quote! {
                     #tag(#ident),
@@ -57,12 +65,12 @@ impl<'a> ComboCursor<'a> {
                     }
 
                     impl TryFrom<#self_ident> for #ident {
-                        type Error = String;
+                        type Error = es_entity::CursorDestructureError;
 
                         fn try_from(cursor: #self_ident) -> Result<Self, Self::Error> {
                             match cursor {
                                 #self_ident::#tag(cursor) => Ok(cursor),
-                                _ => Err(format!("could not convert {} to {}", stringify!(#self_ident), stringify!(#ident))),
+                                _ => Err(es_entity::CursorDestructureError::from((stringify!(#self_ident), stringify!(#ident)))),
                             }
                         }
                     }
@@ -72,6 +80,59 @@ impl<'a> ComboCursor<'a> {
 
         quote! {
             #trait_impls
+        }
+    }
+
+    pub fn sort_by_name(&self) -> syn::Ident {
+        syn::Ident::new(
+            &format!("{}_sort_by", self.table_name).to_case(Case::UpperCamel),
+            Span::call_site(),
+        )
+    }
+
+    pub fn sort_by(&self) -> TokenStream {
+        let mut default = true;
+        let variants = self.cursors.iter().map(|cursor| {
+            let name = syn::Ident::new(
+                &format!("{}", cursor.column.name()).to_case(Case::UpperCamel),
+                Span::call_site(),
+            );
+            if default {
+                default = false;
+                quote! {
+                    #[default]
+                    #name
+                }
+            } else {
+                quote! {
+                    #name
+                }
+            }
+        });
+        let name = self.sort_by_name();
+        #[cfg(feature = "graphql")]
+        let mod_name =
+            syn::Ident::new(&format!("{}", name).to_case(Case::Snake), Span::call_site());
+        #[cfg(feature = "graphql")]
+        let sort_by_enum = quote! {
+            mod #mod_name {
+                use es_entity::graphql::async_graphql;
+                #[derive(async_graphql::Enum, Default, Debug, Clone, Copy, PartialEq, Eq)]
+                pub enum #name {
+                    #(#variants),*
+                }
+            }
+            pub use #mod_name::#name;
+        };
+        #[cfg(not(feature = "graphql"))]
+        let sort_by_enum = quote! {
+            #[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+            pub enum #name {
+                #(#variants),*
+            }
+        };
+        quote! {
+            #sort_by_enum
         }
     }
 

@@ -6,6 +6,8 @@ pub enum UserError {
     Sqlx(#[from] sqlx::Error),
     #[error("UserError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("UserError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("UserError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("UserError - AuditError: {0}")]

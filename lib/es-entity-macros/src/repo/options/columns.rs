@@ -17,8 +17,8 @@ impl Columns {
 
     pub fn set_id_column(&mut self, ty: &syn::Ident) {
         let mut all = vec![
-            Column::for_id(syn::parse_str(&ty.to_string()).unwrap()),
             Column::for_created_at(),
+            Column::for_id(syn::parse_str(&ty.to_string()).unwrap()),
         ];
         all.append(&mut self.all);
         self.all = all;

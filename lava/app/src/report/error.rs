@@ -6,6 +6,8 @@ pub enum ReportError {
     Sqlx(#[from] sqlx::Error),
     #[error("ReportError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("ReportError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ReportError - SerdeJson: {0}")]
     Deserialization(#[from] serde_json::Error),
     #[error("ReportError - DataformCompilation: {0}")]

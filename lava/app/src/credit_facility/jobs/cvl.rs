@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{repo::*, CreditFacilityByCollateralizationRatioCursor},
+    credit_facility::{repo::*, CreditFacilitiesByCollateralizationRatioCursor},
     job::*,
     price::Price,
     terms::CVLPct,
@@ -73,18 +73,20 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let price = self.price.usd_cents_per_btc().await?;
         let mut has_next_page = true;
-        let mut after: Option<CreditFacilityByCollateralizationRatioCursor> = None;
+        let mut after: Option<CreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
-            let mut credit_facilities = self
-                .repo
-                .list_by_collateralization_ratio(
-                    es_entity::PaginatedQueryArgs::<CreditFacilityByCollateralizationRatioCursor> {
-                        first: 10,
-                        after,
-                    },
-                    es_entity::ListDirection::Ascending,
-                )
-                .await?;
+            let mut credit_facilities =
+                self.repo
+                    .list_by_collateralization_ratio(
+                        es_entity::PaginatedQueryArgs::<
+                            CreditFacilitiesByCollateralizationRatioCursor,
+                        > {
+                            first: 10,
+                            after,
+                        },
+                        es_entity::ListDirection::Ascending,
+                    )
+                    .await?;
             (after, has_next_page) = (
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,

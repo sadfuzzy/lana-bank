@@ -8,6 +8,8 @@ pub enum WithdrawalError {
     Sqlx(#[from] sqlx::Error),
     #[error("WithdrawalError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("WithdrawalError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("WithdrawalError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("WithdrawalError - GovernanceError: {0}")]

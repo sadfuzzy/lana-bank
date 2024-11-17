@@ -13,8 +13,8 @@ use super::{
 pub use lava_app::{
     app::LavaApp,
     customer::{
-        Customer as DomainCustomer, CustomerByCreatedAtCursor, CustomerByEmailCursor,
-        CustomerByTelegramIdCursor, CustomerComboCursor,
+        Customer as DomainCustomer, CustomersByCreatedAtCursor, CustomersByEmailCursor,
+        CustomersByTelegramIdCursor, CustomersCursor,
     },
 };
 

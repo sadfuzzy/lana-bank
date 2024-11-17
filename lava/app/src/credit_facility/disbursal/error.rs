@@ -6,6 +6,8 @@ pub enum DisbursalError {
     Sqlx(#[from] sqlx::Error),
     #[error("DisbursalError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("DisbursalError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("DisbursalError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
     #[error("DisbursalError - AlreadyConfirmed")]

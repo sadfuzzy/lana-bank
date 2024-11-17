@@ -8,6 +8,8 @@ pub enum DepositError {
     Sqlx(#[from] sqlx::Error),
     #[error("DepositError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("DepositError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("DepositError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("DepositError - UserError: {0}")]

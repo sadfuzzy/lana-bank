@@ -8,6 +8,8 @@ pub enum JobError {
     Sqlx(sqlx::Error),
     #[error("JobError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("JobError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("JobError - InvalidPollInterval: {0}")]
     InvalidPollInterval(String),
     #[error("JobError - InvalidJobType: expected '{0}' but initializer was '{1}'")]

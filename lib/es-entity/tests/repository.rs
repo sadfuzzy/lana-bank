@@ -7,7 +7,7 @@ use user_entity::*;
 #[derive(EsRepo)]
 #[es_repo(
     entity = "User",
-    columns(email = "String"),
+    columns(email(ty = "String", list_for, list_by)),
     post_persist_hook = "export"
 )]
 pub struct Users {
@@ -122,6 +122,24 @@ async fn custom() -> anyhow::Result<()> {
         res,
         Err(EsRepoError::EsEntityError(EsEntityError::NotFound))
     ));
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn generic_find() -> anyhow::Result<()> {
+    let pool = init_pool().await?;
+
+    let repo = Users { pool: pool.clone() };
+    repo.find_many(
+        FindManyUsers::NoFilter,
+        Sort {
+            by: UsersSortBy::CreatedAt,
+            direction: ListDirection::Ascending,
+        },
+        Default::default(),
+    )
+    .await?;
 
     Ok(())
 }

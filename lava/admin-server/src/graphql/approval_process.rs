@@ -8,7 +8,7 @@ use super::{
 };
 
 pub use governance::{
-    approval_process_cursor::ApprovalProcessByCreatedAtCursor,
+    approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
     ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
 };
 

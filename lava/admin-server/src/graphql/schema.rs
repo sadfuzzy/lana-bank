@@ -74,7 +74,7 @@ impl Query {
         after: Option<String>,
         #[graphql(default_with = "Some(CustomersSort::default())")] sort: Option<CustomersSort>,
         filter: Option<CustomersFilter>,
-    ) -> async_graphql::Result<Connection<CustomerComboCursor, Customer, EmptyFields, EmptyFields>>
+    ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
         let sort = sort.unwrap_or_default();
         let (filter_field, status) = match filter {
@@ -86,8 +86,8 @@ impl Query {
         match (sort.by, filter_field) {
             (CustomersSortBy::Email, None) => {
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByEmailCursor,
+                    CustomersCursor,
+                    CustomersByEmailCursor,
                     Customer,
                     ctx,
                     after,
@@ -100,8 +100,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByEmailCursor,
+                    CustomersCursor,
+                    CustomersByEmailCursor,
                     Customer,
                     ctx,
                     after,
@@ -116,8 +116,8 @@ impl Query {
             }
             (CustomersSortBy::CreatedAt, None) => {
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByCreatedAtCursor,
+                    CustomersCursor,
+                    CustomersByCreatedAtCursor,
                     Customer,
                     ctx,
                     after,
@@ -132,8 +132,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByCreatedAtCursor,
+                    CustomersCursor,
+                    CustomersByCreatedAtCursor,
                     Customer,
                     ctx,
                     after,
@@ -148,8 +148,8 @@ impl Query {
             }
             (CustomersSortBy::TelegramId, None) => {
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByTelegramIdCursor,
+                    CustomersCursor,
+                    CustomersByTelegramIdCursor,
                     Customer,
                     ctx,
                     after,
@@ -164,8 +164,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CustomerComboCursor,
-                    CustomerByTelegramIdCursor,
+                    CustomersCursor,
+                    CustomersByTelegramIdCursor,
                     Customer,
                     ctx,
                     after,
@@ -196,11 +196,11 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<WithdrawalByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
+        Connection<WithdrawalsByCreatedAtCursor, Withdrawal, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            WithdrawalByCreatedAtCursor,
+            WithdrawalsByCreatedAtCursor,
             Withdrawal,
             ctx,
             after,
@@ -219,11 +219,11 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<DepositByCreatedAtCursor, Deposit, EmptyFields, EmptyFields>,
+        Connection<DepositsByCreatedAtCursor, Deposit, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            DepositByCreatedAtCursor,
+            DepositsByCreatedAtCursor,
             Deposit,
             ctx,
             after,
@@ -280,7 +280,7 @@ impl Query {
         >,
         filter: Option<CreditFacilitiesFilter>,
     ) -> async_graphql::Result<
-        Connection<CreditFacilityComboCursor, CreditFacility, EmptyFields, EmptyFields>,
+        Connection<CreditFacilitiesCursor, CreditFacility, EmptyFields, EmptyFields>,
     > {
         let sort = sort.unwrap_or_default();
         let (filter_field, status, collateralization_state) = match filter {
@@ -297,8 +297,8 @@ impl Query {
         match (sort.by, filter_field) {
             (CreditFacilitiesSortBy::CreatedAt, None) => {
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCreatedAtCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCreatedAtCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -313,8 +313,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCreatedAtCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCreatedAtCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -338,8 +338,8 @@ impl Query {
                 )?;
 
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCreatedAtCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCreatedAtCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -356,8 +356,8 @@ impl Query {
             }
             (CreditFacilitiesSortBy::Cvl, None) => {
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCollateralizationRatioCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -374,8 +374,8 @@ impl Query {
                     "status".to_string(),
                 ))?;
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCollateralizationRatioCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -400,8 +400,8 @@ impl Query {
                     ),
                 )?;
                 list_with_combo_cursor!(
-                    CreditFacilityComboCursor,
-                    CreditFacilityByCollateralizationRatioCursor,
+                    CreditFacilitiesCursor,
+                    CreditFacilitiesByCollateralizationRatioCursor,
                     CreditFacility,
                     ctx,
                     after,
@@ -438,12 +438,12 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<DisbursalByCreatedAtCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
+        Connection<DisbursalsByCreatedAtCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_combo_cursor!(
-            DisbursalComboCursor,
-            DisbursalByCreatedAtCursor,
+            DisbursalsCursor,
+            DisbursalsByCreatedAtCursor,
             CreditFacilityDisbursal,
             ctx,
             after,
@@ -473,11 +473,11 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<CommitteeByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
+        Connection<CommitteesByCreatedAtCursor, Committee, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            CommitteeByCreatedAtCursor,
+            CommitteesByCreatedAtCursor,
             Committee,
             ctx,
             after,
@@ -496,11 +496,12 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<Connection<PolicyByCreatedAtCursor, Policy, EmptyFields, EmptyFields>>
-    {
+    ) -> async_graphql::Result<
+        Connection<PoliciesByCreatedAtCursor, Policy, EmptyFields, EmptyFields>,
+    > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            PolicyByCreatedAtCursor,
+            PoliciesByCreatedAtCursor,
             Policy,
             ctx,
             after,
@@ -528,11 +529,11 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<ApprovalProcessByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
+        Connection<ApprovalProcessesByCreatedAtCursor, ApprovalProcess, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            ApprovalProcessByCreatedAtCursor,
+            ApprovalProcessesByCreatedAtCursor,
             ApprovalProcess,
             ctx,
             after,

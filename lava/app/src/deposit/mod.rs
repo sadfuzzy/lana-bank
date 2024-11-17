@@ -19,7 +19,7 @@ use crate::{
 
 pub use entity::*;
 use error::DepositError;
-pub use repo::{deposit_cursor::DepositByCreatedAtCursor, DepositRepo};
+pub use repo::{deposit_cursor::DepositsByCreatedAtCursor, DepositRepo};
 
 #[derive(Clone)]
 pub struct Deposits {
@@ -143,8 +143,9 @@ impl Deposits {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<DepositByCreatedAtCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositByCreatedAtCursor>, DepositError> {
+        query: es_entity::PaginatedQueryArgs<DepositsByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Deposit, DepositsByCreatedAtCursor>, DepositError>
+    {
         self.authz
             .enforce_permission(sub, Object::Deposit, DepositAction::List)
             .await?;

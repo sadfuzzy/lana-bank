@@ -6,6 +6,8 @@ pub enum CustomerError {
     Sqlx(#[from] sqlx::Error),
     #[error("CustomerError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("CustomerError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("CustomerError - LedgerError: {0}")]
     LedgerError(#[from] crate::ledger::error::LedgerError),
     #[error("CustomerError - UnexpectedCurrency")]

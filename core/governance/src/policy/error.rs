@@ -6,6 +6,8 @@ pub enum PolicyError {
     Sqlx(sqlx::Error),
     #[error("PolicyError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
+    #[error("PolicyError - CursorDestructureError: {0}")]
+    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
 }

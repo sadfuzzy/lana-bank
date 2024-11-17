@@ -12,8 +12,8 @@ use super::{
 };
 pub use lava_app::{
     credit_facility::{
-        CreditFacility as DomainCreditFacility, CreditFacilityByCollateralizationRatioCursor,
-        CreditFacilityByCreatedAtCursor, CreditFacilityComboCursor,
+        CreditFacilitiesByCollateralizationRatioCursor, CreditFacilitiesByCreatedAtCursor,
+        CreditFacilitiesCursor, CreditFacility as DomainCreditFacility,
     },
     primitives::CreditFacilityStatus,
 };

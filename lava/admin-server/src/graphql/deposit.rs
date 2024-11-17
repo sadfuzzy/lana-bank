@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::{customer::Customer, loader::LavaDataLoader};
 
-pub use lava_app::deposit::{Deposit as DomainDeposit, DepositByCreatedAtCursor};
+pub use lava_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

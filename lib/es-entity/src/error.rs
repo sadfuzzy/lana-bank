@@ -13,11 +13,23 @@ pub enum EsEntityError {
 }
 
 #[derive(Error, Debug)]
+#[error("CursorDestructureError: couldn't turn {0} into {1}")]
+pub struct CursorDestructureError(&'static str, &'static str);
+
+impl From<(&'static str, &'static str)> for CursorDestructureError {
+    fn from((name, variant): (&'static str, &'static str)) -> Self {
+        Self(name, variant)
+    }
+}
+
+#[derive(Error, Debug)]
 pub enum EsRepoError {
     #[error("EsRepoError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("{0}")]
     EsEntityError(EsEntityError),
+    #[error("{0}")]
+    CursorDestructureError(#[from] CursorDestructureError),
 }
 
 crate::from_es_entity_error!(EsRepoError);

@@ -5,7 +5,7 @@ use crate::primitives::*;
 use super::{approval_process::ApprovalProcess, customer::Customer, loader::LavaDataLoader};
 
 pub use lava_app::withdrawal::{
-    Withdrawal as DomainWithdrawal, WithdrawalByCreatedAtCursor, WithdrawalStatus,
+    Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
 };
 
 #[derive(SimpleObject, Clone)]

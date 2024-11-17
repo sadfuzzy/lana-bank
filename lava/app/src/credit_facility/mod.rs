@@ -509,10 +509,10 @@ impl CreditFacilities {
     pub async fn list_by_created_at(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
         CreditFacilityError,
     > {
         self.authz
@@ -532,10 +532,10 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
         CreditFacilityError,
     > {
         self.authz
@@ -555,10 +555,10 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCreatedAtCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>,
         CreditFacilityError,
     > {
         self.authz
@@ -581,10 +581,13 @@ impl CreditFacilities {
     pub async fn list_by_collateralization_ratio(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
+        es_entity::PaginatedQueryRet<
+            CreditFacility,
+            CreditFacilitiesByCollateralizationRatioCursor,
+        >,
         CreditFacilityError,
     > {
         self.authz
@@ -604,10 +607,13 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         status: CreditFacilityStatus,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
+        es_entity::PaginatedQueryRet<
+            CreditFacility,
+            CreditFacilitiesByCollateralizationRatioCursor,
+        >,
         CreditFacilityError,
     > {
         self.authz
@@ -627,10 +633,13 @@ impl CreditFacilities {
         &self,
         sub: &Subject,
         collateralization_state: CollateralizationState,
-        query: es_entity::PaginatedQueryArgs<CreditFacilityByCollateralizationRatioCursor>,
+        query: es_entity::PaginatedQueryArgs<CreditFacilitiesByCollateralizationRatioCursor>,
         direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
     ) -> Result<
-        es_entity::PaginatedQueryRet<CreditFacility, CreditFacilityByCollateralizationRatioCursor>,
+        es_entity::PaginatedQueryRet<
+            CreditFacility,
+            CreditFacilitiesByCollateralizationRatioCursor,
+        >,
         CreditFacilityError,
     > {
         self.authz
@@ -732,9 +741,9 @@ impl CreditFacilities {
     pub async fn list_disbursals_by_created_at(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<DisbursalByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<DisbursalsByCreatedAtCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Disbursal, DisbursalByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<Disbursal, DisbursalsByCreatedAtCursor>,
         CreditFacilityError,
     > {
         self.authz

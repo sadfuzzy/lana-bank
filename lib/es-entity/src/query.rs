@@ -5,6 +5,11 @@ pub enum ListDirection {
     Descending,
 }
 
+pub struct Sort<T> {
+    pub by: T,
+    pub direction: ListDirection,
+}
+
 #[derive(Debug)]
 pub struct PaginatedQueryArgs<T: std::fmt::Debug> {
     pub first: usize,

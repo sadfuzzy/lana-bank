@@ -280,9 +280,9 @@ impl Withdrawals {
     pub async fn list(
         &self,
         sub: &Subject,
-        query: es_entity::PaginatedQueryArgs<WithdrawalByCreatedAtCursor>,
+        query: es_entity::PaginatedQueryArgs<WithdrawalsByCreatedAtCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalByCreatedAtCursor>,
+        es_entity::PaginatedQueryRet<Withdrawal, WithdrawalsByCreatedAtCursor>,
         WithdrawalError,
     > {
         self.authz

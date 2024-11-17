@@ -4,6 +4,7 @@ mod create_fn;
 mod delete_fn;
 mod find_all_fn;
 mod find_by_fn;
+mod find_many;
 mod list_by_fn;
 mod list_for_fn;
 mod nested;
@@ -46,7 +47,7 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
         let find_by_fns = opts
             .columns
             .all_find_by()
-            .map(|c| find_by_fn::FindByFn::new(c.name(), c.ty(), opts))
+            .map(|c| find_by_fn::FindByFn::new(c, opts))
             .collect();
         let list_by_fns = opts
             .columns
@@ -59,7 +60,6 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
             .flat_map(|list_for_column| {
                 opts.columns
                     .all_list_by()
-                    .filter(move |list_by_column| list_for_column != *list_by_column)
                     .map(|b| list_for_fn::ListForFn::new(list_for_column, b, opts))
             })
             .collect();
@@ -107,6 +107,15 @@ impl<'a> ToTokens for EsRepo<'a> {
             self.opts,
             self.list_by_fns.iter().map(|l| l.cursor()).collect(),
         );
+        let sort_by = combo_cursor.sort_by();
+        let find_many = find_many::FindManyFn::new(
+            self.opts,
+            &self.list_for_fns,
+            self.opts.columns.all_list_for().collect(),
+            self.opts.columns.all_list_by().collect(),
+            &combo_cursor,
+        );
+        let find_many_filter = &find_many.filter;
         #[cfg(feature = "graphql")]
         let gql_combo_cursor = combo_cursor.gql_cursor();
         #[cfg(not(feature = "graphql"))]
@@ -182,6 +191,9 @@ impl<'a> ToTokens for EsRepo<'a> {
                 }
             }
 
+            #find_many_filter
+            #sort_by
+
             impl #repo {
                 #[inline(always)]
                 pub fn pool(&self) -> &sqlx::PgPool {
@@ -196,6 +208,7 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #delete_fn
                 #(#find_by_fns)*
                 #find_all_fn
+                #find_many
                 #(#list_by_fns)*
                 #(#list_for_fns)*
 

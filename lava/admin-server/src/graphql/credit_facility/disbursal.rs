@@ -6,7 +6,7 @@ use crate::{
     primitives::*,
 };
 pub use lava_app::credit_facility::{
-    Disbursal as DomainDisbursal, DisbursalByCreatedAtCursor, DisbursalComboCursor,
+    Disbursal as DomainDisbursal, DisbursalsByCreatedAtCursor, DisbursalsCursor,
 };
 
 #[derive(SimpleObject, Clone)]
