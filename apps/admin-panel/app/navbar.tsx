@@ -38,7 +38,7 @@ const NavBar = () => {
   const { data, loading } = useGetRealtimePriceUpdatesQuery()
 
   const usdBtcRate = currencyConverter
-    .centsToUsd(data?.realtimePrice?.usdCentsPerBtc)
+    .centsToUsd(data?.realtimePrice?.usdCentsPerBtc || NaN)
     .toLocaleString()
 
   const NavItems = () => (

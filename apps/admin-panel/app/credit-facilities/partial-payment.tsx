@@ -17,6 +17,7 @@ import {
   GetCreditFacilityDetailsDocument,
   useCreditFacilityPartialPaymentMutation,
 } from "@/lib/graphql/generated"
+import { UsdCents } from "@/types"
 
 gql`
   mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
@@ -62,7 +63,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
         variables: {
           input: {
             creditFacilityId,
-            amount: amountInCents,
+            amount: amountInCents as UsdCents,
           },
         },
         onCompleted: (data) => {

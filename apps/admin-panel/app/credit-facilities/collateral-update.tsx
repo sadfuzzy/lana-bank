@@ -21,6 +21,7 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Label } from "@/components/primitive/label"
+import { Satoshis } from "@/types"
 
 gql`
   mutation CreditFacilityCollateralUpdate($input: CreditFacilityCollateralUpdateInput!) {
@@ -129,7 +130,9 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                 <DetailItem
                   className="text-sm"
                   label="Current Collateral"
-                  value={<Balance amount={currentCollateral} currency="btc" />}
+                  value={
+                    <Balance amount={currentCollateral as Satoshis} currency="btc" />
+                  }
                 />
                 <DetailItem
                   className="text-sm"
@@ -180,22 +183,26 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   />
                   <DetailItem
                     label="Current Collateral"
-                    value={<Balance amount={currentCollateral} currency="btc" />}
+                    value={
+                      <Balance amount={currentCollateral as Satoshis} currency="btc" />
+                    }
                     data-testid="current-collateral-balance"
                   />
-                  <DetailItem
-                    label="Expected Collateral"
-                    value={
-                      <Balance
-                        amount={
-                          creditFacilityDetails?.creditFacility
-                            ?.collateralToMatchInitialCvl
-                        }
-                        currency="btc"
-                      />
-                    }
-                    data-testid="expected-collateral-balance"
-                  />
+                  {creditFacilityDetails?.creditFacility?.collateralToMatchInitialCvl && (
+                    <DetailItem
+                      label="Expected Collateral"
+                      value={
+                        <Balance
+                          amount={
+                            creditFacilityDetails?.creditFacility
+                              ?.collateralToMatchInitialCvl
+                          }
+                          currency="btc"
+                        />
+                      }
+                      data-testid="expected-collateral-balance"
+                    />
+                  )}
                 </DetailsGroup>
               </div>
               <div>

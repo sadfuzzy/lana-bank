@@ -11,6 +11,8 @@ import {
   Period,
 } from "./graphql/generated"
 
+import { Satoshis, UsdCents } from "@/types"
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -24,7 +26,7 @@ export const currencyConverter = {
   },
 
   btcToSatoshi: (btc: number) => {
-    return Number((btc * SATS_PER_BTC).toFixed(0))
+    return Number((btc * SATS_PER_BTC).toFixed(0)) as Satoshis
   },
 
   satoshiToBtc: (satoshi: number) => {
@@ -32,7 +34,7 @@ export const currencyConverter = {
   },
 
   usdToCents: (usd: number) => {
-    return Number((usd * CENTS_PER_USD).toFixed(0))
+    return Number((usd * CENTS_PER_USD).toFixed(0)) as UsdCents
   },
 }
 

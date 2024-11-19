@@ -21,3 +21,7 @@ generates:
     config:
         scalars:
           UUID: string
+          UsdCents: 'types#UsdCents'
+          Satoshis: 'types#Satoshis'
+          SignedUsdCents: 'types#SignedUsdCents'
+          SignedSatoshis: 'types#SignedSatoshis'

@@ -94,30 +94,34 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
               />
             }
           />
-          <DetailItem
-            label="Expected Collateral to meet target CVL"
-            className="px-0"
-            value={
-              <Balance
-                amount={creditFacilityDetails.collateralToMatchInitialCvl}
-                currency="btc"
-              />
-            }
-          />
-          <DetailItem
-            className="px-0"
-            label={
-              <p className="text-textColor-secondary flex items-center">
-                <div className="mr-2">Current CVL (BTC/USD:</div>
+          {creditFacilityDetails.collateralToMatchInitialCvl && (
+            <DetailItem
+              label="Expected Collateral to meet target CVL"
+              className="px-0"
+              value={
                 <Balance
-                  amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                  currency="usd"
+                  amount={creditFacilityDetails.collateralToMatchInitialCvl}
+                  currency="btc"
                 />
-                <div>)</div>
-              </p>
-            }
-            value={`${creditFacilityDetails.currentCvl.total}%`}
-          />
+              }
+            />
+          )}
+          {priceInfo?.realtimePrice.usdCentsPerBtc !== undefined && (
+            <DetailItem
+              className="px-0"
+              label={
+                <p className="text-textColor-secondary flex items-center">
+                  <div className="mr-2">Current CVL (BTC/USD:</div>
+                  <Balance
+                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                    currency="usd"
+                  />
+                  <div>)</div>
+                </p>
+              }
+              value={`${creditFacilityDetails.currentCvl.total}%`}
+            />
+          )}
           <DetailItem
             className="px-0"
             label="Target (Initial) CVL"

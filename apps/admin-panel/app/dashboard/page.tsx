@@ -13,6 +13,7 @@ import {
 import Balance from "@/components/balance/balance"
 import { currencyConverter } from "@/lib/utils"
 import { CardSkeleton } from "@/components/card-skeleton"
+import { UsdCents } from "@/types"
 
 gql`
   query Dashboard {
@@ -62,19 +63,28 @@ const Dashboard = () => {
                 description="Credit Facilities where money has been disbursed"
                 to="/credit-facilities?filter=active"
               />
-              <DashboardCard
-                h1={<Balance currency="usd" amount={totalDisbursedUsdCents} />}
-                title="Total Disbursed"
-                description="Total amount of money customers withdrew from the bank"
-                to="/disbursals"
-              />
-              <DashboardCard
-                h1={<Balance currency="usd" amount={totalCollateralUsdCents} />}
-                h2={<Balance currency="btc" amount={totalCollateralSats} />}
-                title="Total Collateral"
-                description="Total bitcoin collateral value at market rate that the bank holds"
-                to="/credit-facilities"
-              />
+              {totalDisbursedUsdCents !== undefined && (
+                <DashboardCard
+                  h1={<Balance currency="usd" amount={totalDisbursedUsdCents} />}
+                  title="Total Disbursed"
+                  description="Total amount of money customers withdrew from the bank"
+                  to="/disbursals"
+                />
+              )}
+              {totalCollateralSats !== undefined && (
+                <DashboardCard
+                  h1={
+                    <Balance
+                      currency="usd"
+                      amount={totalCollateralUsdCents as UsdCents}
+                    />
+                  }
+                  h2={<Balance currency="btc" amount={totalCollateralSats} />}
+                  title="Total Collateral"
+                  description="Total bitcoin collateral value at market rate that the bank holds"
+                  to="/credit-facilities"
+                />
+              )}
             </>
           )}
         </div>

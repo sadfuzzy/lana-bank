@@ -25,6 +25,7 @@ import {
   CardTitle,
 } from "@/components/primitive/card"
 import { Skeleton } from "@/components/primitive/skeleton"
+import { Satoshis, SignedSatoshis, SignedUsdCents, UsdCents } from "@/types"
 
 gql`
   query BalanceSheet($from: Timestamp!, $until: Timestamp) {
@@ -283,7 +284,7 @@ function BalanceSheetColumn({
               <Balance
                 align="end"
                 currency={currency}
-                amount={total}
+                amount={total as Satoshis | SignedSatoshis | SignedUsdCents | UsdCents}
                 className="font-semibold"
               />
             </TableCell>

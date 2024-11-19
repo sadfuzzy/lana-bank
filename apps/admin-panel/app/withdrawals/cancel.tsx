@@ -18,7 +18,7 @@ import {
 } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { currencyConverter } from "@/lib/utils"
+import { UsdCents } from "@/types"
 
 gql`
   mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
@@ -118,10 +118,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
                 className="text-sm"
                 label="Amount"
                 value={
-                  <Balance
-                    amount={currencyConverter.centsToUsd(withdrawalData.amount)}
-                    currency="usd"
-                  />
+                  <Balance amount={withdrawalData.amount as UsdCents} currency="usd" />
                 }
               />
               <DetailItem

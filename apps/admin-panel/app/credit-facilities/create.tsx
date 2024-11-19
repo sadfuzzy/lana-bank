@@ -35,6 +35,7 @@ import {
 import { DetailItem } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { Satoshis } from "@/types"
 
 gql`
   mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
@@ -297,7 +298,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           </div>
           {priceInfo && (
             <div className="text-sm ml-1 flex space-x-1 items-center">
-              <Balance amount={collateralRequiredForDesiredFacility} currency="btc" />
+              <Balance
+                amount={collateralRequiredForDesiredFacility as Satoshis}
+                currency="btc"
+              />
               <div>collateral required (</div>
               <div>BTC/USD: </div>
               <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />

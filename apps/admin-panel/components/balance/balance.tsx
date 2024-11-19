@@ -1,6 +1,7 @@
 import { cva, VariantProps } from "class-variance-authority"
 
 import { cn, CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
+import { Satoshis, SignedSatoshis, SignedUsdCents, UsdCents } from "@/types"
 
 const formatAmount = (amount: number, currency: Currency) => {
   const formatter = new Intl.NumberFormat("en-US")
@@ -22,7 +23,7 @@ const formatAmount = (amount: number, currency: Currency) => {
 export type Currency = "btc" | "usd"
 
 type BalanceProps = {
-  amount: number
+  amount: Satoshis | SignedSatoshis | SignedUsdCents | UsdCents
   currency: Currency
   className?: string
 } & VariantProps<typeof balanceVariants>

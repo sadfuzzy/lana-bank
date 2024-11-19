@@ -12,6 +12,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, SATS_PER_BTC, formatDate, formatRole } from "@/lib/utils"
+import { UsdCents } from "@/types"
 
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
@@ -55,25 +56,29 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 />
               }
             />
-            <DetailItem
-              label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
-              valueTestId="collateral-to-reach-target"
-              value={
-                <Balance
-                  amount={creditFacility.collateralToMatchInitialCvl}
-                  currency="btc"
-                />
-              }
-            />
+            {creditFacility.collateralToMatchInitialCvl && (
+              <DetailItem
+                label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
+                valueTestId="collateral-to-reach-target"
+                value={
+                  <Balance
+                    amount={creditFacility.collateralToMatchInitialCvl}
+                    currency="btc"
+                  />
+                }
+              />
+            )}
             {creditFacility.collateral > 0 ? (
               <>
                 <DetailItem
                   label={`Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`}
-                  value={<Balance amount={MarginCallPrice} currency="usd" />}
+                  value={<Balance amount={MarginCallPrice as UsdCents} currency="usd" />}
                 />
                 <DetailItem
                   label={`Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`}
-                  value={<Balance amount={LiquidationCallPrice} currency="usd" />}
+                  value={
+                    <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />
+                  }
                 />
               </>
             ) : (
@@ -88,22 +93,24 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
                 />
               </>
             )}
-            <DetailItem
-              label={
-                <p className="text-textColor-secondary flex items-center">
-                  <div className="mr-2">
-                    Current CVL % <span className="text-sm">(BTC/USD:</span>
-                  </div>
-                  <Balance
-                    className="text-sm"
-                    amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                    currency="usd"
-                  />
-                  <div className="text-sm">)</div>
-                </p>
-              }
-              value={`${creditFacility.currentCvl.total}%`}
-            />
+            {priceInfo?.realtimePrice.usdCentsPerBtc !== undefined && (
+              <DetailItem
+                label={
+                  <p className="text-textColor-secondary flex items-center">
+                    <div className="mr-2">
+                      Current CVL % <span className="text-sm">(BTC/USD:</span>
+                    </div>
+                    <Balance
+                      className="text-sm"
+                      amount={priceInfo?.realtimePrice.usdCentsPerBtc}
+                      currency="usd"
+                    />
+                    <div className="text-sm">)</div>
+                  </p>
+                }
+                value={`${creditFacility.currentCvl.total}%`}
+              />
+            )}
 
             {creditFacility.expiresAt && (
               <DetailItem
