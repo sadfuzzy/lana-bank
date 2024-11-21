@@ -1,6 +1,6 @@
 [package]
 name = "sim-time"
-version = "0.2.40-dev"
+version = "0.2.41-dev"
 edition = "2021"
 
 [features]
