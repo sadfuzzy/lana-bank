@@ -50,7 +50,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
 
   return (
     <>
-      <DetailsCard title="Customer Details" details={details} className="w-full" />
+      <DetailsCard title="Customer" details={details} className="w-full" />
       <UpdateTelegramIdDialog
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
