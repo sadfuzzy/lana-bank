@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
 import classNames from "classnames"
 
 import {
@@ -101,35 +100,26 @@ const NavBar = () => {
           </div>
         )}
       </div>
-
+      {/* TODO fix: mobile sidebar  use shadcn component here*/}
       {/* Mobile Sidebar */}
-      <AnimatePresence>
+      <div>
         {isOpen && (
           <>
             {/* Overlay */}
-            <motion.div
+            <div
               className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
               onClick={() => setIsOpen(false)}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            ></motion.div>
+            ></div>
 
             {/* Sidebar */}
-            <motion.div
-              className="fixed inset-y-0 left-0 z-50 w-64 bg-background h-screen overflow-y-auto border-r md:hidden"
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "tween", duration: 0.3 }}
-            >
+            <div className="fixed inset-y-0 left-0 z-50 w-64 bg-background h-screen overflow-y-auto border-r md:hidden">
               <div className="flex flex-col h-full pt-4">
                 <NavItems />
               </div>
-            </motion.div>
+            </div>
           </>
         )}
-      </AnimatePresence>
+      </div>
     </div>
   )
 }

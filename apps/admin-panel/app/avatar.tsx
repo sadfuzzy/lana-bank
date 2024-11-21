@@ -1,23 +1,20 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { gql } from "@apollo/client"
 import { signOut } from "next-auth/react"
 
-import { Skeleton } from "@/ui/skeleton"
-
-import { Button } from "@/ui/button"
-import { useAvatarQuery } from "@/lib/graphql/generated"
-import { ID } from "@/components/id"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu"
 import { Badge } from "@/ui/badge"
-
-const animationProps = {
-  initial: { opacity: 0, y: -10 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -10 },
-  transition: { duration: 0.2 },
-}
+import { Skeleton } from "@/ui/skeleton"
+import { ID } from "@/components/id"
+import { useAvatarQuery } from "@/lib/graphql/generated"
 
 gql`
   query Avatar {
@@ -39,85 +36,55 @@ const LoadingSkeleton = () => {
   )
 }
 
-const Avatar = () => {
+const AvatarComponent = () => {
   const { data, loading } = useAvatarQuery()
 
-  const [showingDetails, setShowingDetails] = useState(false)
-  const detailsRef = useRef<HTMLDivElement>(null)
-  const avatarRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        detailsRef.current &&
-        !detailsRef.current.contains(event.target as Node) &&
-        avatarRef.current &&
-        !avatarRef.current.contains(event.target as Node)
-      ) {
-        setShowingDetails(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
   if (loading) return <LoadingSkeleton />
-  if (!data) return <></>
+  if (!data) return null
 
-  const userName = data.me.user.email.split("@")[0]
   const userEmail = data.me.user.email
+  const userName = userEmail.split("@")[0]
   const userRoles = data.me.user.roles
   const userId = data.me.user.userId
   const userRef = ""
 
-  const userNameInitials = userName
-    .split(" ")
-    .map((name) => name[0])
-    .join("")
-    .slice(0, 2)
-
-  const Details = () => (
-    <motion.div
-      {...animationProps}
-      ref={detailsRef}
-      onClick={(e) => e.stopPropagation()}
-      className="absolute top-12 right-0 bg-popover text-popover-foreground shadow-lg p-4 rounded-md w-[200px] cursor-default flex flex-col space-y-1 items-start justify-center z-10 border"
-    >
-      <div className="flex flex-wrap gap-2">
-        {userRoles.map((role) => (
-          <Badge key={role}>{role}</Badge>
-        ))}
-      </div>
-      <div className="flex items-center justify-center space-x-2">
-        <div className="text-base font-medium capitalize">{userName}</div>
-        {userRef && <div className="text-sm font-medium">#{userRef}</div>}
-      </div>
-      <div className="text-sm text-muted-foreground">{userEmail}</div>
-      <ID type="Your" id={userId} />
-      <div className="h-2"></div>
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={() => signOut()}
-        className="w-full"
-      >
-        Logout
-      </Button>
-    </motion.div>
-  )
+  const initials = userName[0].toUpperCase()
 
   return (
-    <div
-      ref={avatarRef}
-      className="relative flex h-10 w-10 items-center justify-center rounded-full bg-primary hover:bg-primary/90 cursor-pointer transition-colors"
-      onClick={() => setShowingDetails((prev) => !prev)}
-    >
-      <span className="select-none text-base font-semibold text-primary-foreground uppercase">
-        {userNameInitials}
-      </span>
-      <AnimatePresence>{showingDetails && <Details />}</AnimatePresence>
-    </div>
+    <DropdownMenu>
+      <DropdownMenuTrigger>
+        <div className="h-10 w-10 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center">
+          <span className="text-primary-foreground text-base font-semibold">
+            {initials}
+          </span>
+        </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-[200px]">
+        <DropdownMenuLabel className="flex flex-col gap-2">
+          <div className="flex flex-wrap gap-2">
+            {userRoles.map((role) => (
+              <Badge key={role} variant="secondary">
+                {role}
+              </Badge>
+            ))}
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="font-medium capitalize">{userName}</div>
+            {userRef && <div className="text-sm">#{userRef}</div>}
+          </div>
+          <div className="text-sm text-muted-foreground">{userEmail}</div>
+          <ID type="Your" id={userId} />
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-destructive focus:text-destructive cursor-pointer"
+          onClick={() => signOut()}
+        >
+          Logout
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
-export default Avatar
+export default AvatarComponent
