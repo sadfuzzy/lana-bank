@@ -1126,6 +1126,7 @@ scalar UsdCents
 type User {
 	id: ID!
 	userId: UUID!
+	createdAt: Timestamp!
 	roles: [Role!]!
 	email: String!
 	subjectCanAssignRoleToUser: Boolean!

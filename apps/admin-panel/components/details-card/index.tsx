@@ -43,6 +43,7 @@ export interface DetailsCardProps extends VariantProps<typeof footerVariants> {
   errorMessage?: string | undefined | null
   hideFooterSeparator?: boolean
   className?: string
+  columns?: number
 }
 
 const DetailsCard = ({
@@ -54,6 +55,7 @@ const DetailsCard = ({
   alignment,
   hideFooterSeparator = false,
   className,
+  columns,
 }: DetailsCardProps) => {
   return (
     <Card className={className}>
@@ -62,7 +64,7 @@ const DetailsCard = ({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <DetailsGroup>
+        <DetailsGroup columns={columns}>
           {details.map((detail) => {
             const detailItem = (
               <DetailItem

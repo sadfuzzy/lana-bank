@@ -8,6 +8,7 @@ use lava_app::user::User as DomainUser;
 pub struct User {
     id: ID,
     user_id: UUID,
+    created_at: Timestamp,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainUser>,
@@ -18,6 +19,7 @@ impl From<DomainUser> for User {
         Self {
             id: user.id.to_global_id(),
             user_id: UUID::from(user.id),
+            created_at: user.created_at().into(),
             entity: Arc::new(user),
         }
     }
@@ -28,6 +30,7 @@ impl From<Arc<DomainUser>> for User {
         Self {
             id: user.id.to_global_id(),
             user_id: UUID::from(user.id),
+            created_at: user.created_at().into(),
             entity: user,
         }
     }

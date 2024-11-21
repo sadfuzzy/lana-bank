@@ -35,6 +35,12 @@ pub struct User {
 }
 
 impl User {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub(crate) fn assign_role(&mut self, role: Role, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),

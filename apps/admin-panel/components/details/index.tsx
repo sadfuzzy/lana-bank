@@ -22,6 +22,7 @@ interface DetailsGroupProps
   children: React.ReactNode
   className?: string
   layout?: LayoutType
+  columns?: number
 }
 
 interface DetailItemProps {
@@ -41,17 +42,21 @@ const DetailsGroup = ({
   children,
   layout = "vertical",
   className,
+  columns,
 }: DetailsGroupProps) => {
   const childrenArray = React.Children.toArray(children)
   const totalItems = childrenArray.length
-  const columns = totalItems > 2 ? "grid-cols-4" : "grid-cols-2"
+  let gridColumns = totalItems > 2 ? "grid-cols-4" : "grid-cols-2"
+  if (columns) {
+    gridColumns = "grid-cols-" + columns
+  }
 
   return (
     <DetailsGroupContext.Provider value={layout}>
       <div
         className={cn(
           detailsGroupVariants({ layout }),
-          layout === "vertical" && columns,
+          layout === "vertical" && gridColumns,
           className,
         )}
       >

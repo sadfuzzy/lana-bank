@@ -1,4 +1,5 @@
 "use client"
+
 import React from "react"
 import { toast } from "sonner"
 
@@ -9,18 +10,33 @@ import {
   useUserRevokeRoleMutation,
   GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
-import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader } from "@/ui/card"
-import { Checkbox } from "@/ui/check-box"
-import { formatRole } from "@/lib/utils"
+import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { Button } from "@/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/ui/dropdown-menu"
 import { Badge } from "@/ui/badge"
+import { formatDate, formatRole } from "@/lib/utils"
 
 type UserDetailsProps = {
   user: NonNullable<GetUserDetailsQuery["user"]>
   refetch: () => void
 }
 
-const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
+const RolesDropDown = ({
+  userId,
+  roles,
+  refetch,
+}: {
+  userId: string
+  roles: Role[]
+  refetch: () => void
+}) => {
   const [assignRole, { loading: assigning, error: assignRoleError }] =
     useUserAssignRoleMutation({
       refetchQueries: [GetUserDetailsDocument],
@@ -31,9 +47,9 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
     })
 
   const handleRoleChange = async (role: Role) => {
-    if (user.roles.includes(role)) {
+    if (roles.includes(role)) {
       try {
-        await revokeRole({ variables: { input: { id: user.userId, role } } })
+        await revokeRole({ variables: { input: { id: userId, role } } })
         refetch()
         toast.success("Role revoked")
       } catch (err) {
@@ -41,7 +57,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
       }
     } else {
       try {
-        await assignRole({ variables: { input: { id: user.userId, role } } })
+        await assignRole({ variables: { input: { id: userId, role } } })
         refetch()
         toast.success("Role assigned")
       } catch (err) {
@@ -51,43 +67,60 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
   }
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
-        <h2 className="font-semibold leading-none tracking-tight">User</h2>
-        {user.roles.includes(Role.Superuser) && (
-          <Badge variant="success" className="uppercase text-sm">
-            {formatRole(Role.Superuser)}
-          </Badge>
-        )}
-      </CardHeader>
-      <CardContent>
-        <DetailsGroup layout="horizontal" className="grid grid-rows-min">
-          <DetailItem label="Email" value={user.email} />
-          <DetailItem label="User ID" value={user.userId} />
-        </DetailsGroup>
-        <div className="mt-4 grid grid-rows-min">
-          <h3 className="ml-2 font-semibold leading-none tracking-tight">Roles</h3>
-          <div className="ml-2 mt-4 flex space-y-1 flex-col">
-            {Object.values(Role)
-              .filter((role) => role !== Role.Superuser)
-              .map((role) => (
-                <div className="flex flex-row items-center" key={role}>
-                  <Checkbox
-                    id={role}
-                    checked={user.roles.includes(role as Role)}
-                    onCheckedChange={() => handleRoleChange(role as Role)}
-                    disabled={assigning || revoking}
-                  />
-                  <label htmlFor={role} className="ml-2">
-                    {formatRole(role as Role)}
-                  </label>
-                </div>
-              ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">Manage Roles</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel>Roles</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {Object.values(Role)
+          .filter((role) => role !== Role.Superuser)
+          .map((role) => (
+            <DropdownMenuCheckboxItem
+              key={role}
+              checked={roles.includes(role)}
+              onCheckedChange={() => handleRoleChange(role)}
+              disabled={assigning || revoking}
+            >
+              {formatRole(role)}
+            </DropdownMenuCheckboxItem>
+          ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
+}
+
+const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
+  const details: DetailItemType[] = [
+    { label: "Created At", value: formatDate(user.createdAt) },
+    { label: "Email", value: user.email },
+    {
+      label: "Roles",
+      value: (
+        <div className="flex flex-wrap gap-2">
+          {user.roles.length > 0 ? (
+            user.roles.map((role) => (
+              <Badge
+                variant={role === Role.Superuser ? "success" : "secondary"}
+                key={role}
+              >
+                {formatRole(role)}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-muted-foreground">No roles assigned</span>
+          )}
+        </div>
+      ),
+    },
+  ]
+
+  const footer = (
+    <RolesDropDown userId={user.userId} roles={user.roles} refetch={refetch} />
+  )
+
+  return <DetailsCard title="User" details={details} footerContent={footer} columns={3} />
 }
 
 export default UserDetailsCard

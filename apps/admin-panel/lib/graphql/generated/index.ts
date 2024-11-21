@@ -1436,6 +1436,7 @@ export type UsdAccountAmountsInPeriod = {
 
 export type User = {
   __typename?: 'User';
+  createdAt: Scalars['Timestamp']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   roles: Array<Role>;
@@ -1919,7 +1920,7 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, createdAt: any } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
@@ -4618,6 +4619,7 @@ export const GetUserDetailsDocument = gql`
     userId
     email
     roles
+    createdAt
   }
 }
     `;

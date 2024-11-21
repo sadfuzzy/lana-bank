@@ -14,6 +14,7 @@ gql`
       userId
       email
       roles
+      createdAt
     }
   }
 `
