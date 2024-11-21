@@ -6,7 +6,7 @@ import { AddUserCommitteeDialog } from "../add-user"
 
 import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import { formatDate } from "@/lib/utils"
 
 type CommitteeDetailsProps = {

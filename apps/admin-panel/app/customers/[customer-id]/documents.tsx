@@ -5,21 +5,8 @@ import { CgSpinner } from "react-icons/cg"
 
 import { toast } from "sonner"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 
 import {
   GetCustomerDocument,
@@ -28,7 +15,7 @@ import {
   useDocumentDeleteMutation,
   useDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 type DocumentProps = {
   customer: NonNullable<GetCustomerQuery["customer"]>

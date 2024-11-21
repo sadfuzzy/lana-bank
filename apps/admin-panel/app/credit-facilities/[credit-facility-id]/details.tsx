@@ -17,7 +17,7 @@ import {
   CreditFacilityStatus,
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"

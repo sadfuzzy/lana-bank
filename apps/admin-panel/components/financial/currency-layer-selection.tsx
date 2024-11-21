@@ -1,8 +1,8 @@
 import React from "react"
 
 import { Currency } from "../balance/balance"
-import { Label } from "../primitive/label"
-import { RadioGroup, RadioGroupItem } from "../primitive/radio-group"
+import { Label } from "../../ui/label"
+import { RadioGroup, RadioGroupItem } from "../../ui/radio-group"
 
 interface CurrencyLayerSelectionProps {
   currency: Currency

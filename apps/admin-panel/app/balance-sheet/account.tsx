@@ -5,7 +5,7 @@ import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import { AccountSetSubAccount, usePnlAccountSetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { TableCell, TableRow } from "@/components/primitive/table"
+import { TableCell, TableRow } from "@/ui/table"
 import { DateRange } from "@/components/date-range-picker"
 
 export const Account = ({

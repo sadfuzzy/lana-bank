@@ -8,22 +8,15 @@ import { useRouter } from "next/navigation"
 import { ApprovalDialog } from "./approve"
 import { DenialDialog } from "./deny"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
-import { Card, CardContent } from "@/components/primitive/card"
-import { Button } from "@/components/primitive/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+import { Card, CardContent } from "@/ui/card"
+import { Button } from "@/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
+} from "@/ui/dropdown-menu"
 import { PageHeading } from "@/components/page-heading"
 import { ApprovalProcess, useApprovalProcessesQuery } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"

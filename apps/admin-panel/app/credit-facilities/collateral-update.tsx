@@ -9,9 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
-import { Input } from "@/components/primitive/input"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
+import { Input } from "@/ui/input"
 import {
   GetCreditFacilityDetailsDocument,
   useCreditFacilityCollateralUpdateMutation,
@@ -20,7 +20,7 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { Label } from "@/components/primitive/label"
+import { Label } from "@/ui/label"
 import { Satoshis } from "@/types"
 
 gql`

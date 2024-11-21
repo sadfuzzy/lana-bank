@@ -12,7 +12,7 @@ import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
-} from "@/components/new/paginated-table"
+} from "@/components/paginated-table"
 
 import Balance from "@/components/balance/balance"
 

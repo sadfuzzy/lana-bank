@@ -1,4 +1,4 @@
-import { Skeleton } from "./primitive/skeleton"
+import { Skeleton } from "../ui/skeleton"
 
 export const CardSkeleton = () => (
   <div className="w-full p-6 border rounded-lg">

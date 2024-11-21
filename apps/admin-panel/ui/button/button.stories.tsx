@@ -1,7 +1,7 @@
 import React from "react"
 import { Meta, StoryFn } from "@storybook/react"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 export default {
   title: "Components/Button",

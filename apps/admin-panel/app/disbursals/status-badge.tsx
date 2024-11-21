@@ -1,4 +1,4 @@
-import { Badge, BadgeProps } from "@/components/primitive/badge"
+import { Badge, BadgeProps } from "@/ui/badge"
 import { DisbursalStatus } from "@/lib/graphql/generated"
 
 interface StatusBadgeProps extends BadgeProps {

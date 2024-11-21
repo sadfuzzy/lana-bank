@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
+} from "@/ui/dropdown-menu"
 
 export type TimeRange =
   | "LastDay"

@@ -9,7 +9,7 @@ import {
   AccountSetSubAccount,
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
-import { TableCell, TableRow } from "@/components/primitive/table"
+import { TableCell, TableRow } from "@/ui/table"
 import { DateRange } from "@/components/date-range-picker"
 
 gql`

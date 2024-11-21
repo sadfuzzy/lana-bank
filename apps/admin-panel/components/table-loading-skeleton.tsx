@@ -1,5 +1,5 @@
-import { Skeleton } from "./primitive/skeleton"
-import { Table, TableBody, TableCell, TableRow } from "./primitive/table"
+import { Skeleton } from "../ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "../ui/table"
 
 export const TableLoadingSkeleton = ({
   rows = 10,

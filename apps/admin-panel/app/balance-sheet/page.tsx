@@ -10,21 +10,15 @@ import {
   useBalanceSheetQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
+import { Table, TableBody, TableCell, TableRow } from "@/ui/table"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
   DateRange,
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Skeleton } from "@/ui/skeleton"
 import { Satoshis, SignedSatoshis, SignedUsdCents, UsdCents } from "@/types"
 
 gql`

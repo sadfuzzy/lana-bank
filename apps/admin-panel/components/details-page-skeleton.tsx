@@ -1,4 +1,4 @@
-import { Skeleton } from "./primitive/skeleton"
+import { Skeleton } from "../ui/skeleton"
 
 export const DetailsPageSkeleton = ({
   tabs = 2,

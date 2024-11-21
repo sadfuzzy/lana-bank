@@ -2,21 +2,8 @@
 
 import { useRouter } from "next/navigation"
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import Balance from "@/components/balance/balance"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"

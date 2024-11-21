@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react"
 import { getCsrfToken } from "next-auth/react"
 
-import { Input } from "@/components/new"
+import { Input } from "@/components/input"
 import { basePath } from "@/env"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 const Login: React.FC = () => {
   const [csrfToken, setCsrfToken] = useState<string | null>(null)

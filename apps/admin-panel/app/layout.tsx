@@ -11,7 +11,6 @@ import { AuthSessionProvider } from "./session-provider"
 import CreateButton, { CreateContextProvider } from "./create"
 import NavBar from "./navbar"
 
-import { Toast } from "@/components/new/toast"
 import { RealtimePriceUpdates } from "@/components/realtime-price"
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 
@@ -19,6 +18,7 @@ import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
 
 // eslint-disable-next-line import/no-unassigned-import
 import "@/lib/ui/globals.css"
+import { Toast } from "@/components/toast"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",

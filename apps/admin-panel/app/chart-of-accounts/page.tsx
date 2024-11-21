@@ -5,9 +5,9 @@ import { ApolloError, gql } from "@apollo/client"
 
 import { Account } from "./accounts"
 
-import { Skeleton } from "@/components/primitive/skeleton"
-import { Table, TableBody, TableCell, TableRow } from "@/components/primitive/table"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
+import { Skeleton } from "@/ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "@/ui/table"
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/ui/tab"
 import {
   AccountAmountsByCurrency,
   GetOffBalanceSheetChartOfAccountsQuery,
@@ -16,13 +16,7 @@ import {
   useGetOnBalanceSheetChartOfAccountsQuery,
 } from "@/lib/graphql/generated"
 import { DateRange, getInitialDateRange } from "@/components/date-range-picker"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 
 gql`
   query GetOnBalanceSheetChartOfAccounts {

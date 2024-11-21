@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
 
 type TermsTemplateDetailsProps = {

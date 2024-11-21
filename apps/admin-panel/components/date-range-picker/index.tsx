@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react"
 
-import { Input } from "../primitive/input"
-import { Button } from "../primitive/button"
+import { Input } from "../../ui/input"
+import { Button } from "../../ui/button"
 import {
   Dialog,
   DialogContent,
@@ -9,8 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "../primitive/dialog"
-import { Label } from "../primitive/label"
+} from "../../ui/dialog"
+import { Label } from "../../ui/label"
 
 type DateRangeSelectorProps = {
   initialDateRange: DateRange

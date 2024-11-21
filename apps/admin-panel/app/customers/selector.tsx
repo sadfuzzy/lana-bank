@@ -1,16 +1,11 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/primitive/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog"
 import { Customer, useCustomersQuery } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
   Column,
   DEFAULT_PAGESIZE,
   PaginatedData,
-} from "@/components/new/paginated-table"
+} from "@/components/paginated-table"
 
 type CustomerSelectorProps = {
   show: boolean

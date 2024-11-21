@@ -5,14 +5,7 @@ import { gql } from "@apollo/client"
 import { PageHeading } from "@/components/page-heading"
 import { useAuditLogsQuery } from "@/lib/graphql/generated"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { formatDate } from "@/lib/utils"
 
 gql`

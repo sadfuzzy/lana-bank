@@ -5,11 +5,12 @@ import { motion, AnimatePresence } from "framer-motion"
 import { gql } from "@apollo/client"
 import { signOut } from "next-auth/react"
 
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Skeleton } from "@/ui/skeleton"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import { useAvatarQuery } from "@/lib/graphql/generated"
-import { ID, Pill } from "@/components/new"
+import { ID } from "@/components/id"
+import { Badge } from "@/ui/badge"
 
 const animationProps = {
   initial: { opacity: 0, y: -10 },
@@ -84,9 +85,7 @@ const Avatar = () => {
     >
       <div className="flex flex-wrap gap-2">
         {userRoles.map((role) => (
-          <Pill className="!text-[10px] py-0" key={role} color="brown" border>
-            {role}
-          </Pill>
+          <Badge key={role}>{role}</Badge>
         ))}
       </div>
       <div className="flex items-center justify-center space-x-2">

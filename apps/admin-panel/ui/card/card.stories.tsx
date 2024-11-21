@@ -2,7 +2,7 @@
 import React from "react"
 import { Meta, StoryFn } from "@storybook/react"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardDescription,
   CardContent,
   CardFooter,
-} from "@/components/primitive/card"
+} from "@/ui/card"
 
 export default {
   title: "Components/Card",

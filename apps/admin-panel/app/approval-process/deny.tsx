@@ -8,8 +8,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
 import {
   ApprovalProcess,
   CreditFacilitiesDocument,
@@ -19,7 +19,7 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
-import { Textarea } from "@/components/primitive/textarea"
+import { Textarea } from "@/ui/textarea"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {

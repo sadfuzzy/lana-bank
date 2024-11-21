@@ -10,13 +10,7 @@ import {
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableFooter,
-  TableRow,
-} from "@/components/primitive/table"
+import { Table, TableBody, TableCell, TableFooter, TableRow } from "@/ui/table"
 
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
@@ -24,14 +18,8 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Skeleton } from "@/ui/skeleton"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {

@@ -2,16 +2,9 @@
 
 import React from "react"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { cn } from "@/lib/utils"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Skeleton } from "@/ui/skeleton"
 
 export type Column<T> = {
   [K in keyof T]: {

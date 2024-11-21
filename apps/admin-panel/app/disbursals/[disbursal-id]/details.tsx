@@ -6,7 +6,7 @@ import Link from "next/link"
 import { DisbursalStatusBadge } from "../status-badge"
 
 import DetailsCard, { DetailItemType } from "@/components/details-card"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
   ApprovalProcess,

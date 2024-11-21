@@ -5,7 +5,7 @@ import { CommitteeAssignmentDialog } from "./assign-to-committee"
 
 import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { ApprovalRules, GetPolicyDetailsQuery } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import { formatRule, formatProcessType } from "@/lib/utils"
 
 type PolicyDetailsProps = {

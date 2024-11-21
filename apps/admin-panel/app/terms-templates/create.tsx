@@ -9,17 +9,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
+} from "@/ui/dialog"
 import {
   useCreateTermsTemplateMutation,
   InterestInterval,
   Period,
   TermsTemplatesDocument,
 } from "@/lib/graphql/generated"
-import { Input } from "@/components/primitive/input"
-import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
-import { Select } from "@/components/primitive/select"
+import { Input } from "@/ui/input"
+import { Button } from "@/ui/button"
+import { Label } from "@/ui/label"
+import { Select } from "@/ui/select"
 import { formatInterval, formatPeriod } from "@/lib/utils"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 

@@ -7,7 +7,7 @@ import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { AccountStatus, GetCustomerQuery } from "@/lib/graphql/generated"
-import { Badge } from "@/components/primitive/badge"
+import { Badge } from "@/ui/badge"
 import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {

@@ -7,8 +7,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
-import { Button } from "@/components/primitive/button"
+} from "@/ui/dropdown-menu"
+import { Button } from "@/ui/button"
 import { WithdrawalStatus } from "@/lib/graphql/generated"
 
 interface WithdrawalDropdownProps {

@@ -10,7 +10,7 @@ import { KycStatus } from "./kyc-status"
 import { Documents } from "./documents"
 import { CustomerCreditFacilitiesTable } from "./credit-facilities"
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tab"
 import { Customer as CustomerType, useGetCustomerQuery } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
 import { BreadCrumbWrapper, BreadcrumbLink } from "@/components/breadcrumb-wrapper"

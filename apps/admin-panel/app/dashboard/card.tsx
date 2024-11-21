@@ -5,21 +5,10 @@ import { HiArrowRight } from "react-icons/hi"
 
 import { ReactNode } from "react"
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/primitive/card"
-import { Button } from "@/components/primitive/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/card"
+import { Button } from "@/ui/button"
 
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/primitive/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
 
 type DashboardCardProps = {
   h1?: ReactNode

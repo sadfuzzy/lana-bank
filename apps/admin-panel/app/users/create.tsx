@@ -9,19 +9,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
+} from "@/ui/dialog"
 import {
   Role,
   UsersDocument,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
-import { Input } from "@/components/primitive/input"
-import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
+import { Input } from "@/ui/input"
+import { Button } from "@/ui/button"
+import { Label } from "@/ui/label"
 import { sendMagicLinkToEmail } from "@/lib/user/server-actions/send-magic-link"
 import { formatRole } from "@/lib/utils"
-import { Checkbox } from "@/components/primitive/check-box"
+import { Checkbox } from "@/ui/check-box"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`

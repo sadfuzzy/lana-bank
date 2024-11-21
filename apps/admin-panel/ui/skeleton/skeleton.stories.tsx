@@ -1,7 +1,7 @@
 import React from "react"
 import { Meta, StoryFn } from "@storybook/react"
 
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Skeleton } from "@/ui/skeleton"
 
 export default {
   title: "Components/Skeleton",

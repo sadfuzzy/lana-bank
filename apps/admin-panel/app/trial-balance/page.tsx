@@ -17,8 +17,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/primitive/table"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/primitive/tab"
+} from "@/ui/table"
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/ui/tab"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
@@ -27,14 +27,8 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Skeleton } from "@/ui/skeleton"
 
 gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {

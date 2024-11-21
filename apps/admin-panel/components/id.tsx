@@ -23,4 +23,4 @@ const ID: React.FC<IDProps> = ({ id, type }) => {
   )
 }
 
-export default ID
+export { ID }

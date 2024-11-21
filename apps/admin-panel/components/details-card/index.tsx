@@ -11,9 +11,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
+} from "@/ui/card"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { Separator } from "@/components/primitive/separator"
+import { Separator } from "@/ui/separator"
 
 const footerVariants = cva("pt-4 pb-4 gap-4", {
   variants: {

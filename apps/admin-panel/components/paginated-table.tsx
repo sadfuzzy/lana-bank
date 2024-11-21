@@ -11,24 +11,17 @@ import {
   HiFilter,
 } from "react-icons/hi"
 
-import { Separator } from "../primitive/separator"
+import { Separator } from "../ui/separator"
 
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
-} from "@/components/primitive/dropdown-menu"
-import { Button } from "@/components/primitive/button"
-import { Skeleton } from "@/components/primitive/skeleton"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
+} from "@/ui/dropdown-menu"
+import { Button } from "@/ui/button"
+import { Skeleton } from "@/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 
 export type Column<T> = {
   [K in keyof T]: {

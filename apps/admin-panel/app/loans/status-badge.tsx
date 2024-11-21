@@ -1,4 +1,4 @@
-import { Badge, BadgeProps } from "@/components/primitive/badge"
+import { Badge, BadgeProps } from "@/ui/badge"
 import { CreditFacilityStatus } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
 

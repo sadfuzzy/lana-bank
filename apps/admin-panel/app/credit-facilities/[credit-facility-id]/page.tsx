@@ -14,7 +14,7 @@ import { CreditFacilityDisbursals } from "./disbursals"
 import { CreditFacilityTransactions } from "./transactions"
 
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/primitive/tab"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tab"
 import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 

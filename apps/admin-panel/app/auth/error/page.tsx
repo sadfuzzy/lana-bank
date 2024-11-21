@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 const Error: React.FC = () => (
   <>

@@ -9,8 +9,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
 import { useReportCreateMutation } from "@/lib/graphql/generated"
 
 gql`

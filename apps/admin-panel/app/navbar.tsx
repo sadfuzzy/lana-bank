@@ -28,10 +28,10 @@ import {
 
 import Avatar from "./avatar"
 
-import { Logo } from "@/components/new"
+import { Logo } from "@/components/logo"
 import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Skeleton } from "@/ui/skeleton"
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false)

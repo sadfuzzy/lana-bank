@@ -8,7 +8,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
+} from "@/ui/dialog"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"

@@ -16,7 +16,7 @@ import {
   useUsersQuery,
 } from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -25,15 +25,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
-import { Badge } from "@/components/primitive/badge"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+} from "@/ui/dropdown-menu"
+import { Badge } from "@/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 
 gql`

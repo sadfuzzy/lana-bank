@@ -9,15 +9,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
 import {
   CommitteesDocument,
   GetCommitteeDetailsDocument,
   useCommitteeAddUserMutation,
   useUsersQuery,
 } from "@/lib/graphql/generated"
-import { Select } from "@/components/primitive/select"
+import { Select } from "@/ui/select"
 import { formatRole } from "@/lib/utils"
 
 gql`

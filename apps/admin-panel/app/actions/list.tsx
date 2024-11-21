@@ -5,21 +5,8 @@ import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
 import { useRouter } from "next/navigation"
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/primitive/table"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/primitive/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 import {
   ApprovalProcessStatus,
   ApprovalProcessType,

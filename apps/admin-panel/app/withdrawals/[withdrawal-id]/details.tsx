@@ -7,7 +7,7 @@ import { WithdrawalConfirmDialog } from "../confirm"
 import { WithdrawalCancelDialog } from "../cancel"
 
 import DetailsCard, { DetailItemType } from "@/components/details-card"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
   ApprovalProcess,

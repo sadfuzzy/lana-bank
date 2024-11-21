@@ -10,17 +10,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
-import { Select } from "@/components/primitive/select"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
+import { Select } from "@/ui/select"
 import {
   PoliciesDocument,
   GetPolicyDetailsDocument,
   useCommitteesQuery,
   usePolicyAssignCommitteeMutation,
 } from "@/lib/graphql/generated"
-import { Input } from "@/components/primitive/input"
-import { Label } from "@/components/primitive/label"
+import { Input } from "@/ui/input"
+import { Label } from "@/ui/label"
 
 gql`
   mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {

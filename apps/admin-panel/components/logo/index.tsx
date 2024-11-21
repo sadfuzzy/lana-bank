@@ -15,4 +15,4 @@ const Logo: React.FC<LogoProps> = ({ variant = "neutral", className, width }) =>
   return <LogoSrc className={className} width={width} />
 }
 
-export default Logo
+export { Logo }

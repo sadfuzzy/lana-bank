@@ -1,7 +1,7 @@
 import React from "react"
 import { Meta, StoryFn } from "@storybook/react"
 
-import { Select, SelectProps } from "@/components/primitive/select"
+import { Select, SelectProps } from "@/ui/select"
 
 export default {
   title: "Components/Select",

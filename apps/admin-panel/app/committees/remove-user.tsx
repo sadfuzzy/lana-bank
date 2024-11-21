@@ -10,14 +10,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
+} from "@/ui/dialog"
 import {
   CommitteesDocument,
   GetCommitteeDetailsDocument,
   GetPolicyDetailsDocument,
   useCommitteeRemoveUserMutation,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 
 gql`
   mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {

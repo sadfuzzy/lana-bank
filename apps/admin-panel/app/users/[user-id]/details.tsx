@@ -10,10 +10,10 @@ import {
   GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader } from "@/components/primitive/card"
-import { Checkbox } from "@/components/primitive/check-box"
+import { Card, CardContent, CardHeader } from "@/ui/card"
+import { Checkbox } from "@/ui/check-box"
 import { formatRole } from "@/lib/utils"
-import { Badge } from "@/components/primitive/badge"
+import { Badge } from "@/ui/badge"
 
 type UserDetailsProps = {
   user: NonNullable<GetUserDetailsQuery["user"]>

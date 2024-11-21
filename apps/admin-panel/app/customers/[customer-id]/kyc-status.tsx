@@ -9,7 +9,7 @@ import {
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
 import DetailsCard, { DetailItemType } from "@/components/details-card"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Skeleton } from "@/ui/skeleton"
 import { removeUnderscore } from "@/lib/utils"
 
 gql`

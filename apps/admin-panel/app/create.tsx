@@ -16,13 +16,13 @@ import { CreateCommitteeDialog } from "./committees/create"
 import CustomerSelector from "./customers/selector"
 
 import { CreditFacility, Customer } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/primitive/dropdown-menu"
+} from "@/ui/dropdown-menu"
 
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)

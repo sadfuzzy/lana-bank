@@ -10,11 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
+} from "@/ui/dialog"
 import { CommitteesDocument, useCreateCommitteeMutation } from "@/lib/graphql/generated"
-import { Input } from "@/components/primitive/input"
-import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
+import { Input } from "@/ui/input"
+import { Button } from "@/ui/button"
+import { Label } from "@/ui/label"
 
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 

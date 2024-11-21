@@ -1,7 +1,7 @@
 import React from "react"
 import { Meta, StoryFn } from "@storybook/react"
 
-import { Separator } from "@/components/primitive/separator"
+import { Separator } from "@/ui/separator"
 
 export default {
   title: "Components/Separator",

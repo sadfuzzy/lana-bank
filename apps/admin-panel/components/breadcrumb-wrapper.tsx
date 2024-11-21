@@ -7,7 +7,7 @@ import {
   BreadcrumbLink,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/primitive/breadcrumb"
+} from "@/ui/breadcrumb"
 
 interface BaseBreadcrumbLink {
   title: string

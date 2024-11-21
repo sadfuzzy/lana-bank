@@ -6,23 +6,17 @@ import { PiWarningCircleFill, PiCheckCircleFill } from "react-icons/pi"
 
 import { ReportCreateDialog } from "./create-dialog"
 
-import { Select } from "@/components/primitive/select"
+import { Select } from "@/ui/select"
 import {
   ReportProgress,
   useReportDownloadLinksMutation,
   useReportsQuery,
   Report,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
+import { Button } from "@/ui/button"
 import { formatDate } from "@/lib/utils"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
-import { Skeleton } from "@/components/primitive/skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import { Skeleton } from "@/ui/skeleton"
 
 gql`
   query Reports {

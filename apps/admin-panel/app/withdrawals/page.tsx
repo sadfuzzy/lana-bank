@@ -4,13 +4,7 @@ import WithdrawalsList from "./list"
 
 import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/primitive/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 
 const Withdrawals: React.FC = () => (
   <>

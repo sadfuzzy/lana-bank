@@ -9,10 +9,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Button } from "@/components/primitive/button"
-import { Input } from "@/components/primitive/input"
-import { Label } from "@/components/primitive/label"
+} from "@/ui/dialog"
+import { Button } from "@/ui/button"
+import { Input } from "@/ui/input"
+import { Label } from "@/ui/label"
 import {
   GetCreditFacilityDetailsDocument,
   useCreditFacilityPartialPaymentMutation,

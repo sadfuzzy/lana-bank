@@ -2,7 +2,7 @@
 
 import Carausel from "./carausel"
 
-import { Logo } from "@/components/new"
+import { Logo } from "@/components/logo"
 
 const AuthLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <div className="flex flex-col lg:flex-row p-[40px] lg:space-x-[10px] space-y-[10px] lg:space-y-0 h-full">

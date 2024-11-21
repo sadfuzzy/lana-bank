@@ -11,10 +11,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
-import { Button } from "@/components/primitive/button"
-import { Label } from "@/components/primitive/label"
+} from "@/ui/dialog"
+import { Input } from "@/ui/input"
+import { Button } from "@/ui/button"
+import { Label } from "@/ui/label"
 import {
   AllActionsDocument,
   CustomersDocument,

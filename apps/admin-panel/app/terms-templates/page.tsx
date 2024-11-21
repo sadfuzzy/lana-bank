@@ -7,13 +7,7 @@ import { useRouter } from "next/navigation"
 import DataTable, { Column } from "../data-table"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import { formatPeriod } from "@/lib/utils"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
 import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"

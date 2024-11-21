@@ -12,9 +12,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
-import { Label } from "@/components/primitive/label"
+} from "@/ui/dialog"
+import { Input } from "@/ui/input"
+import { Label } from "@/ui/label"
 import {
   AllActionsDocument,
   CreditFacilitiesDocument,
@@ -24,8 +24,8 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/components/primitive/button"
-import { Select } from "@/components/primitive/select"
+import { Button } from "@/ui/button"
+import { Select } from "@/ui/select"
 import {
   formatInterval,
   formatPeriod,
