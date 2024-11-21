@@ -2,7 +2,7 @@
 
 import React from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import {
   GetCreditFacilityDetailsQuery,
@@ -124,17 +124,12 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
   ]
 
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle>Transactions</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={creditFacility.transactions}
-          columns={columns}
-          emptyMessage="No transactions found"
-        />
-      </CardContent>
-    </Card>
+    <CardWrapper title="Transactions" description="Credit Facility Transactions">
+      <DataTable
+        data={creditFacility.transactions}
+        columns={columns}
+        emptyMessage="No transactions found"
+      />
+    </CardWrapper>
   )
 }

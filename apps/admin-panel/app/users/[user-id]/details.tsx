@@ -9,7 +9,7 @@ import {
   useUserRevokeRoleMutation,
   GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
-import { DetailItem } from "@/components/details"
+import { DetailItem, DetailsGroup } from "@/components/details"
 import { Card, CardContent, CardHeader } from "@/components/primitive/card"
 import { Checkbox } from "@/components/primitive/check-box"
 import { formatRole } from "@/lib/utils"
@@ -61,10 +61,10 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
         )}
       </CardHeader>
       <CardContent>
-        <div className="grid grid-rows-min">
+        <DetailsGroup layout="horizontal" className="grid grid-rows-min">
           <DetailItem label="Email" value={user.email} />
           <DetailItem label="User ID" value={user.userId} />
-        </div>
+        </DetailsGroup>
         <div className="mt-4 grid grid-rows-min">
           <h3 className="ml-2 font-semibold leading-none tracking-tight">Roles</h3>
           <div className="ml-2 mt-4 flex space-y-1 flex-col">

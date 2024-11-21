@@ -535,6 +535,7 @@ export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
   balance: CustomerBalance;
+  createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
@@ -1749,7 +1750,7 @@ export type GetCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null, subjectCanRecordDeposit: boolean, subjectCanInitiateWithdrawal: boolean, subjectCanCreateCreditFacility: boolean, createdAt: any, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }>, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, createdAt: any, withdrawalId: string, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }>, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -3447,6 +3448,7 @@ export const GetCustomerDocument = gql`
     subjectCanRecordDeposit
     subjectCanInitiateWithdrawal
     subjectCanCreateCreditFacility
+    createdAt
     balance {
       checking {
         settled

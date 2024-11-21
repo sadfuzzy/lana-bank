@@ -1,10 +1,9 @@
 "use client"
 
 import React from "react"
-
 import { useRouter } from "next/navigation"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
@@ -47,21 +46,17 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
 
   return (
     <>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>Disbursals</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={creditFacility.disbursals}
-            columns={columns}
-            emptyMessage="No disbursals found"
-            onRowClick={(disbursal) =>
-              router.push(`/disbursals/${disbursal.disbursalId}`)
-            }
-          />
-        </CardContent>
-      </Card>
+      <CardWrapper
+        title="Disbursals"
+        description="Disbursals associated with this credit facility"
+      >
+        <DataTable
+          data={creditFacility.disbursals}
+          columns={columns}
+          emptyMessage="No disbursals found"
+          onRowClick={(disbursal) => router.push(`/disbursals/${disbursal.disbursalId}`)}
+        />
+      </CardWrapper>
     </>
   )
 }

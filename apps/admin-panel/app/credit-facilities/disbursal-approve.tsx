@@ -1,8 +1,12 @@
+"use client"
+
 import React from "react"
-import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
 
 import ApprovalDialog from "../approval-process/approve"
+
 import DenialDialog from "../approval-process/deny"
+
+import { VotersCard } from "../disbursals/[disbursal-id]/voters"
 
 import {
   Dialog,
@@ -19,9 +23,8 @@ import {
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
-import { formatDate, formatRole } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 
 type CreditFacilityDisbursalApproveDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
@@ -37,12 +40,12 @@ type CreditFacilityDisbursalApproveDialogProps = {
 export const CreditFacilityDisbursalApproveDialog: React.FC<
   CreditFacilityDisbursalApproveDialogProps
 > = ({ setOpenDialog, openDialog, disbursal, refetch }) => {
+  const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
+  const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
+
   const handleCloseDialog = () => {
     setOpenDialog(false)
   }
-
-  const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
-  const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
@@ -65,66 +68,7 @@ export const CreditFacilityDisbursalApproveDialog: React.FC<
             value={formatDate(disbursal.createdAt)}
           />
         </DetailsGroup>
-        <>
-          {disbursal.approvalProcess.rules.__typename === "CommitteeThreshold" && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-primary font-normal">
-                  Approval process decision from the{" "}
-                  {disbursal.approvalProcess.rules.committee.name} Committee
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {disbursal.approvalProcess.voters
-                  .filter((voter) => {
-                    if (
-                      disbursal?.approvalProcess.status ===
-                        ApprovalProcessStatus.InProgress ||
-                      ([
-                        ApprovalProcessStatus.Approved,
-                        ApprovalProcessStatus.Denied,
-                      ].includes(
-                        disbursal?.approvalProcess.status as ApprovalProcessStatus,
-                      ) &&
-                        voter.didVote)
-                    ) {
-                      return true
-                    }
-                    return false
-                  })
-                  .map((voter) => (
-                    <div
-                      key={voter.user.userId}
-                      className="flex items-center space-x-3 p-2"
-                    >
-                      {voter.didApprove ? (
-                        <FaCheckCircle className="h-6 w-6 text-green-500" />
-                      ) : voter.didDeny ? (
-                        <FaBan className="h-6 w-6 text-red-500" />
-                      ) : !voter.didVote ? (
-                        <FaQuestion className="h-6 w-6 text-textColor-secondary" />
-                      ) : (
-                        <>{/* Impossible */}</>
-                      )}
-                      <div>
-                        <p className="text-sm font-medium">{voter.user.email}</p>
-                        <p className="text-sm text-textColor-secondary">
-                          {voter.user.roles.map(formatRole).join(", ")}
-                        </p>
-                        {
-                          <p className="text-xs text-textColor-secondary">
-                            {voter.didApprove && "Approved"}
-                            {voter.didDeny && "Denied"}
-                            {!voter.didVote && "Has not voted yet"}
-                          </p>
-                        }
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
-          )}
-        </>
+        <VotersCard approvalProcess={disbursal.approvalProcess} />
         <DialogFooter>
           {disbursal.approvalProcess.status === ApprovalProcessStatus.InProgress &&
             disbursal.approvalProcess.subjectCanSubmitDecision && (
@@ -139,6 +83,7 @@ export const CreditFacilityDisbursalApproveDialog: React.FC<
             )}
         </DialogFooter>
       </DialogContent>
+
       <ApprovalDialog
         approvalProcess={disbursal.approvalProcess as ApprovalProcess}
         openApprovalDialog={openApprovalDialog}

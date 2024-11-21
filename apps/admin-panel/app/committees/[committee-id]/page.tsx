@@ -59,7 +59,7 @@ function CommitteePage({
     <main className="max-w-7xl m-auto">
       <CommitteeBreadcrumb committeeName={data.committee.name} />
       <CommitteeDetailsCard committee={data.committee} />
-      <div className="mt-4">
+      <div className="mt-2">
         <CommitteeUsers committee={data.committee} />
       </div>
     </main>

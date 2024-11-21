@@ -5,7 +5,13 @@ import { CgSpinner } from "react-icons/cg"
 
 import { toast } from "sonner"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import {
   Table,
   TableBody,
@@ -104,12 +110,15 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
   )
 
   return (
-    <Card className="mt-4">
+    <Card>
       <CardHeader>
         <CardTitle>Documents</CardTitle>
+        <CardDescription>Documents for this Customer</CardDescription>
       </CardHeader>
       {documents.length === 0 ? (
-        <CardContent>No documents found for this customer</CardContent>
+        <CardContent className="text-sm">
+          No documents found for this customer
+        </CardContent>
       ) : (
         <CardContent>
           <Table>
@@ -238,7 +247,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   return (
     <div {...getRootProps()}>
       <input {...getInputProps()} id="fileInput" disabled={loading} />
-      <Card className="mt-4 cursor-pointer">
+      <Card className="mt-2 cursor-pointer">
         <CardContent className="p-6 flex justify-center items-center w-full h-20">
           {loading ? (
             <CgSpinner className="animate-spin h-5 w-5" />

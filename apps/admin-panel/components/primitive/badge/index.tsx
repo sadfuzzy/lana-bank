@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-xl border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
+  "inline-flex items-center justify-center rounded-sm border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2",
   {
     variants: {
       variant: {
@@ -39,7 +39,7 @@ function Badge({ className, variant, blink, ...props }: BadgeProps) {
     >
       {blink && (
         <span
-          className={cn("mr-1 h-2 w-2 rounded-full animate-pulse", {
+          className={cn("mr-1 h-2 w-2 animate-pulse", {
             "bg-[#25ff08]": variant === "success",
             "bg-[#15c4ff]": variant === "default",
             "bg-[#6c757d]": variant === "secondary",

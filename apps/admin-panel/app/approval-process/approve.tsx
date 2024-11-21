@@ -87,7 +87,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Approve Process</DialogTitle>
         </DialogHeader>
-        <DetailsGroup>
+        <DetailsGroup layout="horizontal">
           <DetailItem
             label="Process Type"
             value={formatProcessType(approvalProcess?.approvalProcessType)}

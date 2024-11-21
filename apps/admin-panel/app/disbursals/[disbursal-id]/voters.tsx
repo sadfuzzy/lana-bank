@@ -1,26 +1,44 @@
 "use client"
 import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-import { ApprovalProcessStatus, GetDisbursalDetailsQuery } from "@/lib/graphql/generated"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
+import {
+  ApprovalProcessStatus,
+  GetDisbursalDetailsQuery,
+  GetWithdrawalDetailsQuery,
+} from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
 
 export const VotersCard = ({
   approvalProcess,
 }: {
-  approvalProcess: NonNullable<GetDisbursalDetailsQuery["disbursal"]>["approvalProcess"]
+  approvalProcess:
+    | NonNullable<GetDisbursalDetailsQuery["disbursal"]>["approvalProcess"]
+    | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
+    | null
 }) => {
+  if (!approvalProcess) {
+    return null
+  }
+
   if (approvalProcess?.rules.__typename !== "CommitteeThreshold") {
     return null
   }
 
   return (
-    <Card className="mt-4">
+    <Card className="mt-2">
       <CardHeader>
         <CardTitle>
           Approval process decision from the {approvalProcess.rules.committee?.name}{" "}
           Committee
         </CardTitle>
+        <CardDescription>Users who can approve the process</CardDescription>
       </CardHeader>
       <CardContent>
         {approvalProcess.voters

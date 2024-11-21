@@ -4,9 +4,8 @@ import React from "react"
 
 import { AddUserCommitteeDialog } from "../add-user"
 
+import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { DetailItem, DetailsGroup } from "@/components/details"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
 import { formatDate } from "@/lib/utils"
 
@@ -17,38 +16,32 @@ type CommitteeDetailsProps = {
 export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committee }) => {
   const [openAddUserDialog, setOpenAddUserDialog] = React.useState(false)
 
-  return (
-    <div className="flex">
-      <Card className="w-full">
-        <CardHeader className="flex-row justify-between items-center">
-          <CardTitle>Committee</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DetailsGroup>
-            <DetailItem label="Name" value={committee.name} />
-            <DetailItem label="Created At" value={formatDate(committee.createdAt)} />
-            <DetailItem label="Total Members" value={committee.currentMembers.length} />
-          </DetailsGroup>
-        </CardContent>
-      </Card>
+  const details: DetailItemType[] = [
+    { label: "Created At", value: formatDate(committee.createdAt) },
+    { label: "Name", value: committee.name },
+    { label: "Total Members", value: committee.currentMembers.length },
+  ]
 
-      <div className="flex flex-col space-y-2 mt-1 ml-4">
-        <>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => setOpenAddUserDialog(true)}
-          >
-            Add Member
-          </Button>
-        </>
-      </div>
+  const footerContent = (
+    <Button variant="outline" onClick={() => setOpenAddUserDialog(true)}>
+      Add Member
+    </Button>
+  )
+
+  return (
+    <>
+      <DetailsCard
+        title="Committee"
+        details={details}
+        footerContent={footerContent}
+        className="w-full"
+      />
 
       <AddUserCommitteeDialog
         committeeId={committee.committeeId}
         openAddUserDialog={openAddUserDialog}
         setOpenAddUserDialog={setOpenAddUserDialog}
       />
-    </div>
+    </>
   )
 }

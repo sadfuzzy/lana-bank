@@ -2,14 +2,7 @@
 import React, { useState } from "react"
 
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
-import { DetailItem, DetailsGroup } from "@/components/details"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { Button } from "@/components/primitive/button"
 import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
@@ -26,6 +19,47 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState(false)
 
+  const details: DetailItemType[] = [
+    { label: "Name", value: termsTemplate.name },
+    { label: "Created At", value: formatDate(termsTemplate.createdAt) },
+    {
+      label: "Duration",
+      value: `${termsTemplate.values.duration.units} ${formatPeriod(
+        termsTemplate.values.duration.period,
+      )}`,
+    },
+    {
+      label: "Accrual Interval",
+      value: formatInterval(termsTemplate.values.accrualInterval),
+    },
+    {
+      label: "Incurrence Interval",
+      value: formatInterval(termsTemplate.values.incurrenceInterval),
+    },
+    {
+      label: "Annual Rate",
+      value: `${termsTemplate.values.annualRate}%`,
+    },
+    {
+      label: "Initial CVL",
+      value: `${termsTemplate.values.initialCvl}%`,
+    },
+    {
+      label: "Margin Call CVL",
+      value: `${termsTemplate.values.marginCallCvl}%`,
+    },
+    {
+      label: "Liquidation CVL",
+      value: `${termsTemplate.values.liquidationCvl}%`,
+    },
+  ]
+
+  const footerContent = (
+    <Button variant="outline" onClick={() => setOpenUpdateTermsTemplateDialog(true)}>
+      Update
+    </Button>
+  )
+
   return (
     <>
       <UpdateTermsTemplateDialog
@@ -35,53 +69,12 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
         refetch={refetch}
       />
 
-      <Card>
-        <CardHeader className="flex flex-row justify-between items-center">
-          <div className="flex flex-col gap-1">
-            <CardTitle className="flex flex-col space-y-1.5">
-              {termsTemplate.name}
-            </CardTitle>
-            <CardDescription className="text-sm text-textColor-secondary">
-              {termsTemplate.termsId}
-            </CardDescription>
-          </div>
-          <Button onClick={() => setOpenUpdateTermsTemplateDialog(true)}>Update</Button>
-        </CardHeader>
-
-        <CardContent>
-          <DetailsGroup>
-            <DetailItem label="Created At" value={formatDate(termsTemplate.createdAt)} />
-            <DetailItem
-              label="Duration"
-              value={`${termsTemplate.values.duration.units} ${formatPeriod(termsTemplate.values.duration.period)}`}
-            />
-            <DetailItem
-              label="Accrual Interval"
-              value={formatInterval(termsTemplate.values.accrualInterval)}
-            />
-            <DetailItem
-              label="Incurrence Interval"
-              value={formatInterval(termsTemplate.values.incurrenceInterval)}
-            />
-            <DetailItem
-              label="Annual Rate"
-              value={`${termsTemplate.values.annualRate}%`}
-            />
-            <DetailItem
-              label="Initial CVL"
-              value={`${termsTemplate.values.initialCvl}%`}
-            />
-            <DetailItem
-              label="Margin Call CVL"
-              value={`${termsTemplate.values.marginCallCvl}%`}
-            />
-            <DetailItem
-              label="Liquidation CVL"
-              value={`${termsTemplate.values.liquidationCvl}%`}
-            />
-          </DetailsGroup>
-        </CardContent>
-      </Card>
+      <DetailsCard
+        title="Terms Template"
+        details={details}
+        footerContent={footerContent}
+        className="w-full"
+      />
     </>
   )
 }

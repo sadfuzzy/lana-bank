@@ -1,17 +1,16 @@
 "use client"
 import React, { useState } from "react"
 import { IoTrashOutline } from "react-icons/io5"
-
 import { useRouter } from "next/navigation"
 
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
 import { Button } from "@/components/primitive/button"
 import { formatRole } from "@/lib/utils"
 import { Badge } from "@/components/primitive/badge"
 import DataTable, { Column } from "@/app/data-table"
+import CardWrapper from "@/components/card-wrapper"
 
 type CommitteeUsersProps = {
   committee: NonNullable<GetCommitteeDetailsQuery["committee"]>
@@ -33,12 +32,12 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
 }) => {
   const [userToRemove, setUserToRemove] = useState<UserToRemove>(null)
   const router = useRouter()
+
   const baseColumns: Column<CommitteeMember>[] = [
     {
       key: "email",
       header: "Email",
     },
-
     {
       key: "roles",
       header: "",
@@ -82,21 +81,16 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Committee Members</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable
-            data={committee.currentMembers}
-            columns={columns}
-            emptyMessage="No members found in this committee"
-            onRowClick={(user) => {
-              router.push(`/users/${user.userId}/`)
-            }}
-          />
-        </CardContent>
-      </Card>
+      <CardWrapper title="Members" description="Members in this committee">
+        <DataTable
+          data={committee.currentMembers}
+          columns={columns}
+          emptyMessage="No members found in this committee"
+          onRowClick={(user) => {
+            router.push(`/users/${user.userId}/`)
+          }}
+        />
+      </CardWrapper>
 
       {userToRemove && (
         <RemoveUserCommitteeDialog

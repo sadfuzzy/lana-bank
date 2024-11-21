@@ -2,10 +2,8 @@
 
 import { useRouter } from "next/navigation"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-
+import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
-
 import { GetCustomerQuery } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
@@ -56,19 +54,17 @@ export const CustomerCreditFacilitiesTable: React.FC<
 
   const router = useRouter()
   return (
-    <Card className="mt-4">
-      <CardHeader>
-        <CardTitle>Credit Facilities</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={creditFacilities}
-          columns={columns}
-          onRowClick={(facility) => {
-            router.push(`/credit-facilities/${facility.creditFacilityId}`)
-          }}
-        />
-      </CardContent>
-    </Card>
+    <CardWrapper
+      title="Credit Facilities"
+      description="Credit Facilities for this Customer"
+    >
+      <DataTable
+        data={creditFacilities}
+        columns={columns}
+        onRowClick={(facility) => {
+          router.push(`/credit-facilities/${facility.creditFacilityId}`)
+        }}
+      />
+    </CardWrapper>
   )
 }

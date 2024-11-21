@@ -28,6 +28,7 @@ pub struct Customer {
     customer_id: UUID,
     status: AccountStatus,
     level: KycLevel,
+    created_at: Timestamp,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCustomer>,
@@ -40,6 +41,7 @@ impl From<DomainCustomer> for Customer {
             customer_id: UUID::from(customer.id),
             status: customer.status,
             level: customer.level,
+            created_at: customer.created_at().into(),
             entity: Arc::new(customer),
         }
     }

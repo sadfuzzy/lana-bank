@@ -1,5 +1,6 @@
 import React from "react"
-import { FaCheckCircle, FaBan, FaQuestion } from "react-icons/fa"
+
+import { VotersCard } from "../disbursals/[disbursal-id]/voters"
 
 import {
   Dialog,
@@ -9,13 +10,9 @@ import {
   DialogTitle,
 } from "@/components/primitive/dialog"
 import Balance from "@/components/balance/balance"
-import { formatDate, formatRole } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
-import {
-  ApprovalProcessStatus,
-  GetCreditFacilityDetailsQuery,
-} from "@/lib/graphql/generated"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 
 type DisbursalDetailsDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
@@ -58,66 +55,7 @@ export const DisbursalDetailsDialog: React.FC<DisbursalDetailsDialogProps> = ({
             value={formatDate(disbursal.createdAt)}
           />
         </DetailsGroup>
-        <>
-          {disbursal.approvalProcess.rules.__typename === "CommitteeThreshold" && (
-            <Card className="mt-4">
-              <CardHeader>
-                <CardTitle className="text-primary font-normal">
-                  Approval process decision from the{" "}
-                  {disbursal.approvalProcess.rules.committee.name} Committee
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {disbursal.approvalProcess.voters
-                  .filter((voter) => {
-                    if (
-                      disbursal?.approvalProcess.status ===
-                        ApprovalProcessStatus.InProgress ||
-                      ([
-                        ApprovalProcessStatus.Approved,
-                        ApprovalProcessStatus.Denied,
-                      ].includes(
-                        disbursal?.approvalProcess.status as ApprovalProcessStatus,
-                      ) &&
-                        voter.didVote)
-                    ) {
-                      return true
-                    }
-                    return false
-                  })
-                  .map((voter) => (
-                    <div
-                      key={voter.user.userId}
-                      className="flex items-center space-x-3 p-2"
-                    >
-                      {voter.didApprove ? (
-                        <FaCheckCircle className="h-6 w-6 text-green-500" />
-                      ) : voter.didDeny ? (
-                        <FaBan className="h-6 w-6 text-red-500" />
-                      ) : !voter.didVote ? (
-                        <FaQuestion className="h-6 w-6 text-textColor-secondary" />
-                      ) : (
-                        <>{/* Impossible */}</>
-                      )}
-                      <div>
-                        <p className="text-sm font-medium">{voter.user.email}</p>
-                        <p className="text-sm text-textColor-secondary">
-                          {voter.user.roles.map(formatRole).join(", ")}
-                        </p>
-                        {
-                          <p className="text-xs text-textColor-secondary">
-                            {voter.didApprove && "Approved"}
-                            {voter.didDeny && "Denied"}
-                            {!voter.didVote && "Has not voted yet"}
-                          </p>
-                        }
-                      </div>
-                    </div>
-                  ))}
-              </CardContent>
-            </Card>
-          )}
-        </>
+        <VotersCard approvalProcess={disbursal.approvalProcess} />
       </DialogContent>
     </Dialog>
   )

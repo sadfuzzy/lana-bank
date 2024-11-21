@@ -525,6 +525,7 @@ type Customer {
 	customerId: UUID!
 	status: AccountStatus!
 	level: KycLevel!
+	createdAt: Timestamp!
 	email: String!
 	telegramId: String!
 	applicantId: String

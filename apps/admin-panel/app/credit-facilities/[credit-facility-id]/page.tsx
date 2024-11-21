@@ -244,7 +244,7 @@ function CreditFacilityPage({
         creditFacilityDetails={data.creditFacility}
         refetch={refetch}
       />
-      <Tabs defaultValue="overview" className="mt-4">
+      <Tabs defaultValue="overview" className="mt-2">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="terms">Terms</TabsTrigger>

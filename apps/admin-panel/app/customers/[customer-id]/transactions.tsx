@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/primitive/card"
 import {
   Table,
   TableBody,
@@ -26,55 +32,58 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
   const router = useRouter()
 
   return (
-    <Card className="mt-4">
+    <Card>
       <CardHeader>
         <CardTitle>Transactions</CardTitle>
+        <CardDescription>Transactions for this Customer</CardDescription>
       </CardHeader>
       {transactions.length === 0 ? (
         <CardContent className="text-sm">No data to display</CardContent>
       ) : (
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((tx) => {
-                const isDeposit = "depositId" in tx
-                const id = isDeposit ? tx.depositId : tx.withdrawalId
+          <div className="overflow-x-auto border  rounded-md">
+            <Table className="table-fixed w-full">
+              <TableHeader className="bg-secondary">
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((tx) => {
+                  const isDeposit = "depositId" in tx
+                  const id = isDeposit ? tx.depositId : tx.withdrawalId
 
-                return (
-                  <TableRow
-                    key={id}
-                    className={isDeposit ? "" : "cursor-pointer"}
-                    onClick={() => {
-                      if (isDeposit) {
-                        return
-                      } else {
-                        router.push(`/withdrawals/${id}`)
-                      }
-                    }}
-                  >
-                    <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                    <TableCell>{tx.__typename}</TableCell>
-                    <TableCell>{tx.reference === id ? "-" : tx.reference}</TableCell>
-                    <TableCell className="text-right">
-                      <Balance amount={tx.amount} currency={"usd"} />
-                    </TableCell>
-                    <TableCell>
-                      {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                  return (
+                    <TableRow
+                      key={id}
+                      className={isDeposit ? "" : "cursor-pointer"}
+                      onClick={() => {
+                        if (isDeposit) {
+                          return
+                        } else {
+                          router.push(`/withdrawals/${id}`)
+                        }
+                      }}
+                    >
+                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                      <TableCell>{tx.__typename}</TableCell>
+                      <TableCell>{tx.reference === id ? "-" : tx.reference}</TableCell>
+                      <TableCell className="text-right">
+                        <Balance amount={tx.amount} currency={"usd"} />
+                      </TableCell>
+                      <TableCell>
+                        {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       )}
     </Card>

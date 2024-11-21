@@ -1,18 +1,18 @@
-import React from "react"
-import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
+"use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
-import { DetailItem, DetailsGroup } from "@/components/details"
+import React from "react"
+
 import Balance from "@/components/balance/balance"
+import DetailsCard from "@/components/details-card"
 import {
-  ApprovalProcessStatus,
   CreditFacilityStatus,
   DisbursalStatus,
   GetCreditFacilityDetailsQuery,
-  useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
-import { CENTS_PER_USD, SATS_PER_BTC, formatDate, formatRole } from "@/lib/utils"
+import { CENTS_PER_USD, SATS_PER_BTC, formatDate } from "@/lib/utils"
 import { UsdCents } from "@/types"
+
+import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
@@ -21,10 +21,6 @@ type CreditFacilityOverviewProps = {
 export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
   creditFacility,
 }) => {
-  const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
-    fetchPolicy: "cache-only",
-  })
-
   const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
 
   const MarginCallPrice = calculatePrice({
@@ -39,197 +35,121 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
     collateralInSatoshis: creditFacility.collateral,
   })
 
+  const requiredDetails = [
+    {
+      label: "Collateral balance",
+      value: (
+        <Balance amount={creditFacility.balance.collateral.btcBalance} currency="btc" />
+      ),
+    },
+    {
+      label: "Facility Remaining",
+      value: (
+        <Balance
+          amount={creditFacility.balance.facilityRemaining.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
+      label: "Total Disbursed",
+      value: (
+        <Balance
+          amount={creditFacility.balance.disbursed.total.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
+      label: "Outstanding Disbursed",
+      value: (
+        <Balance
+          amount={creditFacility.balance.disbursed.outstanding.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
+      label: "Total Interest",
+      value: (
+        <Balance
+          amount={creditFacility.balance.interest.total.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
+      label: "Outstanding Interest",
+      value: (
+        <Balance
+          amount={creditFacility.balance.interest.outstanding.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
+      label: "Total Outstanding Balance",
+      value: (
+        <Balance amount={creditFacility.balance.outstanding.usdBalance} currency="usd" />
+      ),
+    },
+    {
+      label: "Current CVL ",
+      value: `${creditFacility.currentCvl.total}%`,
+    },
+  ]
+
+  const optionalDetails = [
+    creditFacility.collateralToMatchInitialCvl && {
+      label: `Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`,
+      value: (
+        <Balance amount={creditFacility.collateralToMatchInitialCvl} currency="btc" />
+      ),
+      valueTestId: "collateral-to-reach-target",
+    },
+    creditFacility.expiresAt && {
+      label: "Expires at",
+      value: formatDate(creditFacility.expiresAt),
+    },
+  ]
+
+  const collateralDependentDetails =
+    creditFacility.collateral > 0
+      ? [
+          {
+            label: `Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`,
+            value: <Balance amount={MarginCallPrice as UsdCents} currency="usd" />,
+          },
+          {
+            label: `Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`,
+            value: <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />,
+          },
+        ]
+      : [
+          {
+            label: "Margin Call CVL",
+            value: `${creditFacility.creditFacilityTerms.marginCallCvl}%`,
+          },
+          {
+            label: "Liquidation Call CVL",
+            value: `${creditFacility.creditFacilityTerms.liquidationCvl}%`,
+          },
+        ]
+
+  const overviewDetails = [
+    ...requiredDetails,
+    ...optionalDetails.filter(Boolean),
+    ...collateralDependentDetails,
+  ]
+
   return (
     <>
-      <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>Credit Facility Overview</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DetailsGroup className="grid grid-cols-2 gap-x-6">
-            <DetailItem
-              label="Collateral balance"
-              value={
-                <Balance
-                  amount={creditFacility.balance.collateral.btcBalance}
-                  currency="btc"
-                />
-              }
-            />
-            {creditFacility.collateralToMatchInitialCvl && (
-              <DetailItem
-                label={`Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`}
-                valueTestId="collateral-to-reach-target"
-                value={
-                  <Balance
-                    amount={creditFacility.collateralToMatchInitialCvl}
-                    currency="btc"
-                  />
-                }
-              />
-            )}
-            {creditFacility.collateral > 0 ? (
-              <>
-                <DetailItem
-                  label={`Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`}
-                  value={<Balance amount={MarginCallPrice as UsdCents} currency="usd" />}
-                />
-                <DetailItem
-                  label={`Liquidation Call Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`}
-                  value={
-                    <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />
-                  }
-                />
-              </>
-            ) : (
-              <>
-                <DetailItem
-                  label="Margin Call CVL"
-                  value={`${creditFacility.creditFacilityTerms.marginCallCvl}%`}
-                />
-                <DetailItem
-                  label="Liquidation Call CVL"
-                  value={`${creditFacility.creditFacilityTerms.liquidationCvl}%`}
-                />
-              </>
-            )}
-            {priceInfo?.realtimePrice.usdCentsPerBtc !== undefined && (
-              <DetailItem
-                label={
-                  <p className="text-textColor-secondary flex items-center">
-                    <div className="mr-2">
-                      Current CVL % <span className="text-sm">(BTC/USD:</span>
-                    </div>
-                    <Balance
-                      className="text-sm"
-                      amount={priceInfo?.realtimePrice.usdCentsPerBtc}
-                      currency="usd"
-                    />
-                    <div className="text-sm">)</div>
-                  </p>
-                }
-                value={`${creditFacility.currentCvl.total}%`}
-              />
-            )}
-
-            {creditFacility.expiresAt && (
-              <DetailItem
-                label="Expires at"
-                value={formatDate(creditFacility.expiresAt)}
-              />
-            )}
-            <DetailItem
-              label="Facility Remaining"
-              value={
-                <Balance
-                  amount={creditFacility.balance.facilityRemaining.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Total Disbursed"
-              value={
-                <Balance
-                  amount={creditFacility.balance.disbursed.total.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Outstanding Disbursed"
-              value={
-                <Balance
-                  amount={creditFacility.balance.disbursed.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Total Interest"
-              value={
-                <Balance
-                  amount={creditFacility.balance.interest.total.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Outstanding Interest"
-              value={
-                <Balance
-                  amount={creditFacility.balance.interest.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-            <DetailItem
-              label="Total Outstanding Balance"
-              value={
-                <Balance
-                  amount={creditFacility.balance.outstanding.usdBalance}
-                  currency="usd"
-                />
-              }
-            />
-          </DetailsGroup>
-        </CardContent>
-      </Card>
-      {creditFacility.approvalProcess.rules.__typename === "CommitteeThreshold" && (
-        <Card className="mt-4">
-          <CardHeader>
-            <CardTitle className="text-primary font-normal">
-              Approval process decision from the{" "}
-              {creditFacility.approvalProcess.rules.committee.name} Committee
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {creditFacility.approvalProcess.voters
-              .filter((voter) => {
-                if (
-                  creditFacility?.approvalProcess.status ===
-                    ApprovalProcessStatus.InProgress ||
-                  ([
-                    ApprovalProcessStatus.Approved,
-                    ApprovalProcessStatus.Denied,
-                  ].includes(
-                    creditFacility?.approvalProcess.status as ApprovalProcessStatus,
-                  ) &&
-                    voter.didVote)
-                ) {
-                  return true
-                }
-                return false
-              })
-              .map((voter) => (
-                <div key={voter.user.userId} className="flex items-center space-x-3 p-2">
-                  {voter.didApprove ? (
-                    <FaCheckCircle className="h-6 w-6 text-green-500" />
-                  ) : voter.didDeny ? (
-                    <FaBan className="h-6 w-6 text-red-500" />
-                  ) : !voter.didVote ? (
-                    <FaQuestion className="h-6 w-6 text-textColor-secondary" />
-                  ) : (
-                    <>{/* Impossible */}</>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium">{voter.user.email}</p>
-                    <p className="text-sm text-textColor-secondary">
-                      {voter.user.roles.map(formatRole).join(", ")}
-                    </p>
-                    {
-                      <p className="text-xs text-textColor-secondary">
-                        {voter.didApprove && "Approved"}
-                        {voter.didDeny && "Denied"}
-                        {!voter.didVote && "Has not voted yet"}
-                      </p>
-                    }
-                  </div>
-                </div>
-              ))}
-          </CardContent>
-        </Card>
-      )}
+      <DetailsCard
+        title="Overview"
+        description="Credit Facility Overview"
+        details={overviewDetails}
+      />
+      <VotersCard approvalProcess={creditFacility.approvalProcess} />
     </>
   )
 }

@@ -32,7 +32,7 @@ import {
   currencyConverter,
   calculateInitialCollateralRequired,
 } from "@/lib/utils"
-import { DetailItem } from "@/components/details"
+import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import { Satoshis } from "@/types"
@@ -341,7 +341,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <div>Credit Facility Terms</div>
                 <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
               </div>
-              <div className="grid grid-cols-2 gap-x-2">
+              <DetailsGroup layout="horizontal" className="grid grid-cols-2 gap-x-2">
                 <DetailItem
                   label="Interest Rate (APR)"
                   value={formValues.annualRate + "%"}
@@ -373,7 +373,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     formValues.incurrenceInterval as InterestInterval,
                   )}
                 />
-              </div>
+              </DetailsGroup>
             </>
           ) : (
             <>

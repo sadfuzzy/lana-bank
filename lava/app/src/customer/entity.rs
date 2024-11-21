@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -57,6 +58,12 @@ impl core::fmt::Display for Customer {
 }
 
 impl Customer {
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub fn may_create_loan(&self) -> bool {
         true
     }

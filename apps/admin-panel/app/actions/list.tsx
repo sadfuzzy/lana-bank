@@ -107,11 +107,11 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
       {tableData.length > 0 ? (
         <CardContent>
-          <div className="overflow-auto">
+          <div className="overflow-auto border rounded-md">
             <Table>
               {!dashboard && (
                 <TableHeader>
-                  <TableRow>
+                  <TableRow className="bg-secondary">
                     <TableHead>Customer</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Date</TableHead>

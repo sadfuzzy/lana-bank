@@ -11,6 +11,8 @@ import {
   HiFilter,
 } from "react-icons/hi"
 
+import { Separator } from "../primitive/separator"
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -124,10 +126,10 @@ const PaginatedTable = <T,>({
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto border  rounded-md">
         <Table className="table-fixed w-full">
           {showHeader && (
-            <TableHeader>
+            <TableHeader className="bg-secondary">
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>
@@ -222,28 +224,28 @@ const PaginatedTable = <T,>({
                 ))}
           </TableBody>
         </Table>
-      </div>
-
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePreviousPage}
-          disabled={currentPage === 1}
-        >
-          <HiChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex items-center gap-1">
-          <span className="text-sm font-medium">{currentPage}</span>
+        <Separator />
+        <div className="flex items-center justify-end space-x-4 py-2 mr-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+          >
+            <HiChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium">{currentPage}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
+          >
+            <HiChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleNextPage}
-          disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
-        >
-          <HiChevronRight className="h-4 w-4" />
-        </Button>
       </div>
     </>
   )

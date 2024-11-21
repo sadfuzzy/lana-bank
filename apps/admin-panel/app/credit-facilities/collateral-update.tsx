@@ -121,7 +121,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               </DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4 text-sm" onSubmit={handleSubmit}>
-              <DetailsGroup>
+              <DetailsGroup layout="horizontal">
                 <DetailItem
                   className="text-sm"
                   label="Credit Facility ID"
@@ -174,13 +174,8 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               </DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleConfirm}>
-              <div className="rounded-md text-sm">
-                <DetailsGroup>
-                  <DetailItem
-                    label="Credit Facility ID"
-                    value={creditFacilityId}
-                    data-testid="credit-facility-id"
-                  />
+              <div className="rounded-md">
+                <DetailsGroup layout="horizontal">
                   <DetailItem
                     label="Current Collateral"
                     value={

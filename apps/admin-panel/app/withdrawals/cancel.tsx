@@ -103,7 +103,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
             </DialogDescription>
           </DialogHeader>
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <DetailsGroup>
+            <DetailsGroup layout="horizontal">
               <DetailItem
                 className="text-sm"
                 label="Withdrawal ID"

@@ -89,7 +89,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Deny Process</DialogTitle>
         </DialogHeader>
-        <DetailsGroup>
+        <DetailsGroup layout="horizontal">
           <DetailItem
             label="Process Type"
             value={formatProcessType(approvalProcess?.approvalProcessType)}

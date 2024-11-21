@@ -1,11 +1,13 @@
 "use client"
 
 import React from "react"
-import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
+
 import { CreditFacilityApproveDialog } from "../approve"
+
 import { CreditFacilityDisbursalInitiateDialog } from "../disbursal-initiate"
+
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import {
@@ -15,21 +17,14 @@ import {
   CreditFacilityStatus,
   GetCreditFacilityDetailsQuery,
 } from "@/lib/graphql/generated"
-import { DetailItem, DetailsGroup } from "@/components/details"
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Button } from "@/components/primitive/button"
 import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
-
-import { Button } from "@/components/primitive/button"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
+
 import ApprovalDialog from "@/app/approval-process/approve"
 import DenialDialog from "@/app/approval-process/deny"
+import DetailsCard from "@/components/details-card"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -51,105 +46,85 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
-  return (
-    <div className="flex">
-      <Card className="w-full">
-        <CardHeader className="flex-row justify-between items-center">
-          <CardTitle>Credit Facility</CardTitle>
-          <LoanAndCreditFacilityStatusBadge
-            data-testid="credit-facility-status-badge"
-            status={creditFacilityDetails.status}
-          />
-        </CardHeader>
-        <CardContent>
-          <DetailsGroup>
-            <DetailItem
-              label="Credit Facility ID"
-              value={creditFacilityDetails.creditFacilityId}
-            />
-            <Link href={`/customers/${creditFacilityDetails.customer.customerId}`}>
-              <DetailItem
-                hover={true}
-                label="Customer Email"
-                value={creditFacilityDetails.customer.email}
-              />
-            </Link>
-            <DetailItem
-              label="Facility Amount"
-              value={
-                <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />
-              }
-            />
-            <DetailItem
-              label="Collateralization State"
-              value={formatCollateralizationState(
-                creditFacilityDetails.collateralizationState,
-              )}
-            />
-          </DetailsGroup>
-        </CardContent>
-        {creditFacilityDetails.approvalProcess.deniedReason && (
-          <CardFooter className="text-destructive">
-            Denied Reason: {creditFacilityDetails.approvalProcess.deniedReason}
-          </CardFooter>
-        )}
-      </Card>
-      {creditFacilityDetails.status !== CreditFacilityStatus.Closed && (
-        <div className="flex flex-col space-y-2 mt-1 ml-4">
-          {creditFacilityDetails.subjectCanUpdateCollateral && (
-            <Button
-              variant="outline"
-              className="w-full"
-              data-testid="update-collateral-button"
-              onClick={() => setOpenCollateralUpdateDialog(true)}
-            >
-              Update Collateral
-            </Button>
-          )}
-          {creditFacilityDetails.subjectCanInitiateDisbursal &&
-            creditFacilityDetails.status === CreditFacilityStatus.Active && (
-              <Button
-                variant="outline"
-                className="w-full"
-                data-testid="initiate-disbursal-button"
-                onClick={() => setOpenDisbursalInitiateDialog(true)}
-              >
-                Initiate Disbursal
-              </Button>
-            )}
-          {creditFacilityDetails.subjectCanRecordPayment &&
-            creditFacilityDetails.status === CreditFacilityStatus.Active && (
-              <Button
-                variant="outline"
-                className="w-full"
-                data-testid="make-payment-button"
-                onClick={() => setOpenPartialPaymentDialog(true)}
-              >
-                Make Payment
-              </Button>
-            )}
-          {creditFacilityDetails.approvalProcess.status ===
-            ApprovalProcessStatus.InProgress &&
-            creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setOpenApprovalDialog(true)}
-                  className="ml-2"
-                >
-                  Approve
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setOpenDenialDialog(true)}
-                  className="ml-2"
-                >
-                  Deny
-                </Button>
-              </>
-            )}
-        </div>
+  const details = [
+    {
+      label: "Customer Email",
+      value: "siddharthtiwarikreplin12@gmail.com",
+      href: `/customers/${creditFacilityDetails.customer.customerId}`,
+    },
+    {
+      label: "Collateralization State",
+      value: formatCollateralizationState(creditFacilityDetails.collateralizationState),
+    },
+    {
+      label: "Facility Amount",
+      value: <Balance amount={creditFacilityDetails.facilityAmount} currency="usd" />,
+    },
+    {
+      label: "Status",
+      value: (
+        <LoanAndCreditFacilityStatusBadge
+          data-testid="credit-facility-status-badge"
+          status={creditFacilityDetails.status}
+        />
+      ),
+    },
+  ]
+
+  const footerContent = (
+    <>
+      {creditFacilityDetails.subjectCanUpdateCollateral && (
+        <Button
+          variant="outline"
+          data-testid="update-collateral-button"
+          onClick={() => setOpenCollateralUpdateDialog(true)}
+        >
+          Update Collateral
+        </Button>
       )}
+      {creditFacilityDetails.subjectCanInitiateDisbursal &&
+        creditFacilityDetails.status === CreditFacilityStatus.Active && (
+          <Button
+            variant="outline"
+            data-testid="initiate-disbursal-button"
+            onClick={() => setOpenDisbursalInitiateDialog(true)}
+          >
+            Initiate Disbursal
+          </Button>
+        )}
+      {creditFacilityDetails.subjectCanRecordPayment &&
+        creditFacilityDetails.status === CreditFacilityStatus.Active && (
+          <Button
+            variant="outline"
+            data-testid="make-payment-button"
+            onClick={() => setOpenPartialPaymentDialog(true)}
+          >
+            Make Payment
+          </Button>
+        )}
+      {creditFacilityDetails.approvalProcess.status ===
+        ApprovalProcessStatus.InProgress &&
+        creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
+          <>
+            <Button variant="outline" onClick={() => setOpenApprovalDialog(true)}>
+              Approve
+            </Button>
+            <Button variant="outline" onClick={() => setOpenDenialDialog(true)}>
+              Deny
+            </Button>
+          </>
+        )}
+    </>
+  )
+
+  return (
+    <>
+      <DetailsCard
+        title="Credit Facility"
+        details={details}
+        footerContent={footerContent}
+        errorMessage={creditFacilityDetails.approvalProcess.deniedReason}
+      />
 
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
@@ -187,7 +162,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         }}
         refetch={refetch}
       />
-    </div>
+    </>
   )
 }
 

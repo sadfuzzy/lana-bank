@@ -29,6 +29,7 @@ gql`
       subjectCanRecordDeposit
       subjectCanInitiateWithdrawal
       subjectCanCreateCreditFacility
+      createdAt
       balance {
         checking {
           settled
@@ -135,18 +136,18 @@ const Customer = ({
     <main className="max-w-7xl m-auto">
       <CustomerBreadcrumb customerEmail={data.customer.email} />
       <CustomerDetailsCard customer={data.customer} refetch={refetch} />
-      <Tabs defaultValue="overview" className="mt-4">
+      <Tabs defaultValue="overview" className="mt-2">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="balances">Balances</TabsTrigger>
           <TabsTrigger value="credit-facilities">Credit Facilities</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
-          <TabsTrigger value="kyc">KYC Status</TabsTrigger>
           <TabsTrigger value="docs">Documents</TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
-          <CustomerAccountBalances balance={data.customer.balance} />
-          <KycStatus customerId={customerId} />
+          <div className="flex w-full gap-2">
+            <CustomerAccountBalances balance={data.customer.balance} />
+            <KycStatus customerId={customerId} />
+          </div>
         </TabsContent>
         <TabsContent value="balances">
           <CustomerAccountBalances balance={data.customer.balance} />

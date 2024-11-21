@@ -1,10 +1,11 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/primitive/card"
+import React from "react"
+
 import Balance from "@/components/balance/balance"
 
+import DetailsCard, { DetailItemType } from "@/components/details-card"
 import { GetCustomerQuery } from "@/lib/graphql/generated"
-import { DetailItem } from "@/components/details"
 
 type CustomerAccountBalancesProps = {
   balance: NonNullable<GetCustomerQuery["customer"]>["balance"]
@@ -12,20 +13,24 @@ type CustomerAccountBalancesProps = {
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({
   balance,
-}) => (
-  <Card className="mt-4">
-    <CardHeader>
-      <CardTitle>Account Balances</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <DetailItem
-        label="Checking Settled Balance (USD)"
-        value={<Balance amount={balance.checking.settled} currency="usd" />}
-      />
-      <DetailItem
-        label="Pending Withdrawals (USD)"
-        value={<Balance amount={balance.checking.pending} currency="usd" />}
-      />
-    </CardContent>
-  </Card>
-)
+}) => {
+  const details: DetailItemType[] = [
+    {
+      label: "Checking Settled Balance (USD)",
+      value: <Balance amount={balance.checking.settled} currency="usd" />,
+    },
+    {
+      label: "Pending Withdrawals (USD)",
+      value: <Balance amount={balance.checking.pending} currency="usd" />,
+    },
+  ]
+
+  return (
+    <DetailsCard
+      title="Account Balances"
+      description="Balance Details for this Customer"
+      details={details}
+      className="w-1/2"
+    />
+  )
+}
