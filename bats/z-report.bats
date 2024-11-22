@@ -50,8 +50,7 @@ wait_for_complete() {
   echo $(graphql_output)
   links=$(graphql_output .data.reportDownloadLinksGenerate.links)
   length=$(echo $links | jq -r 'length')
-  # this assert is causing issues in CI
-  # [[ "$length" -eq "4" ]] || exit 1
+  [[ "$length" -gt "1" ]] || exit 1
 
   for url in $(echo $links | jq -r '.[].url'); do
     xml_file_contents=$(curl -fsSL "$url") || exit 1
