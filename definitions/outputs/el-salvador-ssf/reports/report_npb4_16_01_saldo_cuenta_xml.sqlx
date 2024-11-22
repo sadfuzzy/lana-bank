@@ -11,7 +11,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		LEFT(nom_cuenta, 80) AS nom_cuenta,
 		FORMAT('%.2f', ROUND(valor, 2)) AS valor,
 
-	FROM ${ref("stg_npb4_16_saldo_cuenta_xml_raw")}(asof)
+	FROM ${ref("int_npb4_16_01_saldo_cuenta_xml_raw")}(asof)
 
 );
 

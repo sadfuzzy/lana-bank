@@ -25,7 +25,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
     , CAST(NULL AS STRING) AS `tipo_empresa`                        -- NULL for natural person
     , 7060.0 AS `reserva`                                           -- Provision of sanitation reserves established accounted for by the entity for each debtor
     , (SELECT code
-       FROM ${ref("stg_dim_03_npb4_17_tipos_de_categorias_de_riesgo")}
+       FROM ${ref("static_npb4_17_03_tipos_de_categorias_de_riesgo")}
        WHERE description = "Deudores normales" ) AS `categoria_riesgo`  -- codified risk category assigned to the debtor depending of the status of the loan
     , RIGHT(REPLACE(customer_id, '-', ''), 17) AS `numero_cliente`  -- use 17 rightmost no-hyphen characters from backend customer_id
     , passport_number AS `id_alterno`                               -- passport number / social security number / driver's license number / id card number
@@ -40,6 +40,6 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
     , CAST(NULL AS STRING) AS `nit_anterior`                        -- NULL for natural person
     , CAST(NULL AS STRING) AS `tipo_ident_anterior`                 -- NULL for natural person
     , CAST(NULL AS STRING) AS `municipio_residencia`                -- NULL for non-Salvadoran
-  FROM ${ref("stg_customers")}
-  LEFT JOIN ${ref("stg_customers_identities")} USING (customer_id)
+  FROM ${ref("int_customers")}
+  LEFT JOIN ${ref("int_customers_identities")} USING (customer_id)
 )

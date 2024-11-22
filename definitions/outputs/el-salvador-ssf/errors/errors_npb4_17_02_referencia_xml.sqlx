@@ -5,7 +5,7 @@ config {
 
 WITH latest AS (
 	SELECT *
-	FROM ${ref("report_02_npb4_17_referencia_xml")}(CURRENT_TIMESTAMP())
+	FROM ${ref("report_npb4_17_02_referencia_xml")}(CURRENT_TIMESTAMP())
 )
 
 SELECT *, "udf_nbp4_17_assert_niu_number" AS error

@@ -14,7 +14,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		, LEFT(`tipo_garantia`, 2) AS tipo_garantia
 		, FORMAT('%.2f', ROUND(`valor_garantia_proporcional`, 2)) AS valor_garantia_proporcional
 
-	FROM ${ref("stg_03_npb4_17_referencia_garantia_xml_raw")}(asof)
+	FROM ${ref("int_npb4_17_03_referencia_garantia_xml_raw")}(asof)
 
 );
 

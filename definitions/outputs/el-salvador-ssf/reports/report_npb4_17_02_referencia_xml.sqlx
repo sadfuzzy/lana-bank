@@ -87,7 +87,7 @@ SELECT
   , FORMAT_DATE('%Y-%m-%d', CAST(`fecha_cump_cafe` AS DATE)) AS `fecha_cump_cafe`
   , CURRENT_TIMESTAMP() AS created_at
 FROM
-  ${ref("stg_02_npb4_17_referencia_xml_raw")}(asof)
+  ${ref("int_npb4_17_02_referencia_xml_raw")}(asof)
 
 );
 

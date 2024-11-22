@@ -2,7 +2,7 @@ config {
 	type: "operations",
 	hasOutput: true,
 	description: "Este archivo almacena la información general de las garantías de depósitos pignorados, que respaldan una o más referencias crediticias.",
-	dependencies: ["report_03_npb4_17_referencia_garantia_xml"],
+	dependencies: ["report_npb4_17_03_referencia_garantia_xml"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
@@ -20,9 +20,9 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 			})}
 		) / 100) AS `valor_deposito`												-- Deposit value.
 		, "DE" AS `tipo_deposito`													-- "DE" for cash deposits
-		, "BC99" AS `cod_banco`														-- "BC99" for a yet undefined lava bank in `stg_dim_15_npb4_17_emisores_de_avales_fianzas_y_cartas`
+		, "BC99" AS `cod_banco`														-- "BC99" for a yet undefined lava bank in `static_npb4_17_15_emisores_de_avales_fianzas_y_cartas`
 
-	FROM ${ref("stg_approved_loans")}(asof)
+	FROM ${ref("int_approved_loans")}(asof)
 
 	WHERE NOT completed
 

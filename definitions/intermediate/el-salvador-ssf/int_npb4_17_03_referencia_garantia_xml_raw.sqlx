@@ -2,7 +2,7 @@ config {
 	type: "operations",
 	hasOutput: true,
 	description: "Este archivo almacena la asociatividad entre las referencias y garantías, ya que una referencia puede poseer varias garantías y una garantía puede respaldar varias referencias.",
-	dependencies: ["report_02_npb4_17_referencia_xml"],
+	dependencies: ["report_npb4_17_02_referencia_xml"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
@@ -12,7 +12,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		SELECT loan_id, total_collateral,
 			principal AS loan_amount,
 
-		FROM ${ref("stg_approved_loans")}(asof)
+		FROM ${ref("int_approved_loans")}(asof)
 
 		WHERE NOT completed
 
@@ -21,7 +21,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		SELECT loan_id, total_collateral,
 			facility AS loan_amount,
 
-		FROM ${ref("stg_approved_credit_facilities")}(asof)
+		FROM ${ref("int_approved_credit_facilities")}(asof)
 
 		WHERE NOT completed
 
@@ -29,10 +29,10 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 	SELECT
 		LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  			-- uses the 20 leftmost no-hyphen characters from backend loan_id
-		, (SELECT code FROM ${ref("stg_dim_01_npb4_17_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)") AS `cod_cartera`
-		, (SELECT code FROM ${ref("stg_dim_02_npb4_17_tipos_de_activos_de_riesgo")} WHERE description = "Préstamos") AS `cod_activo`
+		, (SELECT code FROM ${ref("static_npb4_17_01_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)") AS `cod_cartera`
+		, (SELECT code FROM ${ref("static_npb4_17_02_tipos_de_activos_de_riesgo")} WHERE description = "Préstamos") AS `cod_activo`
 		, LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `identificacion_garantia`	-- uses the 20 leftmost no-hyphen characters from backend loan_id - ref-to-garanty is 1-to-1
-		, (SELECT code FROM ${ref("stg_dim_09_npb4_17_tipos_de_garantias")} WHERE description = "Pignorada - Depósito de dinero") AS `tipo_garantia`
+		, (SELECT code FROM ${ref("static_npb4_17_09_tipos_de_garantias")} WHERE description = "Pignorada - Depósito de dinero") AS `tipo_garantia`
 		, COALESCE(SAFE_DIVIDE(total_collateral * (
 			SELECT ANY_VALUE(usd_cents_per_btc HAVING MAX uploaded_at)
 			FROM ${ref({

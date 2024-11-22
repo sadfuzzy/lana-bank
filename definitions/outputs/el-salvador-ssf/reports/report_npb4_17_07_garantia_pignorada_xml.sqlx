@@ -15,7 +15,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 		, `tipo_deposito`
 		, `cod_banco`
 
-	FROM ${ref("stg_07_npb4_17_garantia_pignorada_xml_raw")}(asof)
+	FROM ${ref("int_npb4_17_07_garantia_pignorada_xml_raw")}(asof)
 
 );
 
