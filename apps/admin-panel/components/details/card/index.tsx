@@ -1,7 +1,6 @@
 "use client"
 
-import React, { ReactNode } from "react"
-import Link from "next/link"
+import React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import {
@@ -12,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/card"
-import { DetailItem, DetailsGroup } from "@/components/details"
+import { DetailItem, DetailItemProps, DetailsGroup } from "@/components/details"
 import { Separator } from "@/ui/separator"
 
 const footerVariants = cva("pt-4 pb-4 gap-4", {
@@ -27,21 +26,12 @@ const footerVariants = cva("pt-4 pb-4 gap-4", {
   },
 })
 
-export type DetailItemType = {
-  label: string
-  value: ReactNode
-  href?: string
-  hover?: boolean
-  valueTestId?: string
-}
-
 export interface DetailsCardProps extends VariantProps<typeof footerVariants> {
   title: string
   description?: string
-  details: DetailItemType[]
-  footerContent?: ReactNode
+  details: DetailItemProps[]
+  footerContent?: React.JSX.Element
   errorMessage?: string | undefined | null
-  hideFooterSeparator?: boolean
   className?: string
   columns?: number
 }
@@ -53,7 +43,6 @@ const DetailsCard = ({
   footerContent,
   errorMessage,
   alignment,
-  hideFooterSeparator = false,
   className,
   columns,
 }: DetailsCardProps) => {
@@ -66,22 +55,7 @@ const DetailsCard = ({
       <CardContent>
         <DetailsGroup columns={columns}>
           {details.map((detail) => {
-            const detailItem = (
-              <DetailItem
-                showHoverEffect={detail.href ? true : false}
-                label={detail.label}
-                value={detail.value}
-                valueTestId={detail.valueTestId}
-              />
-            )
-
-            return detail.href ? (
-              <Link key={detail.label} href={detail.href}>
-                {detailItem}
-              </Link>
-            ) : (
-              detailItem
-            )
+            return <DetailItem key={detail.label?.toString()} {...detail} />
           })}
         </DetailsGroup>
       </CardContent>
@@ -90,7 +64,7 @@ const DetailsCard = ({
       )}
       {footerContent && (
         <>
-          {!hideFooterSeparator && <Separator />}
+          <Separator />
           <CardFooter className={footerVariants({ alignment })}>
             {footerContent}
           </CardFooter>
@@ -100,4 +74,4 @@ const DetailsCard = ({
   )
 }
 
-export default DetailsCard
+export { DetailsCard }

@@ -3,7 +3,7 @@ import React from "react"
 
 import { CommitteeAssignmentDialog } from "./assign-to-committee"
 
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { ApprovalRules, GetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import { formatRule, formatProcessType } from "@/lib/utils"
@@ -16,7 +16,7 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
   const [openAssignDialog, setOpenAssignDialog] = React.useState(false)
   const policyRuleType = policy.rules.__typename
 
-  const details: DetailItemType[] = [
+  const details: DetailItemProps[] = [
     {
       label: "Process Type",
       value: formatProcessType(policy.approvalProcessType),

@@ -3,7 +3,7 @@
 import React from "react"
 
 import Balance from "@/components/balance/balance"
-import DetailsCard from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CreditFacilityStatus,
   DisbursalStatus,
@@ -35,7 +35,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
     collateralInSatoshis: creditFacility.collateral,
   })
 
-  const requiredDetails = [
+  const requiredDetails: DetailItemProps[] = [
     {
       label: "Collateral balance",
       value: (
@@ -99,7 +99,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
     },
   ]
 
-  const optionalDetails = [
+  const optionalDetails: DetailItemProps[] = [
     creditFacility.collateralToMatchInitialCvl && {
       label: `Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`,
       value: (
@@ -113,7 +113,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
     },
   ]
 
-  const collateralDependentDetails =
+  const collateralDependentDetails: DetailItemProps[] =
     creditFacility.collateral > 0
       ? [
           {
@@ -136,7 +136,7 @@ export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({
           },
         ]
 
-  const overviewDetails = [
+  const overviewDetails: DetailItemProps[] = [
     ...requiredDetails,
     ...optionalDetails.filter(Boolean),
     ...collateralDependentDetails,

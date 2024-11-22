@@ -125,7 +125,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
                 label="Withdrawal Reference"
                 value={
                   withdrawalData.reference === withdrawalData.withdrawalId
-                    ? "n/a"
+                    ? "N/A"
                     : withdrawalData.reference
                 }
               />

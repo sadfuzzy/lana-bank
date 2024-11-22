@@ -129,7 +129,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
               label="Withdrawal Reference"
               value={
                 withdrawalData.reference === withdrawalData.withdrawalId
-                  ? "n/a"
+                  ? "N/A"
                   : withdrawalData.reference
               }
             />

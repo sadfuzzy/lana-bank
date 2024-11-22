@@ -4,7 +4,7 @@ import React from "react"
 
 import { AddUserCommitteeDialog } from "../add-user"
 
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import { formatDate } from "@/lib/utils"
@@ -16,7 +16,7 @@ type CommitteeDetailsProps = {
 export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committee }) => {
   const [openAddUserDialog, setOpenAddUserDialog] = React.useState(false)
 
-  const details: DetailItemType[] = [
+  const details: DetailItemProps[] = [
     { label: "Created At", value: formatDate(committee.createdAt) },
     { label: "Name", value: committee.name },
     { label: "Total Members", value: committee.currentMembers.length },

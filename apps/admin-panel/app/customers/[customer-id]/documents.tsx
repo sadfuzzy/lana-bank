@@ -1,12 +1,14 @@
+"use client"
+
 import React, { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { gql, ApolloError } from "@apollo/client"
 import { CgSpinner } from "react-icons/cg"
-
 import { toast } from "sonner"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+import { Card, CardContent } from "@/ui/card"
+import { Button } from "@/ui/button"
+import DataTable, { Column } from "@/app/data-table"
 
 import {
   GetCustomerDocument,
@@ -15,12 +17,14 @@ import {
   useDocumentDeleteMutation,
   useDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
+import CardWrapper from "@/components/card-wrapper"
 
+type DocumentType = NonNullable<GetCustomerQuery["customer"]>["documents"][number]
 type DocumentProps = {
   customer: NonNullable<GetCustomerQuery["customer"]>
   refetch: () => void
 }
+
 export const Documents: React.FC<DocumentProps> = ({ customer, refetch }) => {
   return (
     <>
@@ -40,6 +44,16 @@ gql`
   mutation DocumentDelete($input: DocumentDeleteInput!) {
     documentDelete(input: $input) {
       deletedDocumentId
+    }
+  }
+
+  mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
+    customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
+      document {
+        id
+        customerId
+        filename
+      }
     }
   }
 `
@@ -96,69 +110,59 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
     [documentDelete, refetch],
   )
 
+  const columns: Column<DocumentType>[] = [
+    {
+      key: "id",
+      header: "ID",
+    },
+    {
+      key: "filename",
+      header: "File Name",
+    },
+    {
+      key: "id",
+      header: "",
+      render: (_, document) => (
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="secondary"
+            onClick={(e) => {
+              e.stopPropagation()
+              openFile(document.id)
+            }}
+            disabled={linkLoading[document.id]}
+          >
+            {linkLoading[document.id] ? (
+              <CgSpinner className="animate-spin h-5 w-5" />
+            ) : (
+              "View"
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={(e) => {
+              e.stopPropagation()
+              deleteDocument(document.id)
+            }}
+            disabled={deleteLoading[document.id]}
+          >
+            {deleteLoading[document.id] ? (
+              <CgSpinner className="animate-spin h-5 w-5" />
+            ) : (
+              "Delete"
+            )}
+          </Button>
+        </div>
+      ),
+    },
+  ]
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Documents</CardTitle>
-        <CardDescription>Documents for this Customer</CardDescription>
-      </CardHeader>
-      {documents.length === 0 ? (
-        <CardContent className="text-sm">
-          No documents found for this customer
-        </CardContent>
-      ) : (
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>File Name</TableHead>
-                <TableHead></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {documents.map((document) => (
-                <TableRow key={document.id}>
-                  <TableCell>{document.id}</TableCell>
-                  <TableCell>{document.filename}</TableCell>
-                  <TableCell>
-                    <Button
-                      variant="secondary"
-                      onClick={() => openFile(document.id)}
-                      loading={linkLoading[document.id] || false}
-                      className="mr-2"
-                    >
-                      View
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => deleteDocument(document.id)}
-                      loading={deleteLoading[document.id] || false}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      )}
-    </Card>
+    <CardWrapper title="Documents" description="Documents uploaded by this customer">
+      <DataTable data={documents} columns={columns} />
+    </CardWrapper>
   )
 }
-
-gql`
-  mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
-    customerDocumentAttach(input: { file: $file, customerId: $customerId }) {
-      document {
-        id
-        customerId
-        filename
-      }
-    }
-  }
-`
 
 const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation({

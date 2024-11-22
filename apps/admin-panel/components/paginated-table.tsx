@@ -122,7 +122,7 @@ const PaginatedTable = <T,>({
       <div className="overflow-x-auto border  rounded-md">
         <Table className="table-fixed w-full">
           {showHeader && (
-            <TableHeader className="bg-secondary">
+            <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>

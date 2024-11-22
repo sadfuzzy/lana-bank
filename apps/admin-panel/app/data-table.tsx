@@ -82,7 +82,7 @@ const DataTable = <T extends Record<string, unknown>>({
   return (
     <div className="w-full overflow-x-auto border rounded-md">
       <Table className={className}>
-        <TableHeader className="bg-secondary">
+        <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
           <TableRow className={headerClassName}>
             {columns.map((column, index) => (
               <TableHead

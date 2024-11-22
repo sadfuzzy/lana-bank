@@ -24,7 +24,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
 import ApprovalDialog from "@/app/approval-process/approve"
 import DenialDialog from "@/app/approval-process/deny"
-import DetailsCard from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -46,7 +46,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
-  const details = [
+  const details: DetailItemProps[] = [
     {
       label: "Customer Email",
       value: "siddharthtiwarikreplin12@gmail.com",

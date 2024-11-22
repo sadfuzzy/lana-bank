@@ -78,6 +78,8 @@ const columns: Column<Withdrawal>[] = [
   {
     key: "reference",
     label: "Reference",
+    render: (reference, withdrawal) =>
+      reference === withdrawal.withdrawalId ? "N/A" : reference,
   },
   {
     key: "amount",

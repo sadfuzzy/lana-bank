@@ -5,7 +5,6 @@ import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
 import { useRouter } from "next/navigation"
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 import {
   ApprovalProcessStatus,
@@ -14,6 +13,7 @@ import {
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import { CardSkeleton } from "@/components/card-skeleton"
+import DataTable, { Column } from "@/app/data-table"
 
 const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 
@@ -67,23 +67,76 @@ type ListProps = {
   dashboard?: boolean
 }
 
+type ActionNode = NonNullable<
+  NonNullable<
+    NonNullable<
+      ReturnType<typeof useAllActionsQuery>["data"]
+    >["approvalProcesses"]["edges"][number]
+  >["node"]
+>
+
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
   const router = useRouter()
   const { data, loading } = useAllActionsQuery()
+
   const approvalProcesses =
     data?.approvalProcesses.edges
       .filter((e) => e.node.subjectCanSubmitDecision)
-      .filter((e) => e.node.status === ApprovalProcessStatus.InProgress) || []
+      .filter((e) => e.node.status === ApprovalProcessStatus.InProgress)
+      .map((e) => e.node) || []
 
-  const quantifiedData = dashboard
+  const tableData = dashboard
     ? approvalProcesses.slice(0, NUMBER_OF_ITEMS_IN_DASHBOARD)
     : approvalProcesses
 
-  const tableData = quantifiedData.map((e) => e.node)
-
-  const more = tableData.length - NUMBER_OF_ITEMS_IN_DASHBOARD
+  const more = approvalProcesses.length - NUMBER_OF_ITEMS_IN_DASHBOARD
 
   if (loading) return <CardSkeleton />
+
+  const handleRowClick = (data: ActionNode) => {
+    if (
+      data.approvalProcessType === ApprovalProcessType.CreditFacilityApproval &&
+      data.target.__typename === "CreditFacility"
+    ) {
+      router.push(`/credit-facilities/${data.target.creditFacilityId}`)
+    } else if (
+      data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
+      data.target.__typename === "Withdrawal"
+    ) {
+      router.push(`/withdrawals/${data.target.withdrawalId}`)
+    } else if (
+      data.approvalProcessType === ApprovalProcessType.DisbursalApproval &&
+      data.target.__typename === "CreditFacilityDisbursal"
+    ) {
+      router.push(`/disbursals/${data.target.disbursalId}`)
+    }
+  }
+
+  const columns: Column<ActionNode>[] = [
+    {
+      key: "target",
+      header: "Customer",
+      render: (target) =>
+        target.__typename === "CreditFacilityDisbursal"
+          ? target.creditFacility.customer.email
+          : target.customer.email,
+    },
+    {
+      key: "approvalProcessType",
+      header: "Type",
+      render: (type) => formatProcessType(type),
+    },
+    {
+      key: "createdAt",
+      header: "Date",
+      render: (date) => formatDate(date),
+    },
+    {
+      key: "id",
+      header: "",
+      render: () => <span className="text-xs font-bold cursor-pointer">VIEW</span>,
+    },
+  ]
 
   return (
     <Card>
@@ -94,71 +147,22 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
       {tableData.length > 0 ? (
         <CardContent>
-          <div className="overflow-auto border rounded-md">
-            <Table>
-              {!dashboard && (
-                <TableHeader>
-                  <TableRow className="bg-secondary">
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="w-24"></TableHead>
-                  </TableRow>
-                </TableHeader>
-              )}
-              <TableBody>
-                {tableData.map((data, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="font-medium">
-                      {data.target.__typename === "CreditFacilityDisbursal"
-                        ? data.target.creditFacility.customer.email
-                        : data.target.customer.email}
-                    </TableCell>
-                    <TableCell>{formatProcessType(data.approvalProcessType)}</TableCell>
-                    <TableCell>{formatDate(data.createdAt)}</TableCell>
-                    <TableCell
-                      className="text-xs font-bold cursor-pointer"
-                      onClick={() => {
-                        if (
-                          data.approvalProcessType ===
-                            ApprovalProcessType.CreditFacilityApproval &&
-                          data.target.__typename === "CreditFacility"
-                        )
-                          router.push(
-                            `/credit-facilities/${data.target.creditFacilityId}`,
-                          )
-                        else if (
-                          data.approvalProcessType ===
-                            ApprovalProcessType.WithdrawalApproval &&
-                          data.target.__typename === "Withdrawal"
-                        )
-                          router.push(`/withdrawals/${data.target.withdrawalId}`)
-                        else if (
-                          data.approvalProcessType ===
-                            ApprovalProcessType.DisbursalApproval &&
-                          data.target.__typename === "CreditFacilityDisbursal"
-                        )
-                          router.push(`/disbursals/${data.target.disbursalId}`)
-                      }}
-                    >
-                      VIEW
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-
-            {dashboard && more > 0 && (
-              <div className="mt-4 flex items-center gap-2">
-                <Link href="/actions" className="text-sm text-muted-foreground">
-                  ...{more} more
-                </Link>
-              </div>
-            )}
-          </div>
+          <DataTable
+            data={tableData}
+            columns={columns}
+            onRowClick={handleRowClick}
+            className="w-full"
+          />
+          {dashboard && more > 0 && (
+            <div className="mt-4 flex items-center gap-2">
+              <Link href="/actions" className="text-sm text-muted-foreground">
+                ...{more} more
+              </Link>
+            </div>
+          )}
         </CardContent>
       ) : (
-        <CardContent className="flex flex-col items-start justify-center w-full gap-2 ">
+        <CardContent className="flex flex-col items-start justify-center w-full gap-2">
           <HiCheckCircle className="text-6xl text-green-500" />
           <div className="text-sm">All Caught Up</div>
         </CardContent>

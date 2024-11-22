@@ -8,11 +8,13 @@ import Balance from "@/components/balance/balance"
 
 import { GetCustomerQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
+import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 
 type CustomerTransactionsTableProps = {
   transactions: NonNullable<GetCustomerQuery["customer"]>["transactions"]
 }
 
+// TODO use data-table
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
   transactions,
 }) => {
@@ -30,11 +32,10 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         <CardContent>
           <div className="overflow-x-auto border  rounded-md">
             <Table className="table-fixed w-full">
-              <TableHeader className="bg-secondary">
+              <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Reference</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
@@ -58,12 +59,11 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
                     >
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>{tx.__typename}</TableCell>
-                      <TableCell>{tx.reference === id ? "-" : tx.reference}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
                         <Balance amount={tx.amount} currency={"usd"} />
                       </TableCell>
                       <TableCell>
-                        {isDeposit ? "n/a" : tx.status.toLocaleLowerCase()}
+                        {isDeposit ? "N/A" : <WithdrawalStatusBadge status={tx.status} />}
                       </TableCell>
                     </TableRow>
                   )

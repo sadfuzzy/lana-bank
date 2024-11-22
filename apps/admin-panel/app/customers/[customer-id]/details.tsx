@@ -5,7 +5,7 @@ import { PiPencilSimpleLineLight } from "react-icons/pi"
 
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { AccountStatus, GetCustomerQuery } from "@/lib/graphql/generated"
 import { Badge } from "@/ui/badge"
 import { formatDate } from "@/lib/utils"
@@ -21,7 +21,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
 }) => {
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
-  const details: DetailItemType[] = [
+  const details: DetailItemProps[] = [
     { label: "Email", value: customer.email },
     { label: "Created on", value: formatDate(customer.createdAt) },
     {

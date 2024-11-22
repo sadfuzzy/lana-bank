@@ -149,9 +149,6 @@ const Customer = ({
             <KycStatus customerId={customerId} />
           </div>
         </TabsContent>
-        <TabsContent value="balances">
-          <CustomerAccountBalances balance={data.customer.balance} />
-        </TabsContent>
         <TabsContent value="credit-facilities">
           <CustomerCreditFacilitiesTable
             creditFacilities={data.customer.creditFacilities}
@@ -159,9 +156,6 @@ const Customer = ({
         </TabsContent>
         <TabsContent value="transactions">
           <CustomerTransactionsTable transactions={data.customer.transactions} />
-        </TabsContent>
-        <TabsContent value="kyc">
-          <KycStatus customerId={customerId} />
         </TabsContent>
         <TabsContent value="docs">
           <Documents customer={data.customer} refetch={refetch} />

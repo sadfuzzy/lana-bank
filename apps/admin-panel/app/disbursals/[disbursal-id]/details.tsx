@@ -5,7 +5,7 @@ import Link from "next/link"
 
 import { DisbursalStatusBadge } from "../status-badge"
 
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
@@ -28,7 +28,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
-  const details: DetailItemType[] = [
+  const details: DetailItemProps[] = [
     {
       label: "Customer Email",
       value: disbursal.creditFacility.customer.email,

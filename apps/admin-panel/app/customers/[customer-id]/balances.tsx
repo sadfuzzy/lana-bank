@@ -4,7 +4,7 @@ import React from "react"
 
 import Balance from "@/components/balance/balance"
 
-import DetailsCard, { DetailItemType } from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
@@ -14,7 +14,7 @@ type CustomerAccountBalancesProps = {
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({
   balance,
 }) => {
-  const details: DetailItemType[] = [
+  const details: DetailItemProps[] = [
     {
       label: "Checking Settled Balance (USD)",
       value: <Balance amount={balance.checking.settled} currency="usd" />,

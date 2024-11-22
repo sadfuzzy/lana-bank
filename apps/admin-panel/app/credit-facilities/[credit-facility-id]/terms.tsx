@@ -5,14 +5,14 @@ import React from "react"
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
-import DetailsCard from "@/components/details-card"
+import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityTermsProps = {
   creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
 }
 
 const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacility }) => {
-  const details = [
+  const details: DetailItemProps[] = [
     {
       label: "Duration",
       value: `${creditFacility.creditFacilityTerms.duration.units} ${formatPeriod(
