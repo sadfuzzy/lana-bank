@@ -49,7 +49,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const details: DetailItemProps[] = [
     {
       label: "Customer Email",
-      value: "siddharthtiwarikreplin12@gmail.com",
+      value: creditFacilityDetails.customer.email,
       href: `/customers/${creditFacilityDetails.customer.customerId}`,
     },
     {
