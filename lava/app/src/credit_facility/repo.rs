@@ -2,6 +2,7 @@ use rust_decimal::Decimal;
 use sqlx::PgPool;
 
 use es_entity::*;
+pub use es_entity::{ListDirection, Sort};
 
 use crate::{data_export::Export, primitives::*, terms::CollateralizationState};
 
@@ -171,6 +172,35 @@ mod facility_collateralization_state_sqlx {
     impl PgHasArrayType for CollateralizationState {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+impl From<(CreditFacilitiesSortBy, &CreditFacility)>
+    for credit_facility_cursor::CreditFacilitiesCursor
+{
+    fn from(credit_facility_with_sort: (CreditFacilitiesSortBy, &CreditFacility)) -> Self {
+        let (sort, credit_facility) = credit_facility_with_sort;
+        match sort {
+            CreditFacilitiesSortBy::CreatedAt => {
+                credit_facility_cursor::CreditFacilitiesByCreatedAtCursor::from(credit_facility)
+                    .into()
+            }
+            CreditFacilitiesSortBy::ApprovalProcessId => {
+                credit_facility_cursor::CreditFacilitiesByApprovalProcessIdCursor::from(
+                    credit_facility,
+                )
+                .into()
+            }
+            CreditFacilitiesSortBy::CollateralizationRatio => {
+                credit_facility_cursor::CreditFacilitiesByCollateralizationRatioCursor::from(
+                    credit_facility,
+                )
+                .into()
+            }
+            CreditFacilitiesSortBy::Id => {
+                credit_facility_cursor::CreditFacilitiesByIdCursor::from(credit_facility).into()
+            }
         }
     }
 }

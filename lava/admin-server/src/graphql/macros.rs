@@ -138,9 +138,7 @@ macro_rules! list_with_cursor {
 //     |after, _, first, _| async move {
 //         let first = first.expect("First always exists");
 //         let after = after
-//             .map(CommitteeComboCursor::from)
-//             .map(CommitteeByCreatedAtCursor::try_from)
-//             .transpose()?;
+//             .map(CommitteeCursor::from);
 
 //         let res = app
 //             .governance()
@@ -150,6 +148,8 @@ macro_rules! list_with_cursor {
 //                     first,
 //                     after,
 //                 },
+//                 filter,
+//                 sort,
 //             )
 //             .await?;
 
@@ -157,7 +157,10 @@ macro_rules! list_with_cursor {
 //         connection
 //             .edges
 //             .extend(res.entities.into_iter().map(|committee| {
-//                 let cursor = CommitteeByCreatedAtCursor::from(&committee).into();
+//                 let cursor = CommitteeCursor::from((
+//                     DomainCommitteesCursorSortBy::from(sort),
+//                     &committee,
+//                 ));
 //                 Edge::new(cursor, Committee::from(committee))
 //             }));
 
@@ -167,7 +170,7 @@ macro_rules! list_with_cursor {
 // .await
 #[macro_export]
 macro_rules! list_with_combo_cursor {
-    ($combo_cursor:ty, $cursor:ty, $entity:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+    ($combo_cursor:ty, $entity:ty, $sort_by:expr, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
         let loader = $ctx.data_unchecked::<LavaDataLoader>();
         async_graphql::types::connection::query(
             $after,
@@ -176,10 +179,7 @@ macro_rules! list_with_combo_cursor {
             None,
             |after, _, first, _| async move {
                 let first = first.expect("First always exists") as usize;
-                let after = after
-                    .map(<$combo_cursor>::from)
-                    .map(<$cursor>::try_from)
-                    .transpose()?;
+                let after = after.map(<$combo_cursor>::from);
                 let args = es_entity::PaginatedQueryArgs { first, after };
                 let res = $load(args).await?;
                 let mut connection =
@@ -187,7 +187,7 @@ macro_rules! list_with_combo_cursor {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entity| {
-                        let cursor = <$cursor>::from(&entity).into();
+                        let cursor = <$combo_cursor>::from(($sort_by, &entity));
                         Edge::new(cursor, <$entity>::from(entity))
                     }));
                 loader

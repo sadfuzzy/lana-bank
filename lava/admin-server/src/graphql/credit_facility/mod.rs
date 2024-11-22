@@ -12,8 +12,9 @@ use super::{
 };
 pub use lava_app::{
     credit_facility::{
-        CreditFacilitiesByCollateralizationRatioCursor, CreditFacilitiesByCreatedAtCursor,
-        CreditFacilitiesCursor, CreditFacility as DomainCreditFacility,
+        CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
+        CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
+        FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
     },
     primitives::CreditFacilityStatus,
 };
@@ -103,10 +104,19 @@ impl CreditFacility {
 
         let disbursals = app
             .credit_facilities()
-            .list_disbursals_for_credit_facility(sub, self.entity.id)
+            .list_disbursals(
+                sub,
+                Default::default(),
+                FindManyDisbursals::WithCreditFacilityId(self.entity.id),
+                Sort {
+                    by: DomainDisbursalsSortBy::CreatedAt,
+                    direction: ListDirection::Descending,
+                },
+            )
             .await?;
 
         Ok(disbursals
+            .entities
             .into_iter()
             .map(CreditFacilityDisbursal::from)
             .collect())
@@ -229,12 +239,36 @@ pub enum CreditFacilitiesSortBy {
     Cvl,
 }
 
-#[derive(InputObject, Default)]
+impl From<CreditFacilitiesSortBy> for DomainCreditFacilitiesSortBy {
+    fn from(by: CreditFacilitiesSortBy) -> Self {
+        match by {
+            CreditFacilitiesSortBy::CreatedAt => DomainCreditFacilitiesSortBy::CreatedAt,
+            CreditFacilitiesSortBy::Cvl => DomainCreditFacilitiesSortBy::CollateralizationRatio,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Debug, Clone, Copy)]
 pub struct CreditFacilitiesSort {
     #[graphql(default)]
     pub by: CreditFacilitiesSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+impl From<CreditFacilitiesSort> for Sort<DomainCreditFacilitiesSortBy> {
+    fn from(sort: CreditFacilitiesSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
+}
+
+impl From<CreditFacilitiesSort> for DomainCreditFacilitiesSortBy {
+    fn from(sort: CreditFacilitiesSort) -> Self {
+        sort.by.into()
+    }
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]

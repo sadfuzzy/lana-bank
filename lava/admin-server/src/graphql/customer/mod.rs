@@ -13,8 +13,8 @@ use super::{
 pub use lava_app::{
     app::LavaApp,
     customer::{
-        Customer as DomainCustomer, CustomersByCreatedAtCursor, CustomersByEmailCursor,
-        CustomersByTelegramIdCursor, CustomersCursor,
+        Customer as DomainCustomer, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
+        FindManyCustomers, Sort,
     },
 };
 
@@ -102,8 +102,17 @@ impl Customer {
 
         let credit_facilities: Vec<CreditFacility> = app
             .credit_facilities()
-            .list_for_customer(sub, self.entity.id)
+            .list(
+                sub,
+                Default::default(),
+                FindManyCreditFacilities::WithCustomerId(self.entity.id),
+                Sort {
+                    by: DomainCreditFacilitiesSortBy::CreatedAt,
+                    direction: ListDirection::Descending,
+                },
+            )
             .await?
+            .entities
             .into_iter()
             .map(CreditFacility::from)
             .collect();
@@ -172,12 +181,37 @@ pub enum CustomersSortBy {
     TelegramId,
 }
 
-#[derive(InputObject, Default)]
+impl From<CustomersSortBy> for DomainCustomersSortBy {
+    fn from(by: CustomersSortBy) -> Self {
+        match by {
+            CustomersSortBy::CreatedAt => DomainCustomersSortBy::CreatedAt,
+            CustomersSortBy::Email => DomainCustomersSortBy::Email,
+            CustomersSortBy::TelegramId => DomainCustomersSortBy::TelegramId,
+        }
+    }
+}
+
+#[derive(InputObject, Default, Clone, Copy)]
 pub struct CustomersSort {
     #[graphql(default)]
     pub by: CustomersSortBy,
     #[graphql(default)]
     pub direction: SortDirection,
+}
+
+impl From<CustomersSort> for DomainCustomersSortBy {
+    fn from(sort: CustomersSort) -> Self {
+        sort.by.into()
+    }
+}
+
+impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
+    fn from(sort: CustomersSort) -> Self {
+        Self {
+            by: sort.by.into(),
+            direction: sort.direction.into(),
+        }
+    }
 }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
