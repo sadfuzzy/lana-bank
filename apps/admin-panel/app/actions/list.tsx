@@ -131,11 +131,6 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
       header: "Date",
       render: (date) => formatDate(date),
     },
-    {
-      key: "id",
-      header: "",
-      render: () => <span className="text-xs font-bold cursor-pointer">VIEW</span>,
-    },
   ]
 
   return (
