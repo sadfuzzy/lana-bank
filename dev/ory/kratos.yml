@@ -43,7 +43,7 @@ selfservice:
           id: localhost
           origins:
             - http://localhost:4455
-          display_name: lava-bank
+          display_name: lana-bank
     totp:
       enabled: true
 

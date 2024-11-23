@@ -1,13 +1,13 @@
 [workspace]
 resolver = "2"
 members = [
-  "lava/cli",
-  "lava/admin-server",
-  "lava/app",
-  "lava/rbac-types",
-  "lava/events",
-  "lava/ids",
-  "lava/dashboard",
+  "lana/cli",
+  "lana/admin-server",
+  "lana/app",
+  "lana/rbac-types",
+  "lana/events",
+  "lana/ids",
+  "lana/dashboard",
 
   "core/user",
   "core/governance",

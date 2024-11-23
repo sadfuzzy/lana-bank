@@ -9,9 +9,9 @@ GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
 GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
-LAVA_HOME="${LAVA_HOME:-.lava}"
-export LAVA_CONFIG="${REPO_ROOT}/bats/lava-sim-time.yml"
-SERVER_PID_FILE="${LAVA_HOME}/server-pid"
+LANA_HOME="${LANA_HOME:-.lana}"
+export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
+SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
 LOG_FILE=".e2e-logs"
 
@@ -23,9 +23,9 @@ reset_pg() {
 }
 
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/lava-cli"
+  server_location="${REPO_ROOT}/target/debug/lana-cli"
   if [[ ! -z ${CARGO_TARGET_DIR} ]]; then
-    server_location="${CARGO_TARGET_DIR}/debug/lava-cli"
+    server_location="${CARGO_TARGET_DIR}/debug/lana-cli"
   fi
 
   bash -c ${server_location} $@
@@ -35,12 +35,12 @@ start_server() {
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
     server_process_and_status=$(
-      ps a | grep 'target/debug/lava-cli' | grep -v grep
+      ps a | grep 'target/debug/lana-cli' | grep -v grep
       echo ${PIPESTATUS[2]}
     )
   elif [ -n "$ZSH_VERSION" ]; then
     server_process_and_status=$(
-      ps a | grep 'target/debug/lava-cli' | grep -v grep
+      ps a | grep 'target/debug/lana-cli' | grep -v grep
       echo ${pipestatus[3]}
     )
   else

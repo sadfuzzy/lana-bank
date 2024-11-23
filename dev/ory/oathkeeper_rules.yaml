@@ -22,7 +22,7 @@
       config:
         claims: '{"sub": "{{ print .Subject }}", "aud": ["https://public-api/graphql"] }'
 
-- id: lava-core-customer-portal
+- id: lana-core-customer-portal
   upstream:
     url: "http://dockerhost-alias:3000"
     preserve_host: true
@@ -94,4 +94,3 @@
     handler: allow
   mutators:
     - handler: noop
-

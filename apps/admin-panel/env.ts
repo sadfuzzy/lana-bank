@@ -22,7 +22,7 @@ export const env = createEnv({
     CHECK_USER_ALLOWED_CALLBACK_URL: z
       .string()
       .default("http://localhost:5253/user/callback"),
-    EMAIL_FROM: z.string().default("no-reply@lava-bank.com"),
+    EMAIL_FROM: z.string().default("no-reply@lana-bank.com"),
     EMAIL_SERVER: z.string().default("smtp://localhost:1025"),
     NEXT_AUTH_DATABASE_URL: z
       .string()

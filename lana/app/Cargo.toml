@@ -1,0 +1,68 @@
+[package]
+name = "lana-app"
+version = "0.2.43-dev"
+edition = "2021"
+
+[features]
+sim-time = ["dep:sim-time", "es-entity/sim-time" ]
+
+fail-on-warnings = []
+
+[dependencies]
+rbac-types = { path = "../rbac-types" }
+lana-events = { path = "../events" }
+lana-ids = { path = "../ids" }
+sim-time = { path = "../../lib/sim-time", optional = true }
+
+dashboard = { path = "../dashboard" }
+
+governance = { path = "../../core/governance", features = ["graphql"] }
+core-money = { path = "../../core/money" }
+core-user = { path = "../../core/user", features = ["graphql"] }
+
+tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
+job = { path = "../../lib/job" }
+outbox = { path = "../../lib/outbox" }
+es-entity = { path = "../../lib/es-entity", features = ["graphql"] }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+
+anyhow = { workspace = true }
+async-graphql = { workspace = true }
+async-graphql-axum = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+axum-extra = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true }
+derive_builder = { workspace = true }
+graphql_client = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+clap = { workspace = true }
+sqlx = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+serde_with = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+rust_decimal = { workspace = true }
+rust_decimal_macros = { workspace = true }
+rusty-money = { workspace = true }
+cala-types = { workspace = true }
+base64 = { workspace = true }
+hex = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }
+ory-kratos-client = { workspace = true }
+cached = { workspace = true }
+gcp_auth = { workspace = true }
+gcp-bigquery-client = { workspace = true }
+cloud-storage = { workspace = true }
+
+[dev-dependencies]
+rand = { workspace = true }
+serial_test = { version = "3.1.1", features = [ "file_locks" ] }

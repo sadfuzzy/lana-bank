@@ -9,7 +9,7 @@ pushd charts-repo
 
 git checkout ${BRANCH}
 
-old_digest=$(yq e '.lavaBank.image.digest' "./charts/${CHARTS_SUBDIR}/values.yaml")
+old_digest=$(yq e '.lanaBank.image.digest' "./charts/${CHARTS_SUBDIR}/values.yaml")
 old_ref=$(grep "digest: \"${old_digest}\"" "./charts/${CHARTS_SUBDIR}/values.yaml" \
   | sed -n 's/.*commit_ref=\([^;]*\);.*/\1/p' | tr -d ' \n')
 
@@ -23,7 +23,7 @@ ${digest}
 
 Code diff contained in this image:
 
-https://github.com/GaloyMoney/lava-bank/compare/${old_ref}...${ref}
+https://github.com/GaloyMoney/lana-bank/compare/${old_ref}...${ref}
 EOF
 
 export GH_TOKEN="$(ghtoken generate -b "${GH_APP_PRIVATE_KEY}" -i "${GH_APP_ID}" | jq -r '.token')"

@@ -14,7 +14,7 @@ target/
 -
 .e2e-logs
 *.e2e-logs
-.lava
+.lana
 .env
 tilt.log
 

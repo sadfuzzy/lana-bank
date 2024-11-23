@@ -53,7 +53,7 @@ mutators:
     enabled: true
     config:
       jwks_url: file:///home/ory/jwks.json
-      issuer_url: "lava.bank"
+      issuer_url: "lana.bank"
       claims: '{"sub": "{{ print .Subject }}" }'
 
   header:

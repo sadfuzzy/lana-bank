@@ -43,7 +43,7 @@ dependencies = [
  "governance",
  "jsonwebtoken 9.3.0",
  "jwks-utils",
- "lava-app",
+ "lana-app",
  "reqwest 0.12.9",
  "rust_decimal",
  "serde",
@@ -1040,7 +1040,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
- "lava-events",
+ "lana-events",
  "outbox",
  "serde",
  "serde_json",
@@ -2285,7 +2285,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "lava-app"
+name = "lana-app"
 version = "0.2.43-dev"
 dependencies = [
  "anyhow",
@@ -2315,8 +2315,8 @@ dependencies = [
  "hex",
  "hmac",
  "job",
- "lava-events",
- "lava-ids",
+ "lana-events",
+ "lana-ids",
  "ory-kratos-client",
  "outbox",
  "rand",
@@ -2342,13 +2342,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "lava-cli"
+name = "lana-cli"
 version = "0.2.43-dev"
 dependencies = [
  "admin-server",
  "anyhow",
  "clap",
- "lava-app",
+ "lana-app",
  "serde",
  "serde_json",
  "serde_yaml",
@@ -2359,20 +2359,20 @@ dependencies = [
 ]
 
 [[package]]
-name = "lava-events"
+name = "lana-events"
 version = "0.2.43-dev"
 dependencies = [
  "chrono",
  "core-money",
  "core-user",
  "governance",
- "lava-ids",
+ "lana-ids",
  "outbox",
  "serde",
 ]
 
 [[package]]
-name = "lava-ids"
+name = "lana-ids"
 version = "0.2.43-dev"
 dependencies = [
  "es-entity",
@@ -3252,7 +3252,7 @@ dependencies = [
  "core-user",
  "dashboard",
  "governance",
- "lava-ids",
+ "lana-ids",
  "serde",
  "strum",
  "thiserror",

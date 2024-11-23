@@ -1,12 +1,12 @@
 FROM clux/muslrust:stable AS build
-  RUN mkdir /lava-home
+  RUN mkdir /lana-home
   COPY . /src
   WORKDIR /src
-  RUN SQLX_OFFLINE=true cargo build --locked --release --bin lava-cli
+  RUN SQLX_OFFLINE=true cargo build --locked --release --bin lana-cli
 
 FROM ubuntu
-  COPY --from=build /src/target/x86_64-unknown-linux-musl/release/lava-cli /bin/lava-core
-  COPY --from=build --chown=1000:0 --chmod=755 /lava-home /lava
+  COPY --from=build /src/target/x86_64-unknown-linux-musl/release/lana-cli /bin/lana-core
+  COPY --from=build --chown=1000:0 --chmod=755 /lana-home /lana
   USER 1000
-  ENV LAVA_HOME /lava
-  CMD ["lava-cli"]
+  ENV LANA_HOME /lana
+  CMD ["lana-cli"]

@@ -6,15 +6,15 @@ ENV GH_TOKEN ${GH_TOKEN}
 
 ARG VERSION
 ENV VERSION ${VERSION}
-RUN mkdir lava-home && mkdir lava && cd lava \
-  && gh release download --repo GaloyMoney/lava-bank ${VERSION}\
-  && mv lava-cli-x86_64-unknown-linux-musl-${VERSION}.tar.gz lava-cli.tar.gz \
-  && tar --strip-components=1 -xf lava-cli.tar.gz \
-  && mv lava-cli /usr/local/bin && cd ../ && rm -rf ./lava
+RUN mkdir lana-home && mkdir lana && cd lana \
+  && gh release download --repo GaloyMoney/lana-bank ${VERSION}\
+  && mv lana-cli-x86_64-unknown-linux-musl-${VERSION}.tar.gz lana-cli.tar.gz \
+  && tar --strip-components=1 -xf lana-cli.tar.gz \
+  && mv lana-cli /usr/local/bin && cd ../ && rm -rf ./lana
 
 FROM gcr.io/distroless/static
-  COPY --from=load /usr/local/bin/lava-cli /bin/lava-cli
-  COPY --from=load --chown=1000:0 --chmod=755 /lava-home /lava
+  COPY --from=load /usr/local/bin/lana-cli /bin/lana-cli
+  COPY --from=load --chown=1000:0 --chmod=755 /lana-home /lana
   USER 1000
   ARG VERSION
   ARG BUILDTIME
@@ -22,5 +22,5 @@ FROM gcr.io/distroless/static
   ENV VERSION ${VERSION}
   ENV BUILDTIME ${BUILDTIME}
   ENV COMMITHASH ${COMMITHASH}
-  ENV LAVA_HOME /lava
-  CMD ["lava-cli"]
+  ENV LANA_HOME /lana
+  CMD ["lana-cli"]

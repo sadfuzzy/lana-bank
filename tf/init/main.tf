@@ -9,13 +9,13 @@ variable "gcp_region" {
 }
 
 locals {
-  project                = "lava-dev-436720"
-  tf_state_bucket_name   = "lava-dev-tf-state"
-  objects_list_role_name = "lava_objects_list"
+  project                = "lana-dev-436720"
+  tf_state_bucket_name   = "lana-dev-tf-state"
+  objects_list_role_name = "lana_objects_list"
 
   justin = "justin@galoy.io"
 
-  lava_dev = {
+  lana_dev = {
     jireva     = "jir@galoy.io",
     jcarter    = "justin@galoy.io"
     sv         = "sv@galoy.io"
@@ -30,7 +30,7 @@ locals {
 module "setup" {
   source = "../bq-setup"
 
-  for_each = local.lava_dev
+  for_each = local.lana_dev
 
   name_prefix = each.key
 
@@ -86,8 +86,8 @@ output "concourse_sa_keys_base64" {
 
 terraform {
   backend "gcs" {
-    bucket = "lava-dev-tf-state"
-    prefix = "lava-dev/setup"
+    bucket = "lana-dev-tf-state"
+    prefix = "lana-dev/setup"
   }
 }
 

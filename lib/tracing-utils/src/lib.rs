@@ -24,7 +24,7 @@ pub struct TracingConfig {
 impl Default for TracingConfig {
     fn default() -> Self {
         Self {
-            service_name: "lava-dev".to_string(),
+            service_name: "lana-dev".to_string(),
         }
     }
 }
@@ -66,7 +66,7 @@ fn telemetry_resource(config: &TracingConfig) -> Resource {
     )
     .merge(&Resource::new(vec![
         KeyValue::new(SERVICE_NAME, config.service_name.clone()),
-        KeyValue::new(SERVICE_NAMESPACE, "lava"),
+        KeyValue::new(SERVICE_NAMESPACE, "lana"),
     ]))
 }
 

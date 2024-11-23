@@ -26,7 +26,7 @@ resource "google_dataform_repository" "repository" {
   display_name = "Dataform Repository for ${local.dataform_repo_name}"
 
   git_remote_settings {
-    url                                 = "https://github.com/GaloyMoney/lava-bank.git"
+    url                                 = "https://github.com/GaloyMoney/lana-bank.git"
     default_branch                      = local.dataform_git_branch
     authentication_token_secret_version = google_secret_manager_secret_version.version.id
   }

@@ -1,4 +1,4 @@
-# Lava bank
+# Lana bank
 
 **to run (unit) tests:**
 

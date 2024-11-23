@@ -1,7 +1,7 @@
 resource "google_service_account" "bq_access_sa" {
   project      = local.gcp_project
   account_id   = local.sa_account_id
-  display_name = "Serviae Account for lava-bank BigQuery access"
+  display_name = "Serviae Account for lana-bank BigQuery access"
 }
 
 resource "google_service_account_key" "bq_access_sa_key" {

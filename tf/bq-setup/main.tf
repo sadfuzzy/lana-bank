@@ -31,7 +31,7 @@ locals {
   additional_owners = var.additional_owners
 
   dataset_id             = "${replace(local.name_prefix, "-", "_")}_dataset"
-  sa_account_id          = replace("${var.name_prefix}-lava-bq-access", "_", "-")
+  sa_account_id          = replace("${var.name_prefix}-lana-bq-access", "_", "-")
   git_token              = var.git_token
   git_token_secret_id    = "${var.name_prefix}-git-token"
   dataform_keyring_name  = "${var.name_prefix}-dataform-keyring"

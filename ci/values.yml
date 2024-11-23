@@ -1,6 +1,6 @@
 #@data/values
 ---
-git_uri: git@github.com:GaloyMoney/lava-bank.git
+git_uri: git@github.com:GaloyMoney/lana-bank.git
 git_branch: main
 github_private_key: ((github.private_key))
 github_token: ((github.api_token))
@@ -9,7 +9,7 @@ github_app_private_key: ((github.github_app_private_key))
 
 git_charts_uri: git@github.com:GaloyMoney/private-charts.git
 git_charts_branch: main
-git_charts_bot_branch: bot-bump-lava-bank-image
+git_charts_bot_branch: bot-bump-lana-bank-image
 docker_registry: us.gcr.io/galoy-org
 docker_registry_user: ((docker-creds.username))
 docker_registry_password: ((docker-creds.password))
@@ -24,9 +24,8 @@ staging_ssh_private_key: ((staging-ssh.ssh_private_key))
 staging_ssh_pub_key: ((staging-ssh.ssh_public_key))
 git_version_branch: version
 gh_org: GaloyMoney
-gh_repository: lava-bank
+gh_repository: lana-bank
 
-slack_channel: lava-bank-github
+slack_channel: lana-bank-github
 slack_username: concourse
 slack_webhook_url: ((addons-slack.api_url))
-

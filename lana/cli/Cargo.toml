@@ -1,0 +1,25 @@
+[package]
+name = "lana-cli"
+version = "0.2.43-dev"
+edition = "2021"
+
+[features]
+sim-time = ["dep:sim-time"]
+
+fail-on-warnings = []
+
+[dependencies]
+lana-app = { path = "../app" }
+admin-server = { path = "../admin-server" }
+
+tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
+sim-time = { path = "../../lib/sim-time", optional = true }
+
+
+anyhow = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_yaml = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+sqlx = { workspace = true }

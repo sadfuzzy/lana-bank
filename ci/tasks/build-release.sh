@@ -8,7 +8,7 @@ if [[ -f version/version ]];then
 fi
 
 REPO=${REPO:-repo}
-BINARY=lava-cli
+BINARY=lana-cli
 OUT=${OUT:-none}
 WORKSPACE="$(pwd)"
 

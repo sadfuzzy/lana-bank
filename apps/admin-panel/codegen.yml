@@ -1,6 +1,6 @@
 overwrite: true
 schema:
-  - "../../lava/admin-server/src/graphql/schema.graphql"
+  - "../../lana/admin-server/src/graphql/schema.graphql"
   - "./lib/graphql/local-schema.gql"
 documents:
   - "app/**/*.{ts,tsx}"
@@ -19,9 +19,9 @@ generates:
       - add:
           content: "\/* eslint-disable *\/"
     config:
-        scalars:
-          UUID: string
-          UsdCents: 'types#UsdCents'
-          Satoshis: 'types#Satoshis'
-          SignedUsdCents: 'types#SignedUsdCents'
-          SignedSatoshis: 'types#SignedSatoshis'
+      scalars:
+        UUID: string
+        UsdCents: "types#UsdCents"
+        Satoshis: "types#Satoshis"
+        SignedUsdCents: "types#SignedUsdCents"
+        SignedSatoshis: "types#SignedSatoshis"
