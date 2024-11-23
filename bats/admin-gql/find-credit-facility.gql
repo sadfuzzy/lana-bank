@@ -1,8 +1,24 @@
 query creditFacility($id: UUID!) {
   creditFacility(id: $id) {
     creditFacilityId
+    status
+    expiresAt
     collateralizationState
     facilityAmount
+    disbursals {
+      id
+      index
+      status
+    }
+    transactions {
+      ... on CreditFacilityInterestAccrued {
+        __typename
+        cents
+        recordedAt
+        txId
+        days
+      }
+    }
     balance {
       facilityRemaining {
         usdBalance

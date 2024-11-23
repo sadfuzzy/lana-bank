@@ -1,5 +1,7 @@
 mod job;
 
+use tracing::instrument;
+
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
@@ -71,6 +73,7 @@ impl ApproveCreditFacility {
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[instrument(name = "credit_facility.approval.execute", skip(self))]
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
@@ -102,7 +105,6 @@ impl ApproveCreditFacility {
             &mut db,
             &self.ledger,
             &self.audit,
-            &self.repo,
             &self.jobs,
             price,
         )

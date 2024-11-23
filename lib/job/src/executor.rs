@@ -117,6 +117,7 @@ impl JobExecutor {
             span.record("n_jobs_running", running_jobs.len());
             if *keep_alive {
                 let ids = running_jobs.keys().cloned().collect::<Vec<_>>();
+                let now = crate::time::now();
                 sqlx::query!(
                     r#"
                     UPDATE job_executions
@@ -124,7 +125,7 @@ impl JobExecutor {
                     WHERE id = ANY($1)
                     "#,
                     &ids as &[JobId],
-                    crate::time::now(),
+                    now,
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
@@ -136,7 +137,7 @@ impl JobExecutor {
                     SET state = 'pending', attempt_index = attempt_index + 1
                     WHERE state = 'running' AND reschedule_after < $1::timestamptz + $2::interval
                     "#,
-                    crate::time::now(),
+                    now,
                     pg_interval
                 )
                 .fetch_all(jobs.pool())
@@ -246,7 +247,7 @@ impl JobExecutor {
     }
 
     #[instrument(name = "job.execute", skip_all,
-        fields(job_id, job_type, attempt, error, error.level, error.message),
+        fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
     err)]
     async fn execute_job(
         job: Job,
@@ -285,35 +286,43 @@ impl JobExecutor {
             JobError::JobExecutionError(error)
         })? {
             JobCompletion::Complete => {
+                span.record("conclusion", "Complete");
                 let op = repo.begin_op().await?;
                 Self::complete_job(op, id, repo).await?;
             }
             JobCompletion::CompleteWithOp(op) => {
+                span.record("conclusion", "CompleteWithOp");
                 Self::complete_job(op, id, repo).await?;
             }
             JobCompletion::RescheduleNow => {
+                span.record("conclusion", "RescheduleNow");
                 let op = repo.begin_op().await?;
                 let t = op.now();
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleNowWithOp(op) => {
+                span.record("conclusion", "RescheduleNowWithOp");
                 let t = op.now();
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleIn(d) => {
+                span.record("conclusion", "RescheduleIn");
                 let op = repo.begin_op().await?;
                 let t = op.now() + d;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleInWithOp(d, op) => {
+                span.record("conclusion", "RescheduleInWithOp");
                 let t = op.now() + d;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleAt(t) => {
+                span.record("conclusion", "RescheduleAtAt");
                 let op = repo.begin_op().await?;
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleAtWithOp(op, t) => {
+                span.record("conclusion", "RescheduleAtWithOp");
                 Self::reschedule_job(op, id, t).await?;
             }
         }

@@ -48,7 +48,7 @@ init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
 reset-deps: reset-tf-state clean-deps start-deps setup-db run-tf
 
 run-server:
-	cargo run --bin lava-cli -- --config ./bats/lava.yml
+	cargo run --bin lava-cli --features sim-time -- --config ./bats/lava-sim-time.yml | tee .e2e-logs
 
 check-code: sdl
 	git diff --exit-code lava/admin-server/src/graphql/schema.graphql
@@ -63,10 +63,13 @@ clippy:
 build:
 	SQLX_OFFLINE=true cargo build --locked
 
-e2e: clean-deps start-deps build run-tf
+build-for-tests:
+	SQLX_OFFLINE=true cargo build --locked --features sim-time
+
+e2e: reset-tf-state clean-deps start-deps build-for-tests run-tf
 	bats -t bats
 
-e2e-in-ci: bump-cala-docker-image clean-deps start-deps build run-tf
+e2e-in-ci: bump-cala-docker-image clean-deps start-deps build-for-tests run-tf
 	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
 
 

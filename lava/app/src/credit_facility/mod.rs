@@ -280,8 +280,8 @@ impl CreditFacilities {
         balances.check_disbursal_amount(amount)?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
-        let new_disbursal =
-            credit_facility.initiate_disbursal(amount, chrono::Utc::now(), audit_info)?;
+        let now = crate::time::now();
+        let new_disbursal = credit_facility.initiate_disbursal(amount, now, audit_info)?;
         self.governance
             .start_process(
                 &mut db,
@@ -393,7 +393,6 @@ impl CreditFacilities {
             &mut db,
             &self.ledger,
             self.authz.audit(),
-            &self.credit_facility_repo,
             &self.jobs,
             price,
         )

@@ -10,8 +10,10 @@ GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
 GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
 
 LAVA_HOME="${LAVA_HOME:-.lava}"
-export LAVA_CONFIG="${REPO_ROOT}/bats/lava.yml"
+export LAVA_CONFIG="${REPO_ROOT}/bats/lava-sim-time.yml"
 SERVER_PID_FILE="${LAVA_HOME}/server-pid"
+
+LOG_FILE=".e2e-logs"
 
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
@@ -52,14 +54,14 @@ start_server() {
   fi
 
   # Start server if not already running
-  background server_cmd >.e2e-logs 2>&1
+  background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    if head .e2e-logs | grep -q 'Starting graphql server on port'; then
+    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
       break
-    elif head .e2e-logs | grep -q 'Connection reset by peer'; then
+    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
       sleep 1
-      background server_cmd >.e2e-logs 2>&1
+      background server_cmd > "$LOG_FILE" 2>&1
     else
       sleep 1
     fi
@@ -221,6 +223,10 @@ read_value() {
   cat ${CACHE_DIR}/$1
 }
 
+cat_logs() {
+  cat "$LOG_FILE"
+}
+
 KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
 
 getEmailCode() {
@@ -249,16 +255,16 @@ create_customer() {
 
   variables=$(
     jq -n \
-    --arg email "$customer_email" \
-    --arg telegramId "$telegramId" \
-    '{
+      --arg email "$customer_email" \
+      --arg telegramId "$telegramId" \
+      '{
       input: {
         email: $email,
         telegramId: $telegramId
       }
     }'
   )
-  
+
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
@@ -293,14 +299,17 @@ assert_balance_sheet_balanced() {
 
   balance_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.netDebit')
   balance=${balance_usd}
+  echo "Balance Sheet USD Balance (should be 0): $balance"
   [[ "$balance" == "0" ]] || exit 1
 
   debit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.debit')
   debit=${debit_usd}
+  echo "Balance Sheet USD Debit (should be >0): $debit"
   [[ "$debit" -gt "0" ]] || exit 1
 
   credit_usd=$(graphql_output '.data.balanceSheet.balance.usd.balancesByLayer.settled.credit')
   credit=${credit_usd}
+  echo "Balance Sheet USD Credit (should be == debit): $credit"
   [[ "$credit" == "$debit" ]] || exit 1
 }
 
@@ -314,9 +323,11 @@ assert_trial_balance() {
   echo $(graphql_output)
 
   all_btc=$(graphql_output '.data.trialBalance.total.btc.balancesByLayer.all.netDebit')
+  echo "Trial Balance BTC (should be zero): $all_btc"
   [[ "$all_btc" == "0" ]] || exit 1
 
   all_usd=$(graphql_output '.data.trialBalance.total.usd.balancesByLayer.all.netDebit')
+  echo "Trial Balance USD (should be zero): $all_usd"
   [[ "$all_usd" == "0" ]] || exit 1
 }
 
