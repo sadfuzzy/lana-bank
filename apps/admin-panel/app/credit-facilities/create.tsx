@@ -25,7 +25,13 @@ import {
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
-import { Select } from "@/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"
 import {
   formatInterval,
   formatPeriod,
@@ -68,7 +74,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     fetchPolicy: "cache-only",
   })
 
-  const [isCustomTerms, setIsCustomTerms] = useState(false)
   const { data: termsTemplatesData, loading: termsTemplatesLoading } =
     useTermsTemplatesQuery()
   const [createCreditFacility, { loading, error, reset }] =
@@ -122,14 +127,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       [name]: value,
     }))
     if (name === "facility") return
-    setIsCustomTerms(true)
     setSelectedTemplateId("")
   }
 
-  const handleTemplateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const templateId = e.target.value
+  const handleTemplateChange = (templateId: string) => {
     setSelectedTemplateId(templateId)
-    setIsCustomTerms(false)
     const selectedTemplate = termsTemplatesData?.termsTemplates.find(
       (t) => t.id === templateId,
     )
@@ -213,7 +215,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
 
   const resetForm = () => {
     setUseTemplateTerms(true)
-    setIsCustomTerms(false)
     if (
       termsTemplatesData?.termsTemplates &&
       termsTemplatesData.termsTemplates.length > 0
@@ -318,17 +319,19 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               <Label>Terms Template</Label>
               <Select
                 value={selectedTemplateId}
-                onChange={handleTemplateChange}
+                onValueChange={handleTemplateChange}
                 disabled={termsTemplatesLoading}
               >
-                <option value="" disabled selected={isCustomTerms}>
-                  Select from predefined terms template
-                </option>
-                {termsTemplatesData?.termsTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}
-                  </option>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="Select from predefined terms template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {termsTemplatesData?.termsTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
           )}
@@ -414,19 +417,23 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                       className="w-1/2"
                     />
                     <Select
-                      name="durationPeriod"
                       value={formValues.durationPeriod}
-                      onChange={handleChange}
-                      required
+                      onValueChange={(value) =>
+                        handleChange({
+                          target: { name: "durationPeriod", value },
+                        } as React.ChangeEvent<HTMLSelectElement>)
+                      }
                     >
-                      <option value="" disabled>
-                        Select period
-                      </option>
-                      {Object.values(Period).map((period) => (
-                        <option key={period} value={period}>
-                          {formatPeriod(period)}
-                        </option>
-                      ))}
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(Period).map((period) => (
+                          <SelectItem key={period} value={period}>
+                            {formatPeriod(period)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
                   </div>
                 </div>
@@ -444,19 +451,23 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <div>
                   <Label>Accrual Interval</Label>
                   <Select
-                    name="accrualInterval"
                     value={formValues.accrualInterval}
-                    onChange={handleChange}
-                    required
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "accrualInterval", value },
+                      } as React.ChangeEvent<HTMLSelectElement>)
+                    }
                   >
-                    <option value="" disabled>
-                      Select accrual interval
-                    </option>
-                    {Object.values(InterestInterval).map((interval) => (
-                      <option key={interval} value={interval}>
-                        {formatInterval(interval)}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select accrual interval" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(InterestInterval).map((interval) => (
+                        <SelectItem key={interval} value={interval}>
+                          {formatInterval(interval)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
                 <div>
@@ -474,19 +485,23 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <div>
                   <Label>Incurrence Interval</Label>
                   <Select
-                    name="incurrenceInterval"
                     value={formValues.incurrenceInterval}
-                    onChange={handleChange}
-                    required
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "incurrenceInterval", value },
+                      } as React.ChangeEvent<HTMLSelectElement>)
+                    }
                   >
-                    <option value="" disabled>
-                      Select incurrence interval
-                    </option>
-                    {Object.values(InterestInterval).map((interval) => (
-                      <option key={interval} value={interval}>
-                        {formatInterval(interval)}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select incurrence interval" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(InterestInterval).map((interval) => (
+                        <SelectItem key={interval} value={interval}>
+                          {formatInterval(interval)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
               </div>

@@ -6,7 +6,13 @@ import { PiWarningCircleFill, PiCheckCircleFill } from "react-icons/pi"
 
 import { ReportCreateDialog } from "./create-dialog"
 
-import { Select } from "@/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"
 import {
   ReportProgress,
   useReportDownloadLinksMutation,
@@ -195,19 +201,21 @@ const ReportSelector: React.FC<{
       label="Select Report"
       value={
         <div className="w-80">
-          <Select
-            value={selectedReport}
-            onChange={(event) => onSelectReport(event.target.value)}
-          >
-            {reports.length > 0 ? (
-              reports.map((report) => (
-                <option key={report.reportId} value={report.reportId}>
-                  {formatDate(report.createdAt)}
-                </option>
-              ))
-            ) : (
-              <option value="">No reports found</option>
-            )}
+          <Select value={selectedReport} onValueChange={onSelectReport}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a report" />
+            </SelectTrigger>
+            <SelectContent>
+              {reports.length > 0 ? (
+                reports.map((report) => (
+                  <SelectItem key={report.reportId} value={report.reportId}>
+                    {formatDate(report.createdAt)}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="">No reports found</SelectItem>
+              )}
+            </SelectContent>
           </Select>
         </div>
       }

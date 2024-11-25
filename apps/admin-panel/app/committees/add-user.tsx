@@ -12,12 +12,18 @@ import {
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"
+import {
   CommitteesDocument,
   GetCommitteeDetailsDocument,
   useCommitteeAddUserMutation,
   useUsersQuery,
 } from "@/lib/graphql/generated"
-import { Select } from "@/ui/select"
 import { formatRole } from "@/lib/utils"
 
 gql`
@@ -119,16 +125,17 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
           <DialogDescription>Select a user to add to this committee</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <Select
-            value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-          >
-            <option value="">Select a user</option>
-            {userData?.users.map((user) => (
-              <option key={user.userId} value={user.userId}>
-                {user.email} ({formatRole(user.roles.map(formatRole).join(", "))})
-              </option>
-            ))}
+          <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a user" />
+            </SelectTrigger>
+            <SelectContent>
+              {userData?.users.map((user) => (
+                <SelectItem key={user.userId} value={user.userId}>
+                  {user.email} ({formatRole(user.roles.map(formatRole).join(", "))})
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
 
           {error && <p className="text-destructive text-sm">{error}</p>}

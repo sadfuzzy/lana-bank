@@ -19,7 +19,13 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import { Select } from "@/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"
 import { formatInterval, formatPeriod } from "@/lib/utils"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
@@ -207,64 +213,68 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     data-testid="terms-template-duration-units-input"
                   />
                   <Select
-                    name="durationPeriod"
                     value={formValues.durationPeriod}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    data-testid="terms-template-duration-period-select"
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "durationPeriod", value },
+                      } as React.ChangeEvent<HTMLSelectElement>)
+                    }
                   >
-                    <option value="" disabled>
-                      Select period
-                    </option>
-                    {Object.values(Period).map((period) => (
-                      <option key={period} value={period}>
-                        {formatPeriod(period)}
-                      </option>
-                    ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(Period).map((period) => (
+                        <SelectItem key={period} value={period}>
+                          {formatPeriod(period)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                   </Select>
                 </div>
               </div>
               <div>
                 <Label htmlFor="accrualInterval">Accrual Interval</Label>
                 <Select
-                  id="accrualInterval"
-                  name="accrualInterval"
                   value={formValues.accrualInterval}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  data-testid="terms-template-accrual-interval-select"
+                  onValueChange={(value) =>
+                    handleChange({
+                      target: { name: "accrualInterval", value },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
                 >
-                  <option value="" disabled>
-                    Select accrual interval
-                  </option>
-                  {Object.values(InterestInterval).map((int) => (
-                    <option key={int} value={int}>
-                      {formatInterval(int)}
-                    </option>
-                  ))}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select accrual interval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(InterestInterval).map((int) => (
+                      <SelectItem key={int} value={int}>
+                        {formatInterval(int)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
               <div>
                 <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
                 <Select
-                  id="incurrenceInterval"
-                  name="incurrenceInterval"
                   value={formValues.incurrenceInterval}
-                  onChange={handleChange}
-                  required
-                  disabled={isLoading}
-                  data-testid="terms-template-incurrence-interval-select"
+                  onValueChange={(value) =>
+                    handleChange({
+                      target: { name: "incurrenceInterval", value },
+                    } as React.ChangeEvent<HTMLSelectElement>)
+                  }
                 >
-                  <option value="" disabled>
-                    Select incurrence interval
-                  </option>
-                  {Object.values(InterestInterval).map((int) => (
-                    <option key={int} value={int}>
-                      {formatInterval(int)}
-                    </option>
-                  ))}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select incurrence interval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(InterestInterval).map((int) => (
+                      <SelectItem key={int} value={int}>
+                        {formatInterval(int)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               </div>
             </div>

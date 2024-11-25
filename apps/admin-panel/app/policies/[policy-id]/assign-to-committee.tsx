@@ -12,7 +12,13 @@ import {
   DialogTitle,
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
-import { Select } from "@/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"
 import {
   PoliciesDocument,
   GetPolicyDetailsDocument,
@@ -127,17 +133,17 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
             <Label htmlFor="committee-select">Select Committee</Label>
-            <Select
-              id="committee-select"
-              value={selectedCommitteeId}
-              onChange={(e) => setSelectedCommitteeId(e.target.value)}
-            >
-              <option value="">Select a committee</option>
-              {committeeData?.committees.edges.map((edge) => (
-                <option key={edge.node.id} value={edge.node.committeeId}>
-                  {edge.node.name}
-                </option>
-              ))}
+            <Select value={selectedCommitteeId} onValueChange={setSelectedCommitteeId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a committee" />
+              </SelectTrigger>
+              <SelectContent>
+                {committeeData?.committees.edges.map((edge) => (
+                  <SelectItem key={edge.node.id} value={edge.node.committeeId}>
+                    {edge.node.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
           </div>
 
