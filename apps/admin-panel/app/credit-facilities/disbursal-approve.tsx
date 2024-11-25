@@ -2,9 +2,9 @@
 
 import React from "react"
 
-import ApprovalDialog from "../approval-process/approve"
+import ApprovalDialog from "../actions/approve"
 
-import DenialDialog from "../approval-process/deny"
+import DenialDialog from "../actions/deny"
 
 import { VotersCard } from "../disbursals/[disbursal-id]/voters"
 

@@ -1587,14 +1587,6 @@ export type ApprovalProcessDenyMutationVariables = Exact<{
 
 export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any } } };
 
-export type ApprovalProcessesQueryVariables = Exact<{
-  first: Scalars['Int']['input'];
-  after?: InputMaybe<Scalars['String']['input']>;
-}>;
-
-
-export type ApprovalProcessesQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, target: { __typename: 'CreditFacility', creditFacilityId: string } | { __typename: 'CreditFacilityDisbursal' } | { __typename: 'Withdrawal', withdrawalId: string } } }> } };
-
 export type AuditLogsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -2246,64 +2238,6 @@ export function useApprovalProcessDenyMutation(baseOptions?: Apollo.MutationHook
 export type ApprovalProcessDenyMutationHookResult = ReturnType<typeof useApprovalProcessDenyMutation>;
 export type ApprovalProcessDenyMutationResult = Apollo.MutationResult<ApprovalProcessDenyMutation>;
 export type ApprovalProcessDenyMutationOptions = Apollo.BaseMutationOptions<ApprovalProcessDenyMutation, ApprovalProcessDenyMutationVariables>;
-export const ApprovalProcessesDocument = gql`
-    query ApprovalProcesses($first: Int!, $after: String) {
-  approvalProcesses(first: $first, after: $after) {
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
-    edges {
-      cursor
-      node {
-        id
-        approvalProcessId
-        approvalProcessType
-        createdAt
-        subjectCanSubmitDecision
-        target {
-          __typename
-          ... on Withdrawal {
-            withdrawalId
-          }
-          ... on CreditFacility {
-            creditFacilityId
-          }
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useApprovalProcessesQuery__
- *
- * To run a query within a React component, call `useApprovalProcessesQuery` and pass it any options that fit your needs.
- * When your component renders, `useApprovalProcessesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useApprovalProcessesQuery({
- *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
- *   },
- * });
- */
-export function useApprovalProcessesQuery(baseOptions: Apollo.QueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
-      }
-export function useApprovalProcessesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>(ApprovalProcessesDocument, options);
-        }
-export type ApprovalProcessesQueryHookResult = ReturnType<typeof useApprovalProcessesQuery>;
-export type ApprovalProcessesLazyQueryHookResult = ReturnType<typeof useApprovalProcessesLazyQuery>;
-export type ApprovalProcessesQueryResult = Apollo.QueryResult<ApprovalProcessesQuery, ApprovalProcessesQueryVariables>;
 export const AuditLogsDocument = gql`
     query AuditLogs($first: Int!, $after: String) {
   audit(first: $first, after: $after) {

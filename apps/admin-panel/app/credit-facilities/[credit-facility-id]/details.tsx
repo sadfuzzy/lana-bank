@@ -22,8 +22,8 @@ import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 
-import ApprovalDialog from "@/app/approval-process/approve"
-import DenialDialog from "@/app/approval-process/deny"
+import ApprovalDialog from "@/app/actions/approve"
+import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityDetailsProps = {

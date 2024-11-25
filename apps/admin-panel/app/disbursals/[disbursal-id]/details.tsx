@@ -13,8 +13,8 @@ import {
   ApprovalProcessStatus,
   GetDisbursalDetailsQuery,
 } from "@/lib/graphql/generated"
-import ApprovalDialog from "@/app/approval-process/approve"
-import DenialDialog from "@/app/approval-process/deny"
+import ApprovalDialog from "@/app/actions/approve"
+import DenialDialog from "@/app/actions/deny"
 
 type DisbursalDetailsProps = {
   disbursal: NonNullable<GetDisbursalDetailsQuery["disbursal"]>

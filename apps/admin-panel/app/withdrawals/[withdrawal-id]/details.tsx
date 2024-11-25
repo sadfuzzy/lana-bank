@@ -15,8 +15,8 @@ import {
   GetWithdrawalDetailsQuery,
   WithdrawalStatus,
 } from "@/lib/graphql/generated"
-import ApprovalDialog from "@/app/approval-process/approve"
-import DenialDialog from "@/app/approval-process/deny"
+import ApprovalDialog from "@/app/actions/approve"
+import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 type WithdrawalDetailsProps = {
