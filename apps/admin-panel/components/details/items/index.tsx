@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
@@ -41,42 +43,7 @@ export type DetailItemProps = {
 
 const DetailsGroupContext = React.createContext<LayoutType>("vertical")
 
-const DetailsGroup = ({
-  children,
-  layout = "vertical",
-  className,
-  columns,
-}: DetailsGroupProps) => {
-  const childrenArray = React.Children.toArray(children)
-  // TODO improve this logic
-  const gridColumns = {
-    1: "grid-cols-1",
-    2: "grid-cols-2",
-    3: "grid-cols-3",
-    4: "grid-cols-4",
-  }
-
-  return (
-    <DetailsGroupContext.Provider value={layout}>
-      <div
-        className={cn(
-          detailsGroupVariants({ layout }),
-          layout === "vertical" &&
-            (columns
-              ? gridColumns[columns as keyof typeof gridColumns]
-              : childrenArray.length > 2
-                ? "grid-cols-4"
-                : "grid-cols-2"),
-          className,
-        )}
-      >
-        {childrenArray}
-      </div>
-    </DetailsGroupContext.Provider>
-  )
-}
-
-const DetailItem = ({
+export const DetailItem: React.FC<DetailItemProps> = ({
   label,
   value,
   className,
@@ -85,7 +52,7 @@ const DetailItem = ({
   labelTestId,
   valueTestId,
   href,
-}: DetailItemProps) => {
+}) => {
   const layout = React.useContext(DetailsGroupContext)
 
   const styles = {
@@ -125,4 +92,36 @@ const DetailItem = ({
   return content
 }
 
-export { DetailItem, DetailsGroup }
+export const DetailsGroup: React.FC<DetailsGroupProps> = ({
+  children,
+  layout = "vertical",
+  className,
+  columns,
+}) => {
+  const childrenArray = React.Children.toArray(children)
+  const gridColumns = {
+    1: "grid-cols-1",
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-4",
+  }
+
+  return (
+    <DetailsGroupContext.Provider value={layout}>
+      <div
+        className={cn(
+          detailsGroupVariants({ layout }),
+          layout === "vertical" &&
+            (columns
+              ? gridColumns[columns as keyof typeof gridColumns]
+              : childrenArray.length > 2
+                ? "grid-cols-4"
+                : "grid-cols-2"),
+          className,
+        )}
+      >
+        {childrenArray}
+      </div>
+    </DetailsGroupContext.Provider>
+  )
+}

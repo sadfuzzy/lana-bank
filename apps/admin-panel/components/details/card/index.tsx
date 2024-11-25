@@ -1,7 +1,9 @@
 "use client"
-
 import React from "react"
+
 import { cva, type VariantProps } from "class-variance-authority"
+
+import { DetailItem, DetailItemProps, DetailsGroup } from "../items"
 
 import {
   Card,
@@ -11,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/card"
-import { DetailItem, DetailItemProps, DetailsGroup } from "@/components/details"
+
 import { Separator } from "@/ui/separator"
 
 const footerVariants = cva("pt-4 pb-4 gap-4", {
@@ -36,7 +38,7 @@ export interface DetailsCardProps extends VariantProps<typeof footerVariants> {
   columns?: number
 }
 
-const DetailsCard = ({
+export const DetailsCard: React.FC<DetailsCardProps> = ({
   title,
   description,
   details,
@@ -45,7 +47,7 @@ const DetailsCard = ({
   alignment,
   className,
   columns,
-}: DetailsCardProps) => {
+}) => {
   return (
     <Card className={className}>
       <CardHeader>
@@ -54,9 +56,9 @@ const DetailsCard = ({
       </CardHeader>
       <CardContent>
         <DetailsGroup columns={columns}>
-          {details.map((detail) => {
-            return <DetailItem key={detail.label?.toString()} {...detail} />
-          })}
+          {details.map((detail) => (
+            <DetailItem key={detail.label?.toString()} {...detail} />
+          ))}
         </DetailsGroup>
       </CardContent>
       {errorMessage && (
@@ -73,5 +75,3 @@ const DetailsCard = ({
     </Card>
   )
 }
-
-export { DetailsCard }
