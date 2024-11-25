@@ -6,7 +6,7 @@ import { IoEllipsisHorizontal } from "react-icons/io5"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-import DataTable, { Column } from "../data-table"
+import DataTable, { Column } from "../../components/data-table"
 
 import {
   GetUserDetailsDocument,

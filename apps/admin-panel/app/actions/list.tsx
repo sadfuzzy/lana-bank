@@ -13,7 +13,7 @@ import {
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import { CardSkeleton } from "@/components/card-skeleton"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 
 const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 

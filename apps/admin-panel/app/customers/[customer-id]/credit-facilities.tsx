@@ -7,7 +7,7 @@ import Balance from "@/components/balance/balance"
 import { GetCustomerQuery } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacility = NonNullable<
   GetCustomerQuery["customer"]

@@ -11,7 +11,7 @@ import {
   HiFilter,
 } from "react-icons/hi"
 
-import { Separator } from "../ui/separator"
+import { Separator } from "../../ui/separator"
 
 import {
   DropdownMenu,

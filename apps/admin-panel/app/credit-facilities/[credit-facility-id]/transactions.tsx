@@ -16,7 +16,7 @@ import {
   formatTransactionType,
   cn,
 } from "@/lib/utils"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 
 const formatTransactionTypeWithoutPrefix = (type: string) => {
   const formattedType = formatTransactionType(type)

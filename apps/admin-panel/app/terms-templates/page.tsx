@@ -4,7 +4,7 @@ import { gql } from "@apollo/client"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-import DataTable, { Column } from "../data-table"
+import DataTable, { Column } from "../../components/data-table"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"

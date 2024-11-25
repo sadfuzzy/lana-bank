@@ -14,17 +14,18 @@ import NavBar from "./navbar"
 import { RealtimePriceUpdates } from "@/components/realtime-price"
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 
-import { HelveticaNeueFont, RobotoMono } from "@/lib/ui/fonts"
-
 // eslint-disable-next-line import/no-unassigned-import
-import "@/lib/ui/globals.css"
+import "./globals.css"
 import { Toast } from "@/components/toast"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
 }
 
-const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
+const inter = Inter_Tight({
+  subsets: ["latin"],
+  variable: "--font-inter",
+})
 
 const PUBLIC_PAGES = ["/auth/login", "/auth/error", "/auth/verify"]
 
@@ -43,9 +44,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        className={`${HelveticaNeueFont.variable} ${RobotoMono.variable} ${inter.className} antialiased w-screen h-screen select-none`}
-      >
+      <body className={`${inter.className} antialiased w-screen h-screen select-none`}>
         <AuthSessionProvider session={session}>
           <ApolloServerWrapper>
             <Toast />

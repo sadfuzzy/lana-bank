@@ -8,7 +8,7 @@ import { toast } from "sonner"
 
 import { Card, CardContent } from "@/ui/card"
 import { Button } from "@/ui/button"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 
 import {
   GetCustomerDocument,

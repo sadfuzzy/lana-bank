@@ -9,7 +9,7 @@ import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import { formatRole } from "@/lib/utils"
 import { Badge } from "@/ui/badge"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 import CardWrapper from "@/components/card-wrapper"
 
 type CommitteeUsersProps = {

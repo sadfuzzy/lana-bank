@@ -7,7 +7,7 @@ import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
-import DataTable, { Column } from "@/app/data-table"
+import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type Disbursal = NonNullable<
