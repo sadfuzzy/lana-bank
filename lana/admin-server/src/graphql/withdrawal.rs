@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{approval_process::ApprovalProcess, customer::Customer, loader::LavaDataLoader};
+use super::{approval_process::ApprovalProcess, customer::Customer, loader::LanaDataLoader};
 
 pub use lana_app::withdrawal::{
     Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
@@ -53,7 +53,7 @@ impl Withdrawal {
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
             .await?
@@ -62,7 +62,7 @@ impl Withdrawal {
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
             .await?

@@ -32,41 +32,41 @@ pub use core_user::Role;
 )]
 #[strum(serialize_all = "kebab-case")]
 #[graphql(name = "Role")]
-pub enum LavaRole {
+pub enum LanaRole {
     Superuser,
     Admin,
     BankManager,
     Accountant,
 }
 
-impl LavaRole {
+impl LanaRole {
     pub const SUPERUSER: Role = Role::SUPERUSER;
     pub const ACCOUNTANT: Role = Role::new("accountant");
     pub const ADMIN: Role = Role::new("admin");
     pub const BANK_MANAGER: Role = Role::new("bank_manager");
 }
 
-impl From<LavaRole> for Role {
-    fn from(r: LavaRole) -> Self {
+impl From<LanaRole> for Role {
+    fn from(r: LanaRole) -> Self {
         match r {
-            LavaRole::Superuser => LavaRole::SUPERUSER,
-            LavaRole::Admin => LavaRole::ADMIN,
-            LavaRole::BankManager => LavaRole::BANK_MANAGER,
-            LavaRole::Accountant => LavaRole::ACCOUNTANT,
+            LanaRole::Superuser => LanaRole::SUPERUSER,
+            LanaRole::Admin => LanaRole::ADMIN,
+            LanaRole::BankManager => LanaRole::BANK_MANAGER,
+            LanaRole::Accountant => LanaRole::ACCOUNTANT,
         }
     }
 }
 
-impl From<Role> for LavaRole {
+impl From<Role> for LanaRole {
     fn from(r: Role) -> Self {
-        if r == LavaRole::SUPERUSER {
-            LavaRole::Superuser
-        } else if r == LavaRole::ADMIN {
-            LavaRole::Admin
-        } else if r == LavaRole::BANK_MANAGER {
-            LavaRole::BankManager
-        } else if r == LavaRole::ACCOUNTANT {
-            LavaRole::Accountant
+        if r == LanaRole::SUPERUSER {
+            LanaRole::Superuser
+        } else if r == LanaRole::ADMIN {
+            LanaRole::Admin
+        } else if r == LanaRole::BANK_MANAGER {
+            LanaRole::BankManager
+        } else if r == LanaRole::ACCOUNTANT {
+            LanaRole::Accountant
         } else {
             panic!("Unknown Role")
         }

@@ -16,14 +16,14 @@ use tower_http::cors::CorsLayer;
 use tracing::instrument;
 
 use jwks_utils::{Claims, JwtDecoderState, RemoteJwksDecoder};
-use lana_app::app::LavaApp;
+use lana_app::app::LanaApp;
 
 pub use config::*;
 use primitives::*;
 
 use std::sync::Arc;
 
-pub async fn run(config: AdminServerConfig, app: LavaApp) -> anyhow::Result<()> {
+pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> {
     let port = config.port;
     let aud = config.aud.as_ref();
 

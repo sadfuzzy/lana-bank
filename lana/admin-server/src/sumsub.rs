@@ -1,10 +1,10 @@
 use axum::{extract::Json, response::IntoResponse, routing::post, Extension, Router};
 
 use jwks_utils::JwtDecoderState;
-use lana_app::app::LavaApp;
+use lana_app::app::LanaApp;
 
 pub async fn sumsub_callback(
-    Extension(app): Extension<LavaApp>,
+    Extension(app): Extension<LanaApp>,
     Json(payload): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     // Log the received HTTP method and JSON payload

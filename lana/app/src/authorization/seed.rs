@@ -4,7 +4,7 @@ use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use governance::{GovernanceAction, GovernanceObject};
 
 use super::*;
-use rbac_types::LavaRole;
+use rbac_types::LanaRole;
 
 pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationError> {
     seed_roles(authz).await?;
@@ -14,10 +14,10 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
 
 async fn seed_role_hierarchy(authz: &Authorization) -> Result<(), AuthorizationError> {
     authz
-        .add_role_hierarchy(LavaRole::ADMIN, LavaRole::SUPERUSER)
+        .add_role_hierarchy(LanaRole::ADMIN, LanaRole::SUPERUSER)
         .await?;
     authz
-        .add_role_hierarchy(LavaRole::BANK_MANAGER, LavaRole::ADMIN)
+        .add_role_hierarchy(LanaRole::BANK_MANAGER, LanaRole::ADMIN)
         .await?;
 
     Ok(())
@@ -33,7 +33,7 @@ async fn seed_roles(authz: &Authorization) -> Result<(), AuthorizationError> {
 }
 
 async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = LavaRole::SUPERUSER;
+    let role = LanaRole::SUPERUSER;
 
     authz
         .add_permission_to_role(
@@ -53,7 +53,7 @@ async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), Auth
 }
 
 async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = LavaRole::ADMIN;
+    let role = LanaRole::ADMIN;
 
     authz
         .add_permission_to_role(
@@ -219,7 +219,7 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
 }
 
 async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = LavaRole::BANK_MANAGER;
+    let role = LanaRole::BANK_MANAGER;
 
     authz
         .add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Update)
@@ -377,7 +377,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
 }
 
 async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), AuthorizationError> {
-    let role = LavaRole::ACCOUNTANT;
+    let role = LanaRole::ACCOUNTANT;
 
     authz
         .add_permission_to_role(&role, Object::TermsTemplate, TermsTemplateAction::Read)

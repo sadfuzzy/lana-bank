@@ -8,7 +8,7 @@ pub use core_user::UserId;
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use rbac_types::{LavaRole, Role, Subject};
+pub use rbac_types::{LanaRole, Role, Subject};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
 #[serde(transparent)]

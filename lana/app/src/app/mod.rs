@@ -33,7 +33,7 @@ pub use config::*;
 use error::ApplicationError;
 
 #[derive(Clone)]
-pub struct LavaApp {
+pub struct LanaApp {
     _pool: PgPool,
     _jobs: Jobs,
     audit: Audit,
@@ -54,7 +54,7 @@ pub struct LavaApp {
     dashboard: Dashboard,
 }
 
-impl LavaApp {
+impl LanaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!().run(&pool).await?;
 

@@ -3,7 +3,7 @@ use futures::StreamExt;
 
 use governance::GovernanceEvent;
 use job::*;
-use lana_events::LavaEvent;
+use lana_events::LanaEvent;
 
 use super::ApproveDisbursal;
 use crate::outbox::Outbox;
@@ -75,7 +75,7 @@ impl JobRunner for DisbursalApprovalJobRunner {
 
         while let Some(message) = stream.next().await {
             match message.payload {
-                Some(LavaEvent::Governance(GovernanceEvent::ApprovalProcessConcluded {
+                Some(LanaEvent::Governance(GovernanceEvent::ApprovalProcessConcluded {
                     id,
                     approved,
                     ref process_type,

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     primitives::{
         AccountStatus, ApprovalProcessId, CommitteeId, CreditFacilityId, CustomerId, DepositId,
-        DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, KycLevel, LavaRole, PolicyId,
+        DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, KycLevel, LanaRole, PolicyId,
         ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
         TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },

@@ -12,7 +12,7 @@ use sqlx::PgPool;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use lana_events::LavaEvent;
+use lana_events::LanaEvent;
 
 use error::*;
 use job::*;
@@ -20,7 +20,7 @@ pub use primitives::*;
 use repo::*;
 pub use values::*;
 
-pub type Outbox = outbox::Outbox<LavaEvent>;
+pub type Outbox = outbox::Outbox<LanaEvent>;
 
 pub struct Dashboard<Perms>
 where

@@ -3,7 +3,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_rules::*, credit_facility::*, loader::LavaDataLoader, policy::*, user::User,
+    approval_rules::*, credit_facility::*, loader::LanaDataLoader, policy::*, user::User,
     withdrawal::*,
 };
 
@@ -49,7 +49,7 @@ impl ApprovalProcess {
     }
 
     async fn policy(&self, ctx: &Context<'_>) -> async_graphql::Result<Policy> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let policy = loader
             .load_one(self.entity.policy_id)
             .await?
@@ -61,7 +61,7 @@ impl ApprovalProcess {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let committee = if let Some(committee_id) = self.entity.committee_id() {
-            let loader = ctx.data_unchecked::<LavaDataLoader>();
+            let loader = ctx.data_unchecked::<LanaDataLoader>();
             let committee = loader
                 .load_one(committee_id)
                 .await?
@@ -79,7 +79,7 @@ impl ApprovalProcess {
 
     async fn voters(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<ApprovalProcessVoter>> {
         if let Some(committee_id) = self.entity.committee_id() {
-            let loader = ctx.data_unchecked::<LavaDataLoader>();
+            let loader = ctx.data_unchecked::<LanaDataLoader>();
             let committee = loader
                 .load_one(committee_id)
                 .await?
@@ -126,7 +126,7 @@ impl ApprovalProcess {
     }
 
     async fn target(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcessTarget> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         match self.approval_process_type {
             ApprovalProcessType::WithdrawalApproval => {
                 let withdrawal = loader
@@ -205,7 +205,7 @@ pub struct ApprovalProcessVoter {
 #[ComplexObject]
 impl ApprovalProcessVoter {
     async fn user(&self, ctx: &Context<'_>) -> async_graphql::Result<User> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users = loader
             .load_one(self.user_id)
             .await?

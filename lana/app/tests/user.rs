@@ -25,16 +25,16 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
     assert_eq!(user.current_roles().len(), 0);
 
     let bank_manager = users
-        .assign_role_to_user(&superuser_subject, user.id, LavaRole::BANK_MANAGER)
+        .assign_role_to_user(&superuser_subject, user.id, LanaRole::BANK_MANAGER)
         .await
         .expect("Could not assign role to user");
 
     assert_eq!(bank_manager.id, user.id);
     let roles: Vec<_> = bank_manager.current_roles().into_iter().collect();
-    assert_eq!(roles, vec![LavaRole::BANK_MANAGER]);
+    assert_eq!(roles, vec![LanaRole::BANK_MANAGER]);
 
     let user = users
-        .revoke_role_from_user(&superuser_subject, bank_manager.id, LavaRole::BANK_MANAGER)
+        .revoke_role_from_user(&superuser_subject, bank_manager.id, LanaRole::BANK_MANAGER)
         .await?;
 
     assert_eq!(user.current_roles().len(), 0);

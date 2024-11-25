@@ -2,7 +2,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 
 use std::collections::HashMap;
 
-use lana_app::{app::LavaApp, user::error::UserError};
+use lana_app::{app::LanaApp, user::error::UserError};
 
 use crate::primitives::*;
 
@@ -11,20 +11,20 @@ use super::{
     policy::*, terms_template::*, user::*, withdrawal::*,
 };
 
-pub type LavaDataLoader = DataLoader<LavaLoader>;
-pub struct LavaLoader {
-    pub app: LavaApp,
+pub type LanaDataLoader = DataLoader<LanaLoader>;
+pub struct LanaLoader {
+    pub app: LanaApp,
 }
 
-impl LavaLoader {
-    pub fn new(app: &LavaApp) -> LavaDataLoader {
+impl LanaLoader {
+    pub fn new(app: &LanaApp) -> LanaDataLoader {
         DataLoader::new(Self { app: app.clone() }, tokio::task::spawn)
             // Set delay to 0 as per https://github.com/async-graphql/async-graphql/issues/1306
             .delay(std::time::Duration::from_secs(0))
     }
 }
 
-impl Loader<UserId> for LavaLoader {
+impl Loader<UserId> for LanaLoader {
     type Value = User;
     type Error = Arc<UserError>;
 
@@ -33,7 +33,7 @@ impl Loader<UserId> for LavaLoader {
     }
 }
 
-impl Loader<governance::CommitteeId> for LavaLoader {
+impl Loader<governance::CommitteeId> for LanaLoader {
     type Value = Committee;
     type Error = Arc<governance::error::GovernanceError>;
 
@@ -49,7 +49,7 @@ impl Loader<governance::CommitteeId> for LavaLoader {
     }
 }
 
-impl Loader<governance::PolicyId> for LavaLoader {
+impl Loader<governance::PolicyId> for LanaLoader {
     type Value = Policy;
     type Error = Arc<governance::error::GovernanceError>;
 
@@ -62,7 +62,7 @@ impl Loader<governance::PolicyId> for LavaLoader {
     }
 }
 
-impl Loader<governance::ApprovalProcessId> for LavaLoader {
+impl Loader<governance::ApprovalProcessId> for LanaLoader {
     type Value = ApprovalProcess;
     type Error = Arc<governance::error::GovernanceError>;
 
@@ -78,7 +78,7 @@ impl Loader<governance::ApprovalProcessId> for LavaLoader {
     }
 }
 
-impl Loader<DocumentId> for LavaLoader {
+impl Loader<DocumentId> for LanaLoader {
     type Value = Document;
     type Error = Arc<lana_app::document::error::DocumentError>;
 
@@ -90,7 +90,7 @@ impl Loader<DocumentId> for LavaLoader {
     }
 }
 
-impl Loader<CustomerId> for LavaLoader {
+impl Loader<CustomerId> for LanaLoader {
     type Value = Customer;
     type Error = Arc<lana_app::customer::error::CustomerError>;
 
@@ -102,7 +102,7 @@ impl Loader<CustomerId> for LavaLoader {
     }
 }
 
-impl Loader<WithdrawalId> for LavaLoader {
+impl Loader<WithdrawalId> for LanaLoader {
     type Value = Withdrawal;
     type Error = Arc<lana_app::withdrawal::error::WithdrawalError>;
 
@@ -118,7 +118,7 @@ impl Loader<WithdrawalId> for LavaLoader {
     }
 }
 
-impl Loader<DepositId> for LavaLoader {
+impl Loader<DepositId> for LanaLoader {
     type Value = Deposit;
     type Error = Arc<lana_app::deposit::error::DepositError>;
 
@@ -127,7 +127,7 @@ impl Loader<DepositId> for LavaLoader {
     }
 }
 
-impl Loader<TermsTemplateId> for LavaLoader {
+impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
     type Error = Arc<lana_app::terms_template::error::TermsTemplateError>;
 
@@ -143,7 +143,7 @@ impl Loader<TermsTemplateId> for LavaLoader {
     }
 }
 
-impl Loader<CreditFacilityId> for LavaLoader {
+impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
     type Error = Arc<lana_app::credit_facility::error::CreditFacilityError>;
 
@@ -159,7 +159,7 @@ impl Loader<CreditFacilityId> for LavaLoader {
     }
 }
 
-impl Loader<DisbursalId> for LavaLoader {
+impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
     type Error = Arc<lana_app::credit_facility::error::CreditFacilityError>;
 

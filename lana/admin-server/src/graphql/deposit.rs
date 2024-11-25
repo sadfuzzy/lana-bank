@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{customer::Customer, loader::LavaDataLoader};
+use super::{customer::Customer, loader::LanaDataLoader};
 
 pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor};
 
@@ -40,7 +40,7 @@ impl Deposit {
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
             .await?

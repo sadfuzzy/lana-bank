@@ -77,7 +77,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let authz = init_authz(&pool, &audit).await?;
     let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
-    let admin_subject = create_user_with_role(&users, &superuser_subject, LavaRole::ADMIN).await?;
+    let admin_subject = create_user_with_role(&users, &superuser_subject, LanaRole::ADMIN).await?;
 
     // Admin can create users
     assert!(authz
@@ -119,7 +119,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
     let (users, superuser_subject) = helpers::init_users(&pool, &authz).await?;
 
     let bank_manager_subject =
-        create_user_with_role(&users, &superuser_subject, LavaRole::BANK_MANAGER).await?;
+        create_user_with_role(&users, &superuser_subject, LanaRole::BANK_MANAGER).await?;
 
     // Bank Manager cannot create users
     assert!(matches!(

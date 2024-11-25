@@ -1,6 +1,6 @@
 use async_graphql::{types::connection::*, Context, Object};
 
-use lana_app::app::LavaApp;
+use lana_app::app::LanaApp;
 
 use crate::primitives::*;
 
@@ -17,7 +17,7 @@ impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.users().find_for_subject(sub).await?);
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(AuthenticatedSubject::from(user))
     }
@@ -35,7 +35,7 @@ impl Query {
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users: Vec<_> = app
             .users()
             .list_users(sub)
@@ -495,7 +495,7 @@ impl Query {
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         let usd_cents_per_btc = app.price().usd_cents_per_btc().await?;
         Ok(usd_cents_per_btc.into())
     }
@@ -576,7 +576,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubPermalinkCreateInput,
     ) -> async_graphql::Result<SumsubPermalinkCreatePayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         let res = app.applicants().create_permalink(input.customer_id).await?;
 
         let url = res.url;
@@ -1029,7 +1029,7 @@ impl Mutation {
         ctx: &Context<'_>,
         input: ShareholderEquityAddInput,
     ) -> async_graphql::Result<SuccessPayload> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         Ok(SuccessPayload::from(
             app.ledger()
                 .add_equity(input.amount, input.reference)

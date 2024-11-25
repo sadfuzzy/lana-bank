@@ -12,7 +12,7 @@ use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "module")]
-pub enum LavaEvent {
+pub enum LanaEvent {
     Governance(GovernanceEvent),
     User(CoreUserEvent),
     Credit(CreditEvent),
@@ -60,7 +60,7 @@ pub enum CreditEvent {
 
 macro_rules! impl_event_marker {
     ($from_type:ty, $variant:ident) => {
-        impl OutboxEventMarker<$from_type> for LavaEvent {
+        impl OutboxEventMarker<$from_type> for LanaEvent {
             fn as_event(&self) -> Option<&$from_type> {
                 match self {
                     Self::$variant(ref event) => Some(event),
@@ -68,7 +68,7 @@ macro_rules! impl_event_marker {
                 }
             }
         }
-        impl From<$from_type> for LavaEvent {
+        impl From<$from_type> for LanaEvent {
             fn from(event: $from_type) -> Self {
                 Self::$variant(event)
             }

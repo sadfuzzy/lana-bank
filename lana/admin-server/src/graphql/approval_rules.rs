@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use super::{committee::Committee, loader::LavaDataLoader};
+use super::{committee::Committee, loader::LanaDataLoader};
 
 #[derive(async_graphql::Union)]
 pub(super) enum ApprovalRules {
@@ -41,7 +41,7 @@ pub(super) struct CommitteeThreshold {
 #[ComplexObject]
 impl CommitteeThreshold {
     async fn committee(&self, ctx: &Context<'_>) -> async_graphql::Result<Committee> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let committee = loader
             .load_one(self.committee_id)
             .await?

@@ -7,38 +7,38 @@ use governance::GovernanceAction;
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum LavaAction {
+pub enum LanaAction {
     App(AppAction),
     Governance(GovernanceAction),
     User(CoreUserAction),
     Dashboard(DashboardModuleAction),
 }
 
-impl From<AppAction> for LavaAction {
+impl From<AppAction> for LanaAction {
     fn from(action: AppAction) -> Self {
-        LavaAction::App(action)
+        LanaAction::App(action)
     }
 }
-impl From<DashboardModuleAction> for LavaAction {
+impl From<DashboardModuleAction> for LanaAction {
     fn from(action: DashboardModuleAction) -> Self {
-        LavaAction::Dashboard(action)
+        LanaAction::Dashboard(action)
     }
 }
-impl From<GovernanceAction> for LavaAction {
+impl From<GovernanceAction> for LanaAction {
     fn from(action: GovernanceAction) -> Self {
-        LavaAction::Governance(action)
+        LanaAction::Governance(action)
     }
 }
-impl From<CoreUserAction> for LavaAction {
+impl From<CoreUserAction> for LanaAction {
     fn from(action: CoreUserAction) -> Self {
-        LavaAction::User(action)
+        LanaAction::User(action)
     }
 }
 
-impl Display for LavaAction {
+impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", LavaActionDiscriminants::from(self))?;
-        use LavaAction::*;
+        write!(f, "{}:", LanaActionDiscriminants::from(self))?;
+        use LanaAction::*;
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
@@ -48,17 +48,17 @@ impl Display for LavaAction {
     }
 }
 
-impl FromStr for LavaAction {
+impl FromStr for LanaAction {
     type Err = strum::ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (module, action) = s.split_once(':').expect("missing colon");
-        use LavaActionDiscriminants::*;
+        use LanaActionDiscriminants::*;
         let res = match module.parse()? {
-            App => LavaAction::from(action.parse::<AppAction>()?),
-            Governance => LavaAction::from(action.parse::<GovernanceAction>()?),
-            User => LavaAction::from(action.parse::<CoreUserAction>()?),
-            Dashboard => LavaAction::from(action.parse::<DashboardModuleAction>()?),
+            App => LanaAction::from(action.parse::<AppAction>()?),
+            Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
+            User => LanaAction::from(action.parse::<CoreUserAction>()?),
+            Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
         };
         Ok(res)
     }
@@ -72,9 +72,9 @@ macro_rules! impl_trivial_action {
             }
         }
 
-        impl From<$from_type> for LavaAction {
+        impl From<$from_type> for LanaAction {
             fn from(action: $from_type) -> Self {
-                LavaAction::App(AppAction::$variant(action))
+                LanaAction::App(AppAction::$variant(action))
             }
         }
     };
@@ -252,11 +252,11 @@ impl_trivial_action!(LedgerAction, Ledger);
 mod test {
     use super::*;
 
-    fn test_to_and_from_string(action: LavaAction, result: &str) -> anyhow::Result<()> {
+    fn test_to_and_from_string(action: LanaAction, result: &str) -> anyhow::Result<()> {
         let action_str = action.to_string();
         assert_eq!(&action_str, result);
 
-        let parsed_action: LavaAction = action_str.parse()?;
+        let parsed_action: LanaAction = action_str.parse()?;
         assert_eq!(parsed_action, action);
 
         Ok(())
@@ -266,7 +266,7 @@ mod test {
     fn action_serialization() -> anyhow::Result<()> {
         // Deposit
         test_to_and_from_string(
-            LavaAction::App(AppAction::Deposit(DepositAction::List)),
+            LanaAction::App(AppAction::Deposit(DepositAction::List)),
             "app:deposit:list",
         )?;
         Ok(())

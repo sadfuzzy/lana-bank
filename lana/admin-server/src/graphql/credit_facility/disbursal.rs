@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use super::CreditFacility;
 use crate::{
-    graphql::{approval_process::*, loader::LavaDataLoader},
+    graphql::{approval_process::*, loader::LanaDataLoader},
     primitives::*,
 };
 pub use lana_app::credit_facility::{Disbursal as DomainDisbursal, DisbursalsCursor};
@@ -36,7 +36,7 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
 #[ComplexObject]
 impl CreditFacilityDisbursal {
     async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility = loader
             .load_one(self.entity.facility_id)
             .await?
@@ -55,7 +55,7 @@ impl CreditFacilityDisbursal {
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
             .await?

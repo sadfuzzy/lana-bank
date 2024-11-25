@@ -11,7 +11,7 @@ use super::{
 };
 
 pub use lana_app::{
-    app::LavaApp,
+    app::LanaApp,
     customer::{
         Customer as DomainCustomer, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
         FindManyCustomers, Sort,
@@ -62,7 +62,7 @@ impl Customer {
     }
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CustomerBalance> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         let balance = app
             .ledger()
             .get_customer_balance(self.entity.account_ids)

@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{loader::LavaDataLoader, user::User};
+use super::{loader::LanaDataLoader, user::User};
 
 pub use governance::{committee_cursor::CommitteesByCreatedAtCursor, Committee as DomainCommittee};
 
@@ -34,7 +34,7 @@ impl Committee {
     }
 
     async fn current_members(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users = loader
             .load_many(self.entity.members().into_iter().map(UserId::from))
             .await?

@@ -8,7 +8,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, customer::*, loader::LavaDataLoader, primitives::SortDirection, terms::*,
+    approval_process::*, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
 };
 pub use lana_app::{
     credit_facility::{
@@ -81,7 +81,7 @@ impl CreditFacility {
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         let price = app.price().usd_cents_per_btc().await?;
         Ok(FacilityCVL::from(
             self.entity.facility_cvl_data().cvl(price),
@@ -123,7 +123,7 @@ impl CreditFacility {
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let process = loader
             .load_one(self.entity.approval_process_id)
             .await?
@@ -174,7 +174,7 @@ impl CreditFacility {
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
             .load_one(self.entity.customer_id)
             .await?

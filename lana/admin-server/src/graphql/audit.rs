@@ -33,7 +33,7 @@ pub struct AuditEntry {
 #[ComplexObject]
 impl AuditEntry {
     async fn subject(&self, ctx: &Context<'_>) -> async_graphql::Result<AuditSubject> {
-        let loader = ctx.data_unchecked::<LavaDataLoader>();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
 
         match self.subject {
             DomainSubject::User(id) => {

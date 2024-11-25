@@ -5,7 +5,7 @@ use chrono::{DateTime, Utc};
 
 use crate::{graphql::account::*, primitives::*};
 
-use lana_app::app::LavaApp;
+use lana_app::app::LanaApp;
 
 #[derive(SimpleObject)]
 pub struct AccountSet {
@@ -108,7 +108,7 @@ impl AccountSetAndSubAccounts {
         first: i32,
         after: Option<String>,
     ) -> Result<Connection<SubAccountCursor, AccountSetSubAccount, EmptyFields, EmptyFields>> {
-        let app = ctx.data_unchecked::<LavaApp>();
+        let app = ctx.data_unchecked::<LanaApp>();
         query(
             after,
             None,

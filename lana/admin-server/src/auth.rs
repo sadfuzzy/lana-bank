@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
 use jwks_utils::JwtDecoderState;
-use lana_app::app::LavaApp;
+use lana_app::app::LanaApp;
 
 #[derive(Deserialize, std::fmt::Debug, Serialize)]
 pub struct CustomerCallbackPayload {
@@ -23,7 +23,7 @@ pub struct CustomerCallbackPayload {
 
 #[instrument(name = "admin_server.auth.customer_callback", skip(app))]
 pub async fn customer_callback(
-    Extension(app): Extension<LavaApp>,
+    Extension(app): Extension<LanaApp>,
     Json(payload): Json<CustomerCallbackPayload>,
 ) -> impl IntoResponse {
     let email = payload.email;
@@ -59,7 +59,7 @@ pub struct UserCallbackPayload {
 
 #[instrument(name = "admin.auth.user_callback", skip(app))]
 pub async fn user_callback(
-    Extension(app): Extension<LavaApp>,
+    Extension(app): Extension<LanaApp>,
     Json(payload): Json<UserCallbackPayload>,
 ) -> Result<Response, StatusCode> {
     let email = payload.email;
@@ -92,7 +92,7 @@ pub struct MatchContext {
 }
 
 pub async fn user_id_from_email(
-    Extension(app): Extension<LavaApp>,
+    Extension(app): Extension<LanaApp>,
     Json(mut payload): Json<HydratorPayload>,
 ) -> impl IntoResponse {
     let email = &payload.subject;

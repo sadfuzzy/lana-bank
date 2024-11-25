@@ -21,7 +21,7 @@ mod time;
 pub mod withdrawal;
 
 pub mod outbox {
-    pub type Outbox = outbox::Outbox<lana_events::LavaEvent>;
+    pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
 }
 
 pub mod dashboard {
@@ -31,7 +31,7 @@ pub mod dashboard {
 
 pub mod user {
     pub use core_user::{error, User};
-    pub type Users = core_user::Users<crate::audit::Audit, lana_events::LavaEvent>;
+    pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod job {
@@ -40,8 +40,8 @@ pub mod job {
 
 pub mod governance {
     use crate::authorization::Authorization;
-    use lana_events::LavaEvent;
-    pub type Governance = governance::Governance<Authorization, LavaEvent>;
+    use lana_events::LanaEvent;
+    pub type Governance = governance::Governance<Authorization, LanaEvent>;
     pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit_facility::APPROVE_DISBURSAL_PROCESS;
     pub use crate::withdrawal::APPROVE_WITHDRAWAL_PROCESS;
@@ -49,11 +49,11 @@ pub mod governance {
 
 pub mod audit {
     use crate::{
-        authorization::{LavaAction, LavaObject},
+        authorization::{LanaAction, LanaObject},
         primitives::Subject,
     };
 
     pub use audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
-    pub type Audit = audit::Audit<Subject, LavaObject, LavaAction>;
-    pub type AuditEntry = audit::AuditEntry<Subject, LavaObject, LavaAction>;
+    pub type Audit = audit::Audit<Subject, LanaObject, LanaAction>;
+    pub type AuditEntry = audit::AuditEntry<Subject, LanaObject, LanaAction>;
 }

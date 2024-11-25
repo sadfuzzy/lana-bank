@@ -9,38 +9,38 @@ use lana_ids::CustomerId;
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum LavaObject {
+pub enum LanaObject {
     App(AppObject),
     Governance(GovernanceObject),
     User(UserObject),
     Dashboard(DashboardModuleObject),
 }
 
-impl From<AppObject> for LavaObject {
+impl From<AppObject> for LanaObject {
     fn from(object: AppObject) -> Self {
-        LavaObject::App(object)
+        LanaObject::App(object)
     }
 }
-impl From<DashboardModuleObject> for LavaObject {
+impl From<DashboardModuleObject> for LanaObject {
     fn from(object: DashboardModuleObject) -> Self {
-        LavaObject::Dashboard(object)
+        LanaObject::Dashboard(object)
     }
 }
-impl From<GovernanceObject> for LavaObject {
+impl From<GovernanceObject> for LanaObject {
     fn from(action: GovernanceObject) -> Self {
-        LavaObject::Governance(action)
+        LanaObject::Governance(action)
     }
 }
-impl From<UserObject> for LavaObject {
+impl From<UserObject> for LanaObject {
     fn from(action: UserObject) -> Self {
-        LavaObject::User(action)
+        LanaObject::User(action)
     }
 }
 
-impl Display for LavaObject {
+impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}/", LavaObjectDiscriminants::from(self))?;
-        use LavaObject::*;
+        write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
+        use LanaObject::*;
         match self {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
@@ -50,17 +50,17 @@ impl Display for LavaObject {
     }
 }
 
-impl FromStr for LavaObject {
+impl FromStr for LanaObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (module, object) = s.split_once('/').expect("missing colon");
-        use LavaObjectDiscriminants::*;
+        use LanaObjectDiscriminants::*;
         let res = match module.parse().expect("invalid module") {
-            App => LavaObject::from(object.parse::<AppObject>()?),
-            Governance => LavaObject::from(object.parse::<GovernanceObject>()?),
-            User => LavaObject::from(object.parse::<UserObject>()?),
-            Dashboard => LavaObject::from(
+            App => LanaObject::from(object.parse::<AppObject>()?),
+            Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
+            User => LanaObject::from(object.parse::<UserObject>()?),
+            Dashboard => LanaObject::from(
                 object
                     .parse::<DashboardModuleObject>()
                     .map_err(|_| "could not parse DashboardModuleObject")?,
@@ -135,11 +135,11 @@ pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 mod test {
     use super::*;
 
-    fn test_to_and_from_string(action: LavaObject, result: &str) -> anyhow::Result<()> {
+    fn test_to_and_from_string(action: LanaObject, result: &str) -> anyhow::Result<()> {
         let action_str = action.to_string();
         assert_eq!(&action_str, result);
 
-        let parsed_action: LavaObject = action_str.parse().expect("could not parse action");
+        let parsed_action: LanaObject = action_str.parse().expect("could not parse action");
         assert_eq!(parsed_action, action);
 
         Ok(())
@@ -149,13 +149,13 @@ mod test {
     fn action_serialization() -> anyhow::Result<()> {
         // App
         test_to_and_from_string(
-            LavaObject::App(AppObject::Customer(AllOrOne::All)),
+            LanaObject::App(AppObject::Customer(AllOrOne::All)),
             "app/customer/*",
         )?;
 
         // Governance
         test_to_and_from_string(
-            LavaObject::Governance(GovernanceObject::Committee(AllOrOne::All)),
+            LanaObject::Governance(GovernanceObject::Committee(AllOrOne::All)),
             "governance/committee/*",
         )?;
 

@@ -2,7 +2,7 @@
 // instead of:
 //
 // async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
-//     let app = ctx.data_unchecked::<LavaApp>();
+//     let app = ctx.data_unchecked::<LanaApp>();
 //     let AdminAuthContext { sub } = ctx.data()?;
 //
 // use
@@ -13,7 +13,7 @@
 #[macro_export]
 macro_rules! app_and_sub_from_ctx {
     ($ctx:expr) => {{
-        let app = $ctx.data_unchecked::<lana_app::app::LavaApp>();
+        let app = $ctx.data_unchecked::<lana_app::app::LanaApp>();
         let AdminAuthContext { sub } = $ctx.data()?;
         (app, sub)
     }};
@@ -24,7 +24,7 @@ macro_rules! app_and_sub_from_ctx {
 //
 // if let Some(domain_user) = app.users().find_by_id(sub, id).await? {
 //     let user = User::from(domain_user)
-//     let loader = $ctx.data_unchecked::<LavaDataLoader>();
+//     let loader = $ctx.data_unchecked::<LanaDataLoader>();
 //     loader.feed_one(user.entity.id, user.clone()).await;
 //     Ok(Some(user)
 // } else {
@@ -40,7 +40,7 @@ macro_rules! maybe_fetch_one {
     ($ty:ty, $ctx:expr, $load_entity:expr) => {
         if let Some(entity) = $load_entity.await? {
             let entity = <$ty>::from(entity);
-            let loader = $ctx.data_unchecked::<LavaDataLoader>();
+            let loader = $ctx.data_unchecked::<LanaDataLoader>();
             loader.feed_one(entity.entity.id, entity.clone()).await;
             Ok(Some(entity))
         } else {
@@ -53,7 +53,7 @@ macro_rules! maybe_fetch_one {
 macro_rules! exec_mutation {
     ($payload:ty, $ty:ty, $ctx:expr, $load:expr) => {{
         let entity = <$ty>::from($load.await?);
-        let loader = $ctx.data_unchecked::<LavaDataLoader>();
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(entity.entity.id, entity.clone()).await;
         Ok(<$payload>::from(entity))
     }};
@@ -95,7 +95,7 @@ macro_rules! exec_mutation {
 #[macro_export]
 macro_rules! list_with_cursor {
     ($cursor:ty, $entity:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
-        let loader = $ctx.data_unchecked::<LavaDataLoader>();
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
         async_graphql::types::connection::query(
             $after,
             None,
@@ -171,7 +171,7 @@ macro_rules! list_with_cursor {
 #[macro_export]
 macro_rules! list_with_combo_cursor {
     ($combo_cursor:ty, $entity:ty, $sort_by:expr, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
-        let loader = $ctx.data_unchecked::<LavaDataLoader>();
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
         async_graphql::types::connection::query(
             $after,
             None,
