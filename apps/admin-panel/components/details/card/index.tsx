@@ -3,7 +3,7 @@ import React from "react"
 
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { DetailItem, DetailItemProps, DetailsGroup } from "../items"
+import { DetailItem, DetailItemProps, DetailsGroup } from ".."
 
 import {
   Card,

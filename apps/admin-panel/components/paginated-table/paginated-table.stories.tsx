@@ -1,6 +1,7 @@
 import { useState } from "react"
-
 import type { Meta, StoryObj } from "@storybook/react"
+
+import faker from "../../.storybook/faker"
 
 import PaginatedTable, { PaginatedData } from "./"
 
@@ -8,133 +9,22 @@ type Person = {
   id: string
   name: string
   email: string
-  status: "ACTIVE" | "PENDING" | "INACTIVE"
-  role: "ADMIN" | "USER" | "MANAGER"
+  status: "active" | "pending" | "inactive"
+  role: "admin" | "user" | "manager"
   joinDate: string
 }
 
-const SAMPLE_DATA: Person[] = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john.doe@example.com",
-    status: "ACTIVE",
-    role: "ADMIN",
-    joinDate: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Jane Smith",
-    email: "jane.smith@example.com",
-    status: "PENDING",
-    role: "USER",
-    joinDate: "2024-02-20T09:30:00Z",
-  },
-  {
-    id: "3",
-    name: "Bob Johnson",
-    email: "bob.johnson@example.com",
-    status: "INACTIVE",
-    role: "MANAGER",
-    joinDate: "2024-03-10T14:20:00Z",
-  },
-  {
-    id: "4",
-    name: "Alice Brown",
-    email: "alice.brown@example.com",
-    status: "ACTIVE",
-    role: "USER",
-    joinDate: "2024-01-05T11:45:00Z",
-  },
-  {
-    id: "5",
-    name: "Charlie Wilson",
-    email: "charlie.wilson@example.com",
-    status: "ACTIVE",
-    role: "MANAGER",
-    joinDate: "2024-02-28T16:15:00Z",
-  },
-  {
-    id: "6",
-    name: "Eva Davis",
-    email: "eva.davis@example.com",
-    status: "PENDING",
-    role: "USER",
-    joinDate: "2024-03-15T13:30:00Z",
-  },
-  {
-    id: "7",
-    name: "Frank Miller",
-    email: "frank.miller@example.com",
-    status: "ACTIVE",
-    role: "ADMIN",
-    joinDate: "2024-01-25T10:20:00Z",
-  },
-  {
-    id: "8",
-    name: "Grace Taylor",
-    email: "grace.taylor@example.com",
-    status: "INACTIVE",
-    role: "USER",
-    joinDate: "2024-02-10T09:00:00Z",
-  },
-  {
-    id: "9",
-    name: "Henry Anderson",
-    email: "henry.anderson@example.com",
-    status: "ACTIVE",
-    role: "MANAGER",
-    joinDate: "2024-03-05T15:45:00Z",
-  },
-  {
-    id: "10",
-    name: "Ivy Clark",
-    email: "ivy.clark@example.com",
-    status: "PENDING",
-    role: "USER",
-    joinDate: "2024-01-30T12:10:00Z",
-  },
-  {
-    id: "11",
-    name: "Jack Lewis",
-    email: "jack.lewis@example.com",
-    status: "ACTIVE",
-    role: "ADMIN",
-    joinDate: "2024-02-15T14:30:00Z",
-  },
-  {
-    id: "12",
-    name: "Kelly Martin",
-    email: "kelly.martin@example.com",
-    status: "INACTIVE",
-    role: "USER",
-    joinDate: "2024-03-20T11:20:00Z",
-  },
-  {
-    id: "13",
-    name: "Leo Parker",
-    email: "leo.parker@example.com",
-    status: "ACTIVE",
-    role: "MANAGER",
-    joinDate: "2024-01-10T16:40:00Z",
-  },
-  {
-    id: "14",
-    name: "Mia Roberts",
-    email: "mia.roberts@example.com",
-    status: "PENDING",
-    role: "USER",
-    joinDate: "2024-02-25T10:15:00Z",
-  },
-  {
-    id: "15",
-    name: "Noah Thompson",
-    email: "noah.thompson@example.com",
-    status: "ACTIVE",
-    role: "ADMIN",
-    joinDate: "2024-03-01T13:50:00Z",
-  },
-]
+const generatePeople = (count: number): Person[] =>
+  Array.from({ length: count }, () => ({
+    id: faker.string.uuid(),
+    name: faker.person.fullName(),
+    email: faker.internet.email(),
+    status: faker.helpers.arrayElement(["active", "pending", "inactive"]),
+    role: faker.helpers.arrayElement(["admin", "user", "manager"]),
+    joinDate: faker.date.past().toISOString(),
+  }))
+
+const SAMPLE_DATA = generatePeople(75)
 
 const meta: Meta<typeof PaginatedTable<Person>> = {
   title: "Components/PaginatedTable",
@@ -179,6 +69,7 @@ export const Basic: Story = {
 }
 
 export const CustomRendering: Story = {
+  name: "Custom Remdering (No Header)",
   args: {
     columns: [
       { key: "name", label: "Name" },
@@ -187,16 +78,16 @@ export const CustomRendering: Story = {
         label: "Status",
         render: (status: Person["status"]) => (
           <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize
             ${
-              status === "ACTIVE"
+              status === "active"
                 ? "bg-green-100 text-green-800"
-                : status === "PENDING"
+                : status === "pending"
                   ? "bg-yellow-100 text-yellow-800"
                   : "bg-red-100 text-red-800"
             }`}
           >
-            {status.toLowerCase()}
+            {status}
           </span>
         ),
       },
@@ -206,7 +97,6 @@ export const CustomRendering: Story = {
         render: (date: string) => new Date(date).toLocaleDateString(),
       },
     ],
-
     data: createPaginatedData(SAMPLE_DATA),
     pageSize: 10,
     loading: false,
@@ -258,26 +148,26 @@ export const WithSortingAndFiltering: Story = {
           {
             key: "status",
             label: "Status",
-            filterValues: ["ACTIVE", "PENDING", "INACTIVE"],
+            filterValues: ["active", "pending", "inactive"],
             render: (status: Person["status"]) => (
               <span
-                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
+                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize
                 ${
-                  status === "ACTIVE"
+                  status === "active"
                     ? "bg-green-100 text-green-800"
-                    : status === "PENDING"
+                    : status === "pending"
                       ? "bg-yellow-100 text-yellow-800"
                       : "bg-red-100 text-red-800"
                 }`}
               >
-                {status.toLowerCase()}
+                {status}
               </span>
             ),
           },
           {
             key: "role",
             label: "Role",
-            filterValues: ["ADMIN", "USER", "MANAGER"],
+            filterValues: ["admin", "user", "manager"],
           },
         ]}
       />

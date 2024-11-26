@@ -1,3 +1,4 @@
-export type { DetailItemProps } from "./items"
-export { DetailItem, DetailsGroup } from "./items"
+export type { DetailItemProps } from "./item"
+export { DetailsGroup } from "./group"
+export { DetailItem } from "./item"
 export { DetailsCard } from "./card"

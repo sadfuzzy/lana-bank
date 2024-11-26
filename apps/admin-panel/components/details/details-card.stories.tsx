@@ -1,13 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react"
 
-import { DetailItemProps } from "../items"
-
-import { DetailsCard } from "./"
+import { DetailsCard, DetailItemProps } from "./"
 
 import { Button } from "@/ui/button"
 
 const meta: Meta<typeof DetailsCard> = {
-  title: "Components/DetailsCard",
+  title: "Components/Details/Card",
   component: DetailsCard,
   parameters: {
     layout: "centered",

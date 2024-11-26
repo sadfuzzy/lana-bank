@@ -2,10 +2,10 @@ import { useState } from "react"
 
 import type { Meta, StoryObj } from "@storybook/react"
 
-import { DetailsGroup, DetailItem } from "./"
+import { DetailsGroup, DetailItem } from "."
 
 const meta: Meta<typeof DetailsGroup> = {
-  title: "Components/DetailsGroup",
+  title: "Components/Details/Group",
   component: DetailsGroup,
   parameters: {
     layout: "centered",

@@ -28,7 +28,7 @@ interface DataTableProps<T> {
   loading?: boolean
 }
 
-const DataTable = <T extends Record<string, unknown>>({
+const DataTable = <T,>({
   data,
   columns,
   className,

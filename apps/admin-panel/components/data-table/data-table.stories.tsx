@@ -1,5 +1,7 @@
 import { StoryObj } from "@storybook/react"
 
+import faker from "../../.storybook/faker"
+
 import DataTable from "./"
 
 type User = {
@@ -21,123 +23,71 @@ const meta = {
 }
 
 export default meta
-type Story = StoryObj<typeof DataTable>
+type Story = StoryObj<typeof DataTable<User>>
 
-const users: User[] = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    role: "Admin",
-    status: "active",
-    lastLogin: "2024-03-20",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    role: "User",
-    status: "inactive",
-    lastLogin: "2024-03-15",
-  },
-]
+const generateUsers = (count: number): User[] =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: faker.name.fullName(),
+    email: faker.internet.email(),
+    role: faker.helpers.arrayElement(["Admin", "User", "Editor"]),
+    status: faker.helpers.arrayElement(["active", "inactive"]),
+    lastLogin: faker.date.past().toISOString().split("T")[0],
+  }))
 
 export const Basic: Story = {
   args: {
-    data: users,
     columns: [
       { key: "name", header: "Name" },
       { key: "email", header: "Email" },
       { key: "role", header: "Role" },
     ],
-  },
-}
-
-export const CustomRendering = {
-  args: {
-    data: users,
-    columns: [
-      { key: "name", header: "Name" },
-      {
-        key: "status",
-        header: "Status",
-        render: (status: User["status"]) => (
-          <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-            ${status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
-          >
-            {status}
-          </span>
-        ),
-      },
-      {
-        key: "lastLogin",
-        header: "Last Login",
-        render: (date: string) => new Date(date).toLocaleDateString(),
-      },
-    ],
-    rowClassName: (item: User) => (item.status === "inactive" ? "opacity-60" : ""),
+    data: generateUsers(10),
   },
 }
 
 export const Loading: Story = {
   args: {
-    data: [],
-    loading: true,
     columns: [
       { key: "name", header: "Name" },
       { key: "email", header: "Email" },
       { key: "role", header: "Role" },
     ],
+    loading: true,
   },
 }
 
 export const Empty: Story = {
   args: {
     data: [],
-    columns: [
-      { key: "name", header: "Name" },
-      { key: "email", header: "Email" },
-      { key: "role", header: "Role" },
-    ],
-    emptyMessage: "No users found",
   },
 }
 
 export const Interactive: Story = {
   args: {
-    data: users,
     columns: [
       { key: "name", header: "Name" },
       { key: "email", header: "Email" },
       { key: "role", header: "Role" },
     ],
-    onRowClick: (item) => alert(`Clicked row with ID: ${item.id}`),
+    data: generateUsers(10),
+    onRowClick: (item: User) => alert(`Clicked row with ID: ${item.id}`),
   },
 }
 
-export const FullFeatured = {
+export const FullFeatured: Story = {
   args: {
-    data: users,
+    data: generateUsers(10),
     columns: [
-      {
-        key: "name",
-        header: "Name",
-        width: "200px",
-      },
-      {
-        key: "email",
-        header: "Email",
-        width: "250px",
-      },
+      { key: "name", header: "Name", width: "200px" },
+      { key: "email", header: "Email", width: "250px" },
       {
         key: "status",
         header: "Status",
-        align: "center",
         render: (status: User["status"]) => (
           <span
-            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-            ${status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
+            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium capitalize
+          ${status === "active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}
           >
             {status}
           </span>
