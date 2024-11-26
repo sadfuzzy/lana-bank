@@ -2,6 +2,8 @@
 
 set -eu
 
+EXECUTION_MODE="${1:-ui}"
+
 if [[ $BACKEND_ENV == "development" ]]; then
   ADMIN_URL="http://localhost:4455/admin-panel"
   MAILHOG_URL="http://localhost:8025"
@@ -83,7 +85,11 @@ sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.j
 
 echo "==================== Running cypress ===================="
 
-if [[ $BACKEND_ENV == "development" ]]; then
+if [[ $BACKEND_ENV == "development" && $EXECUTION_MODE == "ui" ]]; then
+  nix develop -c pnpm run cypress:open-local
+elif [[ $BACKEND_ENV == "development" && $EXECUTION_MODE == "headless" ]]; then
+  nix develop -c pnpm run cypress:run-local
+elif [[ $BACKEND_ENV == "development" ]]; then
   nix develop -c pnpm run cypress:open-local
 else
   rm -rf build_artifacts || true
