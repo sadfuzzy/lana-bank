@@ -1,0 +1,65 @@
+name: Storybook
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  storybook-preview:
+    name: Storybook Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v4
+
+      - name: Run the Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Storybook
+        run: nix develop -c make build-storybook-admin-panel
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify
+        id: netlify_deploy
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
+        run: |
+          GITHUB_SHA="${{ github.sha }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
+          netlify deploy \
+            --dir=apps/admin-panel/storybook-static \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --alias="$ALIAS" \
+            --message="Storybook Preview for PR #${{ github.event.pull_request.number }} Commit ${{ github.sha }}" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Update PR Description
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const deployUrl = '${{ steps.netlify_deploy.outputs.deploy_url }}';
+            const { data: pullRequest } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            const previewLink = `Storybook preview: [Link to Storybook](${deployUrl})\n\n`;
+            const existingBody = pullRequest.body || '';
+            const newBody = previewLink + existingBody.replace(/Storybook preview: \[.*?\]\(.*?\)\n\n/, '');
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+              body: newBody,
+            });
