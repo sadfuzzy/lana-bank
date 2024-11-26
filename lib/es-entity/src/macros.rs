@@ -23,14 +23,36 @@ macro_rules! idempotency_guard {
 }
 
 #[macro_export]
-macro_rules! es_query (
+macro_rules! es_query {
+    ($prefix:literal, $db:expr, $query:expr) => ({
+        $crate::expand_es_query!(
+            ignore_prefix = $prefix,
+            executor = $db,
+            sql = $query
+        )
+    });
+    ($prefix:literal, $db:expr, $query:expr, $($args:tt)*) => ({
+        $crate::expand_es_query!(
+            ignore_prefix = $prefix,
+            executor = $db,
+            sql = $query,
+            args = [$($args)*]
+        )
+    });
     ($db:expr, $query:expr) => ({
-        $crate::expand_es_query!(executor = $db, sql = $query)
+        $crate::expand_es_query!(
+            executor = $db,
+            sql = $query
+        )
     });
     ($db:expr, $query:expr, $($args:tt)*) => ({
-        $crate::expand_es_query!(executor = $db, sql = $query, args = [$($args)*])
-    })
-);
+        $crate::expand_es_query!(
+            executor = $db,
+            sql = $query,
+            args = [$($args)*]
+        )
+    });
+}
 
 #[macro_export]
 macro_rules! from_es_entity_error {

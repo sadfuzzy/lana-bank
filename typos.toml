@@ -4,4 +4,5 @@ extend-exclude = [
 	"jwks.json",
 	"/definitions/*/el-salvador-ssf/*",
 	"dev/fake-service-account.json",
+	"**/pnpm-lock.yaml",
 ]

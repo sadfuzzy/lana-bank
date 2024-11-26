@@ -5,6 +5,7 @@ use quote::{quote, TokenStreamExt};
 use super::options::*;
 
 pub struct FindByFn<'a> {
+    ignore_prefix: Option<&'a syn::LitStr>,
     entity: &'a syn::Ident,
     column: &'a Column,
     table_name: &'a str,
@@ -16,6 +17,7 @@ pub struct FindByFn<'a> {
 impl<'a> FindByFn<'a> {
     pub fn new(column: &'a Column, opts: &'a RepositoryOptions) -> Self {
         Self {
+            ignore_prefix: opts.table_prefix(),
             column,
             entity: opts.entity(),
             table_name: opts.table_name(),
@@ -46,6 +48,7 @@ impl<'a> ToTokens for FindByFn<'a> {
                 let entity = entities.pop().unwrap();
             }
         };
+        let prefix_arg = self.ignore_prefix.map(|p| quote! { #p, });
 
         for delete in [DeleteOption::No, DeleteOption::Soft] {
             let fn_name = syn::Ident::new(
@@ -107,9 +110,10 @@ impl<'a> ToTokens for FindByFn<'a> {
                 ) -> Result<#entity, #error> {
                     let #column_name = #column_name.borrow();
                     let entity = es_entity::es_query!(
-                            executor,
-                            #query,
-                            #column_name as &#column_type,
+                        #prefix_arg
+                        executor,
+                        #query,
+                        #column_name as &#column_type,
                     )
                         .fetch_one()
                         .await?;
@@ -138,6 +142,7 @@ mod tests {
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
+            ignore_prefix: None,
             column: &column,
             entity: &entity,
             table_name: "entities",
@@ -192,6 +197,7 @@ mod tests {
         let error = syn::parse_str("es_entity::EsRepoError").unwrap();
 
         let persist_fn = FindByFn {
+            ignore_prefix: None,
             column: &column,
             entity: &entity,
             table_name: "entities",

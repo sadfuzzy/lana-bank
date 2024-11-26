@@ -65,6 +65,10 @@ where
         self.persisted_events.first().map(|e| e.recorded_at)
     }
 
+    pub fn entity_last_modified_at(&self) -> Option<DateTime<Utc>> {
+        self.persisted_events.last().map(|e| e.recorded_at)
+    }
+
     pub fn push(&mut self, event: T) {
         self.new_events.push(event);
     }

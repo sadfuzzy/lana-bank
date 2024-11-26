@@ -32,11 +32,25 @@ impl ToTokens for EsQuery {
             1,
             false,
         );
-        let repo_types_mod = syn::Ident::new(&format!("{singular}_repo_types"), Span::call_site());
+        let singular_without_prefix = pluralizer::pluralize(
+            &self
+                .input
+                .table_name_without_prefix()
+                .expect("Could not identify table name"),
+            1,
+            false,
+        );
+        let repo_types_mod = syn::Ident::new(
+            &format!("{singular_without_prefix}_repo_types"),
+            Span::call_site(),
+        );
         let order_by = self.input.order_by();
 
         let executor = &self.input.executor;
-        let entity = syn::Ident::new(&singular.to_case(Case::UpperCamel), Span::call_site());
+        let entity = syn::Ident::new(
+            &singular_without_prefix.to_case(Case::UpperCamel),
+            Span::call_site(),
+        );
         let id = syn::Ident::new(&format!("{}Id", entity), Span::call_site());
         let events_table = syn::Ident::new(&format!("{}_events", singular), Span::call_site());
         let args = &self.input.arg_exprs;

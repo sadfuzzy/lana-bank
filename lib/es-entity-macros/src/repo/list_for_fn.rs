@@ -5,6 +5,7 @@ use quote::{quote, TokenStreamExt};
 use super::{list_by_fn::CursorStruct, options::*};
 
 pub struct ListForFn<'a> {
+    ignore_prefix: Option<&'a syn::LitStr>,
     pub for_column: &'a Column,
     pub by_column: &'a Column,
     entity: &'a syn::Ident,
@@ -19,6 +20,7 @@ pub struct ListForFn<'a> {
 impl<'a> ListForFn<'a> {
     pub fn new(for_column: &'a Column, by_column: &'a Column, opts: &'a RepositoryOptions) -> Self {
         Self {
+            ignore_prefix: opts.table_prefix(),
             for_column,
             by_column,
             id: opts.id(),
@@ -44,6 +46,7 @@ impl<'a> ListForFn<'a> {
 
 impl<'a> ToTokens for ListForFn<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
+        let prefix_arg = self.ignore_prefix.map(|p| quote! { #p, });
         let entity = self.entity;
         let cursor = self.cursor();
         let cursor_ident = cursor.ident();
@@ -132,6 +135,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                     let #maybe_mut_entities = match direction {
                         es_entity::ListDirection::Ascending => {
                             es_entity::es_query!(
+                                #prefix_arg
                                 self.pool(),
                                 #asc_query,
                                 #filter_arg_name as #for_column_type,
@@ -142,6 +146,7 @@ impl<'a> ToTokens for ListForFn<'a> {
                         },
                         es_entity::ListDirection::Descending => {
                             es_entity::es_query!(
+                                #prefix_arg
                                 self.pool(),
                                 #desc_query,
                                 #filter_arg_name as #for_column_type,
@@ -190,6 +195,7 @@ mod tests {
         let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListForFn {
+            ignore_prefix: None,
             entity: &entity,
             id: &id,
             for_column: &for_column,
@@ -266,6 +272,7 @@ mod tests {
         let cursor_mod = Ident::new("cursor_mod", Span::call_site());
 
         let persist_fn = ListForFn {
+            ignore_prefix: None,
             entity: &entity,
             id: &id,
             for_column: &column,

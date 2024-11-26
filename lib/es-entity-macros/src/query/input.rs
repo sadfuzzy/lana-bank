@@ -5,6 +5,7 @@ use syn::{
 };
 
 pub struct QueryInput {
+    pub(super) ignore_prefix: Option<String>,
     pub(super) executor: syn::Expr,
     pub(super) sql: String,
     pub(super) sql_span: Span,
@@ -24,6 +25,16 @@ impl QueryInput {
         )?;
         let table_name = table_name.trim_end_matches(|c: char| !c.is_alphanumeric());
         Ok(table_name.to_string())
+    }
+
+    pub(super) fn table_name_without_prefix(&self) -> darling::Result<String> {
+        let table_name = self.table_name()?;
+        if let Some(ignore_prefix) = &self.ignore_prefix {
+            if table_name.starts_with(ignore_prefix) {
+                return Ok(table_name[ignore_prefix.len() + 1..].to_string());
+            }
+        }
+        Ok(table_name)
     }
 
     pub(super) fn order_by(&self) -> String {
@@ -60,6 +71,7 @@ impl Parse for QueryInput {
         let mut args: Option<Vec<syn::Expr>> = None;
         let mut executor: Option<syn::Expr> = None;
         let mut expect_comma = false;
+        let mut ignore_prefix = None;
 
         while !input.is_empty() {
             if expect_comma {
@@ -71,6 +83,8 @@ impl Parse for QueryInput {
 
             if key == "executor" {
                 executor = Some(input.parse::<syn::Expr>()?);
+            } else if key == "ignore_prefix" {
+                ignore_prefix = Some(input.parse::<syn::LitStr>()?.value());
             } else if key == "sql" {
                 sql = Some((
                     Punctuated::<syn::LitStr, syn::Token![+]>::parse_separated_nonempty(input)?
@@ -94,6 +108,7 @@ impl Parse for QueryInput {
         let executor = executor.ok_or_else(|| input.error("expected `executor` key"))?;
 
         Ok(QueryInput {
+            ignore_prefix,
             executor,
             sql,
             sql_span,
@@ -111,13 +126,19 @@ mod tests {
     #[test]
     fn parse_input() {
         let input: QueryInput = parse_quote!(
+            ignore_prefix = "ignore_prefix",
             executor = &mut **tx,
-            sql = "SELECT * FROM users WHERE name = $1",
+            sql = "SELECT * FROM ignore_prefix_users WHERE name = $1",
             args = [id]
         );
-        assert_eq!(input.sql, "SELECT * FROM users WHERE name = $1");
+        assert_eq!(input.ignore_prefix, Some("ignore_prefix".to_string()));
+        assert_eq!(
+            input.sql,
+            "SELECT * FROM ignore_prefix_users WHERE name = $1"
+        );
         assert_eq!(input.executor, parse_quote!(&mut **tx));
         assert_eq!(input.arg_exprs[0], parse_quote!(id));
+        assert_eq!(input.table_name_without_prefix().unwrap(), "users");
     }
 
     #[test]
@@ -154,6 +175,7 @@ mod tests {
 
         for (sql, expected) in test_cases {
             let input = QueryInput {
+                ignore_prefix: None,
                 executor: parse_quote!(&mut **tx),
                 sql: sql.to_string(),
                 sql_span: Span::call_site(),
