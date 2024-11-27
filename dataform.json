@@ -2,7 +2,7 @@
   "defaultSchema": "dataform",
   "assertionSchema": "dataform_assertions",
   "warehouse": "bigquery",
-  "defaultDatabase": "lava-dev-436720",
+  "defaultDatabase": "lana-dev-440721",
   "defaultLocation": "EU",
   "vars": {
     "executionEnv": "volcano-dev"
