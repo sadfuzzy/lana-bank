@@ -5,6 +5,6 @@
   "defaultDatabase": "lana-dev-440721",
   "defaultLocation": "EU",
   "vars": {
-    "executionEnv": "volcano-dev"
+    "executionEnv": "lana-dev"
   }
 }

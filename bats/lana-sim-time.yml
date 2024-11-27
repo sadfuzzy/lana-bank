@@ -6,7 +6,7 @@ app:
   service_account:
     gcp_location: europe-west6
   storage:
-    bucket_name: "gha-volcano-documents"
+    bucket_name: "gha-lana-documents"
     root_folder: "gha"
   report:
     dataform_repo: "gha-repo"

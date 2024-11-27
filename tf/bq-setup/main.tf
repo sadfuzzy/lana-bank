@@ -45,7 +45,7 @@ locals {
   dataform_repo_name               = "${local.name_prefix}-repo"
   dataform_release_config_name     = "${var.name_prefix}-release"
   dataform_workflow_config_name    = "${var.name_prefix}-workflow"
-  docs_bucket_name                 = "${var.name_prefix}-volcano-documents"
+  docs_bucket_name                 = "${var.name_prefix}-lana-documents"
 }
 
 output "service_account_key_base64" {

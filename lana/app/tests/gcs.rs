@@ -19,7 +19,7 @@ async fn upload_doc() -> anyhow::Result<()> {
         StorageConfig {
             service_account: Some(sa),
             root_folder: "gha".to_string(),
-            bucket_name: "gha-volcano-documents".to_string(),
+            bucket_name: "gha-lana-documents".to_string(),
         }
     };
 

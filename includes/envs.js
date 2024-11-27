@@ -1,5 +1,5 @@
 const dev = {
-  name: "volcano-dev",
+  name: "lana-dev",
   database: "lana-dev-440721",
   importSchema: dataform.projectConfig.vars.devUser + "_dataset",
 }

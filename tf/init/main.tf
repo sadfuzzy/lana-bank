@@ -9,7 +9,7 @@ variable "gcp_region" {
 }
 
 locals {
-  project                = "lana-dev-436720"
+  project                = "lana-dev-440721"
   tf_state_bucket_name   = "lana-dev-tf-state"
   objects_list_role_name = "lana_objects_list"
 
@@ -24,6 +24,7 @@ locals {
     siddharth  = "siddharth@galoy.io"
     vindard    = "arvin@galoy.io"
     n          = "nb@galoy.io"
+    rishi      = "rishi@galoy.io"
   }
 }
 
@@ -90,4 +91,3 @@ terraform {
     prefix = "lana-dev/setup"
   }
 }
-
