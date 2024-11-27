@@ -30,8 +30,9 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
+    /* CUSTOM */
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 144.9 80.4% 10%;
   }
 
   .dark {
@@ -59,7 +60,11 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-}
+
+    /* CUSTOM */
+    --success: 120 63% 31%;
+    --success-foreground: 210 40% 98%;
+  }
 }
 
 @layer base {
@@ -93,4 +98,3 @@
 thead tr {
   @apply hover:!bg-card;
 }
-

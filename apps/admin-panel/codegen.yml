@@ -25,3 +25,189 @@ generates:
         Satoshis: "types#Satoshis"
         SignedUsdCents: "types#SignedUsdCents"
         SignedSatoshis: "types#SignedSatoshis"
+  ./lib/graphql/generated/mocks.ts:
+    plugins:
+      - add:
+          content: |
+            /* eslint-disable */
+            // @ts-nocheck
+            import { 
+              UsdCents, 
+              Satoshis, 
+              SignedUsdCents, 
+              SignedSatoshis,
+            } from 'types';
+
+            faker.seed(12345);
+
+            const getRandomEnumValue = <T extends Record<string, any>>(enumObj: T): T[keyof T] => {
+              const enumValues = Object.values(enumObj).filter(v => typeof v === 'string') as T[keyof T][];
+              return faker.helpers.arrayElement(enumValues);
+            };
+
+            // Generate mock values dynamically
+            const generateMockValue = {
+              uuid: () => faker.string.uuid(),
+              email: () => faker.internet.email(),
+              telegramId: () => faker.string.alphanumeric(10),
+              name: () => faker.person.fullName(),
+              url: () => faker.internet.url(),
+              description: () => faker.lorem.paragraph(),
+              timestamp: () => faker.date.recent().toISOString(),
+              reference: () => faker.string.alphanumeric(12),
+              filename: () => faker.system.fileName(),
+              boolean: () => faker.datatype.boolean(),
+              usdCents: () => faker.number.int({ min: 0, max: 1000000 }) as UsdCents,
+              satoshis: () => faker.number.int({ min: 0, max: 100000000 }) as Satoshis,
+              signedUsdCents: () => faker.number.int({ min: -1000000, max: 1000000 }) as SignedUsdCents,
+              signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
+              int: () => faker.number.int({ min: 0, max: 1000 }),
+              cursor: () => faker.string.alphanumeric(20),
+              deniedReason: () => faker.datatype.boolean() ? faker.lorem.sentence() : null,
+              applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null
+            };
+
+            const mockEnums = {
+              accountStatus: () => getRandomEnumValue(AccountStatus),
+              approvalProcessStatus: () => getRandomEnumValue(ApprovalProcessStatus),
+              approvalProcessType: () => getRandomEnumValue(ApprovalProcessType),
+              collateralAction: () => getRandomEnumValue(CollateralAction),
+              collateralizationState: () => getRandomEnumValue(CollateralizationState),
+              creditFacilityStatus: () => getRandomEnumValue(CreditFacilityStatus),
+              disbursalStatus: () => getRandomEnumValue(DisbursalStatus),
+              documentStatus: () => getRandomEnumValue(DocumentStatus),
+              interestInterval: () => getRandomEnumValue(InterestInterval),
+              kycLevel: () => getRandomEnumValue(KycLevel),
+              period: () => getRandomEnumValue(Period),
+              reportProgress: () => getRandomEnumValue(ReportProgress),
+              role: () => getRandomEnumValue(Role),
+              sortDirection: () => getRandomEnumValue(SortDirection),
+              withdrawalStatus: () => getRandomEnumValue(WithdrawalStatus)
+            };
+
+      - typescript-mock-data:
+          typesFile: "./index.ts"
+          prefix: "mock"
+          terminateCircularRelationships: true
+          maxDepth: 2
+          dynamicValues: true
+          scalars:
+            UUID: "generateMockValue.uuid()"
+            UsdCents: "generateMockValue.usdCents()"
+            Satoshis: "generateMockValue.satoshis()"
+            SignedUsdCents: "generateMockValue.signedUsdCents()"
+            SignedSatoshis: "generateMockValue.signedSatoshis()"
+            Timestamp: "generateMockValue.timestamp()"
+            AnnualRatePct: "generateMockValue.int()"
+            CVLPct: "generateMockValue.int()"
+            DisbursalIdx: "generateMockValue.int()"
+          fieldGeneration:
+            _all:
+              email: "generateMockValue.email()"
+              name: "generateMockValue.name()"
+              reference: "generateMockValue.reference()"
+              url: "generateMockValue.url()"
+              description: "generateMockValue.description()"
+              filename: "generateMockValue.filename()"
+              createdAt: "generateMockValue.timestamp()"
+              updatedAt: "generateMockValue.timestamp()"
+              activatedAt: "generateMockValue.timestamp()"
+              expiresAt: "generateMockValue.timestamp()"
+              recordedAt: "generateMockValue.timestamp()"
+              votedAt: "generateMockValue.timestamp()"
+              telegramId: "generateMockValue.telegramId()"
+              hasSubAccounts: "generateMockValue.boolean()"
+              canBeCompleted: "generateMockValue.boolean()"
+              stillEligible: "generateMockValue.boolean()"
+              didVote: "generateMockValue.boolean()"
+              didApprove: "generateMockValue.boolean()"
+              didDeny: "generateMockValue.boolean()"
+              authorized: "generateMockValue.boolean()"
+              success: "generateMockValue.boolean()"
+              cursor: "generateMockValue.cursor()"
+              deniedReason: "generateMockValue.deniedReason()"
+              applicantId: "generateMockValue.applicantId()"
+
+            Customer:
+              status: "mockEnums.accountStatus()"
+              level: "mockEnums.kycLevel()"
+
+            CreditFacility:
+              status: "mockEnums.creditFacilityStatus()"
+              collateralizationState: "mockEnums.collateralizationState()"
+              facilityAmount: "generateMockValue.usdCents()"
+              collateral: "generateMockValue.satoshis()"
+
+            Withdrawal:
+              status: "mockEnums.withdrawalStatus()"
+              amount: "generateMockValue.usdCents()"
+
+            ApprovalProcess:
+              status: "mockEnums.approvalProcessStatus()"
+              approvalProcessType: "mockEnums.approvalProcessType()"
+
+            Document:
+              status: "mockEnums.documentStatus()"
+
+            User:
+              roles: "...faker.helpers.arrayElements(Object.values(Role).filter(v => typeof v === 'string'))"
+
+            Committee:
+              threshold: "generateMockValue.int()"
+
+            Dashboard:
+              activeFacilities: "generateMockValue.int()"
+              pendingFacilities: "generateMockValue.int()"
+              totalDisbursed: "generateMockValue.usdCents()"
+              totalCollateral: "generateMockValue.satoshis()"
+
+            PageInfo:
+              hasPreviousPage: "generateMockValue.boolean()"
+              hasNextPage: "generateMockValue.boolean()"
+              startCursor: "generateMockValue.cursor()"
+              endCursor: "generateMockValue.cursor()"
+
+            RealtimePrice:
+              usdCentsPerBtc: "generateMockValue.usdCents()"
+
+            Checking:
+              settled: "generateMockValue.usdCents()"
+              pending: "generateMockValue.usdCents()"
+
+            Collateral:
+              btcBalance: "generateMockValue.satoshis()"
+
+            Duration:
+              period: "mockEnums.period()"
+              units: "generateMockValue.int()"
+
+            FacilityCVL:
+              total: "generateMockValue.int()"
+              disbursed: "generateMockValue.int()"
+
+            CreditFacilitiesFilter:
+              status: "mockEnums.creditFacilityStatus()"
+              collateralizationState: "mockEnums.collateralizationState()"
+
+            TermValues:
+              annualRate: "generateMockValue.int()"
+              accrualInterval: "mockEnums.interestInterval()"
+              incurrenceInterval: "mockEnums.interestInterval()"
+              liquidationCvl: "generateMockValue.int()"
+              marginCallCvl: "generateMockValue.int()"
+              initialCvl: "generateMockValue.int()"
+
+            Report:
+              status: "mockEnums.reportProgress()"
+
+            BtcAccountAmounts:
+              debit: "generateMockValue.satoshis()"
+              credit: "generateMockValue.satoshis()"
+              netDebit: "generateMockValue.signedSatoshis()"
+              netCredit: "generateMockValue.signedSatoshis()"
+
+            UsdAccountAmounts:
+              debit: "generateMockValue.usdCents()"
+              credit: "generateMockValue.usdCents()"
+              netDebit: "generateMockValue.signedUsdCents()"
+              netCredit: "generateMockValue.signedUsdCents()"

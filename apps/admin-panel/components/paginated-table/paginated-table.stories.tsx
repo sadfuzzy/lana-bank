@@ -1,9 +1,9 @@
 import { useState } from "react"
 import type { Meta, StoryObj } from "@storybook/react"
 
-import faker from "../../.storybook/faker"
-
 import PaginatedTable, { PaginatedData } from "./"
+
+import faker from "@/.storybook/faker"
 
 type Person = {
   id: string

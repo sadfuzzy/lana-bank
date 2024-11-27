@@ -5,4 +5,5 @@ extend-exclude = [
 	"/definitions/*/el-salvador-ssf/*",
 	"dev/fake-service-account.json",
 	"**/pnpm-lock.yaml",
+	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
 ]

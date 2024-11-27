@@ -1,8 +1,8 @@
 import { StoryObj } from "@storybook/react"
 
-import faker from "../../.storybook/faker"
-
 import DataTable from "./"
+
+import faker from "@/.storybook/faker"
 
 type User = {
   id: number
