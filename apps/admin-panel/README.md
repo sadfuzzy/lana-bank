@@ -10,8 +10,6 @@ npm run dev
 yarn dev
 # or
 pnpm dev
-# or
-bun dev
 ```
 
 ### Steps to log in to the admin panel locally:
