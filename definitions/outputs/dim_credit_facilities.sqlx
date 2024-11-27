@@ -1,0 +1,13 @@
+config {
+	type: "table",
+	description: "Each row represents a unique approved credit facility.",
+	assertions: {
+		uniqueKey: ["credit_facility_id"],
+		nonNull: ["credit_facility_id", "initialized_at", "end_date", "annual_rate", "customer_id", "completed"],
+		rowConditions: ["DATE(initialized_at) <= end_date"],
+	},
+}
+
+SELECT *
+
+FROM ${ref("int_approved_credit_facilities")}(TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), DAY))

@@ -21,7 +21,7 @@ WITH approved AS (
 
 	SELECT DISTINCT id AS loan_id
 		, CAST(JSON_VALUE(event, "$.principal") AS NUMERIC) AS principal
-		, recorded_at AS start_timestamp
+		, recorded_at AS initialized_at
 		, JSON_VALUE(event, "$.terms.duration.type") AS duration_type
 		, CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) AS duration_value
 		, CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS annual_rate
@@ -127,13 +127,13 @@ WITH approved AS (
 )
 
 SELECT loan_id
-	, start_timestamp
+	, initialized_at
 	, duration_type
 	, duration_value
 	, CASE
 		WHEN duration_type = "months"
 		THEN TIMESTAMP_ADD(
-			DATE(start_timestamp),
+			DATE(initialized_at),
 			INTERVAL duration_value MONTH
 		)
 	END AS end_date

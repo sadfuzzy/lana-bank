@@ -9,7 +9,8 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH loans_and_credit_facilities AS (
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
+	SELECT customer_id, initialized_at, end_date, incurrence_interval, accrual_interval, annual_rate,
+		loan_id AS reference_id,
 		most_recent_interest_payment_timestamp,
 		most_recent_principal_payment_timestamp AS most_recent_capital_payment_timestamp,
 		principal AS loan_amount,
@@ -23,7 +24,8 @@ WITH loans_and_credit_facilities AS (
 
 	UNION ALL
 
-	SELECT customer_id, loan_id, start_timestamp, end_date, incurrence_interval, accrual_interval, annual_rate,
+	SELECT customer_id, initialized_at, end_date, incurrence_interval, accrual_interval, annual_rate,
+		credit_facility_id AS reference_id,
 		most_recent_interest_payment_timestamp,
 		most_recent_disbursement_payment_timestamp AS most_recent_capital_payment_timestamp,
 		facility AS loan_amount,
@@ -41,7 +43,7 @@ SELECT
     LEFT(REPLACE(customer_id, '-', ''), 14) AS `nit_deudor`         -- use NIU type which uses the 14 leftmost no-hyphen characters from backend customer_id
   , (SELECT code FROM ${ref("static_npb4_17_01_tipos_de_cartera")} WHERE description = "Cartera propia Ley Acceso al Crédito (19)" ) AS `cod_cartera`
   , (SELECT code FROM ${ref("static_npb4_17_01_tipos_de_cartera")} WHERE description = "Préstamos" ) AS `cod_activo`
-  , LEFT(REPLACE(UPPER(loan_id), '-', ''), 20) AS `num_referencia`  -- uses the 20 leftmost no-hyphen characters from backend loan_id
+  , LEFT(REPLACE(UPPER(reference_id), '-', ''), 20) AS `num_referencia`  -- uses the 20 leftmost no-hyphen characters from backend loan_id
   , loan_amount AS `monto_referencia`
   , remaining_balance AS `saldo_referencia`
   , remaining_capital_balance AS `saldo_vigente_k`
@@ -49,7 +51,7 @@ SELECT
   , remaining_interest_balance AS `saldo_vigente_i`
   , CAST(NULL AS NUMERIC) AS `saldo_vencido_i`
   , CAST(NULL AS NUMERIC) AS `abono_deposito`
-  , DATE(start_timestamp) AS `fecha_otorgamiento`
+  , DATE(initialized_at) AS `fecha_otorgamiento`
   , DATE(end_date) AS `fecha_vencimiento`
   , CAST(NULL AS DATE) AS `fecha_castigo`
   , (SELECT code FROM ${ref("static_npb4_17_07_estados_de_la_referencia")} WHERE description = "Vigente") AS `estado_credito`

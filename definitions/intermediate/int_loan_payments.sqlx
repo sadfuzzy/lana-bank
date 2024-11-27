@@ -5,7 +5,7 @@ config {
 WITH projected_months AS (
 
 	SELECT loan_id, principal, duration_value, completed, annual_rate,
-		GENERATE_DATE_ARRAY(DATE(start_timestamp), DATE(end_date), INTERVAL 1 MONTH) AS months
+		GENERATE_DATE_ARRAY(DATE(initialized_at), DATE(end_date), INTERVAL 1 MONTH) AS months
 
 	FROM ${ref("int_approved_loans")}(CURRENT_TIMESTAMP())
 

@@ -7,7 +7,7 @@ CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
 
 WITH approved AS (
 
-	SELECT DISTINCT id AS loan_id
+	SELECT DISTINCT id AS credit_facility_id
 
 	FROM ${ref({
 		name: "credit_facility_events",
@@ -19,9 +19,9 @@ WITH approved AS (
 
 ), initial AS (
 
-	SELECT DISTINCT id AS loan_id
+	SELECT DISTINCT id AS credit_facility_id
 		, CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
-		, recorded_at AS start_timestamp
+		, recorded_at AS initialized_at
 		, CASE
 			WHEN JSON_VALUE(event, "$.terms.duration.type") = "months"
 			THEN TIMESTAMP_ADD(
@@ -44,7 +44,7 @@ WITH approved AS (
 
 ), payments AS (
 
-	SELECT id AS loan_id
+	SELECT id AS credit_facility_id
 		, SUM(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC)) AS total_interest_paid
 		, SUM(CAST(JSON_VALUE(event, "$.disbursement_amount") AS NUMERIC)) AS total_disbursement_paid
 		, MAX(IF(COALESCE(CAST(JSON_VALUE(event, "$.interest_amount") AS NUMERIC), 0) > 0, recorded_at, NULL)) AS most_recent_interest_payment_timestamp
@@ -58,11 +58,11 @@ WITH approved AS (
 	WHERE recorded_at < asof
 		AND event_type = "payment_recorded"
 
-	GROUP BY loan_id
+	GROUP BY credit_facility_id
 
 ), interest AS (
 
-	SELECT id AS loan_id
+	SELECT id AS credit_facility_id
 		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_interest_incurred
 
 	FROM ${ref({
@@ -73,11 +73,11 @@ WITH approved AS (
 	WHERE recorded_at < asof
 		AND event_type = "interest_incurred"
 
-	GROUP BY loan_id
+	GROUP BY credit_facility_id
 
 ), collateral AS (
 
-	SELECT id AS loan_id
+	SELECT id AS credit_facility_id
 		, CAST(
 			JSON_VALUE(
 				ANY_VALUE(event HAVING MAX recorded_at),
@@ -93,11 +93,11 @@ WITH approved AS (
 	WHERE recorded_at < asof
 		AND event_type = "collateral_updated"
 
-	GROUP BY loan_id
+	GROUP BY credit_facility_id
 
 ), collateral_deposits AS (
 
-	SELECT id AS loan_id
+	SELECT id AS credit_facility_id
 		, PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E6SZ',
 			JSON_VALUE(
 				ANY_VALUE(event HAVING MAX recorded_at),
@@ -115,11 +115,11 @@ WITH approved AS (
 		AND event_type = "collateral_updated"
 		AND JSON_VALUE(event, "$.action") = "Add"
 
-	GROUP BY loan_id
+	GROUP BY credit_facility_id
 
 ), disbursements AS (
 
-	SELECT id AS loan_id
+	SELECT id AS credit_facility_id
 		, SUM(CAST(JSON_VALUE(event, "$.amount") AS NUMERIC)) AS total_disbursed
 
 	FROM ${ref({
@@ -130,11 +130,11 @@ WITH approved AS (
 	WHERE recorded_at < asof
 		AND event_type = "disbursement_initiated"
 
-	GROUP BY loan_id
+	GROUP BY credit_facility_id
 
 ), completed AS (
 
-	SELECT DISTINCT id AS loan_id,
+	SELECT DISTINCT id AS credit_facility_id,
 
 	FROM ${ref({
 		name: "credit_facility_events",
@@ -146,8 +146,8 @@ WITH approved AS (
 
 )
 
-SELECT loan_id
-	, start_timestamp
+SELECT credit_facility_id
+	, initialized_at
 	, end_date
 	, incurrence_interval
 	, accrual_interval
@@ -162,14 +162,14 @@ SELECT loan_id
 	, customer_id
 	, most_recent_collateral_deposit
 	, COALESCE(total_disbursed, 0) AS total_disbursed
-	, completed.loan_id IS NOT NULL AS completed
+	, completed.credit_facility_id IS NOT NULL AS completed
 
 FROM approved
-	JOIN initial USING (loan_id)
-	LEFT JOIN payments USING (loan_id)
-	LEFT JOIN interest USING (loan_id)
-	LEFT JOIN collateral USING (loan_id)
-	LEFT JOIN collateral_deposits USING (loan_id)
-	LEFT JOIN disbursements USING (loan_id)
-	LEFT JOIN completed USING (loan_id)
+	JOIN initial USING (credit_facility_id)
+	LEFT JOIN payments USING (credit_facility_id)
+	LEFT JOIN interest USING (credit_facility_id)
+	LEFT JOIN collateral USING (credit_facility_id)
+	LEFT JOIN collateral_deposits USING (credit_facility_id)
+	LEFT JOIN disbursements USING (credit_facility_id)
+	LEFT JOIN completed USING (credit_facility_id)
 );
