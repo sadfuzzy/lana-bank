@@ -31,7 +31,7 @@ interface FlexibleBreadcrumbProps {
 
 const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
   return (
-    <Breadcrumb className="py-4 px-2">
+    <Breadcrumb className="pb-4 pt-2 px-2">
       <BreadcrumbList>
         {links.map((link, index) => (
           <React.Fragment key={index}>
