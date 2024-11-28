@@ -15,6 +15,7 @@ import {
   LineChart,
   Users2,
   GanttChart,
+  History,
 } from "lucide-react"
 
 import type { NavItem } from "./nav-section"
@@ -32,6 +33,7 @@ export const navMainItems: NavItem[] = [
   { title: "Users", url: "/users", icon: UserCircle },
   { title: "Committees", url: "/committees", icon: Users2 },
   { title: "Policies", url: "/policies", icon: GanttChart },
+  { title: "Audit Logs", url: "/audit", icon: History },
 ]
 
 export const navTransactionItems: NavItem[] = [

@@ -55,6 +55,7 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
           withdrawals: relayStylePagination(),
           loans: relayStylePagination(),
           committees: relayStylePagination(),
+          audit: relayStylePagination(),
         },
       },
     },
