@@ -39,7 +39,6 @@ impl<'a> ListForFn<'a> {
             id: self.id,
             entity: self.entity,
             cursor_mod: &self.cursor_mod,
-            table_name: self.table_name,
         }
     }
 }

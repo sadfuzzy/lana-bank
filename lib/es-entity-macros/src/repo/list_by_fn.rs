@@ -8,14 +8,14 @@ use super::options::*;
 pub struct CursorStruct<'a> {
     pub id: &'a syn::Ident,
     pub entity: &'a syn::Ident,
-    pub table_name: &'a str,
     pub column: &'a Column,
     pub cursor_mod: &'a syn::Ident,
 }
 
 impl<'a> CursorStruct<'a> {
     fn name(&self) -> String {
-        format!("{}_by_{}_cursor", self.table_name, self.column.name()).to_case(Case::UpperCamel)
+        let entity_name = pluralizer::pluralize(&format!("{}", self.entity), 2, false);
+        format!("{}_by_{}_cursor", entity_name, self.column.name()).to_case(Case::UpperCamel)
     }
 
     pub fn ident(&self) -> syn::Ident {
@@ -238,7 +238,6 @@ impl<'a> ListByFn<'a> {
             id: self.id,
             entity: self.entity,
             cursor_mod: &self.cursor_mod,
-            table_name: self.table_name,
         }
     }
 }
@@ -378,7 +377,6 @@ mod tests {
             id: &id_type,
             entity: &entity,
             cursor_mod: &cursor_mod,
-            table_name: "entities",
         };
 
         let mut tokens = TokenStream::new();
@@ -414,7 +412,6 @@ mod tests {
             id: &id_type,
             entity: &entity,
             cursor_mod: &cursor_mod,
-            table_name: "entities",
         };
 
         let mut tokens = TokenStream::new();
