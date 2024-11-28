@@ -40,11 +40,27 @@ impl<'a> ToTokens for FindAllFn<'a> {
                 &self,
                 ids: &[#id]
             ) -> Result<std::collections::HashMap<#id, T>, #error> {
+                self.find_all_via(self.pool(), ids).await
+            }
+
+            pub async fn find_all_in_tx<T: From<#entity>>(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                ids: &[#id]
+            ) -> Result<std::collections::HashMap<#id, T>, #error> {
+                self.find_all_via(&mut **db, ids).await
+            }
+
+            async fn find_all_via<T: From<#entity>>(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                ids: &[#id]
+            ) -> Result<std::collections::HashMap<#id, T>, #error> {
                 let rows = sqlx::query!(
                     #query,
                     ids as &[#id],
                 )
-                    .fetch_all(self.pool())
+                    .fetch_all(executor)
                     .await?;
                 let n = rows.len();
                 let res = es_entity::EntityEvents::load_n::<#entity>(rows.into_iter().map(|r|
@@ -89,11 +105,27 @@ mod tests {
                 &self,
                 ids: &[EntityId]
             ) -> Result<std::collections::HashMap<EntityId, T>, es_entity::EsRepoError> {
+                self.find_all_via(self.pool(), ids).await
+            }
+
+            pub async fn find_all_in_tx<T: From<Entity>>(
+                &self,
+                db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+                ids: &[EntityId]
+            ) -> Result<std::collections::HashMap<EntityId, T>, es_entity::EsRepoError> {
+                self.find_all_via(&mut **db, ids).await
+            }
+
+            async fn find_all_via<T: From<Entity>>(
+                &self,
+                executor: impl sqlx::Executor<'_, Database = sqlx::Postgres>,
+                ids: &[EntityId]
+            ) -> Result<std::collections::HashMap<EntityId, T>, es_entity::EsRepoError> {
                 let rows = sqlx::query!(
                     "SELECT i.id AS \"id: EntityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN entity_events e ON i.id = e.id WHERE i.id = ANY($1) ORDER BY i.id, e.sequence",
                     ids as &[EntityId],
                 )
-                    .fetch_all(self.pool())
+                    .fetch_all(executor)
                     .await?;
                 let n = rows.len();
                 let res = es_entity::EntityEvents::load_n::<Entity>(rows.into_iter().map(|r|
