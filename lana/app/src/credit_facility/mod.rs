@@ -477,10 +477,6 @@ impl CreditFacilities {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
         db.commit().await?;
 
         Ok(credit_facility)
