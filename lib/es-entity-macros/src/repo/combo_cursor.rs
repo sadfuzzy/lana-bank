@@ -6,21 +6,22 @@ use quote::{quote, TokenStreamExt};
 use super::{list_by_fn::CursorStruct, options::*};
 
 pub struct ComboCursor<'a> {
-    table_name: &'a str,
+    entity: &'a syn::Ident,
     cursors: Vec<CursorStruct<'a>>,
 }
 
 impl<'a> ComboCursor<'a> {
     pub fn new(opts: &'a RepositoryOptions, cursors: Vec<CursorStruct<'a>>) -> Self {
         Self {
-            table_name: opts.table_name(),
+            entity: opts.entity(),
             cursors,
         }
     }
 
     pub fn ident(&self) -> syn::Ident {
+        let entity_name = pluralizer::pluralize(&format!("{}", self.entity), 2, false);
         syn::Ident::new(
-            &format!("{}_cursor", self.table_name).to_case(Case::UpperCamel),
+            &format!("{}_cursor", entity_name).to_case(Case::UpperCamel),
             Span::call_site(),
         )
     }
@@ -84,8 +85,9 @@ impl<'a> ComboCursor<'a> {
     }
 
     pub fn sort_by_name(&self) -> syn::Ident {
+        let entity_name = pluralizer::pluralize(&format!("{}", self.entity), 2, false);
         syn::Ident::new(
-            &format!("{}_sort_by", self.table_name).to_case(Case::UpperCamel),
+            &format!("{}_sort_by", entity_name).to_case(Case::UpperCamel),
             Span::call_site(),
         )
     }

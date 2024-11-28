@@ -7,20 +7,21 @@ use super::{combo_cursor::ComboCursor, list_for_fn::ListForFn, options::*};
 
 pub struct ManyFilter<'a> {
     columns: Vec<&'a Column>,
-    table_name: &'a str,
+    entity: &'a syn::Ident,
 }
 
 impl<'a> ManyFilter<'a> {
     pub fn new(opts: &'a RepositoryOptions, columns: Vec<&'a Column>) -> Self {
         Self {
-            table_name: opts.table_name(),
+            entity: opts.entity(),
             columns,
         }
     }
 
     pub fn ident(&self) -> syn::Ident {
+        let entity_name = pluralizer::pluralize(&format!("{}", self.entity), 2, false);
         syn::Ident::new(
-            &format!("find_many_{}", self.table_name).to_case(Case::UpperCamel),
+            &format!("find_many_{}", entity_name).to_case(Case::UpperCamel),
             Span::call_site(),
         )
     }
@@ -67,7 +68,6 @@ impl<'a> ToTokens for ManyFilter<'a> {
 
 pub struct FindManyFn<'a> {
     pub filter: ManyFilter<'a>,
-    table_name: &'a str,
     entity: &'a syn::Ident,
     error: &'a syn::Type,
     list_for_fns: &'a Vec<ListForFn<'a>>,
@@ -87,7 +87,6 @@ impl<'a> FindManyFn<'a> {
     ) -> Self {
         Self {
             filter: ManyFilter::new(opts, for_columns.clone()),
-            table_name: opts.table_name(),
             entity: opts.entity(),
             error: opts.err(),
             list_for_fns,
@@ -150,8 +149,9 @@ impl<'a> ToTokens for FindManyFn<'a> {
                     &format!("{}", b.name()).to_case(Case::UpperCamel),
                     Span::call_site(),
                 );
+                let entity_name = pluralizer::pluralize(&format!("{}", self.entity), 2, false);
                 let inner_cursor_ident = syn::Ident::new(
-                    &format!("{}_by_{}_cursor", self.table_name, b.name()).to_case(Case::UpperCamel)
+                    &format!("{}_by_{}_cursor", entity_name, b.name()).to_case(Case::UpperCamel)
                     , Span::call_site());
                 let no_filter_fn_name = syn::Ident::new(
                     &format!(
