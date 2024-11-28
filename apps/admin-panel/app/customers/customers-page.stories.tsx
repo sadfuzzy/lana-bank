@@ -93,9 +93,7 @@ export const Default: Story = {
   decorators: [
     (Story) => (
       <MockedProvider mocks={baseMocks} addTypename={false}>
-        <div className="max-w-7xl m-auto p-4">
-          <Story />
-        </div>
+        <Story />
       </MockedProvider>
     ),
   ],

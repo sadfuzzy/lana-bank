@@ -62,7 +62,7 @@ const baseMocks = [
 ]
 
 const meta = {
-  title: "Pages/Customer",
+  title: "Pages/Customers/Customer/Details",
   component: Customer,
   parameters: {
     layout: "fullscreen",
@@ -70,13 +70,7 @@ const meta = {
       appDirectory: true,
     },
   },
-  decorators: [
-    (Story) => (
-      <div className="max-w-7xl m-auto p-4">
-        <Story />
-      </div>
-    ),
-  ],
+  decorators: [(Story) => <Story />],
 } satisfies Meta<typeof Customer>
 
 export default meta
