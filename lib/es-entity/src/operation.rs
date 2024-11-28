@@ -6,6 +6,10 @@ pub struct DbOp<'t> {
 }
 
 impl<'t> DbOp<'t> {
+    pub fn new(tx: Transaction<'t, Postgres>, time: chrono::DateTime<chrono::Utc>) -> Self {
+        Self { tx, now: time }
+    }
+
     pub async fn init(pool: &PgPool) -> Result<Self, sqlx::Error> {
         #[cfg(feature = "sim-time")]
         let res = {
@@ -34,6 +38,10 @@ impl<'t> DbOp<'t> {
 
     pub fn tx(&mut self) -> &mut Transaction<'t, Postgres> {
         &mut self.tx
+    }
+
+    pub fn into_tx(self) -> Transaction<'t, Postgres> {
+        self.tx
     }
 
     pub async fn commit(self) -> Result<(), sqlx::Error> {
