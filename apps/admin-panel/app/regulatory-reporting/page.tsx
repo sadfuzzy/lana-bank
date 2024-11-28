@@ -311,7 +311,9 @@ const formatStatus = ({
       return (
         <p className="text-success flex items-center gap-2">
           <PiCheckCircleFill className="w-5 h-5" />
-          Operational (last report created on {formatDate(createdAt)})
+          Operational (last report created on {formatDate(
+            createdAt,
+          )})
         </p>
       )
     default:

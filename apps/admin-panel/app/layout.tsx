@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { Inter_Tight } from "next/font/google"
-
 import { getServerSession } from "next-auth"
 import { redirect } from "next/navigation"
 import { headers } from "next/headers"
@@ -9,14 +8,15 @@ import { authOptions } from "./api/auth/[...nextauth]/options"
 import { AuthSessionProvider } from "./session-provider"
 
 import CreateButton, { CreateContextProvider } from "./create"
-import NavBar from "./navbar"
 
 import { RealtimePriceUpdates } from "@/components/realtime-price"
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
+import { Toast } from "@/components/toast"
+import { SidebarProvider, SidebarInset } from "@/ui/sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
-import { Toast } from "@/components/toast"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -44,15 +44,20 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased w-screen h-screen select-none`}>
+      <body className={`${inter.className} antialiased select-none bg-background`}>
         <AuthSessionProvider session={session}>
           <ApolloServerWrapper>
-            <Toast />
-            {PUBLIC_PAGES.includes(currentPath) ? (
-              children
-            ) : (
-              <AppLayout>{children}</AppLayout>
-            )}
+            <SidebarProvider>
+              <Toast />
+              <AppSidebar />
+              <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
+                {PUBLIC_PAGES.includes(currentPath) ? (
+                  children
+                ) : (
+                  <AppLayout>{children}</AppLayout>
+                )}
+              </SidebarInset>
+            </SidebarProvider>
           </ApolloServerWrapper>
         </AuthSessionProvider>
       </body>
@@ -60,24 +65,22 @@ export default async function RootLayout({
   )
 }
 
-const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => (
-  <CreateContextProvider>
-    <RealtimePriceUpdates />
-    <div className="bg-soft h-full w-full flex flex-col md:flex-row">
-      <NavBar />
-      <div className="flex-1 pt-[72px] md:pt-2 p-2 max-h-screen overflow-hidden bg-secondary/50">
-        <div className="p-2 border rounded-md flex flex-col w-full h-full bg-background">
-          <div className="md:flex gap-2 hidden pb-2 justify-between items-center max-w-7xl mx-auto w-full">
-            <div className="font-semibold text-sm p-2 px-4 bg-secondary rounded-md">
+const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+  return (
+    <CreateContextProvider>
+      <div className="container mx-auto p-2">
+        <div className="max-w-7xl w-full mx-auto">
+          <header className="flex justify-between items-center">
+            <div className="font-semibold text-sm p-2 bg-secondary rounded-md">
               Welcome to Lana Bank
             </div>
             <CreateButton />
-          </div>
-          <main className="h-full overflow-y-auto no-scrollbar max-w-7xl w-full mx-auto">
-            {children}
-          </main>
+          </header>
+
+          <RealtimePriceUpdates />
+          <main>{children}</main>
         </div>
       </div>
-    </div>
-  </CreateContextProvider>
-)
+    </CreateContextProvider>
+  )
+}

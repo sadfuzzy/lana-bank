@@ -1595,11 +1595,6 @@ export type AuditLogsQueryVariables = Exact<{
 
 export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
-export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
-
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
@@ -1984,6 +1979,11 @@ export type WithdrawalsQueryVariables = Exact<{
 
 export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } } }> } };
 
+export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -2297,44 +2297,6 @@ export function useAuditLogsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<
 export type AuditLogsQueryHookResult = ReturnType<typeof useAuditLogsQuery>;
 export type AuditLogsLazyQueryHookResult = ReturnType<typeof useAuditLogsLazyQuery>;
 export type AuditLogsQueryResult = Apollo.QueryResult<AuditLogsQuery, AuditLogsQueryVariables>;
-export const AvatarDocument = gql`
-    query Avatar {
-  me {
-    user {
-      userId
-      email
-      roles
-    }
-  }
-}
-    `;
-
-/**
- * __useAvatarQuery__
- *
- * To run a query within a React component, call `useAvatarQuery` and pass it any options that fit your needs.
- * When your component renders, `useAvatarQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useAvatarQuery({
- *   variables: {
- *   },
- * });
- */
-export function useAvatarQuery(baseOptions?: Apollo.QueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
-      }
-export function useAvatarLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
-        }
-export type AvatarQueryHookResult = ReturnType<typeof useAvatarQuery>;
-export type AvatarLazyQueryHookResult = ReturnType<typeof useAvatarLazyQuery>;
-export type AvatarQueryResult = Apollo.QueryResult<AvatarQuery, AvatarQueryVariables>;
 export const BalanceSheetDocument = gql`
     query BalanceSheet($from: Timestamp!, $until: Timestamp) {
   balanceSheet(from: $from, until: $until) {
@@ -5020,6 +4982,44 @@ export function useWithdrawalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOption
 export type WithdrawalsQueryHookResult = ReturnType<typeof useWithdrawalsQuery>;
 export type WithdrawalsLazyQueryHookResult = ReturnType<typeof useWithdrawalsLazyQuery>;
 export type WithdrawalsQueryResult = Apollo.QueryResult<WithdrawalsQuery, WithdrawalsQueryVariables>;
+export const AvatarDocument = gql`
+    query Avatar {
+  me {
+    user {
+      userId
+      email
+      roles
+    }
+  }
+}
+    `;
+
+/**
+ * __useAvatarQuery__
+ *
+ * To run a query within a React component, call `useAvatarQuery` and pass it any options that fit your needs.
+ * When your component renders, `useAvatarQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useAvatarQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useAvatarQuery(baseOptions?: Apollo.QueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
+      }
+export function useAvatarLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<AvatarQuery, AvatarQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<AvatarQuery, AvatarQueryVariables>(AvatarDocument, options);
+        }
+export type AvatarQueryHookResult = ReturnType<typeof useAvatarQuery>;
+export type AvatarLazyQueryHookResult = ReturnType<typeof useAvatarLazyQuery>;
+export type AvatarQueryResult = Apollo.QueryResult<AvatarQuery, AvatarQueryVariables>;
 export const GetRealtimePriceUpdatesDocument = gql`
     query GetRealtimePriceUpdates {
   realtimePrice {
