@@ -13,7 +13,7 @@ interface TermsTemplateStoryArgs {
 }
 
 const DEFAULT_ARGS: TermsTemplateStoryArgs = {
-  name: faker.company.name(),
+  name: "Medium Risk",
 }
 
 const createMocks = (args: TermsTemplateStoryArgs, templateId: string) => [

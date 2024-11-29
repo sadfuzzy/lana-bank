@@ -63,7 +63,7 @@ generates:
               signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
               int: () => faker.number.int({ min: 0, max: 1000 }),
               cursor: () => faker.string.alphanumeric(20),
-              deniedReason: () => faker.datatype.boolean() ? faker.lorem.sentence() : null,
+              deniedReason: () => null,
               applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null
             };
 
@@ -179,7 +179,7 @@ generates:
 
             Duration:
               period: "mockEnums.period()"
-              units: "generateMockValue.int()"
+              units: "faker.helpers.arrayElement([6, 12, 24])"
 
             FacilityCVL:
               total: "generateMockValue.int()"
@@ -190,13 +190,12 @@ generates:
               collateralizationState: "mockEnums.collateralizationState()"
 
             TermValues:
-              annualRate: "generateMockValue.int()"
+              annualRate: "faker.number.int({ min: 5, max: 20 })"
               accrualInterval: "mockEnums.interestInterval()"
               incurrenceInterval: "mockEnums.interestInterval()"
-              liquidationCvl: "generateMockValue.int()"
-              marginCallCvl: "generateMockValue.int()"
-              initialCvl: "generateMockValue.int()"
-
+              liquidationCvl: "faker.number.int({ min: 85, max: 88 })"
+              marginCallCvl: "faker.number.int({ min: 90, max: 92 })"
+              initialCvl: "faker.number.int({ min: 95, max: 98 })"
             Report:
               status: "mockEnums.reportProgress()"
 

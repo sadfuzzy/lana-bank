@@ -1593,7 +1593,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -2262,8 +2262,10 @@ export const AuditLogsDocument = gql`
       }
     }
     pageInfo {
-      hasNextPage
       endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
     }
   }
 }
