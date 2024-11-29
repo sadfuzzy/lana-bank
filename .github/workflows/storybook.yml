@@ -66,24 +66,42 @@ jobs:
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-      - name: Update PR Description
+      - name: Create or Update Preview Comment
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |
             const prNumber = context.payload.pull_request.number;
             const deployUrl = '${{ steps.netlify_deploy.outputs.deploy_url }}';
-            const { data: pullRequest } = await github.rest.pulls.get({
+            const commentBody = `<!-- Storybook Preview Comment -->\nStorybook preview: [Link to Storybook](${deployUrl})`;
+
+            // Fetch existing comments on the PR
+            const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: prNumber,
+              issue_number: prNumber,
             });
-            const previewLink = `Storybook preview: [Link to Storybook](${deployUrl})\n\n`;
-            const existingBody = pullRequest.body || '';
-            const newBody = previewLink + existingBody.replace(/Storybook preview: \[.*?\]\(.*?\)\n\n/, '');
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-              body: newBody,
-            });
+
+            // Identify if the bot has already made a comment
+            const botLogin = (await github.rest.users.getAuthenticated()).data.login;
+            const existingComment = comments.find(
+              comment => comment.user.login === botLogin && comment.body.includes('<!-- Storybook Preview Comment -->')
+            );
+
+            if (existingComment) {
+              // Update the existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create a new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }
