@@ -4,7 +4,7 @@ import { gql } from "@apollo/client"
 
 import ActionsList from "../actions/list"
 
-import DashboardCard from "./card"
+import DashboardCard from "./dashboard-card"
 
 import {
   useDashboardQuery,
