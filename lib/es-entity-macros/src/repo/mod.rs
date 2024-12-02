@@ -1,5 +1,6 @@
 mod begin;
 mod combo_cursor;
+mod create_all_fn;
 mod create_fn;
 mod delete_fn;
 mod find_all_fn;
@@ -9,6 +10,7 @@ mod list_by_fn;
 mod list_for_fn;
 mod nested;
 mod options;
+mod persist_events_batch_fn;
 mod persist_events_fn;
 mod populate_nested;
 mod post_persist_hook;
@@ -28,8 +30,10 @@ pub fn derive(ast: syn::DeriveInput) -> darling::Result<proc_macro2::TokenStream
 pub struct EsRepo<'a> {
     repo: &'a syn::Ident,
     persist_events_fn: persist_events_fn::PersistEventsFn<'a>,
+    persist_events_batch_fn: persist_events_batch_fn::PersistEventsBatchFn<'a>,
     update_fn: update_fn::UpdateFn<'a>,
     create_fn: create_fn::CreateFn<'a>,
+    create_all_fn: create_all_fn::CreateAllFn<'a>,
     delete_fn: delete_fn::DeleteFn<'a>,
     find_by_fns: Vec<find_by_fn::FindByFn<'a>>,
     find_all_fn: find_all_fn::FindAllFn<'a>,
@@ -75,8 +79,10 @@ impl<'a> From<&'a RepositoryOptions> for EsRepo<'a> {
         Self {
             repo: &opts.ident,
             persist_events_fn: persist_events_fn::PersistEventsFn::from(opts),
+            persist_events_batch_fn: persist_events_batch_fn::PersistEventsBatchFn::from(opts),
             update_fn: update_fn::UpdateFn::from(opts),
             create_fn: create_fn::CreateFn::from(opts),
+            create_all_fn: create_all_fn::CreateAllFn::from(opts),
             delete_fn: delete_fn::DeleteFn::from(opts),
             find_by_fns,
             find_all_fn: find_all_fn::FindAllFn::from(opts),
@@ -95,8 +101,10 @@ impl<'a> ToTokens for EsRepo<'a> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let repo = &self.repo;
         let persist_events_fn = &self.persist_events_fn;
+        let persist_events_batch_fn = &self.persist_events_batch_fn;
         let update_fn = &self.update_fn;
         let create_fn = &self.create_fn;
+        let create_all_fn = &self.create_all_fn;
         let delete_fn = &self.delete_fn;
         let find_by_fns = &self.find_by_fns;
         let find_all_fn = &self.find_all_fn;
@@ -203,7 +211,9 @@ impl<'a> ToTokens for EsRepo<'a> {
                 #begin
                 #post_persist_hook
                 #persist_events_fn
+                #persist_events_batch_fn
                 #create_fn
+                #create_all_fn
                 #update_fn
                 #delete_fn
                 #(#find_by_fns)*

@@ -22,7 +22,7 @@ impl StorageConfig {
         service_account: ServiceAccountConfig,
     ) -> StorageConfig {
         Self {
-            bucket_name: format!("{}-volcano-documents", name_prefix),
+            bucket_name: format!("{}-lana-documents", name_prefix),
             root_folder: name_prefix,
             service_account: Some(service_account),
         }

@@ -70,6 +70,22 @@ impl Columns {
         }
     }
 
+    pub fn variable_assignments_for_create_all(
+        &self,
+        ident: syn::Ident,
+    ) -> proc_macro2::TokenStream {
+        let assignments = self.all.iter().filter_map(|c| {
+            if c.opts.persist_on_create() {
+                Some(c.variable_assignment_for_create_all(&ident))
+            } else {
+                None
+            }
+        });
+        quote! {
+            #(#assignments)*
+        }
+    }
+
     pub fn create_query_args(&self) -> Vec<proc_macro2::TokenStream> {
         self.all
             .iter()
@@ -79,6 +95,19 @@ impl Columns {
                 let ty = &column.opts.ty;
                 quote! {
                     #ident as &#ty,
+                }
+            })
+            .collect()
+    }
+
+    pub fn create_query_builder_args(&self) -> Vec<proc_macro2::TokenStream> {
+        self.all
+            .iter()
+            .filter(|c| c.opts.persist_on_create())
+            .map(|column| {
+                let ident = &column.name;
+                quote! {
+                    builder.push_bind(#ident);
                 }
             })
             .collect()
@@ -276,6 +305,27 @@ impl Column {
         let accessor = self.opts.create_accessor(name);
         quote! {
             let #name = &#ident.#accessor;
+        }
+    }
+
+    fn variable_assignment_for_create_all(&self, ident: &syn::Ident) -> proc_macro2::TokenStream {
+        let name = &self.name;
+        let accessor = self.opts.create_accessor(name);
+        let needs_ref = self
+            .opts
+            .create_opts
+            .as_ref()
+            .map(|o| o.accessor.is_none())
+            .unwrap_or(true);
+        let ty = &self.opts.ty;
+        if needs_ref {
+            quote! {
+                let #name: &#ty = &#ident.#accessor;
+            }
+        } else {
+            quote! {
+                let #name: #ty = #ident.#accessor;
+            }
         }
     }
 
