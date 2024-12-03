@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 
 import DataTable, { Column } from "../../components/data-table"
@@ -46,11 +45,6 @@ function TermPage() {
     {
       key: "name",
       header: "Name",
-      render: (name, template) => (
-        <div className="hover:underline">
-          <Link href={`/terms-templates/${template.termsId}`}>{name}</Link>
-        </div>
-      ),
     },
     {
       key: "values",

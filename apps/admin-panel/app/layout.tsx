@@ -41,22 +41,24 @@ export default async function RootLayout({
   if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
   if (session && ["/", "/app"].includes(currentPath)) redirect("/dashboard")
 
+  const isPublicPage = PUBLIC_PAGES.includes(currentPath)
+
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased select-none bg-background`}>
+      <body className={`${inter.className} antialiased bg-background`}>
         <AuthSessionProvider session={session}>
           <ApolloServerWrapper>
-            <SidebarProvider>
-              <Toast />
-              <AppSidebar />
-              <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
-                {PUBLIC_PAGES.includes(currentPath) ? (
-                  children
-                ) : (
+            <Toast />
+            {isPublicPage ? (
+              <main className="h-screen w-full flex flex-col">{children}</main>
+            ) : (
+              <SidebarProvider>
+                <AppSidebar />
+                <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
                   <AppLayout>{children}</AppLayout>
-                )}
-              </SidebarInset>
-            </SidebarProvider>
+                </SidebarInset>
+              </SidebarProvider>
+            )}
           </ApolloServerWrapper>
         </AuthSessionProvider>
       </body>
