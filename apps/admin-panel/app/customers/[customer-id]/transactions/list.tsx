@@ -6,12 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import Balance from "@/components/balance/balance"
 
-import { GetCustomerQuery } from "@/lib/graphql/generated"
+import { GetCustomerTransactionsQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 
 type CustomerTransactionsTableProps = {
-  transactions: NonNullable<GetCustomerQuery["customer"]>["transactions"]
+  transactions: NonNullable<GetCustomerTransactionsQuery["customer"]>["transactions"]
 }
 
 // TODO use data-table

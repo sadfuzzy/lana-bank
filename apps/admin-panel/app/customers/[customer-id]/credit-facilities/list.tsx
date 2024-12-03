@@ -4,17 +4,19 @@ import { useRouter } from "next/navigation"
 
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
-import { GetCustomerQuery } from "@/lib/graphql/generated"
+import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacility = NonNullable<
-  GetCustomerQuery["customer"]
+  GetCustomerCreditFacilitiesQuery["customer"]
 >["creditFacilities"][number]
 
 type CustomerCreditFacilitiesTableProps = {
-  creditFacilities: NonNullable<GetCustomerQuery["customer"]>["creditFacilities"]
+  creditFacilities: NonNullable<
+    GetCustomerCreditFacilitiesQuery["customer"]
+  >["creditFacilities"]
 }
 
 export const CustomerCreditFacilitiesTable: React.FC<

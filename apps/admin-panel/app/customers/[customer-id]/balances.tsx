@@ -5,10 +5,10 @@ import React from "react"
 import Balance from "@/components/balance/balance"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { GetCustomerQuery } from "@/lib/graphql/generated"
+import { GetCustomerOverviewQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
-  balance: NonNullable<GetCustomerQuery["customer"]>["balance"]
+  balance: NonNullable<GetCustomerOverviewQuery["customer"]>["balance"]
 }
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({

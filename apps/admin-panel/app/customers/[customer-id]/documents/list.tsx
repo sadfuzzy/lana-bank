@@ -11,17 +11,19 @@ import { Button } from "@/ui/button"
 import DataTable, { Column } from "@/components/data-table"
 
 import {
-  GetCustomerDocument,
-  GetCustomerQuery,
+  GetCustomerDocumentsDocument,
+  GetCustomerDocumentsQuery,
   useCustomerDocumentAttachMutation,
   useDocumentDeleteMutation,
   useDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
 import CardWrapper from "@/components/card-wrapper"
 
-type DocumentType = NonNullable<GetCustomerQuery["customer"]>["documents"][number]
+type DocumentType = NonNullable<
+  GetCustomerDocumentsQuery["customer"]
+>["documents"][number]
 type DocumentProps = {
-  customer: NonNullable<GetCustomerQuery["customer"]>
+  customer: NonNullable<GetCustomerDocumentsQuery["customer"]>
   refetch: () => void
 }
 
@@ -59,7 +61,7 @@ gql`
 `
 
 type CustomerDocumentsProps = {
-  documents: NonNullable<GetCustomerQuery["customer"]>["documents"]
+  documents: NonNullable<GetCustomerDocumentsQuery["customer"]>["documents"]
   refetch: () => void
 }
 
@@ -69,7 +71,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
 
   const [documentDownloadLinkGenerate] = useDocumentDownloadLinkGenerateMutation()
   const [documentDelete] = useDocumentDeleteMutation({
-    refetchQueries: [GetCustomerDocument],
+    refetchQueries: [GetCustomerDocumentsDocument],
   })
 
   const openFile = useCallback(
@@ -166,7 +168,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
 
 const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation({
-    refetchQueries: [GetCustomerDocument],
+    refetchQueries: [GetCustomerDocumentsDocument],
   })
 
   const handleFileUpload = useCallback(

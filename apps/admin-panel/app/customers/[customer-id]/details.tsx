@@ -6,12 +6,12 @@ import { PiPencilSimpleLineLight } from "react-icons/pi"
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { AccountStatus, GetCustomerQuery } from "@/lib/graphql/generated"
+import { AccountStatus, GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
 import { Badge } from "@/ui/badge"
 import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {
-  customer: NonNullable<GetCustomerQuery["customer"]>
+  customer: NonNullable<GetCustomerBasicDetailsQuery["customer"]>
   refetch: () => void
 }
 
