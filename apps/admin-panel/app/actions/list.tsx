@@ -12,8 +12,8 @@ import {
   useAllActionsQuery,
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
-import { CardSkeleton } from "@/components/card-skeleton"
 import DataTable, { Column } from "@/components/data-table"
+import { Skeleton } from "@/ui/skeleton"
 
 const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 
@@ -91,7 +91,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   const more = approvalProcesses.length - NUMBER_OF_ITEMS_IN_DASHBOARD
 
-  if (loading) return <CardSkeleton />
+  if (loading) return <ActionListSkeleton />
 
   const handleRowClick = (data: ActionNode) => {
     if (
@@ -157,9 +157,11 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           )}
         </CardContent>
       ) : (
-        <CardContent className="flex flex-col items-start justify-center w-full gap-2">
-          <HiCheckCircle className="text-6xl text-green-500" />
-          <div className="text-sm">All Caught Up</div>
+        <CardContent className="flex flex-col items-center justify-center w-full gap-2">
+          <div className="border rounded-lg w-full flex flex-col items-center py-6">
+            <HiCheckCircle className="text-5xl text-green-500" />
+            <div className="text-sm mt-2">All Caught Up</div>
+          </div>
         </CardContent>
       )}
     </Card>
@@ -167,3 +169,21 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 }
 
 export default List
+
+const ActionListSkeleton = () => {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="h-8 w-32" />
+        </CardTitle>
+        <CardDescription>
+          <Skeleton className="h-4 w-64" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-[115px] w-full" />
+      </CardContent>
+    </Card>
+  )
+}

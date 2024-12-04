@@ -2,12 +2,10 @@
 
 import Link from "next/link"
 import { HiArrowRight } from "react-icons/hi"
-
 import { ReactNode } from "react"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/card"
 import { Button } from "@/ui/button"
-
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
 
 type DashboardCardProps = {
@@ -36,15 +34,12 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   return (
     <Card className="w-full">
       <CardHeader>
-        <div className="flex items-end gap-2">
-          {h1 && <CardTitle className="text-3xl font-bold">{h1}</CardTitle>}
-          {h2 && (
+        <div className="flex flex-col">
+          {h2 ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="text-base mb-0.5 text-[0.87rem] text-muted-foreground ml-2">
-                    {h2}
-                  </span>
+                  <span className="text-md text-muted-foreground min-h-[27px]">{h2}</span>
                 </TooltipTrigger>
                 {h2PopupDescription && (
                   <TooltipContent className="max-w-xs">
@@ -53,19 +48,22 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
                 )}
               </Tooltip>
             </TooltipProvider>
+          ) : (
+            <div className="h-[27px]" />
           )}
+          {h1 && <CardTitle className="text-3xl font-bold">{h1}</CardTitle>}
         </div>
         <CardTitle className="text-lg font-medium">{title}</CardTitle>
         <CardDescription className="text-sm">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         {content}
         {to && (
           <div className={`${buttonToRight ? "text-right" : ""}`}>
             <Link href={to}>
               <Button variant="outline">
                 {buttonText || "View Details"}
-                <HiArrowRight className="ml-2 h-4 w-4" />
+                <HiArrowRight />
               </Button>
             </Link>
           </div>
