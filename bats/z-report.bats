@@ -29,7 +29,6 @@ wait_for_complete() {
   if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
     skip
   fi
-  skip
 
   exec_admin_graphql 'report-create'
   echo $(graphql_output)
