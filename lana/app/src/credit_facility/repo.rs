@@ -19,9 +19,10 @@ use super::{
     err = "CreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
-        approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
+        approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateralization_ratio(
             ty = "Option<Decimal>",
+            list_by,
             create(persist = false),
             update(accessor = "collateralization_ratio()")
         ),
@@ -70,7 +71,7 @@ const INTEREST_ACCRUAL_BQ_TABLE_NAME: &str = "interest_accrual_events";
     err = "InterestAccrualError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for, parent),
-        idx(ty = "InterestAccrualIdx", update(persist = false)),
+        idx(ty = "InterestAccrualIdx", update(persist = false), list_by),
     ),
     post_persist_hook = "export"
 )]

@@ -11,9 +11,9 @@ use super::{entity::*, error::DisbursalError};
     entity = "Disbursal",
     err = "DisbursalError",
     columns(
-        credit_facility_id(ty = "CreditFacilityId", update(persist = false), list_for),
-        approval_process_id(ty = "ApprovalProcessId", update(persist = "false")),
-        idx(ty = "DisbursalIdx", update(persist = false)),
+        credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
+        approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
+        idx(ty = "DisbursalIdx", list_by, update(persist = false)),
     )
 )]
 pub(in crate::credit_facility) struct DisbursalRepo {

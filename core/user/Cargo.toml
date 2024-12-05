@@ -16,8 +16,8 @@ governance = { path = "../governance", optional = true }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
-es-entity = { path = "../../lib/es-entity" }
 
+es-entity = { workspace = true }
 strum = { workspace = true }
 serde = { workspace = true }
 derive_builder = { workspace = true }

@@ -8,7 +8,7 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-es-entity = { path = "../../lib/es-entity" }
+es-entity = { workspace = true }
 
 sqlx = { workspace = true }
 thiserror = { workspace = true }

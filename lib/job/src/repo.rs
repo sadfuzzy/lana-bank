@@ -11,7 +11,7 @@ use crate::JobId;
     err = "JobError",
     columns(
         job_type(ty = "JobType", update(persist = false)),
-        unique_per_type(ty = "bool", update(persist = false), list_by = false),
+        unique_per_type(ty = "bool", update(persist = false)),
     )
 )]
 pub struct JobRepo {

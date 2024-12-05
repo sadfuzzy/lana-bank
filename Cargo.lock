@@ -1217,9 +1217,10 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.2.49-dev"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af9a48b924f08bdeba3e50bc6a14ca7ff8ca94abb42f6b35157a420c71551452"
 dependencies = [
- "anyhow",
  "async-graphql",
  "async-trait",
  "base64 0.22.1",
@@ -1231,13 +1232,14 @@ dependencies = [
  "sim-time",
  "sqlx",
  "thiserror",
- "tokio",
  "uuid",
 ]
 
 [[package]]
 name = "es-entity-macros"
-version = "0.2.49-dev"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f06294b7c85dc3c31d390460fe17f8aa97723400186dff68fe43782e6df0f5c9"
 dependencies = [
  "convert_case",
  "darling",
@@ -3766,18 +3768,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.214"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f55c3193aca71c12ad7890f1785d2b73e1b9f63a0bbc353c08ef26fe03fc56b5"
+checksum = "6513c1ad0b11a9376da888e3e0baa0077f1aed55c17f50e7b2397136129fb88f"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.214"
+version = "1.0.215"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de523f781f095e28fa605cdce0f8307e451cc0fd14e2eb4cd2e98a355b147766"
+checksum = "ad1e866f866923f252f05c889987993144fb74e722403468a4ebd70c3cd756c0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3936,7 +3938,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.2.49-dev"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb970973aa489a7bc2d6b81da17eef2e45a8d5abf2d185284782ee1bbbfd6bdf"
 dependencies = [
  "chrono",
  "serde",

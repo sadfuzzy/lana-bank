@@ -13,8 +13,8 @@ lana-app = { path = "../app" }
 admin-server = { path = "../admin-server" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
-sim-time = { path = "../../lib/sim-time", optional = true }
 
+sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 clap = { workspace = true }

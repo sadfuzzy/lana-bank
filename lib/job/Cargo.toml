@@ -9,8 +9,8 @@ fail-on-warnings = []
 sim-time = [ "dep:sim-time", "es-entity/sim-time" ]
 
 [dependencies]
-es-entity = { path = "../es-entity" }
-sim-time = { path = "../sim-time", optional = true }
+es-entity = { workspace = true }
+sim-time = { workspace = true, optional = true }
 
 derive_builder = { workspace = true }
 tracing = { workspace = true }

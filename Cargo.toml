@@ -17,14 +17,14 @@ members = [
   "lib/audit",
   "lib/job",
   "lib/tracing-utils",
-  "lib/es-entity",
-  "lib/es-entity-macros",
   "lib/outbox",
   "lib/jwks-utils",
-  "lib/sim-time",
 ]
 
 [workspace.dependencies]
+es-entity = "0.3.1"
+sim-time = "0.3.1"
+
 anyhow = "1.0.92"
 async-graphql = { version = "7.0.11", default-features = false, features = ["dataloader", "tracing", "chrono", "playground"] }
 async-graphql-axum = "7.0.9"

@@ -8,7 +8,7 @@ edition = "2021"
 fail-on-warnings = []
 
 [dependencies]
-es-entity = { path = "../../lib/es-entity" }
+es-entity = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

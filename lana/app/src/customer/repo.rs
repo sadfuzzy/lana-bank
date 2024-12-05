@@ -14,8 +14,8 @@ const BQ_TABLE_NAME: &str = "customer_events";
     entity = "Customer",
     err = "CustomerError",
     columns(
-        email = "String",
-        telegram_id = "String",
+        email(ty = "String", list_by),
+        telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
     ),
     post_persist_hook = "export"
