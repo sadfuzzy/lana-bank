@@ -2,13 +2,10 @@
 
 import CommitteesList from "./list"
 
-import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
-
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 
 const Committees: React.FC = () => (
   <>
-    <ListPageBreadcrumb currentPage="Committees" />
     <Card>
       <CardHeader>
         <CardTitle>Committees</CardTitle>

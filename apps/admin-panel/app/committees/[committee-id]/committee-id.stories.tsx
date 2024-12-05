@@ -55,11 +55,9 @@ const CommitteeStory = (args: CommitteeStoryArgs) => {
   const mocks = createMocks(args, committeeId)
 
   return (
-    <div className="max-w-7xl m-auto p-4">
-      <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-        <CommitteePage params={{ "committee-id": committeeId }} />
-      </MockedProvider>
-    </div>
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+      <CommitteePage params={{ "committee-id": committeeId }} />
+    </MockedProvider>
   )
 }
 
@@ -87,7 +85,16 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = { args: DEFAULT_ARGS }
+export const Default: Story = {
+  args: DEFAULT_ARGS,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/committees/[committee-id]",
+      },
+    },
+  },
+}
 
 export const Empty: Story = {
   args: {
@@ -110,11 +117,9 @@ export const Error: Story = {
     ]
 
     return (
-      <div className="max-w-7xl m-auto p-4">
-        <MockedProvider mocks={errorMocks} addTypename={false}>
-          <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
-        </MockedProvider>
-      </div>
+      <MockedProvider mocks={errorMocks} addTypename={false}>
+        <CommitteePage params={{ "committee-id": faker.string.uuid() }} />
+      </MockedProvider>
     )
   },
 }

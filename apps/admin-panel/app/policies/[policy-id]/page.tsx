@@ -1,12 +1,12 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
 
 import { PolicyDetailsCard } from "./details"
 
 import { useGetPolicyDetailsQuery } from "@/lib/graphql/generated"
 import { CommitteeUsers } from "@/app/committees/[committee-id]/users"
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { formatProcessType } from "@/lib/utils"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -39,16 +39,6 @@ gql`
   }
 `
 
-const PolicyBreadcrumb = ({ policyName }: { policyName: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Policies", href: "/policies" },
-    { title: policyName, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function PolicyPage({
   params,
 }: {
@@ -57,9 +47,29 @@ function PolicyPage({
   }
 }) {
   const { "policy-id": policyId } = params
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+
   const { data, loading, error } = useGetPolicyDetailsQuery({
     variables: { id: policyId },
   })
+
+  useEffect(() => {
+    if (data?.policy) {
+      setCustomLinks([
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Policies", href: "/policies" },
+        {
+          title: formatProcessType(data.policy.approvalProcessType),
+          isCurrentPage: true,
+        },
+      ])
+    }
+
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.policy])
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={0} />
@@ -69,7 +79,6 @@ function PolicyPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <PolicyBreadcrumb policyName={formatProcessType(data.policy.approvalProcessType)} />
       <PolicyDetailsCard policy={data.policy} />
       <div className="flex flex-col mt-4">
         {data.policy.rules.__typename === "CommitteeThreshold" && (

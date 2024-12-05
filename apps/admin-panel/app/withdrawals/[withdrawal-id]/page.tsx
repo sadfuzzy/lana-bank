@@ -3,7 +3,6 @@ import { gql } from "@apollo/client"
 
 import WithdrawalDetailsCard from "./details"
 
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -60,16 +59,6 @@ gql`
   }
 `
 
-const WithdrawalBreadcrumb = ({ withdrawalId }: { withdrawalId: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Withdrawals", href: "/withdrawals" },
-    { title: `Withdrawal ${withdrawalId}`, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function WithdrawalPage({
   params,
 }: {
@@ -90,7 +79,6 @@ function WithdrawalPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <WithdrawalBreadcrumb withdrawalId={data.withdrawal.withdrawalId} />
       <WithdrawalDetailsCard withdrawal={data.withdrawal} refetch={refetch} />
     </main>
   )

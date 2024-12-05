@@ -1,10 +1,10 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
 
 import TermsTemplateDetailsCard from "./details"
 
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useTermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -32,16 +32,6 @@ gql`
   }
 `
 
-const TermsTemplateBreadcrumb = ({ name }: { name: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Terms Templates", href: "/terms-templates" },
-    { title: name, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function TermsTemplatePage({
   params,
 }: {
@@ -50,9 +40,26 @@ function TermsTemplatePage({
   }
 }) {
   const { "terms-template-id": termsTemplateId } = params
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+
   const { data, loading, error, refetch } = useTermsTemplateQuery({
     variables: { id: termsTemplateId },
   })
+
+  useEffect(() => {
+    if (data?.termsTemplate) {
+      setCustomLinks([
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Terms Templates", href: "/terms-templates" },
+        { title: data.termsTemplate.name, isCurrentPage: true },
+      ])
+    }
+
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.termsTemplate])
 
   if (loading) return <DetailsPageSkeleton tabs={0} detailItems={8} tabsCards={0} />
   if (error) return <div className="text-destructive">{error.message}</div>
@@ -60,7 +67,6 @@ function TermsTemplatePage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <TermsTemplateBreadcrumb name={data.termsTemplate.name} />
       <TermsTemplateDetailsCard termsTemplate={data.termsTemplate} refetch={refetch} />
     </main>
   )

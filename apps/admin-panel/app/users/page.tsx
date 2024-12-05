@@ -28,7 +28,6 @@ import {
 } from "@/ui/dropdown-menu"
 import { Badge } from "@/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 
 gql`
   query Users {
@@ -187,7 +186,6 @@ function UsersPage() {
 
   return (
     <>
-      <ListPageBreadcrumb currentPage="Users" />
       <Card>
         <CardHeader>
           <CardTitle>Users</CardTitle>

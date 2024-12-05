@@ -98,11 +98,9 @@ const DashboardStory = (args: DashboardStoryArgs) => {
   const mocks = createMocks(args)
 
   return (
-    <div className="max-w-7xl m-auto p-4">
-      <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
-        <Dashboard />
-      </MockedProvider>
-    </div>
+    <MockedProvider mocks={mocks} addTypename={false} key={JSON.stringify(args)}>
+      <Dashboard />
+    </MockedProvider>
   )
 }
 
@@ -146,7 +144,16 @@ export default meta
 
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = { args: DEFAULT_ARGS }
+export const Default: Story = {
+  args: DEFAULT_ARGS,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/dashboard",
+      },
+    },
+  },
+}
 
 export const Error: Story = {
   args: DEFAULT_ARGS,

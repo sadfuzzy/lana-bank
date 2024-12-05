@@ -57,4 +57,11 @@ export const Default: Story = {
       </MockedProvider>
     ),
   ],
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/withdrawals",
+      },
+    },
+  },
 }

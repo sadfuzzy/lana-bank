@@ -12,7 +12,7 @@ import {
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
-import { BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 const TABS = [
@@ -45,6 +45,7 @@ export default function CustomerLayout({
 }) {
   const { "customer-id": customerId } = params
   const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
   const { setCustomer } = useCreateContext()
   const { data, loading, error, refetch } = useGetCustomerBasicDetailsQuery({
@@ -56,26 +57,31 @@ export default function CustomerLayout({
     return () => setCustomer(null)
   }, [data?.customer, setCustomer])
 
+  useEffect(() => {
+    if (data?.customer) {
+      const currentTabData = TABS.find((tab) => tab.url === currentTab)
+      setCustomLinks([
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Customers", href: "/customers" },
+        { title: data.customer.email, href: `/customers/${customerId}` },
+        ...(currentTabData?.url === "/"
+          ? []
+          : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),
+      ])
+    }
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.customer, currentTab])
+
   if (loading) return <DetailsPageSkeleton detailItems={3} tabs={6} />
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data || !data.customer) return null
 
-  const currentTabData = TABS.find((tab) => tab.url === currentTab)
-
-  const breadcrumbLinks = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Customers", href: "/customers" },
-    { title: data.customer.email, href: `/customers/${customerId}` },
-    ...(currentTabData?.url === "/"
-      ? []
-      : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),
-  ]
-
   return (
     <main className="max-w-7xl m-auto">
-      <BreadCrumbWrapper links={breadcrumbLinks} />
       <CustomerDetailsCard customer={data.customer} refetch={refetch} />
-
       <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-2">
         <TabsList>
           {TABS.map((tab) => (

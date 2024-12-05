@@ -1,10 +1,10 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
 
 import UserDetailsCard from "./details"
 
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useGetUserDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
@@ -19,16 +19,6 @@ gql`
   }
 `
 
-const UserBreadcrumb = ({ userEmail }: { userEmail: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Users", href: "/users" },
-    { title: userEmail, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function UserPage({
   params,
 }: {
@@ -37,9 +27,26 @@ function UserPage({
   }
 }) {
   const { "user-id": userId } = params
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+
   const { data, loading, error, refetch } = useGetUserDetailsQuery({
     variables: { id: userId },
   })
+
+  useEffect(() => {
+    if (data?.user) {
+      setCustomLinks([
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Users", href: "/users" },
+        { title: data.user.email, isCurrentPage: true },
+      ])
+    }
+
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.user])
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
@@ -49,7 +56,6 @@ function UserPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <UserBreadcrumb userEmail={data.user.email} />
       <UserDetailsCard user={data.user} refetch={refetch} />
     </main>
   )

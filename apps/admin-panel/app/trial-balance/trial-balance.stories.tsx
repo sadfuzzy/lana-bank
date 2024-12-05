@@ -47,6 +47,9 @@ const meta = {
     layout: "fullscreen",
     nextjs: {
       appDirectory: true,
+      navigation: {
+        pathname: "/trial-balance",
+      },
     },
   },
 } satisfies Meta<typeof TrialBalance>

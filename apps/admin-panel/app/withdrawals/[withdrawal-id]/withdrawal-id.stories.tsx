@@ -80,4 +80,13 @@ const meta: Meta<typeof WithdrawalStory> = {
 
 export default meta
 type Story = StoryObj<typeof meta>
-export const Default: Story = { args: DEFAULT_ARGS }
+export const Default: Story = {
+  args: DEFAULT_ARGS,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/withdrawals/[withdrawal-id]",
+      },
+    },
+  },
+}

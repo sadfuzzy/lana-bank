@@ -1,12 +1,10 @@
 "use client"
 import AuditLogsList from "./list"
 
-import { ListPageBreadcrumb } from "@/components/breadcrumb-wrapper"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 
 const AuditLogs: React.FC = () => (
   <>
-    <ListPageBreadcrumb currentPage="Audit Logs" />
     <Card>
       <CardHeader>
         <CardTitle>Audit Logs</CardTitle>

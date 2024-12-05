@@ -43,6 +43,9 @@ const meta = {
     layout: "fullscreen",
     nextjs: {
       appDirectory: true,
+      navigation: {
+        pathname: "/credit-facilities",
+      },
     },
   },
 } satisfies Meta<typeof CreditFacilities>

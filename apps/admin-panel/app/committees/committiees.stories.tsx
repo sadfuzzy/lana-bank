@@ -60,12 +60,17 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/committees",
+      },
+    },
+  },
   decorators: [
     (Story) => (
       <MockedProvider mocks={baseMocks} addTypename={false}>
-        <div className="max-w-7xl m-auto p-4">
-          <Story />
-        </div>
+        <Story />
       </MockedProvider>
     ),
   ],

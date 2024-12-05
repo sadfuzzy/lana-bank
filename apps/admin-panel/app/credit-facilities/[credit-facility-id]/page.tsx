@@ -15,7 +15,6 @@ import { CreditFacilityTransactions } from "./transactions"
 
 import { useGetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/ui/tab"
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
@@ -204,25 +203,6 @@ gql`
   }
 `
 
-const CreditFacilityBreadcrumb = ({
-  creditFacilityId,
-  customerEmail,
-}: {
-  creditFacilityId: string
-  customerEmail: string
-}) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Credit Facilities", href: "/credit-facilities" },
-    {
-      title: `${customerEmail} - ${creditFacilityId}`,
-      isCurrentPage: true,
-    },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function CreditFacilityPage({
   params,
 }: {
@@ -241,10 +221,6 @@ function CreditFacilityPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <CreditFacilityBreadcrumb
-        creditFacilityId={data.creditFacility.creditFacilityId}
-        customerEmail={data.creditFacility.customer.email}
-      />
       <CreditFacilityDetailsCard
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}

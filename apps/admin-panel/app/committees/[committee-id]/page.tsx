@@ -1,14 +1,15 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
+
 import { gql } from "@apollo/client"
 
 import { CommitteeDetailsCard } from "./details"
+
 import { CommitteeUsers } from "./users"
 
 import { useGetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
@@ -27,16 +28,6 @@ gql`
   }
 `
 
-const CommitteeBreadcrumb = ({ committeeName }: { committeeName: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Committees", href: "/committees" },
-    { title: committeeName, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function CommitteePage({
   params,
 }: {
@@ -45,9 +36,26 @@ function CommitteePage({
   }
 }) {
   const { "committee-id": committeeId } = params
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+
   const { data, loading, error } = useGetCommitteeDetailsQuery({
     variables: { id: committeeId },
   })
+
+  useEffect(() => {
+    if (data?.committee) {
+      setCustomLinks([
+        { title: "Dashboard", href: "/dashboard" },
+        { title: "Committees", href: "/committees" },
+        { title: data.committee.name, isCurrentPage: true },
+      ])
+    }
+
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.committee])
 
   if (loading) {
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={1} />
@@ -57,7 +65,6 @@ function CommitteePage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <CommitteeBreadcrumb committeeName={data.committee.name} />
       <CommitteeDetailsCard committee={data.committee} />
       <div className="mt-2">
         <CommitteeUsers committee={data.committee} />

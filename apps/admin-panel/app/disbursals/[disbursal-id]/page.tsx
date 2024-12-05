@@ -6,7 +6,6 @@ import { DisbursalDetailsCard } from "./details"
 
 import { VotersCard } from "./voters"
 
-import { BreadcrumbLink, BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useGetDisbursalDetailsQuery } from "@/lib/graphql/generated"
 
@@ -67,16 +66,6 @@ gql`
   }
 `
 
-const DisbursalBreadcrumb = ({ disbursalId }: { disbursalId: string }) => {
-  const links: BreadcrumbLink[] = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Disbursals", href: "/disbursals" },
-    { title: `Disbursal ${disbursalId}`, isCurrentPage: true },
-  ]
-
-  return <BreadCrumbWrapper links={links} />
-}
-
 function DisbursalPage({
   params,
 }: {
@@ -97,7 +86,6 @@ function DisbursalPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <DisbursalBreadcrumb disbursalId={data.disbursal.disbursalId} />
       <DisbursalDetailsCard disbursal={data.disbursal} refetch={refetch} />
       {data.disbursal.approvalProcess && (
         <VotersCard approvalProcess={data.disbursal.approvalProcess} />
