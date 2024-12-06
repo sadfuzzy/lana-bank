@@ -47,6 +47,25 @@ const UserStory = (args: UserStoryArgs) => {
   )
 }
 
+const LoadingStory = () => {
+  const userId = faker.string.uuid()
+  const mocks = [
+    {
+      request: {
+        query: GetUserDetailsDocument,
+        variables: { id: userId },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <UserPage params={{ "user-id": userId }} />
+    </MockedProvider>
+  )
+}
+
 const meta: Meta<typeof UserStory> = {
   title: "Pages/Users/User/Details",
   component: UserStory,
@@ -78,5 +97,17 @@ export const MultiRole: Story = {
   args: {
     ...DEFAULT_ARGS,
     roles: [Role.Admin, Role.BankManager],
+  },
+}
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/users/[user-id]",
+      },
+    },
   },
 }

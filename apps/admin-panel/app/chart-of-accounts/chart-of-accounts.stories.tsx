@@ -38,6 +38,29 @@ const ChartOfAccountsStory = () => {
   )
 }
 
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: GetOnBalanceSheetChartOfAccountsDocument,
+      },
+      delay: Infinity,
+    },
+    {
+      request: {
+        query: GetOffBalanceSheetChartOfAccountsDocument,
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <ChartOfAccounts />
+    </MockedProvider>
+  )
+}
+
 const meta = {
   title: "Pages/ChartOfAccounts",
   component: ChartOfAccountsStory,
@@ -52,7 +75,19 @@ const meta = {
 export default meta
 
 type Story = StoryObj<typeof meta>
+
 export const Default: Story = {
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/chart-of-accounts",
+      },
+    },
+  },
+}
+
+export const Loading: Story = {
+  render: LoadingStory,
   parameters: {
     nextjs: {
       navigation: {

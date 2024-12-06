@@ -40,6 +40,31 @@ const TrialBalanceStory = () => {
   )
 }
 
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: GetOnBalanceSheetTrialBalanceDocument,
+      },
+      variableMatcher: () => true,
+      delay: Infinity,
+    },
+    {
+      request: {
+        query: GetOffBalanceSheetTrialBalanceDocument,
+      },
+      variableMatcher: () => true,
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <TrialBalance />
+    </MockedProvider>
+  )
+}
+
 const meta = {
   title: "Pages/TrialBalance",
   component: TrialBalanceStory,
@@ -57,4 +82,16 @@ const meta = {
 export default meta
 
 type Story = StoryObj<typeof meta>
+
 export const Default: Story = {}
+
+export const Loading: Story = {
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/trial-balance",
+      },
+    },
+  },
+}

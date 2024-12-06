@@ -75,6 +75,37 @@ const overviewMocks = [
   },
 ]
 
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: GetCustomerBasicDetailsDocument,
+        variables: {
+          id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
+        },
+      },
+      delay: Infinity,
+    },
+    {
+      request: {
+        query: GetCustomerOverviewDocument,
+        variables: {
+          id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
+        },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <CustomerLayout params={mockParams}>
+        <CustomerPage params={mockParams} />
+      </CustomerLayout>
+    </MockedProvider>
+  )
+}
+
 export const Default: Story = {
   args: {
     params: mockParams,
@@ -90,4 +121,18 @@ export const Default: Story = {
       </MockedProvider>
     ),
   ],
+}
+
+export const Loading: Story = {
+  args: {
+    params: mockParams,
+  },
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/customers/[customer-id]",
+      },
+    },
+  },
 }

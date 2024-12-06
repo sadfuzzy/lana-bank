@@ -61,3 +61,31 @@ export const Default: Story = {
     },
   },
 }
+
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: ReportsDocument,
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <RegulatoryReportingPage />
+    </MockedProvider>
+  )
+}
+
+export const Loading: Story = {
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/regulatory-reporting",
+      },
+    },
+  },
+}

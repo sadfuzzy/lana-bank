@@ -60,6 +60,25 @@ const DisbursalStory = (args: DisbursalStoryArgs) => {
   )
 }
 
+const LoadingStory = () => {
+  const disbursalId = faker.string.uuid()
+  const mocks = [
+    {
+      request: {
+        query: GetDisbursalDetailsDocument,
+        variables: { id: disbursalId },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <DisbursalPage params={{ "disbursal-id": disbursalId }} />
+    </MockedProvider>
+  )
+}
+
 const meta: Meta<typeof DisbursalStory> = {
   title: "Pages/Disbursals/Disbursal/Details",
   component: DisbursalStory,
@@ -91,6 +110,18 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   args: DEFAULT_ARGS,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/disbursals/[disbursals-id]",
+      },
+    },
+  },
+}
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
   parameters: {
     nextjs: {
       navigation: {

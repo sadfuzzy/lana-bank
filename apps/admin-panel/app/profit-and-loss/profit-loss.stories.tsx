@@ -27,6 +27,24 @@ const ProfitAndLossStory = () => {
   )
 }
 
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: ProfitAndLossStatementDocument,
+      },
+      variableMatcher: () => true,
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <ProfitAndLoss />
+    </MockedProvider>
+  )
+}
+
 const meta = {
   title: "Pages/ProfitAndLoss",
   component: ProfitAndLossStory,
@@ -41,7 +59,19 @@ const meta = {
 export default meta
 
 type Story = StoryObj<typeof meta>
+
 export const Default: Story = {
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/profit-and-loss",
+      },
+    },
+  },
+}
+
+export const Loading: Story = {
+  render: LoadingStory,
   parameters: {
     nextjs: {
       navigation: {

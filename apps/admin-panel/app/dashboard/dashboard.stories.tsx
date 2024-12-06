@@ -180,3 +180,38 @@ export const Error: Story = {
     )
   },
 }
+
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: { query: DashboardDocument },
+      delay: Infinity,
+    },
+    {
+      request: { query: GetRealtimePriceUpdatesDocument },
+      delay: Infinity,
+    },
+    {
+      request: { query: AllActionsDocument },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <Dashboard />
+    </MockedProvider>
+  )
+}
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/dashboard",
+      },
+    },
+  },
+}

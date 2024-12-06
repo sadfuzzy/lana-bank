@@ -53,7 +53,26 @@ const WithdrawalStory = (args: WithdrawalStoryArgs) => {
   )
 }
 
-const meta: Meta<typeof WithdrawalStory> = {
+const LoadingStory = () => {
+  const withdrawalId = faker.string.uuid()
+  const mocks = [
+    {
+      request: {
+        query: GetWithdrawalDetailsDocument,
+        variables: { id: withdrawalId },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <WithdrawalPage params={{ "withdrawal-id": withdrawalId }} />
+    </MockedProvider>
+  )
+}
+
+const meta = {
   title: "Pages/Withdrawals/Withdrawal/Details",
   component: WithdrawalStory,
   parameters: { layout: "fullscreen", nextjs: { appDirectory: true } },
@@ -76,12 +95,25 @@ const meta: Meta<typeof WithdrawalStory> = {
       description: "Denial reason",
     },
   },
-}
+} satisfies Meta<typeof WithdrawalStory>
 
 export default meta
 type Story = StoryObj<typeof meta>
+
 export const Default: Story = {
   args: DEFAULT_ARGS,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/withdrawals/[withdrawal-id]",
+      },
+    },
+  },
+}
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
   parameters: {
     nextjs: {
       navigation: {

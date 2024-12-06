@@ -123,3 +123,34 @@ export const Error: Story = {
     )
   },
 }
+
+const LoadingStory = () => {
+  const committeeId = faker.string.uuid()
+  const mocks = [
+    {
+      request: {
+        query: GetCommitteeDetailsDocument,
+        variables: { id: committeeId },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <CommitteePage params={{ "committee-id": committeeId }} />
+    </MockedProvider>
+  )
+}
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/committees/[committee-id]",
+      },
+    },
+  },
+}

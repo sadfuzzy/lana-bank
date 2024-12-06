@@ -43,6 +43,25 @@ const TermsTemplateStory = (args: TermsTemplateStoryArgs) => {
   )
 }
 
+const LoadingStory = () => {
+  const templateId = faker.string.uuid()
+  const mocks = [
+    {
+      request: {
+        query: TermsTemplateDocument,
+        variables: { id: templateId },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <TermsTemplatePage params={{ "terms-template-id": templateId }} />
+    </MockedProvider>
+  )
+}
+
 const meta: Meta<typeof TermsTemplateStory> = {
   title: "Pages/TermsTemplates/TermsTemplate/Details",
   component: TermsTemplateStory,
@@ -60,3 +79,15 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = { args: DEFAULT_ARGS }
+
+export const Loading: Story = {
+  args: DEFAULT_ARGS,
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/terms-templates/[terms-template-id]",
+      },
+    },
+  },
+}

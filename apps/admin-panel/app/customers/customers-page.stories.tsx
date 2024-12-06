@@ -167,3 +167,36 @@ export const Empty: Story = {
     ),
   ],
 }
+
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: CustomersDocument,
+        variables: {
+          first: 10,
+          sort: null,
+          filter: null,
+        },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <Customers />
+    </MockedProvider>
+  )
+}
+
+export const Loading: Story = {
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/customers",
+      },
+    },
+  },
+}

@@ -65,3 +65,34 @@ export const Default: Story = {
     },
   },
 }
+
+const LoadingStory = () => {
+  const mocks = [
+    {
+      request: {
+        query: WithdrawalsDocument,
+        variables: {
+          first: 10,
+        },
+      },
+      delay: Infinity,
+    },
+  ]
+
+  return (
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <Withdrawals />
+    </MockedProvider>
+  )
+}
+
+export const Loading: Story = {
+  render: LoadingStory,
+  parameters: {
+    nextjs: {
+      navigation: {
+        pathname: "/withdrawals",
+      },
+    },
+  },
+}
