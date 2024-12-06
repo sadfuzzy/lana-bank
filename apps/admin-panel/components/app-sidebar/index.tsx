@@ -3,16 +3,17 @@
 import type { ComponentProps } from "react"
 
 import { UserBlock } from "./user-block"
-import { MarketRate } from "./market-rate"
 import { NavSection } from "./nav-section"
 import {
   navDashboardItems,
-  navMainItems,
   navTransactionItems,
   navFinanceItems,
+  navLoansItems,
+  navCustomersItems,
+  navAdminItems,
 } from "./nav-items"
 
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/ui/sidebar"
+import { Sidebar, SidebarContent, SidebarHeader } from "@/ui/sidebar"
 
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
@@ -20,21 +21,17 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <UserBlock />
       </SidebarHeader>
-
       <SidebarContent className="mt-4">
         <NavSection items={navDashboardItems} />
-        <NavSection items={navMainItems} />
+        <NavSection items={navLoansItems} label="Loans" />
+        <NavSection items={navCustomersItems} label="Customers" />
         <NavSection items={navTransactionItems} label="Transactions" />
+        <NavSection items={navAdminItems} label="Administration" />
         <NavSection items={navFinanceItems} label="Financial Reports" />
       </SidebarContent>
-
-      <SidebarFooter>
-        <MarketRate />
-      </SidebarFooter>
     </Sidebar>
   )
 }
-
 export * from "./nav-section"
 export * from "./user-block"
 export * from "./market-rate"
