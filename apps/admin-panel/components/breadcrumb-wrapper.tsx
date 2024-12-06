@@ -1,4 +1,5 @@
 import React from "react"
+import { Home } from "lucide-react"
 
 import {
   Breadcrumb,
@@ -37,9 +38,18 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {link.isCurrentPage ? (
-                <BreadcrumbPage>{link.title}</BreadcrumbPage>
+                <BreadcrumbPage className="flex items-center gap-3 align-middle">
+                  {index === 0 && <Home className="h-4 w-4" />}
+                  {link.title}
+                </BreadcrumbPage>
               ) : (
-                <BreadcrumbLink href={link.href}>{link.title}</BreadcrumbLink>
+                <BreadcrumbLink
+                  href={link.href}
+                  className="flex items-center gap-3 align-middle"
+                >
+                  {index === 0 && <Home className="h-4 w-4" />}
+                  {link.title}
+                </BreadcrumbLink>
               )}
             </BreadcrumbItem>
             {index < links.length - 1 && <BreadcrumbSeparator />}

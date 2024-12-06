@@ -59,8 +59,8 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
     align: "right",
     render: (_, user) => (
       <Button
-        className="gap-2 text-destructive px-1"
-        variant="ghost"
+        className="text-destructive"
+        variant="outline"
         onClick={(e) => {
           e.stopPropagation()
           setUserToRemove({

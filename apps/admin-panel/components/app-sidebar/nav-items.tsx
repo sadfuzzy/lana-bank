@@ -26,9 +26,9 @@ export const navDashboardItems: NavItem[] = [
 ]
 
 export const navLoansItems: NavItem[] = [
-  { title: "Term Templates", url: "/terms-templates", icon: LayoutTemplate },
   { title: "Credit Facilities", url: "/credit-facilities", icon: Grid2x2 },
   { title: "Disbursals", url: "/disbursals", icon: ClipboardList },
+  { title: "Term Templates", url: "/terms-templates", icon: LayoutTemplate },
 ]
 
 export const navCustomersItems: NavItem[] = [
@@ -50,7 +50,7 @@ export const navAdminItems: NavItem[] = [
 export const navFinanceItems: NavItem[] = [
   {
     title: "Regulatory Reporting",
-    url: "/regulatory-reporting/customers",
+    url: "/regulatory-reporting",
     icon: FileText,
   },
   { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },

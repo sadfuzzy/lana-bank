@@ -15,14 +15,19 @@ const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undef
 function generateDefaultLinks(pathname: string): BreadcrumbLink[] {
   const segments = pathname.split("/").filter(Boolean)
   const links: BreadcrumbLink[] = [{ title: "Dashboard", href: "/dashboard" }]
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
   segments.forEach((segment, index) => {
     if (segment === "dashboard") return
     const href = "/" + segments.slice(0, index + 1).join("/")
 
-    const title = segment
-      .split("-")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
+    const title = uuidRegex.test(segment)
+      ? segment
+      : segment
+          .split("-")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
 
     links.push({
       title,
