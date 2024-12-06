@@ -1,9 +1,11 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 
 import { GetCustomerTransactionsQuery } from "@/lib/graphql/generated"
@@ -18,8 +20,6 @@ type CustomerTransactionsTableProps = {
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
   transactions,
 }) => {
-  const router = useRouter()
-
   return (
     <Card>
       <CardHeader>
@@ -30,7 +30,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
         <CardContent className="text-sm">No data to display</CardContent>
       ) : (
         <CardContent>
-          <div className="overflow-x-auto border  rounded-md">
+          <div className="overflow-x-auto border rounded-md">
             <Table className="table-fixed w-full">
               <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
                 <TableRow>
@@ -38,6 +38,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
                   <TableHead>Type</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-24"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -46,17 +47,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
                   const id = isDeposit ? tx.depositId : tx.withdrawalId
 
                   return (
-                    <TableRow
-                      key={id}
-                      className={isDeposit ? "" : "cursor-pointer"}
-                      onClick={() => {
-                        if (isDeposit) {
-                          return
-                        } else {
-                          router.push(`/withdrawals/${id}`)
-                        }
-                      }}
-                    >
+                    <TableRow key={id}>
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>{tx.__typename}</TableCell>
                       <TableCell>
@@ -64,6 +55,21 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
                       </TableCell>
                       <TableCell>
                         {isDeposit ? "N/A" : <WithdrawalStatusBadge status={tx.status} />}
+                      </TableCell>
+                      <TableCell>
+                        {isDeposit ? (
+                          <div className="h-9" />
+                        ) : (
+                          <Link href={`/withdrawals/${id}`}>
+                            <Button
+                              variant="outline"
+                              className="w-full flex items-center justify-between"
+                            >
+                              View
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
