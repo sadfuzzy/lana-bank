@@ -1,8 +1,11 @@
 "use client"
 
 import React from "react"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+import { Button } from "@/ui/button"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
 
@@ -26,6 +29,7 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void
   emptyMessage?: React.ReactNode
   loading?: boolean
+  navigateTo?: (record: T) => string
 }
 
 const DataTable = <T,>({
@@ -38,6 +42,7 @@ const DataTable = <T,>({
   onRowClick,
   emptyMessage = "No data to display",
   loading = false,
+  navigateTo,
 }: DataTableProps<T>) => {
   if (loading) {
     return (
@@ -57,6 +62,7 @@ const DataTable = <T,>({
                   {column.header}
                 </TableHead>
               ))}
+              {navigateTo && <TableHead className="w-24"></TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -67,6 +73,11 @@ const DataTable = <T,>({
                     <Skeleton className="h-4 w-full" />
                   </TableCell>
                 ))}
+                {navigateTo && (
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -96,6 +107,7 @@ const DataTable = <T,>({
                 {column.header}
               </TableHead>
             ))}
+            {navigateTo && <TableHead className="w-24"></TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -126,6 +138,19 @@ const DataTable = <T,>({
                     : String(item[column.key])}
                 </TableCell>
               ))}
+              {navigateTo && (
+                <TableCell>
+                  <Link href={navigateTo(item)}>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-between"
+                    >
+                      View
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

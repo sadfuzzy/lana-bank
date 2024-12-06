@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
 
 import { Policy, usePoliciesQuery } from "@/lib/graphql/generated"
 import PaginatedTable, {
@@ -47,8 +46,6 @@ gql`
 `
 
 const PolicyList = () => {
-  const router = useRouter()
-
   const { data, loading, error, fetchMore } = usePoliciesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -65,9 +62,7 @@ const PolicyList = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        onClick={(policy) => {
-          router.push(`/policies/${policy.policyId}`)
-        }}
+        navigateTo={(policy) => `/policies/${policy.policyId}`}
       />
     </div>
   )

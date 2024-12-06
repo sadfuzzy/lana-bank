@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react"
 import { IoTrashOutline } from "react-icons/io5"
-import { useRouter } from "next/navigation"
 
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
@@ -31,7 +30,6 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
   showRemove = true,
 }) => {
   const [userToRemove, setUserToRemove] = useState<UserToRemove>(null)
-  const router = useRouter()
 
   const baseColumns: Column<CommitteeMember>[] = [
     {
@@ -86,9 +84,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
           data={committee.currentMembers}
           columns={columns}
           emptyMessage="No members found in this committee"
-          onRowClick={(user) => {
-            router.push(`/users/${user.userId}/`)
-          }}
+          navigateTo={(user) => `/users/${user.userId}/`}
         />
       </CardWrapper>
 

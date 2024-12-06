@@ -2,8 +2,6 @@
 
 import { gql } from "@apollo/client"
 
-import { useRouter } from "next/navigation"
-
 import { DisbursalStatusBadge } from "./status-badge"
 
 import { CreditFacilityDisbursal, useDisbursalsQuery } from "@/lib/graphql/generated"
@@ -40,7 +38,6 @@ gql`
 `
 
 const Disbursals = () => {
-  const router = useRouter()
   const { data, loading, error, fetchMore } = useDisbursalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -56,9 +53,7 @@ const Disbursals = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        onClick={(disbursal) => {
-          router.push(`/disbursals/${disbursal.disbursalId}`)
-        }}
+        navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
       />
     </div>
   )

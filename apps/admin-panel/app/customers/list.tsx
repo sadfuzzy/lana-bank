@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import {
@@ -62,7 +61,6 @@ gql`
 `
 
 const Customers = () => {
-  const router = useRouter()
   const [sortBy, setSortBy] = useState<CustomersSort | null>(null)
   const [filter, setFilter] = useState<CustomersFilter | null>(null)
 
@@ -83,9 +81,7 @@ const Customers = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        onClick={(customer) => {
-          router.push(`/customers/${customer.customerId}`)
-        }}
+        navigateTo={(customer) => `/customers/${customer.customerId}`}
         onSort={(column, direction) => {
           setSortBy({
             by: camelToScreamingSnake(column) as CustomersSort["by"],

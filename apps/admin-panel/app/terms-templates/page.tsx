@@ -1,7 +1,6 @@
 "use client"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
 
 import DataTable, { Column } from "../../components/data-table"
 
@@ -35,7 +34,6 @@ gql`
 `
 
 function TermPage() {
-  const router = useRouter()
   const { data, refetch, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
@@ -105,8 +103,7 @@ function TermPage() {
             data={data?.termsTemplates || []}
             columns={columns}
             loading={loading}
-            rowClassName="cursor-pointer"
-            onRowClick={(template) => router.push(`/terms-templates/${template.termsId}`)}
+            navigateTo={(template) => `/terms-templates/${template.termsId}`}
           />
         </CardContent>
       </Card>

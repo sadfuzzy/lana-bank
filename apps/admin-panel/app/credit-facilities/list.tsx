@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
@@ -70,7 +69,6 @@ gql`
 `
 
 const CreditFacilities = () => {
-  const router = useRouter()
   const [sortBy, setSortBy] = useState<CreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<CreditFacilitiesFilter | null>(null)
 
@@ -91,9 +89,7 @@ const CreditFacilities = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        onClick={(facility) => {
-          router.push(`/credit-facilities/${facility.creditFacilityId}`)
-        }}
+        navigateTo={(facility) => `/credit-facilities/${facility.creditFacilityId}`}
         onSort={(column, direction) => {
           setSortBy({
             by: (column === "currentCvl"

@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
-import { useRouter } from "next/navigation"
 
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
 import {
@@ -76,7 +75,6 @@ type ActionNode = NonNullable<
 >
 
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
-  const router = useRouter()
   const { data, loading } = useAllActionsQuery()
 
   const approvalProcesses =
@@ -93,23 +91,24 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   if (loading) return <ActionListSkeleton />
 
-  const handleRowClick = (data: ActionNode) => {
+  const getVisitUrl = (data: ActionNode) => {
     if (
       data.approvalProcessType === ApprovalProcessType.CreditFacilityApproval &&
       data.target.__typename === "CreditFacility"
     ) {
-      router.push(`/credit-facilities/${data.target.creditFacilityId}`)
+      return `/credit-facilities/${data.target.creditFacilityId}`
     } else if (
       data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
       data.target.__typename === "Withdrawal"
     ) {
-      router.push(`/withdrawals/${data.target.withdrawalId}`)
+      return `/withdrawals/${data.target.withdrawalId}`
     } else if (
       data.approvalProcessType === ApprovalProcessType.DisbursalApproval &&
       data.target.__typename === "CreditFacilityDisbursal"
     ) {
-      router.push(`/disbursals/${data.target.disbursalId}`)
+      return `/disbursals/${data.target.disbursalId}`
     }
+    return "#"
   }
 
   const columns: Column<ActionNode>[] = [
@@ -145,7 +144,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           <DataTable
             data={tableData}
             columns={columns}
-            onRowClick={handleRowClick}
+            navigateTo={getVisitUrl}
             className="w-full"
           />
           {dashboard && more > 0 && (

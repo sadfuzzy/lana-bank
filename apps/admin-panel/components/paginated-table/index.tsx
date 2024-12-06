@@ -1,7 +1,6 @@
-"use client"
-
 import { useState, useEffect } from "react"
-
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 import {
   HiChevronUp,
   HiChevronDown,
@@ -55,6 +54,7 @@ interface PaginatedTableProps<T> {
   onFilter?: (column: keyof T, value: T[keyof T] | undefined) => void
   onClick?: (record: T) => void
   showHeader?: boolean
+  navigateTo?: (record: T) => string
 }
 
 const PaginatedTable = <T,>({
@@ -67,6 +67,7 @@ const PaginatedTable = <T,>({
   onFilter,
   onClick,
   showHeader = true,
+  navigateTo,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -119,7 +120,7 @@ const PaginatedTable = <T,>({
 
   return (
     <>
-      <div className="overflow-x-auto border  rounded-md">
+      <div className="overflow-x-auto border rounded-md">
         <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
@@ -180,13 +181,13 @@ const PaginatedTable = <T,>({
                     </div>
                   </TableHead>
                 ))}
+                {navigateTo && <TableHead className="w-24"></TableHead>}
               </TableRow>
             </TableHeader>
           )}
           <TableBody>
             {loading
-              ? // Render loading skeleton rows while keeping headers visible
-                Array.from({ length: displayData.length || pageSize }).map(
+              ? Array.from({ length: displayData.length || pageSize }).map(
                   (_, rowIndex) => (
                     <TableRow key={rowIndex}>
                       {columns.map((_, colIndex) => (
@@ -194,6 +195,11 @@ const PaginatedTable = <T,>({
                           <Skeleton className="h-4 w-full" />
                         </TableCell>
                       ))}
+                      {navigateTo && (
+                        <TableCell>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      )}
                     </TableRow>
                   ),
                 )
@@ -213,6 +219,19 @@ const PaginatedTable = <T,>({
                           : String(node[col.key])}
                       </TableCell>
                     ))}
+                    {navigateTo && (
+                      <TableCell>
+                        <Link href={navigateTo(node)}>
+                          <Button
+                            variant="outline"
+                            className="w-full flex items-center justify-between"
+                          >
+                            View
+                            <ArrowRight className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
           </TableBody>

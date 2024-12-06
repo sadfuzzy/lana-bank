@@ -1,7 +1,6 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 import { CreateCommitteeDialog } from "./create"
@@ -41,7 +40,6 @@ gql`
 `
 
 const CommitteesList = () => {
-  const router = useRouter()
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] =
     useState<boolean>(false)
   const [openAddUserDialog, setOpenAddUserDialog] = useState<Committee | null>(null)
@@ -74,9 +72,7 @@ const CommitteesList = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        onClick={(committee) => {
-          router.push(`/committees/${committee.committeeId}`)
-        }}
+        navigateTo={(committee) => `/committees/${committee.committeeId}`}
       />
     </div>
   )

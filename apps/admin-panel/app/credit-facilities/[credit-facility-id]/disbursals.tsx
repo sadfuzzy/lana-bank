@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { useRouter } from "next/navigation"
 
 import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
@@ -21,8 +20,6 @@ type CreditFacilityDisbursalsProps = {
 export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> = ({
   creditFacility,
 }) => {
-  const router = useRouter()
-
   const columns: Column<Disbursal>[] = [
     {
       key: "amount",
@@ -54,7 +51,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
           data={creditFacility.disbursals}
           columns={columns}
           emptyMessage="No disbursals found"
-          onRowClick={(disbursal) => router.push(`/disbursals/${disbursal.disbursalId}`)}
+          navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
         />
       </CardWrapper>
     </>

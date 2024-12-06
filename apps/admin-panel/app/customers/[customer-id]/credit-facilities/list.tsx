@@ -1,7 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation"
-
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
@@ -54,7 +52,6 @@ export const CustomerCreditFacilitiesTable: React.FC<
     },
   ]
 
-  const router = useRouter()
   return (
     <CardWrapper
       title="Credit Facilities"
@@ -63,9 +60,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
       <DataTable
         data={creditFacilities}
         columns={columns}
-        onRowClick={(facility) => {
-          router.push(`/credit-facilities/${facility.creditFacilityId}`)
-        }}
+        navigateTo={(facility) => `/credit-facilities/${facility.creditFacilityId}`}
       />
     </CardWrapper>
   )
