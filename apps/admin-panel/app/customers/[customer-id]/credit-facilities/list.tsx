@@ -48,7 +48,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     {
       key: "createdAt",
       header: "Created At",
-      render: (date) => formatDate(date),
+      render: (date) => formatDate(date, { includeTime: false }),
     },
   ]
 

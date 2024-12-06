@@ -70,7 +70,7 @@ const columns: Column<CreditFacilityDisbursal>[] = [
   {
     key: "createdAt",
     label: "Date",
-    render: (date) => formatDate(date),
+    render: (date) => formatDate(date, { includeTime: false }),
   },
   {
     key: "status",

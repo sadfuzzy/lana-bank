@@ -81,7 +81,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       key: "recordedAt",
       header: "Recorded At",
       render: (recordedAt: string | null | undefined) =>
-        recordedAt ? formatDate(recordedAt) : "-",
+        recordedAt ? formatDate(recordedAt, { includeTime: false }) : "-",
     },
     {
       key: "__typename",

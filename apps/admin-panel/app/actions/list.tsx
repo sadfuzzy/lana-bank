@@ -128,7 +128,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
     {
       key: "createdAt",
       header: "Date",
-      render: (date) => formatDate(date),
+      render: (date) => formatDate(date, { includeTime: false }),
     },
   ]
 

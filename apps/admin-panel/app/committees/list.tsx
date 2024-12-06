@@ -88,7 +88,7 @@ const columns: Column<Committee>[] = [
   {
     key: "createdAt",
     label: "Created",
-    render: (createdAt) => formatDate(createdAt),
+    render: (createdAt) => formatDate(createdAt, { includeTime: false }),
   },
   {
     key: "currentMembers",

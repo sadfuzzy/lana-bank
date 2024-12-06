@@ -143,7 +143,7 @@ const columns: Column<CreditFacility>[] = [
   {
     key: "createdAt",
     label: "Created At",
-    render: (date) => formatDate(date),
+    render: (date) => formatDate(date, { includeTime: false }),
     sortable: true,
   },
 ]

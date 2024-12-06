@@ -38,17 +38,28 @@ export const currencyConverter = {
   },
 }
 
-export const formatDate = (isoDateString: string): string => {
+export const formatDate = (
+  isoDateString: string,
+  options: {
+    includeTime: boolean
+  } = { includeTime: true },
+): string => {
   if (isoDateString === "-") return "-"
 
   const date = new Date(isoDateString)
-  const options: Intl.DateTimeFormatOptions = {
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "long",
     day: "numeric",
   }
 
-  const formattedDate = date.toLocaleDateString("en-US", options)
+  const formattedDate = date.toLocaleDateString("en-US", dateOptions)
+
+  if (!options.includeTime) {
+    return formattedDate
+  }
+
   const formattedTime = date
     .toLocaleTimeString("en-US", {
       hour: "2-digit",

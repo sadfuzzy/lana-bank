@@ -48,7 +48,9 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
 
                   return (
                     <TableRow key={id}>
-                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                      <TableCell>
+                        {formatDate(tx.createdAt, { includeTime: false })}
+                      </TableCell>
                       <TableCell>{tx.__typename}</TableCell>
                       <TableCell>
                         <Balance amount={tx.amount} currency={"usd"} />
