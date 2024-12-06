@@ -102,11 +102,21 @@ impl CreditFacilities {
             },
         )
         .await?;
-        jobs.add_initializer(interest::CreditFacilityProcessingJobInitializer::new(
-            ledger,
-            credit_facility_repo.clone(),
-            authz.audit(),
-        ));
+        jobs.add_initializer(
+            interest_incurrences::CreditFacilityProcessingJobInitializer::new(
+                ledger,
+                credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
+        jobs.add_initializer(
+            interest_accruals::CreditFacilityProcessingJobInitializer::new(
+                ledger,
+                credit_facility_repo.clone(),
+                jobs,
+                authz.audit(),
+            ),
+        );
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig,
@@ -272,11 +282,16 @@ impl CreditFacilities {
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
-        let balances = self
+
+        let ledger_balances = self
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
             .await?;
-        balances.check_disbursal_amount(amount)?;
+        credit_facility
+            .balances()
+            .check_against_ledger(ledger_balances)?;
+
+        credit_facility.balances().check_disbursal_amount(amount)?;
 
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -431,15 +446,13 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let facility_balances = self
+        let ledger_balances = self
             .ledger
             .get_credit_facility_balance(credit_facility.account_ids)
-            .await?
-            .into();
-
-        if credit_facility.outstanding() != facility_balances {
-            return Err(CreditFacilityError::ReceivableBalanceMismatch);
-        }
+            .await?;
+        credit_facility
+            .balances()
+            .check_against_ledger(ledger_balances)?;
 
         let customer = self
             .customers

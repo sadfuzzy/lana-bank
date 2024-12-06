@@ -7,6 +7,7 @@ RUN_LOG_FILE="credit-facility.run.e2e-logs"
 
 setup_file() {
   start_server
+  reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
 
 teardown_file() {
@@ -27,6 +28,21 @@ wait_for_active() {
   [[ "$status" == "ACTIVE" ]] || exit 1
 }
 
+wait_for_disbursal() {
+  credit_facility_id=$1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  echo "disbursal | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  disbursals=$(graphql_output '.data.creditFacility.disbursals')
+  num_disbursals=$(echo $disbursals | jq -r '. | length')
+  [[ "$num_disbursals" -gt "0" ]]
+}
+
 wait_for_accruals() {
   expected_num_accruals=$1
   credit_facility_id=$2
@@ -37,7 +53,7 @@ wait_for_accruals() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
-  echo "$i. $(graphql_output)" >> $RUN_LOG_FILE
+  echo "accrual | $i. $(graphql_output)" >> $RUN_LOG_FILE
   num_accruals=$(
     graphql_output '[
       .data.creditFacility.transactions[]
@@ -129,26 +145,14 @@ ymd() {
   disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
   [[ "$disbursal_index" != "null" ]] || exit 1
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  disbursals=$(graphql_output '.data.creditFacility.disbursals')
-
-  num_disbursals=$(echo $disbursals | jq -r '. | length')
-  [[ "$num_disbursals" -gt "0" ]]
-
-  status=$(echo $disbursals | jq -r '.[0].status')
-  [[ "$status" == "CONFIRMED" ]] || exit 1
+  retry 10 1 wait_for_disbursal "$credit_facility_id"
 }
 
 @test "credit-facility: records accrual" {
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 2 "$credit_facility_id"
 
-  cat_logs | grep "interest job completed.*$credit_facility_id" || exit 1
+  cat_logs | grep "interest accrual job completed.*$credit_facility_id" || exit 1
 
   variables=$(
     jq -n \

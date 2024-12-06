@@ -4,7 +4,10 @@ use tracing::instrument;
 
 use crate::{
     audit::{Audit, AuditSvc},
-    credit_facility::{error::CreditFacilityError, interest, CreditFacility, CreditFacilityRepo},
+    credit_facility::{
+        error::CreditFacilityError, interest_accruals, interest_incurrences, CreditFacility,
+        CreditFacilityRepo,
+    },
     job::{error::JobError, Jobs},
     ledger::Ledger,
     price::Price,
@@ -69,24 +72,39 @@ impl ActivateCreditFacility {
 
         let now = crate::time::now();
 
-        let next_incurrence_period =
-            match credit_facility.activate(credit_facility_activation.clone(), now, audit_info) {
-                es_entity::Idempotent::Executed(next_incurrence_period) => next_incurrence_period,
-                es_entity::Idempotent::AlreadyApplied => {
-                    return Ok(credit_facility);
-                }
-            };
+        let es_entity::Idempotent::Executed(next_incurrence_period) =
+            credit_facility.activate(credit_facility_activation.clone(), now, audit_info)
+        else {
+            return Ok(credit_facility);
+        };
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
+        let accrual_id = credit_facility
+            .interest_accrual_in_progress()
+            .expect("First accrual not found")
+            .id;
+        match self
+            .jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                accrual_id,
+                interest_incurrences::CreditFacilityJobConfig { credit_facility_id },
+                next_incurrence_period.incurrence.end,
+            )
+            .await
+        {
+            Ok(_) | Err(JobError::DuplicateId) => (),
+            Err(err) => Err(err)?,
+        };
         match self
             .jobs
             .create_and_spawn_at_in_op(
                 &mut db,
                 credit_facility_id,
-                interest::CreditFacilityJobConfig { credit_facility_id },
-                next_incurrence_period.end,
+                interest_accruals::CreditFacilityJobConfig { credit_facility_id },
+                next_incurrence_period.accrual.end,
             )
             .await
         {
@@ -99,6 +117,7 @@ impl ActivateCreditFacility {
             .await?;
 
         db.commit().await?;
+
         Ok(credit_facility)
     }
 }

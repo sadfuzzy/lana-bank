@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use credit_facility::{CreditFacilityInterestAccrual, CreditFacilityInterestIncurrence};
+use credit_facility::CreditFacilityInterestIncurrence;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -9,7 +9,7 @@ use crate::{
     credit_facility::{repo::*, CreditFacilityError},
     job::*,
     ledger::*,
-    primitives::CreditFacilityId,
+    primitives::{CreditFacilityId, InterestAccrualIdx},
     terms::InterestPeriod,
 };
 
@@ -37,14 +37,14 @@ impl CreditFacilityProcessingJobInitializer {
     }
 }
 
-const CREDIT_FACILITY_INTEREST_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-interest-processing");
+const CREDIT_FACILITY_INTEREST_INCURRENCE_PROCESSING_JOB: JobType =
+    JobType::new("credit-facility-interest-incurrence-processing");
 impl JobInitializer for CreditFacilityProcessingJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_INTEREST_PROCESSING_JOB
+        CREDIT_FACILITY_INTEREST_INCURRENCE_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -60,8 +60,8 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
 #[derive(Clone)]
 struct ConfirmedIncurrence {
     incurrence: CreditFacilityInterestIncurrence,
-    accrual: Option<CreditFacilityInterestAccrual>,
     next_period: Option<InterestPeriod>,
+    accrual_idx: InterestAccrualIdx,
 }
 
 pub struct CreditFacilityProcessingJobRunner {
@@ -73,7 +73,7 @@ pub struct CreditFacilityProcessingJobRunner {
 
 impl CreditFacilityProcessingJobRunner {
     #[es_entity::retry_on_concurrent_modification]
-    async fn confirm_interest_incurrence_and_accrual(
+    async fn confirm_interest_incurrence(
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
@@ -91,20 +91,14 @@ impl CreditFacilityProcessingJobRunner {
                 .interest_accrual_in_progress()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_incurrence = accrual.initiate_incurrence(outstanding, account_ids);
-            let interest_accrual =
-                accrual.confirm_incurrence(interest_incurrence.clone(), audit_info.clone());
+            let interest_incurrence = accrual.record_incurrence(outstanding, audit_info.clone());
 
             ConfirmedIncurrence {
-                incurrence: interest_incurrence,
-                accrual: interest_accrual,
+                incurrence: (interest_incurrence, account_ids).into(),
                 next_period: accrual.next_incurrence_period(),
+                accrual_idx: accrual.idx,
             }
         };
-
-        if let Some(interest_accrual) = confirmed_incurrence.clone().accrual {
-            credit_facility.confirm_interest_accrual(interest_accrual, audit_info.clone());
-        }
 
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
@@ -117,7 +111,7 @@ impl CreditFacilityProcessingJobRunner {
 #[async_trait]
 impl JobRunner for CreditFacilityProcessingJobRunner {
     #[instrument(
-        name = "credit-facility.interest.job",
+        name = "credit-facility.interest-incurrences.job",
         skip(self, current_job),
         fields(attempt)
     )]
@@ -140,39 +134,23 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
 
         let ConfirmedIncurrence {
             incurrence: interest_incurrence,
-            accrual: interest_accrual,
             next_period: next_incurrence_period,
+            accrual_idx,
         } = self
-            .confirm_interest_incurrence_and_accrual(&mut db, &audit_info)
+            .confirm_interest_incurrence(&mut db, &audit_info)
             .await?;
         self.ledger
             .record_credit_facility_interest_incurrence(interest_incurrence)
             .await?;
-        if let Some(interest_accrual) = interest_accrual {
-            self.ledger
-                .record_credit_facility_interest_accrual(interest_accrual)
-                .await?;
-        }
+
         if let Some(period) = next_incurrence_period {
-            return Ok(JobCompletion::RescheduleAtWithOp(db, period.end));
-        }
-
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)
-            .await?;
-        if let Some(period) = credit_facility.start_interest_accrual(audit_info)? {
-            self.credit_facility_repo
-                .update_in_op(&mut db, &mut credit_facility)
-                .await?;
-
-            return Ok(JobCompletion::RescheduleAtWithOp(db, period.end));
-        }
-
-        println!(
-            "Credit Facility interest job completed for credit_facility: {:?}",
-            self.config.credit_facility_id
+            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+        } else {
+            println!(
+            "Credit Facility interest incurrences job completed for accrual index {:?} for credit_facility: {:?}",
+            accrual_idx, self.config.credit_facility_id
         );
-        Ok(JobCompletion::CompleteWithOp(db))
+            Ok(JobCompletion::CompleteWithOp(db))
+        }
     }
 }
