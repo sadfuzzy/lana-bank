@@ -122,11 +122,14 @@ push-dataform-branch:
 	git push -f origin HEAD:${DATAFORM_BRANCH}
 
 dataform-install:
-	yarn install 
+	yarn install
 	node_modules/.bin/dataform install
 
 dataform-run:
 	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS}
+
+dataform-run-dev:
+	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars=${DATAFORM_VARS} --tags=current-dev
 
 dataform-run-staging:
 	node_modules/.bin/dataform run --timeout 5m --schema-suffix=${DATAFORM_SCHEMA_SUFFIX} --vars="executionEnv=volcano-staging,devUser=${TF_VAR_name_prefix}"
