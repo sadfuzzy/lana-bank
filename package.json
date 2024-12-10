@@ -1,9 +1,9 @@
 {
   "name": "TODO",
   "dependencies": {
-    "@dataform/core": "3.0.0"
+    "@dataform/core": "3.0.8"
   },
   "devDependencies": {
-    "@dataform/cli": "3.0.0"
+    "@dataform/cli": "3.0.8"
   }
 }
