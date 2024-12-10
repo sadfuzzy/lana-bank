@@ -35,11 +35,11 @@ module "setup" {
 
   name_prefix = each.key
 
-  additional_owners  = [each.value, local.justin]
-  dataform_dev_user  = each.key
-  gcp_project        = local.project
-  gcp_region         = var.gcp_region
-  git_token          = var.git_token
+  additional_owners = [each.value, local.justin]
+  dataform_dev_user = each.key
+  gcp_project       = local.project
+  gcp_region        = var.gcp_region
+  git_token         = var.git_token
 }
 
 module "gha_setup" {

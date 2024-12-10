@@ -22,7 +22,7 @@ variable "additional_owners" {
 
 locals {
   name_prefix            = var.name_prefix
-  holistics_sa_name = "${var.name_prefix}-holistics"
+  holistics_sa_name      = "${var.name_prefix}-holistics"
   gcp_project            = var.gcp_project
   gcp_region             = var.gcp_region
   dataform_dev_user      = var.dataform_dev_user
