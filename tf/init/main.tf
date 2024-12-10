@@ -71,6 +71,11 @@ output "bq_dev_sa_keys_base64" {
   sensitive = true
 }
 
+output "holistics_dev_sa_keys_base64" {
+  value     = { for key, value in module.setup : key => value.holistics_service_account_key_base64 }
+  sensitive = true
+}
+
 output "bq_dev_sa_emails" {
   value = { for key, value in module.setup : key => value.service_account_email }
 }
