@@ -63,6 +63,7 @@ impl DataformClient {
                 serde_json::json!({
                     "invocationConfig": {
                         "serviceAccount": self.config.service_account().service_account_key().client_email,
+                        "includedTags": ["regulatory-report"],
                     },
                     "compilationResult": compilation.name
                 }),

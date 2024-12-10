@@ -1,7 +1,8 @@
 config {
   type: "operations",
   hasOutput: true,
-  description: "Ready for export Regulatory Report persona.xml of norm NPB4-17"
+  description: "Ready for export Regulatory Report persona.xml of norm NPB4-17",
+  tags : ["regulatory-report"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (

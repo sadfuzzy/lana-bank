@@ -2,6 +2,7 @@ config {
 	type: "operations",
 	hasOutput: true,
 	description: "Ready for export Regulatory Report referencia_garantia.xml of norm NPB4-17",
+	tags : ["regulatory-report"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (
