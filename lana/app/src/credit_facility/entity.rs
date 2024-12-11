@@ -1642,7 +1642,7 @@ mod test {
                 .expect("Interest accrual not found")
                 .idx
                 .next();
-            credit_facility.record_interest_accrual(dummy_audit_info());
+            let _ = credit_facility.record_interest_accrual(dummy_audit_info());
 
             let accrual_starts_at = next_accrual_period.unwrap().start;
             let id = InterestAccrualId::new();
