@@ -88,8 +88,14 @@ impl CreditFacilities {
         );
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
-        let activate_credit_facility =
-            ActivateCreditFacility::new(&credit_facility_repo, ledger, price, jobs, authz.audit());
+        let activate_credit_facility = ActivateCreditFacility::new(
+            &credit_facility_repo,
+            &disbursal_repo,
+            ledger,
+            price,
+            jobs,
+            authz.audit(),
+        );
         jobs.add_initializer_and_spawn_unique(
             cvl::CreditFacilityProcessingJobInitializer::new(
                 credit_facility_repo.clone(),
@@ -297,7 +303,8 @@ impl CreditFacilities {
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let now = crate::time::now();
-        let new_disbursal = credit_facility.initiate_disbursal(amount, now, price, audit_info)?;
+        let new_disbursal =
+            credit_facility.initiate_disbursal(amount, now, price, None, audit_info)?;
         self.governance
             .start_process(
                 &mut db,

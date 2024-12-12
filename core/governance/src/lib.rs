@@ -204,8 +204,8 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
             )
             .await?;
-        let process = policy.spawn_process(id.into(), target_ref, audit_info);
-        let mut process = self.process_repo.create_in_op(db, process).await?;
+        let new_process = policy.spawn_process(id.into(), target_ref, audit_info);
+        let mut process = self.process_repo.create_in_op(db, new_process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
             .maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
@@ -349,7 +349,8 @@ where
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
             .await?;
-        let res = if let es_entity::Idempotent::Executed((approved, denied_reason)) =
+
+        if let es_entity::Idempotent::Executed((approved, denied_reason)) =
             process.check_concluded(eligible, audit_info)
         {
             self.outbox
@@ -365,11 +366,11 @@ where
                 )
                 .await?;
             db.commit().await?;
-            true
-        } else {
-            false
-        };
-        Ok(res)
+
+            return Ok(true);
+        }
+
+        Ok(false)
     }
 
     #[instrument(name = "governance.add_member_to_committee", skip(self), err)]

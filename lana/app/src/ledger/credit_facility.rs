@@ -15,6 +15,7 @@ pub struct CreditFacilityAccountIds {
     pub collateral_account_id: LedgerAccountId,
     pub interest_receivable_account_id: LedgerAccountId,
     pub interest_account_id: LedgerAccountId,
+    pub fee_income_account_id: LedgerAccountId,
 }
 
 impl CreditFacilityAccountIds {
@@ -26,6 +27,7 @@ impl CreditFacilityAccountIds {
             collateral_account_id: LedgerAccountId::new(),
             interest_receivable_account_id: LedgerAccountId::new(),
             interest_account_id: LedgerAccountId::new(),
+            fee_income_account_id: LedgerAccountId::new(),
         }
     }
 }
@@ -86,6 +88,7 @@ pub struct CreditFacilityCollateralUpdate {
 #[derive(Debug, Clone)]
 pub struct CreditFacilityActivationData {
     pub facility: UsdCents,
+    pub structuring_fee: UsdCents,
     pub tx_ref: String,
     pub tx_id: LedgerTxId,
     pub credit_facility_account_ids: CreditFacilityAccountIds,

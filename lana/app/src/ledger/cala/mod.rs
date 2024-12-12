@@ -170,6 +170,7 @@ impl CalaClient {
             collateral_account_id,
             interest_receivable_account_id,
             interest_account_id,
+            fee_income_account_id,
         }: CreditFacilityAccountIds,
     ) -> Result<(), CalaError> {
         let credit_facility_id = credit_facility_id.into();
@@ -226,6 +227,14 @@ impl CalaClient {
             ),
             interest_revenue_control_account_set_id:
                 super::constants::CREDIT_FACILITY_INTEREST_REVENUE_CONTROL_ACCOUNT_SET_ID,
+            fee_income_account_id: Uuid::from(fee_income_account_id),
+            fee_income_account_code: format!("CREDIT_FACILITY.FEE_INCOME.{}", credit_facility_id),
+            fee_income_account_name: format!(
+                "Fee Income for Credit Facility {}",
+                credit_facility_id
+            ),
+            fee_income_revenue_control_account_set_id:
+                super::constants::CREDIT_FACILITY_FEE_REVENUE_CONTROL_ACCOUNT_SET_ID,
         };
         let response = Self::traced_gql_request::<CreateCreditFacilityAccounts, _>(
             &self.client,
@@ -858,13 +867,21 @@ impl CalaClient {
         &self,
         transaction_id: LedgerTxId,
         credit_facility_account_ids: CreditFacilityAccountIds,
+        user_account_ids: CustomerLedgerAccountIds,
         facility_amount: Decimal,
+        structuring_fee_amount: Decimal,
         external_id: String,
     ) -> Result<chrono::DateTime<chrono::Utc>, CalaError> {
         let variables = post_approve_credit_facility_transaction::Variables {
             transaction_id: transaction_id.into(),
             credit_facility_account: credit_facility_account_ids.facility_account_id.into(),
+            facility_disbursed_receivable_account: credit_facility_account_ids
+                .disbursed_receivable_account_id
+                .into(),
+            facility_fee_income_account: credit_facility_account_ids.fee_income_account_id.into(),
+            checking_account: user_account_ids.on_balance_sheet_deposit_account_id.into(),
             facility_amount,
+            structuring_fee_amount,
             external_id,
         };
         let response = Self::traced_gql_request::<PostApproveCreditFacilityTransaction, _>(
