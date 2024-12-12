@@ -108,24 +108,16 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <DetailsGroup layout="horizontal">
             <DetailItem
-              className="text-sm"
-              label="Withdrawal ID"
-              value={withdrawalData.withdrawalId}
-            />
-            <DetailItem
-              className="text-sm"
               label="Customer Email"
               value={withdrawalData.customer?.email || "N/A"}
             />
             <DetailItem
-              className="text-sm"
               label="Amount"
               value={
                 <Balance amount={withdrawalData.amount as UsdCents} currency="usd" />
               }
             />
             <DetailItem
-              className="text-sm"
               label="Withdrawal Reference"
               value={
                 withdrawalData.reference === withdrawalData.withdrawalId
@@ -136,7 +128,11 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
           </DetailsGroup>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading}
+              data-testid="withdrawal-confirm-dialog-button"
+            >
               {loading ? "Confirming..." : "Confirm"}
             </Button>
           </DialogFooter>

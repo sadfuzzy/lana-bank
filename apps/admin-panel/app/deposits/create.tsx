@@ -128,6 +128,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
             <Label htmlFor="amount">Amount</Label>
             <div className="flex items-center gap-1">
               <Input
+                data-testid="deposit-amount-input"
                 id="amount"
                 type="number"
                 required
@@ -150,7 +151,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} data-testid="deposit-submit-button">
               {loading ? "Submitting..." : "Submit"}
             </Button>
           </DialogFooter>

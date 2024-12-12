@@ -220,7 +220,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                       } as React.ChangeEvent<HTMLSelectElement>)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger data-testid="terms-template-duration-period-select">
                       <SelectValue placeholder="Select period" />
                     </SelectTrigger>
                     <SelectContent>
@@ -243,7 +243,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     } as React.ChangeEvent<HTMLSelectElement>)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="terms-template-accrual-interval-select">
                     <SelectValue placeholder="Select accrual interval" />
                   </SelectTrigger>
                   <SelectContent>
@@ -265,7 +265,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                     } as React.ChangeEvent<HTMLSelectElement>)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger data-testid="terms-template-incurrence-interval-select">
                     <SelectValue placeholder="Select incurrence interval" />
                   </SelectTrigger>
                   <SelectContent>

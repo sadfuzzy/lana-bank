@@ -131,6 +131,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
             <Label htmlFor="amount">Amount</Label>
             <div className="flex items-center gap-1">
               <Input
+                data-testid="withdraw-amount-input"
                 id="amount"
                 type="number"
                 required
@@ -155,7 +156,11 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" loading={isLoading}>
+            <Button
+              type="submit"
+              loading={isLoading}
+              data-testid="withdraw-submit-button"
+            >
               {isLoading ? "Processing..." : "Initiate Withdrawal"}
             </Button>
           </DialogFooter>

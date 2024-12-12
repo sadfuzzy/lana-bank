@@ -1,15 +1,22 @@
 describe("Terms Template", () => {
+  beforeEach(() => {
+    cy.on("uncaught:exception", (err) => {
+      if (err.message.includes("ResizeObserver loop")) {
+        return false
+      }
+    })
+  })
+
   it("should successfully create a new terms template", () => {
     cy.visit("/terms-templates")
 
-    // load
-    cy.wait(2000)
     cy.takeScreenshot("1_visit_terms_templates_page")
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("2_click_create_button")
 
     const templateName = `Test Template ${Date.now()}`
+
     cy.get('[data-testid="terms-template-name-input"]')
       .type(templateName)
       .should("have.value", templateName)
@@ -25,17 +32,16 @@ describe("Terms Template", () => {
       .should("have.value", "12")
     cy.takeScreenshot("5_enter_duration_units")
 
-    cy.get('[data-testid="terms-template-duration-period-select"]').select("MONTHS")
+    cy.get('[data-testid="terms-template-duration-period-select"]').click()
+    cy.get('[role="option"]').contains("Months").click()
     cy.takeScreenshot("6_select_duration_period")
 
-    cy.get('[data-testid="terms-template-accrual-interval-select"]').select(
-      "END_OF_MONTH",
-    )
+    cy.get('[data-testid="terms-template-accrual-interval-select"]').click()
+    cy.get('[role="option"]').contains("End Of Month").click()
     cy.takeScreenshot("7_select_accrual_interval")
 
-    cy.get('[data-testid="terms-template-incurrence-interval-select"]').select(
-      "END_OF_MONTH",
-    )
+    cy.get('[data-testid="terms-template-incurrence-interval-select"]').click()
+    cy.get('[role="option"]').contains("End Of Month").click()
     cy.takeScreenshot("8_select_incurrence_interval")
 
     cy.get('[data-testid="terms-template-initial-cvl-input"]')

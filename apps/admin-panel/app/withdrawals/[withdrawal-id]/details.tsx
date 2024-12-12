@@ -53,6 +53,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
     {
       label: "Status",
       value: <WithdrawalStatusBadge status={withdrawal.status} />,
+      valueTestId: "withdrawal-status-badge",
     },
   ]
 
@@ -62,11 +63,13 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
         <>
           <Button
             onClick={() => setOpenWithdrawalConfirmDialog(withdrawal)}
+            data-testid="withdraw-confirm-button"
             variant="outline"
           >
             Confirm
           </Button>
           <Button
+            data-testid="withdraw-cancel-button"
             variant="outline"
             onClick={() => setOpenWithdrawalCancelDialog(withdrawal)}
           >
