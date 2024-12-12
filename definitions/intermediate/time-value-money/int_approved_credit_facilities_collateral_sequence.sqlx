@@ -1,5 +1,5 @@
 config {
-	type: "table",
+	type: "view",
 }
 
 WITH collateral_posted AS (

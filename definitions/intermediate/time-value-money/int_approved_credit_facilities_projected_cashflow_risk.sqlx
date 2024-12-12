@@ -1,5 +1,5 @@
 config {
-	type: "table",
+	type: "view",
 }
 
 WITH projected_interest_payment AS (
@@ -7,10 +7,14 @@ WITH projected_interest_payment AS (
 	SELECT
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 		, days_in_the_period
@@ -25,10 +29,14 @@ WITH projected_interest_payment AS (
 	SELECT
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 		, days_in_the_period
@@ -48,10 +56,14 @@ WITH projected_interest_payment AS (
 	SELECT
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 		, MAX(days_in_the_period) AS days_in_the_period
@@ -62,10 +74,14 @@ WITH projected_interest_payment AS (
 	GROUP BY
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 		, days_from_now
@@ -77,10 +93,14 @@ WITH projected_interest_payment AS (
 	SELECT
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 		, ARRAY_AGG(days_in_the_period) AS days_in_the_period
@@ -91,10 +111,14 @@ WITH projected_interest_payment AS (
 	GROUP BY
 		  customer_id
 		, loc_id
+		, loc_recorded_at
+		, loc_approved_at
+		, loc_end_date
 		, bench_mark_interest_rate
 		, bench_mark_daily_interest_rate
 		, loc_annual_interest_rate
 		, loc_daily_interest_rate
+		, now_ts
 		, days_per_year
 		, disbursement_amount_in_cents
 
@@ -107,6 +131,7 @@ WITH projected_interest_payment AS (
 		, ${ref("udf_loan_ytm_from_price")}(ABS(disbursement_amount_in_cents), days_from_now, cash_flows) AS ytm_from_price
 		, ${ref("udf_loan_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS duration
 		, ${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mac_duration
+		, TIMESTAMP_ADD(DATE(now_ts), INTERVAL CAST(${ref("udf_loan_mac_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS INT64) DAY) AS mac_duration_date
 		, ${ref("udf_loan_mod_duration")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS mod_duration
 		, ${ref("udf_loan_convexity")}(bench_mark_daily_interest_rate, days_from_now, cash_flows) AS convexity
 		, ${ref("udf_loan_pv_delta_on_interest_rate_delta_with_convex")}(bench_mark_daily_interest_rate, days_from_now, cash_flows, 0.0001 / days_per_year) AS dv01
