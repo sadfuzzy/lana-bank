@@ -1,0 +1,11 @@
+config {
+	type: "assertion",
+	description: "Account sets do not participate in transactions.",
+}
+
+SELECT *
+
+FROM ${ref("fct_transaction_entries")}
+JOIN ${ref("dim_accounts")} USING (account_id)
+
+WHERE is_account_set

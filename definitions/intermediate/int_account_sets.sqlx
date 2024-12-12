@@ -1,5 +1,8 @@
 config {
 	type: "table",
+	assertions: {
+		uniqueKey: ["set_id"],
+	},
 }
 
 SELECT

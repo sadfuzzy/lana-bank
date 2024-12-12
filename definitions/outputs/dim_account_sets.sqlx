@@ -1,0 +1,16 @@
+config {
+	type: "table",
+	description: "Each row represents a unique account.",
+	assertions: {
+		uniqueKey: ["set_id", "account_id"],
+	},
+}
+
+SELECT set_id,
+	set_name,
+	member_id AS account_id,
+
+FROM ${ref("int_account_sets_expanded")}
+JOIN ${ref("int_account_sets")} USING (set_id)
+
+WHERE member_type = "Account"

@@ -1,5 +1,9 @@
 config {
 	type: "table",
+	assertions: {
+		uniqueKey: ["set_id", "member_id"],
+		rowConditions: ["member_type IN ('Account', 'AccountSet')"]
+	},
 }
 
 WITH RECURSIVE account_set_members AS (
