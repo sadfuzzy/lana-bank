@@ -20,3 +20,10 @@ resource "google_bigquery_dataset_iam_member" "holistics_viewer" {
   role       = "roles/bigquery.dataViewer"
   member     = "serviceAccount:${google_service_account.holistics.email}"
 }
+
+resource "google_bigquery_dataset_iam_member" "holistics_meta_viewer" {
+  project    = local.gcp_project
+  dataset_id = local.dataform_dataset_name
+  role       = "roles/bigquery.metadataViewer"
+  member     = "serviceAccount:${google_service_account.holistics.email}"
+}
