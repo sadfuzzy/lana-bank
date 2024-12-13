@@ -68,7 +68,7 @@ const RolesDropDown = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger asChild data-testid="user-details-manage-role">
         <Button variant="outline">Manage Roles</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
@@ -82,6 +82,7 @@ const RolesDropDown = ({
               checked={roles.includes(role)}
               onCheckedChange={() => handleRoleChange(role)}
               disabled={assigning || revoking}
+              data-testid={`user-details-manage-role-${role.toLowerCase()}-checkbox`}
             >
               {formatRole(role)}
             </DropdownMenuCheckboxItem>
@@ -94,7 +95,7 @@ const RolesDropDown = ({
 const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
   const details: DetailItemProps[] = [
     { label: "Created At", value: formatDate(user.createdAt) },
-    { label: "Email", value: user.email },
+    { label: "Email", value: user.email, valueTestId: "user-details-email" },
     {
       label: "Roles",
       value: (

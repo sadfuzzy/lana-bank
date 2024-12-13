@@ -69,11 +69,19 @@ describe("credit facility", () => {
     cy.takeScreenshot("5_credit_facility_created_success")
   })
 
+  it("should show newly created credit facility in the list", () => {
+    cy.visit(`/credit-facilities`)
+    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
+    cy.contains("$5,000.00").should("be.visible")
+    cy.takeScreenshot("credit_facility_in_list")
+  })
+
   it("should update collateral and activate the credit facility", () => {
     const creditFacilityId = Cypress.env("creditFacilityId")
     expect(creditFacilityId).to.exist
 
     cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("6_visit_credit_facility_page")
 
     cy.get('[data-testid="collateral-to-reach-target"]')
@@ -102,12 +110,15 @@ describe("credit facility", () => {
           .click()
 
         cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
-
-        cy.get("[data-testid=credit-facility-status-badge]")
-          .should("be.visible")
-          .invoke("text")
-          .should("eq", "ACTIVE")
-        cy.takeScreenshot("10_verify_active_status")
+        cy.wait(5000).then(() => {
+          cy.reload().then(() => {
+            cy.get("[data-testid=credit-facility-status-badge]")
+              .should("be.visible")
+              .invoke("text")
+              .should("eq", "ACTIVE")
+            cy.takeScreenshot("10_verify_active_status")
+          })
+        })
       })
   })
 
@@ -116,6 +127,7 @@ describe("credit facility", () => {
     expect(creditFacilityId).to.exist
 
     cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("11_visit_credit_facility_page_for_disbursal")
 
     cy.get('[data-testid="initiate-disbursal-button"]').should("be.visible").click()
@@ -143,5 +155,11 @@ describe("credit facility", () => {
       .invoke("text")
       .should("eq", "CONFIRMED")
     cy.takeScreenshot("17_verify_disbursal_status_confirmed")
+  })
+
+  it("should show disbursal in the list page", () => {
+    cy.visit(`/disbursals`)
+    cy.contains("$1,000.00").should("be.visible")
+    cy.takeScreenshot("18_disbursal_in_list")
   })
 })

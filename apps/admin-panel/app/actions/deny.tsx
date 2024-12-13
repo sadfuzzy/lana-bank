@@ -102,6 +102,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           </label>
           <Textarea
             id="reason"
+            data-testid="approval-process-dialog-deny-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Please provide a reason for denying this process"
@@ -113,7 +114,11 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
             Cancel
           </Button>
-          <Button onClick={handleDeny} loading={loading}>
+          <Button
+            onClick={handleDeny}
+            loading={loading}
+            data-testid="approval-process-dialog-deny-button"
+          >
             Deny
           </Button>
         </DialogFooter>

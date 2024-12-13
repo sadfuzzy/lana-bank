@@ -126,7 +126,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-            <SelectTrigger>
+            <SelectTrigger data-testid="committee-add-user-select">
               <SelectValue placeholder="Select a user" />
             </SelectTrigger>
             <SelectContent>
@@ -141,7 +141,11 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
           {error && <p className="text-destructive text-sm">{error}</p>}
 
           <DialogFooter>
-            <Button type="submit" disabled={loading || usersLoading || !selectedUserId}>
+            <Button
+              type="submit"
+              data-testid="committee-add-user-submit-button"
+              disabled={loading || usersLoading || !selectedUserId}
+            >
               Add User
             </Button>
           </DialogFooter>

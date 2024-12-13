@@ -96,10 +96,18 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
         </DetailsGroup>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button variant="ghost" onClick={() => setOpenApprovalDialog(false)}>
+          <Button
+            variant="ghost"
+            onClick={() => setOpenApprovalDialog(false)}
+            data-testid="approval-process-dialog-cancel-button"
+          >
             Cancel
           </Button>
-          <Button onClick={handleApprove} loading={loading}>
+          <Button
+            onClick={handleApprove}
+            loading={loading}
+            data-testid="approval-process-dialog-approve-button"
+          >
             Approve
           </Button>
         </DialogFooter>

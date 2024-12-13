@@ -2,6 +2,14 @@ import { defineConfig } from "cypress"
 
 export default defineConfig({
   e2e: {
+    specPattern: [
+      "cypress/e2e/user.cy.ts",
+      "cypress/e2e/credit-facilities.cy.ts",
+      "cypress/e2e/customers.cy.ts",
+      "cypress/e2e/transactions.cy.ts",
+      "cypress/e2e/terms-templates.cy.ts",
+      "cypress/e2e/governance.cy.ts",
+    ],
     baseUrl:
       process.env.BACKEND_ENV === "development"
         ? "http://localhost:4455/admin-panel"

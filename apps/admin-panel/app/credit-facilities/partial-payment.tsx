@@ -105,6 +105,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
             <Label>Amount</Label>
             <div className="flex items-center gap-1">
               <Input
+                data-testid="facility-partial-payment-amount-input"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -119,7 +120,11 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
               Cancel
             </Button>
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="facility-partial-payment-submit-button"
+            >
               Process Payment
             </Button>
           </DialogFooter>

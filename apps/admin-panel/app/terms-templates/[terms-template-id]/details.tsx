@@ -59,7 +59,11 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   ]
 
   const footerContent = (
-    <Button variant="outline" onClick={() => setOpenUpdateTermsTemplateDialog(true)}>
+    <Button
+      variant="outline"
+      onClick={() => setOpenUpdateTermsTemplateDialog(true)}
+      data-testid="terms-template-update-button"
+    >
       Update
     </Button>
   )

@@ -134,7 +134,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
           <div>
             <Label htmlFor="committee-select">Select Committee</Label>
             <Select value={selectedCommitteeId} onValueChange={setSelectedCommitteeId}>
-              <SelectTrigger>
+              <SelectTrigger data-testid="policy-select-committee-selector">
                 <SelectValue placeholder="Select a committee" />
               </SelectTrigger>
               <SelectContent>
@@ -150,6 +150,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
           <div>
             <Label htmlFor="threshold-input">Threshold</Label>
             <Input
+              data-testid="policy-assign-committee-threshold-input"
               id="threshold-input"
               type="number"
               value={threshold || ""}
@@ -167,6 +168,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
           <DialogFooter>
             <Button
               type="submit"
+              data-testid="policy-assign-committee-submit-button"
               disabled={
                 loading || committeesLoading || !selectedCommitteeId || threshold === null
               }

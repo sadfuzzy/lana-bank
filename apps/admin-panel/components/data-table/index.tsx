@@ -113,6 +113,7 @@ const DataTable = <T,>({
         <TableBody>
           {data.map((item, rowIndex) => (
             <TableRow
+              data-testid={`table-row-${rowIndex}`}
               key={rowIndex}
               onClick={() => onRowClick?.(item)}
               className={cn(

@@ -178,6 +178,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
+              data-testid="create-user-email-input"
             />
             <p className="text-textColor-secondary text-xs ml-1 mt-1.5">
               A magic link will be sent to the email address provided.
@@ -192,6 +193,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                 .map((role) => (
                   <div className="flex items-center" key={role}>
                     <Checkbox
+                      data-testid={`create-user-role-${role.toLowerCase()}-checkbox`}
                       id={role}
                       checked={selectedRoles.includes(role)}
                       onCheckedChange={() => handleRoleToggle(role)}
@@ -207,7 +209,12 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           {error && <p className="text-destructive">{error}</p>}
           {assignRoleError && <p className="text-destructive">{assignRoleError}</p>}
           <DialogFooter>
-            <Button type="submit" loading={isLoading} disabled={isSubmitDisabled}>
+            <Button
+              type="submit"
+              loading={isLoading}
+              disabled={isSubmitDisabled}
+              data-testid="create-user-submit-button"
+            >
               {isLoading ? "Processing..." : "Submit"}
             </Button>
           </DialogFooter>

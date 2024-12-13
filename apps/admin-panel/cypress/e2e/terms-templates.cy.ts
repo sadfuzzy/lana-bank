@@ -1,4 +1,7 @@
 describe("Terms Template", () => {
+  let templateName: string
+  let templateId: string
+
   beforeEach(() => {
     cy.on("uncaught:exception", (err) => {
       if (err.message.includes("ResizeObserver loop")) {
@@ -8,14 +11,13 @@ describe("Terms Template", () => {
   })
 
   it("should successfully create a new terms template", () => {
+    templateName = `Test Template ${Date.now()}`
     cy.visit("/terms-templates")
 
     cy.takeScreenshot("1_visit_terms_templates_page")
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("2_click_create_button")
-
-    const templateName = `Test Template ${Date.now()}`
 
     cy.get('[data-testid="terms-template-name-input"]')
       .type(templateName)
@@ -59,6 +61,10 @@ describe("Terms Template", () => {
       .should("have.value", "110")
     cy.takeScreenshot("11_enter_liquidation_cvl")
 
+    cy.get('[data-testid="terms-template-one-time-fee-rate-input"]')
+      .type("5")
+      .should("have.value", "5")
+
     cy.get('[data-testid="terms-template-submit-button"]').click()
     cy.takeScreenshot("12_submit_terms_template")
 
@@ -67,6 +73,39 @@ describe("Terms Template", () => {
       /\/terms-templates\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(templateName).should("be.visible")
+    cy.contains("Create Terms Template").should("not.exist")
     cy.takeScreenshot("13_verify_terms_template_creation")
+
+    cy.getIdFromUrl("/terms-templates/").then((id) => {
+      templateId = id
+      cy.log(`Template ID: ${templateId}`)
+    })
+  })
+
+  it("should show newly created terms template in the list", () => {
+    cy.visit("/terms-templates")
+    cy.wait(1000)
+    cy.contains(templateName).should("be.visible")
+    cy.takeScreenshot("14_terms_template_in_list")
+  })
+
+  it("should update the terms template", () => {
+    cy.visit(`/terms-templates/${templateId}`)
+    cy.wait(1000)
+    cy.takeScreenshot("15_terms_template_details")
+
+    cy.get('[data-testid="terms-template-update-button"]').click()
+    cy.takeScreenshot("16_click_update_button")
+
+    cy.get('[data-testid="terms-template-annual-rate-input"]')
+      .type("6")
+      .should("have.value", "6")
+    cy.takeScreenshot("17_update_annual_rate")
+
+    cy.get('[data-testid="terms-template-update-submit-button"]').click()
+    cy.takeScreenshot("18_submit_update")
+
+    cy.contains("Terms Template updated successfully").should("be.visible")
+    cy.takeScreenshot("19_update_success")
   })
 })

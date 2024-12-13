@@ -140,13 +140,18 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
               value={formValues.name}
               onChange={handleChange}
               disabled={isLoading}
+              data-testid="committee-create-name-input"
             />
           </div>
 
           {error && <p className="text-destructive">{error}</p>}
 
           <DialogFooter>
-            <Button type="submit" loading={isLoading}>
+            <Button
+              type="submit"
+              loading={isLoading}
+              data-testid="committee-create-submit-button"
+            >
               Create Committee
             </Button>
           </DialogFooter>

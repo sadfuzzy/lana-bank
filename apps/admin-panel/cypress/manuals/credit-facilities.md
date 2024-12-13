@@ -99,6 +99,12 @@ Check that the disbursal status shows as "CONFIRMED".
 
 ![Step 17](./screenshots/credit-facilities.cy.ts/17_verify_disbursal_status_confirmed.png)
 
+### Step 18: View in Disbursal List
+Navigate to the disbursal list page to see the newly initiated disbursal.
+
+![Step 18](./screenshots/credit-facilities.cy.ts/18_disbursal_in_list.png)
+
+
 ---
 
 This guide provides a complete walkthrough for managing a credit facility, from creation to collateral update and disbursal.

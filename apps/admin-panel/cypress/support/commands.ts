@@ -8,6 +8,9 @@ declare global {
       createCustomer(email: string, telegramId: string): Chainable<string>
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
+      getIdFromUrl(pathSegment: string): Chainable<string>
+      createDeposit(amount: number, customerId: string): Chainable<string>
+      initiateWithdrawal(amount: number, customerId: string): Chainable<string>
     }
   }
 }
@@ -106,9 +109,77 @@ Cypress.Commands.add(
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,
+          oneTimeFeeRate: input.oneTimeFeeRate,
         },
       })
       .then((response) => response.data.termsTemplateCreate.termsTemplate.termsId)
+  },
+)
+
+Cypress.Commands.add("getIdFromUrl", (pathSegment: string) => {
+  return cy.url().then((url) => {
+    const id = url.split(pathSegment)[1]
+    return id
+  })
+})
+
+interface DepositResponse {
+  data: {
+    depositRecord: {
+      deposit: {
+        depositId: string
+      }
+    }
+  }
+}
+
+interface WithdrawalInitiateResponse {
+  data: {
+    withdrawalInitiate: {
+      withdrawal: {
+        withdrawalId: string
+      }
+    }
+  }
+}
+
+Cypress.Commands.add(
+  "createDeposit",
+  (amount: number, customerId: string): Cypress.Chainable<string> => {
+    const mutation = `
+      mutation CreateDeposit($input: DepositRecordInput!) {
+        depositRecord(input: $input) {
+          deposit {
+            depositId
+          }
+        }
+      }
+    `
+    return cy
+      .graphqlRequest<DepositResponse>(mutation, {
+        input: { amount, customerId },
+      })
+      .then((response) => response.data.depositRecord.deposit.depositId)
+  },
+)
+
+Cypress.Commands.add(
+  "initiateWithdrawal",
+  (amount: number, customerId: string): Cypress.Chainable<string> => {
+    const mutation = `
+      mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
+        withdrawalInitiate(input: $input) {
+          withdrawal {
+            withdrawalId
+          }
+        }
+      }
+    `
+    return cy
+      .graphqlRequest<WithdrawalInitiateResponse>(mutation, {
+        input: { amount, customerId },
+      })
+      .then((response) => response.data.withdrawalInitiate.withdrawal.withdrawalId)
   },
 )
 

@@ -80,10 +80,18 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
       {withdrawal?.approvalProcess.status === ApprovalProcessStatus.InProgress &&
         withdrawal.approvalProcess.subjectCanSubmitDecision && (
           <>
-            <Button variant="outline" onClick={() => setOpenApprovalDialog(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenApprovalDialog(true)}
+              data-testid="approval-process-approve-button"
+            >
               Approve
             </Button>
-            <Button variant="outline" onClick={() => setOpenDenialDialog(true)}>
+            <Button
+              variant="outline"
+              onClick={() => setOpenDenialDialog(true)}
+              data-testid="approval-process-deny-button"
+            >
               Deny
             </Button>
           </>

@@ -23,7 +23,11 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
   ]
 
   const footerContent = (
-    <Button variant="outline" onClick={() => setOpenAddUserDialog(true)}>
+    <Button
+      variant="outline"
+      onClick={() => setOpenAddUserDialog(true)}
+      data-testid="committee-add-member-button"
+    >
       Add Member
     </Button>
   )

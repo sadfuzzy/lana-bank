@@ -195,6 +195,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               <div>
                 <Label htmlFor="annualRate">Interest Rate (APR)</Label>
                 <Input
+                  data-testid="terms-template-annual-rate-input"
                   id="annualRate"
                   name="annualRate"
                   type="number"
@@ -336,7 +337,11 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
           </div>
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="terms-template-update-submit-button"
+            >
               Update Terms Template
             </Button>
           </DialogFooter>

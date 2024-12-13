@@ -36,7 +36,11 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
   ]
 
   const footerContent = (
-    <Button variant="outline" onClick={() => setOpenAssignDialog(true)}>
+    <Button
+      variant="outline"
+      onClick={() => setOpenAssignDialog(true)}
+      data-testid="policy-assign-committee"
+    >
       {policyRuleType === "CommitteeThreshold" ? "Update Policy" : "Assign Committee"}
     </Button>
   )

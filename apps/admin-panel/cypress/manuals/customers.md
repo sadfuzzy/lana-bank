@@ -65,4 +65,9 @@ Here you have all the customer details. You can view their balances and do all o
 
 ---
 
+### Step 10: View Customer in List
+Navigate back to the customers list to verify that the new customer appears in the list.
+
+![Step 23: Customers List](./screenshots/customers.cy.ts/11_verify_customer_in_list.png)
+
 By following these steps, you should be able to successfully create a new customer in the application.

@@ -206,6 +206,7 @@ const PaginatedTable = <T,>({
               : displayData.map(({ node }, idx) => (
                   <TableRow
                     key={idx}
+                    data-testid={`table-row-${idx}`}
                     onClick={() => onClick?.(node)}
                     className={onClick ? "cursor-pointer" : ""}
                   >
