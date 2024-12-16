@@ -147,6 +147,7 @@ WITH approved AS (
 )
 
 SELECT credit_facility_id
+	, ROW_NUMBER() OVER() AS credit_facility_key
 	, initialized_at
 	, end_date
 	, incurrence_interval

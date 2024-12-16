@@ -2,11 +2,11 @@ config {
 	type: "table",
 	description: "Each row represents a unique customer.",
 	assertions: {
-		uniqueKey: ["customer_id"],
-		nonNull: ["customer_id"],
+		uniqueKey: ["customer_key"],
+		nonNull: ["customer_key"],
 	},
 }
 
-SELECT *
+SELECT * EXCEPT (customer_id)
 
 FROM ${ref("int_customers")}

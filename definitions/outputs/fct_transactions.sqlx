@@ -2,20 +2,12 @@ config {
 	type: "table",
 	description: "Each row represents a unique transaction.",
 	assertions: {
-		uniqueKey: ["transaction_id"],
-		nonNull: ["transaction_id", "transaction_type_id", "transaction_entry_ids"],
-		rowConditions: [
-			"ARRAY_LENGTH(transaction_entry_ids) > 1"
-		],
+		uniqueKey: ["transaction_key"],
+		nonNull: ["transaction_key", "transaction_type_key"],
 	},
 }
 
-SELECT id AS transaction_id,
-	version AS transaction_version,
-	JSON_VALUE(values, "$.tx_template_id") AS transaction_type_id,
-	JSON_VALUE_ARRAY(values, "$.entry_ids") AS transaction_entry_ids,
+SELECT transaction_key, transaction_type_key
 
-FROM ${ref({
-	name: "transactions",
-	schema: envs.currentImportSchema
-})}
+FROM ${ref("int_transactions")}
+JOIN ${ref("int_transaction_types")} USING (transaction_type_id)

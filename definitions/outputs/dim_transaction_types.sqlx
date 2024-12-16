@@ -2,17 +2,10 @@ config {
 	type: "table",
 	description: "Each row represents a unique customer.",
 	assertions: {
-		uniqueKey: ["transaction_type_id"],
-		nonNull: ["transaction_type_id"],
+		uniqueKey: ["transaction_type_key"],
 	},
 }
 
-SELECT id AS transaction_type_id,
-	version AS transaction_type_version,
-	JSON_VALUE(values, "$.code") AS transaction_type_code,
-	JSON_VALUE(values, "$.description") AS transaction_type_description,
+SELECT * EXCEPT (transaction_type_id)
 
-FROM ${ref({
-	name: "tx_templates",
-	schema: envs.currentImportSchema
-})}
+FROM ${ref("int_transaction_types")}

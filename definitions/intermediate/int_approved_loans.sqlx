@@ -127,6 +127,7 @@ WITH approved AS (
 )
 
 SELECT loan_id
+	, ROW_NUMBER() OVER() AS loan_key
 	, initialized_at
 	, duration_type
 	, duration_value

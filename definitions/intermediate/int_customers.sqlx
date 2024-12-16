@@ -4,6 +4,7 @@ config {
 
 SELECT DISTINCT
 	  JSON_VALUE(event, "$.id") AS customer_id
+	, ROW_NUMBER() OVER () AS customer_key
 	, JSON_VALUE(event, "$.email") AS email
 
 FROM ${ref({

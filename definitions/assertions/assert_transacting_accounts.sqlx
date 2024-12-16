@@ -6,6 +6,6 @@ config {
 SELECT *
 
 FROM ${ref("fct_transaction_entries")}
-JOIN ${ref("dim_accounts")} USING (account_id)
+JOIN ${ref("dim_accounts")} USING (account_key)
 
 WHERE is_account_set

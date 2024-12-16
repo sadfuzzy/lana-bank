@@ -2,14 +2,14 @@ config {
 	type: "table",
 	description: "Each row represents a unique account.",
 	assertions: {
-		uniqueKey: ["account_id"],
-		nonNull: ["account_id", "normal_balance_type", "is_account_set"],
+		uniqueKey: ["account_key"],
+		nonNull: ["account_key", "normal_balance_type", "is_account_set"],
 		rowConditions: [
 			"normal_balance_type IN ('debit', 'credit')"
 		],
 	},
 }
 
-SELECT *
+SELECT * EXCEPT(account_id)
 
 FROM ${ref("int_accounts")}

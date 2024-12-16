@@ -1,17 +1,27 @@
 config {
 	type: "table",
+	assertions: {
+		uniqueKey: ["account_id"],
+	},
 }
 
-SELECT
-	id AS account_id,
-	JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.name") AS account_name,
-	JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.normal_balance_type") AS normal_balance_type,
-	JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.code") AS account_code,
-	LAX_BOOL(PARSE_JSON(JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.config.is_account_set"))) AS is_account_set,
+SELECT account_id, account_name, normal_balance_type, account_code, is_account_set,
+	ROW_NUMBER() OVER() AS account_key,
 
-FROM ${ref({
-	name: "accounts",
-	schema: envs.currentImportSchema
-})}
+FROM (
 
-GROUP BY id
+	SELECT
+		id AS account_id,
+		JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.name") AS account_name,
+		JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.normal_balance_type") AS normal_balance_type,
+		JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.code") AS account_code,
+		LAX_BOOL(PARSE_JSON(JSON_VALUE(ANY_VALUE(values HAVING MAX recorded_at), "$.config.is_account_set"))) AS is_account_set,
+
+	FROM ${ref({
+		name: "accounts",
+		schema: envs.currentImportSchema
+	})}
+
+	GROUP BY id
+
+)
