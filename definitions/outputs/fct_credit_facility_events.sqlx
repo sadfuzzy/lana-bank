@@ -1,0 +1,133 @@
+config {
+    type: "table",
+    description: "Each row represents a unique 'combo-event'/fact? in the life cycle [initialized -> approval_process_started -> approval_process_concluded -> activated -> completed] of the credit facility.",
+    assertions: {
+        uniqueKey: ["event_key"],
+        nonNull: [
+            "recorded_at_date_key",
+            "recorded_at",
+            "event_type_key",
+            "customer_id_key",
+            "terms_accrual_interval_type_key",
+            "terms_annual_rate_key",
+            "terms_duration_type_key",
+            "terms_duration_value_key",
+            "terms_incurrence_interval_type_key",
+            "terms_initial_cvl_key",
+            "terms_liquidation_cvl_key",
+            "terms_margin_call_cvl_key",
+            "approval_process_started_recorded_at_date_key",
+            "approval_process_concluded_recorded_at_date_key",
+            "activated_recorded_at_date_key",
+            "activated_at_date_key",
+            "completed_recorded_at_date_key",
+            "completed_at_date_key",
+            "facility"],
+    },
+}
+
+WITH initialized AS (
+
+    SELECT
+          event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
+        , recorded_at
+        , event_type_key
+        , customer_id_key
+        , terms_accrual_interval_type_key
+        , terms_annual_rate_key
+        , terms_duration_type_key
+        , terms_duration_value_key
+        , terms_incurrence_interval_type_key
+        , terms_initial_cvl_key
+        , terms_liquidation_cvl_key
+        , terms_margin_call_cvl_key
+        , CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
+    LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t0 ON t0.event_id = cfe.id
+    LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
+    LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} AS t2 ON t2.customer_id = JSON_VALUE(event, "$.customer_id")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_accrual_interval_type")} AS t3 ON t3.terms_accrual_interval_type = JSON_VALUE(event, "$.terms.accrual_interval.type")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} AS t4 ON t4.terms_annual_rate = JSON_VALUE(event, "$.terms.annual_rate")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_type")} AS t5 ON t5.terms_duration_type = JSON_VALUE(event, "$.terms.duration.type")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} AS t6 ON t6.terms_duration_value = JSON_VALUE(event, "$.terms.duration.value")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_incurrence_interval_type")} AS t7 ON t7.terms_incurrence_interval_type = JSON_VALUE(event, "$.terms.incurrence_interval.type")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t8 ON t8.terms_initial_cvl = JSON_VALUE(event, "$.terms.initial_cvl")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t9 ON t9.terms_liquidation_cvl = JSON_VALUE(event, "$.terms.liquidation_cvl")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t10 ON t10.terms_margin_call_cvl = JSON_VALUE(event, "$.terms.margin_call_cvl")
+    WHERE cfe.event_type = "initialized"
+
+), approval_process_started AS (
+
+    SELECT
+          event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
+        , recorded_at
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
+    WHERE cfe.event_type = "approval_process_started"
+
+), approval_process_concluded AS (
+
+    SELECT
+          event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
+        , recorded_at
+        , CAST(JSON_VALUE(event, "$.approved") AS BOOLEAN) AS approved
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
+    WHERE cfe.event_type = "approval_process_concluded"
+
+), activated AS (
+
+    SELECT
+          event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
+        , recorded_at
+        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at")), "UTC") as INT64) AS activated_at_date_key
+        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.activated_at"), "UTC") AS activated_at
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
+    WHERE cfe.event_type = "activated"
+
+), completed AS (
+
+    SELECT
+          event_key
+        , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
+        , recorded_at
+        , CAST(FORMAT_DATE('%Y%m%d', PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at")), "UTC") as INT64) AS completed_at_date_key
+        , PARSE_TIMESTAMP('%Y-%m-%dT%H:%M:%E*SZ', JSON_VALUE(event, "$.completed_at"), "UTC") AS completed_at
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} cfe
+    LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t ON t.event_id = id
+    WHERE cfe.event_type = "completed"
+
+)
+
+
+SELECT
+      i.* EXCEPT (facility)
+
+    , COALESCE(aps.recorded_at_date_key, 19000101) AS approval_process_started_recorded_at_date_key
+    , aps.recorded_at AS approval_process_started_recorded_at
+
+    , COALESCE(apc.recorded_at_date_key, 19000101) AS approval_process_concluded_recorded_at_date_key
+    , apc.recorded_at AS approval_process_concluded_recorded_at
+    , COALESCE(apc.approved, FALSE) AS approval_process_concluded_approved
+
+    , COALESCE(a.recorded_at_date_key, 19000101) AS activated_recorded_at_date_key
+    , a.recorded_at AS activated_recorded_at
+    , COALESCE(a.activated_at_date_key, 19000101) AS activated_at_date_key
+    , a.activated_at
+
+    , COALESCE(c.recorded_at_date_key, 19000101) AS completed_recorded_at_date_key
+    , c.recorded_at AS completed_recorded_at
+    , COALESCE(c.completed_at_date_key, 19000101) AS completed_at_date_key
+    , c.completed_at
+
+    , i.facility
+FROM initialized AS i
+LEFT JOIN approval_process_started aps ON aps.event_key = i.event_key
+LEFT JOIN approval_process_concluded apc ON apc.event_key = i.event_key
+LEFT JOIN activated a ON a.event_key = i.event_key
+LEFT JOIN completed c ON c.event_key = i.event_key

@@ -1,0 +1,24 @@
+config {
+    type: "table",
+    description: "Each row represents a unique collateralization changed event state in credit facility.",
+    assertions: {
+        uniqueKey: ["state_key"],
+        nonNull: ["state"],
+    },
+}
+
+WITH distinct_entries AS (
+    SELECT DISTINCT
+        JSON_VALUE(event, "$.state") AS state
+    FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+    WHERE event_type = "collateralization_changed"
+)
+
+SELECT -1 AS state_key, "NULL" AS state
+
+UNION ALL
+
+SELECT
+      ROW_NUMBER() OVER (ORDER BY state) AS state_key
+    , state
+FROM distinct_entries
