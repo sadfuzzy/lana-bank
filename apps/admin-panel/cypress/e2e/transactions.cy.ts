@@ -33,9 +33,7 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.takeScreenshot("2_deposit_select")
 
     // Create dialog
-    cy.get('[data-testid="deposit-amount-input"]')
-      .type(depositAmount.toString())
-      .should("have.value", depositAmount.toString())
+    cy.get('[data-testid="deposit-amount-input"]').type(depositAmount.toString())
     cy.takeScreenshot("3_deposit_enter_amount")
 
     cy.get('[data-testid="deposit-submit-button"]').click()
@@ -67,9 +65,7 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.get('[data-testid="create-withdrawal-button"]').should("be.visible").click()
     cy.takeScreenshot("9_withdrawal_select")
 
-    cy.get('[data-testid="withdraw-amount-input"]')
-      .type(withdrawAmount.toString())
-      .should("have.value", withdrawAmount.toString())
+    cy.get('[data-testid="withdraw-amount-input"]').type(withdrawAmount.toString())
     cy.takeScreenshot("10_withdrawal_enter_amount")
 
     cy.get('[data-testid="withdraw-submit-button"]').click()

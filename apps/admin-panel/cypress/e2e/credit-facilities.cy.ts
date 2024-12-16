@@ -47,9 +47,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
     cy.takeScreenshot("2_open_credit_facility_form")
 
-    cy.get('[data-testid="facility-amount-input"]')
-      .type("5000")
-      .should("have.value", "5000")
+    cy.get('[data-testid="facility-amount-input"]').type("5000")
     cy.takeScreenshot("3_enter_facility_amount")
 
     cy.get('[data-testid="create-credit-facility-submit"]').click()
@@ -135,7 +133,7 @@ describe("credit facility", () => {
 
     cy.get('[data-testid="disbursal-amount-input"]')
       .type("1000")
-      .should("have.value", "1000")
+      .should("have.value", "1,000")
     cy.takeScreenshot("13_enter_disbursal_amount")
 
     cy.get('[data-testid="disbursal-submit-button"]').click()

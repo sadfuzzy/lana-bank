@@ -1,4 +1,5 @@
 import { print } from "@apollo/client/utilities"
+
 import { BalanceSheetDocument, BalanceSheetQuery } from "../../lib/graphql/generated"
 
 describe("Balance Sheet", () => {
