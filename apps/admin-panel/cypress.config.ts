@@ -9,6 +9,10 @@ export default defineConfig({
       "cypress/e2e/transactions.cy.ts",
       "cypress/e2e/terms-templates.cy.ts",
       "cypress/e2e/governance.cy.ts",
+      "cypress/e2e/reporting.cy.ts",
+      "cypress/e2e/chart-of-accounts.cy.ts",
+      "cypress/e2e/trial-balance.cy.ts",
+      "cypress/e2e/balance-sheet.cy.ts",
     ],
     baseUrl:
       process.env.BACKEND_ENV === "development"

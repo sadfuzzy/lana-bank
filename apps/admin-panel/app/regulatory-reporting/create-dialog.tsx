@@ -57,10 +57,10 @@ export const ReportCreateDialog: React.FC<ReportCreateDialogProps> = ({
 
   return (
     <Dialog open={openReportCreateDialog} onOpenChange={setOpenReportCreateDialog}>
-      <DialogContent>
+      <DialogContent data-testid="create-report-dialog">
         <DialogHeader>
-          <DialogTitle>Create New Report</DialogTitle>
-          <DialogDescription>
+          <DialogTitle data-testid="dialog-title">Create New Report</DialogTitle>
+          <DialogDescription data-testid="dialog-description">
             Are you sure you want to create a new report? This action will generate a
             regulatory report based on the latest financial data.
           </DialogDescription>
@@ -69,7 +69,11 @@ export const ReportCreateDialog: React.FC<ReportCreateDialogProps> = ({
           <Button variant="ghost" onClick={() => setOpenReportCreateDialog(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreateReport} loading={loading}>
+          <Button
+            data-testid="create-report-submit"
+            onClick={handleCreateReport}
+            loading={loading}
+          >
             {loading ? "Creating..." : "Create Report"}
           </Button>
         </DialogFooter>

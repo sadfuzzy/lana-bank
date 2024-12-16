@@ -144,6 +144,7 @@ const RegulatoryReportingPage: React.FC = () => {
             </CardDescription>
           </div>
           <Button
+            data-testid="generate-report-button"
             variant="outline"
             className="ml-4"
             onClick={() => setOpenReportCreateDialog(true)}
@@ -231,11 +232,20 @@ const ReportDetails: React.FC<{
 }> = ({ selectedReportDetails, onGenerateLinks, generateLinkLoading, linksData }) => {
   return (
     <div className="space-y-6">
-      <KeyValueItem label="Report ID" value={selectedReportDetails.reportId} />
+      <KeyValueItem
+        data-testid="report-id"
+        label="Report ID"
+        value={selectedReportDetails.reportId}
+      />
       {selectedReportDetails.lastError && (
-        <KeyValueItem label="Last Error" value={selectedReportDetails.lastError} />
+        <KeyValueItem
+          data-testid="report-error"
+          label="Last Error"
+          value={selectedReportDetails.lastError}
+        />
       )}
       <KeyValueItem
+        data-testid="report-status"
         label="Status"
         value={formatStatus({
           reportProgress: selectedReportDetails.progress,
@@ -243,6 +253,7 @@ const ReportDetails: React.FC<{
         })}
       />
       <KeyValueItem
+        data-testid="report-downloads"
         label="Downloads"
         value={
           linksData && linksData.reportId === selectedReportDetails.reportId ? (
@@ -321,12 +332,13 @@ const formatStatus = ({
   }
 }
 
-const KeyValueItem: React.FC<{ label: string; value: React.ReactNode }> = ({
-  label,
-  value,
-}) => {
+const KeyValueItem: React.FC<{
+  "label": string
+  "value": React.ReactNode
+  "data-testid"?: string
+}> = ({ label, value, "data-testid": testId }) => {
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-4" data-testid={testId}>
       <span className="w-32 font-semibold">{label}:</span>
       <div style={{ marginLeft: "calc(48px + 2rem)" }}>{value}</div>
     </div>

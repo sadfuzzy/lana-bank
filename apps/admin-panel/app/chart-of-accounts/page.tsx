@@ -123,7 +123,10 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
           .map((category) => (
             <React.Fragment key={category.name}>
               <TableRow>
-                <TableCell className="text-primary font-bold uppercase tracking-widest leading-8">
+                <TableCell
+                  data-testid={`category-${category.name.toLowerCase()}`}
+                  className="text-primary font-bold uppercase tracking-widest leading-8"
+                >
                   {category.name}
                 </TableCell>
               </TableRow>

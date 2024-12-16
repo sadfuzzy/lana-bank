@@ -305,7 +305,10 @@ function CategoryRow({
   return (
     <>
       <TableRow className="bg-secondary">
-        <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase ">
+        <TableCell
+          className="flex items-center gap-2 text-primary font-semibold uppercase"
+          data-testid={`category-name-${category.name.toLowerCase()}`}
+        >
           {category.name}
         </TableCell>
         <TableCell className="w-48"></TableCell>

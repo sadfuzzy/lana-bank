@@ -120,7 +120,7 @@ export const Account: React.FC<AccountProps> = ({ account, depth = 0, dateRange 
         className={hasSubAccounts ? "cursor-pointer" : ""}
         onClick={() => setShowingSubAccounts((toggle) => !toggle)}
       >
-        <TableCell className="flex items-center">
+        <TableCell className="flex items-center" data-testid={`account-${account.id}`}>
           {Array.from({ length: depth }).map((_, i) => (
             <div key={i} className="w-8" />
           ))}
