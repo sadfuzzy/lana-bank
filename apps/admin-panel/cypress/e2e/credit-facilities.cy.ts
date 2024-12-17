@@ -40,6 +40,7 @@ describe("credit facility", () => {
 
   it("should create a credit facility and verify initial state", () => {
     cy.visit(`/customers/${customerId}`)
+    cy.get('[data-testid="loading-skeleton"]').should("not.exist")
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.takeScreenshot("1_click_create_credit_facility_button")

@@ -76,6 +76,7 @@ export const Account = ({
   return (
     <>
       <TableRow
+        data-testid={`account-${account.id}`}
         key={account.id}
         className={hasSubAccounts ? "cursor-pointer" : ""}
         onClick={() => setShowingSubAccounts((toggle) => !toggle)}

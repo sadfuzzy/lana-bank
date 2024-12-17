@@ -46,7 +46,10 @@ const DataTable = <T,>({
 }: DataTableProps<T>) => {
   if (loading) {
     return (
-      <div className="w-full overflow-x-auto border rounded-md">
+      <div
+        className="w-full overflow-x-auto border rounded-md"
+        data-testid="loading-skeleton"
+      >
         <Table className={className}>
           <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
             <TableRow className={headerClassName}>

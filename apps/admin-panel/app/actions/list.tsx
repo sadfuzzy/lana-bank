@@ -133,7 +133,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
   ]
 
   return (
-    <Card>
+    <Card data-testid="dashboard-actions-list">
       <CardHeader>
         <CardTitle>Pending Actions</CardTitle>
         <CardDescription>Approvals / Rejections waiting your way</CardDescription>

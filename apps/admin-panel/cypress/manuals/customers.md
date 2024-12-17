@@ -70,4 +70,18 @@ Navigate back to the customers list to verify that the new customer appears in t
 
 ![Step 10: Customers List](./screenshots/customers.cy.ts/11_verify_customer_in_list.png)
 
+---
+
+### Step 11: Access Customer Documents
+Navigate to the customer's documents section to start uploading documents. You'll see the documents interface where you can manage all customer-related files.
+
+![Step 11: Documents Section](./screenshots/customers.cy.ts/12_customer_documents.png)
+
+---
+
+### Step 12: Upload Document
+Upload documents by clicking the upload area or dragging and dropping a PDF file. After processing, the system will display a success message. You can then manage your documents by using the "View" button to open them or the "Delete" button to remove them from the system.
+
+![Step 12: Document Upload](./screenshots/customers.cy.ts/13_upload_document.png)
+
 By following these steps, you should be able to successfully create a new customer in the application.

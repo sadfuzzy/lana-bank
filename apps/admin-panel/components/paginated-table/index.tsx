@@ -189,7 +189,7 @@ const PaginatedTable = <T,>({
             {loading
               ? Array.from({ length: displayData.length || pageSize }).map(
                   (_, rowIndex) => (
-                    <TableRow key={rowIndex}>
+                    <TableRow key={rowIndex} data-testid="loading-skeleton">
                       {columns.map((_, colIndex) => (
                         <TableCell key={colIndex}>
                           <Skeleton className="h-4 w-full" />

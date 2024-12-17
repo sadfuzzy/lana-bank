@@ -57,8 +57,8 @@ describe("Users", () => {
     cy.takeScreenshot("8_manage_roles")
 
     cy.get('[data-testid="user-details-manage-role"]').click()
-    cy.get('[data-testid="user-details-manage-role-accountant-checkbox"]').click()
     cy.takeScreenshot("9_update_roles")
+    cy.get('[data-testid="user-details-manage-role-accountant-checkbox"]').click()
 
     cy.contains("Role assigned").should("be.visible")
     cy.takeScreenshot("10_verify_update")

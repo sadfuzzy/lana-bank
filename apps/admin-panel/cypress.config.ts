@@ -13,6 +13,8 @@ export default defineConfig({
       "cypress/e2e/chart-of-accounts.cy.ts",
       "cypress/e2e/trial-balance.cy.ts",
       "cypress/e2e/balance-sheet.cy.ts",
+      "cypress/e2e/dashboard.cy.ts",
+      "cypress/e2e/profit-and-loss.cy.ts",
     ],
     baseUrl:
       process.env.BACKEND_ENV === "development"
@@ -20,7 +22,7 @@ export default defineConfig({
         : "https://admin.staging.lava.galoy.io",
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
-    video: true,
+    video: false,
     env: {
       MAGIC_LINK: process.env.MAGIC_LINK,
     },

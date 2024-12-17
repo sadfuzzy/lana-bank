@@ -32,7 +32,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   buttonText = "",
 }) => {
   return (
-    <Card className="w-full">
+    <Card className="w-full" data-testid={title.toLowerCase().replace(" ", "-")}>
       <CardHeader>
         <div className="flex flex-col">
           {h2 ? (

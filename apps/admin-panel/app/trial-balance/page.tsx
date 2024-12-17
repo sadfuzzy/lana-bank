@@ -167,7 +167,7 @@ gql`
 
 const LoadingSkeleton = () => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="loading-skeleton">
       <div className="space-y-4">
         <Skeleton className="h-10 w-72" />
         <Skeleton className="h-10 w-96" />

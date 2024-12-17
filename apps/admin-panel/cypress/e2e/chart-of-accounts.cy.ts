@@ -21,11 +21,17 @@ describe("Chart Of Accounts", () => {
         })
       })
     })
+    cy.takeScreenshot("chart-of-accounts")
   })
 
   it("should display basic page elements", () => {
     cy.contains("Chart Of Accounts").should("exist")
     cy.contains("Regular").should("exist")
     cy.contains("Off Balance Sheet").should("exist")
+  })
+
+  it("should show OffBalance Sheet", () => {
+    cy.contains("Off Balance Sheet").click()
+    cy.takeScreenshot("off-balance-sheet")
   })
 })

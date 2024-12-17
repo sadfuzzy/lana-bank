@@ -12,7 +12,7 @@ Visit the **Regulatory Reporting** page to start managing reports.
 ## Step 2: Generate a New Report
 Click the **Generate Report** button to initiate report creation.
 
-![Generate Report Button](./screenshots/regulatory-reporting.cy.ts/1_generate_report_button.png)
+![Generate Report Button](./screenshots/reporting.cy.ts/1_generate_report_button.png)
 
 ---
 
@@ -23,14 +23,14 @@ A dialog will appear:
 
 Click **Create** to proceed.
 
-![Report Creation Dialog](./screenshots/regulatory-reporting.cy.ts/2_create_report_dialog.png)
+![Report Creation Dialog](./screenshots/reporting.cy.ts/2_create_report_dialog.png)
 
 ---
 
 ## Step 4: Verify Report Creation Success
 After clicking create, a success message **"Report creation started"** will appear.
 
-![Report Creation Success](./screenshots/regulatory-reporting.cy.ts/3_report_creation_success.png)
+![Report Creation Success](./screenshots/reporting.cy.ts/3_report_creation_success.png)
 
 ---
 
@@ -40,7 +40,7 @@ Once the report is created, verify the following details:
 ### 5.1 Report Status
 Confirm the **Report Status** is displayed.
 
-![Report Status](./screenshots/regulatory-reporting.cy.ts/4_report_status.png)
+![Report Status](./screenshots/reporting.cy.ts/4_report_status.png)
 
 ---
 
@@ -48,7 +48,7 @@ Confirm the **Report Status** is displayed.
 Ensure the Download Options for the report are available. You can click the Generate Link button to download the report when the report status is "Success."
 `
 
-![Report Downloads](./screenshots/regulatory-reporting.cy.ts/5_report_details.png)
+![Report Downloads](./screenshots/reporting.cy.ts/5_report_details.png)
 
 ---
 

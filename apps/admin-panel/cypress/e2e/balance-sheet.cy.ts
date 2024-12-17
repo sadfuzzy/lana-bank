@@ -3,6 +3,10 @@ import { print } from "@apollo/client/utilities"
 import { BalanceSheetDocument, BalanceSheetQuery } from "../../lib/graphql/generated"
 
 describe("Balance Sheet", () => {
+  const currentDate = new Date()
+  const lastMonthDate = new Date()
+  lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
+
   beforeEach(() => {
     cy.visit("/balance-sheet")
   })
@@ -12,10 +16,6 @@ describe("Balance Sheet", () => {
   })
 
   it("should display balance sheet sections and categories", () => {
-    const currentDate = new Date()
-    const lastMonthDate = new Date()
-    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
-
     cy.graphqlRequest<{ data: BalanceSheetQuery }>(print(BalanceSheetDocument), {
       from: lastMonthDate.toISOString(),
       until: currentDate.toISOString(),
@@ -42,10 +42,23 @@ describe("Balance Sheet", () => {
         })
       }
     })
+    cy.takeScreenshot("balance-sheet")
   })
 
   it("should allow currency switching", () => {
     cy.contains("USD").should("be.visible").click()
     cy.contains("BTC").should("be.visible").click()
+    cy.takeScreenshot("balance-sheet-btc-currency")
+  })
+
+  it("should switch between balance layers", () => {
+    cy.contains("All").should("exist")
+    cy.contains("Settled").should("exist")
+    cy.contains("Pending").should("exist")
+
+    cy.contains("All").click()
+    cy.contains("Settled").click()
+    cy.contains("Pending").click()
+    cy.takeScreenshot("balance-sheet-pending")
   })
 })

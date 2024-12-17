@@ -64,7 +64,7 @@ gql`
 
 const LoadingSkeleton = () => {
   return (
-    <Table>
+    <Table data-testid="loading-skeleton">
       <TableBody>
         {[1, 2, 3].map((categoryIndex) => (
           <React.Fragment key={`category-${categoryIndex}`}>

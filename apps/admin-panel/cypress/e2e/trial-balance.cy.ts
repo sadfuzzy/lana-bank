@@ -6,15 +6,15 @@ import {
 } from "../../lib/graphql/generated"
 
 describe("Trial Balance", () => {
+  const currentDate = new Date()
+  const lastMonthDate = new Date()
+  lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
+
   beforeEach(() => {
     cy.visit("/trial-balance")
   })
 
   it("should render trial balance with accounts and their balances", () => {
-    const currentDate = new Date()
-    const lastMonthDate = new Date()
-    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1)
-
     cy.graphqlRequest<{ data: GetOnBalanceSheetTrialBalanceQuery }>(
       print(GetOnBalanceSheetTrialBalanceDocument),
       {
@@ -31,6 +31,7 @@ describe("Trial Balance", () => {
           })
       })
     })
+    cy.takeScreenshot("trial-balance")
   })
 
   it("should switch between currency types", () => {
@@ -39,6 +40,12 @@ describe("Trial Balance", () => {
 
     cy.contains("USD").click()
     cy.contains("BTC").click()
+    cy.takeScreenshot("trial-balance-btc-currency")
+  })
+
+  it("should show OffBalance Sheet", () => {
+    cy.contains("Off Balance Sheet").click()
+    cy.takeScreenshot("off-balance-sheet")
   })
 
   it("should switch between balance layers", () => {

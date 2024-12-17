@@ -253,7 +253,10 @@ const CategoryRow = ({
   return (
     <>
       <TableRow>
-        <TableCell className="flex items-center gap-2 text-primary font-semibold uppercase">
+        <TableCell
+          data-testid={`category-${category.name.toLowerCase()}`}
+          className="flex items-center gap-2 text-primary font-semibold uppercase"
+        >
           {category.name}
         </TableCell>
         <TableCell className="w-48">

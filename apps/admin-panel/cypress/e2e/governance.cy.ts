@@ -23,7 +23,6 @@ describe("Governance Test", () => {
   it("should successfully create a Committees", () => {
     committeeName = `${Date.now()}`
     cy.visit("/committees")
-    cy.wait(1000)
     cy.takeScreenshot("1_step-visit-committees")
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -47,14 +46,12 @@ describe("Governance Test", () => {
 
   it("should show newly added committee in the list", () => {
     cy.visit(`/committees`)
-    cy.wait(1000)
     cy.contains(committeeName).should("be.visible")
     cy.takeScreenshot("6_step-view-committees-list")
   })
 
   it("should be able to add a new member to Committee", () => {
     cy.visit(`/committees/${committeeId}`)
-    cy.wait(1000)
     cy.contains(committeeName).should("be.visible")
     cy.takeScreenshot("7_step-visit-committee-details")
 

@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-extraneous-dependencies, import/no-unassigned-import
+import "cypress-file-upload"
+
 import { TermsTemplateCreateInput } from "@/lib/graphql/generated"
 
 declare global {
@@ -40,7 +43,8 @@ Cypress.Commands.add(
 )
 
 Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
-  cy.viewport(1263, 573)
+  cy.get('[data-testid="loading-skeleton"]', { timeout: 30000 }).should("not.exist")
+  cy.viewport(1280, 720)
   cy.screenshot(filename, { capture: "viewport" })
   return cy.wrap(null)
 })

@@ -10,7 +10,7 @@ export const DetailsPageSkeleton = ({
   tabsCards?: number
 }) => {
   return (
-    <div className="space-y-4 max-w-7xl m-auto">
+    <div className="space-y-4 max-w-7xl m-auto" data-testid="loading-skeleton">
       <div className="p-6 rounded-lg border bg-card">
         <div className="space-y-4">
           <div className="flex justify-between items-center">

@@ -1,21 +1,13 @@
 describe("Customers", () => {
   let testEmail: string
   let testTelegramId: string
+  let testCustomerId: string
 
   it("should successfully create a new customer", () => {
     testEmail = `test-${Date.now()}@example.com`
     testTelegramId = `user${Date.now()}`
 
     cy.visit("/customers")
-
-    cy.contains(
-      "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
-      { timeout: 10000 },
-    )
-
-    // load
-    cy.wait(2000)
-    cy.takeScreenshot("1_visit_customers_page")
     cy.takeScreenshot("2_list_all_customers")
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -55,12 +47,29 @@ describe("Customers", () => {
     cy.contains(testEmail).should("be.visible")
     cy.contains("Add new customer").should("not.exist")
     cy.takeScreenshot("10_verify_email")
+    cy.getIdFromUrl("/customers/").then((id) => {
+      testCustomerId = id
+    })
   })
 
   it("should show newly created customer in the list", () => {
     cy.visit("/customers")
-    cy.wait(1000)
     cy.contains(testEmail).should("be.visible")
     cy.takeScreenshot("11_verify_customer_in_list")
+  })
+
+  it("should upload a document", () => {
+    cy.visit(`/customers/${testCustomerId}/documents`)
+    cy.contains("Documents uploaded by this customer").should("exist")
+    cy.takeScreenshot("12_customer_documents")
+    cy.fixture("test.pdf", "binary").then((content) => {
+      cy.get('input[type="file"]').attachFile({
+        fileContent: content,
+        fileName: "test.pdf",
+        mimeType: "application/pdf",
+      })
+    })
+    cy.contains("Document uploaded successfully").should("exist")
+    cy.takeScreenshot("13_upload_document")
   })
 })
