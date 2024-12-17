@@ -18,7 +18,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 1. Create a Committee {#1-create-a-committee}
 
-**Test Action:** Visit the Committees page, create a new committee, and verify it is created successfully.
+**Flow:** Visit the Committees page, create a new committee, and verify it is created successfully.
 
 #### Steps
 
@@ -47,7 +47,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 2. Verify Committee in List {#2-verify-committee-in-list}
 
-**Test Action:** Return to the committees list and verify the newly created committee is visible.
+**Flow:** Return to the committees list and verify the newly created committee is visible.
 
 #### Steps
 
@@ -60,7 +60,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 3. Add a Member to the Committee {#3-add-a-member-to-the-committee}
 
-**Test Action:** Open the committee details page, add a new member (admin) to the committee, and verify the action was successful.
+**Flow:** Open the committee details page, add a new member (admin) to the committee, and verify the action was successful.
 
 #### Steps
 
@@ -89,7 +89,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 4. Attach Committee to a Policy {#4-attach-committee-to-a-policy}
 
-**Test Action:** Visit the policies page, assign the previously created committee to a policy, and verify the assignment.
+**Flow:** Visit the policies page, assign the previously created committee to a policy, and verify the assignment.
 
 #### Steps
 
@@ -113,7 +113,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 5. View Pending Actions {#5-view-pending-actions}
 
-**Test Action:** Initiate a deposit and withdrawal for a customer, then visit the actions page to verify pending approvals.
+**Flow:** Initiate a deposit and withdrawal for a customer, then visit the actions page to verify pending approvals.
 
 #### Steps
 
@@ -129,7 +129,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 6. Approve a Process {#6-approve-a-process}
 
-**Test Action:** As a committee member, approve a process (e.g., approving a withdrawal assigned to the committee).
+**Flow:** As a committee member, approve a process (e.g., approving a withdrawal assigned to the committee).
 
 #### Steps
 
@@ -150,7 +150,7 @@ This guide provides the steps for creating a committee, adding members, attachin
 
 ### 7. Deny a Process {#7-deny-a-process}
 
-**Test Action:** As a committee member, deny a process (e.g., denying a withdrawal assigned to the committee).
+**Flow:** As a committee member, deny a process (e.g., denying a withdrawal assigned to the committee).
 
 #### Steps
 
