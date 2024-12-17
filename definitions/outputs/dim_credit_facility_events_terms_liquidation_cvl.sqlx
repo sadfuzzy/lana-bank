@@ -9,7 +9,7 @@ config {
 
 WITH distinct_entries AS (
     SELECT DISTINCT
-        JSON_VALUE(event, "$.terms.liquidation_cvl") AS terms_liquidation_cvl
+        CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC) AS terms_liquidation_cvl
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
     WHERE event_type = "initialized"
 )

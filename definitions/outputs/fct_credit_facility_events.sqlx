@@ -24,6 +24,7 @@ config {
             "completed_at_date_key",
             "facility"],
     },
+    tags: ["current-dev"]
 }
 
 WITH initialized AS (
@@ -48,13 +49,13 @@ WITH initialized AS (
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
     LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} AS t2 ON t2.customer_id = JSON_VALUE(event, "$.customer_id")
     LEFT JOIN ${ref("dim_credit_facility_events_terms_accrual_interval_type")} AS t3 ON t3.terms_accrual_interval_type = JSON_VALUE(event, "$.terms.accrual_interval.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} AS t4 ON t4.terms_annual_rate = JSON_VALUE(event, "$.terms.annual_rate")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} AS t4 ON t4.terms_annual_rate = CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC)
     LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_type")} AS t5 ON t5.terms_duration_type = JSON_VALUE(event, "$.terms.duration.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} AS t6 ON t6.terms_duration_value = JSON_VALUE(event, "$.terms.duration.value")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} AS t6 ON t6.terms_duration_value = CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER)
     LEFT JOIN ${ref("dim_credit_facility_events_terms_incurrence_interval_type")} AS t7 ON t7.terms_incurrence_interval_type = JSON_VALUE(event, "$.terms.incurrence_interval.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t8 ON t8.terms_initial_cvl = JSON_VALUE(event, "$.terms.initial_cvl")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t9 ON t9.terms_liquidation_cvl = JSON_VALUE(event, "$.terms.liquidation_cvl")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t10 ON t10.terms_margin_call_cvl = JSON_VALUE(event, "$.terms.margin_call_cvl")
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t8 ON t8.terms_initial_cvl = CAST(JSON_VALUE(event, "$.terms.initial_cvl") AS NUMERIC)
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t9 ON t9.terms_liquidation_cvl = CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC)
+    LEFT JOIN ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t10 ON t10.terms_margin_call_cvl = CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC)
     WHERE cfe.event_type = "initialized"
 
 ), approval_process_started AS (
