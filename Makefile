@@ -1,4 +1,4 @@
-dev-up:
+dev-up: reset-tf-state
 	cd dev && tilt up
 
 dev-down:
@@ -117,6 +117,9 @@ ngrok:
 
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
+
+test-cypress-in-ci-through-browserstack:
+	cd apps/admin-panel && pnpm run cypress:run:browserstack
 
 push-dataform-branch:
 	git push -f origin HEAD:${DATAFORM_BRANCH}

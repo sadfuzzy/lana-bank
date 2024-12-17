@@ -4,14 +4,9 @@ set -eu
 
 EXECUTION_MODE="${1:-ui}"
 
-if [[ $BACKEND_ENV == "development" ]]; then
-  ADMIN_URL="http://localhost:4455/admin-panel"
-  MAILHOG_URL="http://localhost:8025"
-  email="admin%40galoy.io"
-else
-  ADMIN_URL="https://admin.staging.lava.galoy.io"
-  email="galoysuperuser%40mailinator.com"
-fi
+ADMIN_URL="http://localhost:4455/admin-panel"
+MAILHOG_URL="http://localhost:8025"
+email="admin%40galoy.io"
 
 CACHE_DIR=/tmp/lava-cache
 rm -rf $CACHE_DIR || true
@@ -20,10 +15,6 @@ mkdir -p $CACHE_DIR
 cookie_jar() {
   echo "$CACHE_DIR/$1.jar"
 }
-
-pushd cypress/mailinator-fetch-inbox
-nix develop -c pnpm i
-popd
 
 common_headers=(
   -b "$(cookie_jar 'admin')"
@@ -56,54 +47,37 @@ get_magiclink_local() {
     sed 's/=3D/=/g; s/%3A/:/g; s/%2F/\//g; s/%3F/?/g; s/%3D/=/g; s/%26/\&/g; s/%40/@/g'
 }
 
-if [[ $BACKEND_ENV == "development" ]]; then
-    echo "==================== Fetching authentication link locally from mailhog ===================="
-    LINK=$(get_magiclink_local)
-    if [[ -z "$LINK" ]]; then
-        echo "Error: Could not retrieve magic link"
-        exit 1
-    fi
-else
-    echo "==================== Fetching authentication link from mailinator ===================="
-    pushd cypress/mailinator-fetch-inbox
-      LINK=$(nix develop -c node index.js galoysuperuser admin@lava.galoy.io | jq -r '.clickablelinks[].link')
-    popd
-fi
-
-export MAGIC_LINK="$LINK"
+echo "==================== Fetching authentication link locally from mailhog ===================="
+export MAGIC_LINK="$(get_magiclink_local)"
 echo MAGIC_LINK: $MAGIC_LINK
-
 if [[ $MAGIC_LINK == "" ]]; then
   echo "Error: Could not retrieve magic link"
   exit 1
 fi
 
+# This is a workaround to work with cypress and the bundler module resolution
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
-
 sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
 
 echo "==================== Running cypress ===================="
-
-if [[ $BACKEND_ENV == "development" && $EXECUTION_MODE == "ui" ]]; then
-  nix develop -c pnpm run cypress:open-local
-elif [[ $BACKEND_ENV == "development" && $EXECUTION_MODE == "headless" ]]; then
+if [[ $EXECUTION_MODE == "ui" ]]; then
   nix develop -c pnpm run cypress:run-local
-elif [[ $BACKEND_ENV == "development" ]]; then
-  nix develop -c pnpm run cypress:open-local
-else
-  rm -rf build_artifacts || true
-  pushd cypress/manuals
-    rm -rf screenshots || true
-    rm -rf results || true
-  popd
+elif [[ $EXECUTION_MODE == "headless" ]]; then
+  nix develop -c pnpm run cypress:run-headless
+elif [[ $EXECUTION_MODE == "browserstack" ]]; then
+  nix develop -c pnpm run cypress:run-browserstack
+fi
 
-  nix develop -c pnpm run cypress:open-browserstack
-  mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+if uname -a | grep -q Linux; then
+  if [[ $EXECUTION_MODE == "browserstack" ]]; then
+    mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+  else
+    mv cypress/screenshots cypress/manuals
+  fi
+
   cd cypress/manuals
   mkdir -p results
 
   pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
-  pandoc terms-templates.md -o results/terms-templates.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
-  pandoc credit-facilities.md -o results/credit-facilities.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
 fi
