@@ -12,7 +12,7 @@ Visit the **Regulatory Reporting** page to start managing reports.
 
 ## Step 2: Generate a New Report
 
-Click the **Generate Report** button to initiate report creation.
+Click the **Generate Report** button to initiate report creation, and then click **Create Report** to begin the process.
 
 ![Generate Report Button](./screenshots/reporting.cy.ts/1_generate_report_button.png)
 
@@ -20,24 +20,9 @@ Click the **Generate Report** button to initiate report creation.
 
 <!-- new-page -->
 
-## Step 3: Confirm Report Creation
+## Step 3: Verify Report Creation Success
 
-A dialog will appear:
-
-1. Ensure the dialog title reads **"Create New Report"**.
-2. Verify the description says **"Are you sure you want to create a new report?"**
-
-Click **Create** to proceed.
-
-![Report Creation Dialog](./screenshots/reporting.cy.ts/2_create_report_dialog.png)
-
----
-
-<!-- new-page -->
-
-## Step 4: Verify Report Creation Success
-
-After clicking create, a success message **"Report creation started"** will appear.
+After clicking **Create Report**, a success message **"Report creation started"** will appear.
 
 ![Report Creation Success](./screenshots/reporting.cy.ts/3_report_creation_success.png)
 
@@ -45,25 +30,14 @@ After clicking create, a success message **"Report creation started"** will appe
 
 <!-- new-page -->
 
-## Step 5: View Report Details
+## Step 4: View Report Details
 
 Once the report is created, verify the following details:
 
-### 5.1 Report Status
+- Confirm the **Report Status** is displayed.
+- Ensure the **Download Options** for the report are available. You can click the **Generate Link** button to download the report when the report status is "Success."
 
-Confirm the **Report Status** is displayed.
-
-![Report Status](./screenshots/reporting.cy.ts/4_report_status.png)
-
----
-
-<!-- new-page -->
-
-### 5.2 Report Downloads
-
-Ensure the Download Options for the report are available. You can click the Generate Link button to download the report when the report status is "Success."
-
-![Report Downloads](./screenshots/reporting.cy.ts/5_report_details.png)
+![Report Details](./screenshots/reporting.cy.ts/4_report_status.png)
 
 ---
 
