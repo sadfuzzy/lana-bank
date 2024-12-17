@@ -76,6 +76,10 @@ img {
     margin: 0 !important;
     padding: 0 !important;
 }
+a {
+    color: #0066cc;
+    text-decoration: underline;
+}
 EOL
 
     # First, preprocess the markdown to convert special page break markers to HTML
@@ -85,6 +89,7 @@ EOL
         -o "results/${file%.md}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \
+        --pdf-engine-opt=--enable-internal-links \
         --pdf-engine-opt=--print-media-type \
         --pdf-engine-opt=--no-stop-slow-scripts \
         -V papersize=a4 \
