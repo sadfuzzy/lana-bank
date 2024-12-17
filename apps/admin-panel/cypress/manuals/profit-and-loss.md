@@ -12,6 +12,8 @@ Navigate to the Profit and Loss Statement page to see all categories and their r
 
 ---
 
+<!-- new-page -->
+
 ### Step 2: Switch Between Currency Types
 
 You can switch between **USD** and **BTC** using the currency options.
@@ -19,6 +21,8 @@ You can switch between **USD** and **BTC** using the currency options.
 ![Switch to BTC](./screenshots/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
 
 ---
+
+<!-- new-page -->
 
 ### Step 3: Switch Between Balance Layers
 

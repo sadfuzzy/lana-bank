@@ -3,9 +3,9 @@ for file in *.md; do
 body {
     width: 100%;
     margin: 0;
-    padding: 10mm;
+    padding: 5mm;
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    line-height: 1.6;
+    line-height: 1.4;
     font-size: 16px;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -34,7 +34,7 @@ figcaption {
     margin: 10px 0;
 }
 p {
-    margin: 1em 0;
+    margin: 0.5em 0;
     max-width: 100%;
     box-sizing: border-box;
     word-break: normal;
@@ -51,7 +51,6 @@ p img + em {
     margin-top: 5px;
 }
 h1, h2, h3, h4, h5, h6 {
-    line-height: 1.4;
     max-width: 100%;
     box-sizing: border-box;
     word-break: normal;
@@ -61,8 +60,28 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 100%;
     box-sizing: border-box;
 }
+
+hr {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    margin: 1.5em 0;
+}
+
+img {
+    page-break-inside: avoid;
+}
+
+.pb {
+    page-break-before: always !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
 EOL
-    pandoc "$file" \
+
+    # First, preprocess the markdown to convert special page break markers to HTML
+    sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
+    
+    pandoc "temp.md" \
         -o "results/${file%.md}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \
@@ -70,10 +89,8 @@ EOL
         --pdf-engine-opt=--no-stop-slow-scripts \
         -V papersize=a4 \
         --css temp.css \
-        -V margin-top=10mm \
-        -V margin-right=15mm \
-        -V margin-bottom=10mm \
-        -V margin-left=15mm
+        -V margin-top=5mm -V margin-right=5mm -V margin-bottom=5mm -V margin-left=5mm
     echo "Converted $file to results/${file%.md}.pdf"
+    rm temp.md
 done
 rm temp.css

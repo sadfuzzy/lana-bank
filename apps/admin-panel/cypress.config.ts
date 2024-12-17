@@ -23,6 +23,7 @@ export default defineConfig({
     defaultCommandTimeout: 10000,
     requestTimeout: 10000,
     video: false,
+    screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       MAGIC_LINK: process.env.MAGIC_LINK,
     },
