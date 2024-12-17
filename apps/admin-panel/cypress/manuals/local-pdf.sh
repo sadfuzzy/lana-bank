@@ -63,7 +63,7 @@ h1, h2, h3, h4, h5, h6 {
 
 hr {
     border: none;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid;
     margin: 1.5em 0;
 }
 
@@ -94,7 +94,7 @@ EOL
         --pdf-engine-opt=--no-stop-slow-scripts \
         -V papersize=a4 \
         --css temp.css \
-        -V margin-top=5mm -V margin-right=5mm -V margin-bottom=5mm -V margin-left=5mm
+        -V margin-top=10mm -V margin-right=5mm -V margin-bottom=5mm -V margin-left=5mm
     echo "Converted $file to results/${file%.md}.pdf"
     rm temp.md
 done
