@@ -38,6 +38,54 @@ describe("credit facility", () => {
     })
   })
 
+  it("should add admin to credit facility and disbursal approvers", () => {
+    const committeeName = `${Date.now()}-CF-and-Disbursal-Approvers`
+    cy.visit("/committees")
+    cy.get('[data-testid="global-create-button"]').click()
+    cy.get('[data-testid="committee-create-name-input"]')
+      .type(committeeName)
+      .should("have.value", committeeName)
+    cy.get('[data-testid="committee-create-submit-button"]').click()
+    cy.contains("Committee created successfully").should("be.visible")
+
+    cy.get('[data-testid="committee-add-member-button"]').click()
+    cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
+    cy.get('[role="option"]')
+      .contains("admin")
+      .then((option) => {
+        cy.wrap(option).click()
+        cy.get('[data-testid="committee-add-user-submit-button"]').click()
+        cy.contains("User added to committee successfully").should("be.visible")
+        cy.contains(option.text().split(" ")[0]).should("be.visible")
+      })
+
+    cy.visit(`/policies`)
+    cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').should(
+      "be.visible",
+    )
+    cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').click()
+    cy.get('[data-testid="policy-assign-committee"]').click()
+    cy.get('[data-testid="policy-select-committee-selector"]').click()
+    cy.get('[role="option"]').contains(committeeName).click()
+    cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
+    cy.get("[data-testid=policy-assign-committee-submit-button]").click()
+    cy.contains("Committee assigned to policy successfully").should("be.visible")
+    cy.contains(committeeName).should("be.visible")
+
+    cy.visit(`/policies`)
+    cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').should(
+      "be.visible",
+    )
+    cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').click()
+    cy.get('[data-testid="policy-assign-committee"]').click()
+    cy.get('[data-testid="policy-select-committee-selector"]').click()
+    cy.get('[role="option"]').contains(committeeName).click()
+    cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
+    cy.get("[data-testid=policy-assign-committee-submit-button]").click()
+    cy.contains("Committee assigned to policy successfully").should("be.visible")
+    cy.contains(committeeName).should("be.visible")
+  })
+
   it("should create a credit facility and verify initial state", () => {
     cy.visit(`/customers/${customerId}`)
     cy.get('[data-testid="loading-skeleton"]').should("not.exist")
@@ -75,7 +123,7 @@ describe("credit facility", () => {
     cy.takeScreenshot("credit_facility_in_list")
   })
 
-  it("should update collateral and activate the credit facility", () => {
+  it("should update collateral, approve and activate the credit facility", () => {
     const creditFacilityId = Cypress.env("creditFacilityId")
     expect(creditFacilityId).to.exist
 
@@ -109,13 +157,24 @@ describe("credit facility", () => {
           .click()
 
         cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
+
+        cy.get('[data-testid="credit-facility-approve-button"]')
+          .should("be.visible")
+          .click()
         cy.wait(5000).then(() => {
-          cy.reload().then(() => {
-            cy.get("[data-testid=credit-facility-status-badge]")
-              .should("be.visible")
-              .invoke("text")
-              .should("eq", "ACTIVE")
-            cy.takeScreenshot("10_verify_active_status")
+          cy.takeScreenshot("9_1_approve")
+          cy.get('[data-testid="approval-process-dialog-approve-button"]')
+            .should("be.visible")
+            .click()
+
+          cy.wait(5000).then(() => {
+            cy.reload().then(() => {
+              cy.get("[data-testid=credit-facility-status-badge]")
+                .should("be.visible")
+                .invoke("text")
+                .should("eq", "ACTIVE")
+              cy.takeScreenshot("10_verify_active_status")
+            })
           })
         })
       })
@@ -149,11 +208,21 @@ describe("credit facility", () => {
     cy.takeScreenshot("15_disbursal_page")
     cy.takeScreenshot("16_disbursal_success_message")
 
-    cy.get('[data-testid="disbursal-status-badge"]')
-      .should("be.visible")
-      .invoke("text")
-      .should("eq", "CONFIRMED")
-    cy.takeScreenshot("17_verify_disbursal_status_confirmed")
+    cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
+    cy.wait(5000).then(() => {
+      cy.takeScreenshot("16_1_approve")
+      cy.get('[data-testid="approval-process-dialog-approve-button"]')
+        .should("be.visible")
+        .click()
+
+      cy.wait(5000).then(() => {
+        cy.get('[data-testid="disbursal-status-badge"]')
+          .should("be.visible")
+          .invoke("text")
+          .should("eq", "CONFIRMED")
+        cy.takeScreenshot("17_verify_disbursal_status_confirmed")
+      })
+    })
   })
 
   it("should show disbursal in the list page", () => {

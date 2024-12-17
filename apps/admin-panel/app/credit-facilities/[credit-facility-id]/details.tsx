@@ -106,10 +106,18 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         ApprovalProcessStatus.InProgress &&
         creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
           <>
-            <Button variant="outline" onClick={() => setOpenApprovalDialog(true)}>
+            <Button
+              data-testid="credit-facility-approve-button"
+              variant="outline"
+              onClick={() => setOpenApprovalDialog(true)}
+            >
               Approve
             </Button>
-            <Button variant="outline" onClick={() => setOpenDenialDialog(true)}>
+            <Button
+              data-testid="credit-facility-deny-button"
+              variant="outline"
+              onClick={() => setOpenDenialDialog(true)}
+            >
               Deny
             </Button>
           </>

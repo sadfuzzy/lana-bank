@@ -58,10 +58,18 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
         disbursal.approvalProcess.subjectCanSubmitDecision && (
           <>
-            <Button onClick={() => setOpenApprovalDialog(true)} variant="outline">
+            <Button
+              data-testid="disbursal-approve-button"
+              onClick={() => setOpenApprovalDialog(true)}
+              variant="outline"
+            >
               Approve
             </Button>
-            <Button onClick={() => setOpenDenialDialog(true)} variant="outline">
+            <Button
+              data-testid="disbursal-deny-button"
+              onClick={() => setOpenDenialDialog(true)}
+              variant="outline"
+            >
               Deny
             </Button>
           </>

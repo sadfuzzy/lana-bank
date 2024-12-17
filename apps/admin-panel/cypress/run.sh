@@ -68,16 +68,3 @@ elif [[ $EXECUTION_MODE == "headless" ]]; then
 elif [[ $EXECUTION_MODE == "browserstack" ]]; then
   nix develop -c pnpm run cypress:run-browserstack
 fi
-
-if uname -a | grep -q Linux; then
-  if [[ $EXECUTION_MODE == "browserstack" ]]; then
-    mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
-  else
-    mv cypress/screenshots cypress/manuals
-  fi
-
-  cd cypress/manuals
-  mkdir -p results
-
-  pandoc customers.md -o results/customers.pdf --pdf-engine=wkhtmltopdf -V margin-top=3 -V margin-left=0 -V margin-right=0 -V margin-bottom=3 -V papersize=a4
-fi
