@@ -1,5 +1,11 @@
 # Lana bank
 
+**to run entire stack**
+```bash
+make dev-up # Bring the stack up
+make dev-down # Bring the stack down
+```
+
 **to run (unit) tests:**
 
 ```bash
