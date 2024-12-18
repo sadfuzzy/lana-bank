@@ -72,4 +72,61 @@ describe("Customers", () => {
     cy.contains("Document uploaded successfully").should("exist")
     cy.takeScreenshot("13_upload_document")
   })
+
+  it("KYC verification", () => {
+    cy.intercept("POST", "/admin/graphql", (req) => {
+      if (req.body.operationName === "sumsubPermalinkCreate") {
+        req.reply({
+          statusCode: 200,
+          headers: {
+            "content-type": "application/json",
+          },
+          body: {
+            data: {
+              sumsubPermalinkCreate: {
+                url: "https://in.sumsub.com/test/link",
+                __typename: "SumsubPermalinkCreatePayload",
+              },
+            },
+          },
+        })
+      }
+    }).as("sumsubPermalink")
+
+    cy.visit(`/customers/${testCustomerId}`)
+    cy.takeScreenshot("14_customer_kyc_details_page")
+
+    cy.get('[data-testid="customer-create-kyc-link"]').click()
+    cy.contains("https://in.sumsub.com/test/link")
+      .should("be.visible")
+      .and("have.attr", "href", "https://in.sumsub.com/test/link")
+    cy.takeScreenshot("15_kyc_link_created")
+
+    cy.request({
+      method: "POST",
+      url: "http://localhost:5253/sumsub/callback",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: {
+        applicantId: "5cb56e8e0a975a35f333cb83",
+        inspectionId: "5cb56e8e0a975a35f333cb84",
+        correlationId: "req-a260b669-4f14-4bb5-a4c5-ac0218acb9a4",
+        externalUserId: testCustomerId,
+        levelName: "basic-kyc-level",
+        type: "applicantReviewed",
+        reviewResult: {
+          reviewAnswer: "GREEN",
+        },
+        reviewStatus: "completed",
+        createdAtMs: "2020-02-21 13:23:19.321",
+      },
+    }).then((response) => {
+      expect(response.status).to.eq(200)
+    })
+
+    cy.reload()
+    cy.contains("Basic").should("be.visible")
+    cy.takeScreenshot("16_kyc_status_updated")
+  })
 })

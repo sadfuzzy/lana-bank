@@ -1,6 +1,6 @@
 # Customers
 
-This guide provides the steps for creating a new customer, verifying their information, and managing their documents.
+This guide provides the steps for creating a new customer, verifying their information, managing their documents, and completing KYC verification.
 
 ---
 
@@ -9,6 +9,7 @@ This guide provides the steps for creating a new customer, verifying their infor
 1. [Create and Verify Customer](#1-create-and-verify-customer)
 2. [View Customer Details](#2-view-customer-details)
 3. [Manage Customer Documents](#3-manage-customer-documents)
+4. [KYC Verification](#4-kyc-verification)
 
 ---
 
@@ -76,3 +77,30 @@ This guide provides the steps for creating a new customer, verifying their infor
 2. Upload documents by clicking the Upload area or dragging and dropping a PDF file.
    After processing, the system will display a success message. You can then manage your documents by using the "View" button to open them or the "Delete" button to remove them from the system.
    ![Step 12: Document Upload](./screenshots/customers.cy.ts/13_upload_document.png)
+
+---
+
+<!-- new-page -->
+
+### 4. KYC Verification {#4-kyc-verification}
+
+**Flow:** Complete the Know Your Customer (KYC) verification process for the customer.
+
+#### Steps
+
+1. Navigate to the customer's details page to access KYC features.  
+   From here, you can start the customer's KYC verification process.  
+   Click on "Create link" below the "KYC Application Link" detail to generate a unique verification URL that can be shared with the customer, allowing them to start their verification process.  
+   ![Step 13: Customer KYC Details Page](./screenshots/customers.cy.ts/14_customer_kyc_details_page.png)
+
+2. Generate a KYC verification link.  
+   Once generated, the link will be displayed and ready to share with the customer, enabling them to complete the process.  
+   ![Step 14: KYC Link Generated](./screenshots/customers.cy.ts/15_kyc_link_created.png)
+
+<!-- new-page -->
+
+3. View the updated KYC status.  
+   After the customer completes the verification process, their KYC status will be updated to reflect their verification level and completion status. You can visit the KYC provider platform (SumSub) by clicking on the applicant ID below the "KYC Application Link," where you can see the customer details they provided during the KYC process.  
+   ![Step 15: Updated KYC Status](./screenshots/customers.cy.ts/16_kyc_status_updated.png)
+
+**Note:** The KYC verification process is completed by the customer through the provided link. Once completed, the status will automatically update to reflect the verification level and completion status.

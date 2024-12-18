@@ -82,6 +82,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
               onClick={handleCreateLink}
               className="text-blue-500 flex gap-1 items-center"
               disabled={linkLoading}
+              data-testid="customer-create-kyc-link"
             >
               <HiLink />
               {linkLoading ? "creating link..." : "Create link"}
