@@ -9,7 +9,10 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/tab"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
-import { useGetCreditFacilityBasicDetailsQuery } from "@/lib/graphql/generated"
+import {
+  CreditFacilityStatus,
+  useGetCreditFacilityBasicDetailsQuery,
+} from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 
 gql`
@@ -63,9 +66,20 @@ export default function CreditFacilityLayout({
   const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
-  const { data, loading, error, refetch } = useGetCreditFacilityBasicDetailsQuery({
-    variables: { id: creditFacilityId },
-  })
+  const { data, loading, error, refetch, startPolling, stopPolling } =
+    useGetCreditFacilityBasicDetailsQuery({
+      variables: { id: creditFacilityId },
+    })
+
+  useEffect(() => {
+    if (data?.creditFacility?.status === CreditFacilityStatus.PendingApproval) {
+      startPolling(3000)
+    }
+
+    return () => {
+      stopPolling()
+    }
+  }, [data?.creditFacility?.status, startPolling, stopPolling])
 
   useEffect(() => {
     if (data?.creditFacility) {

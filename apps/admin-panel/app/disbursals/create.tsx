@@ -15,6 +15,7 @@ import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
 import {
+  AllActionsDocument,
   DisbursalsDocument,
   useCreditFacilityDisbursalInitiateMutation,
 } from "@/lib/graphql/generated"
@@ -56,7 +57,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
   const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
-      refetchQueries: [DisbursalsDocument],
+      refetchQueries: [DisbursalsDocument, AllActionsDocument],
     })
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
