@@ -16,7 +16,6 @@ import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
 import {
   DisbursalsDocument,
-  GetCreditFacilityDetailsDocument,
   useCreditFacilityDisbursalInitiateMutation,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
@@ -30,7 +29,16 @@ gql`
         id
         disbursalId
         index
-        disbursalId
+        amount
+        status
+        createdAt
+        creditFacility {
+          id
+          disbursals {
+            ...DisbursalOnFacilityPage
+          }
+          ...CreditFacilityTransactionsFragment
+        }
       }
     }
   }
@@ -48,7 +56,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
   const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
-      refetchQueries: [GetCreditFacilityDetailsDocument, DisbursalsDocument],
+      refetchQueries: [DisbursalsDocument],
     })
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)

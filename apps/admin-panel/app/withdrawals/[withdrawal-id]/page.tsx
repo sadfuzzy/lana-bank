@@ -29,39 +29,7 @@ gql`
       }
     }
     approvalProcess {
-      id
-      approvalProcessId
-      deniedReason
-      approvalProcessType
-      createdAt
-      subjectCanSubmitDecision
-      status
-      rules {
-        ... on CommitteeThreshold {
-          threshold
-          committee {
-            name
-            currentMembers {
-              email
-              roles
-            }
-          }
-        }
-        ... on SystemApproval {
-          autoApprove
-        }
-      }
-      voters {
-        stillEligible
-        didVote
-        didApprove
-        didDeny
-        user {
-          userId
-          email
-          roles
-        }
-      }
+      ...ApprovalProcessFields
     }
   }
 

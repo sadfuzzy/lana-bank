@@ -2,13 +2,13 @@
 
 import React from "react"
 
-import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
+import { GetCreditFacilityTermsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityTermsProps = {
-  creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<GetCreditFacilityTermsQuery["creditFacility"]>
 }
 
 const CreditFacilityTerms: React.FC<CreditFacilityTermsProps> = ({ creditFacility }) => {

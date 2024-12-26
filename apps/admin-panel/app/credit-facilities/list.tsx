@@ -49,14 +49,17 @@ gql`
             disbursed
             total
           }
-          customer {
-            customerId
-            email
-          }
           balance {
+            collateral {
+              btcBalance
+            }
             outstanding {
               usdBalance
             }
+          }
+          customer {
+            customerId
+            email
           }
         }
       }

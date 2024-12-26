@@ -4,18 +4,15 @@ import React from "react"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
-import { CreditFacilityApproveDialog } from "../approve"
-
-import { CreditFacilityDisbursalInitiateDialog } from "../disbursal-initiate"
+import { CreditFacilityDisbursalInitiateDialog } from "../../disbursals/create"
 
 import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
 
 import {
   ApprovalProcess,
   ApprovalProcessStatus,
-  CreditFacility,
   CreditFacilityStatus,
-  GetCreditFacilityDetailsQuery,
+  GetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
@@ -28,7 +25,7 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
-  creditFacilityDetails: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  creditFacilityDetails: NonNullable<GetCreditFacilityBasicDetailsQuery["creditFacility"]>
   refetch: () => void
 }
 
@@ -43,7 +40,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     React.useState(false)
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
-  const [openApproveDialog, setOpenApproveDialog] = React.useState(false)
   const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
   const details: DetailItemProps[] = [
@@ -143,11 +139,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         creditFacilityId={creditFacilityId}
         openDialog={openDisbursalInitiateDialog}
         setOpenDialog={setOpenDisbursalInitiateDialog}
-      />
-      <CreditFacilityApproveDialog
-        creditFacilityDetails={creditFacilityDetails as CreditFacility}
-        openDialog={openApproveDialog}
-        setOpenDialog={setOpenApproveDialog}
       />
       <CreditFacilityPartialPaymentDialog
         creditFacilityId={creditFacilityId}

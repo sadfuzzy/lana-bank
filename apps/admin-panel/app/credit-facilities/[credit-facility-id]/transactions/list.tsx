@@ -5,7 +5,7 @@ import React from "react"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import {
-  GetCreditFacilityDetailsQuery,
+  GetCreditFacilityTransactionsQuery,
   CreditFacilityHistoryEntry,
   CollateralAction,
 } from "@/lib/graphql/generated"
@@ -24,7 +24,7 @@ const formatTransactionTypeWithoutPrefix = (type: string) => {
 }
 
 type CreditFacilityTransactionsProps = {
-  creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<GetCreditFacilityTransactionsQuery["creditFacility"]>
 }
 
 export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProps> = ({

@@ -7,7 +7,7 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CreditFacilityStatus,
   DisbursalStatus,
-  GetCreditFacilityDetailsQuery,
+  GetCreditFacilityOverviewQuery,
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, SATS_PER_BTC, formatDate } from "@/lib/utils"
 import { UsdCents } from "@/types"
@@ -15,7 +15,7 @@ import { UsdCents } from "@/types"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 type CreditFacilityOverviewProps = {
-  creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<GetCreditFacilityOverviewQuery["creditFacility"]>
 }
 
 export const CreditFacilityOverview: React.FC<CreditFacilityOverviewProps> = ({

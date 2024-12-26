@@ -22,13 +22,48 @@ import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
 
 gql`
+  fragment ApprovalProcessFields on ApprovalProcess {
+    id
+    approvalProcessId
+    deniedReason
+    approvalProcessType
+    createdAt
+    subjectCanSubmitDecision
+    status
+    rules {
+      ... on CommitteeThreshold {
+        threshold
+        committee {
+          name
+          currentMembers {
+            id
+            email
+            roles
+          }
+        }
+      }
+      ... on SystemApproval {
+        autoApprove
+      }
+    }
+    voters {
+      stillEligible
+      didVote
+      didApprove
+      didDeny
+      user {
+        id
+        userId
+        email
+        roles
+      }
+    }
+  }
+
   mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
     approvalProcessApprove(input: $input) {
       approvalProcess {
-        id
-        approvalProcessId
-        approvalProcessType
-        createdAt
+        ...ApprovalProcessFields
       }
     }
   }

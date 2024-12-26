@@ -25,10 +25,7 @@ gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {
     approvalProcessDeny(input: $input, reason: $reason) {
       approvalProcess {
-        id
-        approvalProcessId
-        approvalProcessType
-        createdAt
+        ...ApprovalProcessFields
       }
     }
   }

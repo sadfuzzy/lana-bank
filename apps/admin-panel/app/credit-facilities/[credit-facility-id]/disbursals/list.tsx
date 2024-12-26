@@ -3,18 +3,18 @@
 import React from "react"
 
 import CardWrapper from "@/components/card-wrapper"
-import { GetCreditFacilityDetailsQuery } from "@/lib/graphql/generated"
+import { GetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { formatDate } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type Disbursal = NonNullable<
-  GetCreditFacilityDetailsQuery["creditFacility"]
+  GetCreditFacilityDisbursalsQuery["creditFacility"]
 >["disbursals"][number]
 
 type CreditFacilityDisbursalsProps = {
-  creditFacility: NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<GetCreditFacilityDisbursalsQuery["creditFacility"]>
 }
 
 export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> = ({

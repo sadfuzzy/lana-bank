@@ -24,9 +24,9 @@ gql`
         facilityAmount
         status
         customer {
+          id
           email
           customerId
-          id
           balance {
             checking {
               settled
@@ -36,40 +36,7 @@ gql`
         }
       }
       approvalProcess {
-        approvalProcessId
-        deniedReason
-        approvalProcessType
-        createdAt
-        subjectCanSubmitDecision
-        status
-        rules {
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              name
-              currentMembers {
-                id
-                email
-                roles
-              }
-            }
-          }
-          ... on SystemApproval {
-            autoApprove
-          }
-        }
-        voters {
-          stillEligible
-          didVote
-          didApprove
-          didDeny
-          user {
-            id
-            userId
-            email
-            roles
-          }
-        }
+        ...ApprovalProcessFields
       }
     }
   }
