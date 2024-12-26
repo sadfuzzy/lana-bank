@@ -28,9 +28,7 @@ gql`
   mutation UserCreate($input: UserCreateInput!) {
     userCreate(input: $input) {
       user {
-        userId
-        email
-        roles
+        ...UserFields
       }
     }
   }
@@ -39,26 +37,20 @@ gql`
 type CreateUserDialogProps = {
   setOpenCreateUserDialog: (isOpen: boolean) => void
   openCreateUserDialog: boolean
-  refetch?: () => void
 }
 
 export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   setOpenCreateUserDialog,
   openCreateUserDialog,
-  refetch,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenCreateUserDialog(false),
   })
+  const [createUser, { loading: creatingUser }] = useUserCreateMutation({
+    refetchQueries: [UsersDocument],
+  })
 
-  const [createUser, { loading: creatingUser, reset: resetCreateUser }] =
-    useUserCreateMutation({
-      refetchQueries: [UsersDocument],
-    })
-  const [assignRole, { loading: assigningRole, reset: resetAssignRole }] =
-    useUserAssignRoleMutation({
-      refetchQueries: [UsersDocument],
-    })
+  const [assignRole, { loading: assigningRole }] = useUserAssignRoleMutation()
 
   const [email, setEmail] = useState("")
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
@@ -123,7 +115,6 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   }
 
   const finalize = (userId: string) => {
-    if (refetch) refetch()
     navigate(`/users/${userId}`)
   }
 
@@ -140,8 +131,6 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     setError(null)
     setAssignRoleError(null)
     setIsSendingMagicLink(false)
-    resetCreateUser()
-    resetAssignRole()
   }
 
   const handleRoleToggle = (role: Role) => {

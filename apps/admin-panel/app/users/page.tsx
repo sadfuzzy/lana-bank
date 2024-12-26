@@ -10,20 +10,24 @@ import { Badge } from "@/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 
 gql`
+  fragment UserFields on User {
+    id
+    userId
+    email
+    roles
+    createdAt
+  }
+
   query Users {
     users {
-      userId
-      email
-      roles
+      ...UserFields
     }
   }
 
   mutation UserAssignRole($input: UserAssignRoleInput!) {
     userAssignRole(input: $input) {
       user {
-        userId
-        email
-        roles
+        ...UserFields
       }
     }
   }
@@ -31,9 +35,7 @@ gql`
   mutation UserRevokeRole($input: UserRevokeRoleInput!) {
     userRevokeRole(input: $input) {
       user {
-        userId
-        email
-        roles
+        ...UserFields
       }
     }
   }

@@ -40,12 +40,11 @@ type CreditFacilityDisbursalInitiateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
-  onSuccess?: () => void
 }
 
 export const CreditFacilityDisbursalInitiateDialog: React.FC<
   CreditFacilityDisbursalInitiateDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+> = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
@@ -71,7 +70,6 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
             )
             toast.success("Disbursal initiated successfully")
-            if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },

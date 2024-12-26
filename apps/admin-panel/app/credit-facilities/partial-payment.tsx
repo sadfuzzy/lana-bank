@@ -34,12 +34,11 @@ type CreditFacilityPartialPaymentDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
-  onSuccess?: () => void
 }
 
 export const CreditFacilityPartialPaymentDialog: React.FC<
   CreditFacilityPartialPaymentDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+> = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const [partialPaymentCreditFacility, { loading, reset }] =
     useCreditFacilityPartialPaymentMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
@@ -69,7 +68,6 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
         onCompleted: (data) => {
           if (data.creditFacilityPartialPayment) {
             toast.success("Partial payment processed successfully")
-            if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },

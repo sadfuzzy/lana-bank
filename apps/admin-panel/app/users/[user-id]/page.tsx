@@ -11,10 +11,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 gql`
   query GetUserDetails($id: UUID!) {
     user(id: $id) {
-      userId
-      email
-      roles
-      createdAt
+      ...UserFields
     }
   }
 `
@@ -29,7 +26,7 @@ function UserPage({
   const { "user-id": userId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
-  const { data, loading, error, refetch } = useGetUserDetailsQuery({
+  const { data, loading, error } = useGetUserDetailsQuery({
     variables: { id: userId },
   })
 
@@ -56,7 +53,7 @@ function UserPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <UserDetailsCard user={data.user} refetch={refetch} />
+      <UserDetailsCard user={data.user} />
     </main>
   )
 }

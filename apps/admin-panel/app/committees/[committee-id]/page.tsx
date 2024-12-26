@@ -15,15 +15,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 gql`
   query GetCommitteeDetails($id: UUID!) {
     committee(id: $id) {
-      id
-      committeeId
-      createdAt
-      name
-      currentMembers {
-        userId
-        email
-        roles
-      }
+      ...CommitteeFields
     }
   }
 `

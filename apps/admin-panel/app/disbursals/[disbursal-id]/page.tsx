@@ -26,6 +26,13 @@ gql`
         customer {
           email
           customerId
+          id
+          balance {
+            checking {
+              settled
+              pending
+            }
+          }
         }
       }
       approvalProcess {
@@ -41,6 +48,7 @@ gql`
             committee {
               name
               currentMembers {
+                id
                 email
                 roles
               }
@@ -56,6 +64,7 @@ gql`
           didApprove
           didDeny
           user {
+            id
             userId
             email
             roles

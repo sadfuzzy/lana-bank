@@ -11,44 +11,10 @@ gql`
     customer(id: $id) {
       id
       deposits {
-        createdAt
-        customerId
-        depositId
-        reference
-        amount
+        ...DepositFields
       }
       withdrawals {
-        status
-        reference
-        customerId
-        withdrawalId
-        createdAt
-        amount
-        customer {
-          customerId
-          email
-        }
-      }
-      transactions @client {
-        ... on Deposit {
-          createdAt
-          customerId
-          depositId
-          reference
-          amount
-        }
-        ... on Withdrawal {
-          status
-          reference
-          customerId
-          withdrawalId
-          createdAt
-          amount
-          customer {
-            customerId
-            email
-          }
-        }
+        ...WithdrawalFields
       }
     }
   }
@@ -62,6 +28,12 @@ export default function CustomerTransactionsPage({
   const { data } = useGetCustomerTransactionsQuery({
     variables: { id: params["customer-id"] },
   })
-  if (!data?.customer) return null
-  return <CustomerTransactionsTable transactions={data.customer.transactions} />
+  const transactions = [
+    ...(data?.customer?.deposits || []),
+    ...(data?.customer?.withdrawals || []),
+  ].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+  if (!transactions) return null
+  return <CustomerTransactionsTable transactions={transactions} />
 }

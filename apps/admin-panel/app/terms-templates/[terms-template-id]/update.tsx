@@ -15,7 +15,6 @@ import {
   InterestInterval,
   Period,
   TermsTemplate,
-  TermsTemplateDocument,
 } from "@/lib/graphql/generated"
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
@@ -33,22 +32,7 @@ gql`
   mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
     termsTemplateUpdate(input: $input) {
       termsTemplate {
-        id
-        termsId
-        name
-        values {
-          annualRate
-          accrualInterval
-          incurrenceInterval
-          liquidationCvl
-          marginCallCvl
-          initialCvl
-          oneTimeFeeRate
-          duration {
-            period
-            units
-          }
-        }
+        ...TermsTemplateFields
       }
     }
   }
@@ -57,20 +41,16 @@ gql`
 type UpdateTermsTemplateDialogProps = {
   setOpenUpdateTermsTemplateDialog: (isOpen: boolean) => void
   openUpdateTermsTemplateDialog: boolean
-  refetch?: () => void
   termsTemplate: TermsTemplate
 }
 
 export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps> = ({
   setOpenUpdateTermsTemplateDialog,
   openUpdateTermsTemplateDialog,
-  refetch,
   termsTemplate,
 }) => {
-  const [updateTermsTemplate, { loading, reset, error: updateTermsTemplateError }] =
-    useUpdateTermsTemplateMutation({
-      refetchQueries: [TermsTemplateDocument],
-    })
+  const [updateTermsTemplate, { loading, error: updateTermsTemplateError }] =
+    useUpdateTermsTemplateMutation()
 
   const [formValues, setFormValues] = useState({
     name: termsTemplate.name,
@@ -137,7 +117,6 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       })
       if (data?.termsTemplateUpdate.termsTemplate) {
         toast.success("Terms Template updated successfully")
-        if (refetch) refetch()
         setOpenUpdateTermsTemplateDialog(false)
       } else {
         throw new Error("Failed to update Terms Template. Please try again.")
@@ -169,7 +148,6 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
     })
     setError(null)
-    reset()
   }
 
   return (

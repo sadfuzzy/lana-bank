@@ -48,7 +48,7 @@ export default function CustomerLayout({
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
   const { setCustomer } = useCreateContext()
-  const { data, loading, error, refetch } = useGetCustomerBasicDetailsQuery({
+  const { data, loading, error } = useGetCustomerBasicDetailsQuery({
     variables: { id: customerId },
   })
 
@@ -81,7 +81,7 @@ export default function CustomerLayout({
 
   return (
     <main className="max-w-7xl m-auto">
-      <CustomerDetailsCard customer={data.customer} refetch={refetch} />
+      <CustomerDetailsCard customer={data.customer} />
       <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-2">
         <TabsList>
           {TABS.map((tab) => (

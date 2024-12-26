@@ -15,26 +15,23 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import {
-  AllActionsDocument,
-  CustomersDocument,
-  DepositsDocument,
-  useCreateDepositMutation,
-} from "@/lib/graphql/generated"
+import { DepositsDocument, useCreateDepositMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
   mutation CreateDeposit($input: DepositRecordInput!) {
     depositRecord(input: $input) {
       deposit {
-        depositId
-        amount
+        ...DepositFields
         customer {
-          customerId
-          email
+          id
+          deposits {
+            ...DepositFields
+          }
           balance {
             checking {
               settled
+              pending
             }
           }
         }
@@ -47,17 +44,15 @@ type CreateDepositDialgProps = {
   setOpenCreateDepositDialog: (isOpen: boolean) => void
   openCreateDepositDialog: boolean
   customerId: string
-  refetch?: () => void
 }
 
 export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   setOpenCreateDepositDialog,
   openCreateDepositDialog,
   customerId,
-  refetch,
 }) => {
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
-    refetchQueries: [DepositsDocument, AllActionsDocument],
+    refetchQueries: [DepositsDocument],
   })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
@@ -77,11 +72,9 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
             reference,
           },
         },
-        refetchQueries: [CustomersDocument, DepositsDocument],
       })
       if (result.data) {
         toast.success("Deposit created successfully")
-        if (refetch) refetch()
         handleCloseDialog()
       } else {
         throw new Error("No data returned from mutation")

@@ -17,8 +17,6 @@ import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
 import {
   AllActionsDocument,
-  CustomersDocument,
-  GetWithdrawalDetailsDocument,
   useWithdrawalInitiateMutation,
   WithdrawalsDocument,
 } from "@/lib/graphql/generated"
@@ -29,10 +27,12 @@ gql`
   mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
     withdrawalInitiate(input: $input) {
       withdrawal {
-        withdrawalId
-        amount
+        ...WithdrawalFields
         customer {
-          customerId
+          id
+          withdrawals {
+            ...WithdrawalFields
+          }
           balance {
             checking {
               settled
@@ -63,11 +63,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   const { customer } = useCreateContext()
 
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
-    refetchQueries: [
-      WithdrawalsDocument,
-      GetWithdrawalDetailsDocument,
-      AllActionsDocument,
-    ],
+    refetchQueries: [WithdrawalsDocument, AllActionsDocument],
   })
 
   const isLoading = loading || isNavigating
@@ -87,7 +83,6 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
             reference,
           },
         },
-        refetchQueries: [CustomersDocument],
         onCompleted: (data) => {
           toast.success("Withdrawal initiated successfully")
           navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)

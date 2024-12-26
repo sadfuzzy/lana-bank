@@ -11,25 +11,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog"
-import {
-  CommitteesDocument,
-  GetCommitteeDetailsDocument,
-  GetPolicyDetailsDocument,
-  useCommitteeRemoveUserMutation,
-} from "@/lib/graphql/generated"
+import { useCommitteeRemoveUserMutation } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 
 gql`
   mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
     committeeRemoveUser(input: $input) {
       committee {
-        id
-        committeeId
-        currentMembers {
-          userId
-          email
-          roles
-        }
+        ...CommitteeFields
       }
     }
   }
@@ -50,9 +39,7 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
   openRemoveUserDialog,
   setOpenRemoveUserDialog,
 }) => {
-  const [removeUser, { loading }] = useCommitteeRemoveUserMutation({
-    refetchQueries: [CommitteesDocument],
-  })
+  const [removeUser, { loading }] = useCommitteeRemoveUserMutation()
 
   const handleRemove = async () => {
     try {
@@ -63,13 +50,7 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
             userId,
           },
         },
-        refetchQueries: [
-          CommitteesDocument,
-          GetCommitteeDetailsDocument,
-          GetPolicyDetailsDocument,
-        ],
       })
-
       if (data?.committeeRemoveUser.committee) {
         toast.success("User removed from committee successfully")
         setOpenRemoveUserDialog(false)

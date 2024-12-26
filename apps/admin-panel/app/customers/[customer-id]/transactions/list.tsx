@@ -12,8 +12,12 @@ import { GetCustomerTransactionsQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 
+type Transaction =
+  | NonNullable<GetCustomerTransactionsQuery["customer"]>["deposits"][number]
+  | NonNullable<GetCustomerTransactionsQuery["customer"]>["withdrawals"][number]
+
 type CustomerTransactionsTableProps = {
-  transactions: NonNullable<GetCustomerTransactionsQuery["customer"]>["transactions"]
+  transactions: Transaction[]
 }
 
 // TODO use data-table

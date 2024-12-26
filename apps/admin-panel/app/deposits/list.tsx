@@ -13,6 +13,15 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
+  fragment DepositFields on Deposit {
+    id
+    createdAt
+    customerId
+    depositId
+    reference
+    amount
+  }
+
   query Deposits($first: Int!, $after: String) {
     deposits(first: $first, after: $after) {
       pageInfo {
@@ -24,9 +33,7 @@ gql`
       edges {
         cursor
         node {
-          depositId
-          amount
-          reference
+          ...DepositFields
           customer {
             email
           }

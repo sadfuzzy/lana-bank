@@ -12,13 +12,9 @@ import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customer"]>
-  refetch: () => void
 }
 
-export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
-  customer,
-  refetch,
-}) => {
+export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
   const details: DetailItemProps[] = [
@@ -55,7 +51,6 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
         setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
-        refetch={refetch}
       />
     </>
   )

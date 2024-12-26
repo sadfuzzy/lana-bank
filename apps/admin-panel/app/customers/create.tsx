@@ -22,6 +22,7 @@ gql`
   mutation CustomerCreate($input: CustomerCreateInput!) {
     customerCreate(input: $input) {
       customer {
+        id
         customerId
         email
         status

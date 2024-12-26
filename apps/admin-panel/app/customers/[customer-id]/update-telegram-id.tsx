@@ -13,20 +13,14 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import {
-  GetCustomerBasicDetailsDocument,
-  useCustomerUpdateMutation,
-} from "@/lib/graphql/generated"
+import { useCustomerUpdateMutation } from "@/lib/graphql/generated"
 
 gql`
   mutation CustomerUpdate($input: CustomerUpdateInput!) {
     customerUpdate(input: $input) {
       customer {
-        customerId
-        email
-        status
-        level
-        applicantId
+        id
+        telegramId
       }
     }
   }
@@ -36,19 +30,15 @@ type UpdateTelegramIdDialogProps = {
   setOpenUpdateTelegramIdDialog: (isOpen: boolean) => void
   openUpdateTelegramIdDialog: boolean
   customerId: string
-  refetch?: () => void
 }
 
 export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   setOpenUpdateTelegramIdDialog,
   openUpdateTelegramIdDialog,
   customerId,
-  refetch,
 }) => {
   const [updateTelegramId, { loading, error: mutationError, reset }] =
-    useCustomerUpdateMutation({
-      refetchQueries: [GetCustomerBasicDetailsDocument],
-    })
+    useCustomerUpdateMutation()
   const [newTelegramId, setNewTelegramId] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -71,7 +61,6 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
         },
       })
       toast.success("Telegram ID updated successfully")
-      if (refetch) refetch()
       setOpenUpdateTelegramIdDialog(false)
     } catch (error) {
       console.error(error)

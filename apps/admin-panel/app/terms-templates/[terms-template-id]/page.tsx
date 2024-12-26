@@ -11,24 +11,7 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 gql`
   query TermsTemplate($id: UUID!) {
     termsTemplate(id: $id) {
-      id
-      name
-      termsId
-      createdAt
-      subjectCanUpdateTermsTemplate
-      values {
-        duration {
-          units
-          period
-        }
-        accrualInterval
-        incurrenceInterval
-        annualRate
-        initialCvl
-        marginCallCvl
-        liquidationCvl
-        oneTimeFeeRate
-      }
+      ...TermsTemplateFields
     }
   }
 `
@@ -43,7 +26,7 @@ function TermsTemplatePage({
   const { "terms-template-id": termsTemplateId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
-  const { data, loading, error, refetch } = useTermsTemplateQuery({
+  const { data, loading, error } = useTermsTemplateQuery({
     variables: { id: termsTemplateId },
   })
 
@@ -68,7 +51,7 @@ function TermsTemplatePage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <TermsTemplateDetailsCard termsTemplate={data.termsTemplate} refetch={refetch} />
+      <TermsTemplateDetailsCard termsTemplate={data.termsTemplate} />
     </main>
   )
 }

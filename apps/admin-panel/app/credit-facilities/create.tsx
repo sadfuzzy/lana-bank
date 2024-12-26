@@ -49,6 +49,24 @@ gql`
       creditFacility {
         id
         creditFacilityId
+        customer {
+          id
+          creditFacilities {
+            id
+            creditFacilityId
+            collateralizationState
+            status
+            createdAt
+            balance {
+              collateral {
+                btcBalance
+              }
+              outstanding {
+                usdBalance
+              }
+            }
+          }
+        }
       }
     }
   }

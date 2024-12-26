@@ -15,18 +15,25 @@ import PaginatedTable, {
 import { formatDate } from "@/lib/utils"
 
 gql`
+  fragment CommitteeFields on Committee {
+    id
+    committeeId
+    createdAt
+    name
+    currentMembers {
+      id
+      userId
+      email
+      roles
+    }
+  }
+
   query Committees($first: Int!, $after: String) {
     committees(first: $first, after: $after) {
       edges {
         cursor
         node {
-          id
-          committeeId
-          createdAt
-          name
-          currentMembers {
-            userId
-          }
+          ...CommitteeFields
         }
       }
       pageInfo {

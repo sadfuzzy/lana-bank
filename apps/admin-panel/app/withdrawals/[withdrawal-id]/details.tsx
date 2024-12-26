@@ -3,8 +3,9 @@
 import React, { useState } from "react"
 
 import { WithdrawalStatusBadge } from "../status-badge"
-import { WithdrawalConfirmDialog } from "../confirm"
-import { WithdrawalCancelDialog } from "../cancel"
+
+import { WithdrawalConfirmDialog } from "./confirm"
+import { WithdrawalCancelDialog } from "./cancel"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
@@ -111,7 +112,6 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
       <VotersCard approvalProcess={withdrawal.approvalProcess} />
       {openWithdrawalConfirmDialog && (
         <WithdrawalConfirmDialog
-          refetch={refetch}
           withdrawalData={openWithdrawalConfirmDialog}
           openWithdrawalConfirmDialog={Boolean(openWithdrawalConfirmDialog)}
           setOpenWithdrawalConfirmDialog={() => setOpenWithdrawalConfirmDialog(null)}
@@ -119,7 +119,6 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
       )}
       {openWithdrawalCancelDialog && (
         <WithdrawalCancelDialog
-          refetch={refetch}
           withdrawalData={openWithdrawalCancelDialog}
           openWithdrawalCancelDialog={Boolean(openWithdrawalCancelDialog)}
           setOpenWithdrawalCancelDialog={() => setOpenWithdrawalCancelDialog(null)}

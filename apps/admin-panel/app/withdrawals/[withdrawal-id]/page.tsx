@@ -7,54 +7,67 @@ import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
-  query GetWithdrawalDetails($id: UUID!) {
-    withdrawal(id: $id) {
+  fragment WithdrawDetailsPageFragment on Withdrawal {
+    id
+    customerId
+    withdrawalId
+    amount
+    status
+    reference
+    subjectCanConfirm
+    subjectCanCancel
+    customer {
+      id
       customerId
-      withdrawalId
-      amount
-      status
-      reference
-      subjectCanConfirm
-      subjectCanCancel
-      customer {
-        email
-        customerId
-        applicantId
+      applicantId
+      email
+      balance {
+        checking {
+          settled
+          pending
+        }
       }
-      approvalProcess {
-        approvalProcessId
-        deniedReason
-        approvalProcessType
-        createdAt
-        subjectCanSubmitDecision
-        status
-        rules {
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              name
-              currentMembers {
-                email
-                roles
-              }
+    }
+    approvalProcess {
+      id
+      approvalProcessId
+      deniedReason
+      approvalProcessType
+      createdAt
+      subjectCanSubmitDecision
+      status
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            name
+            currentMembers {
+              email
+              roles
             }
           }
-          ... on SystemApproval {
-            autoApprove
-          }
         }
-        voters {
-          stillEligible
-          didVote
-          didApprove
-          didDeny
-          user {
-            userId
-            email
-            roles
-          }
+        ... on SystemApproval {
+          autoApprove
         }
       }
+      voters {
+        stillEligible
+        didVote
+        didApprove
+        didDeny
+        user {
+          userId
+          email
+          roles
+        }
+      }
+    }
+  }
+
+  query GetWithdrawalDetails($id: UUID!) {
+    withdrawal(id: $id) {
+      ...WithdrawDetailsPageFragment
     }
   }
 `

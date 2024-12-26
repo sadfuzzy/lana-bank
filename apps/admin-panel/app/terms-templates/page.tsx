@@ -7,35 +7,39 @@ import DataTable, { Column } from "../../components/data-table"
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import { formatPeriod } from "@/lib/utils"
-import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
+import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 gql`
+  fragment TermsTemplateFields on TermsTemplate {
+    id
+    name
+    termsId
+    createdAt
+    subjectCanUpdateTermsTemplate
+    values {
+      annualRate
+      accrualInterval
+      incurrenceInterval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      oneTimeFeeRate
+      duration {
+        period
+        units
+      }
+    }
+  }
+
   query TermsTemplates {
     termsTemplates {
-      id
-      name
-      termsId
-      createdAt
-      subjectCanUpdateTermsTemplate
-      values {
-        annualRate
-        accrualInterval
-        incurrenceInterval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        oneTimeFeeRate
-        duration {
-          period
-          units
-        }
-      }
+      ...TermsTemplateFields
     }
   }
 `
 
 function TermPage() {
-  const { data, refetch, loading, error } = useTermsTemplatesQuery()
+  const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
 
@@ -89,7 +93,6 @@ function TermPage() {
           termsTemplate={openUpdateTermsTemplateDialog}
           openUpdateTermsTemplateDialog={Boolean(openUpdateTermsTemplateDialog)}
           setOpenUpdateTermsTemplateDialog={() => setOpenUpdateTermsTemplateDialog(null)}
-          refetch={refetch}
         />
       )}
       <Card>

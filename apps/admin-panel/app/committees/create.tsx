@@ -22,14 +22,7 @@ gql`
   mutation CreateCommittee($input: CommitteeCreateInput!) {
     committeeCreate(input: $input) {
       committee {
-        id
-        committeeId
-        createdAt
-        currentMembers {
-          userId
-          email
-          roles
-        }
+        ...CommitteeFields
       }
     }
   }
@@ -38,7 +31,6 @@ gql`
 type CreateCommitteeDialogProps = {
   setOpenCreateCommitteeDialog: (isOpen: boolean) => void
   openCreateCommitteeDialog: boolean
-  refetch?: () => void
 }
 
 export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({

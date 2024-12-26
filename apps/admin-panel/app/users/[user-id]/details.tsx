@@ -8,7 +8,6 @@ import {
   GetUserDetailsQuery,
   useUserAssignRoleMutation,
   useUserRevokeRoleMutation,
-  GetUserDetailsDocument,
 } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
@@ -25,32 +24,18 @@ import { formatDate, formatRole } from "@/lib/utils"
 
 type UserDetailsProps = {
   user: NonNullable<GetUserDetailsQuery["user"]>
-  refetch: () => void
 }
 
-const RolesDropDown = ({
-  userId,
-  roles,
-  refetch,
-}: {
-  userId: string
-  roles: Role[]
-  refetch: () => void
-}) => {
+const RolesDropDown = ({ userId, roles }: { userId: string; roles: Role[] }) => {
   const [assignRole, { loading: assigning, error: assignRoleError }] =
-    useUserAssignRoleMutation({
-      refetchQueries: [GetUserDetailsDocument],
-    })
+    useUserAssignRoleMutation()
   const [revokeRole, { loading: revoking, error: revokeError }] =
-    useUserRevokeRoleMutation({
-      refetchQueries: [GetUserDetailsDocument],
-    })
+    useUserRevokeRoleMutation()
 
   const handleRoleChange = async (role: Role) => {
     if (roles.includes(role)) {
       try {
         await revokeRole({ variables: { input: { id: userId, role } } })
-        refetch()
         toast.success("Role revoked")
       } catch (err) {
         toast.error(`Failed to revoke role, ${revokeError?.message}`)
@@ -58,7 +43,6 @@ const RolesDropDown = ({
     } else {
       try {
         await assignRole({ variables: { input: { id: userId, role } } })
-        refetch()
         toast.success("Role assigned")
       } catch (err) {
         toast.error(`Failed to assign role, ${assignRoleError?.message}`)
@@ -92,7 +76,7 @@ const RolesDropDown = ({
   )
 }
 
-const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
+const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
   const details: DetailItemProps[] = [
     { label: "Created At", value: formatDate(user.createdAt) },
     { label: "Email", value: user.email, valueTestId: "user-details-email" },
@@ -117,9 +101,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user, refetch }) => {
     },
   ]
 
-  const footer = (
-    <RolesDropDown userId={user.userId} roles={user.roles} refetch={refetch} />
-  )
+  const footer = <RolesDropDown userId={user.userId} roles={user.roles} />
 
   return <DetailsCard title="User" details={details} footerContent={footer} columns={3} />
 }

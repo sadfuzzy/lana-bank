@@ -11,11 +11,7 @@ import {
   DialogTitle,
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
-import {
-  GetWithdrawalDetailsDocument,
-  useWithdrawalCancelMutation,
-  WithdrawalsDocument,
-} from "@/lib/graphql/generated"
+import { useWithdrawalCancelMutation } from "@/lib/graphql/generated"
 import Balance from "@/components/balance/balance"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { UsdCents } from "@/types"
@@ -24,17 +20,7 @@ gql`
   mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
     withdrawalCancel(input: $input) {
       withdrawal {
-        withdrawalId
-        amount
-        customer {
-          customerId
-          balance {
-            checking {
-              settled
-              pending
-            }
-          }
-        }
+        ...WithdrawDetailsPageFragment
       }
     }
   }
@@ -44,18 +30,14 @@ type WithdrawalCancelDialogProps = {
   setOpenWithdrawalCancelDialog: (isOpen: boolean) => void
   openWithdrawalCancelDialog: boolean
   withdrawalData: WithdrawalWithCustomer
-  refetch?: () => void
 }
 
 export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   setOpenWithdrawalCancelDialog,
   openWithdrawalCancelDialog,
   withdrawalData,
-  refetch,
 }) => {
-  const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation({
-    refetchQueries: [WithdrawalsDocument, GetWithdrawalDetailsDocument],
-  })
+  const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation()
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -72,7 +54,6 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
       if (result.data) {
         toast.success("Withdrawal canceled successfully")
         handleCloseDialog()
-        if (refetch) refetch()
       } else {
         throw new Error("No data returned from mutation")
       }

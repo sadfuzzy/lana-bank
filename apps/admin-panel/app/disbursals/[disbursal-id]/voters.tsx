@@ -4,6 +4,7 @@ import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import {
   ApprovalProcessStatus,
+  GetCreditFacilityDetailsQuery,
   GetDisbursalDetailsQuery,
   GetWithdrawalDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -15,6 +16,7 @@ export const VotersCard = ({
   approvalProcess:
     | NonNullable<GetDisbursalDetailsQuery["disbursal"]>["approvalProcess"]
     | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
+    | NonNullable<GetCreditFacilityDetailsQuery["creditFacility"]>["approvalProcess"]
     | null
 }) => {
   if (!approvalProcess) {

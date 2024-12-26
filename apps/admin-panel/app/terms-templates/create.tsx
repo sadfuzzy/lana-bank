@@ -33,19 +33,7 @@ gql`
   mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
     termsTemplateCreate(input: $input) {
       termsTemplate {
-        id
-        termsId
-        values {
-          annualRate
-          accrualInterval
-          liquidationCvl
-          marginCallCvl
-          initialCvl
-          duration {
-            period
-            units
-          }
-        }
+        ...TermsTemplateFields
       }
     }
   }
@@ -54,7 +42,6 @@ gql`
 type CreateTermsTemplateDialogProps = {
   setOpenCreateTermsTemplateDialog: (isOpen: boolean) => void
   openCreateTermsTemplateDialog: boolean
-  refetch?: () => void
 }
 
 export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps> = ({
@@ -65,7 +52,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     closeModal: () => setOpenCreateTermsTemplateDialog(false),
   })
 
-  const [createTermsTemplate, { loading, reset, error: createTermsTemplateError }] =
+  const [createTermsTemplate, { loading, error: createTermsTemplateError }] =
     useCreateTermsTemplateMutation({
       refetchQueries: [TermsTemplatesDocument],
     })
@@ -149,7 +136,6 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       oneTimeFeeRate: "",
     })
     setError(null)
-    reset()
   }
 
   return (

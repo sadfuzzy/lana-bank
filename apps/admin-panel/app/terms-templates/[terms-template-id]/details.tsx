@@ -5,16 +5,14 @@ import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
 import { Button } from "@/ui/button"
-import { UpdateTermsTemplateDialog } from "@/components/terms-template/update-dialog"
+import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 type TermsTemplateDetailsProps = {
   termsTemplate: NonNullable<TermsTemplateQuery["termsTemplate"]>
-  refetch: () => void
 }
 
 const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   termsTemplate,
-  refetch,
 }) => {
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState(false)
@@ -74,7 +72,6 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
         termsTemplate={termsTemplate}
         openUpdateTermsTemplateDialog={openUpdateTermsTemplateDialog}
         setOpenUpdateTermsTemplateDialog={setOpenUpdateTermsTemplateDialog}
-        refetch={refetch}
       />
 
       <DetailsCard

@@ -20,15 +20,7 @@ gql`
         ... on CommitteeThreshold {
           threshold
           committee {
-            id
-            committeeId
-            createdAt
-            name
-            currentMembers {
-              userId
-              email
-              roles
-            }
+            ...CommitteeFields
           }
         }
         ... on SystemApproval {

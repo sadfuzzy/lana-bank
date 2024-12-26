@@ -18,25 +18,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/ui/select"
-import {
-  CommitteesDocument,
-  GetCommitteeDetailsDocument,
-  useCommitteeAddUserMutation,
-  useUsersQuery,
-} from "@/lib/graphql/generated"
+import { useCommitteeAddUserMutation, useUsersQuery } from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
 
 gql`
   mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
     committeeAddUser(input: $input) {
       committee {
-        id
-        committeeId
-        currentMembers {
-          userId
-          email
-          roles
-        }
+        ...CommitteeFields
       }
     }
   }
@@ -46,18 +35,14 @@ type AddUserCommitteeDialogProps = {
   committeeId: string
   setOpenAddUserDialog: (isOpen: boolean) => void
   openAddUserDialog: boolean
-  refetch?: () => void
 }
 
 export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   committeeId,
   setOpenAddUserDialog,
   openAddUserDialog,
-  refetch,
 }) => {
-  const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation({
-    refetchQueries: [CommitteesDocument],
-  })
+  const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
   const { data: userData, loading: usersLoading } = useUsersQuery()
 
   const [selectedUserId, setSelectedUserId] = useState<string>("")
@@ -80,12 +65,10 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
             userId: selectedUserId,
           },
         },
-        refetchQueries: [CommitteesDocument, GetCommitteeDetailsDocument],
       })
 
       if (data?.committeeAddUser.committee) {
         toast.success("User added to committee successfully")
-        if (refetch) refetch()
         setOpenAddUserDialog(false)
       } else {
         throw new Error("Failed to add user to committee. Please try again.")

@@ -43,12 +43,11 @@ type CreditFacilityCollateralUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
-  onSuccess?: () => void
 }
 
 export const CreditFacilityCollateralUpdateDialog: React.FC<
   CreditFacilityCollateralUpdateDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId, onSuccess }) => {
+> = ({ setOpenDialog, openDialog, creditFacilityId }) => {
   const [updateCollateral, { loading, reset }] =
     useCreditFacilityCollateralUpdateMutation({
       refetchQueries: [GetCreditFacilityDetailsDocument],
@@ -80,7 +79,6 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
       if (result.data) {
         toast.success("Credit facility collateral updated successfully")
         handleCloseDialog()
-        if (onSuccess) onSuccess()
       } else {
         throw new Error("No data returned from mutation")
       }

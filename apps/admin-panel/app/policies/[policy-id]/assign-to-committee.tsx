@@ -20,8 +20,6 @@ import {
   SelectValue,
 } from "@/ui/select"
 import {
-  PoliciesDocument,
-  GetPolicyDetailsDocument,
   useCommitteesQuery,
   usePolicyAssignCommitteeMutation,
 } from "@/lib/graphql/generated"
@@ -35,6 +33,17 @@ gql`
         id
         policyId
         approvalProcessType
+        rules {
+          ... on CommitteeThreshold {
+            threshold
+            committee {
+              ...CommitteeFields
+            }
+          }
+          ... on SystemApproval {
+            autoApprove
+          }
+        }
       }
     }
   }
@@ -44,19 +53,15 @@ type CommitteeAssignmentDialogProps = {
   policyId: string
   setOpenAssignDialog: (isOpen: boolean) => void
   openAssignDialog: boolean
-  refetch?: () => void
 }
 
 export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps> = ({
   policyId,
   setOpenAssignDialog,
   openAssignDialog,
-  refetch,
 }) => {
   const [assignCommittee, { loading, reset, error: assignCommitteeError }] =
-    usePolicyAssignCommitteeMutation({
-      refetchQueries: [GetPolicyDetailsDocument],
-    })
+    usePolicyAssignCommitteeMutation()
   const { data: committeeData, loading: committeesLoading } = useCommitteesQuery({
     variables: { first: 100 },
   })
@@ -83,12 +88,10 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
             threshold,
           },
         },
-        refetchQueries: [PoliciesDocument, GetPolicyDetailsDocument],
       })
 
       if (data?.policyAssignCommittee.policy) {
         toast.success("Committee assigned to policy successfully")
-        if (refetch) refetch()
         setOpenAssignDialog(false)
       } else {
         throw new Error("Failed to assign committee to policy. Please try again.")

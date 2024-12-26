@@ -23,14 +23,12 @@ type CreditFacilityApproveDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityDetails: CreditFacility
-  onSuccess?: () => void
 }
 
 export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogProps> = ({
   setOpenDialog,
   openDialog,
   creditFacilityDetails,
-  onSuccess,
 }) => {
   const [approveProcess, { loading, reset }] = useApprovalProcessApproveMutation({
     refetchQueries: [GetCreditFacilityDetailsDocument],
@@ -53,7 +51,6 @@ export const CreditFacilityApproveDialog: React.FC<CreditFacilityApproveDialogPr
         onCompleted: (data) => {
           if (data.approvalProcessApprove) {
             toast.success("Credit facility approved successfully")
-            if (onSuccess) onSuccess()
             handleCloseDialog()
           }
         },

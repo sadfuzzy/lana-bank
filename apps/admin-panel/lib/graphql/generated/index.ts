@@ -1634,21 +1634,23 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } | null };
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } | null };
 
 export type CommitteeAddUserMutationVariables = Exact<{
   input: CommitteeAddUserInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
 }>;
 
 
-export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
+
+export type CommitteeFieldsFragment = { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> };
 
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1656,14 +1658,14 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
 
 export type GetCreditFacilityDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1684,7 +1686,7 @@ export type CreditFacilityCreateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string } } };
+export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, customer: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } } } };
 
 export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
   input: CreditFacilityDisbursalInitiateInput;
@@ -1779,21 +1781,21 @@ export type GetCustomerTransactionsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerTransactionsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, deposits: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents }>, withdrawals: Array<{ __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }>, transactions: Array<{ __typename?: 'Deposit', createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents } | { __typename?: 'Withdrawal', status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+export type GetCustomerTransactionsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
 }>;
 
 
-export type CustomerUpdateMutation = { __typename?: 'Mutation', customerUpdate: { __typename?: 'CustomerUpdatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+export type CustomerUpdateMutation = { __typename?: 'Mutation', customerUpdate: { __typename?: 'CustomerUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramId: string } } };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
 }>;
 
 
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1815,7 +1817,9 @@ export type CreateDepositMutationVariables = Exact<{
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', depositId: string, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents } } } } } };
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents, customer: { __typename?: 'Customer', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents }>, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } } } };
+
+export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1823,14 +1827,14 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', depositId: string, amount: UsdCents, reference: string, customer: { __typename?: 'Customer', email: string } } }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', id: string, createdAt: any, customerId: string, depositId: string, reference: string, amount: UsdCents, customer: { __typename?: 'Customer', email: string } } }> } };
 
 export type GetDisbursalDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursal?: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: UsdCents, createdAt: any, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, customer: { __typename?: 'Customer', email: string, customerId: string } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursal?: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: UsdCents, createdAt: any, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, customer: { __typename?: 'Customer', email: string, customerId: string, id: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1845,14 +1849,14 @@ export type PolicyAssignCommitteeMutationVariables = Exact<{
 }>;
 
 
-export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType } } };
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } } };
 
 export type GetPolicyDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
 
 export type PoliciesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -1903,14 +1907,23 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, annualRate: any, initialCvl: any, marginCallCvl: any, liquidationCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', units: number, period: Period } } } | null };
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+
+export type UpdateTermsTemplateMutationVariables = Exact<{
+  input: TermsTemplateUpdateInput;
+}>;
+
+
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type CreateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateCreateInput;
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, subjectCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } };
 
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1948,61 +1961,67 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', userId: string, email: string, roles: Array<Role>, createdAt: any } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
 }>;
 
 
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
+
+export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any };
 
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', userId: string, email: string, roles: Array<Role> }> };
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any }> };
 
 export type UserAssignRoleMutationVariables = Exact<{
   input: UserAssignRoleInput;
 }>;
 
 
-export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
 
 export type UserRevokeRoleMutationVariables = Exact<{
   input: UserRevokeRoleInput;
 }>;
 
 
-export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
-
-export type GetWithdrawalDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', email: string, customerId: string, applicantId?: string | null }, approvalProcess: { __typename?: 'ApprovalProcess', approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } } } };
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: UsdCents, reference: string, customer: { __typename?: 'Customer', customerId: string, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } } };
+
+export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } };
+
+export type GetWithdrawalDetailsQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', id: string, customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } }> } } | null };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', withdrawalId: string, amount: UsdCents, customer: { __typename?: 'Customer', customerId: string, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', id: string, customerId: string, email: string, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } }>, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: UsdCents, pending: UsdCents } } } } } };
+
+export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2010,7 +2029,7 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', customerId: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } } }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, customerId: string, withdrawalId: string, createdAt: any, amount: UsdCents, subjectCanConfirm: boolean, subjectCanCancel: boolean, customer: { __typename?: 'Customer', customerId: string, email: string } } }> } };
 
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2022,13 +2041,52 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
 
-export type UpdateTermsTemplateMutationVariables = Exact<{
-  input: TermsTemplateUpdateInput;
-}>;
-
-
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, termsId: string, name: string, values: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
-
+export const CommitteeFieldsFragmentDoc = gql`
+    fragment CommitteeFields on Committee {
+  id
+  committeeId
+  createdAt
+  name
+  currentMembers {
+    id
+    userId
+    email
+    roles
+  }
+}
+    `;
+export const DepositFieldsFragmentDoc = gql`
+    fragment DepositFields on Deposit {
+  id
+  createdAt
+  customerId
+  depositId
+  reference
+  amount
+}
+    `;
+export const TermsTemplateFieldsFragmentDoc = gql`
+    fragment TermsTemplateFields on TermsTemplate {
+  id
+  name
+  termsId
+  createdAt
+  subjectCanUpdateTermsTemplate
+  values {
+    annualRate
+    accrualInterval
+    incurrenceInterval
+    liquidationCvl
+    marginCallCvl
+    initialCvl
+    oneTimeFeeRate
+    duration {
+      period
+      units
+    }
+  }
+}
+    `;
 export const BtcBalancesFragmentDoc = gql`
     fragment btcBalances on LayeredBtcAccountAmounts {
   all {
@@ -2122,6 +2180,91 @@ export const BalancesByCurrencyFragmentDoc = gql`
 }
     ${RangedBtcBalancesFragmentDoc}
 ${RangedUsdBalancesFragmentDoc}`;
+export const UserFieldsFragmentDoc = gql`
+    fragment UserFields on User {
+  id
+  userId
+  email
+  roles
+  createdAt
+}
+    `;
+export const WithdrawDetailsPageFragmentFragmentDoc = gql`
+    fragment WithdrawDetailsPageFragment on Withdrawal {
+  id
+  customerId
+  withdrawalId
+  amount
+  status
+  reference
+  subjectCanConfirm
+  subjectCanCancel
+  customer {
+    id
+    customerId
+    applicantId
+    email
+    balance {
+      checking {
+        settled
+        pending
+      }
+    }
+  }
+  approvalProcess {
+    id
+    approvalProcessId
+    deniedReason
+    approvalProcessType
+    createdAt
+    subjectCanSubmitDecision
+    status
+    rules {
+      ... on CommitteeThreshold {
+        threshold
+        committee {
+          name
+          currentMembers {
+            email
+            roles
+          }
+        }
+      }
+      ... on SystemApproval {
+        autoApprove
+      }
+    }
+    voters {
+      stillEligible
+      didVote
+      didApprove
+      didDeny
+      user {
+        userId
+        email
+        roles
+      }
+    }
+  }
+}
+    `;
+export const WithdrawalFieldsFragmentDoc = gql`
+    fragment WithdrawalFields on Withdrawal {
+  id
+  status
+  reference
+  customerId
+  withdrawalId
+  createdAt
+  amount
+  subjectCanConfirm
+  subjectCanCancel
+  customer {
+    customerId
+    email
+  }
+}
+    `;
 export const ApprovalProcessApproveDocument = gql`
     mutation ApprovalProcessApprove($input: ApprovalProcessApproveInput!) {
   approvalProcessApprove(input: $input) {
@@ -2559,18 +2702,10 @@ export type GetOffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<Ge
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
   committee(id: $id) {
-    id
-    committeeId
-    createdAt
-    name
-    currentMembers {
-      userId
-      email
-      roles
-    }
+    ...CommitteeFields
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 
 /**
  * __useGetCommitteeDetailsQuery__
@@ -2603,17 +2738,11 @@ export const CommitteeAddUserDocument = gql`
     mutation CommitteeAddUser($input: CommitteeAddUserInput!) {
   committeeAddUser(input: $input) {
     committee {
-      id
-      committeeId
-      currentMembers {
-        userId
-        email
-        roles
-      }
+      ...CommitteeFields
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 export type CommitteeAddUserMutationFn = Apollo.MutationFunction<CommitteeAddUserMutation, CommitteeAddUserMutationVariables>;
 
 /**
@@ -2644,18 +2773,11 @@ export const CreateCommitteeDocument = gql`
     mutation CreateCommittee($input: CommitteeCreateInput!) {
   committeeCreate(input: $input) {
     committee {
-      id
-      committeeId
-      createdAt
-      currentMembers {
-        userId
-        email
-        roles
-      }
+      ...CommitteeFields
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 export type CreateCommitteeMutationFn = Apollo.MutationFunction<CreateCommitteeMutation, CreateCommitteeMutationVariables>;
 
 /**
@@ -2688,13 +2810,7 @@ export const CommitteesDocument = gql`
     edges {
       cursor
       node {
-        id
-        committeeId
-        createdAt
-        name
-        currentMembers {
-          userId
-        }
+        ...CommitteeFields
       }
     }
     pageInfo {
@@ -2705,7 +2821,7 @@ export const CommitteesDocument = gql`
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 
 /**
  * __useCommitteesQuery__
@@ -2739,17 +2855,11 @@ export const CommitteeRemoveUserDocument = gql`
     mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {
   committeeRemoveUser(input: $input) {
     committee {
-      id
-      committeeId
-      currentMembers {
-        userId
-        email
-        roles
-      }
+      ...CommitteeFields
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 export type CommitteeRemoveUserMutationFn = Apollo.MutationFunction<CommitteeRemoveUserMutation, CommitteeRemoveUserMutationVariables>;
 
 /**
@@ -3037,6 +3147,24 @@ export const CreditFacilityCreateDocument = gql`
     creditFacility {
       id
       creditFacilityId
+      customer {
+        id
+        creditFacilities {
+          id
+          creditFacilityId
+          collateralizationState
+          status
+          createdAt
+          balance {
+            collateral {
+              btcBalance
+            }
+            outstanding {
+              usdBalance
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -3560,48 +3688,15 @@ export const GetCustomerTransactionsDocument = gql`
   customer(id: $id) {
     id
     deposits {
-      createdAt
-      customerId
-      depositId
-      reference
-      amount
+      ...DepositFields
     }
     withdrawals {
-      status
-      reference
-      customerId
-      withdrawalId
-      createdAt
-      amount
-      customer {
-        customerId
-        email
-      }
-    }
-    transactions @client {
-      ... on Deposit {
-        createdAt
-        customerId
-        depositId
-        reference
-        amount
-      }
-      ... on Withdrawal {
-        status
-        reference
-        customerId
-        withdrawalId
-        createdAt
-        amount
-        customer {
-          customerId
-          email
-        }
-      }
+      ...WithdrawalFields
     }
   }
 }
-    `;
+    ${DepositFieldsFragmentDoc}
+${WithdrawalFieldsFragmentDoc}`;
 
 /**
  * __useGetCustomerTransactionsQuery__
@@ -3634,11 +3729,8 @@ export const CustomerUpdateDocument = gql`
     mutation CustomerUpdate($input: CustomerUpdateInput!) {
   customerUpdate(input: $input) {
     customer {
-      customerId
-      email
-      status
-      level
-      applicantId
+      id
+      telegramId
     }
   }
 }
@@ -3673,6 +3765,7 @@ export const CustomerCreateDocument = gql`
     mutation CustomerCreate($input: CustomerCreateInput!) {
   customerCreate(input: $input) {
     customer {
+      id
       customerId
       email
       status
@@ -3813,21 +3906,23 @@ export const CreateDepositDocument = gql`
     mutation CreateDeposit($input: DepositRecordInput!) {
   depositRecord(input: $input) {
     deposit {
-      depositId
-      amount
+      ...DepositFields
       customer {
-        customerId
-        email
+        id
+        deposits {
+          ...DepositFields
+        }
         balance {
           checking {
             settled
+            pending
           }
         }
       }
     }
   }
 }
-    `;
+    ${DepositFieldsFragmentDoc}`;
 export type CreateDepositMutationFn = Apollo.MutationFunction<CreateDepositMutation, CreateDepositMutationVariables>;
 
 /**
@@ -3866,9 +3961,7 @@ export const DepositsDocument = gql`
     edges {
       cursor
       node {
-        depositId
-        amount
-        reference
+        ...DepositFields
         customer {
           email
         }
@@ -3876,7 +3969,7 @@ export const DepositsDocument = gql`
     }
   }
 }
-    `;
+    ${DepositFieldsFragmentDoc}`;
 
 /**
  * __useDepositsQuery__
@@ -3923,6 +4016,13 @@ export const GetDisbursalDetailsDocument = gql`
       customer {
         email
         customerId
+        id
+        balance {
+          checking {
+            settled
+            pending
+          }
+        }
       }
     }
     approvalProcess {
@@ -3938,6 +4038,7 @@ export const GetDisbursalDetailsDocument = gql`
           committee {
             name
             currentMembers {
+              id
               email
               roles
             }
@@ -3953,6 +4054,7 @@ export const GetDisbursalDetailsDocument = gql`
         didApprove
         didDeny
         user {
+          id
           userId
           email
           roles
@@ -4048,10 +4150,21 @@ export const PolicyAssignCommitteeDocument = gql`
       id
       policyId
       approvalProcessType
+      rules {
+        ... on CommitteeThreshold {
+          threshold
+          committee {
+            ...CommitteeFields
+          }
+        }
+        ... on SystemApproval {
+          autoApprove
+        }
+      }
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 export type PolicyAssignCommitteeMutationFn = Apollo.MutationFunction<PolicyAssignCommitteeMutation, PolicyAssignCommitteeMutationVariables>;
 
 /**
@@ -4088,15 +4201,7 @@ export const GetPolicyDetailsDocument = gql`
       ... on CommitteeThreshold {
         threshold
         committee {
-          id
-          committeeId
-          createdAt
-          name
-          currentMembers {
-            userId
-            email
-            roles
-          }
+          ...CommitteeFields
         }
       }
       ... on SystemApproval {
@@ -4105,7 +4210,7 @@ export const GetPolicyDetailsDocument = gql`
     }
   }
 }
-    `;
+    ${CommitteeFieldsFragmentDoc}`;
 
 /**
  * __useGetPolicyDetailsQuery__
@@ -4446,27 +4551,10 @@ export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<Repo
 export const TermsTemplateDocument = gql`
     query TermsTemplate($id: UUID!) {
   termsTemplate(id: $id) {
-    id
-    name
-    termsId
-    createdAt
-    subjectCanUpdateTermsTemplate
-    values {
-      duration {
-        units
-        period
-      }
-      accrualInterval
-      incurrenceInterval
-      annualRate
-      initialCvl
-      marginCallCvl
-      liquidationCvl
-      oneTimeFeeRate
-    }
+    ...TermsTemplateFields
   }
 }
-    `;
+    ${TermsTemplateFieldsFragmentDoc}`;
 
 /**
  * __useTermsTemplateQuery__
@@ -4495,27 +4583,50 @@ export function useTermsTemplateLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type TermsTemplateQueryHookResult = ReturnType<typeof useTermsTemplateQuery>;
 export type TermsTemplateLazyQueryHookResult = ReturnType<typeof useTermsTemplateLazyQuery>;
 export type TermsTemplateQueryResult = Apollo.QueryResult<TermsTemplateQuery, TermsTemplateQueryVariables>;
+export const UpdateTermsTemplateDocument = gql`
+    mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
+  termsTemplateUpdate(input: $input) {
+    termsTemplate {
+      ...TermsTemplateFields
+    }
+  }
+}
+    ${TermsTemplateFieldsFragmentDoc}`;
+export type UpdateTermsTemplateMutationFn = Apollo.MutationFunction<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
+
+/**
+ * __useUpdateTermsTemplateMutation__
+ *
+ * To run a mutation, you first call `useUpdateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTermsTemplateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTermsTemplateMutation, { data, loading, error }] = useUpdateTermsTemplateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>(UpdateTermsTemplateDocument, options);
+      }
+export type UpdateTermsTemplateMutationHookResult = ReturnType<typeof useUpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationResult = Apollo.MutationResult<UpdateTermsTemplateMutation>;
+export type UpdateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
 export const CreateTermsTemplateDocument = gql`
     mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
   termsTemplateCreate(input: $input) {
     termsTemplate {
-      id
-      termsId
-      values {
-        annualRate
-        accrualInterval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        duration {
-          period
-          units
-        }
-      }
+      ...TermsTemplateFields
     }
   }
 }
-    `;
+    ${TermsTemplateFieldsFragmentDoc}`;
 export type CreateTermsTemplateMutationFn = Apollo.MutationFunction<CreateTermsTemplateMutation, CreateTermsTemplateMutationVariables>;
 
 /**
@@ -4545,27 +4656,10 @@ export type CreateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<Crea
 export const TermsTemplatesDocument = gql`
     query TermsTemplates {
   termsTemplates {
-    id
-    name
-    termsId
-    createdAt
-    subjectCanUpdateTermsTemplate
-    values {
-      annualRate
-      accrualInterval
-      incurrenceInterval
-      liquidationCvl
-      marginCallCvl
-      initialCvl
-      oneTimeFeeRate
-      duration {
-        period
-        units
-      }
-    }
+    ...TermsTemplateFields
   }
 }
-    `;
+    ${TermsTemplateFieldsFragmentDoc}`;
 
 /**
  * __useTermsTemplatesQuery__
@@ -4702,13 +4796,10 @@ export type GetOffBalanceSheetTrialBalanceQueryResult = Apollo.QueryResult<GetOf
 export const GetUserDetailsDocument = gql`
     query GetUserDetails($id: UUID!) {
   user(id: $id) {
-    userId
-    email
-    roles
-    createdAt
+    ...UserFields
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 
 /**
  * __useGetUserDetailsQuery__
@@ -4741,13 +4832,11 @@ export const UserCreateDocument = gql`
     mutation UserCreate($input: UserCreateInput!) {
   userCreate(input: $input) {
     user {
-      userId
-      email
-      roles
+      ...UserFields
     }
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 export type UserCreateMutationFn = Apollo.MutationFunction<UserCreateMutation, UserCreateMutationVariables>;
 
 /**
@@ -4777,12 +4866,10 @@ export type UserCreateMutationOptions = Apollo.BaseMutationOptions<UserCreateMut
 export const UsersDocument = gql`
     query Users {
   users {
-    userId
-    email
-    roles
+    ...UserFields
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 
 /**
  * __useUsersQuery__
@@ -4814,13 +4901,11 @@ export const UserAssignRoleDocument = gql`
     mutation UserAssignRole($input: UserAssignRoleInput!) {
   userAssignRole(input: $input) {
     user {
-      userId
-      email
-      roles
+      ...UserFields
     }
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 export type UserAssignRoleMutationFn = Apollo.MutationFunction<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
 
 /**
@@ -4851,13 +4936,11 @@ export const UserRevokeRoleDocument = gql`
     mutation UserRevokeRole($input: UserRevokeRoleInput!) {
   userRevokeRole(input: $input) {
     user {
-      userId
-      email
-      roles
+      ...UserFields
     }
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 export type UserRevokeRoleMutationFn = Apollo.MutationFunction<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
 
 /**
@@ -4884,105 +4967,15 @@ export function useUserRevokeRoleMutation(baseOptions?: Apollo.MutationHookOptio
 export type UserRevokeRoleMutationHookResult = ReturnType<typeof useUserRevokeRoleMutation>;
 export type UserRevokeRoleMutationResult = Apollo.MutationResult<UserRevokeRoleMutation>;
 export type UserRevokeRoleMutationOptions = Apollo.BaseMutationOptions<UserRevokeRoleMutation, UserRevokeRoleMutationVariables>;
-export const GetWithdrawalDetailsDocument = gql`
-    query GetWithdrawalDetails($id: UUID!) {
-  withdrawal(id: $id) {
-    customerId
-    withdrawalId
-    amount
-    status
-    reference
-    subjectCanConfirm
-    subjectCanCancel
-    customer {
-      email
-      customerId
-      applicantId
-    }
-    approvalProcess {
-      approvalProcessId
-      deniedReason
-      approvalProcessType
-      createdAt
-      subjectCanSubmitDecision
-      status
-      rules {
-        ... on CommitteeThreshold {
-          threshold
-          committee {
-            name
-            currentMembers {
-              email
-              roles
-            }
-          }
-        }
-        ... on SystemApproval {
-          autoApprove
-        }
-      }
-      voters {
-        stillEligible
-        didVote
-        didApprove
-        didDeny
-        user {
-          userId
-          email
-          roles
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetWithdrawalDetailsQuery__
- *
- * To run a query within a React component, call `useGetWithdrawalDetailsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetWithdrawalDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetWithdrawalDetailsQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetWithdrawalDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
-      }
-export function useGetWithdrawalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
-        }
-export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsQuery>;
-export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
-export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
 export const WithdrawalCancelDocument = gql`
     mutation WithdrawalCancel($input: WithdrawalCancelInput!) {
   withdrawalCancel(input: $input) {
     withdrawal {
-      withdrawalId
-      amount
-      customer {
-        customerId
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
+      ...WithdrawDetailsPageFragment
     }
   }
 }
-    `;
+    ${WithdrawDetailsPageFragmentFragmentDoc}`;
 export type WithdrawalCancelMutationFn = Apollo.MutationFunction<WithdrawalCancelMutation, WithdrawalCancelMutationVariables>;
 
 /**
@@ -5013,23 +5006,11 @@ export const WithdrawalConfirmDocument = gql`
     mutation WithdrawalConfirm($input: WithdrawalConfirmInput!) {
   withdrawalConfirm(input: $input) {
     withdrawal {
-      withdrawalId
-      amount
-      reference
-      customer {
-        customerId
-        email
-        balance {
-          checking {
-            settled
-            pending
-          }
-        }
-      }
+      ...WithdrawDetailsPageFragment
     }
   }
 }
-    `;
+    ${WithdrawDetailsPageFragmentFragmentDoc}`;
 export type WithdrawalConfirmMutationFn = Apollo.MutationFunction<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
 
 /**
@@ -5056,14 +5037,51 @@ export function useWithdrawalConfirmMutation(baseOptions?: Apollo.MutationHookOp
 export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawalConfirmMutation>;
 export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
 export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
+export const GetWithdrawalDetailsDocument = gql`
+    query GetWithdrawalDetails($id: UUID!) {
+  withdrawal(id: $id) {
+    ...WithdrawDetailsPageFragment
+  }
+}
+    ${WithdrawDetailsPageFragmentFragmentDoc}`;
+
+/**
+ * __useGetWithdrawalDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetWithdrawalDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetWithdrawalDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetWithdrawalDetailsQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetWithdrawalDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+      }
+export function useGetWithdrawalDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>(GetWithdrawalDetailsDocument, options);
+        }
+export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsQuery>;
+export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
+export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
 export const WithdrawalInitiateDocument = gql`
     mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
   withdrawalInitiate(input: $input) {
     withdrawal {
-      withdrawalId
-      amount
+      ...WithdrawalFields
       customer {
-        customerId
+        id
+        withdrawals {
+          ...WithdrawalFields
+        }
         balance {
           checking {
             settled
@@ -5074,7 +5092,7 @@ export const WithdrawalInitiateDocument = gql`
     }
   }
 }
-    `;
+    ${WithdrawalFieldsFragmentDoc}`;
 export type WithdrawalInitiateMutationFn = Apollo.MutationFunction<WithdrawalInitiateMutation, WithdrawalInitiateMutationVariables>;
 
 /**
@@ -5113,22 +5131,12 @@ export const WithdrawalsDocument = gql`
     edges {
       cursor
       node {
-        customerId
-        withdrawalId
-        amount
-        status
-        reference
-        subjectCanConfirm
-        subjectCanCancel
-        customer {
-          customerId
-          email
-        }
+        ...WithdrawalFields
       }
     }
   }
 }
-    `;
+    ${WithdrawalFieldsFragmentDoc}`;
 
 /**
  * __useWithdrawalsQuery__
@@ -5230,53 +5238,3 @@ export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQue
 export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
-export const UpdateTermsTemplateDocument = gql`
-    mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
-  termsTemplateUpdate(input: $input) {
-    termsTemplate {
-      id
-      termsId
-      name
-      values {
-        annualRate
-        accrualInterval
-        incurrenceInterval
-        liquidationCvl
-        marginCallCvl
-        initialCvl
-        oneTimeFeeRate
-        duration {
-          period
-          units
-        }
-      }
-    }
-  }
-}
-    `;
-export type UpdateTermsTemplateMutationFn = Apollo.MutationFunction<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;
-
-/**
- * __useUpdateTermsTemplateMutation__
- *
- * To run a mutation, you first call `useUpdateTermsTemplateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateTermsTemplateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateTermsTemplateMutation, { data, loading, error }] = useUpdateTermsTemplateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateTermsTemplateMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>(UpdateTermsTemplateDocument, options);
-      }
-export type UpdateTermsTemplateMutationHookResult = ReturnType<typeof useUpdateTermsTemplateMutation>;
-export type UpdateTermsTemplateMutationResult = Apollo.MutationResult<UpdateTermsTemplateMutation>;
-export type UpdateTermsTemplateMutationOptions = Apollo.BaseMutationOptions<UpdateTermsTemplateMutation, UpdateTermsTemplateMutationVariables>;

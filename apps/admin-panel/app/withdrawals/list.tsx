@@ -15,6 +15,22 @@ import PaginatedTable, {
 import Balance from "@/components/balance/balance"
 
 gql`
+  fragment WithdrawalFields on Withdrawal {
+    id
+    status
+    reference
+    customerId
+    withdrawalId
+    createdAt
+    amount
+    subjectCanConfirm
+    subjectCanCancel
+    customer {
+      customerId
+      email
+    }
+  }
+
   query Withdrawals($first: Int!, $after: String) {
     withdrawals(first: $first, after: $after) {
       pageInfo {
@@ -26,17 +42,7 @@ gql`
       edges {
         cursor
         node {
-          customerId
-          withdrawalId
-          amount
-          status
-          reference
-          subjectCanConfirm
-          subjectCanCancel
-          customer {
-            customerId
-            email
-          }
+          ...WithdrawalFields
         }
       }
     }
