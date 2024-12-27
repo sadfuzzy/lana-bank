@@ -51,7 +51,7 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       value: `${termsTemplate.values.liquidationCvl}%`,
     },
     {
-      label: "One Time Fee Rate",
+      label: "Structuring Fee Rate",
       value: `${termsTemplate.values.oneTimeFeeRate}%`,
     },
   ]

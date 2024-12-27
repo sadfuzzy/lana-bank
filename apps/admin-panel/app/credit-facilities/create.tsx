@@ -403,7 +403,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   )}
                 />
                 <DetailItem
-                  label="One-Time Fee Rate (%)"
+                  label="Structuring Fee Rate (%)"
                   value={formValues.oneTimeFeeRate}
                 />
               </DetailsGroup>
@@ -535,13 +535,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   </Select>
                 </div>
                 <div>
-                  <Label>One-Time Fee Rate (%)</Label>
+                  <Label>Structuring Fee Rate (%)</Label>
                   <Input
                     type="number"
                     name="oneTimeFeeRate"
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
-                    placeholder="Enter the one-time fee rate"
+                    placeholder="Enter the Structuring Fee Rate"
                     min={0}
                     required
                   />

@@ -300,13 +300,13 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 />
               </div>
               <div>
-                <Label htmlFor="oneTimeFeeRate">One-Time Fee Rate (%)</Label>
+                <Label htmlFor="oneTimeFeeRate">Structuring Fee Rate (%)</Label>
                 <Input
                   id="oneTimeFeeRate"
                   name="oneTimeFeeRate"
                   type="number"
                   required
-                  placeholder="Enter the one-time fee rate"
+                  placeholder="Enter the Structuring Fee Rate"
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                 />
