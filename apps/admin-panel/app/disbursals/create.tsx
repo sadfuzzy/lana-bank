@@ -14,11 +14,7 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import {
-  AllActionsDocument,
-  DisbursalsDocument,
-  useCreditFacilityDisbursalInitiateMutation,
-} from "@/lib/graphql/generated"
+import { useCreditFacilityDisbursalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -57,7 +53,14 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
   const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
-      refetchQueries: [DisbursalsDocument, AllActionsDocument],
+      update: (cache) => {
+        cache.modify({
+          fields: {
+            disbursals: (_, { DELETE }) => DELETE,
+          },
+        })
+        cache.gc()
+      },
     })
   const [amount, setAmount] = useState<string>("")
   const [error, setError] = useState<string | null>(null)

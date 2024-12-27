@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog"
-import { CommitteesDocument, useCreateCommitteeMutation } from "@/lib/graphql/generated"
+import { useCreateCommitteeMutation } from "@/lib/graphql/generated"
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
@@ -43,7 +43,14 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
 
   const [createCommittee, { loading, reset, error: createCommitteeError }] =
     useCreateCommitteeMutation({
-      refetchQueries: [CommitteesDocument],
+      update: (cache) => {
+        cache.modify({
+          fields: {
+            committees: (_, { DELETE }) => DELETE,
+          },
+        })
+        cache.gc()
+      },
     })
 
   const isLoading = loading || isNavigating

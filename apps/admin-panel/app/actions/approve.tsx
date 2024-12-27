@@ -11,12 +11,8 @@ import {
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
 import {
-  AllActionsDocument,
   ApprovalProcess,
-  CreditFacilitiesDocument,
-  DisbursalsDocument,
   useApprovalProcessApproveMutation,
-  WithdrawalsDocument,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
@@ -84,12 +80,16 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 }) => {
   const [error, setError] = React.useState<string | null>(null)
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
-    refetchQueries: [
-      CreditFacilitiesDocument,
-      WithdrawalsDocument,
-      DisbursalsDocument,
-      AllActionsDocument,
-    ],
+    update: (cache) => {
+      cache.modify({
+        fields: {
+          creditFacilities: (_, { DELETE }) => DELETE,
+          withdrawals: (_, { DELETE }) => DELETE,
+          disbursals: (_, { DELETE }) => DELETE,
+        },
+      })
+      cache.gc()
+    },
   })
 
   const handleApprove = async () => {

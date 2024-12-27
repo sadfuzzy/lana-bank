@@ -15,7 +15,7 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import { DepositsDocument, useCreateDepositMutation } from "@/lib/graphql/generated"
+import { useCreateDepositMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -52,7 +52,14 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   customerId,
 }) => {
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
-    refetchQueries: [DepositsDocument],
+    update: (cache) => {
+      cache.modify({
+        fields: {
+          deposits: (_, { DELETE }) => DELETE,
+        },
+      })
+      cache.gc()
+    },
   })
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")

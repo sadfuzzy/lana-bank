@@ -12,7 +12,6 @@ import {
 } from "@/ui/dialog"
 import {
   Role,
-  UsersDocument,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
@@ -47,7 +46,14 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     closeModal: () => setOpenCreateUserDialog(false),
   })
   const [createUser, { loading: creatingUser }] = useUserCreateMutation({
-    refetchQueries: [UsersDocument],
+    update: (cache) => {
+      cache.modify({
+        fields: {
+          users: (_, { DELETE }) => DELETE,
+        },
+      })
+      cache.gc()
+    },
   })
 
   const [assignRole, { loading: assigningRole }] = useUserAssignRoleMutation()

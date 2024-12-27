@@ -10,13 +10,7 @@ import {
   DialogTitle,
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
-import {
-  ApprovalProcess,
-  CreditFacilitiesDocument,
-  DisbursalsDocument,
-  useApprovalProcessDenyMutation,
-  WithdrawalsDocument,
-} from "@/lib/graphql/generated"
+import { ApprovalProcess, useApprovalProcessDenyMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import { Textarea } from "@/ui/textarea"
@@ -47,7 +41,16 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   const [error, setError] = React.useState<string | null>(null)
   const [reason, setReason] = React.useState("")
   const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
-    refetchQueries: [CreditFacilitiesDocument, WithdrawalsDocument, DisbursalsDocument],
+    update: (cache) => {
+      cache.modify({
+        fields: {
+          creditFacilities: (_, { DELETE }) => DELETE,
+          withdrawals: (_, { DELETE }) => DELETE,
+          disbursals: (_, { DELETE }) => DELETE,
+        },
+      })
+      cache.gc()
+    },
   })
 
   const handleDeny = async () => {

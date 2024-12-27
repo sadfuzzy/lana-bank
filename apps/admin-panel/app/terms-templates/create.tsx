@@ -14,7 +14,6 @@ import {
   useCreateTermsTemplateMutation,
   InterestInterval,
   Period,
-  TermsTemplatesDocument,
 } from "@/lib/graphql/generated"
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
@@ -54,7 +53,14 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
 
   const [createTermsTemplate, { loading, error: createTermsTemplateError }] =
     useCreateTermsTemplateMutation({
-      refetchQueries: [TermsTemplatesDocument],
+      update: (cache) => {
+        cache.modify({
+          fields: {
+            termsTemplates: (_, { DELETE }) => DELETE,
+          },
+        })
+        cache.gc()
+      },
     })
 
   const isLoading = loading || isNavigating

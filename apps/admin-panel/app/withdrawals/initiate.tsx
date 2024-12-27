@@ -15,11 +15,7 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import {
-  AllActionsDocument,
-  useWithdrawalInitiateMutation,
-  WithdrawalsDocument,
-} from "@/lib/graphql/generated"
+import { useWithdrawalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
@@ -63,7 +59,14 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   const { customer } = useCreateContext()
 
   const [initiateWithdrawal, { loading, reset }] = useWithdrawalInitiateMutation({
-    refetchQueries: [WithdrawalsDocument, AllActionsDocument],
+    update: (cache) => {
+      cache.modify({
+        fields: {
+          withdrawals: (_, { DELETE }) => DELETE,
+        },
+      })
+      cache.gc()
+    },
   })
 
   const isLoading = loading || isNavigating

@@ -75,7 +75,9 @@ type ActionNode = NonNullable<
 >
 
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
-  const { data, loading } = useAllActionsQuery()
+  const { data, loading } = useAllActionsQuery({
+    fetchPolicy: "cache-and-network",
+  })
 
   const approvalProcesses =
     data?.approvalProcesses.edges

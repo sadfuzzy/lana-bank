@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/ui/dialog"
-import { CustomersDocument, useCustomerCreateMutation } from "@/lib/graphql/generated"
+import { useCustomerCreateMutation } from "@/lib/graphql/generated"
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
@@ -48,7 +48,14 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
 
   const [createCustomer, { loading, reset, error: createCustomerError }] =
     useCustomerCreateMutation({
-      refetchQueries: [CustomersDocument],
+      update: (cache) => {
+        cache.modify({
+          fields: {
+            customers: (_, { DELETE }) => DELETE,
+          },
+        })
+        cache.gc()
+      },
     })
 
   const isLoading = loading || isNavigating

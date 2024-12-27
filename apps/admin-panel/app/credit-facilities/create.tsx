@@ -16,8 +16,6 @@ import {
 import { Input } from "@/ui/input"
 import { Label } from "@/ui/label"
 import {
-  AllActionsDocument,
-  CreditFacilitiesDocument,
   InterestInterval,
   Period,
   useCreditFacilityCreateMutation,
@@ -96,7 +94,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     useTermsTemplatesQuery()
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityCreateMutation({
-      refetchQueries: [CreditFacilitiesDocument, AllActionsDocument],
+      update: (cache) => {
+        cache.modify({
+          fields: {
+            creditFacilities: (_, { DELETE }) => DELETE,
+          },
+        })
+        cache.gc()
+      },
     })
 
   const isLoading = loading || isNavigating
