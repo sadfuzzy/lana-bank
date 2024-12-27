@@ -43,7 +43,7 @@ export const navTransactionItems: NavItem[] = [
 
 export const navAdminItems: NavItem[] = [
   { title: "Users", url: "/users", icon: UserCircle },
-  { title: "Commities", url: "/committees", icon: Users2 },
+  { title: "committees", url: "/committees", icon: Users2 },
   { title: "Audit Logs", url: "/audit", icon: BookText },
 ]
 
