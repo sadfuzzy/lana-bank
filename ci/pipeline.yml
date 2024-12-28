@@ -32,13 +32,6 @@
 #@   "app_edge_image"
 #@ )
 
-#@ load("testflight-fragments.lib.yml",
-#@   "testflight_job",
-#@   "bump_in_deployments_job",
-#@   "chart_resource",
-#@   "testflight_tf_resource"
-#@ )
-
 #@ def on_nix_host(name, cmd):
 #@ params = {}
 #@ params["REPO_PATH"] = data.values.gh_repository
@@ -88,10 +81,6 @@ groups:
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
-  - name: helm-chart
-    jobs:
-      - lana-bank-testflight
-      - bump-lana-bank-in-deployments
 
 jobs:
   -  #@ check_code()
@@ -340,9 +329,6 @@ jobs:
   -  #@ build_app_edge_image("admin-panel")
   -  #@ build_app_edge_image("customer-portal")
 
-  - #@ testflight_job("lana-bank", "lana-bank", additional_chart="cala")
-  - #@ bump_in_deployments_job("lana-bank")
-
 resources:
   - name: repo
     type: git
@@ -355,13 +341,6 @@ resources:
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
-
-  - name: cala-chart-repo
-    type: git
-    source:
-      uri: #@ data.values.git_galoy_charts_uri
-      branch: #@ data.values.git_galoy_charts_branch
-      private_key: #@ data.values.github_private_key
 
   - name: latest-image
     type: registry-image
@@ -379,13 +358,6 @@ resources:
       pool: docker-hosts
       private_key: #@ data.values.github_private_key
 
-  - name: galoy-deployments
-    type: git
-    source:
-      uri: #@ data.values.deployments_git_uri
-      branch: #@ data.values.deployments_git_branch
-      private_key: #@ data.values.github_private_key
-
   -  #@ pipeline_tasks_resource()
   -  #@ slack_resource()
   -  #@ edge_image_resource(publicRepo=False)
@@ -400,14 +372,6 @@ resources:
   -  #@ app_edge_image("customer-portal")
   -  #@ app_latest_image("customer-portal")
 
-  - #@ chart_resource("lana-bank")
-  - #@ testflight_tf_resource("lana-bank")
-
 resource_types:
   -  #@ slack_resource_type()
 
-  - name: terraform
-    type: docker-image
-    source:
-      repository: ljfranklin/terraform-resource
-      tag: latest
