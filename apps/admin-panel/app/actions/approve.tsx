@@ -92,7 +92,8 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
     },
   })
 
-  const handleApprove = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
     setError(null)
     try {
       await approveProcess({
@@ -119,33 +120,55 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   return (
     <Dialog open={openApprovalDialog} onOpenChange={setOpenApprovalDialog}>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Approve Process</DialogTitle>
-        </DialogHeader>
-        <DetailsGroup layout="horizontal">
-          <DetailItem
-            label="Process Type"
-            value={formatProcessType(approvalProcess?.approvalProcessType)}
-          />
-          <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
-        </DetailsGroup>
-        {error && <p className="text-destructive text-sm">{error}</p>}
-        <DialogFooter className="flex gap-2 sm:gap-0">
-          <Button
-            variant="ghost"
-            onClick={() => setOpenApprovalDialog(false)}
-            data-testid="approval-process-dialog-cancel-button"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleApprove}
-            loading={loading}
-            data-testid="approval-process-dialog-approve-button"
-          >
-            Approve
-          </Button>
-        </DialogFooter>
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Approve Process</DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4">
+            <input
+              type="text"
+              className="sr-only"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  e.preventDefault()
+                  setOpenApprovalDialog(false)
+                }
+              }}
+            />
+
+            <DetailsGroup layout="horizontal">
+              <DetailItem
+                label="Process Type"
+                value={formatProcessType(approvalProcess?.approvalProcessType)}
+              />
+              <DetailItem
+                label="Created At"
+                value={formatDate(approvalProcess?.createdAt)}
+              />
+            </DetailsGroup>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setOpenApprovalDialog(false)}
+              data-testid="approval-process-dialog-cancel-button"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="approval-process-dialog-approve-button"
+            >
+              Approve
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

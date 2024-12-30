@@ -118,22 +118,26 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                 Are you sure you want to update the collateral for this credit facility?
               </DialogDescription>
             </DialogHeader>
-            <form className="flex flex-col gap-4 text-sm" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                className="sr-only"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace") {
+                    e.preventDefault()
+                    setIsConfirmed(false)
+                  }
+                }}
+              />
               <DetailsGroup layout="horizontal">
                 <DetailItem
-                  className="text-sm"
-                  label="Credit Facility ID"
-                  value={creditFacilityId}
-                />
-                <DetailItem
-                  className="text-sm"
                   label="Current Collateral"
                   value={
                     <Balance amount={currentCollateral as Satoshis} currency="btc" />
                   }
                 />
                 <DetailItem
-                  className="text-sm"
                   label="New Collateral"
                   value={
                     <Balance
@@ -146,9 +150,9 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               {error && <p className="text-destructive">{error}</p>}
               <DialogFooter>
                 <Button
+                  type="button"
                   onClick={() => setIsConfirmed(false)}
                   variant="ghost"
-                  className="text-primary"
                   disabled={loading}
                 >
                   Back
@@ -202,6 +206,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                 <Label>New Collateral</Label>
                 <div className="flex items-center gap-1">
                   <Input
+                    autoFocus
                     type="number"
                     value={newCollateral}
                     onChange={(e) => setNewCollateral(e.target.value)}
