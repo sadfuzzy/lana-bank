@@ -55,7 +55,6 @@ const CommitteesList = () => {
     variables: {
       first: DEFAULT_PAGESIZE,
     },
-    fetchPolicy: "cache-and-network",
   })
 
   return (

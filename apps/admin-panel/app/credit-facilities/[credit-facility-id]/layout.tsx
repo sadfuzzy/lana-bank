@@ -1,6 +1,6 @@
 "use client"
 
-import { gql } from "@apollo/client"
+import { gql, useApolloClient } from "@apollo/client"
 import { useEffect } from "react"
 
 import CreditFacilityDetailsCard from "./details"
@@ -10,7 +10,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/tab"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
 import {
+  ApprovalProcessStatus,
   CreditFacilityStatus,
+  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityDisbursalsDocument,
+  GetCreditFacilityOverviewDocument,
+  GetCreditFacilityTransactionsDocument,
   useGetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
@@ -65,21 +70,33 @@ export default function CreditFacilityLayout({
   const { "credit-facility-id": creditFacilityId } = params
   const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const client = useApolloClient()
 
-  const { data, loading, error, refetch, startPolling, stopPolling } =
-    useGetCreditFacilityBasicDetailsQuery({
-      variables: { id: creditFacilityId },
-    })
+  const { data, loading, error, refetch } = useGetCreditFacilityBasicDetailsQuery({
+    variables: { id: creditFacilityId },
+    fetchPolicy: "cache-and-network",
+  })
 
   useEffect(() => {
-    if (data?.creditFacility?.status === CreditFacilityStatus.PendingApproval) {
-      startPolling(3000)
-    }
+    if (
+      data?.creditFacility?.status === CreditFacilityStatus.PendingApproval &&
+      data?.creditFacility?.approvalProcess?.status === ApprovalProcessStatus.Approved
+    ) {
+      const timer = setInterval(() => {
+        client.refetchQueries({
+          include: [
+            GetCreditFacilityTransactionsDocument,
+            GetCreditFacilityBasicDetailsDocument,
+            GetCreditFacilityOverviewDocument,
+            GetCreditFacilityDisbursalsDocument,
+          ],
+        })
+      }, 3000)
 
-    return () => {
-      stopPolling()
+      return () => clearInterval(timer)
     }
-  }, [data?.creditFacility?.status, startPolling, stopPolling])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.creditFacility?.status, data?.creditFacility?.approvalProcess?.status])
 
   useEffect(() => {
     if (data?.creditFacility) {

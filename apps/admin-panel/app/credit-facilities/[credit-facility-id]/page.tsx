@@ -73,6 +73,7 @@ export default function CreditFacilityPage({
 }) {
   const { data } = useGetCreditFacilityOverviewQuery({
     variables: { id: params["credit-facility-id"] },
+    fetchPolicy: "cache-and-network",
   })
 
   if (!data?.creditFacility) return null

@@ -50,7 +50,6 @@ const PolicyList = () => {
     variables: {
       first: DEFAULT_PAGESIZE,
     },
-    fetchPolicy: "cache-and-network",
   })
 
   return (
