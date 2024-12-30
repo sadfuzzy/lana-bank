@@ -22,7 +22,7 @@ resource "google_bigquery_dataset_iam_member" "holistics_viewer" {
 }
 
 resource "google_project_iam_member" "holistics_meta_viewer" {
-  project    = local.gcp_project
-  role       = "roles/bigquery.metadataViewer"
-  member     = "serviceAccount:${google_service_account.holistics.email}"
+  project = local.gcp_project
+  role    = "roles/bigquery.metadataViewer"
+  member  = "serviceAccount:${google_service_account.holistics.email}"
 }
