@@ -11,6 +11,8 @@ import {
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Skeleton } from "@/ui/skeleton"
 import { removeUnderscore } from "@/lib/utils"
+import { Copy } from "lucide-react"
+import { toast } from "sonner"
 
 gql`
   query GetKycStatusForCustomer($id: UUID!) {
@@ -89,14 +91,23 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
             </button>
           )}
           {linkData && linkData.sumsubPermalinkCreate && (
-            <a
-              href={linkData.sumsubPermalinkCreate.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 underline"
-            >
-              {linkData.sumsubPermalinkCreate.url}
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href={linkData.sumsubPermalinkCreate.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
+              >
+                {linkData.sumsubPermalinkCreate.url}
+              </a>
+              <Copy
+                className="h-4 w-4 cursor-pointer"
+                onClick={() => {
+                  navigator.clipboard.writeText(linkData.sumsubPermalinkCreate.url)
+                  toast.success("Copied to clipboard")
+                }}
+              />
+            </div>
           )}
           {linkError && <p className="text-red-500">{linkError.message}</p>}
         </div>
