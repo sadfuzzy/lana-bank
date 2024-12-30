@@ -4,6 +4,10 @@ import React from "react"
 import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
+import { Copy } from "lucide-react"
+
+import { toast } from "sonner"
+
 import {
   useGetKycStatusForCustomerQuery,
   useSumsubPermalinkCreateMutation,
@@ -11,8 +15,6 @@ import {
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Skeleton } from "@/ui/skeleton"
 import { removeUnderscore } from "@/lib/utils"
-import { Copy } from "lucide-react"
-import { toast } from "sonner"
 
 gql`
   query GetKycStatusForCustomer($id: UUID!) {
