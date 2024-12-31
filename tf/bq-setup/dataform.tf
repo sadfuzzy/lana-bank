@@ -92,4 +92,7 @@ resource "google_dataform_repository_workflow_config" "workflow" {
     fully_refresh_incremental_tables_enabled = false
     service_account                          = google_service_account.bq_access_sa.email
   }
+
+  cron_schedule   = "0 0 * * *"
+  time_zone       = "Etc/UTC"
 }
