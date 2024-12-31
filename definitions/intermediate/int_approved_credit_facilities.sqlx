@@ -15,7 +15,8 @@ WITH approved AS (
 	})}
 
 	WHERE recorded_at < asof
-		AND event_type = "approved"
+	AND event_type = "approval_process_concluded"
+	AND JSON_VALUE(event, "$.approved") = 'true'
 
 ), initial AS (
 
