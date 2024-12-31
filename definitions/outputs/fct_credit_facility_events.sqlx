@@ -7,15 +7,15 @@ config {
             "recorded_at_date_key",
             "recorded_at",
             "event_type_key",
-            "customer_id_key",
-            "terms_accrual_interval_type_key",
-            "terms_annual_rate_key",
-            "terms_duration_type_key",
-            "terms_duration_value_key",
-            "terms_incurrence_interval_type_key",
-            "terms_initial_cvl_key",
-            "terms_liquidation_cvl_key",
-            "terms_margin_call_cvl_key",
+            "customer_id",
+            "terms_accrual_interval_type",
+            "terms_annual_rate",
+            "terms_duration_type",
+            "terms_duration_value",
+            "terms_incurrence_interval_type",
+            "terms_initial_cvl",
+            "terms_liquidation_cvl",
+            "terms_margin_call_cvl",
             "approval_process_started_recorded_at_date_key",
             "approval_process_concluded_recorded_at_date_key",
             "activated_recorded_at_date_key",
@@ -34,28 +34,19 @@ WITH initialized AS (
         , CAST(FORMAT_DATE('%Y%m%d', recorded_at) as INT64) AS recorded_at_date_key
         , recorded_at
         , event_type_key
-        , customer_id_key
-        , terms_accrual_interval_type_key
-        , terms_annual_rate_key
-        , terms_duration_type_key
-        , terms_duration_value_key
-        , terms_incurrence_interval_type_key
-        , terms_initial_cvl_key
-        , terms_liquidation_cvl_key
-        , terms_margin_call_cvl_key
+        , JSON_VALUE(event, "$.customer_id") AS customer_id
+        , JSON_VALUE(event, "$.terms.accrual_interval.type") AS terms_accrual_interval_type
+        , CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC) AS terms_annual_rate
+        , JSON_VALUE(event, "$.terms.duration.type") AS terms_duration_type
+        , CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER) AS terms_duration_value
+        , JSON_VALUE(event, "$.terms.incurrence_interval.type") AS terms_incurrence_interval_type
+        , CAST(JSON_VALUE(event, "$.terms.initial_cvl") AS NUMERIC) AS terms_initial_cvl
+        , CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC) AS terms_liquidation_cvl
+        , CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC) AS terms_margin_call_cvl
         , CAST(JSON_VALUE(event, "$.facility") AS NUMERIC) AS facility
     FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})} AS cfe
     LEFT JOIN ${ref("dim_credit_facility_events_id")} AS t0 ON t0.event_id = cfe.id
     LEFT JOIN ${ref("dim_credit_facility_events_type")} AS t1 ON t1.event_type = cfe.event_type
-    LEFT JOIN ${ref("dim_credit_facility_events_customer_id")} AS t2 ON t2.customer_id = JSON_VALUE(event, "$.customer_id")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_accrual_interval_type")} AS t3 ON t3.terms_accrual_interval_type = JSON_VALUE(event, "$.terms.accrual_interval.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_annual_rate")} AS t4 ON t4.terms_annual_rate = CAST(JSON_VALUE(event, "$.terms.annual_rate") AS NUMERIC)
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_type")} AS t5 ON t5.terms_duration_type = JSON_VALUE(event, "$.terms.duration.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_duration_value")} AS t6 ON t6.terms_duration_value = CAST(JSON_VALUE(event, "$.terms.duration.value") AS INTEGER)
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_incurrence_interval_type")} AS t7 ON t7.terms_incurrence_interval_type = JSON_VALUE(event, "$.terms.incurrence_interval.type")
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_initial_cvl")} AS t8 ON t8.terms_initial_cvl = CAST(JSON_VALUE(event, "$.terms.initial_cvl") AS NUMERIC)
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_liquidation_cvl")} AS t9 ON t9.terms_liquidation_cvl = CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC)
-    LEFT JOIN ${ref("dim_credit_facility_events_terms_margin_call_cvl")} AS t10 ON t10.terms_margin_call_cvl = CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC)
     WHERE cfe.event_type = "initialized"
 
 ), approval_process_started AS (
