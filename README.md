@@ -55,9 +55,22 @@ app: http://localhost:4455/
 
 - if you see a cookie error, delete the cookie and reload the page (for now)
 
-# To setup BQ dev
+# To setup BQ 
 
-needs re-running when adding new BQ tables:
+ensure you have the TF_VAR_sa_creds env variable in .env 
+
+run 
+
+```
+gcloud auth application-default login
+```
+
+you can verify you already have access by running 
+```
+gcloud auth application-default print-access-token
+```
+
+commands to re-run when adding new BQ tables:
 
 ```
 git checkout pre-merged-commit
