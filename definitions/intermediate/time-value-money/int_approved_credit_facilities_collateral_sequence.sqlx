@@ -24,10 +24,7 @@ WITH collateral_posted AS (
 		, collateral_refunded_amount_in_sats AS mount_in_sats
 	FROM ${ref("int_approved_credit_facilities_collateral_refunded")}
 
-), unioned AS (
-
-	SELECT * FROM collateral_posted UNION ALL
-	SELECT * FROM collateral_refunded
 )
 
-SELECT * FROM unioned
+SELECT * FROM collateral_posted UNION ALL
+SELECT * FROM collateral_refunded

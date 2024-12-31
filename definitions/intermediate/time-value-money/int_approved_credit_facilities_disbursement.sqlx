@@ -2,12 +2,7 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), initiated_disbursement AS (
+WITH initiated_disbursement AS (
 
 	SELECT
 		  terms.*
@@ -16,7 +11,7 @@ WITH line_of_credit_terms AS (
 		, CAST(JSON_VALUE(event, "$.amount") AS NUMERIC) AS disbursement_amount_in_cents
 		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = id
 	WHERE event_type = "disbursal_initiated"
 
 ), concluded_disbursement AS (
@@ -27,20 +22,17 @@ WITH line_of_credit_terms AS (
 		, event_type AS concluded_disbursement_event_type
 		, CAST(JSON_VALUE(event, "$.idx") AS INTEGER) AS idx
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = id
 	WHERE event_type = "disbursal_concluded"
-
-), disbursement AS (
-
-	SELECT
-		  cd.* except (now_ts)
-		, CASE WHEN cd.concluded_disbursement_at < cd.now_ts THEN cd.concluded_disbursement_at ELSE cd.now_ts END AS now_ts
-		, id.initiated_disbursement_at
-		, id.initiated_disbursement_event_type
-		, SAFE_NEGATE(id.disbursement_amount_in_cents) AS disbursement_amount_in_cents
-	FROM concluded_disbursement AS cd
-	LEFT JOIN initiated_disbursement AS id ON id.loc_id = cd.loc_id AND id.idx = cd.idx
 
 )
 
-SELECT * FROM disbursement
+SELECT
+	  cd.* except (now_ts)
+	, CASE WHEN cd.concluded_disbursement_at < cd.now_ts THEN cd.concluded_disbursement_at ELSE cd.now_ts END AS now_ts
+	, id.initiated_disbursement_at
+	, id.initiated_disbursement_event_type
+	, SAFE_NEGATE(id.disbursement_amount_in_cents) AS disbursement_amount_in_cents
+FROM concluded_disbursement AS cd
+LEFT JOIN initiated_disbursement AS id ON id.loc_id = cd.loc_id AND id.idx = cd.idx
+

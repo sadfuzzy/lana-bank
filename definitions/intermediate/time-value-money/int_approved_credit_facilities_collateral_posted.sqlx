@@ -2,12 +2,7 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), collateralization_changed AS (
+WITH collateralization_changed AS (
 
 	SELECT
 		  terms.*
@@ -16,7 +11,7 @@ WITH line_of_credit_terms AS (
 		, JSON_VALUE(event, "$.audit_info.sub") AS audit_info_sub
 		, CAST(JSON_VALUE(event, "$.price") AS NUMERIC) AS collateral_btc_price_in_usd_cents
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = id
 	WHERE event_type = "collateralization_changed"
 
 ), collateral_posted AS (
@@ -29,31 +24,29 @@ WITH line_of_credit_terms AS (
 		, JSON_VALUE(event, "$.audit_info.sub") AS audit_info_sub
 		, CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC) AS collateral_posted_amount_in_sats
 	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
+	LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = id
 	WHERE event_type = "collateral_updated"
 	AND JSON_VALUE(event, "$.action") = "Add"
 
-), joined AS (
-	SELECT
-		  cp.*
-		, cc.collateral_btc_price_in_usd_cents
-		, SAFE_DIVIDE(
-			SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_initial_cvl, 100)),
-			SAFE_DIVIDE(cc.collateral_btc_price_in_usd_cents, 100000000)
-		  ) AS minimum_initial_collateral_in_sats
-		, SAFE_DIVIDE(
-			SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_margin_call_cvl, 100)),
-			SAFE_DIVIDE(collateral_posted_amount_in_sats, 100000000)
-		  ) AS first_margin_call_price
-		, SAFE_DIVIDE(
-			SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_liquidation_cvl, 100)),
-			SAFE_DIVIDE(collateral_posted_amount_in_sats, 100000000)
-		  ) AS first_liquidation_price
-	FROM collateral_posted cp
-	LEFT JOIN collateralization_changed cc
-		ON cc.loc_id = cp.loc_id
-		AND cc.audit_entry_id = cp.audit_entry_id
-		AND cc.audit_info_sub = cp.audit_info_sub
 )
 
-SELECT * FROM joined
+SELECT
+	  cp.*
+	, cc.collateral_btc_price_in_usd_cents
+	, SAFE_DIVIDE(
+		SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_initial_cvl, 100)),
+		SAFE_DIVIDE(cc.collateral_btc_price_in_usd_cents, 100000000)
+	  ) AS minimum_initial_collateral_in_sats
+	, SAFE_DIVIDE(
+		SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_margin_call_cvl, 100)),
+		SAFE_DIVIDE(collateral_posted_amount_in_sats, 100000000)
+	  ) AS first_margin_call_price
+	, SAFE_DIVIDE(
+		SAFE_MULTIPLY(cp.loc_borrow_limit_in_cents, SAFE_DIVIDE(cp.loc_liquidation_cvl, 100)),
+		SAFE_DIVIDE(collateral_posted_amount_in_sats, 100000000)
+	  ) AS first_liquidation_price
+FROM collateral_posted cp
+LEFT JOIN collateralization_changed cc
+	ON cc.loc_id = cp.loc_id
+	AND cc.audit_entry_id = cp.audit_entry_id
+	AND cc.audit_info_sub = cp.audit_info_sub

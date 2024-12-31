@@ -2,12 +2,7 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), interest_payment_data AS (
+WITH interest_payment_data AS (
 
 	SELECT
 		  *
@@ -44,15 +39,11 @@ WITH line_of_credit_terms AS (
 		, SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1, 365.0) AS years_from_now
 	FROM projected_interest_payment_data
 
-), projected_interest_payment AS (
-
-	SELECT
-		  *
-		, period_end_date AS recorded_at
-		, 'projected_interest_payment' AS event_type
-		, SAFE_MULTIPLY(SAFE_NEGATE(disbursement_amount_in_cents), SAFE_MULTIPLY(loc_daily_interest_rate, days_in_the_period)) AS amount_in_cents
-	FROM projected_interest_time
-
 )
 
-SELECT * FROM projected_interest_payment
+SELECT
+	  *
+	, period_end_date AS recorded_at
+	, 'projected_interest_payment' AS event_type
+	, SAFE_MULTIPLY(SAFE_NEGATE(disbursement_amount_in_cents), SAFE_MULTIPLY(loc_daily_interest_rate, days_in_the_period)) AS amount_in_cents
+FROM projected_interest_time

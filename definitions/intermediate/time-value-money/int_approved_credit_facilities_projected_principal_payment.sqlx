@@ -2,12 +2,7 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), interest_payment_data AS (
+WITH interest_payment_data AS (
 
 	SELECT
 		  *
@@ -26,15 +21,11 @@ WITH line_of_credit_terms AS (
 		, SAFE_DIVIDE(TIMESTAMP_DIFF(DATE(period_end_date), DATE(now_ts), DAY) + 1, 365.0) AS years_from_now
 	FROM interest_payment_data
 
-), projected_principal_payment AS (
-
-	SELECT
-		  *
-		, loc_end_date AS recorded_at
-		, 'projected_principal_payment' AS event_type
-		, SAFE_NEGATE(disbursement_amount_in_cents) AS amount_in_cents
-	FROM projected_principal_time
-
 )
 
-SELECT * FROM projected_principal_payment
+SELECT
+	  *
+	, loc_end_date AS recorded_at
+	, 'projected_principal_payment' AS event_type
+	, SAFE_NEGATE(disbursement_amount_in_cents) AS amount_in_cents
+FROM projected_principal_time

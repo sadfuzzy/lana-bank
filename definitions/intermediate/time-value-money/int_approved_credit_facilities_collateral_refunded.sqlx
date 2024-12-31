@@ -2,23 +2,12 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), collateral_refunded AS (
-
-	SELECT
-		  terms.*
-		, recorded_at AS collateral_refunded_at
-		, LOWER(CONCAT(event_type, '_', JSON_VALUE(event, "$.action"))) AS collateral_refunded_event_type
-		, SAFE_NEGATE(CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC)) AS collateral_refunded_amount_in_sats
-	FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = id
-	WHERE event_type = "collateral_updated"
-	AND JSON_VALUE(event, "$.action") = "Remove"
-
-)
-
-SELECT * FROM collateral_refunded
+SELECT
+	  terms.*
+	, recorded_at AS collateral_refunded_at
+	, LOWER(CONCAT(event_type, '_', JSON_VALUE(event, "$.action"))) AS collateral_refunded_event_type
+	, SAFE_NEGATE(CAST(JSON_VALUE(event, "$.abs_diff") AS NUMERIC)) AS collateral_refunded_amount_in_sats
+FROM ${ref({name: "credit_facility_events", schema: envs.currentImportSchema})}
+LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = id
+WHERE event_type = "collateral_updated"
+AND JSON_VALUE(event, "$.action") = "Remove"

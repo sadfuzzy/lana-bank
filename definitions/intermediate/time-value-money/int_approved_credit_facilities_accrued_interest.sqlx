@@ -2,12 +2,7 @@ config {
 	type: "view",
 }
 
-WITH line_of_credit_terms AS (
-
-	SELECT *
-	FROM ${ref("int_approved_credit_facilities_terms")}
-
-), interest_accrual AS (
+WITH interest_accrual AS (
 
 	SELECT
 		  terms.*
@@ -25,21 +20,17 @@ WITH line_of_credit_terms AS (
 		, CAST(JSON_VALUE(event, "$.terms.liquidation_cvl") AS NUMERIC) AS terms_liquidation_cvl
 		, CAST(JSON_VALUE(event, "$.terms.margin_call_cvl") AS NUMERIC) AS terms_margin_call_cvl
 	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})}
-	LEFT JOIN line_of_credit_terms terms ON terms.loc_id = JSON_VALUE(event, "$.facility_id")
+	LEFT JOIN ${ref("int_approved_credit_facilities_terms")} terms ON terms.loc_id = JSON_VALUE(event, "$.facility_id")
 	WHERE event_type = "initialized"
-
-), interest_accrued AS (
-
-	SELECT
-		  ia.*
-
-		, CAST(JSON_VALUE(event, "$.accrued_at") AS TIMESTAMP) AS interest_accrued_at
-		, ii.event_type
-		, CAST(JSON_VALUE(event, "$.total") AS NUMERIC) AS amount_in_cents
-	FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})} ii
-	LEFT JOIN interest_accrual ia ON ia.event_id = ii.id
-	WHERE event_type = "interest_accrued"
 
 )
 
-SELECT * FROM interest_accrued
+SELECT
+	  ia.*
+
+	, CAST(JSON_VALUE(event, "$.accrued_at") AS TIMESTAMP) AS interest_accrued_at
+	, ii.event_type
+	, CAST(JSON_VALUE(event, "$.total") AS NUMERIC) AS amount_in_cents
+FROM ${ref({name: "interest_accrual_events", schema: envs.currentImportSchema})} ii
+LEFT JOIN interest_accrual ia ON ia.event_id = ii.id
+WHERE event_type = "interest_accrued"
