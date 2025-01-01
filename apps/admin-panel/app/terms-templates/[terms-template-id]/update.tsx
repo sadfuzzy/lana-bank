@@ -168,7 +168,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid auto-rows-fr sm:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="annualRate">Interest Rate (APR)</Label>

@@ -1,6 +1,5 @@
 "use client"
 import React from "react"
-
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { DetailItem, DetailItemProps, DetailsGroup } from ".."
@@ -13,20 +12,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/ui/card"
-
 import { Separator } from "@/ui/separator"
+import { useBreakpointDown } from "@/hooks/use-media-query"
 
-const footerVariants = cva("pt-4 pb-4 gap-4", {
-  variants: {
-    alignment: {
-      left: "flex-row",
-      right: "flex-row-reverse",
+const footerVariants = cva(
+  "pt-4 pb-4 gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto md:[&>*]:mb-0 last:[&>*]:mb-0",
+  {
+    variants: {
+      alignment: {
+        left: "flex flex-col md:flex-row",
+        right: "flex flex-col md:flex-row-reverse",
+      },
+    },
+    defaultVariants: {
+      alignment: "right",
     },
   },
-  defaultVariants: {
-    alignment: "right",
-  },
-})
+)
 
 export interface DetailsCardProps extends VariantProps<typeof footerVariants> {
   title: string
@@ -36,6 +38,7 @@ export interface DetailsCardProps extends VariantProps<typeof footerVariants> {
   errorMessage?: string | undefined | null
   className?: string
   columns?: number
+  layout?: "horizontal" | "vertical"
 }
 
 export const DetailsCard: React.FC<DetailsCardProps> = ({
@@ -47,7 +50,11 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
   alignment,
   className,
   columns,
+  layout = "vertical",
 }) => {
+  const isBelowMedium = useBreakpointDown("md")
+  const effectiveLayout = isBelowMedium ? "horizontal" : layout
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -55,9 +62,13 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <DetailsGroup columns={columns}>
+        <DetailsGroup columns={columns} layout={effectiveLayout}>
           {details.map((detail) => (
-            <DetailItem key={detail.label?.toString()} {...detail} />
+            <DetailItem
+              key={detail.label?.toString()}
+              {...detail}
+              className={isBelowMedium ? "flex-1" : ""}
+            />
           ))}
         </DetailsGroup>
       </CardContent>

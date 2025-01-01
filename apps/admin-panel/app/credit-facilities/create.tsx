@@ -76,6 +76,19 @@ type CreateCreditFacilityDialogProps = {
   customerId: string
 }
 
+const initialFormValues = {
+  facility: "0",
+  annualRate: "",
+  accrualInterval: "",
+  incurrenceInterval: "",
+  liquidationCvl: "",
+  marginCallCvl: "",
+  initialCvl: "",
+  durationUnits: "",
+  durationPeriod: "",
+  oneTimeFeeRate: "",
+}
+
 export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProps> = ({
   setOpenCreateCreditFacilityDialog,
   openCreateCreditFacilityDialog,
@@ -110,18 +123,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
   // State and handlers are unchanged...
-  const [formValues, setFormValues] = useState({
-    facility: "0",
-    annualRate: "",
-    accrualInterval: "",
-    incurrenceInterval: "",
-    liquidationCvl: "",
-    marginCallCvl: "",
-    initialCvl: "",
-    durationUnits: "",
-    durationPeriod: "",
-    oneTimeFeeRate: "",
-  })
+  const [formValues, setFormValues] = useState(initialFormValues)
 
   useEffect(() => {
     if (
@@ -263,18 +265,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
       })
     } else {
-      setFormValues({
-        facility: "0",
-        annualRate: "",
-        accrualInterval: "",
-        incurrenceInterval: "",
-        liquidationCvl: "",
-        marginCallCvl: "",
-        initialCvl: "",
-        durationUnits: "",
-        durationPeriod: "",
-        oneTimeFeeRate: "",
-      })
+      setFormValues(initialFormValues)
     }
   }
 
@@ -375,7 +366,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <div>Credit Facility Terms</div>
                 <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
               </div>
-              <DetailsGroup layout="horizontal" className="grid grid-cols-2 gap-x-2">
+              <DetailsGroup
+                layout="horizontal"
+                className="grid auto-rows-fr sm:grid-cols-2"
+              >
                 <DetailItem
                   label="Interest Rate (APR)"
                   value={formValues.annualRate + "%"}
@@ -415,7 +409,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             </>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid auto-rows-fr sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Interest Rate (APR)</Label>
                   <Input
@@ -566,7 +560,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               </Button>
             )}
             <Button
-              className="w-48"
               disabled={isLoading}
               type="submit"
               loading={isLoading}

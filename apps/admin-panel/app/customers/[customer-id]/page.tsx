@@ -30,7 +30,7 @@ export default function CustomerPage({ params }: { params: { "customer-id": stri
   if (!data?.customer) return null
 
   return (
-    <div className="flex w-full gap-2">
+    <div className="flex flex-col md:flex-row w-full gap-2">
       <CustomerAccountBalances balance={data.customer.balance} />
       <KycStatus customerId={params["customer-id"]} />
     </div>

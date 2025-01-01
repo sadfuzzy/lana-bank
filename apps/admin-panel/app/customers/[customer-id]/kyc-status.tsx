@@ -122,7 +122,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
       title="KYC Status"
       description="KYC Details for this customer"
       details={details}
-      className="w-1/2"
+      className="w-full md:w-1/2"
     />
   )
 }

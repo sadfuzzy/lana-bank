@@ -10,8 +10,9 @@ import {
   HiFilter,
 } from "react-icons/hi"
 
-import { Separator } from "../../ui/separator"
-
+import { useBreakpointDown } from "@/hooks/use-media-query"
+import { Card } from "@/ui/card"
+import { Separator } from "@/ui/separator"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -69,6 +70,8 @@ const PaginatedTable = <T,>({
   showHeader = true,
   navigateTo,
 }: PaginatedTableProps<T>): React.ReactElement => {
+  const isMobile = useBreakpointDown("md")
+
   const [sortState, setSortState] = useState<{
     column: keyof T | null
     direction: "ASC" | "DESC" | null
@@ -114,8 +117,170 @@ const PaginatedTable = <T,>({
     }
   }
 
+  if (loading) {
+    return isMobile ? (
+      <div className="space-y-4" data-testid="loading-skeleton">
+        {Array.from({ length: pageSize }).map((_, idx) => (
+          <Card key={idx} className="p-4 space-y-3">
+            {columns.map((_, colIndex) => (
+              <Skeleton key={colIndex} className="h-4 w-full" />
+            ))}
+          </Card>
+        ))}
+      </div>
+    ) : (
+      <div className="overflow-x-auto border rounded-md">
+        <Table>
+          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+            <TableRow>
+              {columns.map((col) => (
+                <TableHead key={col.key as string}>{col.label}</TableHead>
+              ))}
+              {navigateTo && <TableHead className="w-24" />}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: pageSize }).map((_, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((_, colIndex) => (
+                  <TableCell key={colIndex}>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                ))}
+                {navigateTo && (
+                  <TableCell>
+                    <Skeleton className="h-4 w-full" />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    )
+  }
+
   if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
     return <div className="text-sm">No data to display</div>
+  }
+
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          {columns.filter((col) => col.sortable).length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Sort By
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {columns
+                  .filter((col) => col.sortable)
+                  .map((col) => (
+                    <DropdownMenuCheckboxItem
+                      key={col.key as string}
+                      checked={sortState.column === col.key}
+                      onCheckedChange={() => handleSort(col.key)}
+                    >
+                      {col.label}{" "}
+                      {sortState.column === col.key &&
+                        (sortState.direction === "ASC" ? "↑" : "↓")}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {columns
+            .filter((col) => col.filterValues)
+            .map((col) => (
+              <DropdownMenu key={col.key as string}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={filterState[col.key] ? "border-blue-500" : ""}
+                  >
+                    {col.label}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuCheckboxItem
+                    checked={!filterState[col.key]}
+                    onCheckedChange={() => handleFilter(col.key, undefined)}
+                  >
+                    All
+                  </DropdownMenuCheckboxItem>
+                  {col.filterValues?.map((value, idx) => (
+                    <DropdownMenuCheckboxItem
+                      key={idx}
+                      checked={filterState[col.key] === value}
+                      onCheckedChange={() => handleFilter(col.key, value)}
+                      className="capitalize"
+                    >
+                      {String(value).split("_").join(" ").toLowerCase()}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ))}
+        </div>
+
+        {displayData.map(({ node }, idx) => (
+          <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+            {columns.map((col) => (
+              <div
+                key={col.key as string}
+                className="flex justify-between items-start gap-4"
+              >
+                <div className="text-sm font-medium text-muted-foreground">
+                  {col.label}
+                </div>
+                <div className="text-sm">
+                  {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+                </div>
+              </div>
+            ))}
+            {navigateTo && (
+              <div className="pt-2">
+                <Link href={navigateTo(node)}>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-between"
+                  >
+                    View
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </Card>
+        ))}
+        <div className="flex items-center justify-end space-x-4 py-2 mr-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+          >
+            <HiChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium">{currentPage}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNextPage}
+            disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
+          >
+            <HiChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   return (

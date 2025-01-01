@@ -4,10 +4,13 @@ import React from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
+import { useBreakpointDown } from "@/hooks/use-media-query"
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { Button } from "@/ui/button"
 import { cn } from "@/lib/utils"
 import { Skeleton } from "@/ui/skeleton"
+import { Card } from "@/ui/card"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -29,7 +32,7 @@ interface DataTableProps<T> {
   onRowClick?: (item: T) => void
   emptyMessage?: React.ReactNode
   loading?: boolean
-  navigateTo?: (record: T) => string
+  navigateTo?: (record: T) => string | null
 }
 
 const DataTable = <T,>({
@@ -44,8 +47,29 @@ const DataTable = <T,>({
   loading = false,
   navigateTo,
 }: DataTableProps<T>) => {
+  const isMobile = useBreakpointDown("md")
+
+  const getNavigationUrl = (item: T): string => {
+    return navigateTo?.(item) || ""
+  }
+
+  const shouldShowNavigation = (item: T): boolean => {
+    const url = navigateTo?.(item)
+    return url !== null && url !== ""
+  }
+
   if (loading) {
-    return (
+    return isMobile ? (
+      <div className="space-y-4" data-testid="loading-skeleton">
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <Card key={idx} className="p-4 space-y-3">
+            {columns.map((_, colIndex) => (
+              <Skeleton key={colIndex} className="h-4 w-full" />
+            ))}
+          </Card>
+        ))}
+      </div>
+    ) : (
       <div
         className="w-full overflow-x-auto border rounded-md"
         data-testid="loading-skeleton"
@@ -91,6 +115,66 @@ const DataTable = <T,>({
 
   if (!data.length) {
     return <div className="text-sm">{emptyMessage}</div>
+  }
+
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {data.map((item, index) => (
+          <Card
+            key={index}
+            className={cn(
+              "p-4 space-y-3",
+              typeof rowClassName === "function"
+                ? rowClassName(item, index)
+                : rowClassName,
+              onRowClick && "cursor-pointer",
+            )}
+            onClick={() => onRowClick?.(item)}
+          >
+            {columns.map((column, colIndex) => (
+              <div
+                key={colIndex}
+                className={cn(
+                  "flex justify-between items-start gap-4",
+                  typeof cellClassName === "function"
+                    ? cellClassName(column, item)
+                    : cellClassName,
+                )}
+              >
+                <div className="text-sm font-medium text-muted-foreground">
+                  {typeof column.header === "string" ? column.header : "Label"}
+                </div>
+                <div
+                  className={cn(
+                    "text-sm",
+                    column.align === "center" && "text-center",
+                    column.align === "right" && "text-right",
+                  )}
+                >
+                  {column.render
+                    ? column.render(item[column.key], item)
+                    : String(item[column.key])}
+                </div>
+              </div>
+            ))}
+            {shouldShowNavigation(item) && (
+              <div className="pt-2">
+                <Link href={getNavigationUrl(item)}>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-between"
+                  >
+                    View
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
+    )
   }
 
   return (
@@ -142,9 +226,9 @@ const DataTable = <T,>({
                     : String(item[column.key])}
                 </TableCell>
               ))}
-              {navigateTo && (
+              {shouldShowNavigation(item) && (
                 <TableCell>
-                  <Link href={navigateTo(item)}>
+                  <Link href={getNavigationUrl(item)}>
                     <Button
                       variant="outline"
                       className="w-full flex items-center justify-between"

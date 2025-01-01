@@ -30,7 +30,7 @@ export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = (
       title="Account Balances"
       description="Balance Details for this Customer"
       details={details}
-      className="w-1/2"
+      className="w-full md:w-1/2"
     />
   )
 }

@@ -65,19 +65,6 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       },
     },
     {
-      key: "__typename",
-      header: "Transaction Id",
-      render: (
-        _: CreditFacilityHistoryEntry["__typename"],
-        transaction: CreditFacilityHistoryEntry,
-      ) => {
-        if ("txId" in transaction) {
-          return transaction.txId
-        }
-        return "-"
-      },
-    },
-    {
       key: "recordedAt",
       header: "Recorded At",
       render: (recordedAt: string | null | undefined) =>

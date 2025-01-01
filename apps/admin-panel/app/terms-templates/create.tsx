@@ -176,7 +176,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               data-testid="terms-template-name-input"
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid auto-rows-fr sm:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
                 <Label htmlFor="annualRate">Interest Rate (APR)</Label>
