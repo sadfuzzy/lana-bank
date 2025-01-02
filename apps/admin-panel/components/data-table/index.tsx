@@ -5,7 +5,6 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 import { useBreakpointDown } from "@/hooks/use-media-query"
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
 import { Button } from "@/ui/button"
 import { cn } from "@/lib/utils"
@@ -49,12 +48,13 @@ const DataTable = <T,>({
 }: DataTableProps<T>) => {
   const isMobile = useBreakpointDown("md")
 
-  const getNavigationUrl = (item: T): string => {
-    return navigateTo?.(item) || ""
+  const getNavigationUrl = (item: T): string | null => {
+    return navigateTo ? navigateTo(item) : null
   }
 
   const shouldShowNavigation = (item: T): boolean => {
-    const url = navigateTo?.(item)
+    if (!navigateTo) return false
+    const url = getNavigationUrl(item)
     return url !== null && url !== ""
   }
 
@@ -160,7 +160,7 @@ const DataTable = <T,>({
             ))}
             {shouldShowNavigation(item) && (
               <div className="pt-2">
-                <Link href={getNavigationUrl(item)}>
+                <Link href={getNavigationUrl(item) || ""}>
                   <Button
                     variant="outline"
                     className="w-full flex items-center justify-between"
@@ -228,7 +228,7 @@ const DataTable = <T,>({
               ))}
               {shouldShowNavigation(item) && (
                 <TableCell>
-                  <Link href={getNavigationUrl(item)}>
+                  <Link href={getNavigationUrl(item) || ""}>
                     <Button
                       variant="outline"
                       className="w-full flex items-center justify-between"

@@ -38,43 +38,43 @@ gql`
   }
 `
 
+const columns: Column<TermsTemplate>[] = [
+  {
+    key: "name",
+    header: "Name",
+  },
+  {
+    key: "values",
+    header: "Duration",
+    render: (values) =>
+      `${String(values.duration.units)} ${formatPeriod(values.duration.period)}`,
+  },
+  {
+    key: "values",
+    header: "Annual Rate",
+    render: (values) => `${values.annualRate}%`,
+  },
+  {
+    key: "values",
+    header: "Initial CVL",
+    render: (values) => `${values.initialCvl}%`,
+  },
+  {
+    key: "values",
+    header: "MarginCall CVL",
+    render: (values) => `${values.marginCallCvl}%`,
+  },
+  {
+    key: "values",
+    header: "Liquidation CVL",
+    render: (values) => `${values.liquidationCvl}%`,
+  },
+]
+
 function TermPage() {
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
-
-  const columns: Column<TermsTemplate>[] = [
-    {
-      key: "name",
-      header: "Name",
-    },
-    {
-      key: "values",
-      header: "Duration",
-      render: (values) =>
-        `${String(values.duration.units)} ${formatPeriod(values.duration.period)}`,
-    },
-    {
-      key: "values",
-      header: "Annual Rate",
-      render: (values) => `${values.annualRate}%`,
-    },
-    {
-      key: "values",
-      header: "Initial CVL",
-      render: (values) => `${values.initialCvl}%`,
-    },
-    {
-      key: "values",
-      header: "MarginCall CVL",
-      render: (values) => `${values.marginCallCvl}%`,
-    },
-    {
-      key: "values",
-      header: "Liquidation CVL",
-      render: (values) => `${values.liquidationCvl}%`,
-    },
-  ]
 
   if (error) {
     return (
