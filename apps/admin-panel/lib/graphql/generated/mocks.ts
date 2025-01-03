@@ -60,29 +60,32 @@ import { Account, AccountAmountsByCurrency, AccountSet, AccountSetAndSubAccounts
 
 faker.seed(0);
 
-export const mockAccount = (overrides?: Partial<Account>, _relationshipsToOmit: Set<string> = new Set()): Account => {
+export const mockAccount = (overrides?: Partial<Account>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Account' } & Account => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Account');
     return {
+        __typename: 'Account',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
-export const mockAccountAmountsByCurrency = (overrides?: Partial<AccountAmountsByCurrency>, _relationshipsToOmit: Set<string> = new Set()): AccountAmountsByCurrency => {
+export const mockAccountAmountsByCurrency = (overrides?: Partial<AccountAmountsByCurrency>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountAmountsByCurrency' } & AccountAmountsByCurrency => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountAmountsByCurrency');
     return {
+        __typename: 'AccountAmountsByCurrency',
         btc: overrides && overrides.hasOwnProperty('btc') ? overrides.btc! : relationshipsToOmit.has('BtcAccountAmountsInPeriod') ? {} as BtcAccountAmountsInPeriod : mockBtcAccountAmountsInPeriod({}, relationshipsToOmit),
         usd: overrides && overrides.hasOwnProperty('usd') ? overrides.usd! : relationshipsToOmit.has('UsdAccountAmountsInPeriod') ? {} as UsdAccountAmountsInPeriod : mockUsdAccountAmountsInPeriod({}, relationshipsToOmit),
     };
 };
 
-export const mockAccountSet = (overrides?: Partial<AccountSet>, _relationshipsToOmit: Set<string> = new Set()): AccountSet => {
+export const mockAccountSet = (overrides?: Partial<AccountSet>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSet' } & AccountSet => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountSet');
     return {
+        __typename: 'AccountSet',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
         hasSubAccounts: overrides && overrides.hasOwnProperty('hasSubAccounts') ? overrides.hasSubAccounts! : generateMockValue.boolean(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
@@ -90,10 +93,11 @@ export const mockAccountSet = (overrides?: Partial<AccountSet>, _relationshipsTo
     };
 };
 
-export const mockAccountSetAndSubAccounts = (overrides?: Partial<AccountSetAndSubAccounts>, _relationshipsToOmit: Set<string> = new Set()): AccountSetAndSubAccounts => {
+export const mockAccountSetAndSubAccounts = (overrides?: Partial<AccountSetAndSubAccounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetAndSubAccounts' } & AccountSetAndSubAccounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountSetAndSubAccounts');
     return {
+        __typename: 'AccountSetAndSubAccounts',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
@@ -101,29 +105,32 @@ export const mockAccountSetAndSubAccounts = (overrides?: Partial<AccountSetAndSu
     };
 };
 
-export const mockAccountSetSubAccountConnection = (overrides?: Partial<AccountSetSubAccountConnection>, _relationshipsToOmit: Set<string> = new Set()): AccountSetSubAccountConnection => {
+export const mockAccountSetSubAccountConnection = (overrides?: Partial<AccountSetSubAccountConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetSubAccountConnection' } & AccountSetSubAccountConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountSetSubAccountConnection');
     return {
+        __typename: 'AccountSetSubAccountConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('AccountSetSubAccountEdge') ? {} as AccountSetSubAccountEdge : mockAccountSetSubAccountEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Account') ? {} as Account : mockAccount({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockAccountSetSubAccountEdge = (overrides?: Partial<AccountSetSubAccountEdge>, _relationshipsToOmit: Set<string> = new Set()): AccountSetSubAccountEdge => {
+export const mockAccountSetSubAccountEdge = (overrides?: Partial<AccountSetSubAccountEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AccountSetSubAccountEdge' } & AccountSetSubAccountEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountSetSubAccountEdge');
     return {
+        __typename: 'AccountSetSubAccountEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Account') ? {} as Account : mockAccount({}, relationshipsToOmit),
     };
 };
 
-export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcess => {
+export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcess' } & ApprovalProcess => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcess');
     return {
+        __typename: 'ApprovalProcess',
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
         approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : mockEnums.approvalProcessType(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
@@ -146,18 +153,20 @@ export const mockApprovalProcessApproveInput = (overrides?: Partial<ApprovalProc
     };
 };
 
-export const mockApprovalProcessApprovePayload = (overrides?: Partial<ApprovalProcessApprovePayload>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcessApprovePayload => {
+export const mockApprovalProcessApprovePayload = (overrides?: Partial<ApprovalProcessApprovePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcessApprovePayload' } & ApprovalProcessApprovePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessApprovePayload');
     return {
+        __typename: 'ApprovalProcessApprovePayload',
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
     };
 };
 
-export const mockApprovalProcessConnection = (overrides?: Partial<ApprovalProcessConnection>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcessConnection => {
+export const mockApprovalProcessConnection = (overrides?: Partial<ApprovalProcessConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcessConnection' } & ApprovalProcessConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessConnection');
     return {
+        __typename: 'ApprovalProcessConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('ApprovalProcessEdge') ? {} as ApprovalProcessEdge : mockApprovalProcessEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
@@ -172,27 +181,30 @@ export const mockApprovalProcessDenyInput = (overrides?: Partial<ApprovalProcess
     };
 };
 
-export const mockApprovalProcessDenyPayload = (overrides?: Partial<ApprovalProcessDenyPayload>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcessDenyPayload => {
+export const mockApprovalProcessDenyPayload = (overrides?: Partial<ApprovalProcessDenyPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcessDenyPayload' } & ApprovalProcessDenyPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessDenyPayload');
     return {
+        __typename: 'ApprovalProcessDenyPayload',
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
     };
 };
 
-export const mockApprovalProcessEdge = (overrides?: Partial<ApprovalProcessEdge>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcessEdge => {
+export const mockApprovalProcessEdge = (overrides?: Partial<ApprovalProcessEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcessEdge' } & ApprovalProcessEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessEdge');
     return {
+        __typename: 'ApprovalProcessEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
     };
 };
 
-export const mockApprovalProcessVoter = (overrides?: Partial<ApprovalProcessVoter>, _relationshipsToOmit: Set<string> = new Set()): ApprovalProcessVoter => {
+export const mockApprovalProcessVoter = (overrides?: Partial<ApprovalProcessVoter>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ApprovalProcessVoter' } & ApprovalProcessVoter => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ApprovalProcessVoter');
     return {
+        __typename: 'ApprovalProcessVoter',
         didApprove: overrides && overrides.hasOwnProperty('didApprove') ? overrides.didApprove! : generateMockValue.boolean(),
         didDeny: overrides && overrides.hasOwnProperty('didDeny') ? overrides.didDeny! : generateMockValue.boolean(),
         didVote: overrides && overrides.hasOwnProperty('didVote') ? overrides.didVote! : generateMockValue.boolean(),
@@ -202,10 +214,11 @@ export const mockApprovalProcessVoter = (overrides?: Partial<ApprovalProcessVote
     };
 };
 
-export const mockAuditEntry = (overrides?: Partial<AuditEntry>, _relationshipsToOmit: Set<string> = new Set()): AuditEntry => {
+export const mockAuditEntry = (overrides?: Partial<AuditEntry>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AuditEntry' } & AuditEntry => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AuditEntry');
     return {
+        __typename: 'AuditEntry',
         action: overrides && overrides.hasOwnProperty('action') ? overrides.action! : faker.lorem.word(),
         authorized: overrides && overrides.hasOwnProperty('authorized') ? overrides.authorized! : generateMockValue.boolean(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
@@ -215,39 +228,43 @@ export const mockAuditEntry = (overrides?: Partial<AuditEntry>, _relationshipsTo
     };
 };
 
-export const mockAuditEntryConnection = (overrides?: Partial<AuditEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): AuditEntryConnection => {
+export const mockAuditEntryConnection = (overrides?: Partial<AuditEntryConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AuditEntryConnection' } & AuditEntryConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AuditEntryConnection');
     return {
+        __typename: 'AuditEntryConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('AuditEntryEdge') ? {} as AuditEntryEdge : mockAuditEntryEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('AuditEntry') ? {} as AuditEntry : mockAuditEntry({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockAuditEntryEdge = (overrides?: Partial<AuditEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): AuditEntryEdge => {
+export const mockAuditEntryEdge = (overrides?: Partial<AuditEntryEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'AuditEntryEdge' } & AuditEntryEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AuditEntryEdge');
     return {
+        __typename: 'AuditEntryEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('AuditEntry') ? {} as AuditEntry : mockAuditEntry({}, relationshipsToOmit),
     };
 };
 
-export const mockBalanceSheet = (overrides?: Partial<BalanceSheet>, _relationshipsToOmit: Set<string> = new Set()): BalanceSheet => {
+export const mockBalanceSheet = (overrides?: Partial<BalanceSheet>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BalanceSheet' } & BalanceSheet => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('BalanceSheet');
     return {
+        __typename: 'BalanceSheet',
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('StatementCategory') ? {} as StatementCategory : mockStatementCategory({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
-export const mockBtcAccountAmounts = (overrides?: Partial<BtcAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): BtcAccountAmounts => {
+export const mockBtcAccountAmounts = (overrides?: Partial<BtcAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcAccountAmounts' } & BtcAccountAmounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('BtcAccountAmounts');
     return {
+        __typename: 'BtcAccountAmounts',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.satoshis(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.satoshis(),
         netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedSatoshis(),
@@ -255,56 +272,62 @@ export const mockBtcAccountAmounts = (overrides?: Partial<BtcAccountAmounts>, _r
     };
 };
 
-export const mockBtcAccountAmountsInPeriod = (overrides?: Partial<BtcAccountAmountsInPeriod>, _relationshipsToOmit: Set<string> = new Set()): BtcAccountAmountsInPeriod => {
+export const mockBtcAccountAmountsInPeriod = (overrides?: Partial<BtcAccountAmountsInPeriod>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'BtcAccountAmountsInPeriod' } & BtcAccountAmountsInPeriod => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('BtcAccountAmountsInPeriod');
     return {
+        __typename: 'BtcAccountAmountsInPeriod',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
         closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
         openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredBtcAccountAmounts') ? {} as LayeredBtcAccountAmounts : mockLayeredBtcAccountAmounts({}, relationshipsToOmit),
     };
 };
 
-export const mockCashFlowStatement = (overrides?: Partial<CashFlowStatement>, _relationshipsToOmit: Set<string> = new Set()): CashFlowStatement => {
+export const mockCashFlowStatement = (overrides?: Partial<CashFlowStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CashFlowStatement' } & CashFlowStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CashFlowStatement');
     return {
+        __typename: 'CashFlowStatement',
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('StatementCategory') ? {} as StatementCategory : mockStatementCategory({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
     };
 };
 
-export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccounts => {
+export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccounts' } & ChartOfAccounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccounts');
     return {
+        __typename: 'ChartOfAccounts',
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('StatementCategory') ? {} as StatementCategory : mockStatementCategory({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
-export const mockChecking = (overrides?: Partial<Checking>, _relationshipsToOmit: Set<string> = new Set()): Checking => {
+export const mockChecking = (overrides?: Partial<Checking>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Checking' } & Checking => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Checking');
     return {
+        __typename: 'Checking',
         pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : generateMockValue.usdCents(),
         settled: overrides && overrides.hasOwnProperty('settled') ? overrides.settled! : generateMockValue.usdCents(),
     };
 };
 
-export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsToOmit: Set<string> = new Set()): Collateral => {
+export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Collateral' } & Collateral => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Collateral');
     return {
+        __typename: 'Collateral',
         btcBalance: overrides && overrides.hasOwnProperty('btcBalance') ? overrides.btcBalance! : generateMockValue.satoshis(),
     };
 };
 
-export const mockCommittee = (overrides?: Partial<Committee>, _relationshipsToOmit: Set<string> = new Set()): Committee => {
+export const mockCommittee = (overrides?: Partial<Committee>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Committee' } & Committee => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Committee');
     return {
+        __typename: 'Committee',
         committeeId: overrides && overrides.hasOwnProperty('committeeId') ? overrides.committeeId! : generateMockValue.uuid(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         currentMembers: overrides && overrides.hasOwnProperty('currentMembers') ? overrides.currentMembers! : [relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit)],
@@ -322,18 +345,20 @@ export const mockCommitteeAddUserInput = (overrides?: Partial<CommitteeAddUserIn
     };
 };
 
-export const mockCommitteeAddUserPayload = (overrides?: Partial<CommitteeAddUserPayload>, _relationshipsToOmit: Set<string> = new Set()): CommitteeAddUserPayload => {
+export const mockCommitteeAddUserPayload = (overrides?: Partial<CommitteeAddUserPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeAddUserPayload' } & CommitteeAddUserPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeAddUserPayload');
     return {
+        __typename: 'CommitteeAddUserPayload',
         committee: overrides && overrides.hasOwnProperty('committee') ? overrides.committee! : relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit),
     };
 };
 
-export const mockCommitteeConnection = (overrides?: Partial<CommitteeConnection>, _relationshipsToOmit: Set<string> = new Set()): CommitteeConnection => {
+export const mockCommitteeConnection = (overrides?: Partial<CommitteeConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeConnection' } & CommitteeConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeConnection');
     return {
+        __typename: 'CommitteeConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CommitteeEdge') ? {} as CommitteeEdge : mockCommitteeEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
@@ -348,18 +373,20 @@ export const mockCommitteeCreateInput = (overrides?: Partial<CommitteeCreateInpu
     };
 };
 
-export const mockCommitteeCreatePayload = (overrides?: Partial<CommitteeCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): CommitteeCreatePayload => {
+export const mockCommitteeCreatePayload = (overrides?: Partial<CommitteeCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeCreatePayload' } & CommitteeCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeCreatePayload');
     return {
+        __typename: 'CommitteeCreatePayload',
         committee: overrides && overrides.hasOwnProperty('committee') ? overrides.committee! : relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit),
     };
 };
 
-export const mockCommitteeEdge = (overrides?: Partial<CommitteeEdge>, _relationshipsToOmit: Set<string> = new Set()): CommitteeEdge => {
+export const mockCommitteeEdge = (overrides?: Partial<CommitteeEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeEdge' } & CommitteeEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeEdge');
     return {
+        __typename: 'CommitteeEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit),
     };
@@ -374,18 +401,20 @@ export const mockCommitteeRemoveUserInput = (overrides?: Partial<CommitteeRemove
     };
 };
 
-export const mockCommitteeRemoveUserPayload = (overrides?: Partial<CommitteeRemoveUserPayload>, _relationshipsToOmit: Set<string> = new Set()): CommitteeRemoveUserPayload => {
+export const mockCommitteeRemoveUserPayload = (overrides?: Partial<CommitteeRemoveUserPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeRemoveUserPayload' } & CommitteeRemoveUserPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeRemoveUserPayload');
     return {
+        __typename: 'CommitteeRemoveUserPayload',
         committee: overrides && overrides.hasOwnProperty('committee') ? overrides.committee! : relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit),
     };
 };
 
-export const mockCommitteeThreshold = (overrides?: Partial<CommitteeThreshold>, _relationshipsToOmit: Set<string> = new Set()): CommitteeThreshold => {
+export const mockCommitteeThreshold = (overrides?: Partial<CommitteeThreshold>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CommitteeThreshold' } & CommitteeThreshold => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CommitteeThreshold');
     return {
+        __typename: 'CommitteeThreshold',
         committee: overrides && overrides.hasOwnProperty('committee') ? overrides.committee! : relationshipsToOmit.has('Committee') ? {} as Committee : mockCommittee({}, relationshipsToOmit),
         threshold: overrides && overrides.hasOwnProperty('threshold') ? overrides.threshold! : faker.number.int({ min: 0, max: 9999 }),
     };
@@ -410,10 +439,11 @@ export const mockCreditFacilitiesSort = (overrides?: Partial<CreditFacilitiesSor
     };
 };
 
-export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relationshipsToOmit: Set<string> = new Set()): CreditFacility => {
+export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacility' } & CreditFacility => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacility');
     return {
+        __typename: 'CreditFacility',
         activatedAt: overrides && overrides.hasOwnProperty('activatedAt') ? overrides.activatedAt! : generateMockValue.timestamp(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
@@ -440,10 +470,11 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
     };
 };
 
-export const mockCreditFacilityBalance = (overrides?: Partial<CreditFacilityBalance>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityBalance => {
+export const mockCreditFacilityBalance = (overrides?: Partial<CreditFacilityBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityBalance' } & CreditFacilityBalance => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityBalance');
     return {
+        __typename: 'CreditFacilityBalance',
         collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : relationshipsToOmit.has('Collateral') ? {} as Collateral : mockCollateral({}, relationshipsToOmit),
         disbursed: overrides && overrides.hasOwnProperty('disbursed') ? overrides.disbursed! : relationshipsToOmit.has('Disbursed') ? {} as Disbursed : mockDisbursed({}, relationshipsToOmit),
         dueOutstanding: overrides && overrides.hasOwnProperty('dueOutstanding') ? overrides.dueOutstanding! : relationshipsToOmit.has('Outstanding') ? {} as Outstanding : mockOutstanding({}, relationshipsToOmit),
@@ -462,18 +493,20 @@ export const mockCreditFacilityCollateralUpdateInput = (overrides?: Partial<Cred
     };
 };
 
-export const mockCreditFacilityCollateralUpdatePayload = (overrides?: Partial<CreditFacilityCollateralUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCollateralUpdatePayload => {
+export const mockCreditFacilityCollateralUpdatePayload = (overrides?: Partial<CreditFacilityCollateralUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCollateralUpdatePayload' } & CreditFacilityCollateralUpdatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityCollateralUpdatePayload');
     return {
+        __typename: 'CreditFacilityCollateralUpdatePayload',
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityCollateralUpdated = (overrides?: Partial<CreditFacilityCollateralUpdated>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCollateralUpdated => {
+export const mockCreditFacilityCollateralUpdated = (overrides?: Partial<CreditFacilityCollateralUpdated>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCollateralUpdated' } & CreditFacilityCollateralUpdated => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityCollateralUpdated');
     return {
+        __typename: 'CreditFacilityCollateralUpdated',
         action: overrides && overrides.hasOwnProperty('action') ? overrides.action! : CollateralAction.Add,
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         satoshis: overrides && overrides.hasOwnProperty('satoshis') ? overrides.satoshis! : generateMockValue.satoshis(),
@@ -481,10 +514,11 @@ export const mockCreditFacilityCollateralUpdated = (overrides?: Partial<CreditFa
     };
 };
 
-export const mockCreditFacilityCollateralizationUpdated = (overrides?: Partial<CreditFacilityCollateralizationUpdated>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCollateralizationUpdated => {
+export const mockCreditFacilityCollateralizationUpdated = (overrides?: Partial<CreditFacilityCollateralizationUpdated>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCollateralizationUpdated' } & CreditFacilityCollateralizationUpdated => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityCollateralizationUpdated');
     return {
+        __typename: 'CreditFacilityCollateralizationUpdated',
         collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : generateMockValue.satoshis(),
         outstandingDisbursal: overrides && overrides.hasOwnProperty('outstandingDisbursal') ? overrides.outstandingDisbursal! : generateMockValue.usdCents(),
         outstandingInterest: overrides && overrides.hasOwnProperty('outstandingInterest') ? overrides.outstandingInterest! : generateMockValue.usdCents(),
@@ -502,18 +536,20 @@ export const mockCreditFacilityCompleteInput = (overrides?: Partial<CreditFacili
     };
 };
 
-export const mockCreditFacilityCompletePayload = (overrides?: Partial<CreditFacilityCompletePayload>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCompletePayload => {
+export const mockCreditFacilityCompletePayload = (overrides?: Partial<CreditFacilityCompletePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCompletePayload' } & CreditFacilityCompletePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityCompletePayload');
     return {
+        __typename: 'CreditFacilityCompletePayload',
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityConnection = (overrides?: Partial<CreditFacilityConnection>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityConnection => {
+export const mockCreditFacilityConnection = (overrides?: Partial<CreditFacilityConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityConnection' } & CreditFacilityConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityConnection');
     return {
+        __typename: 'CreditFacilityConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CreditFacilityEdge') ? {} as CreditFacilityEdge : mockCreditFacilityEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
@@ -530,18 +566,20 @@ export const mockCreditFacilityCreateInput = (overrides?: Partial<CreditFacility
     };
 };
 
-export const mockCreditFacilityCreatePayload = (overrides?: Partial<CreditFacilityCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCreatePayload => {
+export const mockCreditFacilityCreatePayload = (overrides?: Partial<CreditFacilityCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCreatePayload' } & CreditFacilityCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityCreatePayload');
     return {
+        __typename: 'CreditFacilityCreatePayload',
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDisbursal>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityDisbursal => {
+export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDisbursal>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityDisbursal' } & CreditFacilityDisbursal => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityDisbursal');
     return {
+        __typename: 'CreditFacilityDisbursal',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
@@ -553,29 +591,32 @@ export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDi
     };
 };
 
-export const mockCreditFacilityDisbursalConnection = (overrides?: Partial<CreditFacilityDisbursalConnection>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityDisbursalConnection => {
+export const mockCreditFacilityDisbursalConnection = (overrides?: Partial<CreditFacilityDisbursalConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityDisbursalConnection' } & CreditFacilityDisbursalConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityDisbursalConnection');
     return {
+        __typename: 'CreditFacilityDisbursalConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CreditFacilityDisbursalEdge') ? {} as CreditFacilityDisbursalEdge : mockCreditFacilityDisbursalEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityDisbursalEdge = (overrides?: Partial<CreditFacilityDisbursalEdge>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityDisbursalEdge => {
+export const mockCreditFacilityDisbursalEdge = (overrides?: Partial<CreditFacilityDisbursalEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityDisbursalEdge' } & CreditFacilityDisbursalEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityDisbursalEdge');
     return {
+        __typename: 'CreditFacilityDisbursalEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityDisbursalExecuted = (overrides?: Partial<CreditFacilityDisbursalExecuted>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityDisbursalExecuted => {
+export const mockCreditFacilityDisbursalExecuted = (overrides?: Partial<CreditFacilityDisbursalExecuted>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityDisbursalExecuted' } & CreditFacilityDisbursalExecuted => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityDisbursalExecuted');
     return {
+        __typename: 'CreditFacilityDisbursalExecuted',
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
@@ -591,37 +632,41 @@ export const mockCreditFacilityDisbursalInitiateInput = (overrides?: Partial<Cre
     };
 };
 
-export const mockCreditFacilityDisbursalInitiatePayload = (overrides?: Partial<CreditFacilityDisbursalInitiatePayload>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityDisbursalInitiatePayload => {
+export const mockCreditFacilityDisbursalInitiatePayload = (overrides?: Partial<CreditFacilityDisbursalInitiatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityDisbursalInitiatePayload' } & CreditFacilityDisbursalInitiatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityDisbursalInitiatePayload');
     return {
+        __typename: 'CreditFacilityDisbursalInitiatePayload',
         disbursal: overrides && overrides.hasOwnProperty('disbursal') ? overrides.disbursal! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityEdge = (overrides?: Partial<CreditFacilityEdge>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityEdge => {
+export const mockCreditFacilityEdge = (overrides?: Partial<CreditFacilityEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityEdge' } & CreditFacilityEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityEdge');
     return {
+        __typename: 'CreditFacilityEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
-export const mockCreditFacilityIncrementalPayment = (overrides?: Partial<CreditFacilityIncrementalPayment>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityIncrementalPayment => {
+export const mockCreditFacilityIncrementalPayment = (overrides?: Partial<CreditFacilityIncrementalPayment>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityIncrementalPayment' } & CreditFacilityIncrementalPayment => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityIncrementalPayment');
     return {
+        __typename: 'CreditFacilityIncrementalPayment',
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
     };
 };
 
-export const mockCreditFacilityInterestAccrued = (overrides?: Partial<CreditFacilityInterestAccrued>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityInterestAccrued => {
+export const mockCreditFacilityInterestAccrued = (overrides?: Partial<CreditFacilityInterestAccrued>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityInterestAccrued' } & CreditFacilityInterestAccrued => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityInterestAccrued');
     return {
+        __typename: 'CreditFacilityInterestAccrued',
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         days: overrides && overrides.hasOwnProperty('days') ? overrides.days! : faker.number.int({ min: 0, max: 9999 }),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
@@ -629,10 +674,11 @@ export const mockCreditFacilityInterestAccrued = (overrides?: Partial<CreditFaci
     };
 };
 
-export const mockCreditFacilityOrigination = (overrides?: Partial<CreditFacilityOrigination>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityOrigination => {
+export const mockCreditFacilityOrigination = (overrides?: Partial<CreditFacilityOrigination>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityOrigination' } & CreditFacilityOrigination => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityOrigination');
     return {
+        __typename: 'CreditFacilityOrigination',
         cents: overrides && overrides.hasOwnProperty('cents') ? overrides.cents! : generateMockValue.usdCents(),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
         txId: overrides && overrides.hasOwnProperty('txId') ? overrides.txId! : generateMockValue.uuid(),
@@ -648,18 +694,20 @@ export const mockCreditFacilityPartialPaymentInput = (overrides?: Partial<Credit
     };
 };
 
-export const mockCreditFacilityPartialPaymentPayload = (overrides?: Partial<CreditFacilityPartialPaymentPayload>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityPartialPaymentPayload => {
+export const mockCreditFacilityPartialPaymentPayload = (overrides?: Partial<CreditFacilityPartialPaymentPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityPartialPaymentPayload' } & CreditFacilityPartialPaymentPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityPartialPaymentPayload');
     return {
+        __typename: 'CreditFacilityPartialPaymentPayload',
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
-export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit: Set<string> = new Set()): Customer => {
+export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Customer' } & Customer => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Customer');
     return {
+        __typename: 'Customer',
         applicantId: overrides && overrides.hasOwnProperty('applicantId') ? overrides.applicantId! : generateMockValue.applicantId(),
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('CustomerBalance') ? {} as CustomerBalance : mockCustomerBalance({}, relationshipsToOmit),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
@@ -680,18 +728,20 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
     };
 };
 
-export const mockCustomerBalance = (overrides?: Partial<CustomerBalance>, _relationshipsToOmit: Set<string> = new Set()): CustomerBalance => {
+export const mockCustomerBalance = (overrides?: Partial<CustomerBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerBalance' } & CustomerBalance => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerBalance');
     return {
+        __typename: 'CustomerBalance',
         checking: overrides && overrides.hasOwnProperty('checking') ? overrides.checking! : relationshipsToOmit.has('Checking') ? {} as Checking : mockChecking({}, relationshipsToOmit),
     };
 };
 
-export const mockCustomerConnection = (overrides?: Partial<CustomerConnection>, _relationshipsToOmit: Set<string> = new Set()): CustomerConnection => {
+export const mockCustomerConnection = (overrides?: Partial<CustomerConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerConnection' } & CustomerConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerConnection');
     return {
+        __typename: 'CustomerConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CustomerEdge') ? {} as CustomerEdge : mockCustomerEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
@@ -707,18 +757,20 @@ export const mockCustomerCreateInput = (overrides?: Partial<CustomerCreateInput>
     };
 };
 
-export const mockCustomerCreatePayload = (overrides?: Partial<CustomerCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): CustomerCreatePayload => {
+export const mockCustomerCreatePayload = (overrides?: Partial<CustomerCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerCreatePayload' } & CustomerCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerCreatePayload');
     return {
+        __typename: 'CustomerCreatePayload',
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
     };
 };
 
-export const mockCustomerEdge = (overrides?: Partial<CustomerEdge>, _relationshipsToOmit: Set<string> = new Set()): CustomerEdge => {
+export const mockCustomerEdge = (overrides?: Partial<CustomerEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerEdge' } & CustomerEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerEdge');
     return {
+        __typename: 'CustomerEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
     };
@@ -733,10 +785,11 @@ export const mockCustomerUpdateInput = (overrides?: Partial<CustomerUpdateInput>
     };
 };
 
-export const mockCustomerUpdatePayload = (overrides?: Partial<CustomerUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): CustomerUpdatePayload => {
+export const mockCustomerUpdatePayload = (overrides?: Partial<CustomerUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CustomerUpdatePayload' } & CustomerUpdatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomerUpdatePayload');
     return {
+        __typename: 'CustomerUpdatePayload',
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
     };
 };
@@ -759,10 +812,11 @@ export const mockCustomersSort = (overrides?: Partial<CustomersSort>, _relations
     };
 };
 
-export const mockDashboard = (overrides?: Partial<Dashboard>, _relationshipsToOmit: Set<string> = new Set()): Dashboard => {
+export const mockDashboard = (overrides?: Partial<Dashboard>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Dashboard' } & Dashboard => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Dashboard');
     return {
+        __typename: 'Dashboard',
         activeFacilities: overrides && overrides.hasOwnProperty('activeFacilities') ? overrides.activeFacilities! : generateMockValue.int(),
         pendingFacilities: overrides && overrides.hasOwnProperty('pendingFacilities') ? overrides.pendingFacilities! : generateMockValue.int(),
         totalCollateral: overrides && overrides.hasOwnProperty('totalCollateral') ? overrides.totalCollateral! : generateMockValue.satoshis(),
@@ -770,10 +824,11 @@ export const mockDashboard = (overrides?: Partial<Dashboard>, _relationshipsToOm
     };
 };
 
-export const mockDeposit = (overrides?: Partial<Deposit>, _relationshipsToOmit: Set<string> = new Set()): Deposit => {
+export const mockDeposit = (overrides?: Partial<Deposit>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Deposit' } & Deposit => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Deposit');
     return {
+        __typename: 'Deposit',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
@@ -784,20 +839,22 @@ export const mockDeposit = (overrides?: Partial<Deposit>, _relationshipsToOmit: 
     };
 };
 
-export const mockDepositConnection = (overrides?: Partial<DepositConnection>, _relationshipsToOmit: Set<string> = new Set()): DepositConnection => {
+export const mockDepositConnection = (overrides?: Partial<DepositConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DepositConnection' } & DepositConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositConnection');
     return {
+        __typename: 'DepositConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('DepositEdge') ? {} as DepositEdge : mockDepositEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockDepositEdge = (overrides?: Partial<DepositEdge>, _relationshipsToOmit: Set<string> = new Set()): DepositEdge => {
+export const mockDepositEdge = (overrides?: Partial<DepositEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DepositEdge' } & DepositEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositEdge');
     return {
+        __typename: 'DepositEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit),
     };
@@ -813,28 +870,31 @@ export const mockDepositRecordInput = (overrides?: Partial<DepositRecordInput>, 
     };
 };
 
-export const mockDepositRecordPayload = (overrides?: Partial<DepositRecordPayload>, _relationshipsToOmit: Set<string> = new Set()): DepositRecordPayload => {
+export const mockDepositRecordPayload = (overrides?: Partial<DepositRecordPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DepositRecordPayload' } & DepositRecordPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositRecordPayload');
     return {
+        __typename: 'DepositRecordPayload',
         deposit: overrides && overrides.hasOwnProperty('deposit') ? overrides.deposit! : relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit),
     };
 };
 
-export const mockDisbursed = (overrides?: Partial<Disbursed>, _relationshipsToOmit: Set<string> = new Set()): Disbursed => {
+export const mockDisbursed = (overrides?: Partial<Disbursed>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Disbursed' } & Disbursed => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Disbursed');
     return {
+        __typename: 'Disbursed',
         dueOutstanding: overrides && overrides.hasOwnProperty('dueOutstanding') ? overrides.dueOutstanding! : relationshipsToOmit.has('Outstanding') ? {} as Outstanding : mockOutstanding({}, relationshipsToOmit),
         outstanding: overrides && overrides.hasOwnProperty('outstanding') ? overrides.outstanding! : relationshipsToOmit.has('Outstanding') ? {} as Outstanding : mockOutstanding({}, relationshipsToOmit),
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('Total') ? {} as Total : mockTotal({}, relationshipsToOmit),
     };
 };
 
-export const mockDocument = (overrides?: Partial<Document>, _relationshipsToOmit: Set<string> = new Set()): Document => {
+export const mockDocument = (overrides?: Partial<Document>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Document' } & Document => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Document');
     return {
+        __typename: 'Document',
         customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
         documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
         filename: overrides && overrides.hasOwnProperty('filename') ? overrides.filename! : generateMockValue.filename(),
@@ -851,10 +911,11 @@ export const mockDocumentArchiveInput = (overrides?: Partial<DocumentArchiveInpu
     };
 };
 
-export const mockDocumentArchivePayload = (overrides?: Partial<DocumentArchivePayload>, _relationshipsToOmit: Set<string> = new Set()): DocumentArchivePayload => {
+export const mockDocumentArchivePayload = (overrides?: Partial<DocumentArchivePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DocumentArchivePayload' } & DocumentArchivePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DocumentArchivePayload');
     return {
+        __typename: 'DocumentArchivePayload',
         document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('Document') ? {} as Document : mockDocument({}, relationshipsToOmit),
     };
 };
@@ -868,10 +929,11 @@ export const mockDocumentCreateInput = (overrides?: Partial<DocumentCreateInput>
     };
 };
 
-export const mockDocumentCreatePayload = (overrides?: Partial<DocumentCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): DocumentCreatePayload => {
+export const mockDocumentCreatePayload = (overrides?: Partial<DocumentCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DocumentCreatePayload' } & DocumentCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DocumentCreatePayload');
     return {
+        __typename: 'DocumentCreatePayload',
         document: overrides && overrides.hasOwnProperty('document') ? overrides.document! : relationshipsToOmit.has('Document') ? {} as Document : mockDocument({}, relationshipsToOmit),
     };
 };
@@ -884,10 +946,11 @@ export const mockDocumentDeleteInput = (overrides?: Partial<DocumentDeleteInput>
     };
 };
 
-export const mockDocumentDeletePayload = (overrides?: Partial<DocumentDeletePayload>, _relationshipsToOmit: Set<string> = new Set()): DocumentDeletePayload => {
+export const mockDocumentDeletePayload = (overrides?: Partial<DocumentDeletePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DocumentDeletePayload' } & DocumentDeletePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DocumentDeletePayload');
     return {
+        __typename: 'DocumentDeletePayload',
         deletedDocumentId: overrides && overrides.hasOwnProperty('deletedDocumentId') ? overrides.deletedDocumentId! : generateMockValue.uuid(),
     };
 };
@@ -900,19 +963,21 @@ export const mockDocumentDownloadLinksGenerateInput = (overrides?: Partial<Docum
     };
 };
 
-export const mockDocumentDownloadLinksGeneratePayload = (overrides?: Partial<DocumentDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): DocumentDownloadLinksGeneratePayload => {
+export const mockDocumentDownloadLinksGeneratePayload = (overrides?: Partial<DocumentDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'DocumentDownloadLinksGeneratePayload' } & DocumentDownloadLinksGeneratePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DocumentDownloadLinksGeneratePayload');
     return {
+        __typename: 'DocumentDownloadLinksGeneratePayload',
         documentId: overrides && overrides.hasOwnProperty('documentId') ? overrides.documentId! : generateMockValue.uuid(),
         link: overrides && overrides.hasOwnProperty('link') ? overrides.link! : faker.lorem.word(),
     };
 };
 
-export const mockDuration = (overrides?: Partial<Duration>, _relationshipsToOmit: Set<string> = new Set()): Duration => {
+export const mockDuration = (overrides?: Partial<Duration>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Duration' } & Duration => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Duration');
     return {
+        __typename: 'Duration',
         period: overrides && overrides.hasOwnProperty('period') ? overrides.period! : mockEnums.period(),
         units: overrides && overrides.hasOwnProperty('units') ? overrides.units! : faker.helpers.arrayElement([6, 12, 24]),
     };
@@ -927,47 +992,52 @@ export const mockDurationInput = (overrides?: Partial<DurationInput>, _relations
     };
 };
 
-export const mockFacilityCvl = (overrides?: Partial<FacilityCvl>, _relationshipsToOmit: Set<string> = new Set()): FacilityCvl => {
+export const mockFacilityCvl = (overrides?: Partial<FacilityCvl>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FacilityCVL' } & FacilityCvl => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FacilityCvl');
     return {
+        __typename: 'FacilityCVL',
         disbursed: overrides && overrides.hasOwnProperty('disbursed') ? overrides.disbursed! : generateMockValue.int(),
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : generateMockValue.int(),
     };
 };
 
-export const mockFacilityRemaining = (overrides?: Partial<FacilityRemaining>, _relationshipsToOmit: Set<string> = new Set()): FacilityRemaining => {
+export const mockFacilityRemaining = (overrides?: Partial<FacilityRemaining>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'FacilityRemaining' } & FacilityRemaining => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('FacilityRemaining');
     return {
+        __typename: 'FacilityRemaining',
         usdBalance: overrides && overrides.hasOwnProperty('usdBalance') ? overrides.usdBalance! : generateMockValue.usdCents(),
     };
 };
 
-export const mockGovernanceNavigationItems = (overrides?: Partial<GovernanceNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): GovernanceNavigationItems => {
+export const mockGovernanceNavigationItems = (overrides?: Partial<GovernanceNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'GovernanceNavigationItems' } & GovernanceNavigationItems => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('GovernanceNavigationItems');
     return {
+        __typename: 'GovernanceNavigationItems',
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : faker.datatype.boolean(),
         committee: overrides && overrides.hasOwnProperty('committee') ? overrides.committee! : faker.datatype.boolean(),
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : faker.datatype.boolean(),
     };
 };
 
-export const mockInterest = (overrides?: Partial<Interest>, _relationshipsToOmit: Set<string> = new Set()): Interest => {
+export const mockInterest = (overrides?: Partial<Interest>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Interest' } & Interest => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Interest');
     return {
+        __typename: 'Interest',
         dueOutstanding: overrides && overrides.hasOwnProperty('dueOutstanding') ? overrides.dueOutstanding! : relationshipsToOmit.has('Outstanding') ? {} as Outstanding : mockOutstanding({}, relationshipsToOmit),
         outstanding: overrides && overrides.hasOwnProperty('outstanding') ? overrides.outstanding! : relationshipsToOmit.has('Outstanding') ? {} as Outstanding : mockOutstanding({}, relationshipsToOmit),
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('Total') ? {} as Total : mockTotal({}, relationshipsToOmit),
     };
 };
 
-export const mockLayeredBtcAccountAmounts = (overrides?: Partial<LayeredBtcAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): LayeredBtcAccountAmounts => {
+export const mockLayeredBtcAccountAmounts = (overrides?: Partial<LayeredBtcAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LayeredBtcAccountAmounts' } & LayeredBtcAccountAmounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('LayeredBtcAccountAmounts');
     return {
+        __typename: 'LayeredBtcAccountAmounts',
         all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
         encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
         pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('BtcAccountAmounts') ? {} as BtcAccountAmounts : mockBtcAccountAmounts({}, relationshipsToOmit),
@@ -975,10 +1045,11 @@ export const mockLayeredBtcAccountAmounts = (overrides?: Partial<LayeredBtcAccou
     };
 };
 
-export const mockLayeredUsdAccountAmounts = (overrides?: Partial<LayeredUsdAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): LayeredUsdAccountAmounts => {
+export const mockLayeredUsdAccountAmounts = (overrides?: Partial<LayeredUsdAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LayeredUsdAccountAmounts' } & LayeredUsdAccountAmounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('LayeredUsdAccountAmounts');
     return {
+        __typename: 'LayeredUsdAccountAmounts',
         all: overrides && overrides.hasOwnProperty('all') ? overrides.all! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
         encumbrance: overrides && overrides.hasOwnProperty('encumbrance') ? overrides.encumbrance! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
         pending: overrides && overrides.hasOwnProperty('pending') ? overrides.pending! : relationshipsToOmit.has('UsdAccountAmounts') ? {} as UsdAccountAmounts : mockUsdAccountAmounts({}, relationshipsToOmit),
@@ -986,18 +1057,20 @@ export const mockLayeredUsdAccountAmounts = (overrides?: Partial<LayeredUsdAccou
     };
 };
 
-export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<string> = new Set()): Loan => {
+export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Loan' } & Loan => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Loan');
     return {
+        __typename: 'Loan',
         collateralToMatchInitialCvl: overrides && overrides.hasOwnProperty('collateralToMatchInitialCvl') ? overrides.collateralToMatchInitialCvl! : generateMockValue.satoshis(),
     };
 };
 
-export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit: Set<string> = new Set()): Mutation => {
+export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Mutation' } & Mutation => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Mutation');
     return {
+        __typename: 'Mutation',
         approvalProcessApprove: overrides && overrides.hasOwnProperty('approvalProcessApprove') ? overrides.approvalProcessApprove! : relationshipsToOmit.has('ApprovalProcessApprovePayload') ? {} as ApprovalProcessApprovePayload : mockApprovalProcessApprovePayload({}, relationshipsToOmit),
         approvalProcessDeny: overrides && overrides.hasOwnProperty('approvalProcessDeny') ? overrides.approvalProcessDeny! : relationshipsToOmit.has('ApprovalProcessDenyPayload') ? {} as ApprovalProcessDenyPayload : mockApprovalProcessDenyPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
@@ -1031,18 +1104,20 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
     };
 };
 
-export const mockOutstanding = (overrides?: Partial<Outstanding>, _relationshipsToOmit: Set<string> = new Set()): Outstanding => {
+export const mockOutstanding = (overrides?: Partial<Outstanding>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Outstanding' } & Outstanding => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Outstanding');
     return {
+        __typename: 'Outstanding',
         usdBalance: overrides && overrides.hasOwnProperty('usdBalance') ? overrides.usdBalance! : generateMockValue.usdCents(),
     };
 };
 
-export const mockPageInfo = (overrides?: Partial<PageInfo>, _relationshipsToOmit: Set<string> = new Set()): PageInfo => {
+export const mockPageInfo = (overrides?: Partial<PageInfo>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PageInfo' } & PageInfo => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('PageInfo');
     return {
+        __typename: 'PageInfo',
         endCursor: overrides && overrides.hasOwnProperty('endCursor') ? overrides.endCursor! : generateMockValue.cursor(),
         hasNextPage: overrides && overrides.hasOwnProperty('hasNextPage') ? overrides.hasNextPage! : generateMockValue.boolean(),
         hasPreviousPage: overrides && overrides.hasOwnProperty('hasPreviousPage') ? overrides.hasPreviousPage! : generateMockValue.boolean(),
@@ -1050,10 +1125,11 @@ export const mockPageInfo = (overrides?: Partial<PageInfo>, _relationshipsToOmit
     };
 };
 
-export const mockPolicy = (overrides?: Partial<Policy>, _relationshipsToOmit: Set<string> = new Set()): Policy => {
+export const mockPolicy = (overrides?: Partial<Policy>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Policy' } & Policy => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Policy');
     return {
+        __typename: 'Policy',
         approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : ApprovalProcessType.CreditFacilityApproval,
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         policyId: overrides && overrides.hasOwnProperty('policyId') ? overrides.policyId! : generateMockValue.uuid(),
@@ -1071,47 +1147,52 @@ export const mockPolicyAssignCommitteeInput = (overrides?: Partial<PolicyAssignC
     };
 };
 
-export const mockPolicyAssignCommitteePayload = (overrides?: Partial<PolicyAssignCommitteePayload>, _relationshipsToOmit: Set<string> = new Set()): PolicyAssignCommitteePayload => {
+export const mockPolicyAssignCommitteePayload = (overrides?: Partial<PolicyAssignCommitteePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PolicyAssignCommitteePayload' } & PolicyAssignCommitteePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('PolicyAssignCommitteePayload');
     return {
+        __typename: 'PolicyAssignCommitteePayload',
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
     };
 };
 
-export const mockPolicyConnection = (overrides?: Partial<PolicyConnection>, _relationshipsToOmit: Set<string> = new Set()): PolicyConnection => {
+export const mockPolicyConnection = (overrides?: Partial<PolicyConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PolicyConnection' } & PolicyConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('PolicyConnection');
     return {
+        __typename: 'PolicyConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('PolicyEdge') ? {} as PolicyEdge : mockPolicyEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockPolicyEdge = (overrides?: Partial<PolicyEdge>, _relationshipsToOmit: Set<string> = new Set()): PolicyEdge => {
+export const mockPolicyEdge = (overrides?: Partial<PolicyEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PolicyEdge' } & PolicyEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('PolicyEdge');
     return {
+        __typename: 'PolicyEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
     };
 };
 
-export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): ProfitAndLossStatement => {
+export const mockProfitAndLossStatement = (overrides?: Partial<ProfitAndLossStatement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ProfitAndLossStatement' } & ProfitAndLossStatement => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ProfitAndLossStatement');
     return {
+        __typename: 'ProfitAndLossStatement',
         categories: overrides && overrides.hasOwnProperty('categories') ? overrides.categories! : [relationshipsToOmit.has('StatementCategory') ? {} as StatementCategory : mockStatementCategory({}, relationshipsToOmit)],
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
     };
 };
 
-export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<string> = new Set()): Query => {
+export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Query' } & Query => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Query');
     return {
+        __typename: 'Query',
         accountSet: overrides && overrides.hasOwnProperty('accountSet') ? overrides.accountSet! : relationshipsToOmit.has('AccountSetAndSubAccounts') ? {} as AccountSetAndSubAccounts : mockAccountSetAndSubAccounts({}, relationshipsToOmit),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcesses: overrides && overrides.hasOwnProperty('approvalProcesses') ? overrides.approvalProcesses! : relationshipsToOmit.has('ApprovalProcessConnection') ? {} as ApprovalProcessConnection : mockApprovalProcessConnection({}, relationshipsToOmit),
@@ -1151,18 +1232,20 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
     };
 };
 
-export const mockRealtimePrice = (overrides?: Partial<RealtimePrice>, _relationshipsToOmit: Set<string> = new Set()): RealtimePrice => {
+export const mockRealtimePrice = (overrides?: Partial<RealtimePrice>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RealtimePrice' } & RealtimePrice => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('RealtimePrice');
     return {
+        __typename: 'RealtimePrice',
         usdCentsPerBtc: overrides && overrides.hasOwnProperty('usdCentsPerBtc') ? overrides.usdCentsPerBtc! : generateMockValue.usdCents(),
     };
 };
 
-export const mockReport = (overrides?: Partial<Report>, _relationshipsToOmit: Set<string> = new Set()): Report => {
+export const mockReport = (overrides?: Partial<Report>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Report' } & Report => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Report');
     return {
+        __typename: 'Report',
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         lastError: overrides && overrides.hasOwnProperty('lastError') ? overrides.lastError! : faker.lorem.word(),
         progress: overrides && overrides.hasOwnProperty('progress') ? overrides.progress! : ReportProgress.Complete,
@@ -1170,18 +1253,20 @@ export const mockReport = (overrides?: Partial<Report>, _relationshipsToOmit: Se
     };
 };
 
-export const mockReportCreatePayload = (overrides?: Partial<ReportCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): ReportCreatePayload => {
+export const mockReportCreatePayload = (overrides?: Partial<ReportCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ReportCreatePayload' } & ReportCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ReportCreatePayload');
     return {
+        __typename: 'ReportCreatePayload',
         report: overrides && overrides.hasOwnProperty('report') ? overrides.report! : relationshipsToOmit.has('Report') ? {} as Report : mockReport({}, relationshipsToOmit),
     };
 };
 
-export const mockReportDownloadLink = (overrides?: Partial<ReportDownloadLink>, _relationshipsToOmit: Set<string> = new Set()): ReportDownloadLink => {
+export const mockReportDownloadLink = (overrides?: Partial<ReportDownloadLink>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ReportDownloadLink' } & ReportDownloadLink => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ReportDownloadLink');
     return {
+        __typename: 'ReportDownloadLink',
         reportName: overrides && overrides.hasOwnProperty('reportName') ? overrides.reportName! : faker.lorem.word(),
         url: overrides && overrides.hasOwnProperty('url') ? overrides.url! : generateMockValue.url(),
     };
@@ -1195,10 +1280,11 @@ export const mockReportDownloadLinksGenerateInput = (overrides?: Partial<ReportD
     };
 };
 
-export const mockReportDownloadLinksGeneratePayload = (overrides?: Partial<ReportDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): ReportDownloadLinksGeneratePayload => {
+export const mockReportDownloadLinksGeneratePayload = (overrides?: Partial<ReportDownloadLinksGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ReportDownloadLinksGeneratePayload' } & ReportDownloadLinksGeneratePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ReportDownloadLinksGeneratePayload');
     return {
+        __typename: 'ReportDownloadLinksGeneratePayload',
         links: overrides && overrides.hasOwnProperty('links') ? overrides.links! : [relationshipsToOmit.has('ReportDownloadLink') ? {} as ReportDownloadLink : mockReportDownloadLink({}, relationshipsToOmit)],
         reportId: overrides && overrides.hasOwnProperty('reportId') ? overrides.reportId! : generateMockValue.uuid(),
     };
@@ -1213,20 +1299,22 @@ export const mockShareholderEquityAddInput = (overrides?: Partial<ShareholderEqu
     };
 };
 
-export const mockStatementCategory = (overrides?: Partial<StatementCategory>, _relationshipsToOmit: Set<string> = new Set()): StatementCategory => {
+export const mockStatementCategory = (overrides?: Partial<StatementCategory>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'StatementCategory' } & StatementCategory => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('StatementCategory');
     return {
+        __typename: 'StatementCategory',
         accounts: overrides && overrides.hasOwnProperty('accounts') ? overrides.accounts! : [relationshipsToOmit.has('Account') ? {} as Account : mockAccount({}, relationshipsToOmit)],
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
-export const mockSubject = (overrides?: Partial<Subject>, _relationshipsToOmit: Set<string> = new Set()): Subject => {
+export const mockSubject = (overrides?: Partial<Subject>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Subject' } & Subject => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Subject');
     return {
+        __typename: 'Subject',
         subjectCanCreateCustomer: overrides && overrides.hasOwnProperty('subjectCanCreateCustomer') ? overrides.subjectCanCreateCustomer! : faker.datatype.boolean(),
         subjectCanCreateTermsTemplate: overrides && overrides.hasOwnProperty('subjectCanCreateTermsTemplate') ? overrides.subjectCanCreateTermsTemplate! : faker.datatype.boolean(),
         subjectCanCreateUser: overrides && overrides.hasOwnProperty('subjectCanCreateUser') ? overrides.subjectCanCreateUser! : faker.datatype.boolean(),
@@ -1235,10 +1323,11 @@ export const mockSubject = (overrides?: Partial<Subject>, _relationshipsToOmit: 
     };
 };
 
-export const mockSuccessPayload = (overrides?: Partial<SuccessPayload>, _relationshipsToOmit: Set<string> = new Set()): SuccessPayload => {
+export const mockSuccessPayload = (overrides?: Partial<SuccessPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'SuccessPayload' } & SuccessPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('SuccessPayload');
     return {
+        __typename: 'SuccessPayload',
         success: overrides && overrides.hasOwnProperty('success') ? overrides.success! : generateMockValue.boolean(),
     };
 };
@@ -1251,34 +1340,38 @@ export const mockSumsubPermalinkCreateInput = (overrides?: Partial<SumsubPermali
     };
 };
 
-export const mockSumsubPermalinkCreatePayload = (overrides?: Partial<SumsubPermalinkCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): SumsubPermalinkCreatePayload => {
+export const mockSumsubPermalinkCreatePayload = (overrides?: Partial<SumsubPermalinkCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'SumsubPermalinkCreatePayload' } & SumsubPermalinkCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('SumsubPermalinkCreatePayload');
     return {
+        __typename: 'SumsubPermalinkCreatePayload',
         url: overrides && overrides.hasOwnProperty('url') ? overrides.url! : generateMockValue.url(),
     };
 };
 
-export const mockSystem = (overrides?: Partial<System>, _relationshipsToOmit: Set<string> = new Set()): System => {
+export const mockSystem = (overrides?: Partial<System>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'System' } & System => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('System');
     return {
+        __typename: 'System',
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };
 
-export const mockSystemApproval = (overrides?: Partial<SystemApproval>, _relationshipsToOmit: Set<string> = new Set()): SystemApproval => {
+export const mockSystemApproval = (overrides?: Partial<SystemApproval>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'SystemApproval' } & SystemApproval => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('SystemApproval');
     return {
+        __typename: 'SystemApproval',
         autoApprove: overrides && overrides.hasOwnProperty('autoApprove') ? overrides.autoApprove! : faker.datatype.boolean(),
     };
 };
 
-export const mockTermValues = (overrides?: Partial<TermValues>, _relationshipsToOmit: Set<string> = new Set()): TermValues => {
+export const mockTermValues = (overrides?: Partial<TermValues>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TermValues' } & TermValues => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermValues');
     return {
+        __typename: 'TermValues',
         accrualInterval: overrides && overrides.hasOwnProperty('accrualInterval') ? overrides.accrualInterval! : mockEnums.interestInterval(),
         annualRate: overrides && overrides.hasOwnProperty('annualRate') ? overrides.annualRate! : faker.number.int({ min: 5, max: 20 }),
         duration: overrides && overrides.hasOwnProperty('duration') ? overrides.duration! : relationshipsToOmit.has('Duration') ? {} as Duration : mockDuration({}, relationshipsToOmit),
@@ -1305,10 +1398,11 @@ export const mockTermsInput = (overrides?: Partial<TermsInput>, _relationshipsTo
     };
 };
 
-export const mockTermsTemplate = (overrides?: Partial<TermsTemplate>, _relationshipsToOmit: Set<string> = new Set()): TermsTemplate => {
+export const mockTermsTemplate = (overrides?: Partial<TermsTemplate>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TermsTemplate' } & TermsTemplate => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsTemplate');
     return {
+        __typename: 'TermsTemplate',
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
@@ -1334,10 +1428,11 @@ export const mockTermsTemplateCreateInput = (overrides?: Partial<TermsTemplateCr
     };
 };
 
-export const mockTermsTemplateCreatePayload = (overrides?: Partial<TermsTemplateCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): TermsTemplateCreatePayload => {
+export const mockTermsTemplateCreatePayload = (overrides?: Partial<TermsTemplateCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TermsTemplateCreatePayload' } & TermsTemplateCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsTemplateCreatePayload');
     return {
+        __typename: 'TermsTemplateCreatePayload',
         termsTemplate: overrides && overrides.hasOwnProperty('termsTemplate') ? overrides.termsTemplate! : relationshipsToOmit.has('TermsTemplate') ? {} as TermsTemplate : mockTermsTemplate({}, relationshipsToOmit),
     };
 };
@@ -1358,36 +1453,40 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
     };
 };
 
-export const mockTermsTemplateUpdatePayload = (overrides?: Partial<TermsTemplateUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): TermsTemplateUpdatePayload => {
+export const mockTermsTemplateUpdatePayload = (overrides?: Partial<TermsTemplateUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TermsTemplateUpdatePayload' } & TermsTemplateUpdatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TermsTemplateUpdatePayload');
     return {
+        __typename: 'TermsTemplateUpdatePayload',
         termsTemplate: overrides && overrides.hasOwnProperty('termsTemplate') ? overrides.termsTemplate! : relationshipsToOmit.has('TermsTemplate') ? {} as TermsTemplate : mockTermsTemplate({}, relationshipsToOmit),
     };
 };
 
-export const mockTotal = (overrides?: Partial<Total>, _relationshipsToOmit: Set<string> = new Set()): Total => {
+export const mockTotal = (overrides?: Partial<Total>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Total' } & Total => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Total');
     return {
+        __typename: 'Total',
         usdBalance: overrides && overrides.hasOwnProperty('usdBalance') ? overrides.usdBalance! : generateMockValue.usdCents(),
     };
 };
 
-export const mockTrialBalance = (overrides?: Partial<TrialBalance>, _relationshipsToOmit: Set<string> = new Set()): TrialBalance => {
+export const mockTrialBalance = (overrides?: Partial<TrialBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'TrialBalance' } & TrialBalance => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('TrialBalance');
     return {
+        __typename: 'TrialBalance',
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         subAccounts: overrides && overrides.hasOwnProperty('subAccounts') ? overrides.subAccounts! : [relationshipsToOmit.has('Account') ? {} as Account : mockAccount({}, relationshipsToOmit)],
         total: overrides && overrides.hasOwnProperty('total') ? overrides.total! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
     };
 };
 
-export const mockUsdAccountAmounts = (overrides?: Partial<UsdAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): UsdAccountAmounts => {
+export const mockUsdAccountAmounts = (overrides?: Partial<UsdAccountAmounts>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdAccountAmounts' } & UsdAccountAmounts => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UsdAccountAmounts');
     return {
+        __typename: 'UsdAccountAmounts',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.usdCents(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.usdCents(),
         netCredit: overrides && overrides.hasOwnProperty('netCredit') ? overrides.netCredit! : generateMockValue.signedUsdCents(),
@@ -1395,20 +1494,22 @@ export const mockUsdAccountAmounts = (overrides?: Partial<UsdAccountAmounts>, _r
     };
 };
 
-export const mockUsdAccountAmountsInPeriod = (overrides?: Partial<UsdAccountAmountsInPeriod>, _relationshipsToOmit: Set<string> = new Set()): UsdAccountAmountsInPeriod => {
+export const mockUsdAccountAmountsInPeriod = (overrides?: Partial<UsdAccountAmountsInPeriod>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UsdAccountAmountsInPeriod' } & UsdAccountAmountsInPeriod => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UsdAccountAmountsInPeriod');
     return {
+        __typename: 'UsdAccountAmountsInPeriod',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
         closingBalance: overrides && overrides.hasOwnProperty('closingBalance') ? overrides.closingBalance! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
         openingBalance: overrides && overrides.hasOwnProperty('openingBalance') ? overrides.openingBalance! : relationshipsToOmit.has('LayeredUsdAccountAmounts') ? {} as LayeredUsdAccountAmounts : mockLayeredUsdAccountAmounts({}, relationshipsToOmit),
     };
 };
 
-export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<string> = new Set()): User => {
+export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'User' } & User => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('User');
     return {
+        __typename: 'User',
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
@@ -1428,10 +1529,11 @@ export const mockUserAssignRoleInput = (overrides?: Partial<UserAssignRoleInput>
     };
 };
 
-export const mockUserAssignRolePayload = (overrides?: Partial<UserAssignRolePayload>, _relationshipsToOmit: Set<string> = new Set()): UserAssignRolePayload => {
+export const mockUserAssignRolePayload = (overrides?: Partial<UserAssignRolePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UserAssignRolePayload' } & UserAssignRolePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UserAssignRolePayload');
     return {
+        __typename: 'UserAssignRolePayload',
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
     };
 };
@@ -1444,10 +1546,11 @@ export const mockUserCreateInput = (overrides?: Partial<UserCreateInput>, _relat
     };
 };
 
-export const mockUserCreatePayload = (overrides?: Partial<UserCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): UserCreatePayload => {
+export const mockUserCreatePayload = (overrides?: Partial<UserCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UserCreatePayload' } & UserCreatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UserCreatePayload');
     return {
+        __typename: 'UserCreatePayload',
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
     };
 };
@@ -1461,18 +1564,20 @@ export const mockUserRevokeRoleInput = (overrides?: Partial<UserRevokeRoleInput>
     };
 };
 
-export const mockUserRevokeRolePayload = (overrides?: Partial<UserRevokeRolePayload>, _relationshipsToOmit: Set<string> = new Set()): UserRevokeRolePayload => {
+export const mockUserRevokeRolePayload = (overrides?: Partial<UserRevokeRolePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'UserRevokeRolePayload' } & UserRevokeRolePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('UserRevokeRolePayload');
     return {
+        __typename: 'UserRevokeRolePayload',
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
     };
 };
 
-export const mockVisibleNavigationItems = (overrides?: Partial<VisibleNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): VisibleNavigationItems => {
+export const mockVisibleNavigationItems = (overrides?: Partial<VisibleNavigationItems>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'VisibleNavigationItems' } & VisibleNavigationItems => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('VisibleNavigationItems');
     return {
+        __typename: 'VisibleNavigationItems',
         audit: overrides && overrides.hasOwnProperty('audit') ? overrides.audit! : faker.datatype.boolean(),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : faker.datatype.boolean(),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : faker.datatype.boolean(),
@@ -1485,10 +1590,11 @@ export const mockVisibleNavigationItems = (overrides?: Partial<VisibleNavigation
     };
 };
 
-export const mockWithdrawal = (overrides?: Partial<Withdrawal>, _relationshipsToOmit: Set<string> = new Set()): Withdrawal => {
+export const mockWithdrawal = (overrides?: Partial<Withdrawal>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Withdrawal' } & Withdrawal => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('Withdrawal');
     return {
+        __typename: 'Withdrawal',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
@@ -1512,10 +1618,11 @@ export const mockWithdrawalCancelInput = (overrides?: Partial<WithdrawalCancelIn
     };
 };
 
-export const mockWithdrawalCancelPayload = (overrides?: Partial<WithdrawalCancelPayload>, _relationshipsToOmit: Set<string> = new Set()): WithdrawalCancelPayload => {
+export const mockWithdrawalCancelPayload = (overrides?: Partial<WithdrawalCancelPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'WithdrawalCancelPayload' } & WithdrawalCancelPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('WithdrawalCancelPayload');
     return {
+        __typename: 'WithdrawalCancelPayload',
         withdrawal: overrides && overrides.hasOwnProperty('withdrawal') ? overrides.withdrawal! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
     };
 };
@@ -1528,28 +1635,31 @@ export const mockWithdrawalConfirmInput = (overrides?: Partial<WithdrawalConfirm
     };
 };
 
-export const mockWithdrawalConfirmPayload = (overrides?: Partial<WithdrawalConfirmPayload>, _relationshipsToOmit: Set<string> = new Set()): WithdrawalConfirmPayload => {
+export const mockWithdrawalConfirmPayload = (overrides?: Partial<WithdrawalConfirmPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'WithdrawalConfirmPayload' } & WithdrawalConfirmPayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('WithdrawalConfirmPayload');
     return {
+        __typename: 'WithdrawalConfirmPayload',
         withdrawal: overrides && overrides.hasOwnProperty('withdrawal') ? overrides.withdrawal! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
     };
 };
 
-export const mockWithdrawalConnection = (overrides?: Partial<WithdrawalConnection>, _relationshipsToOmit: Set<string> = new Set()): WithdrawalConnection => {
+export const mockWithdrawalConnection = (overrides?: Partial<WithdrawalConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'WithdrawalConnection' } & WithdrawalConnection => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('WithdrawalConnection');
     return {
+        __typename: 'WithdrawalConnection',
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('WithdrawalEdge') ? {} as WithdrawalEdge : mockWithdrawalEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
     };
 };
 
-export const mockWithdrawalEdge = (overrides?: Partial<WithdrawalEdge>, _relationshipsToOmit: Set<string> = new Set()): WithdrawalEdge => {
+export const mockWithdrawalEdge = (overrides?: Partial<WithdrawalEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'WithdrawalEdge' } & WithdrawalEdge => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('WithdrawalEdge');
     return {
+        __typename: 'WithdrawalEdge',
         cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
         node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
     };
@@ -1565,10 +1675,11 @@ export const mockWithdrawalInitiateInput = (overrides?: Partial<WithdrawalInitia
     };
 };
 
-export const mockWithdrawalInitiatePayload = (overrides?: Partial<WithdrawalInitiatePayload>, _relationshipsToOmit: Set<string> = new Set()): WithdrawalInitiatePayload => {
+export const mockWithdrawalInitiatePayload = (overrides?: Partial<WithdrawalInitiatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'WithdrawalInitiatePayload' } & WithdrawalInitiatePayload => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('WithdrawalInitiatePayload');
     return {
+        __typename: 'WithdrawalInitiatePayload',
         withdrawal: overrides && overrides.hasOwnProperty('withdrawal') ? overrides.withdrawal! : relationshipsToOmit.has('Withdrawal') ? {} as Withdrawal : mockWithdrawal({}, relationshipsToOmit),
     };
 };

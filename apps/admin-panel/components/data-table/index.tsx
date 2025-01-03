@@ -132,38 +132,46 @@ const DataTable = <T,>({
             )}
             onClick={() => onRowClick?.(item)}
           >
-            {columns.map((column, colIndex) => (
-              <div
-                key={colIndex}
-                className={cn(
-                  "flex justify-between items-start gap-4",
-                  typeof cellClassName === "function"
-                    ? cellClassName(column, item)
-                    : cellClassName,
-                )}
-              >
-                <div className="text-sm font-medium text-muted-foreground">
-                  {typeof column.header === "string" ? column.header : "Label"}
-                </div>
+            {columns.map((column, colIndex) => {
+              const hasHeader =
+                typeof column.header === "string" && column.header.trim() !== ""
+              return (
                 <div
+                  key={colIndex}
                   className={cn(
-                    "text-sm",
-                    column.align === "center" && "text-center",
-                    column.align === "right" && "text-right",
+                    "flex items-start gap-4",
+                    hasHeader ? "justify-between" : "w-full",
+                    typeof cellClassName === "function"
+                      ? cellClassName(column, item)
+                      : cellClassName,
                   )}
                 >
-                  {column.render
-                    ? column.render(item[column.key], item)
-                    : String(item[column.key])}
+                  {hasHeader && (
+                    <div className="text-sm font-medium text-muted-foreground">
+                      {column.header}
+                    </div>
+                  )}
+                  <div
+                    className={cn(
+                      "text-sm",
+                      !hasHeader && "w-full",
+                      column.align === "center" && "text-center",
+                      column.align === "right" && "text-right",
+                    )}
+                  >
+                    {column.render
+                      ? column.render(item[column.key], item)
+                      : String(item[column.key])}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {shouldShowNavigation(item) && (
               <div className="pt-2">
                 <Link href={getNavigationUrl(item) || ""}>
                   <Button
                     variant="outline"
-                    className="w-full flex items-center justify-between"
+                    className="w-full flex items-center justify-center"
                   >
                     View
                     <ArrowRight className="h-4 w-4" />

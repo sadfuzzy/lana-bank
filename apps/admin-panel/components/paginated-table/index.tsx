@@ -248,7 +248,7 @@ const PaginatedTable = <T,>({
                 <Link href={navigateTo(node)}>
                   <Button
                     variant="outline"
-                    className="w-full flex items-center justify-between"
+                    className="w-full flex items-center justify-center"
                   >
                     View
                     <ArrowRight className="h-4 w-4" />

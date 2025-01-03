@@ -87,6 +87,7 @@ generates:
             };
 
       - typescript-mock-data:
+          addTypename: true
           typesFile: "./index.ts"
           prefix: "mock"
           terminateCircularRelationships: true

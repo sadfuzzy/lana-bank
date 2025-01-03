@@ -71,6 +71,7 @@ const createTermsTemplates = () => {
         liquidationCvl: riskProfile.liquidationCvl,
         marginCallCvl: riskProfile.marginCallCvl,
         initialCvl: riskProfile.initialCvl,
+        oneTimeFeeRate: 0.5,
         duration: mockDuration({
           units: riskProfile.duration.units,
         }),
@@ -109,7 +110,7 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   decorators: [
     (Story) => (
-      <MockedProvider mocks={baseMocks} addTypename={false}>
+      <MockedProvider mocks={baseMocks}>
         <Story />
       </MockedProvider>
     ),

@@ -59,7 +59,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
     align: "right",
     render: (_, user) => (
       <Button
-        className="text-destructive"
+        className="w-full md:w-auto text-destructive"
         variant="outline"
         onClick={(e) => {
           e.stopPropagation()
