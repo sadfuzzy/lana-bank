@@ -14,6 +14,7 @@ import {
 import { useCreateContext } from "@/app/create"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { ScrollArea, ScrollBar } from "@/ui/scroll-area"
 
 const TABS = [
   { url: "/", tabLabel: "Overview" },
@@ -83,13 +84,18 @@ export default function CustomerLayout({
     <main className="max-w-7xl m-auto">
       <CustomerDetailsCard customer={data.customer} />
       <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-2">
-        <TabsList>
-          {TABS.map((tab) => (
-            <TabsTrigger key={tab.url} value={tab.url}>
-              {tab.tabLabel}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <ScrollArea>
+          <div className="relative h-10">
+            <TabsList className="flex absolute h-10">
+              {TABS.map((tab) => (
+                <TabsTrigger key={tab.url} value={tab.url}>
+                  {tab.tabLabel}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
         {TABS.map((tab) => (
           <TabsContent key={tab.url} value={tab.url}>
             {children}
