@@ -1,6 +1,6 @@
 [package]
 name = "job"
-version = "0.2.68-dev"
+version = "0.2.69-dev"
 edition = "2021"
 
 [features]
