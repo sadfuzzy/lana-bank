@@ -49,34 +49,34 @@ const REFETCH_INTERVAL = 5000
 
 const LoadingSkeleton = () => {
   return (
-    <div className="space-y-6">
-      <div className="flex gap-4">
-        <Skeleton className="h-6 w-32" />
-        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
-          <Skeleton className="h-10 w-80" />
+    <div className="space-y-4 md:space-y-6">
+      <div className="flex flex-col md:flex-row md:gap-4">
+        <Skeleton className="h-6 w-32 mb-2 md:mb-0" />
+        <div className="w-full md:ml-16">
+          <Skeleton className="h-10 w-full md:w-80" />
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Skeleton className="h-6 w-32" />
-        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
-          <Skeleton className="h-6 w-64" />
+      <div className="flex flex-col md:flex-row md:gap-4">
+        <Skeleton className="h-6 w-32 mb-2 md:mb-0" />
+        <div className="w-full md:ml-16">
+          <Skeleton className="h-6 w-full md:w-64" />
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Skeleton className="h-6 w-32" />
-        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+      <div className="flex flex-col md:flex-row md:gap-4">
+        <Skeleton className="h-6 w-32 mb-2 md:mb-0" />
+        <div className="w-full md:ml-16">
           <div className="flex items-center gap-2">
             <Skeleton className="h-5 w-5 rounded-full" />
-            <Skeleton className="h-6 w-96" />
+            <Skeleton className="h-6 w-full md:w-96" />
           </div>
         </div>
       </div>
 
-      <div className="flex gap-4">
-        <Skeleton className="h-6 w-32" />
-        <div style={{ marginLeft: "calc(48px + 2rem)" }}>
+      <div className="flex flex-col md:flex-row md:gap-4">
+        <Skeleton className="h-6 w-32 mb-2 md:mb-0" />
+        <div className="w-full md:ml-16">
           <Skeleton className="h-10 w-32" />
         </div>
       </div>
@@ -130,12 +130,12 @@ const RegulatoryReportingPage: React.FC = () => {
     }
   }, [selectedReport, generateLinks])
 
-  if (error) return <p className="text-destructive">{error.message}</p>
+  if (error) return <p className="text-destructive px-4">{error.message}</p>
 
   return (
     <>
-      <Card className="max-w-7xl m-auto">
-        <CardHeader className="flex flex-row justify-between items-center">
+      <Card className="mx-4 md:mx-auto md:max-w-7xl">
+        <CardHeader className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div className="flex flex-col gap-1">
             <CardTitle>Report Management</CardTitle>
             <CardDescription>
@@ -146,7 +146,7 @@ const RegulatoryReportingPage: React.FC = () => {
           <Button
             data-testid="generate-report-button"
             variant="outline"
-            className="ml-4"
+            className="w-full md:w-auto"
             onClick={() => setOpenReportCreateDialog(true)}
           >
             Generate Report
@@ -155,11 +155,11 @@ const RegulatoryReportingPage: React.FC = () => {
 
         <CardContent>
           {loading ? (
-            <div className="max-w-[50rem]">
+            <div className="w-full md:max-w-[50rem]">
               <LoadingSkeleton />
             </div>
           ) : data?.reports && data.reports.length > 0 ? (
-            <div className="max-w-[50rem] space-y-6">
+            <div className="w-full md:max-w-[50rem] space-y-4 md:space-y-6">
               <ReportSelector
                 reports={data?.reports || []}
                 selectedReport={selectedReport}
@@ -175,10 +175,10 @@ const RegulatoryReportingPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <p>No reports found</p>
+            <p className="text-center md:text-left">No reports found</p>
           )}
           {generateLinkError && (
-            <p className="text-destructive mt-4">Error: {generateLinkError.message}</p>
+            <p className="text-destructive mt-4">{generateLinkError.message}</p>
           )}
         </CardContent>
       </Card>
@@ -201,7 +201,7 @@ const ReportSelector: React.FC<{
     <KeyValueItem
       label="Select Report"
       value={
-        <div className="w-80">
+        <div className="w-full md:w-80">
           <Select value={selectedReport} onValueChange={onSelectReport}>
             <SelectTrigger>
               <SelectValue placeholder="Select a report" />
@@ -231,7 +231,7 @@ const ReportDetails: React.FC<{
   linksData?: { reportId: string; links: Array<{ reportName: string; url: string }> }
 }> = ({ selectedReportDetails, onGenerateLinks, generateLinkLoading, linksData }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <KeyValueItem
         data-testid="report-id"
         label="Report ID"
@@ -271,6 +271,7 @@ const ReportDetails: React.FC<{
                 selectedReportDetails.progress === ReportProgress.Running
               }
               loading={generateLinkLoading}
+              className="w-full md:w-auto"
             >
               Generate Links
             </Button>
@@ -285,7 +286,7 @@ const DownloadLinks: React.FC<{
   links: Array<{ reportName: string; url: string }>
 }> = ({ links }) => {
   return (
-    <ul className="list-disc pl-5">
+    <ul className="list-disc pl-5 space-y-2">
       {links.map((link, index) => (
         <li key={index}>
           <a
@@ -293,7 +294,7 @@ const DownloadLinks: React.FC<{
             download={link.reportName}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline"
+            className="underline break-all"
           >
             {link.reportName}
           </a>
@@ -313,18 +314,16 @@ const formatStatus = ({
   switch (reportProgress) {
     case ReportProgress.Running:
       return (
-        <p className="text-warning flex items-center gap-2">
-          <PiWarningCircleFill className="w-5 h-5" /> Running (last triggered on{" "}
-          {formatDate(createdAt)})
+        <p className="text-warning flex items-center gap-2 flex-wrap">
+          <PiWarningCircleFill className="w-5 h-5" />
+          <span>Running (last triggered on {formatDate(createdAt)})</span>
         </p>
       )
     case ReportProgress.Complete:
       return (
-        <p className="text-success flex items-center gap-2">
+        <p className="text-success flex items-center gap-2 flex-wrap">
           <PiCheckCircleFill className="w-5 h-5" />
-          Operational (last report created on {formatDate(
-            createdAt,
-          )})
+          <span>Operational (last report created on {formatDate(createdAt)})</span>
         </p>
       )
     default:
@@ -338,9 +337,9 @@ const KeyValueItem: React.FC<{
   "data-testid"?: string
 }> = ({ label, value, "data-testid": testId }) => {
   return (
-    <div className="flex gap-4" data-testid={testId}>
-      <span className="w-32 font-semibold">{label}:</span>
-      <div style={{ marginLeft: "calc(48px + 2rem)" }}>{value}</div>
+    <div className="flex flex-col md:flex-row md:gap-4" data-testid={testId}>
+      <span className="font-semibold mb-2 md:mb-0 md:w-32">{label}:</span>
+      <div className="w-full md:ml-16">{value}</div>
     </div>
   )
 }
