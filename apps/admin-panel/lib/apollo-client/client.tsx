@@ -103,6 +103,11 @@ function makeClient({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) {
     cache,
     resolvers,
     link,
+    defaultOptions: {
+      watchQuery: {
+        fetchPolicy: "cache-and-network",
+      },
+    },
   })
 }
 
