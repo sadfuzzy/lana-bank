@@ -151,7 +151,10 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               <DialogFooter>
                 <Button
                   type="button"
-                  onClick={() => setIsConfirmed(false)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsConfirmed(false)
+                  }}
                   variant="ghost"
                   disabled={loading}
                 >

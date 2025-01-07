@@ -189,6 +189,7 @@ describe("credit facility", () => {
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("11_visit_credit_facility_page_for_disbursal")
 
+    cy.get('[data-testid="global-create-button"]').click()
     cy.get('[data-testid="initiate-disbursal-button"]').should("be.visible").click()
     cy.takeScreenshot("12_click_initiate_disbursal_button")
 
@@ -208,6 +209,7 @@ describe("credit facility", () => {
     cy.takeScreenshot("15_disbursal_page")
     cy.takeScreenshot("16_disbursal_success_message")
 
+    cy.reload()
     cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
     cy.wait(5000).then(() => {
       cy.takeScreenshot("16_1_approve")

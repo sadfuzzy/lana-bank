@@ -10,12 +10,16 @@ import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
 import { CreateCreditFacilityDialog } from "./credit-facilities/create"
+
+import { CreditFacilityPartialPaymentDialog } from "./credit-facilities/partial-payment"
 import { CreateUserDialog } from "./users/create"
 import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import CustomerSelector from "./customers/selector"
 
-import { CreditFacility, Customer } from "@/lib/graphql/generated"
+import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
+
+import { CreditFacility, Customer, CreditFacilityStatus } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import {
   DropdownMenu,
@@ -24,18 +28,79 @@ import {
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
 
+export const PATH_CONFIGS = {
+  COMMITTEES: "/committees",
+  COMMITTEE_DETAILS: /^\/committees\/[^/]+/,
+
+  CREDIT_FACILITIES: "/credit-facilities",
+  CREDIT_FACILITY_DETAILS: /^\/credit-facilities\/[^/]+/,
+
+  CUSTOMERS: "/customers",
+  CUSTOMER_DETAILS: /^\/customers\/[^/]+/,
+
+  DASHBOARD: "/dashboard",
+
+  DEPOSITS: "/deposits",
+
+  USERS: "/users",
+  USER_DETAILS: /^\/users\/[^/]+/,
+
+  TERMS_TEMPLATES: "/terms-templates",
+  TERMS_TEMPLATE_DETAILS: /^\/terms-templates\/[^/]+/,
+
+  WITHDRAWALS: "/withdrawals",
+  WITHDRAW_DETAILS: /^\/withdrawals\/[^/]+/,
+}
+
+const showCreateButton = (currentPath: string) => {
+  const allowedPaths = Object.values(PATH_CONFIGS)
+  return allowedPaths.some((path) => {
+    if (typeof path === "string") {
+      return path === currentPath
+    } else if (path instanceof RegExp) {
+      return path.test(currentPath)
+    }
+    return false
+  })
+}
+
+const isItemAllowedOnCurrentPath = (
+  allowedPaths: (string | RegExp)[],
+  currentPath: string,
+) => {
+  if (currentPath === PATH_CONFIGS.DASHBOARD) return true
+  return allowedPaths.some((path) => {
+    if (typeof path === "string") {
+      return path === currentPath
+    } else if (path instanceof RegExp) {
+      return path.test(currentPath)
+    }
+    return false
+  })
+}
+
+type MenuItem = {
+  label: string
+  onClick: () => void
+  dataTestId: string
+  allowedPaths: (string | RegExp)[]
+  conditions?: () => boolean | undefined
+}
+
 const CreateButton = () => {
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
   const [createFacility, setCreateFacility] = useState(false)
+  const [initiateDisbursal, setInitiateDisbursal] = useState(false)
+  const [makePayment, setMakePayment] = useState(false)
   const [openCreateUserDialog, setOpenCreateUserDialog] = useState(false)
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
-  const { customer, setCustomer } = useCreateContext()
+  const { customer, facility, setCustomer } = useCreateContext()
   const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
 
   const pathName = usePathname()
@@ -44,7 +109,7 @@ const CreateButton = () => {
     if (!userIsInCustomerDetailsPage) setCustomer(null)
   }
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     {
       label: "Deposit",
       onClick: () => {
@@ -52,6 +117,7 @@ const CreateButton = () => {
         setCreateDeposit(true)
       },
       dataTestId: "create-deposit-button",
+      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS, PATH_CONFIGS.DEPOSITS],
     },
     {
       label: "Withdrawal",
@@ -60,13 +126,18 @@ const CreateButton = () => {
         setCreateWithdrawal(true)
       },
       dataTestId: "create-withdrawal-button",
+      allowedPaths: [
+        PATH_CONFIGS.CUSTOMER_DETAILS,
+        PATH_CONFIGS.WITHDRAWALS,
+        PATH_CONFIGS.WITHDRAW_DETAILS,
+      ],
     },
     {
       label: "Customer",
       onClick: () => setCreateCustomer(true),
-      dataTestIds: "create-customer-button",
+      dataTestId: "create-customer-button",
+      allowedPaths: [PATH_CONFIGS.CUSTOMERS, PATH_CONFIGS.CUSTOMER_DETAILS],
     },
-
     {
       label: "Credit Facility",
       onClick: () => {
@@ -74,21 +145,59 @@ const CreateButton = () => {
         setCreateFacility(true)
       },
       dataTestId: "create-credit-facility-button",
+      allowedPaths: [
+        PATH_CONFIGS.CUSTOMER_DETAILS,
+        PATH_CONFIGS.CREDIT_FACILITIES,
+        PATH_CONFIGS.CREDIT_FACILITY_DETAILS,
+      ],
+    },
+    {
+      label: "Disbursal",
+      onClick: () => {
+        if (!facility) {
+          toast.message("Please select a credit facility first")
+          return
+        }
+        setInitiateDisbursal(true)
+      },
+      dataTestId: "initiate-disbursal-button",
+      allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
+      conditions: () =>
+        facility?.subjectCanInitiateDisbursal &&
+        facility?.status === CreditFacilityStatus.Active,
+    },
+    {
+      label: "Payment",
+      onClick: () => {
+        if (!facility) {
+          toast.message("Please select a credit facility first")
+          return
+        }
+        setMakePayment(true)
+      },
+      dataTestId: "make-payment-button",
+      allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
+      conditions: () =>
+        facility?.subjectCanRecordPayment &&
+        facility?.status === CreditFacilityStatus.Active,
     },
     {
       label: "User",
       onClick: () => setOpenCreateUserDialog(true),
       dataTestId: "create-user-button",
+      allowedPaths: [PATH_CONFIGS.USERS, PATH_CONFIGS.USER_DETAILS],
     },
     {
       label: "Terms Template",
       onClick: () => setOpenCreateTermsTemplateDialog(true),
       dataTestId: "create-terms-template-button",
+      allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES, PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
     },
     {
       label: "Committee",
       onClick: () => setOpenCreateCommitteeDialog(true),
       dataTestId: "create-committee-button",
+      allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
     },
   ]
 
@@ -99,6 +208,18 @@ const CreateButton = () => {
 
   const decideCreation = () => {
     setShowMenu(false)
+
+    const allowedItems = menuItems.filter((item) => {
+      const isAllowedOnPath = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
+      const meetsConditions = !item.conditions || item.conditions()
+      return isAllowedOnPath && meetsConditions
+    })
+
+    if (allowedItems.length === 1) {
+      allowedItems[0].onClick()
+      return
+    }
+
     if (pathName === "/customers") {
       setCreateCustomer(true)
     } else if (pathName === "/users") {
@@ -118,10 +239,13 @@ const CreateButton = () => {
       setCreateFacility(true)
     } else if (pathName === "/disbursals") {
       toast.message("Disbursals can be initiated from credit facility page")
-    } else {
+    } else if (allowedItems.length > 1) {
       setShowMenu(true)
     }
   }
+
+  if (!showCreateButton(pathName))
+    return <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
 
   return (
     <>
@@ -139,16 +263,22 @@ const CreateButton = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-36">
-          {menuItems.map((item) => (
-            <DropdownMenuItem
-              data-testid={item.dataTestId}
-              key={item.label}
-              onClick={item.onClick}
-              className="cursor-pointer"
-            >
-              {item.label}
-            </DropdownMenuItem>
-          ))}
+          {menuItems
+            .filter(
+              (item) =>
+                isItemAllowedOnCurrentPath(item.allowedPaths, pathName) &&
+                (!item.conditions || item.conditions()),
+            )
+            .map((item) => (
+              <DropdownMenuItem
+                data-testid={item.dataTestId}
+                key={item.label}
+                onClick={item.onClick}
+                className="cursor-pointer"
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -212,6 +342,26 @@ const CreateButton = () => {
               setCreateFacility(false)
             }}
             customerId={customer.customerId}
+          />
+        </>
+      )}
+
+      {facility && (
+        <>
+          <CreditFacilityDisbursalInitiateDialog
+            creditFacilityId={facility.creditFacilityId}
+            openDialog={initiateDisbursal}
+            setOpenDialog={() => {
+              setInitiateDisbursal(false)
+            }}
+          />
+
+          <CreditFacilityPartialPaymentDialog
+            creditFacilityId={facility.creditFacilityId}
+            openDialog={makePayment}
+            setOpenDialog={() => {
+              setMakePayment(false)
+            }}
           />
         </>
       )}

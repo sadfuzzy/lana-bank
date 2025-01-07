@@ -4,14 +4,9 @@ import React from "react"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
-import { CreditFacilityDisbursalInitiateDialog } from "../../disbursals/create"
-
-import { CreditFacilityPartialPaymentDialog } from "../partial-payment"
-
 import {
   ApprovalProcess,
   ApprovalProcessStatus,
-  CreditFacilityStatus,
   GetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
@@ -36,11 +31,9 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-  const [openDisbursalInitiateDialog, setOpenDisbursalInitiateDialog] =
-    React.useState(false)
+
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
-  const [openPartialPaymentDialog, setOpenPartialPaymentDialog] = React.useState(false)
 
   const details: DetailItemProps[] = [
     {
@@ -78,26 +71,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           Update Collateral
         </Button>
       )}
-      {creditFacilityDetails.subjectCanInitiateDisbursal &&
-        creditFacilityDetails.status === CreditFacilityStatus.Active && (
-          <Button
-            variant="outline"
-            data-testid="initiate-disbursal-button"
-            onClick={() => setOpenDisbursalInitiateDialog(true)}
-          >
-            Initiate Disbursal
-          </Button>
-        )}
-      {creditFacilityDetails.subjectCanRecordPayment &&
-        creditFacilityDetails.status === CreditFacilityStatus.Active && (
-          <Button
-            variant="outline"
-            data-testid="make-payment-button"
-            onClick={() => setOpenPartialPaymentDialog(true)}
-          >
-            Make Payment
-          </Button>
-        )}
       {creditFacilityDetails.approvalProcess.status ===
         ApprovalProcessStatus.InProgress &&
         creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
@@ -134,16 +107,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         creditFacilityId={creditFacilityId}
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
-      />
-      <CreditFacilityDisbursalInitiateDialog
-        creditFacilityId={creditFacilityId}
-        openDialog={openDisbursalInitiateDialog}
-        setOpenDialog={setOpenDisbursalInitiateDialog}
-      />
-      <CreditFacilityPartialPaymentDialog
-        creditFacilityId={creditFacilityId}
-        openDialog={openPartialPaymentDialog}
-        setOpenDialog={setOpenPartialPaymentDialog}
       />
       <ApprovalDialog
         approvalProcess={creditFacilityDetails?.approvalProcess as ApprovalProcess}

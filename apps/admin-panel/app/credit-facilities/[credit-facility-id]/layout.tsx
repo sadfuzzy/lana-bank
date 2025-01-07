@@ -11,6 +11,7 @@ import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
 import {
   ApprovalProcessStatus,
+  CreditFacility,
   CreditFacilityStatus,
   GetCreditFacilityBasicDetailsDocument,
   GetCreditFacilityDisbursalsDocument,
@@ -19,6 +20,7 @@ import {
   useGetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
+import { useCreateContext } from "@/app/create"
 
 gql`
   fragment CreditFacilityBasicDetailsFragment on CreditFacility {
@@ -71,11 +73,17 @@ export default function CreditFacilityLayout({
   const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
+  const { setFacility } = useCreateContext()
 
   const { data, loading, error, refetch } = useGetCreditFacilityBasicDetailsQuery({
     variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
+
+  useEffect(() => {
+    data?.creditFacility && setFacility(data?.creditFacility as CreditFacility)
+    return () => setFacility(null)
+  }, [data?.creditFacility, setFacility])
 
   useEffect(() => {
     if (
