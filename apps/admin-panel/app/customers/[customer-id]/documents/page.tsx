@@ -14,6 +14,7 @@ gql`
       documents {
         id
         filename
+        documentId
       }
     }
   }

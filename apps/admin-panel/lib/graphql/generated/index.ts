@@ -1777,7 +1777,7 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerDocumentsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'Document', id: string, filename: string }> } | null };
+export type GetCustomerDocumentsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'Document', id: string, filename: string, documentId: string }> } | null };
 
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3624,6 +3624,7 @@ export const GetCustomerDocumentsDocument = gql`
     documents {
       id
       filename
+      documentId
     }
   }
 }
