@@ -70,9 +70,12 @@ describe("Transactions Deposit and Withdraw", () => {
 
     cy.get('[data-testid="withdraw-submit-button"]').click()
 
-    cy.contains("Withdrawal initiated successfully").should("be.visible")
-    cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
-    cy.takeScreenshot("11_withdrawal_submit")
+    cy.url()
+      .should("include", "/withdrawals/")
+      .then(() => {
+        cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
+        cy.takeScreenshot("11_withdrawal_submit")
+      })
   })
 
   it("should show newly created Withdraw in list page", () => {

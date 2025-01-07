@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+REPO_ROOT=$(git rev-parse --show-toplevel)
+MANUALS_DIR="${REPO_ROOT}/apps/admin-panel/cypress/manuals/results"
+mkdir -p "$MANUALS_DIR"
+
 for file in *.md; do
     cat > temp.css << 'EOL'
 body {
@@ -86,9 +90,9 @@ EOL
 
     # First, preprocess the markdown to convert special page break markers to HTML
     sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
-    
+
     pandoc "temp.md" \
-        -o "results/${file%.md}.pdf" \
+        -o "${MANUALS_DIR}/${file%.md}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \
         --pdf-engine-opt=--enable-internal-links \
@@ -101,3 +105,5 @@ EOL
     rm temp.md
 done
 rm temp.css
+
+echo "Manuals generated in ${MANUALS_DIR}"

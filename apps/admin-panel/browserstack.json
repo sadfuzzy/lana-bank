@@ -5,11 +5,9 @@
     },
     "browsers": [
         {
-            "browser": "chrome",
             "os": "Windows 11",
-            "versions": [
-                "latest"
-            ]
+            "browser": "chrome",
+            "versions": ["latest"]
         }
     ],
     "run_settings": {
@@ -20,22 +18,26 @@
         "npm_dependencies": {
             "typescript": "^4",
             "browserstack-cypress-cli": "latest",
-            "cypress": "latest"
+            "cypress": "latest",
+            "cypress-file-upload": "latest",
+            "@apollo/client": "latest",
+            "graphql": "latest",
+            "react": "18",
+            "@faker-js/faker": "latest"
         },
         "exclude": [
             "node_modules/**/*",
             ".git/**/*",
             ".next/**/*"
         ],
-        "headed": true,
         "resolution": "2560x1440",
         "downloads": [
             "./results",
-            "./cypress/screenshots"
+            "./cypress"
         ]
     },
     "connection_settings": {
-        "local": false
+        "local": true
     },
     "disable_usage_reporting": false
 }

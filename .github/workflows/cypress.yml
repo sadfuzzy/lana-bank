@@ -1,11 +1,17 @@
-name: frontend e2e tests
+name: cypress
 
 on:
+  pull_request:
+    branches: [ main ]
+    paths: [ "apps/admin-panel/**" ]
+  push:
+    branches: [ main ]
+    paths: [ "apps/admin-panel/**" ]
   workflow_dispatch:
 
 jobs:
-  tilt-ci:
-    name: manual generation / execute via tilt and cypress
+  cypress-test-run-in-browserstack:
+    name: browserstack / local tunnel into tilt up
     runs-on: ubuntu-latest
     steps:
       - uses: docker/login-action@v3
@@ -50,3 +56,152 @@ jobs:
         env:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+
+      - name: upload cypress screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots/*
+
+  manual-generation:
+    name: manual pdfs / upload to lana-manuals
+    needs: cypress-test-run-in-browserstack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: DeterminateSystems/nix-installer-action@v4
+      - uses: DeterminateSystems/magic-nix-cache-action@v8
+      - uses: actions/checkout@v4
+      - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
+      - uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots
+      - name: generate pdfs
+        run: cd apps/admin-panel && nix develop -c pnpm run local:pdf
+      - run: ls -R apps/admin-panel/cypress/manuals
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdfs
+          path: apps/admin-panel/cypress/manuals/results/*
+      - name: generate manual page
+        run: |
+          cd apps/admin-panel/cypress/manuals/results
+          cat <<EOF > index.html
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Lana Bank Manuals</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+          </head>
+          <body class="bg-gray-100 font-sans">
+            <div class="max-w-5xl mx-auto mt-10 p-5">
+              <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                Lana Bank - Manuals for Regulators
+              </h1>
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse bg-white shadow-md rounded-lg">
+                  <thead>
+                    <tr class="bg-gray-800 text-white">
+                      <th class="py-3 px-5 text-left">#</th>
+                      <th class="py-3 px-5 text-left">Manual Name</th>
+                      <th class="py-3 px-5 text-left">View</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+          EOF
+
+          COUNTER=1
+          for pdf in *.pdf; do
+            echo "<tr class='hover:bg-gray-50 border-b'>
+                    <td class='py-3 px-5'>$COUNTER</td>
+                    <td class='py-3 px-5'>${pdf%.pdf}</td>
+                    <td class='py-3 px-5'>
+                      <a href='$pdf' class='text-blue-600 hover:underline' target='_blank'>Open</a>
+                    </td>
+                  </tr>" >> index.html
+            ((COUNTER++))
+          done
+
+          cat <<EOF >> index.html
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to Netlify (Pull Request)
+        id: netlify_deploy
+        if: github.event_name == 'pull_request'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
+        run: |
+          GITHUB_SHA="${{ github.sha }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
+          netlify deploy \
+            --dir=apps/admin-panel/cypress/manuals/results \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --alias="$ALIAS" \
+            --message="Manuals Preview for PR #${{ github.event.pull_request.number }} Commit $GITHUB_SHA" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Netlify (Push to Main)
+        if: github.event_name == 'push'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
+        run: |
+          netlify deploy \
+            --prod \
+            --dir=apps/admin-panel/cypress/manuals/results \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --message="Manuals Build for Commit ${{ github.sha }}" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Create or Update Preview Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const deployUrl = '${{ steps.netlify_deploy.outputs.deploy_url }}';
+            const commentBody = `<!-- Manuals Preview Comment -->\nManuals preview: [Link to Manuals](${deployUrl})`;
+            // Fetch existing comments on the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            // Identify if the bot has already made a comment
+            const botLogin = 'github-actions[bot]'
+            const existingComment = comments.find(
+              comment => comment.user.login === botLogin && comment.body.includes('<!-- Manuals Preview Comment -->')
+            );
+            if (existingComment) {
+              // Update the existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create a new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }

@@ -24,8 +24,8 @@ beforeEach(() => {
   cy.session(
     "loginSession",
     () => {
-      cy.visit(Cypress.env("MAGIC_LINK"))
-      cy.contains("Dashboard", { timeout: 10000 })
+      cy.visit(Cypress.env("MAGIC_LINK"), { timeout: 60000 })
+      cy.contains("Dashboard", { timeout: 60000 })
     },
     { cacheAcrossSpecs: true },
   )

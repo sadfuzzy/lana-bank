@@ -31,17 +31,17 @@ describe("Users", () => {
     cy.get('[data-testid="create-user-submit-button"]').click()
     cy.takeScreenshot("5_submit_creation")
 
-    cy.contains("Magic link sent successfully").should("be.visible")
-    cy.takeScreenshot("6_verify_creation")
+    cy.url()
+      .should("include", "/users/")
+      .then((url) => {
+        userId = url.split("/users/")[1]
+        cy.takeScreenshot("6_verify_creation")
+      })
 
     cy.get("[data-testid=user-details-email]")
       .should("be.visible")
       .invoke("text")
       .should("eq", userEmail)
-
-    cy.url().then((url) => {
-      userId = url.split("/users/")[1]
-    })
   })
 
   it("should show newly created user in the list", () => {

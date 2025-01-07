@@ -17,5 +17,5 @@ for i in {1..30}; do
     sleep 1
 done
 
-tilt wait --for=condition=Ready --timeout=300s uiresource/core
-tilt wait --for=condition=Ready --timeout=300s uiresource/admin-panel
+tilt wait --for=condition=Ready --timeout=600s uiresource/core
+tilt wait --for=condition=Ready --timeout=600s uiresource/admin-panel

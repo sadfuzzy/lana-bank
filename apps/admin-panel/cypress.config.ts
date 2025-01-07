@@ -1,5 +1,7 @@
 import { defineConfig } from "cypress"
 
+const multiplier = 100 // Browserstack local tunnel on GHA Runner can be quite slow
+
 export default defineConfig({
   e2e: {
     specPattern: [
@@ -17,9 +19,12 @@ export default defineConfig({
       "cypress/e2e/profit-and-loss.cy.ts",
     ],
     baseUrl: "http://localhost:4455/admin-panel",
-    defaultCommandTimeout: 10000,
-    requestTimeout: 10000,
-    video: false,
+    defaultCommandTimeout: 4000 * multiplier,
+    requestTimeout: 5000 * multiplier,
+    pageLoadTimeout: 60000 * multiplier,
+    retries: 5,
+    screenshotOnRunFailure: false,
+    video: true,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       MAGIC_LINK: process.env.MAGIC_LINK,

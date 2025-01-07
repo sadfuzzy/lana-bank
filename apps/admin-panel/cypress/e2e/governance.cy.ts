@@ -36,12 +36,16 @@ describe("Governance Test", () => {
     cy.get('[data-testid="committee-create-submit-button"]').click()
     cy.takeScreenshot("4_step-submit-committee-creation")
 
-    cy.contains("Committee created successfully").should("be.visible")
-    cy.takeScreenshot("5_step-committee-created-successfully")
+    cy.url()
+      .should("include", "/committees/")
+      .then(() => {
+        cy.contains(committeeName).should("be.visible")
+        cy.takeScreenshot("5_step-committee-created-successfully")
 
-    cy.getIdFromUrl("/committees/").then((id) => {
-      committeeId = id
-    })
+        cy.getIdFromUrl("/committees/").then((id) => {
+          committeeId = id
+        })
+      })
   })
 
   it("should show newly added committee in the list", () => {

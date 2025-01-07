@@ -67,4 +67,6 @@ elif [[ $EXECUTION_MODE == "headless" ]]; then
   nix develop -c pnpm run cypress:run-headless
 elif [[ $EXECUTION_MODE == "browserstack" ]]; then
   nix develop -c pnpm run cypress:run-browserstack
+  mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
+  rm -rf build_artifacts
 fi

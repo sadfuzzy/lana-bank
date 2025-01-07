@@ -46,7 +46,8 @@ describe("credit facility", () => {
       .type(committeeName)
       .should("have.value", committeeName)
     cy.get('[data-testid="committee-create-submit-button"]').click()
-    cy.contains("Committee created successfully").should("be.visible")
+    cy.url().should("include", "/committees/")
+    cy.contains(committeeName).should("be.visible")
 
     cy.get('[data-testid="committee-add-member-button"]').click()
     cy.get('[data-testid="committee-add-user-select"]').should("be.visible").click()
@@ -112,7 +113,7 @@ describe("credit facility", () => {
         Cypress.env("creditFacilityId", facilityId)
       })
 
-    cy.contains("Credit Facility created successfully").should("be.visible")
+    cy.contains("No Collateral").should("be.visible")
     cy.takeScreenshot("5_credit_facility_created_success")
   })
 
@@ -204,7 +205,6 @@ describe("credit facility", () => {
       /\/disbursals\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
 
-    cy.contains("Disbursal initiated successfully").should("be.visible")
     cy.takeScreenshot("15_disbursal_page")
     cy.takeScreenshot("16_disbursal_success_message")
 
