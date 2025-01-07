@@ -1,6 +1,6 @@
 [package]
 name = "core-user"
-version = "0.2.71-dev"
+version = "0.2.72-dev"
 edition = "2021"
 
 [features]
