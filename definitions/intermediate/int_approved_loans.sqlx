@@ -1,6 +1,7 @@
 config {
 	type: "operations",
 	hasOutput: true,
+	tags : ["regulatory-report"],
 }
 
 CREATE OR REPLACE TABLE FUNCTION ${self()} (asof TIMESTAMP) AS (

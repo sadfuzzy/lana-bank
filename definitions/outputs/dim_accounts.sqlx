@@ -8,6 +8,7 @@ config {
 			"normal_balance_type IN ('debit', 'credit')"
 		],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT * EXCEPT(account_id)

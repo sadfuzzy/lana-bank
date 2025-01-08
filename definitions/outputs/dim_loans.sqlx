@@ -6,6 +6,7 @@ config {
 		nonNull: ["loan_key", "initialized_at", "end_date", "annual_rate", "customer_key", "completed", "principal"],
 		rowConditions: ["DATE(initialized_at) <= end_date"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT loans.* EXCEPT (loan_id, customer_id),

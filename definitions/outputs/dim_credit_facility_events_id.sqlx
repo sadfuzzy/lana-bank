@@ -5,6 +5,7 @@ config {
         uniqueKey: ["event_key"],
         nonNull: ["event_id"],
     },
+    tags : ["regulatory-report"],
 }
 
 WITH distinct_entries AS (

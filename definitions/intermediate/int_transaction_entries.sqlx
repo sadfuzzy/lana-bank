@@ -9,6 +9,7 @@ config {
 			"units >= 0",
 		],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT id AS transaction_entry_id,

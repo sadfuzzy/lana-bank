@@ -5,6 +5,7 @@ config {
 		uniqueKey: ["customer_key"],
 		nonNull: ["customer_key"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT * EXCEPT (customer_id)

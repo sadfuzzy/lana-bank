@@ -4,6 +4,7 @@ config {
 		uniqueKey: ["transaction_type_id"],
 		nonNull: ["transaction_type_id"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT

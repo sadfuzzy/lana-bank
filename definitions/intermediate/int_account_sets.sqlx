@@ -3,6 +3,7 @@ config {
 	assertions: {
 		uniqueKey: ["set_id"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT set_id, set_name,

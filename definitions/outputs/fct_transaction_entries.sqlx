@@ -4,6 +4,7 @@ config {
 	assertions: {
 		uniqueKey: ["transaction_entry_key"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT transaction_entries.* EXCEPT (transaction_entry_id, account_id, transaction_id),

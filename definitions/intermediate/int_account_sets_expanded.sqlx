@@ -4,6 +4,7 @@ config {
 		uniqueKey: ["set_id", "member_id"],
 		rowConditions: ["member_type IN ('Account', 'AccountSet')"]
 	},
+	tags : ["regulatory-report"],
 }
 
 WITH RECURSIVE account_set_members AS (

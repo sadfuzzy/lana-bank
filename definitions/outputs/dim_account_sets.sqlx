@@ -4,6 +4,7 @@ config {
 	assertions: {
 		uniqueKey: ["set_key", "account_key"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT set_key,

@@ -11,6 +11,7 @@ config {
             "amount",
         ],
     },
+    tags : ["regulatory-report"],
 }
 
 WITH disbursal_initiated AS (

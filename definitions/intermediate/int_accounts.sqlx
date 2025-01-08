@@ -3,6 +3,7 @@ config {
 	assertions: {
 		uniqueKey: ["account_id"],
 	},
+	tags : ["regulatory-report"],
 }
 
 SELECT account_id, account_name, normal_balance_type, account_code, is_account_set,
