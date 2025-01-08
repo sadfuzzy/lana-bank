@@ -9,7 +9,7 @@ config {
 
 SELECT set_key,
 	set_name,
-	member_id AS account_key,
+	account_key,
 
 FROM ${ref("int_account_sets_expanded")}
 JOIN ${ref("int_account_sets")} USING (set_id)
