@@ -6,7 +6,7 @@ const dev = {
 
 const staging = {
   name: "galoy-staging",
-  database: "galoy-staging",
+  database: "galoystaging",
   importSchema: "galoy_staging_dataset",
 }
 
