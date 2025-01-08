@@ -1,6 +1,6 @@
 [package]
 name = "dashboard"
-version = "0.2.74-dev"
+version = "0.2.75-dev"
 edition = "2021"
 
 [features]
