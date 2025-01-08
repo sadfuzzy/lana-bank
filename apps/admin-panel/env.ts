@@ -17,6 +17,7 @@ export const env = createEnv({
       .default("http://localhost:4455/admin-panel/api/auth"),
 
     NEXT_PUBLIC_BASE_PATH: z.string().default("/"),
+    NEXT_PUBLIC_APP_VERSION: z.string().default("0.0.0-dev"),
   },
   server: {
     CHECK_USER_ALLOWED_CALLBACK_URL: z
@@ -39,6 +40,7 @@ export const env = createEnv({
     NEXT_AUTH_DATABASE_URL: process.env.NEXT_AUTH_DATABASE_URL,
     EMAIL_SERVER: process.env.EMAIL_SERVER,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
   },
 })
 

@@ -27,6 +27,8 @@ import {
   SidebarMenuButton,
 } from "@/ui/sidebar"
 
+import { env } from "@/env"
+
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar variant="inset" {...props}>
@@ -51,6 +53,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Lana Bank</span>
+                  <span className="truncate text-xs">v{env.NEXT_PUBLIC_APP_VERSION}</span>
                 </div>
               </Link>
             </SidebarMenuButton>

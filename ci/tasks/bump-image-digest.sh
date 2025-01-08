@@ -15,6 +15,7 @@ yq -i e '.lanaBank.adminPanel.image.digest = strenv(admin_panel_image_digest)' .
 yq -i e '.lanaBank.customerPortal.image.digest = strenv(customer_portal_image_digest)' ./charts/${CHARTS_SUBDIR}/values.yaml
 sed -i "s|\(digest: \"${digest}\"\).*$|\1 # METADATA:: repository=https://github.com/GaloyMoney/${CHARTS_SUBDIR};commit_ref=${ref};app=${CHARTS_SUBDIR};|g" "./charts/${CHARTS_SUBDIR}/values.yaml"
 
+yq -i e '.lanaBank.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/values.yaml
 yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
 
 rm -rf ./charts/${CHARTS_SUBDIR}/tf || true
