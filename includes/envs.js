@@ -5,9 +5,9 @@ const dev = {
 }
 
 const staging = {
-  name: "volcano-staging",
-  database: "volcano-staging",
-  importSchema: "volcano_staging_dataset",
+  name: "galoy-staging",
+  database: "galoy-staging",
+  importSchema: "galoy_staging_dataset",
 }
 
 const prod = {
