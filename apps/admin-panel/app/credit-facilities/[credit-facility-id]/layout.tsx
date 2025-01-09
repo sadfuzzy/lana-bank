@@ -14,7 +14,6 @@ import {
   CreditFacility,
   CreditFacilityStatus,
   GetCreditFacilityBasicDetailsDocument,
-  GetCreditFacilityDisbursalsDocument,
   GetCreditFacilityOverviewDocument,
   GetCreditFacilityTransactionsDocument,
   useGetCreditFacilityBasicDetailsQuery,
@@ -91,13 +90,20 @@ export default function CreditFacilityLayout({
       data?.creditFacility?.approvalProcess?.status === ApprovalProcessStatus.Approved
     ) {
       const timer = setInterval(() => {
-        client.refetchQueries({
-          include: [
-            GetCreditFacilityTransactionsDocument,
-            GetCreditFacilityBasicDetailsDocument,
-            GetCreditFacilityOverviewDocument,
-            GetCreditFacilityDisbursalsDocument,
-          ],
+        client.query({
+          query: GetCreditFacilityBasicDetailsDocument,
+          variables: { id: creditFacilityId },
+          fetchPolicy: "network-only",
+        })
+        client.query({
+          query: GetCreditFacilityOverviewDocument,
+          variables: { id: creditFacilityId },
+          fetchPolicy: "network-only",
+        })
+        client.query({
+          query: GetCreditFacilityTransactionsDocument,
+          variables: { id: creditFacilityId },
+          fetchPolicy: "network-only",
         })
       }, 3000)
 
