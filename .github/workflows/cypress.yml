@@ -133,6 +133,9 @@ jobs:
           </html>
           EOF
 
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
       - name: Deploy to Netlify (Pull Request)
         id: netlify_deploy
         if: github.event_name == 'pull_request'
