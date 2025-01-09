@@ -17,7 +17,6 @@ export const env = createEnv({
       .default("http://localhost:4455/admin-panel/api/auth"),
 
     NEXT_PUBLIC_BASE_PATH: z.string().default("/"),
-    NEXT_PUBLIC_APP_VERSION: z.string().default("0.0.0-dev"),
   },
   server: {
     CHECK_USER_ALLOWED_CALLBACK_URL: z
@@ -29,6 +28,9 @@ export const env = createEnv({
       .string()
       .url()
       .default("postgres://dbuser:secret@localhost:5435/default?sslmode=disable"),
+  },
+  client: {
+    NEXT_PUBLIC_APP_VERSION: z.string().default("0.0.0-dev"),
   },
   runtimeEnv: {
     CHECK_USER_ALLOWED_CALLBACK_URL: process.env.USER_ALLOWED_CALLBACK_URL,
