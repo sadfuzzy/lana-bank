@@ -4,7 +4,6 @@
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
-import { toast } from "sonner"
 
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
@@ -15,8 +14,6 @@ import { CreditFacilityPartialPaymentDialog } from "./credit-facilities/partial-
 import { CreateUserDialog } from "./users/create"
 import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
-import CustomerSelector from "./customers/selector"
-
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 
 import { CreditFacility, Customer, CreditFacilityStatus } from "@/lib/graphql/generated"
@@ -32,24 +29,16 @@ export const PATH_CONFIGS = {
   COMMITTEES: "/committees",
   COMMITTEE_DETAILS: /^\/committees\/[^/]+/,
 
-  CREDIT_FACILITIES: "/credit-facilities",
   CREDIT_FACILITY_DETAILS: /^\/credit-facilities\/[^/]+/,
 
   CUSTOMERS: "/customers",
   CUSTOMER_DETAILS: /^\/customers\/[^/]+/,
-
-  DASHBOARD: "/dashboard",
-
-  DEPOSITS: "/deposits",
 
   USERS: "/users",
   USER_DETAILS: /^\/users\/[^/]+/,
 
   TERMS_TEMPLATES: "/terms-templates",
   TERMS_TEMPLATE_DETAILS: /^\/terms-templates\/[^/]+/,
-
-  WITHDRAWALS: "/withdrawals",
-  WITHDRAW_DETAILS: /^\/withdrawals\/[^/]+/,
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -68,7 +57,6 @@ const isItemAllowedOnCurrentPath = (
   allowedPaths: (string | RegExp)[],
   currentPath: string,
 ) => {
-  if (currentPath === PATH_CONFIGS.DASHBOARD) return true
   return allowedPaths.some((path) => {
     if (typeof path === "string") {
       return path === currentPath
@@ -101,7 +89,6 @@ const CreateButton = () => {
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
-  const [openCustomerSelector, setOpenCustomerSelector] = useState(false)
 
   const pathName = usePathname()
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
@@ -113,24 +100,20 @@ const CreateButton = () => {
     {
       label: "Deposit",
       onClick: () => {
-        if (!customer) setOpenCustomerSelector(true)
+        if (!customer) return
         setCreateDeposit(true)
       },
       dataTestId: "create-deposit-button",
-      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS, PATH_CONFIGS.DEPOSITS],
+      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
       label: "Withdrawal",
       onClick: () => {
-        if (!customer) setOpenCustomerSelector(true)
+        if (!customer) return
         setCreateWithdrawal(true)
       },
       dataTestId: "create-withdrawal-button",
-      allowedPaths: [
-        PATH_CONFIGS.CUSTOMER_DETAILS,
-        PATH_CONFIGS.WITHDRAWALS,
-        PATH_CONFIGS.WITHDRAW_DETAILS,
-      ],
+      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
       label: "Customer",
@@ -141,23 +124,16 @@ const CreateButton = () => {
     {
       label: "Credit Facility",
       onClick: () => {
-        if (!customer) setOpenCustomerSelector(true)
+        if (!customer) return
         setCreateFacility(true)
       },
       dataTestId: "create-credit-facility-button",
-      allowedPaths: [
-        PATH_CONFIGS.CUSTOMER_DETAILS,
-        PATH_CONFIGS.CREDIT_FACILITIES,
-        PATH_CONFIGS.CREDIT_FACILITY_DETAILS,
-      ],
+      allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
       label: "Disbursal",
       onClick: () => {
-        if (!facility) {
-          toast.message("Please select a credit facility first")
-          return
-        }
+        if (!facility) return
         setInitiateDisbursal(true)
       },
       dataTestId: "initiate-disbursal-button",
@@ -169,10 +145,7 @@ const CreateButton = () => {
     {
       label: "Payment",
       onClick: () => {
-        if (!facility) {
-          toast.message("Please select a credit facility first")
-          return
-        }
+        if (!facility) return
         setMakePayment(true)
       },
       dataTestId: "make-payment-button",
@@ -201,51 +174,32 @@ const CreateButton = () => {
     },
   ]
 
-  let creationType = ""
-  if (createDeposit) creationType = "Deposit"
-  if (createWithdrawal) creationType = "Withdrawal"
-  if (createFacility) creationType = "Credit Facility"
-
-  const decideCreation = () => {
-    setShowMenu(false)
-
-    const allowedItems = menuItems.filter((item) => {
+  const getAvailableMenuItems = () => {
+    return menuItems.filter((item) => {
       const isAllowedOnPath = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
       const meetsConditions = !item.conditions || item.conditions()
       return isAllowedOnPath && meetsConditions
     })
+  }
 
-    if (allowedItems.length === 1) {
-      allowedItems[0].onClick()
+  const decideCreation = () => {
+    setShowMenu(false)
+    const availableItems = getAvailableMenuItems()
+
+    if (availableItems.length === 1) {
+      availableItems[0].onClick()
       return
     }
 
-    if (pathName === "/customers") {
-      setCreateCustomer(true)
-    } else if (pathName === "/users") {
-      setOpenCreateUserDialog(true)
-    } else if (pathName === "/terms-templates") {
-      setOpenCreateTermsTemplateDialog(true)
-    } else if (pathName === "/committees") {
-      setOpenCreateCommitteeDialog(true)
-    } else if (pathName === "/deposits") {
-      if (!customer) setOpenCustomerSelector(true)
-      setCreateDeposit(true)
-    } else if (pathName === "/withdrawals") {
-      if (!customer) setOpenCustomerSelector(true)
-      setCreateWithdrawal(true)
-    } else if (pathName === "/credit-facilities") {
-      if (!customer) setOpenCustomerSelector(true)
-      setCreateFacility(true)
-    } else if (pathName === "/disbursals") {
-      toast.message("Disbursals can be initiated from credit facility page")
-    } else if (allowedItems.length > 1) {
+    if (availableItems.length > 1) {
       setShowMenu(true)
     }
   }
 
-  if (!showCreateButton(pathName))
+  const availableItems = getAvailableMenuItems()
+  if (!showCreateButton(pathName) || availableItems.length === 0) {
     return <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
+  }
 
   return (
     <>
@@ -263,37 +217,18 @@ const CreateButton = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-36">
-          {menuItems
-            .filter(
-              (item) =>
-                isItemAllowedOnCurrentPath(item.allowedPaths, pathName) &&
-                (!item.conditions || item.conditions()),
-            )
-            .map((item) => (
-              <DropdownMenuItem
-                data-testid={item.dataTestId}
-                key={item.label}
-                onClick={item.onClick}
-                className="cursor-pointer"
-              >
-                {item.label}
-              </DropdownMenuItem>
-            ))}
+          {availableItems.map((item) => (
+            <DropdownMenuItem
+              data-testid={item.dataTestId}
+              key={item.label}
+              onClick={item.onClick}
+              className="cursor-pointer"
+            >
+              {item.label}
+            </DropdownMenuItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
-
-      <CustomerSelector
-        show={openCustomerSelector}
-        setShow={setOpenCustomerSelector}
-        setCustomer={setCustomer}
-        onClose={() => {
-          setCustomer(null)
-          setCreateDeposit(false)
-          setCreateWithdrawal(false)
-          setCreateFacility(false)
-        }}
-        title={`Select customer for ${creationType}`}
-      />
 
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
