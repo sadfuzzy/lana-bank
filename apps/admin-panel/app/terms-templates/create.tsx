@@ -48,7 +48,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
   openCreateTermsTemplateDialog,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenCreateTermsTemplateDialog(false),
+    closeModal: () => {
+      setOpenCreateTermsTemplateDialog(false)
+      resetForm()
+    },
   })
 
   const [createTermsTemplate, { loading, error: createTermsTemplateError }] =

@@ -38,7 +38,10 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
   openCreateCommitteeDialog,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenCreateCommitteeDialog(false),
+    closeModal: () => {
+      setOpenCreateCommitteeDialog(false)
+      resetForm()
+    },
   })
 
   const [createCommittee, { loading, reset, error: createCommitteeError }] =

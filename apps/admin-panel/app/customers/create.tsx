@@ -158,7 +158,10 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   openCreateCustomerDialog,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
-    closeModal: () => setOpenCreateCustomerDialog(false),
+    closeModal: () => {
+      setOpenCreateCustomerDialog(false)
+      resetForm()
+    },
   })
 
   const [createCustomer, { loading, reset, error: createCustomerError }] =
@@ -203,7 +206,6 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         onCompleted: (data) => {
           if (data?.customerCreate.customer) {
             toast.success("Customer created successfully")
-            resetForm()
             navigate(`/customers/${data.customerCreate.customer.customerId}`)
           } else {
             throw new Error("Failed to create customer. Please try again.")
