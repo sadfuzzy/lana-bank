@@ -16,6 +16,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
+import { env } from "@/env"
 
 export const metadata: Metadata = {
   title: "Lana Bank | Admin Panel",
@@ -35,7 +36,7 @@ export default async function RootLayout({
 }>) {
   const headerList = await headers()
   const currentPath = headerList.get("x-current-path") || "/"
-
+  const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const session = await getServerSession(authOptions)
   if (!session && !PUBLIC_PAGES.includes(currentPath)) redirect("/auth/login")
   if (session && PUBLIC_PAGES.includes(currentPath)) redirect("/")
@@ -53,7 +54,7 @@ export default async function RootLayout({
               <main className="h-screen w-full flex flex-col">{children}</main>
             ) : (
               <SidebarProvider>
-                <AppSidebar />
+                <AppSidebar appVersion={appVersion} />
                 <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
                   <AppLayout>{children}</AppLayout>
                 </SidebarInset>

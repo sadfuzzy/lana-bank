@@ -1,9 +1,7 @@
 "use client"
 
 import type { ComponentProps } from "react"
-
 import { ShipWheel } from "lucide-react"
-
 import Link from "next/link"
 
 import { UserBlock } from "./user-block"
@@ -27,9 +25,11 @@ import {
   SidebarMenuButton,
 } from "@/ui/sidebar"
 
-import { env } from "@/env"
+interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
+  appVersion?: string
+}
 
-export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -53,7 +53,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Lana Bank</span>
-                  <span className="truncate text-xs">v{env.NEXT_PUBLIC_APP_VERSION}</span>
+                  <span className="truncate text-xs">v{appVersion || "0.0.0-dev"}</span>
                 </div>
               </Link>
             </SidebarMenuButton>
