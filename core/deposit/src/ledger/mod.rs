@@ -171,15 +171,20 @@ impl DepositLedger {
         &self,
         account_id: impl Into<AccountId>,
     ) -> Result<DepositAccountBalance, DepositLedgerError> {
-        let balances = self
+        match self
             .cala
             .balances()
             .find(self.journal_id, account_id.into(), self.usd)
-            .await?;
-
-        Ok(DepositAccountBalance {
-            settled: UsdCents::try_from_usd(balances.settled())?,
-            pending: UsdCents::try_from_usd(balances.pending())?,
-        })
+            .await
+        {
+            Ok(balances) => Ok(DepositAccountBalance {
+                settled: UsdCents::try_from_usd(balances.settled())?,
+                pending: UsdCents::try_from_usd(balances.pending())?,
+            }),
+            Err(cala_ledger::balance::error::BalanceError::NotFound(..)) => {
+                Ok(DepositAccountBalance::ZERO)
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 }
