@@ -6,7 +6,7 @@ use tracing::instrument;
 use crate::{
     audit::*,
     authorization::{CreditFacilityAction, Object},
-    credit_facility::{interest_incurrences, repo::*, CreditFacilityError},
+    credit_facility::{interest_incurrences, ledger::CreditLedger, repo::*, CreditFacilityError},
     job::{error::*, *},
     ledger::*,
     primitives::CreditFacilityId,
@@ -21,7 +21,7 @@ impl JobConfig for CreditFacilityJobConfig {
 }
 
 pub struct CreditFacilityProcessingJobInitializer {
-    ledger: Ledger,
+    ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo,
     jobs: Jobs,
     audit: Audit,
@@ -29,7 +29,7 @@ pub struct CreditFacilityProcessingJobInitializer {
 
 impl CreditFacilityProcessingJobInitializer {
     pub fn new(
-        ledger: &Ledger,
+        ledger: &CreditLedger,
         credit_facility_repo: CreditFacilityRepo,
         jobs: &Jobs,
         audit: &Audit,
@@ -67,7 +67,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
 pub struct CreditFacilityProcessingJobRunner {
     config: CreditFacilityJobConfig,
     credit_facility_repo: CreditFacilityRepo,
-    ledger: Ledger,
+    ledger: CreditLedger,
     jobs: Jobs,
     audit: Audit,
 }
@@ -118,10 +118,17 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .await?;
 
         let interest_accrual = self.record_interest_accrual(&mut db, &audit_info).await?;
+
+        let (now, mut tx) = (db.now(), db.into_tx());
+        let sub_op = {
+            use sqlx::Acquire;
+            es_entity::DbOp::new(tx.begin().await?, now)
+        };
         self.ledger
-            .record_credit_facility_interest_accrual(interest_accrual)
+            .record_interest_accrual(sub_op, interest_accrual)
             .await?;
 
+        let mut db = es_entity::DbOp::new(tx, now);
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)

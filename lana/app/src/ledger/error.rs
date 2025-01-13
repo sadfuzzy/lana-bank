@@ -10,6 +10,8 @@ pub enum LedgerError {
     TryFromIntError(#[from] std::num::TryFromIntError),
     #[error("LedgerError - ConversionError: {0}")]
     ConversionError(#[from] crate::primitives::ConversionError),
+    #[error("LedgerError - CoreChartOfAccountsError: {0}")]
+    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("LedgerError - CouldNotAssertAccountExists")]
     CouldNotAssertAccountExists,
     #[error("LedgerError - CouldNotAssertAccountSetExists")]

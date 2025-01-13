@@ -2,7 +2,9 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{customer::Customer, loader::LanaDataLoader};
+use super::loader::LanaDataLoader;
+
+pub use super::deposit_account::DepositAccount;
 
 pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor};
 
@@ -11,7 +13,7 @@ pub use lana_app::deposit::{Deposit as DomainDeposit, DepositsByCreatedAtCursor}
 pub struct Deposit {
     id: ID,
     deposit_id: UUID,
-    customer_id: UUID,
+    account_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
 
@@ -24,7 +26,7 @@ impl From<DomainDeposit> for Deposit {
         Deposit {
             id: deposit.id.to_global_id(),
             deposit_id: UUID::from(deposit.id),
-            customer_id: UUID::from(deposit.customer_id),
+            account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
 
@@ -39,19 +41,19 @@ impl Deposit {
         &self.entity.reference
     }
 
-    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let customer = loader
-            .load_one(self.entity.customer_id)
+        let account = loader
+            .load_one(self.entity.deposit_account_id)
             .await?
-            .expect("policy not found");
-        Ok(customer)
+            .expect("process not found");
+        Ok(account)
     }
 }
 
 #[derive(InputObject)]
 pub struct DepositRecordInput {
-    pub customer_id: UUID,
+    pub deposit_account_id: UUID,
     pub amount: UsdCents,
     pub reference: Option<String>,
 }

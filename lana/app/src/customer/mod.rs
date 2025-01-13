@@ -1,9 +1,11 @@
+pub mod accounts;
 mod config;
 mod entity;
 pub mod error;
 mod kratos;
 mod repo;
 
+use deposit::DepositAccount;
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -13,10 +15,11 @@ use crate::{
     audit::{AuditInfo, AuditSvc},
     authorization::{Action, Authorization, CustomerAction, CustomerAllOrOne, Object},
     data_export::Export,
-    ledger::*,
+    deposit::Deposits,
     primitives::{CustomerId, KycLevel, Subject},
 };
 
+pub use accounts::CustomerAccountIds;
 pub use config::*;
 pub use entity::*;
 use error::CustomerError;
@@ -26,7 +29,7 @@ pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustom
 #[derive(Clone)]
 pub struct Customers {
     repo: CustomerRepo,
-    ledger: Ledger,
+    deposit: Deposits,
     kratos: KratosClient,
     authz: Authorization,
 }
@@ -35,7 +38,7 @@ impl Customers {
     pub fn new(
         pool: &sqlx::PgPool,
         config: &CustomerConfig,
-        ledger: &Ledger,
+        deposits: &Deposits,
         authz: &Authorization,
         export: &Export,
     ) -> Self {
@@ -43,9 +46,9 @@ impl Customers {
         let kratos = KratosClient::new(&config.kratos);
         Self {
             repo,
-            ledger: ledger.clone(),
             kratos,
             authz: authz.clone(),
+            deposit: deposits.clone(),
         }
     }
 
@@ -80,26 +83,30 @@ impl Customers {
             .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
-        let customer_id = self.kratos.create_identity(&email).await?.into();
-
-        let ledger_account_ids = self
-            .ledger
-            .create_accounts_for_customer(customer_id)
+        let customer_id: uuid::Uuid = self.kratos.create_identity(&email).await?;
+        let account_name = &format!("Deposit Account for Customer {}", customer_id);
+        let DepositAccount {
+            id: deposit_account_id,
+            ..
+        } = self
+            .deposit
+            .create_account(sub, customer_id, account_name, account_name)
             .await?;
+
         let new_customer = NewCustomer::builder()
             .id(customer_id)
             .email(email)
             .telegram_id(telegram_id)
-            .account_ids(ledger_account_ids)
+            .account_ids(CustomerAccountIds::new(deposit_account_id))
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
 
         let mut db = self.repo.begin_op().await?;
-        let customer = self.repo.create_in_op(&mut db, new_customer).await;
+        let customer = self.repo.create_in_op(&mut db, new_customer).await?;
         db.commit().await?;
 
-        customer
+        Ok(customer)
     }
 
     #[instrument(name = "customer.create_customer", skip(self), err)]

@@ -24,10 +24,16 @@ pub enum ApplicationError {
     ReportError(#[from] crate::report::error::ReportError),
     #[error("ApplicationError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
+    #[error("ApplicationError - AccountingInitError: {0}")]
+    AccountingInitError(#[from] crate::accounting_init::error::AccountingInitError),
     #[error("ApplicationError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
-    #[error("ApplicationError - WithdrawalError: {0}")]
-    WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
     #[error("ApplicationError - DashboardError: {0}")]
     DashboardError(#[from] dashboard::error::DashboardError),
+    #[error("ApplicationError - CalaInit: {0}")]
+    CalaError(#[from] cala_ledger::error::LedgerError),
+    #[error("ApplicationError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    #[error("ApplicationError - DepositError: {0}")]
+    DepositError(#[from] crate::deposit::error::CoreDepositError),
 }

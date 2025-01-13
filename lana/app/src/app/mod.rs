@@ -7,9 +7,11 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
+    accounting_init::AccountingInit,
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
+    chart_of_accounts::ChartOfAccounts,
     credit_facility::CreditFacilities,
     customer::Customers,
     dashboard::Dashboard,
@@ -26,7 +28,6 @@ use crate::{
     storage::Storage,
     terms_template::TermsTemplates,
     user::Users,
-    withdrawal::Withdrawals,
 };
 
 pub use config::*;
@@ -39,7 +40,6 @@ pub struct LanaApp {
     audit: Audit,
     authz: Authorization,
     customers: Customers,
-    withdrawals: Withdrawals,
     deposits: Deposits,
     ledger: Ledger,
     applicants: Applicants,
@@ -52,6 +52,7 @@ pub struct LanaApp {
     _outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    _chart_of_accounts: ChartOfAccounts,
 }
 
 impl LanaApp {
@@ -66,25 +67,64 @@ impl LanaApp {
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let ledger = Ledger::init(config.ledger, &authz).await?;
-        let customers = Customers::new(&pool, &config.customer, &ledger, &authz, &export);
-        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
-        let withdrawals = Withdrawals::init(
-            &pool,
-            &customers,
-            &ledger,
-            &authz,
-            &export,
-            &governance,
-            &jobs,
-            &outbox,
-        )
-        .await?;
-        let deposits = Deposits::new(&pool, &customers, &ledger, &authz, &export);
         let price = Price::init(&jobs, &export).await?;
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage, &export).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
+
+        let cala_config = cala_ledger::CalaLedgerConfig::builder()
+            .pool(pool.clone())
+            .exec_migrations(false)
+            .build()
+            .expect("cala config");
+        let cala = cala_ledger::CalaLedger::init(cala_config).await?;
+        let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
+        let accounting_init = AccountingInit::execute(&cala, &chart_of_accounts).await?;
+
+        let deposits_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.deposits.deposits,
+        );
+        let deposits = Deposits::init(
+            &pool,
+            &authz,
+            &outbox,
+            &governance,
+            &jobs,
+            deposits_factory,
+            &cala,
+            accounting_init.journal_id,
+            String::from("OMNIBUS_ACCOUNT_ID"),
+        )
+        .await?;
+        let customers = Customers::new(&pool, &config.customer, &deposits, &authz, &export);
+        let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
+
+        let collateral_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.off_balance_sheet,
+            accounting_init.credit_facilities.collateral,
+        );
+        let facility_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.off_balance_sheet,
+            accounting_init.credit_facilities.facility,
+        );
+        let disbursed_receivable_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.disbursed_receivable,
+        );
+        let interest_receivable_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.interest_receivable,
+        );
+        let interest_income_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.interest_income,
+        );
+        let fee_income_factory = chart_of_accounts.transaction_account_factory(
+            accounting_init.chart_ids.primary,
+            accounting_init.credit_facilities.fee_income,
+        );
         let credit_facilities = CreditFacilities::init(
             &pool,
             config.credit_facility,
@@ -93,9 +133,16 @@ impl LanaApp {
             &export,
             &authz,
             &customers,
-            &ledger,
             &price,
             &outbox,
+            collateral_factory,
+            facility_factory,
+            disbursed_receivable_factory,
+            interest_receivable_factory,
+            interest_income_factory,
+            fee_income_factory,
+            &cala,
+            accounting_init.journal_id,
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);
@@ -107,7 +154,6 @@ impl LanaApp {
             audit,
             authz,
             customers,
-            withdrawals,
             deposits,
             ledger,
             applicants,
@@ -120,6 +166,7 @@ impl LanaApp {
             _outbox: outbox,
             governance,
             dashboard,
+            _chart_of_accounts: chart_of_accounts,
         })
     }
 
@@ -160,10 +207,6 @@ impl LanaApp {
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
-    }
-
-    pub fn withdrawals(&self) -> &Withdrawals {
-        &self.withdrawals
     }
 
     pub fn deposits(&self) -> &Deposits {

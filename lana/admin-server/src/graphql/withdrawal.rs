@@ -2,9 +2,11 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use super::{approval_process::ApprovalProcess, customer::Customer, loader::LanaDataLoader};
+use super::{
+    approval_process::ApprovalProcess, deposit_account::DepositAccount, loader::LanaDataLoader,
+};
 
-pub use lana_app::withdrawal::{
+pub use lana_app::deposit::{
     Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
 };
 
@@ -13,7 +15,7 @@ pub use lana_app::withdrawal::{
 pub struct Withdrawal {
     id: ID,
     withdrawal_id: UUID,
-    customer_id: UUID,
+    account_id: UUID,
     approval_process_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
@@ -22,13 +24,13 @@ pub struct Withdrawal {
     pub(super) entity: Arc<DomainWithdrawal>,
 }
 
-impl From<lana_app::withdrawal::Withdrawal> for Withdrawal {
-    fn from(withdraw: lana_app::withdrawal::Withdrawal) -> Self {
+impl From<lana_app::deposit::Withdrawal> for Withdrawal {
+    fn from(withdraw: lana_app::deposit::Withdrawal) -> Self {
         Withdrawal {
             id: withdraw.id.to_global_id(),
             created_at: withdraw.created_at().into(),
+            account_id: withdraw.deposit_account_id.into(),
             withdrawal_id: UUID::from(withdraw.id),
-            customer_id: UUID::from(withdraw.customer_id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
             entity: Arc::new(withdraw),
@@ -45,20 +47,11 @@ impl Withdrawal {
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<WithdrawalStatus> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
-            .withdrawals()
+            .deposits()
             .ensure_up_to_date_status(&self.entity)
             .await?
             .map(|w| w.status())
             .unwrap_or_else(|| self.entity.status()))
-    }
-
-    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let customer = loader
-            .load_one(self.entity.customer_id)
-            .await?
-            .expect("policy not found");
-        Ok(customer)
     }
 
     async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
@@ -70,28 +63,37 @@ impl Withdrawal {
         Ok(process)
     }
 
-    async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .withdrawals()
-            .subject_can_confirm(sub, false)
-            .await
-            .is_ok())
+    async fn account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(self.entity.deposit_account_id)
+            .await?
+            .expect("account not found");
+        Ok(account)
     }
 
-    async fn subject_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .withdrawals()
-            .subject_can_cancel(sub, false)
-            .await
-            .is_ok())
-    }
+    // async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+    //     Ok(app
+    //         .withdrawals()
+    //         .subject_can_confirm(sub, false)
+    //         .await
+    //         .is_ok())
+    // }
+
+    // async fn subject_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+    //     Ok(app
+    //         .withdrawals()
+    //         .subject_can_cancel(sub, false)
+    //         .await
+    //         .is_ok())
+    // }
 }
 
 #[derive(InputObject)]
 pub struct WithdrawalInitiateInput {
-    pub customer_id: UUID,
+    pub deposit_account_id: UUID,
     pub amount: UsdCents,
     pub reference: Option<String>,
 }

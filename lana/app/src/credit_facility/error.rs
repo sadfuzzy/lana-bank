@@ -6,6 +6,8 @@ use crate::primitives::{CustomerId, Satoshis, UsdCents};
 pub enum CreditFacilityError {
     #[error("CreditFacilityError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("CreditFacilityError - CreditError: {0}")]
+    CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
     #[error("CreditFacilityError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("FacilityError - CursorDestructureError: {0}")]
@@ -28,6 +30,10 @@ pub enum CreditFacilityError {
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
+    #[error("CreditFacilityError - CreditChartOfAccountsError: {0}")]
+    CreditChartOfAccountsError(
+        #[from] super::credit_chart_of_accounts::error::CreditChartOfAccountsError,
+    ),
     #[error("CreditFacilityError - CustomerNotFound: {0}")]
     CustomerNotFound(CustomerId),
     #[error("CreditFacilityError - CustomerError: '{0}'")]

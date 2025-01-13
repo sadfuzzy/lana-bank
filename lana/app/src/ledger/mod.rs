@@ -6,21 +6,18 @@ mod config;
 mod constants;
 pub mod credit_facility;
 pub mod customer;
-pub mod disbursal;
 pub mod error;
 pub mod primitives;
 
 use authz::PermissionCheck;
 
 use chrono::{DateTime, Utc};
-use disbursal::DisbursalData;
 use tracing::instrument;
 
 use crate::{
     authorization::{Authorization, LedgerAction, Object},
     primitives::{
-        CollateralAction, CreditFacilityId, CustomerId, DepositId, LedgerAccountId,
-        LedgerAccountSetId, LedgerTxId, LedgerTxTemplateId, Subject, UsdCents, WithdrawalId,
+        CreditFacilityId, CustomerId, LedgerAccountSetId, LedgerTxTemplateId, Subject, UsdCents,
     },
 };
 
@@ -46,6 +43,7 @@ impl Ledger {
     pub async fn init(config: LedgerConfig, authz: &Authorization) -> Result<Self, LedgerError> {
         let cala = CalaClient::new(config.cala_url);
         Self::initialize_tx_templates(&cala).await?;
+
         Ok(Ledger {
             cala,
             authz: authz.clone(),
@@ -97,90 +95,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lana.ledger.record_deposit_for_customer", skip(self), err)]
-    pub async fn record_deposit_for_customer(
-        &self,
-        deposit_id: DepositId,
-        customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<DepositId, LedgerError> {
-        self.cala
-            .execute_deposit_checking_tx(
-                LedgerTxId::from(uuid::Uuid::from(deposit_id)),
-                customer_account_ids,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(deposit_id)
-    }
-
-    #[instrument(name = "lana.ledger.initiate_withdrawal_for_customer", skip(self), err)]
-    pub async fn initiate_withdrawal_for_customer(
-        &self,
-        withdrawal_id: WithdrawalId,
-        customer_account_ids: CustomerLedgerAccountIds,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.get_bank_deposits_balance()
-            .await?
-            .check_withdrawal_amount(amount)?;
-
-        self.cala
-            .execute_initiate_withdraw_tx(
-                LedgerTxId::from(uuid::Uuid::from(withdrawal_id)),
-                customer_account_ids,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
-    }
-
-    #[instrument(name = "lana.ledger.confirm_withdrawal_for_customer", skip(self), err)]
-    pub async fn confirm_withdrawal_for_customer(
-        &self,
-        ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawalId,
-        debit_account_id: LedgerAccountId,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.cala
-            .execute_confirm_withdraw_tx(
-                ledger_tx_id,
-                uuid::Uuid::from(withdrawal_id),
-                debit_account_id,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
-    }
-
-    #[instrument(name = "lana.ledger.cancel_withdrawal_for_customer", skip(self), err)]
-    pub async fn cancel_withdrawal_for_customer(
-        &self,
-        ledger_tx_id: LedgerTxId,
-        withdrawal_id: WithdrawalId,
-        debit_account_id: LedgerAccountId,
-        amount: UsdCents,
-        external_id: String,
-    ) -> Result<WithdrawalId, LedgerError> {
-        self.cala
-            .execute_cancel_withdraw_tx(
-                ledger_tx_id,
-                uuid::Uuid::from(withdrawal_id),
-                debit_account_id,
-                amount.to_usd(),
-                external_id,
-            )
-            .await?;
-        Ok(withdrawal_id)
-    }
-
     #[instrument(name = "lana.ledger.credit_facility_balance", skip(self), err)]
     pub async fn get_credit_facility_balance(
         &self,
@@ -219,31 +133,6 @@ impl Ledger {
             .await?)
     }
 
-    #[instrument(name = "lana.ledger.activate_credit_facility", skip(self), err)]
-    pub async fn activate_credit_facility(
-        &self,
-        CreditFacilityActivationData {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            facility,
-            structuring_fee,
-        }: CreditFacilityActivationData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_approve_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                facility.to_usd(),
-                structuring_fee.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
     #[instrument(
         name = "lana.ledger.record_credit_facility_interest_accrual",
         skip(self),
@@ -269,120 +158,6 @@ impl Ledger {
                 accrued_at,
             )
             .await?)
-    }
-
-    #[instrument(name = "lana.ledger.record_disbursal", skip(self), err)]
-    pub async fn record_disbursal(
-        &self,
-        DisbursalData {
-            amount,
-            tx_ref,
-            tx_id,
-            account_ids,
-            customer_account_ids,
-        }: DisbursalData,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_credit_facility_disbursal_tx(
-                tx_id,
-                account_ids,
-                customer_account_ids,
-                amount.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(
-        name = "lana.ledger.manage_credit_facility_collateral",
-        skip(self),
-        err
-    )]
-    pub async fn update_credit_facility_collateral(
-        &self,
-        CreditFacilityCollateralUpdate {
-            tx_id,
-            credit_facility_account_ids,
-            abs_diff,
-            tx_ref,
-            action,
-        }: CreditFacilityCollateralUpdate,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = match action {
-            CollateralAction::Add => {
-                self.cala
-                    .add_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-            CollateralAction::Remove => {
-                self.cala
-                    .remove_credit_facility_collateral(
-                        tx_id,
-                        credit_facility_account_ids,
-                        abs_diff.to_btc(),
-                        tx_ref,
-                    )
-                    .await
-            }
-        }?;
-        Ok(created_at)
-    }
-
-    #[instrument(name = "lana.ledger.record_credit_facility_repayment", skip(self), err)]
-    pub async fn record_credit_facility_repayment(
-        &self,
-        CreditFacilityRepayment {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            customer_account_ids,
-            amounts:
-                CreditFacilityPaymentAmounts {
-                    interest,
-                    disbursal,
-                },
-        }: CreditFacilityRepayment,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        Ok(self
-            .cala
-            .execute_repay_credit_facility_tx(
-                tx_id,
-                credit_facility_account_ids,
-                customer_account_ids,
-                interest.to_usd(),
-                disbursal.to_usd(),
-                tx_ref,
-            )
-            .await?)
-    }
-
-    #[instrument(name = "lana.ledger.complete_credit_facility", skip(self), err)]
-    pub async fn complete_credit_facility(
-        &self,
-        CreditFacilityCompletion {
-            tx_id,
-            tx_ref,
-            collateral,
-            credit_facility_account_ids,
-            customer_account_ids,
-        }: CreditFacilityCompletion,
-    ) -> Result<chrono::DateTime<chrono::Utc>, LedgerError> {
-        let created_at = self
-            .cala
-            .remove_credit_facility_collateral(
-                tx_id,
-                credit_facility_account_ids,
-                collateral.to_btc(),
-                tx_ref,
-            )
-            .await?;
-        Ok(created_at)
     }
 
     #[instrument(

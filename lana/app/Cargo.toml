@@ -18,6 +18,8 @@ dashboard = { path = "../dashboard" }
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
+deposit = { path = "../../core/deposit", features = ["graphql"] }
+chart-of-accounts = { path = "../../core/chart-of-accounts" }
 
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 job = { path = "../../lib/job" }
@@ -25,6 +27,7 @@ outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 
+cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 sim-time = { workspace = true, optional = true }
 
@@ -53,7 +56,6 @@ tracing = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 rusty-money = { workspace = true }
-cala-types = { workspace = true }
 base64 = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }

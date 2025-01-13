@@ -218,11 +218,6 @@ type ChartOfAccounts {
 	categories: [StatementCategory!]!
 }
 
-type Checking {
-	settled: UsdCents!
-	pending: UsdCents!
-}
-
 type Collateral {
 	btcBalance: Satoshis!
 }
@@ -536,18 +531,10 @@ type Customer {
 	email: String!
 	telegramId: String!
 	applicantId: String
-	balance: CustomerBalance!
-	deposits: [Deposit!]!
-	withdrawals: [Withdrawal!]!
+	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
 	documents: [Document!]!
 	subjectCanCreateCreditFacility: Boolean!
-	subjectCanRecordDeposit: Boolean!
-	subjectCanInitiateWithdrawal: Boolean!
-}
-
-type CustomerBalance {
-	checking: Checking!
 }
 
 type CustomerConnection {
@@ -627,11 +614,27 @@ type Dashboard {
 type Deposit {
 	id: ID!
 	depositId: UUID!
-	customerId: UUID!
+	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
+	account: DepositAccount!
+}
+
+type DepositAccount {
+	id: ID!
+	depositAccountId: UUID!
+	customerId: UUID!
+	createdAt: Timestamp!
+	deposits: [Deposit!]!
+	withdrawals: [Withdrawal!]!
+	balance: DepositAccountBalance!
 	customer: Customer!
+}
+
+type DepositAccountBalance {
+	settled: UsdCents!
+	pending: UsdCents!
 }
 
 type DepositConnection {
@@ -664,7 +667,7 @@ type DepositEdge {
 }
 
 input DepositRecordInput {
-	customerId: UUID!
+	depositAccountId: UUID!
 	amount: UsdCents!
 	reference: String
 }
@@ -1187,16 +1190,14 @@ type VisibleNavigationItems {
 type Withdrawal {
 	id: ID!
 	withdrawalId: UUID!
-	customerId: UUID!
+	accountId: UUID!
 	approvalProcessId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
 	status: WithdrawalStatus!
-	customer: Customer!
 	approvalProcess: ApprovalProcess!
-	subjectCanConfirm: Boolean!
-	subjectCanCancel: Boolean!
+	account: DepositAccount!
 }
 
 input WithdrawalCancelInput {
@@ -1245,7 +1246,7 @@ type WithdrawalEdge {
 }
 
 input WithdrawalInitiateInput {
-	customerId: UUID!
+	depositAccountId: UUID!
 	amount: UsdCents!
 	reference: String
 }
