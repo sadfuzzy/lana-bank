@@ -104,8 +104,6 @@ macro_rules! impl_trivial_action {
 pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
     Customer(CustomerAction),
-    Deposit(DepositAction),
-    Withdrawal(WithdrawalAction),
     Report(ReportAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
@@ -120,8 +118,6 @@ impl Display for AppAction {
         match self {
             TermsTemplate(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
-            Deposit(action) => action.fmt(f),
-            Withdrawal(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
@@ -142,8 +138,6 @@ impl FromStr for AppAction {
         let res = match entity.parse()? {
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Customer => AppAction::from(action.parse::<CustomerAction>()?),
-            Deposit => AppAction::from(action.parse::<DepositAction>()?),
-            Withdrawal => AppAction::from(action.parse::<WithdrawalAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
@@ -210,16 +204,6 @@ impl_trivial_action!(CustomerAction, Customer);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
-pub enum DepositAction {
-    Read,
-    Record,
-    List,
-}
-
-impl_trivial_action!(DepositAction, Deposit);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
 pub enum DocumentAction {
     Create,
     Read,
@@ -230,19 +214,6 @@ pub enum DocumentAction {
 }
 
 impl_trivial_action!(DocumentAction, Document);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum WithdrawalAction {
-    Read,
-    ConcludeApprovalProcess,
-    Initiate,
-    Confirm,
-    List,
-    Cancel,
-}
-
-impl_trivial_action!(WithdrawalAction, Withdrawal);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -282,10 +253,10 @@ mod test {
 
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
-        // Deposit
+        // Report
         test_to_and_from_string(
-            LanaAction::App(AppAction::Deposit(DepositAction::List)),
-            "app:deposit:list",
+            LanaAction::App(AppAction::Report(ReportAction::List)),
+            "app:report:list",
         )?;
         Ok(())
     }

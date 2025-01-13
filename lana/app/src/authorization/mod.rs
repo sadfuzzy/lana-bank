@@ -5,6 +5,7 @@ use crate::audit::Audit;
 pub use authz::error;
 use authz::error::AuthorizationError;
 pub use core_user::{CoreUserAction, UserObject};
+use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
@@ -53,20 +54,25 @@ pub async fn get_visible_navigation_items(
         deposit: authz
             .check_all_permissions(
                 sub,
-                Object::Deposit,
+                CoreDepositObject::all_deposits(),
                 &[
-                    Action::Deposit(DepositAction::Read),
-                    Action::Deposit(DepositAction::List),
+                    CoreDepositAction::DEPOSIT_READ,
+                    CoreDepositAction::DEPOSIT_LIST,
+                    CoreDepositAction::DEPOSIT_CREATE,
                 ],
             )
             .await?,
         withdraw: authz
             .check_all_permissions(
                 sub,
-                Object::Withdrawal,
+                CoreDepositObject::all_withdrawals(),
                 &[
-                    Action::Withdrawal(WithdrawalAction::Read),
-                    Action::Withdrawal(WithdrawalAction::List),
+                    CoreDepositAction::WITHDRAWAL_READ,
+                    CoreDepositAction::WITHDRAWAL_LIST,
+                    CoreDepositAction::WITHDRAWAL_INITIATE,
+                    CoreDepositAction::WITHDRAWAL_CONFIRM,
+                    CoreDepositAction::WITHDRAWAL_CANCEL,
+                    CoreDepositAction::WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS,
                 ],
             )
             .await?,
