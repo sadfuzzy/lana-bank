@@ -47,7 +47,7 @@ export function NavSection({ items, label }: NavSectionProps) {
               <SidebarMenuButton asChild tooltip={item.title} isActive={isActive}>
                 <Link href={item.url} prefetch={true} onClick={handleClick}>
                   <Icon className="h-4 w-4" />
-                  <span>{item.title}</span>
+                  <span className="text-base md:text-sm">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
