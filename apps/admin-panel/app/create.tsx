@@ -16,6 +16,8 @@ import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
+
 import { CreditFacility, Customer, CreditFacilityStatus } from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import {
@@ -72,7 +74,6 @@ type MenuItem = {
   onClick: () => void
   dataTestId: string
   allowedPaths: (string | RegExp)[]
-  conditions?: () => boolean | undefined
 }
 
 const CreateButton = () => {
@@ -89,11 +90,25 @@ const CreateButton = () => {
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
-
   const pathName = usePathname()
+
   const userIsInCustomerDetailsPage = Boolean(pathName.match(/^\/customers\/.+$/))
   const setCustomerToNullIfNotInCustomerDetails = () => {
     if (!userIsInCustomerDetailsPage) setCustomer(null)
+  }
+
+  const isButtonDisabled = () => {
+    if (pathName.includes("credit-facilities")) {
+      return !facility || facility.status !== CreditFacilityStatus.Active
+    }
+    return false
+  }
+
+  const getDisabledMessage = () => {
+    if (pathName.includes("credit-facilities") && isButtonDisabled()) {
+      return "Credit facility must be active to perform actions"
+    }
+    return ""
   }
 
   const menuItems: MenuItem[] = [
@@ -138,9 +153,6 @@ const CreateButton = () => {
       },
       dataTestId: "initiate-disbursal-button",
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
-      conditions: () =>
-        facility?.subjectCanInitiateDisbursal &&
-        facility?.status === CreditFacilityStatus.Active,
     },
     {
       label: "Payment",
@@ -150,9 +162,6 @@ const CreateButton = () => {
       },
       dataTestId: "make-payment-button",
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
-      conditions: () =>
-        facility?.subjectCanRecordPayment &&
-        facility?.status === CreditFacilityStatus.Active,
     },
     {
       label: "User",
@@ -175,11 +184,9 @@ const CreateButton = () => {
   ]
 
   const getAvailableMenuItems = () => {
-    return menuItems.filter((item) => {
-      const isAllowedOnPath = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
-      const meetsConditions = !item.conditions || item.conditions()
-      return isAllowedOnPath && meetsConditions
-    })
+    return menuItems.filter((item) =>
+      isItemAllowedOnCurrentPath(item.allowedPaths, pathName),
+    )
   }
 
   const decideCreation = () => {
@@ -201,34 +208,50 @@ const CreateButton = () => {
     return <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
   }
 
+  const disabled = isButtonDisabled()
+  const message = getDisabledMessage()
+
   return (
     <>
-      <DropdownMenu
-        open={showMenu}
-        onOpenChange={(open) => {
-          if (open) decideCreation()
-          else setShowMenu(false)
-        }}
-      >
-        <DropdownMenuTrigger asChild>
-          <Button data-testid="global-create-button">
-            <HiPlus className="h-4 w-4" />
-            Create
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-36">
-          {availableItems.map((item) => (
-            <DropdownMenuItem
-              data-testid={item.dataTestId}
-              key={item.label}
-              onClick={item.onClick}
-              className="cursor-pointer"
-            >
-              {item.label}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div>
+              <DropdownMenu
+                open={showMenu && !disabled}
+                onOpenChange={(open) => {
+                  if (open && !disabled) decideCreation()
+                  else setShowMenu(false)
+                }}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button data-testid="global-create-button" disabled={disabled}>
+                    <HiPlus className="h-4 w-4" />
+                    Create
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-36">
+                  {availableItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.label}
+                      data-testid={item.dataTestId}
+                      onClick={item.onClick}
+                      className="cursor-pointer"
+                    >
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </TooltipTrigger>
+          {disabled && message && (
+            <TooltipContent>
+              <p>{message}</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
 
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
@@ -304,8 +327,6 @@ const CreateButton = () => {
   )
 }
 
-export default CreateButton
-
 type ICustomer = Customer | null
 type IFacility = CreditFacility | null
 
@@ -344,3 +365,5 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
 }
 
 export const useCreateContext = () => useContext(CreateContext)
+
+export default CreateButton
