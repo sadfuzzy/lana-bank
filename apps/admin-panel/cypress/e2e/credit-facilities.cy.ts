@@ -24,9 +24,9 @@ describe("credit facility", () => {
 
     const testEmail = `test-${Date.now()}@example.com`
     const testTelegramId = `user${Date.now()}`
-    cy.createCustomer(testEmail, testTelegramId).then((id) => {
-      customerId = id
-      cy.log(`Created customer with ID: ${id}`)
+    cy.createCustomer(testEmail, testTelegramId).then((customer) => {
+      customerId = customer.customerId
+      cy.log(`Created customer with ID: ${customerId}`)
     })
   })
 

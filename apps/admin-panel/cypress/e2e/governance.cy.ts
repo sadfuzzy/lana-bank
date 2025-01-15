@@ -2,13 +2,15 @@ describe("Governance Test", () => {
   let committeeName: string
   let committeeId: string
   let customerId: string
+  let depositAccountId: string
 
   before(() => {
     const testEmail = `test-${Date.now()}@example.com`
     const testTelegramId = `user${Date.now()}`
-    cy.createCustomer(testEmail, testTelegramId).then((id) => {
-      customerId = id
-      cy.log(`Created customer with ID: ${id}`)
+    cy.createCustomer(testEmail, testTelegramId).then((customer) => {
+      customerId = customer.customerId
+      depositAccountId = customer.depositAccount.depositAccountId
+      cy.log(`Created customer with ID: ${customerId}`)
     })
   })
 
@@ -100,8 +102,8 @@ describe("Governance Test", () => {
 
   it("Pending actions should be visible in list", () => {
     const amount = 1000
-    cy.createDeposit(amount, customerId).then(() => {
-      cy.initiateWithdrawal(amount, customerId).then(() => {
+    cy.createDeposit(amount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(amount, depositAccountId).then(() => {
         cy.visit(`/actions`)
         cy.get('[data-testid="table-row-0"] > :nth-child(4) > a > .gap-2').should(
           "be.visible",
@@ -119,8 +121,8 @@ describe("Governance Test", () => {
 
   it("Committee member should be able to approve a withdraw", () => {
     const amount = 1000
-    cy.createDeposit(amount, customerId).then(() => {
-      cy.initiateWithdrawal(amount, customerId).then((withdrawalId) => {
+    cy.createDeposit(amount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalId) => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.get("[data-testid=withdrawal-status-badge]").should("be.visible")
         cy.takeScreenshot("18_step-visit-withdrawal-details")
@@ -150,8 +152,8 @@ describe("Governance Test", () => {
 
   it("Committee member should be able to deny a withdraw", () => {
     const amount = 1000
-    cy.createDeposit(amount, customerId).then(() => {
-      cy.initiateWithdrawal(amount, customerId).then((withdrawalId) => {
+    cy.createDeposit(amount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalId) => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.get("[data-testid=withdrawal-status-badge]").should("be.visible")
         cy.takeScreenshot("21_step-visit-withdrawal-for-denial")

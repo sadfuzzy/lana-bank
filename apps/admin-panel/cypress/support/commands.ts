@@ -3,17 +3,25 @@ import "cypress-file-upload"
 
 import { TermsTemplateCreateInput } from "@/lib/graphql/generated"
 
+type Customer = {
+  customerId: string
+  depositAccount: {
+    id: string
+    depositAccountId: string
+  }
+}
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable {
       takeScreenshot(filename: string): Chainable<null>
-      createCustomer(email: string, telegramId: string): Chainable<string>
+      createCustomer(email: string, telegramId: string): Chainable<Customer>
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
       getIdFromUrl(pathSegment: string): Chainable<string>
-      createDeposit(amount: number, customerId: string): Chainable<string>
-      initiateWithdrawal(amount: number, customerId: string): Chainable<string>
+      createDeposit(amount: number, depositAccountId: string): Chainable<string>
+      initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string>
     }
   }
 }
@@ -52,20 +60,23 @@ Cypress.Commands.add("takeScreenshot", (filename): Cypress.Chainable<null> => {
 interface CustomerResponse {
   data: {
     customerCreate: {
-      customer: {
-        customerId: string
-      }
+      customer: Customer
     }
   }
 }
+
 Cypress.Commands.add(
   "createCustomer",
-  (email: string, telegramId: string): Cypress.Chainable<string> => {
+  (email: string, telegramId: string): Cypress.Chainable<Customer> => {
     const mutation = `
       mutation CustomerCreate($input: CustomerCreateInput!) {
         customerCreate(input: $input) {
           customer {
             customerId
+            depositAccount {
+              id
+              depositAccountId
+            }
           }
         }
       }
@@ -74,7 +85,7 @@ Cypress.Commands.add(
       .graphqlRequest<CustomerResponse>(mutation, {
         input: { email, telegramId },
       })
-      .then((response) => response.data.customerCreate.customer.customerId)
+      .then((response) => response.data.customerCreate.customer)
   },
 )
 
@@ -149,7 +160,7 @@ interface WithdrawalInitiateResponse {
 
 Cypress.Commands.add(
   "createDeposit",
-  (amount: number, customerId: string): Cypress.Chainable<string> => {
+  (amount: number, depositAccountId: string): Cypress.Chainable<string> => {
     const mutation = `
       mutation CreateDeposit($input: DepositRecordInput!) {
         depositRecord(input: $input) {
@@ -161,7 +172,7 @@ Cypress.Commands.add(
     `
     return cy
       .graphqlRequest<DepositResponse>(mutation, {
-        input: { amount, customerId },
+        input: { amount, depositAccountId },
       })
       .then((response) => response.data.depositRecord.deposit.depositId)
   },
@@ -169,7 +180,7 @@ Cypress.Commands.add(
 
 Cypress.Commands.add(
   "initiateWithdrawal",
-  (amount: number, customerId: string): Cypress.Chainable<string> => {
+  (amount: number, depositAccountId: string): Cypress.Chainable<string> => {
     const mutation = `
       mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
         withdrawalInitiate(input: $input) {
@@ -181,7 +192,7 @@ Cypress.Commands.add(
     `
     return cy
       .graphqlRequest<WithdrawalInitiateResponse>(mutation, {
-        input: { amount, customerId },
+        input: { amount, depositAccountId },
       })
       .then((response) => response.data.withdrawalInitiate.withdrawal.withdrawalId)
   },

@@ -2,15 +2,17 @@ import { faker } from "@faker-js/faker"
 
 describe("Transactions Deposit and Withdraw", () => {
   let customerId: string
+  let depositAccountId: string
   const depositAmount = faker.number.int({ min: 1000, max: 5000 })
   const withdrawAmount = faker.number.int({ min: 1000, max: depositAmount })
 
   before(() => {
     const testEmail = `test-${Date.now()}@example.com`
     const testTelegramId = `user${Date.now()}`
-    cy.createCustomer(testEmail, testTelegramId).then((id) => {
-      customerId = id
-      cy.log(`Created customer with ID: ${id}`)
+    cy.createCustomer(testEmail, testTelegramId).then((customer) => {
+      customerId = customer.customerId
+      depositAccountId = customer.depositAccount.depositAccountId
+      cy.log(`Created customer with ID: ${customerId}`)
     })
   })
 
@@ -91,8 +93,10 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should show newly created Withdraw in list page", () => {
-    cy.createDeposit(depositAmount, customerId).then(() => {
-      cy.initiateWithdrawal(withdrawAmount, customerId).then((withdrawalId) => {
+    console.log("should show newly created Withdraw in list page")
+
+    cy.createDeposit(depositAmount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then((withdrawalId) => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.wait(1000)
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
@@ -123,8 +127,8 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should approve Withdraw", () => {
-    cy.createDeposit(depositAmount, customerId).then(() => {
-      cy.initiateWithdrawal(withdrawAmount, customerId).then((withdrawalId) => {
+    cy.createDeposit(depositAmount, depositAccountId).then(() => {
+      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then((withdrawalId) => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.wait(1000)
         cy.get("[data-testid=withdrawal-status-badge]")
