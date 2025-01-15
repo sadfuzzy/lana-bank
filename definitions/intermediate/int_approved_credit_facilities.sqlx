@@ -34,6 +34,13 @@ WITH approved AS (
 		, JSON_VALUE(event, "$.terms.incurrence_interval.type") AS incurrence_interval
 		, JSON_VALUE(event, "$.terms.accrual_interval.type") AS accrual_interval
 		, JSON_VALUE(event, "$.customer_id") AS customer_id
+		, JSON_VALUE(event, "$.customer_account_ids.on_balance_sheet_deposit_account_id") AS on_balance_sheet_deposit_account_id
+		, JSON_VALUE(event, "$.account_ids.collateral_account_id") AS collateral_account_id
+		, JSON_VALUE(event, "$.account_ids.disbursed_receivable_account_id") AS disbursed_receivable_account_id
+		, JSON_VALUE(event, "$.account_ids.facility_account_id") AS facility_account_id
+		, JSON_VALUE(event, "$.account_ids.fee_income_account_id") AS fee_income_account_id
+		, JSON_VALUE(event, "$.account_ids.interest_account_id") AS interest_account_id
+		, JSON_VALUE(event, "$.account_ids.interest_receivable_account_id") AS interest_receivable_account_id
 
 	FROM ${ref({
 		name: "credit_facility_events",
@@ -162,6 +169,13 @@ SELECT credit_facility_id
 	, COALESCE(total_interest_incurred, 0) AS total_interest_incurred
 	, COALESCE(total_collateral, 0) AS total_collateral
 	, customer_id
+	, on_balance_sheet_deposit_account_id
+	, collateral_account_id
+	, disbursed_receivable_account_id
+	, facility_account_id
+	, fee_income_account_id
+	, interest_account_id
+	, interest_receivable_account_id
 	, most_recent_collateral_deposit
 	, COALESCE(total_disbursed, 0) AS total_disbursed
 	, completed.credit_facility_id IS NOT NULL AS completed

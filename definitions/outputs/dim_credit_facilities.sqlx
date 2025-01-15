@@ -10,6 +10,55 @@ config {
 
 SELECT credit_facilities.* EXCEPT (credit_facility_id, customer_id),
 	customer_key,
+	on_balance_sheet_deposit_account_key,
+	collateral_account_key,
+	disbursed_receivable_account_key,
+	facility_account_key,
+	fee_income_account_key,
+	interest_account_key,
+	interest_receivable_account_key,
 
 FROM ${ref("int_approved_credit_facilities")}(TIMESTAMP_TRUNC(CURRENT_TIMESTAMP(), DAY)) AS credit_facilities
-JOIN ${ref("int_customers")} USING (customer_id)
+JOIN ${ref("int_customers")} USING (customer_id, on_balance_sheet_deposit_account_id)
+JOIN (
+		SELECT
+			account_id AS on_balance_sheet_deposit_account_id,
+			account_key AS on_balance_sheet_deposit_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (on_balance_sheet_deposit_account_id)
+JOIN (
+		SELECT
+			account_id AS collateral_account_id,
+			account_key AS collateral_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (collateral_account_id)
+JOIN (
+		SELECT
+			account_id AS disbursed_receivable_account_id,
+			account_key AS disbursed_receivable_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (disbursed_receivable_account_id)
+JOIN (
+		SELECT
+			account_id AS facility_account_id,
+			account_key AS facility_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (facility_account_id)
+JOIN (
+		SELECT
+			account_id AS fee_income_account_id,
+			account_key AS fee_income_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (fee_income_account_id)
+JOIN (
+		SELECT
+			account_id AS interest_account_id,
+			account_key AS interest_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (interest_account_id)
+JOIN (
+		SELECT
+			account_id AS interest_receivable_account_id,
+			account_key AS interest_receivable_account_key,
+		FROM ${ref("int_accounts")}
+	) USING (interest_receivable_account_id)
