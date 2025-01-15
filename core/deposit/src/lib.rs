@@ -173,6 +173,10 @@ where
             )
             .await?;
 
+        self.ledger
+            .add_deposit_control_to_account(&mut op, account_id)
+            .await?;
+
         op.commit().await?;
 
         Ok(account)
@@ -255,7 +259,6 @@ where
             .create_in_op(&mut op, new_withdrawal)
             .await?;
 
-        // TODO: add approval process and check for balance
         self.ledger
             .initiate_withdrawal(op, withdrawal_id, amount, deposit_account_id)
             .await?;

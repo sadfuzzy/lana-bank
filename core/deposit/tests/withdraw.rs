@@ -10,7 +10,7 @@ use deposit::*;
 use helpers::{action, event, object};
 
 #[tokio::test]
-async fn cancel_withdrawal() -> anyhow::Result<()> {
+async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     use rand::Rng;
 
     let pool = helpers::init_pool().await?;
@@ -85,6 +85,16 @@ async fn cancel_withdrawal() -> anyhow::Result<()> {
     deposit
         .record_deposit(&DummySubject, account.id, deposit_amount, None)
         .await?;
+
+    // overdraw
+    let withdrawal_amount = UsdCents::try_from_usd(dec!(5000000)).unwrap();
+    let withdrawal = deposit
+        .initiate_withdrawal(&DummySubject, account.id, withdrawal_amount, None)
+        .await;
+    assert!(matches!(
+        withdrawal,
+        Err(deposit::error::CoreDepositError::DepositLedgerError(_))
+    ));
 
     let withdrawal_amount = UsdCents::try_from_usd(dec!(500000)).unwrap();
 

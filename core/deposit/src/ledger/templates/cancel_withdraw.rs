@@ -90,7 +90,6 @@ impl CancelWithdraw {
             .build()
             .expect("Couldn't build TxInput");
         let entries = vec![
-            // check in graphql/cancel-withdraw the entry type
             NewTxTemplateEntry::builder()
                 .entry_type("'CANCEL_WITHDRAW_PENDING_CR'")
                 .currency("params.currency")
