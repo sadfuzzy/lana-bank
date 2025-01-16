@@ -237,7 +237,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const subAccounts = data?.subAccounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading) {
+  if (loading && !data) {
     return <LoadingSkeleton />
   }
   if (!total) return <div>No data</div>
@@ -364,7 +364,7 @@ function TrialBalancePage() {
           <TabsContent value="onBalanceSheet">
             <TrialBalanceValues
               data={onBalanceSheetData?.trialBalance}
-              loading={onBalanceSheetLoading}
+              loading={onBalanceSheetLoading && !onBalanceSheetData}
               error={onBalanceSheetError}
               dateRange={dateRange}
               setDateRange={handleDateChange}
@@ -373,7 +373,7 @@ function TrialBalancePage() {
           <TabsContent value="offBalanceSheet">
             <TrialBalanceValues
               data={offBalanceSheetData?.offBalanceSheetTrialBalance}
-              loading={offBalanceSheetLoading}
+              loading={offBalanceSheetLoading && !offBalanceSheetData}
               error={offBalanceSheetError}
               dateRange={dateRange}
               setDateRange={handleDateChange}

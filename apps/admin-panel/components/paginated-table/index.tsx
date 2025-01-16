@@ -255,7 +255,7 @@ const PaginatedTable = <T,>({
     }
   }
 
-  if (loading) {
+  if (loading && !data) {
     return isMobile ? (
       <div className="space-y-4" data-testid="loading-skeleton">
         {Array.from({ length: pageSize }).map((_, idx) => (
@@ -501,45 +501,42 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {!loading &&
-              displayData.map(({ node }, idx) => (
-                <TableRow
-                  key={idx}
-                  data-testid={`table-row-${idx}`}
-                  onClick={() => onClick?.(node)}
-                  tabIndex={0}
-                  className={`${onClick ? "cursor-pointer" : ""} ${
-                    focusedRowIndex === idx ? "bg-muted" : ""
-                  } hover:bg-muted/50 transition-colors outline-none`}
-                  onFocus={() => setFocusedRowIndex(idx)}
-                  role="row"
-                  aria-selected={focusedRowIndex === idx}
-                >
-                  {columns.map((col) => (
-                    <TableCell
-                      key={col.key as string}
-                      className="whitespace-normal break-words"
-                    >
-                      {col.render
-                        ? col.render(node[col.key], node)
-                        : String(node[col.key])}
-                    </TableCell>
-                  ))}
-                  {navigateTo && (
-                    <TableCell>
-                      <Link href={navigateTo(node)}>
-                        <Button
-                          variant="outline"
-                          className="w-full flex items-center justify-between"
-                        >
-                          View
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+            {displayData.map(({ node }, idx) => (
+              <TableRow
+                key={idx}
+                data-testid={`table-row-${idx}`}
+                onClick={() => onClick?.(node)}
+                tabIndex={0}
+                className={`${onClick ? "cursor-pointer" : ""} ${
+                  focusedRowIndex === idx ? "bg-muted" : ""
+                } hover:bg-muted/50 transition-colors outline-none`}
+                onFocus={() => setFocusedRowIndex(idx)}
+                role="row"
+                aria-selected={focusedRowIndex === idx}
+              >
+                {columns.map((col) => (
+                  <TableCell
+                    key={col.key as string}
+                    className="whitespace-normal break-words"
+                  >
+                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+                  </TableCell>
+                ))}
+                {navigateTo && (
+                  <TableCell>
+                    <Link href={navigateTo(node)}>
+                      <Button
+                        variant="outline"
+                        className="w-full flex items-center justify-between"
+                      >
+                        View
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <Separator />

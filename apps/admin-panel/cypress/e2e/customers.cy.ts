@@ -17,12 +17,18 @@ describe("Customers", () => {
     cy.takeScreenshot("4_verify_email_input_visible")
 
     cy.get('[data-testid="customer-create-email"]')
-      .type(testEmail)
+      .should("be.visible")
+      .should("be.enabled")
+      .clear()
+      .type(testEmail, { delay: 0, waitForAnimations: false })
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
     cy.get('[data-testid="customer-create-telegram-id"]')
-      .type(testTelegramId)
+      .should("be.visible")
+      .should("be.enabled")
+      .clear()
+      .type(testTelegramId, { delay: 0, waitForAnimations: false })
       .should("have.value", testTelegramId)
     cy.takeScreenshot("6_enter_telegram_id")
 

@@ -154,7 +154,7 @@ const RegulatoryReportingPage: React.FC = () => {
         </CardHeader>
 
         <CardContent>
-          {loading ? (
+          {loading && !data ? (
             <div className="w-full md:max-w-[50rem]">
               <LoadingSkeleton />
             </div>

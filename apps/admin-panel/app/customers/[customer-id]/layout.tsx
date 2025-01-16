@@ -82,7 +82,7 @@ export default function CustomerLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.customer, currentTab])
 
-  if (loading) return <DetailsPageSkeleton detailItems={3} tabs={6} />
+  if (loading && !data) return <DetailsPageSkeleton detailItems={3} tabs={6} />
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data || !data.customer) return null
 

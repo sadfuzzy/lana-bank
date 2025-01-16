@@ -127,7 +127,7 @@ const DataTable = <T,>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data.length])
 
-  if (loading) {
+  if (loading && !data) {
     return isMobile ? (
       <div className="space-y-4" data-testid="loading-skeleton">
         {Array.from({ length: 5 }).map((_, idx) => (

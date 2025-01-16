@@ -45,7 +45,7 @@ function UserPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.user])
 
-  if (loading) {
+  if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>

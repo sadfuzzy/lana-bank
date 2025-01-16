@@ -63,7 +63,7 @@ function PolicyPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.policy])
 
-  if (loading) {
+  if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>

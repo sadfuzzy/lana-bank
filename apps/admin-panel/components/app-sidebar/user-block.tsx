@@ -33,7 +33,7 @@ gql`
 export function UserBlock() {
   const { data, loading } = useAvatarQuery()
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <SidebarMenu>
         <SidebarMenuItem>

@@ -31,7 +31,7 @@ describe("Governance Test", () => {
     cy.takeScreenshot("2_step-click-create-committee-button")
 
     cy.get('[data-testid="committee-create-name-input"]')
-      .type(committeeName)
+      .type(committeeName, { delay: 0, waitForAnimations: false })
       .should("have.value", committeeName)
     cy.takeScreenshot("3_step-fill-committee-name")
 

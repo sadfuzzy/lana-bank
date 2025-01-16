@@ -110,7 +110,7 @@ const ChartOfAccountsValues: React.FC<ChartOfAccountsValuesProps> = ({
   error,
   dateRange,
 }) => {
-  if (loading) return <LoadingSkeleton />
+  if (loading && !data) return <LoadingSkeleton />
   if (error) return <p className="text-destructive">{error.message}</p>
 
   return (
@@ -185,7 +185,7 @@ function ChartOfAccountsPage() {
           <TabsContent value="onBalanceSheet">
             <ChartOfAccountsValues
               data={onBalanceSheetData?.chartOfAccounts}
-              loading={onBalanceSheetLoading}
+              loading={onBalanceSheetLoading && !onBalanceSheetData}
               error={onBalanceSheetError}
               dateRange={dateRange}
             />
@@ -193,7 +193,7 @@ function ChartOfAccountsPage() {
           <TabsContent value="offBalanceSheet">
             <ChartOfAccountsValues
               data={offBalanceSheetData?.offBalanceSheetChartOfAccounts}
-              loading={offBalanceSheetLoading}
+              loading={offBalanceSheetLoading && !offBalanceSheetData}
               error={offBalanceSheetError}
               dateRange={dateRange}
             />

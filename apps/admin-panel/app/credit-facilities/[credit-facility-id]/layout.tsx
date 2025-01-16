@@ -133,7 +133,7 @@ export default function CreditFacilityLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.creditFacility, currentTab])
 
-  if (loading) return <DetailsPageSkeleton detailItems={4} tabs={4} />
+  if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacility) return <div>Not found</div>
 

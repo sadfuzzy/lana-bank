@@ -61,7 +61,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     }
   }
 
-  if (loading) return <Skeleton />
+  if (loading && !data) return <Skeleton />
 
   const details: DetailItemProps[] = [
     {

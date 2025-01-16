@@ -93,7 +93,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   const more = approvalProcesses.length - NUMBER_OF_ITEMS_IN_DASHBOARD
 
-  if (loading) return <ActionListSkeleton />
+  if (loading && !data) return <ActionListSkeleton />
 
   const getVisitUrl = (data: ActionNode) => {
     if (

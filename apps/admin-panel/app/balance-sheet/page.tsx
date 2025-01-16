@@ -103,7 +103,7 @@ export default function BalanceSheetPage() {
     <>
       <BalanceSheet
         data={data?.balanceSheet}
-        loading={loading}
+        loading={loading && !data}
         error={error}
         dateRange={dateRange}
         setDateRange={handleDateChange}
@@ -130,7 +130,7 @@ const BalanceSheet = ({
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <Card>
         <CardHeader>

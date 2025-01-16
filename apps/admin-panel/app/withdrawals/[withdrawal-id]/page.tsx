@@ -51,7 +51,7 @@ function WithdrawalPage({
     variables: { id: withdrawalId },
   })
 
-  if (loading) {
+  if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>

@@ -10,7 +10,7 @@ export function MarketRate() {
     .centsToUsd(data?.realtimePrice?.usdCentsPerBtc || NaN)
     .toLocaleString()
 
-  if (loading) return <Skeleton className="h-4 w-full py-2" />
+  if (loading && !data) return <Skeleton className="h-4 w-full py-2" />
 
   return (
     <div className="flex items-center px-2 py-2 gap-1 text-sm text-muted-foreground font-medium">

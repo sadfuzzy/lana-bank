@@ -134,7 +134,7 @@ export default function ProfitAndLossStatementPage() {
   return (
     <ProfitAndLossStatement
       data={ProfitAndLossStatementData?.profitAndLossStatement}
-      loading={ProfitAndLossStatementLoading}
+      loading={ProfitAndLossStatementLoading && !ProfitAndLossStatementData}
       error={ProfitAndLossStatementError}
       dateRange={dateRange}
       setDateRange={handleDateChange}
@@ -162,7 +162,7 @@ const ProfitAndLossStatement = ({
   const categories = data?.categories
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading) {
+  if (loading && !data) {
     return (
       <Card>
         <CardHeader>
