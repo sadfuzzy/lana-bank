@@ -23,13 +23,14 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
     {
       label: "Telegram",
       value: (
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          className="flex items-center gap-2"
+          onClick={() => setOpenUpdateTelegramIdDialog(true)}
+        >
           {customer.telegramId}
-          <PiPencilSimpleLineLight
-            onClick={() => setOpenUpdateTelegramIdDialog(true)}
-            className="w-5 h-5 cursor-pointer text-primary"
-          />
-        </div>
+          <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
+        </button>
       ),
     },
     {

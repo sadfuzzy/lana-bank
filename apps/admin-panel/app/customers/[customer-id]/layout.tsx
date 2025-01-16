@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+
 import { useEffect } from "react"
 
 import { CustomerDetailsCard } from "./details"
@@ -17,10 +18,10 @@ import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { ScrollArea, ScrollBar } from "@/ui/scroll-area"
 
 const TABS = [
-  { url: "/", tabLabel: "Overview" },
-  { url: "/credit-facilities", tabLabel: "Credit Facilities" },
-  { url: "/transactions", tabLabel: "Transactions" },
-  { url: "/documents", tabLabel: "Documents" },
+  { id: "1", url: "/", tabLabel: "Overview" },
+  { id: "2", url: "/credit-facilities", tabLabel: "Credit Facilities" },
+  { id: "3", url: "/transactions", tabLabel: "Transactions" },
+  { id: "4", url: "/documents", tabLabel: "Documents" },
 ]
 
 gql`
@@ -50,6 +51,7 @@ export default function CustomerLayout({
 }) {
   const { "customer-id": customerId } = params
   const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
+
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
   const { setCustomer } = useCreateContext()
@@ -87,12 +89,17 @@ export default function CustomerLayout({
   return (
     <main className="max-w-7xl m-auto">
       <CustomerDetailsCard customer={data.customer} />
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-2">
+      <Tabs
+        defaultValue={TABS[0].url}
+        value={currentTab}
+        onValueChange={handleTabChange}
+        className="mt-2"
+      >
         <ScrollArea>
           <div className="relative h-10">
             <TabsList className="flex absolute h-10">
               {TABS.map((tab) => (
-                <TabsTrigger key={tab.url} value={tab.url}>
+                <TabsTrigger key={tab.id} value={tab.url} id={`tab-${tab.id}`}>
                   {tab.tabLabel}
                 </TabsTrigger>
               ))}
@@ -101,7 +108,7 @@ export default function CustomerLayout({
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
         {TABS.map((tab) => (
-          <TabsContent key={tab.url} value={tab.url}>
+          <TabsContent key={tab.id} value={tab.url}>
             {children}
           </TabsContent>
         ))}

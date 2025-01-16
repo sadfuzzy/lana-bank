@@ -359,13 +359,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           )}
           {useTemplateTerms ? (
             <>
-              <div
+              <button
+                type="button"
                 onClick={() => setUseTemplateTerms(false)}
                 className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
               >
                 <div>Credit Facility Terms</div>
                 <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
-              </div>
+              </button>
               <DetailsGroup
                 layout="horizontal"
                 className="grid auto-rows-fr sm:grid-cols-2"

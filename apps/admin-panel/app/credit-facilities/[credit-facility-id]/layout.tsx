@@ -55,10 +55,10 @@ gql`
 `
 
 const TABS = [
-  { url: "/", tabLabel: "Overview" },
-  { url: "/terms", tabLabel: "Terms" },
-  { url: "/transactions", tabLabel: "Transactions" },
-  { url: "/disbursals", tabLabel: "Disbursals" },
+  { id: "1", url: "/", tabLabel: "Overview" },
+  { id: "2", url: "/terms", tabLabel: "Terms" },
+  { id: "3", url: "/transactions", tabLabel: "Transactions" },
+  { id: "4", url: "/disbursals", tabLabel: "Disbursals" },
 ]
 
 export default function CreditFacilityLayout({
@@ -144,7 +144,12 @@ export default function CreditFacilityLayout({
         creditFacilityDetails={data.creditFacility}
         refetch={refetch}
       />
-      <Tabs value={currentTab} onValueChange={handleTabChange} className="mt-2">
+      <Tabs
+        defaultValue={TABS[0].url}
+        value={currentTab}
+        onValueChange={handleTabChange}
+        className="mt-2"
+      >
         <TabsList>
           {TABS.map((tab) => (
             <TabsTrigger key={tab.url} value={tab.url}>

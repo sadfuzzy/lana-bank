@@ -98,7 +98,7 @@ const CreateButton = () => {
   }
 
   const isButtonDisabled = () => {
-    if (pathName.includes("credit-facilities")) {
+    if (PATH_CONFIGS.CREDIT_FACILITY_DETAILS.test(pathName)) {
       return !facility || facility.status !== CreditFacilityStatus.Active
     }
     return false
@@ -225,7 +225,11 @@ const CreateButton = () => {
                 }}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button data-testid="global-create-button" disabled={disabled}>
+                  <Button
+                    data-testid="global-create-button"
+                    disabled={disabled}
+                    tabIndex={-1}
+                  >
                     <HiPlus className="h-4 w-4" />
                     Create
                   </Button>

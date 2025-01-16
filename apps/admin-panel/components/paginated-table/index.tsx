@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import {
@@ -9,6 +9,8 @@ import {
   HiChevronRight,
   HiFilter,
 } from "react-icons/hi"
+
+import { useRouter } from "next/navigation"
 
 import { useBreakpointDown } from "@/hooks/use-media-query"
 import { Card } from "@/ui/card"
@@ -71,6 +73,11 @@ const PaginatedTable = <T,>({
   navigateTo,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
+  const tableRef = useRef<HTMLDivElement>(null)
+  const focusTimeoutRef = useRef<NodeJS.Timeout>()
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const [isTableFocused, setIsTableFocused] = useState(false)
+  const router = useRouter()
 
   const [sortState, setSortState] = useState<{
     column: keyof T | null
@@ -87,6 +94,133 @@ const PaginatedTable = <T,>({
     data && setDisplayData(data.edges.slice(startIdx, endIdx))
   }, [data, currentPage, pageSize])
 
+  const isNoFocusActive = () => {
+    const activeElement = document.activeElement
+    const isBaseElement =
+      !activeElement ||
+      activeElement === document.body ||
+      activeElement === document.documentElement
+    const isOutsideTable = !tableRef.current?.contains(activeElement)
+    const isInteractiveElement = activeElement?.matches(
+      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
+    )
+    return (isBaseElement || isOutsideTable) && !isInteractiveElement
+  }
+
+  const smartFocus = () => {
+    if (isNoFocusActive()) {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current)
+      }
+
+      focusTimeoutRef.current = setTimeout(() => {
+        if (tableRef.current) {
+          tableRef.current.focus()
+          setIsTableFocused(true)
+
+          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
+          const targetRow = document.querySelector(
+            `[data-testid="table-row-${targetIndex}"]`,
+          ) as HTMLElement
+
+          if (targetRow) {
+            targetRow.focus()
+            setFocusedRowIndex(targetIndex)
+          }
+        }
+      }, 0)
+    }
+  }
+
+  const focusRow = (index: number) => {
+    if (index < 0 || !displayData.length || !isTableFocused) return
+    const validIndex = Math.min(Math.max(0, index), displayData.length - 1)
+    const row = document.querySelector(
+      `[data-testid="table-row-${validIndex}"]`,
+    ) as HTMLElement
+    if (row) {
+      row.focus({ preventScroll: true })
+      row.scrollIntoView({ behavior: "smooth", block: "nearest" })
+      setFocusedRowIndex(validIndex)
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!tableRef.current?.contains(document.activeElement) || !isTableFocused) return
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA" ||
+        document.activeElement?.tagName === "SELECT" ||
+        document.activeElement?.tagName === "BUTTON"
+      )
+        return
+      if (!displayData.length) return
+
+      switch (e.key) {
+        case "ArrowUp":
+          e.preventDefault()
+          focusRow(focusedRowIndex - 1)
+          break
+        case "ArrowDown":
+          e.preventDefault()
+          focusRow(focusedRowIndex + 1)
+          break
+        case "Enter":
+          e.preventDefault()
+          if (focusedRowIndex >= 0) {
+            const node = displayData[focusedRowIndex].node
+            if (onClick) {
+              onClick(node)
+            } else if (navigateTo) {
+              router.push(navigateTo(node))
+            }
+          }
+          break
+      }
+    }
+
+    if (isTableFocused) {
+      window.addEventListener("keydown", handleKeyDown)
+      return () => window.removeEventListener("keydown", handleKeyDown)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [displayData, focusedRowIndex, onClick, navigateTo, router, isTableFocused])
+
+  useEffect(() => {
+    setFocusedRowIndex(-1)
+  }, [currentPage])
+
+  useEffect(() => {
+    const shouldAutoFocus = data?.edges && data.edges.length > 0 && !loading
+    if (shouldAutoFocus) {
+      smartFocus()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.edges.length, loading])
+
+  useEffect(() => {
+    const handleFocusOut = (e: FocusEvent) => {
+      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
+        if (isNoFocusActive()) {
+          smartFocus()
+        }
+      }
+    }
+
+    document.addEventListener("focusout", handleFocusOut)
+    return () => document.removeEventListener("focusout", handleFocusOut)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const handleSort = (columnKey: keyof T) => {
     let newDirection: "ASC" | "DESC" = "ASC"
     if (sortState.column === columnKey && sortState.direction === "ASC") {
@@ -94,11 +228,13 @@ const PaginatedTable = <T,>({
     }
     setSortState({ column: columnKey, direction: newDirection })
     onSort && onSort(columnKey, newDirection)
+    smartFocus()
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
     setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
     onFilter && onFilter(columnKey, value)
+    smartFocus()
   }
 
   const handleNextPage = async () => {
@@ -109,11 +245,13 @@ const PaginatedTable = <T,>({
       await fetchMore(data.pageInfo.endCursor)
     }
     setCurrentPage((prevPage) => prevPage + 1)
+    smartFocus()
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage((prevPage) => prevPage - 1)
+      smartFocus()
     }
   }
 
@@ -285,7 +423,19 @@ const PaginatedTable = <T,>({
 
   return (
     <>
-      <div className="overflow-x-auto border rounded-md">
+      <div
+        ref={tableRef}
+        className="overflow-x-auto border rounded-md focus:outline-none"
+        tabIndex={0}
+        role="grid"
+        onFocus={() => setIsTableFocused(true)}
+        onBlur={(e) => {
+          if (!tableRef.current?.contains(e.relatedTarget as Node)) {
+            setIsTableFocused(false)
+            setFocusedRowIndex(-1)
+          }
+        }}
+      >
         <Table className="table-fixed w-full">
           {showHeader && (
             <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
@@ -351,55 +501,45 @@ const PaginatedTable = <T,>({
             </TableHeader>
           )}
           <TableBody>
-            {loading
-              ? Array.from({ length: displayData.length || pageSize }).map(
-                  (_, rowIndex) => (
-                    <TableRow key={rowIndex} data-testid="loading-skeleton">
-                      {columns.map((_, colIndex) => (
-                        <TableCell key={colIndex}>
-                          <Skeleton className="h-4 w-full" />
-                        </TableCell>
-                      ))}
-                      {navigateTo && (
-                        <TableCell>
-                          <Skeleton className="h-4 w-full" />
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ),
-                )
-              : displayData.map(({ node }, idx) => (
-                  <TableRow
-                    key={idx}
-                    data-testid={`table-row-${idx}`}
-                    onClick={() => onClick?.(node)}
-                    className={onClick ? "cursor-pointer" : ""}
-                  >
-                    {columns.map((col) => (
-                      <TableCell
-                        key={col.key as string}
-                        className="whitespace-normal break-words"
-                      >
-                        {col.render
-                          ? col.render(node[col.key], node)
-                          : String(node[col.key])}
-                      </TableCell>
-                    ))}
-                    {navigateTo && (
-                      <TableCell>
-                        <Link href={navigateTo(node)}>
-                          <Button
-                            variant="outline"
-                            className="w-full flex items-center justify-between"
-                          >
-                            View
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+            {!loading &&
+              displayData.map(({ node }, idx) => (
+                <TableRow
+                  key={idx}
+                  data-testid={`table-row-${idx}`}
+                  onClick={() => onClick?.(node)}
+                  tabIndex={0}
+                  className={`${onClick ? "cursor-pointer" : ""} ${
+                    focusedRowIndex === idx ? "bg-muted" : ""
+                  } hover:bg-muted/50 transition-colors outline-none`}
+                  onFocus={() => setFocusedRowIndex(idx)}
+                  role="row"
+                  aria-selected={focusedRowIndex === idx}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.key as string}
+                      className="whitespace-normal break-words"
+                    >
+                      {col.render
+                        ? col.render(node[col.key], node)
+                        : String(node[col.key])}
+                    </TableCell>
+                  ))}
+                  {navigateTo && (
+                    <TableCell>
+                      <Link href={navigateTo(node)}>
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-between"
+                        >
+                          View
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
         <Separator />

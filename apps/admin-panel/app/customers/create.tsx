@@ -75,7 +75,6 @@ const DetailsForm = ({
         value={formData.email}
         onChange={handleInputChange}
         disabled={isLoading}
-        autoFocus
       />
     </div>
     <div>

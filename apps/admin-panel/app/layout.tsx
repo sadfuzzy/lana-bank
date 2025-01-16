@@ -9,6 +9,8 @@ import { AuthSessionProvider } from "./session-provider"
 
 import { AppLayout } from "./app-layout"
 
+import { CommandMenu } from "./command-menu"
+
 import ApolloServerWrapper from "@/lib/apollo-client/server-wrapper"
 import { Toast } from "@/components/toast"
 import { SidebarProvider, SidebarInset } from "@/ui/sidebar"
@@ -56,7 +58,10 @@ export default async function RootLayout({
               <SidebarProvider>
                 <AppSidebar appVersion={appVersion} />
                 <SidebarInset className="min-h-screen md:peer-data-[variant=inset]:shadow-none border">
-                  <AppLayout>{children}</AppLayout>
+                  <AppLayout>
+                    <CommandMenu />
+                    {children}
+                  </AppLayout>
                 </SidebarInset>
               </SidebarProvider>
             )}

@@ -38,7 +38,11 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {link.isCurrentPage ? (
-                <BreadcrumbPage className="flex items-center gap-3 align-middle">
+                <BreadcrumbPage
+                  className="flex items-center gap-3 align-middle"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                >
                   {index === 0 && <Home className="h-4 w-4" />}
                   {link.title}
                 </BreadcrumbPage>
@@ -46,6 +50,8 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
                 <BreadcrumbLink
                   href={link.href}
                   className="flex items-center gap-3 align-middle"
+                  tabIndex={-1}
+                  aria-hidden="true"
                 >
                   {index === 0 && <Home className="h-4 w-4" />}
                   {link.title}
