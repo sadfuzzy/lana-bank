@@ -25,6 +25,7 @@ es_entity::entity_id! {
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
+pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
@@ -121,6 +122,8 @@ impl CoreDepositAction {
         CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
     pub const DEPOSIT_ACCOUNT_READ: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Read);
+    pub const DEPOSIT_ACCOUNT_LIST: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::List);
 
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
@@ -169,6 +172,7 @@ pub enum DepositAccountAction {
     Create,
     ReadBalance,
     Read,
+    List,
 }
 
 impl From<DepositAccountAction> for CoreDepositAction {

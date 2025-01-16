@@ -11,6 +11,7 @@ mod primitives;
 mod processes;
 mod withdrawal;
 
+use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -503,23 +504,28 @@ where
             .entities)
     }
 
-    pub async fn find_account_for_account_holder(
+    pub async fn list_account_by_created_at_for_account_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        account_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-    ) -> Result<Option<DepositAccount>, CoreDepositError> {
-        let account_id = account_id.into();
+        account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<DepositAccountsByCreatedAtCursor>,
+        direction: impl Into<es_entity::ListDirection> + std::fmt::Debug,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccount, DepositAccountsByCreatedAtCursor>,
+        CoreDepositError,
+    > {
+        let account_holder_id = account_holder_id.into();
         self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_deposit_accounts(),
-                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+                CoreDepositAction::DEPOSIT_ACCOUNT_LIST,
             )
             .await?;
-        match self.accounts.find_by_account_holder_id(account_id).await {
-            Ok(account) => Ok(Some(account)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+
+        Ok(self
+            .accounts
+            .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
+            .await?)
     }
 }
