@@ -1,4 +1,16 @@
 services:
+  integration-deps:
+    image: busybox
+    command: sh -c "while :; do sleep 10; done"
+    depends_on:
+      - core-pg
+      - cala-pg
+      - cala
+      - otel-agent
+      - kratos
+      - kratos-pg
+      - oathkeeper
+      - mailhog
   core-pg:
     image: postgres:16.4
     ports:
@@ -100,3 +112,14 @@ services:
     ports:
       - "1025:1025"
       - "8025:8025"
+  meltano:
+    image: meltano/meltano:latest
+    volumes:
+      - ./meltano:/lana
+    working_dir: /lana
+    environment:
+      - TARGET_BIGQUERY_CREDENTIALS_JSON=${TARGET_BIGQUERY_CREDENTIALS_JSON}
+      - TARGET_BIGQUERY_DATASET=${TARGET_BIGQUERY_DATASET}
+      - TARGET_BIGQUERY_LOCATION=${TARGET_BIGQUERY_LOCATION}
+      - DBT_BIGQUERY_DATASET=${DBT_BIGQUERY_DATASET}
+      - DBT_BIGQUERY_KEYFILE=${DBT_BIGQUERY_KEYFILE}

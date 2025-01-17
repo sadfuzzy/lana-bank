@@ -11,7 +11,7 @@ clean-deps:
 	docker compose down -t 1
 
 start-deps:
-	docker compose up --wait -d
+	docker compose up --wait -d integration-deps
 
 setup-db:
 	cd lana/app && cargo sqlx migrate run

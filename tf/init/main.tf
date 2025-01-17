@@ -24,7 +24,7 @@ locals {
     siddharth  = "siddharth@galoy.io"
     vindard    = "arvin@galoy.io"
     n          = "nb@galoy.io"
-    rishi      = "rishi@galoy.io"
+    krtk6160   = "krtk6160@galoy.io"
   }
 }
 

@@ -41,6 +41,8 @@ locals {
   dataform_git_commitish = var.dataform_git_commitish != "" ? var.dataform_git_commitish : "${var.name_prefix}-dataform"
 
 
+  dbt_dataset_name                 = replace("dbt_${local.name_prefix}", "-", "_")
+  dbt_location                     = "US"
   dataform_dataset_name            = replace("dataform_${local.name_prefix}", "-", "_")
   dataform_assertions_dataset_name = replace("dataform_assertions_${local.name_prefix}", "-", "_")
   dataform_repo_name               = "${local.name_prefix}-repo"
