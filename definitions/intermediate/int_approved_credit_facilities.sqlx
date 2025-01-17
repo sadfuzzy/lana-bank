@@ -79,7 +79,7 @@ WITH approved AS (
 	})}
 
 	WHERE recorded_at < asof
-		AND event_type = "interest_incurred"
+		AND event_type = "interest_accrual_concluded"
 
 	GROUP BY credit_facility_id
 
@@ -136,7 +136,7 @@ WITH approved AS (
 	})}
 
 	WHERE recorded_at < asof
-		AND event_type = "disbursement_initiated"
+		AND event_type = "disbursal_initiated"
 
 	GROUP BY credit_facility_id
 

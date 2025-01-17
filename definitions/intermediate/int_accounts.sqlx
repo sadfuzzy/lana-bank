@@ -23,8 +23,7 @@ WITH all_accounts AS (
 
 ), credit_facilities AS (
 
-	SELECT credit_facility_key,
-		on_balance_sheet_deposit_account_id,
+	SELECT DISTINCT credit_facility_key,
 		collateral_account_id,
 		disbursed_receivable_account_id,
 		facility_account_id,
@@ -38,49 +37,42 @@ WITH all_accounts AS (
 
 ), credit_facility_accounts AS (
 
-	SELECT credit_facility_key,
-		on_balance_sheet_deposit_account_id AS account_id,
-		"on_balance_sheet_deposit_account" AS account_type,
-	FROM credit_facilities
-
-	UNION DISTINCT
-
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		collateral_account_id AS account_id,
 		"collateral_account" AS account_type,
 	FROM credit_facilities
 
 	UNION DISTINCT
 
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		disbursed_receivable_account_id AS account_id,
 		"disbursed_receivable_account" AS account_type,
 	FROM credit_facilities
 
 	UNION DISTINCT
 
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		facility_account_id AS account_id,
 		"facility_account" AS account_type,
 	FROM credit_facilities
 
 	UNION DISTINCT
 
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		fee_income_account_id AS account_id,
 		"fee_income_account" AS account_type,
 	FROM credit_facilities
 
 	UNION DISTINCT
 
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		interest_account_id AS account_id,
 		"interest_account" AS account_type,
 	FROM credit_facilities
 
 	UNION DISTINCT
 
-	SELECT credit_facility_key,
+	SELECT DISTINCT credit_facility_key,
 		interest_receivable_account_id AS account_id,
 		"interest_receivable_account" AS account_type,
 	FROM credit_facilities
