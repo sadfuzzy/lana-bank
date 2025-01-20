@@ -96,32 +96,28 @@ const CommandMenu = () => {
   const router = useRouter()
   const pathName = usePathname()
 
-  const [open, setOpen] = React.useState(false)
-  const [pages, setPages] = React.useState<groups>("main")
+  const [open, setOpen] = useState(false)
+  const [pages, setPages] = useState<groups>("main")
 
-  const [createCustomer, setCreateCustomer] = React.useState(false)
-  const [createDeposit, setCreateDeposit] = React.useState(false)
-  const [createWithdrawal, setCreateWithdrawal] = React.useState(false)
-  const [createFacility, setCreateFacility] = React.useState(false)
-  const [initiateDisbursal, setInitiateDisbursal] = React.useState(false)
-  const [makePayment, setMakePayment] = React.useState(false)
-  const [openCreateUserDialog, setOpenCreateUserDialog] = React.useState(false)
+  const [createCustomer, setCreateCustomer] = useState(false)
+  const [createDeposit, setCreateDeposit] = useState(false)
+  const [createWithdrawal, setCreateWithdrawal] = useState(false)
+  const [createFacility, setCreateFacility] = useState(false)
+  const [initiateDisbursal, setInitiateDisbursal] = useState(false)
+  const [makePayment, setMakePayment] = useState(false)
+  const [openCreateUserDialog, setOpenCreateUserDialog] = useState(false)
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
-    React.useState(false)
-  const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = React.useState(false)
-  const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
-    React.useState(false)
+    useState(false)
+  const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
+  const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] = useState(false)
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
-    React.useState(false)
-  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] =
-    React.useState(false)
-  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] =
-    React.useState(false)
-  const [openPolicyAssignDialog, setOpenPolicyAssignDialog] = React.useState(false)
-  const [openAddUserCommitteeDialog, setOpenAddUserCommitteeDialog] =
-    React.useState(false)
+    useState(false)
+  const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] = useState(false)
+  const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] = useState(false)
+  const [openPolicyAssignDialog, setOpenPolicyAssignDialog] = useState(false)
+  const [openAddUserCommitteeDialog, setOpenAddUserCommitteeDialog] = useState(false)
 
-  const [approvalAction, setApprovalAction] = React.useState<ApprovalAction>({
+  const [approvalAction, setApprovalAction] = useState<ApprovalAction>({
     type: null,
     action: null,
   })
@@ -143,7 +139,7 @@ const CommandMenu = () => {
   const { customer, facility, termsTemplate, withdraw, policy, committee, disbursal } =
     useCreateContext()
 
-  React.useEffect(() => {
+  useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
