@@ -13,6 +13,8 @@ use helpers::{action, event, object};
 async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     use rand::Rng;
 
+    use crate::LedgerJournalId;
+
     let pool = helpers::init_pool().await?;
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
@@ -31,7 +33,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
     let omnibus_code = journal_id.to_string();
 
     let chart_id = ChartId::new();
-    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
     chart_of_accounts
         .create_chart(
             chart_id,
@@ -49,6 +51,7 @@ async fn overdraw_and_cancel_withdrawal() -> anyhow::Result<()> {
         .await?;
     let control_sub_account_path = chart_of_accounts
         .create_control_sub_account(
+            LedgerAccountSetId::new(),
             chart_id,
             control_account_path,
             "User Deposits".to_string(),

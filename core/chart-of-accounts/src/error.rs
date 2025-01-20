@@ -12,4 +12,6 @@ pub enum CoreChartOfAccountsError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreChartOfAccountsError - CalaAccountError: {0}")]
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
+    #[error("CoreChartOfAccountsError - CalaAccountSetError: {0}")]
+    CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
 }

@@ -6,7 +6,7 @@ pub use chart_of_accounts::ChartId;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, JournalId as LedgerJournalId,
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
     TransactionId as LedgerTransactionId,
 };
 

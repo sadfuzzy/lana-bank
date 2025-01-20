@@ -10,6 +10,19 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     Ok(pool)
 }
 
+pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::JournalId> {
+    use cala_ledger::journal::*;
+
+    let id = JournalId::new();
+    let new = NewJournal::builder()
+        .id(id)
+        .name("Test journal")
+        .build()
+        .unwrap();
+    let journal = cala.journals().create(new).await?;
+    Ok(journal.id)
+}
+
 #[tokio::test]
 async fn create_and_populate() -> anyhow::Result<()> {
     use rand::Rng;
@@ -25,7 +38,9 @@ async fn create_and_populate() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
-    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+    let journal_id = init_journal(&cala).await?;
+
+    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
     let chart_id = ChartId::new();
     chart_of_accounts
         .create_chart(
@@ -49,6 +64,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
     let control_sub_account_name = "Fixed-Term Credit Facilities Receivable";
     let control_sub_account_code = chart_of_accounts
         .create_control_sub_account(
+            LedgerAccountSetId::new(),
             chart_id,
             control_account_code,
             control_sub_account_name.to_string(),
@@ -56,7 +72,7 @@ async fn create_and_populate() -> anyhow::Result<()> {
         )
         .await?;
     assert_eq!(
-        control_sub_account_code.control_account(),
+        control_sub_account_code.path.control_account(),
         control_account_code
     );
 
@@ -66,6 +82,8 @@ async fn create_and_populate() -> anyhow::Result<()> {
 #[tokio::test]
 async fn create_with_duplicate_reference() -> anyhow::Result<()> {
     use rand::Rng;
+
+    use crate::LedgerJournalId;
 
     let pool = init_pool().await?;
 
@@ -78,7 +96,8 @@ async fn create_with_duplicate_reference() -> anyhow::Result<()> {
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
 
-    let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala).await?;
+    let chart_of_accounts =
+        CoreChartOfAccounts::init(&pool, &authz, &cala, LedgerJournalId::new()).await?;
 
     let reference = format!("{:02}", rand::thread_rng().gen_range(0..100));
 

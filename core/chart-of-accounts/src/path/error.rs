@@ -10,8 +10,6 @@ pub enum ChartPathError {
     InvalidCategoryForNewControlAccount,
     #[error("ChartError - InvalidControlAccountPathForNewControlSubAccount")]
     InvalidControlAccountPathForNewControlSubAccount,
-    #[error("ChartError - InvalidSubControlAccountPathForNewTransactionAccount")]
-    InvalidSubControlAccountPathForNewTransactionAccount,
     #[error("ChartError - ControlIndexOverflowForCategory: Category '{0}'")]
     ControlIndexOverflowForCategory(ChartCategory),
     #[error(

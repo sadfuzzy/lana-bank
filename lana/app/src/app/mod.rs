@@ -7,7 +7,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 
 use crate::{
-    accounting_init::AccountingInit,
+    accounting_init::{ChartsInit, JournalInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
@@ -79,12 +79,14 @@ impl LanaApp {
             .build()
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
-        let chart_of_accounts = ChartOfAccounts::init(&pool, &authz, &cala).await?;
-        let accounting_init = AccountingInit::execute(&cala, &chart_of_accounts).await?;
+        let journal_init = JournalInit::journal(&cala).await?;
+        let chart_of_accounts =
+            ChartOfAccounts::init(&pool, &authz, &cala, journal_init.journal_id).await?;
+        let charts_init = ChartsInit::charts_of_accounts(&chart_of_accounts).await?;
 
         let deposits_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.primary,
-            accounting_init.deposits.deposits,
+            charts_init.chart_ids.primary,
+            charts_init.deposits.deposits,
         );
         let deposits = Deposits::init(
             &pool,
@@ -94,7 +96,7 @@ impl LanaApp {
             &jobs,
             deposits_factory,
             &cala,
-            accounting_init.journal_id,
+            journal_init.journal_id,
             String::from("OMNIBUS_ACCOUNT_ID"),
         )
         .await?;
@@ -102,28 +104,28 @@ impl LanaApp {
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs, &export);
 
         let collateral_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.off_balance_sheet,
-            accounting_init.credit_facilities.collateral,
+            charts_init.chart_ids.off_balance_sheet,
+            charts_init.credit_facilities.collateral,
         );
         let facility_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.off_balance_sheet,
-            accounting_init.credit_facilities.facility,
+            charts_init.chart_ids.off_balance_sheet,
+            charts_init.credit_facilities.facility,
         );
         let disbursed_receivable_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.primary,
-            accounting_init.credit_facilities.disbursed_receivable,
+            charts_init.chart_ids.primary,
+            charts_init.credit_facilities.disbursed_receivable,
         );
         let interest_receivable_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.primary,
-            accounting_init.credit_facilities.interest_receivable,
+            charts_init.chart_ids.primary,
+            charts_init.credit_facilities.interest_receivable,
         );
         let interest_income_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.primary,
-            accounting_init.credit_facilities.interest_income,
+            charts_init.chart_ids.primary,
+            charts_init.credit_facilities.interest_income,
         );
         let fee_income_factory = chart_of_accounts.transaction_account_factory(
-            accounting_init.chart_ids.primary,
-            accounting_init.credit_facilities.fee_income,
+            charts_init.chart_ids.primary,
+            charts_init.credit_facilities.fee_income,
         );
         let credit_facilities = CreditFacilities::init(
             &pool,
@@ -142,7 +144,7 @@ impl LanaApp {
             interest_income_factory,
             fee_income_factory,
             &cala,
-            accounting_init.journal_id,
+            journal_init.journal_id,
         )
         .await?;
         let terms_templates = TermsTemplates::new(&pool, &authz, &export);

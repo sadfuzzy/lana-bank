@@ -3,10 +3,13 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 use serde::{Deserialize, Serialize};
 
-pub use cala_ledger::{primitives::AccountId as LedgerAccountId, DebitOrCredit};
+pub use cala_ledger::{
+    primitives::AccountId as LedgerAccountId, primitives::AccountSetId as LedgerAccountSetId,
+    primitives::JournalId as LedgerJournalId, DebitOrCredit,
+};
 
 pub use crate::path::ChartCategory;
-use crate::path::{ControlSubAccountPath, TransactionAccountPath};
+use crate::path::ControlSubAccountPath;
 
 es_entity::entity_id! {
     ChartId,
@@ -75,8 +78,6 @@ impl CoreChartOfAccountsAction {
         CoreChartOfAccountsAction::ChartAction(ChartAction::CreateControlSubAccount);
     pub const CHART_FIND_CONTROL_SUB_ACCOUNT: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::FindControlSubAccount);
-    pub const CHART_FIND_TRANSACTION_ACCOUNT: Self =
-        CoreChartOfAccountsAction::ChartAction(ChartAction::FindTransactionAccount);
 }
 
 impl Display for CoreChartOfAccountsAction {
@@ -112,7 +113,6 @@ pub enum ChartAction {
     FindControlAccount,
     CreateControlSubAccount,
     FindControlSubAccount,
-    FindTransactionAccount,
 }
 
 impl From<ChartAction> for CoreChartOfAccountsAction {
@@ -124,7 +124,6 @@ impl From<ChartAction> for CoreChartOfAccountsAction {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ChartAccountDetails {
     pub account_id: LedgerAccountId,
-    pub path: TransactionAccountPath,
     pub encoded_path: String,
     pub name: String,
     pub description: String,
@@ -136,4 +135,12 @@ pub struct ChartCreationDetails {
     pub account_id: LedgerAccountId,
     pub name: String,
     pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ControlSubAccountDetails {
+    pub path: ControlSubAccountPath,
+    pub account_set_id: LedgerAccountSetId,
+    pub name: String,
+    pub reference: String,
 }

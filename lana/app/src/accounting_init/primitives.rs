@@ -1,4 +1,6 @@
-use chart_of_accounts::{ChartId, ControlSubAccountPath};
+pub use cala_ledger::primitives::JournalId as LedgerJournalId;
+
+use chart_of_accounts::{ChartId, ControlSubAccountDetails};
 
 #[derive(Clone, Copy)]
 pub struct ChartIds {
@@ -8,15 +10,15 @@ pub struct ChartIds {
 
 #[derive(Clone)]
 pub struct DepositsAccountPaths {
-    pub deposits: ControlSubAccountPath,
+    pub deposits: ControlSubAccountDetails,
 }
 
 #[derive(Clone)]
 pub struct CreditFacilitiesAccountPaths {
-    pub collateral: ControlSubAccountPath,
-    pub facility: ControlSubAccountPath,
-    pub disbursed_receivable: ControlSubAccountPath,
-    pub interest_receivable: ControlSubAccountPath,
-    pub interest_income: ControlSubAccountPath,
-    pub fee_income: ControlSubAccountPath,
+    pub collateral: ControlSubAccountDetails,
+    pub facility: ControlSubAccountDetails,
+    pub disbursed_receivable: ControlSubAccountDetails,
+    pub interest_receivable: ControlSubAccountDetails,
+    pub interest_income: ControlSubAccountDetails,
+    pub fee_income: ControlSubAccountDetails,
 }
