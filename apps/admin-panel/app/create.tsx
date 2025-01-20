@@ -18,7 +18,16 @@ import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
 
-import { CreditFacility, Customer, CreditFacilityStatus } from "@/lib/graphql/generated"
+import {
+  CreditFacility,
+  Customer,
+  CreditFacilityStatus,
+  GetWithdrawalDetailsQuery,
+  GetPolicyDetailsQuery,
+  GetCommitteeDetailsQuery,
+  TermsTemplateQuery,
+  GetDisbursalDetailsQuery,
+} from "@/lib/graphql/generated"
 import { Button } from "@/ui/button"
 import {
   DropdownMenu,
@@ -41,6 +50,10 @@ export const PATH_CONFIGS = {
 
   TERMS_TEMPLATES: "/terms-templates",
   TERMS_TEMPLATE_DETAILS: /^\/terms-templates\/[^/]+/,
+
+  WITHDRAWAL_DETAILS: /^\/withdrawals\/[^/]+/,
+  POLICY_DETAILS: /^\/policies\/[^/]+/,
+  DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -333,19 +346,46 @@ const CreateButton = () => {
 
 type ICustomer = Customer | null
 type IFacility = CreditFacility | null
+type ITermsTemplate = TermsTemplateQuery["termsTemplate"] | null
+type IWithdraw = GetWithdrawalDetailsQuery["withdrawal"] | null
+type IPolicy = GetPolicyDetailsQuery["policy"] | null
+type ICommittee = GetCommitteeDetailsQuery["committee"] | null
+type IDisbursal = GetDisbursalDetailsQuery["disbursal"] | null
 
 type CreateContext = {
   customer: ICustomer
   facility: IFacility
+  termsTemplate: ITermsTemplate
+  withdraw: IWithdraw
+  policy: IPolicy
+  committee: ICommittee
+  disbursal: IDisbursal
+
   setCustomer: React.Dispatch<React.SetStateAction<ICustomer>>
   setFacility: React.Dispatch<React.SetStateAction<IFacility>>
+  setTermsTemplate: React.Dispatch<React.SetStateAction<ITermsTemplate>>
+  setWithdraw: React.Dispatch<React.SetStateAction<IWithdraw>>
+  setPolicy: React.Dispatch<React.SetStateAction<IPolicy>>
+  setCommittee: React.Dispatch<React.SetStateAction<ICommittee>>
+  setDisbursal: React.Dispatch<React.SetStateAction<IDisbursal>>
 }
 
 const CreateContext = createContext<CreateContext>({
   customer: null,
   facility: null,
+  termsTemplate: null,
+  withdraw: null,
+  policy: null,
+  committee: null,
+  disbursal: null,
+
   setCustomer: () => {},
   setFacility: () => {},
+  setTermsTemplate: () => {},
+  setWithdraw: () => {},
+  setPolicy: () => {},
+  setCommittee: () => {},
+  setDisbursal: () => {},
 })
 
 export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
@@ -353,14 +393,30 @@ export const CreateContextProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const [customer, setCustomer] = useState<ICustomer>(null)
   const [facility, setFacility] = useState<IFacility>(null)
+  const [termsTemplate, setTermsTemplate] = useState<ITermsTemplate>(null)
+  const [withdraw, setWithdraw] = useState<IWithdraw>(null)
+  const [policy, setPolicy] = useState<IPolicy>(null)
+  const [committee, setCommittee] = useState<ICommittee>(null)
+  const [disbursal, setDisbursal] = useState<IDisbursal>(null)
 
   return (
     <CreateContext.Provider
       value={{
         customer,
         facility,
+        termsTemplate,
+        withdraw,
+        policy,
+        committee,
+        disbursal,
+
         setCustomer,
         setFacility,
+        setTermsTemplate,
+        setWithdraw,
+        setPolicy,
+        setCommittee,
+        setDisbursal,
       }}
     >
       {children}

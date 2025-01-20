@@ -102,13 +102,14 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
               >
                 {linkData.sumsubPermalinkCreate.url}
               </a>
-              <Copy
-                className="h-4 w-4 cursor-pointer"
+              <button
                 onClick={() => {
                   navigator.clipboard.writeText(linkData.sumsubPermalinkCreate.url)
                   toast.success("Copied to clipboard")
                 }}
-              />
+              >
+                <Copy className="h-4 w-4 cursor-pointer" />
+              </button>
             </div>
           )}
           {linkError && <p className="text-red-500">{linkError.message}</p>}

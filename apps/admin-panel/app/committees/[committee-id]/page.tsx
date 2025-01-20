@@ -11,6 +11,7 @@ import { CommitteeUsers } from "./users"
 import { useGetCommitteeDetailsQuery } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { useCreateContext } from "@/app/create"
 
 gql`
   query GetCommitteeDetails($id: UUID!) {
@@ -29,6 +30,7 @@ function CommitteePage({
 }) {
   const { "committee-id": committeeId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const { setCommittee } = useCreateContext()
 
   const { data, loading, error } = useGetCommitteeDetailsQuery({
     variables: { id: committeeId },
@@ -48,6 +50,11 @@ function CommitteePage({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.committee])
+
+  useEffect(() => {
+    data?.committee && setCommittee(data?.committee)
+    return () => setCommittee(null)
+  }, [data?.committee, setCommittee])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={1} />

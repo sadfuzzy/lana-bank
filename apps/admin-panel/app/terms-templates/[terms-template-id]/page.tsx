@@ -7,6 +7,7 @@ import TermsTemplateDetailsCard from "./details"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useTermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { useCreateContext } from "@/app/create"
 
 gql`
   query TermsTemplate($id: UUID!) {
@@ -25,7 +26,7 @@ function TermsTemplatePage({
 }) {
   const { "terms-template-id": termsTemplateId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
-
+  const { setTermsTemplate } = useCreateContext()
   const { data, loading, error } = useTermsTemplateQuery({
     variables: { id: termsTemplateId },
   })
@@ -44,6 +45,11 @@ function TermsTemplatePage({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.termsTemplate])
+
+  useEffect(() => {
+    data?.termsTemplate && setTermsTemplate(data?.termsTemplate)
+    return () => setTermsTemplate(null)
+  }, [data?.termsTemplate, setTermsTemplate])
 
   if (loading && !data)
     return <DetailsPageSkeleton tabs={0} detailItems={8} tabsCards={0} />

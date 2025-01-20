@@ -1,10 +1,13 @@
 "use client"
 import { gql } from "@apollo/client"
 
+import { useEffect } from "react"
+
 import WithdrawalDetailsCard from "./details"
 
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { useCreateContext } from "@/app/create"
 
 gql`
   fragment WithdrawDetailsPageFragment on Withdrawal {
@@ -47,9 +50,16 @@ function WithdrawalPage({
   }
 }) {
   const { "withdrawal-id": withdrawalId } = params
-  const { data, loading, error, refetch } = useGetWithdrawalDetailsQuery({
+  const { setWithdraw } = useCreateContext()
+
+  const { data, loading, error } = useGetWithdrawalDetailsQuery({
     variables: { id: withdrawalId },
   })
+
+  useEffect(() => {
+    data?.withdrawal && setWithdraw(data?.withdrawal)
+    return () => setWithdraw(null)
+  }, [data?.withdrawal, setWithdraw])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
@@ -59,7 +69,7 @@ function WithdrawalPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <WithdrawalDetailsCard withdrawal={data.withdrawal} refetch={refetch} />
+      <WithdrawalDetailsCard withdrawal={data.withdrawal} />
     </main>
   )
 }

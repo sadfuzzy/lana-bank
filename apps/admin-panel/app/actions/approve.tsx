@@ -1,5 +1,5 @@
 import React from "react"
-import { gql } from "@apollo/client"
+import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
 
 import {
@@ -11,7 +11,11 @@ import {
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
 import {
-  ApprovalProcess,
+  ApprovalProcessType,
+  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityBasicDetailsQuery,
+  GetDisbursalDetailsDocument,
+  GetWithdrawalDetailsDocument,
   useApprovalProcessApproveMutation,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -68,15 +72,15 @@ gql`
 type ApprovalDialogProps = {
   setOpenApprovalDialog: (isOpen: boolean) => void
   openApprovalDialog: boolean
-  approvalProcess: ApprovalProcess
-  refetch?: () => void
+  approvalProcess: NonNullable<
+    GetCreditFacilityBasicDetailsQuery["creditFacility"]
+  >["approvalProcess"]
 }
 
 export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   setOpenApprovalDialog,
   openApprovalDialog,
   approvalProcess,
-  refetch,
 }) => {
   const [error, setError] = React.useState<string | null>(null)
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
@@ -91,7 +95,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
       cache.gc()
     },
   })
-
+  const client = useApolloClient()
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -102,8 +106,27 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             processId: approvalProcess.approvalProcessId,
           },
         },
-        onCompleted: () => {
-          if (refetch) refetch()
+        onCompleted: async ({ approvalProcessApprove }) => {
+          const processType = approvalProcessApprove.approvalProcess.approvalProcessType
+          if (processType === ApprovalProcessType.CreditFacilityApproval) {
+            await client.query({
+              query: GetCreditFacilityBasicDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          } else if (processType === ApprovalProcessType.WithdrawalApproval) {
+            await client.query({
+              query: GetWithdrawalDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          } else if (processType === ApprovalProcessType.DisbursalApproval) {
+            await client.query({
+              query: GetDisbursalDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          }
           toast.success("Process approved successfully")
         },
       })

@@ -8,23 +8,15 @@ import { DisbursalStatusBadge } from "../status-badge"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
-import {
-  ApprovalProcess,
-  ApprovalProcessStatus,
-  GetDisbursalDetailsQuery,
-} from "@/lib/graphql/generated"
+import { ApprovalProcessStatus, GetDisbursalDetailsQuery } from "@/lib/graphql/generated"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 
 type DisbursalDetailsProps = {
   disbursal: NonNullable<GetDisbursalDetailsQuery["disbursal"]>
-  refetch: () => void
 }
 
-export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
-  disbursal,
-  refetch,
-}) => {
+export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursal }) => {
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
@@ -89,16 +81,14 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({
         errorMessage={disbursal.approvalProcess.deniedReason}
       />
       <ApprovalDialog
-        approvalProcess={disbursal.approvalProcess as ApprovalProcess}
+        approvalProcess={disbursal.approvalProcess}
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => setOpenApprovalDialog(false)}
-        refetch={refetch}
       />
       <DenialDialog
-        approvalProcess={disbursal.approvalProcess as ApprovalProcess}
+        approvalProcess={disbursal.approvalProcess}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => setOpenDenialDialog(false)}
-        refetch={refetch}
       />
     </>
   )

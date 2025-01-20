@@ -5,7 +5,6 @@ import React from "react"
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import {
-  ApprovalProcess,
   ApprovalProcessStatus,
   GetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -21,13 +20,11 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
   creditFacilityDetails: NonNullable<GetCreditFacilityBasicDetailsQuery["creditFacility"]>
-  refetch: () => void
 }
 
 const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   creditFacilityId,
   creditFacilityDetails,
-  refetch,
 }) => {
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
@@ -109,20 +106,18 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         setOpenDialog={setOpenCollateralUpdateDialog}
       />
       <ApprovalDialog
-        approvalProcess={creditFacilityDetails?.approvalProcess as ApprovalProcess}
+        approvalProcess={creditFacilityDetails?.approvalProcess}
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => {
           setOpenApprovalDialog(false)
         }}
-        refetch={refetch}
       />
       <DenialDialog
-        approvalProcess={creditFacilityDetails?.approvalProcess as ApprovalProcess}
+        approvalProcess={creditFacilityDetails?.approvalProcess}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => {
           setOpenDenialDialog(false)
         }}
-        refetch={refetch}
       />
     </>
   )

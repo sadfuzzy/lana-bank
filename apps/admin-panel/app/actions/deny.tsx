@@ -1,5 +1,5 @@
 import React from "react"
-import { gql } from "@apollo/client"
+import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
 
 import {
@@ -10,7 +10,14 @@ import {
   DialogTitle,
 } from "@/ui/dialog"
 import { Button } from "@/ui/button"
-import { ApprovalProcess, useApprovalProcessDenyMutation } from "@/lib/graphql/generated"
+import {
+  ApprovalProcessType,
+  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityBasicDetailsQuery,
+  GetDisbursalDetailsDocument,
+  GetWithdrawalDetailsDocument,
+  useApprovalProcessDenyMutation,
+} from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import { Textarea } from "@/ui/textarea"
@@ -28,16 +35,17 @@ gql`
 type DenialDialogProps = {
   setOpenDenialDialog: (isOpen: boolean) => void
   openDenialDialog: boolean
-  approvalProcess: ApprovalProcess
-  refetch?: () => void
+  approvalProcess: NonNullable<
+    GetCreditFacilityBasicDetailsQuery["creditFacility"]
+  >["approvalProcess"]
 }
 
 export const DenialDialog: React.FC<DenialDialogProps> = ({
   setOpenDenialDialog,
   openDenialDialog,
-  refetch,
   approvalProcess,
 }) => {
+  const client = useApolloClient()
   const [error, setError] = React.useState<string | null>(null)
   const [reason, setReason] = React.useState("")
   const [denyProcess, { loading }] = useApprovalProcessDenyMutation({
@@ -68,9 +76,28 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           },
           reason: reason.trim(),
         },
-        onCompleted: () => {
-          if (refetch) refetch()
-          toast.success("Process denied successfully")
+        onCompleted: async ({ approvalProcessDeny }) => {
+          const processType = approvalProcessDeny.approvalProcess.approvalProcessType
+          if (processType === ApprovalProcessType.CreditFacilityApproval) {
+            await client.query({
+              query: GetCreditFacilityBasicDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          } else if (processType === ApprovalProcessType.WithdrawalApproval) {
+            await client.query({
+              query: GetWithdrawalDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          } else if (processType === ApprovalProcessType.DisbursalApproval) {
+            await client.query({
+              query: GetDisbursalDetailsDocument,
+              variables: { id: approvalProcess.approvalProcessId },
+              fetchPolicy: "network-only",
+            })
+          }
+          toast.success("Process approved successfully")
         },
       })
       setOpenDenialDialog(false)

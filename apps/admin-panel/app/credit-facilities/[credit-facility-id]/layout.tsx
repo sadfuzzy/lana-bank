@@ -74,7 +74,7 @@ export default function CreditFacilityLayout({
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
 
-  const { data, loading, error, refetch } = useGetCreditFacilityBasicDetailsQuery({
+  const { data, loading, error } = useGetCreditFacilityBasicDetailsQuery({
     variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
@@ -142,7 +142,6 @@ export default function CreditFacilityLayout({
       <CreditFacilityDetailsCard
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}
-        refetch={refetch}
       />
       <Tabs
         defaultValue={TABS[0].url}

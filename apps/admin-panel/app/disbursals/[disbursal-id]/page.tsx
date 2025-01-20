@@ -1,5 +1,5 @@
 "use client"
-import React from "react"
+import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
 
 import { DisbursalDetailsCard } from "./details"
@@ -8,6 +8,7 @@ import { VotersCard } from "./voters"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useGetDisbursalDetailsQuery } from "@/lib/graphql/generated"
+import { useCreateContext } from "@/app/create"
 
 gql`
   query GetDisbursalDetails($id: UUID!) {
@@ -50,9 +51,15 @@ function DisbursalPage({
   }
 }) {
   const { "disbursal-id": disbursalId } = params
-  const { data, loading, error, refetch } = useGetDisbursalDetailsQuery({
+  const { data, loading, error } = useGetDisbursalDetailsQuery({
     variables: { id: disbursalId },
   })
+  const { setDisbursal } = useCreateContext()
+
+  useEffect(() => {
+    data?.disbursal && setDisbursal(data?.disbursal)
+    return () => setDisbursal(null)
+  }, [data?.disbursal, setDisbursal])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={5} tabsCards={0} />
@@ -62,7 +69,7 @@ function DisbursalPage({
 
   return (
     <main className="max-w-7xl m-auto">
-      <DisbursalDetailsCard disbursal={data.disbursal} refetch={refetch} />
+      <DisbursalDetailsCard disbursal={data.disbursal} />
       {data.disbursal.approvalProcess && (
         <VotersCard approvalProcess={data.disbursal.approvalProcess} />
       )}

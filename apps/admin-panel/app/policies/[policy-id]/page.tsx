@@ -9,6 +9,7 @@ import { CommitteeUsers } from "@/app/committees/[committee-id]/users"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { formatProcessType } from "@/lib/utils"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { useCreateContext } from "@/app/create"
 
 gql`
   query GetPolicyDetails($id: UUID!) {
@@ -40,6 +41,7 @@ function PolicyPage({
 }) {
   const { "policy-id": policyId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const { setPolicy } = useCreateContext()
 
   const { data, loading, error } = useGetPolicyDetailsQuery({
     variables: { id: policyId },
@@ -62,6 +64,11 @@ function PolicyPage({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.policy])
+
+  useEffect(() => {
+    data?.policy && setPolicy(data?.policy)
+    return () => setPolicy(null)
+  }, [data?.policy, setPolicy])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={3} tabsCards={0} />

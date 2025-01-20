@@ -11,7 +11,6 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
-  ApprovalProcess,
   ApprovalProcessStatus,
   GetWithdrawalDetailsQuery,
   WithdrawalStatus,
@@ -22,13 +21,9 @@ import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 type WithdrawalDetailsProps = {
   withdrawal: NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>
-  refetch: () => void
 }
 
-const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
-  withdrawal,
-  refetch,
-}) => {
+const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal }) => {
   const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] = useState<
     GetWithdrawalDetailsQuery["withdrawal"] | null
   >(null)
@@ -127,16 +122,14 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({
         />
       )}
       <ApprovalDialog
-        approvalProcess={withdrawal?.approvalProcess as ApprovalProcess}
+        approvalProcess={withdrawal?.approvalProcess}
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => setOpenApprovalDialog(false)}
-        refetch={refetch}
       />
       <DenialDialog
-        approvalProcess={withdrawal?.approvalProcess as ApprovalProcess}
+        approvalProcess={withdrawal?.approvalProcess}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => setOpenDenialDialog(false)}
-        refetch={refetch}
       />
     </>
   )
