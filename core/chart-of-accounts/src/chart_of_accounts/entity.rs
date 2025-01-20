@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub use super::error::*;
+use super::tree;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -19,6 +20,7 @@ pub use super::error::*;
 pub enum ChartEvent {
     Initialized {
         id: ChartId,
+        name: String,
         reference: String,
         audit_info: AuditInfo,
     },
@@ -63,6 +65,10 @@ impl Chart {
                 _ => None,
             })
             .unwrap_or_else(|| Ok(category.first_control_account()))?)
+    }
+
+    pub fn chart(&self) -> tree::ChartTree {
+        tree::project(self.events.iter_all())
     }
 
     pub fn find_control_account_by_reference(
@@ -216,6 +222,7 @@ impl TryFromEvents<ChartEvent> for Chart {
 pub struct NewChart {
     #[builder(setter(into))]
     pub(super) id: ChartId,
+    pub(super) name: String,
     pub(super) reference: String,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -233,6 +240,7 @@ impl IntoEvents<ChartEvent> for NewChart {
             self.id,
             [ChartEvent::Initialized {
                 id: self.id,
+                name: self.name,
                 reference: self.reference,
                 audit_info: self.audit_info,
             }],
@@ -261,6 +269,7 @@ mod tests {
 
         let new_chart = NewChart::builder()
             .id(id)
+            .name("Test Chart".to_string())
             .reference("ref-01".to_string())
             .audit_info(audit_info)
             .build()
@@ -277,6 +286,7 @@ mod tests {
 
         let new_chart = NewChart::builder()
             .id(id)
+            .name("Test Chart".to_string())
             .reference("ref-01".to_string())
             .audit_info(audit_info.clone())
             .build()
