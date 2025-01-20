@@ -20,17 +20,17 @@ describe("Terms Template", () => {
     cy.takeScreenshot("2_click_create_button")
 
     cy.get('[data-testid="terms-template-name-input"]')
-      .type(templateName)
+      .type(templateName, { delay: 0, waitForAnimations: false })
       .should("have.value", templateName)
     cy.takeScreenshot("3_enter_template_name")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
-      .type("5.5")
+      .type("5.5", { delay: 0, waitForAnimations: false })
       .should("have.value", "5.5")
     cy.takeScreenshot("4_enter_annual_rate")
 
     cy.get('[data-testid="terms-template-duration-units-input"]')
-      .type("12")
+      .type("12", { delay: 0, waitForAnimations: false })
       .should("have.value", "12")
     cy.takeScreenshot("5_enter_duration_units")
 
@@ -47,22 +47,22 @@ describe("Terms Template", () => {
     cy.takeScreenshot("8_select_incurrence_interval")
 
     cy.get('[data-testid="terms-template-initial-cvl-input"]')
-      .type("140")
+      .type("140", { delay: 0, waitForAnimations: false })
       .should("have.value", "140")
     cy.takeScreenshot("9_enter_initial_cvl")
 
     cy.get('[data-testid="terms-template-margin-call-cvl-input"]')
-      .type("120")
+      .type("120", { delay: 0, waitForAnimations: false })
       .should("have.value", "120")
     cy.takeScreenshot("10_enter_margin_call_cvl")
 
     cy.get('[data-testid="terms-template-liquidation-cvl-input"]')
-      .type("110")
+      .type("110", { delay: 0, waitForAnimations: false })
       .should("have.value", "110")
     cy.takeScreenshot("11_enter_liquidation_cvl")
 
     cy.get('[data-testid="terms-template-one-time-fee-rate-input"]')
-      .type("5")
+      .type("5", { delay: 0, waitForAnimations: false })
       .should("have.value", "5")
 
     cy.get('[data-testid="terms-template-submit-button"]').click()
@@ -98,7 +98,7 @@ describe("Terms Template", () => {
     cy.takeScreenshot("16_click_update_button")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
-      .type("6")
+      .type("6", { delay: 0, waitForAnimations: false })
       .should("have.value", "6")
     cy.takeScreenshot("17_update_annual_rate")
 

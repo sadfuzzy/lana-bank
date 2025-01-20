@@ -21,7 +21,7 @@ describe("Users", () => {
     cy.takeScreenshot("2_click_create_button")
 
     cy.get('[data-testid="create-user-email-input"]')
-      .type(userEmail)
+      .type(userEmail, { delay: 0, waitForAnimations: false })
       .should("have.value", userEmail)
     cy.takeScreenshot("3_enter_email")
 

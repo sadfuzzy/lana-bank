@@ -50,7 +50,9 @@ const DataTable = <T,>({
 }: DataTableProps<T>) => {
   const isMobile = useBreakpointDown("md")
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
+  const [isTableFocused, setIsTableFocused] = useState(false)
   const tableRef = useRef<HTMLDivElement>(null)
+  const focusTimeoutRef = useRef<NodeJS.Timeout>()
   const router = useRouter()
 
   const getNavigationUrl = (item: T): string | null => {
@@ -63,8 +65,46 @@ const DataTable = <T,>({
     return url !== null && url !== ""
   }
 
+  const isNoFocusActive = () => {
+    const activeElement = document.activeElement
+    const isBaseElement =
+      !activeElement ||
+      activeElement === document.body ||
+      activeElement === document.documentElement
+    const isOutsideTable = !tableRef.current?.contains(activeElement)
+    const isInteractiveElement = activeElement?.matches(
+      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
+    )
+    return (isBaseElement || isOutsideTable) && !isInteractiveElement
+  }
+
+  const smartFocus = () => {
+    if (isNoFocusActive()) {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current)
+      }
+
+      focusTimeoutRef.current = setTimeout(() => {
+        if (tableRef.current) {
+          tableRef.current.focus()
+          setIsTableFocused(true)
+
+          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
+          const targetRow = document.querySelector(
+            `[data-testid="table-row-${targetIndex}"]`,
+          ) as HTMLElement
+
+          if (targetRow) {
+            targetRow.focus()
+            setFocusedRowIndex(targetIndex)
+          }
+        }
+      }, 0)
+    }
+  }
+
   const focusRow = (index: number) => {
-    if (index < 0 || !data.length) return
+    if (index < 0 || !data.length || !isTableFocused) return
     const validIndex = Math.min(Math.max(0, index), data.length - 1)
     const row = document.querySelector(
       `[data-testid="table-row-${validIndex}"]`,
@@ -78,15 +118,14 @@ const DataTable = <T,>({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (!tableRef.current?.contains(document.activeElement) || !isTableFocused) return
       if (
         document.activeElement?.tagName === "INPUT" ||
         document.activeElement?.tagName === "TEXTAREA" ||
         document.activeElement?.tagName === "SELECT" ||
         document.activeElement?.tagName === "BUTTON"
-      ) {
+      )
         return
-      }
-
       if (!data.length) return
 
       switch (e.key) {
@@ -115,19 +154,44 @@ const DataTable = <T,>({
       }
     }
 
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, focusedRowIndex, onRowClick, navigateTo])
-
-  useEffect(() => {
-    if (data.length && focusedRowIndex === -1) {
-      focusRow(0)
+    if (isTableFocused) {
+      window.addEventListener("keydown", handleKeyDown)
+      return () => window.removeEventListener("keydown", handleKeyDown)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.length])
+  }, [data, focusedRowIndex, onRowClick, navigateTo, isTableFocused])
 
-  if (loading && !data) {
+  useEffect(() => {
+    const shouldAutoFocus = data && data.length > 0 && !loading
+    if (shouldAutoFocus) {
+      smartFocus()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.length, loading])
+
+  useEffect(() => {
+    const handleFocusOut = (e: FocusEvent) => {
+      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
+        if (isNoFocusActive()) {
+          smartFocus()
+        }
+      }
+    }
+
+    document.addEventListener("focusout", handleFocusOut)
+    return () => document.removeEventListener("focusout", handleFocusOut)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (focusTimeoutRef.current) {
+        clearTimeout(focusTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  if (loading && !data.length) {
     return isMobile ? (
       <div className="space-y-4" data-testid="loading-skeleton">
         {Array.from({ length: 5 }).map((_, idx) => (
@@ -257,9 +321,16 @@ const DataTable = <T,>({
   return (
     <div
       ref={tableRef}
-      className="w-full overflow-x-auto border rounded-md"
-      tabIndex={-1}
+      className="w-full overflow-x-auto border rounded-md focus:outline-none"
+      tabIndex={0}
       role="grid"
+      onFocus={() => setIsTableFocused(true)}
+      onBlur={(e) => {
+        if (!tableRef.current?.contains(e.relatedTarget as Node)) {
+          setIsTableFocused(false)
+          setFocusedRowIndex(-1)
+        }
+      }}
     >
       <Table className={className}>
         <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
