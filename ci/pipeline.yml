@@ -106,6 +106,9 @@ jobs:
           - get: #@ app_edge_image_resource_name("customer-portal")
             passed:
               -  #@ build_app_edge_image_name("customer-portal")
+          - get: meltano-edge-image
+            passed:
+              - build-meltano-image
       - task: prep-release
         config:
           platform: linux
@@ -192,6 +195,11 @@ jobs:
               - release
             params:
               format: oci
+          - get: meltano-edge-image
+            passed:
+              - release
+            params:
+              format: oci
       - task: prepare-docker-build
         config:
           platform: linux
@@ -238,6 +246,10 @@ jobs:
             params:
               image: #@ app_edge_image_resource_name("customer-portal") + "/image.tar"
               additional_tags: version/version
+          - put: meltano-latest-image
+            params:
+              image: meltano-edge-image/image.tar
+              additional_tags: version/version
 
   - name: set-dev-version
     plan:
@@ -277,6 +289,9 @@ jobs:
           - get: #@ app_latest_image_resource_name("customer-portal")
             passed: [release-docker]
             params: { skip_download: true }
+          - get: meltano-latest-image
+            passed: [release-docker]
+            params: { skip_download: true }
           - get: repo
             trigger: true
             passed: [release-docker]
@@ -295,6 +310,7 @@ jobs:
             - name: latest-image
             - name: #@ app_latest_image_resource_name("admin-panel")
             - name: #@ app_latest_image_resource_name("customer-portal")
+            - name: meltano-latest-image
             - name: pipeline-tasks
             - name: charts-repo
             - name: version
@@ -358,7 +374,7 @@ jobs:
               - --cache=false
               - --no-push
               - --tar-path=image/image.tar
-      - put: meltano-image
+      - put: meltano-edge-image
         params:
           image: image/image.tar
 
@@ -391,7 +407,15 @@ resources:
       pool: docker-hosts
       private_key: #@ data.values.github_private_key
 
-  - name: meltano-image
+  - name: meltano-edge-image
+    type: registry-image
+    source:
+      tag: edge
+      username: #@ data.values.docker_registry_user
+      password: #@ data.values.docker_registry_password
+      repository: #@ public_docker_registry() + "/meltano"
+
+  - name: meltano-latest-image
     type: registry-image
     source:
       tag: latest
@@ -415,4 +439,3 @@ resources:
 
 resource_types:
   -  #@ slack_resource_type()
-
