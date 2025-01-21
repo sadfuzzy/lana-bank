@@ -51,15 +51,8 @@ impl ActivateCreditFacility {
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut credit_facility @ CreditFacility {
-            id: credit_facility_id,
-            ..
-        } = self.credit_facility_repo.find_by_id(id.into()).await?;
-
-        let price = self.price.usd_cents_per_btc().await?;
-        let Ok(credit_facility_activation) = credit_facility.activation_data(price) else {
-            return Ok(credit_facility);
-        };
+        let id = id.into();
+        let mut credit_facility = self.credit_facility_repo.find_by_id(id).await?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
 
@@ -72,10 +65,13 @@ impl ActivateCreditFacility {
             )
             .await?;
 
-        let now = crate::time::now();
+        let price = self.price.usd_cents_per_btc().await?;
+        let now = db.now();
 
-        let es_entity::Idempotent::Executed(next_incurrence_period) =
-            credit_facility.activate(credit_facility_activation.clone(), now, audit_info.clone())
+        let Ok(es_entity::Idempotent::Executed((
+            credit_facility_activation,
+            next_incurrence_period,
+        ))) = credit_facility.activate(now, price, audit_info.clone())
         else {
             return Ok(credit_facility);
         };
@@ -91,16 +87,13 @@ impl ActivateCreditFacility {
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)
             .await?;
-        disbursal
+
+        let data = disbursal
             .approval_process_concluded(true, audit_info.clone())
-            .did_execute();
-        let disbursal_data = disbursal.record(now, audit_info.clone())?;
-        credit_facility.confirm_disbursal(
-            &disbursal,
-            Some(disbursal_data.tx_id),
-            now,
-            audit_info.clone(),
-        );
+            .unwrap();
+        credit_facility
+            .disbursal_concluded(&disbursal, Some(data.tx_id), now, audit_info.clone())
+            .unwrap();
 
         self.disbursal_repo
             .update_in_op(&mut db, &mut disbursal)
@@ -118,7 +111,9 @@ impl ActivateCreditFacility {
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_incurrences::CreditFacilityJobConfig { credit_facility_id },
+                interest_incurrences::CreditFacilityJobConfig {
+                    credit_facility_id: id,
+                },
                 next_incurrence_period.incurrence.end,
             )
             .await
@@ -130,8 +125,10 @@ impl ActivateCreditFacility {
             .jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                credit_facility_id,
-                interest_accruals::CreditFacilityJobConfig { credit_facility_id },
+                id,
+                interest_accruals::CreditFacilityJobConfig {
+                    credit_facility_id: id,
+                },
                 next_incurrence_period.accrual.end,
             )
             .await

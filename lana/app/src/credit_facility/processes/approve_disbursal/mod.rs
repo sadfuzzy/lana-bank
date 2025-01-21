@@ -2,13 +2,14 @@ mod job;
 
 use tracing::instrument;
 
+use es_entity::Idempotent;
 use governance::{ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType};
 
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        disbursal::error::DisbursalError, error::CreditFacilityError, ledger::CreditLedger,
-        repo::CreditFacilityRepo, Disbursal, DisbursalRepo,
+        error::CreditFacilityError, ledger::CreditLedger, repo::CreditFacilityRepo, Disbursal,
+        DisbursalRepo,
     },
     governance::Governance,
     primitives::DisbursalId,
@@ -90,13 +91,12 @@ impl ApproveDisbursal {
             )
             .await?;
         let span = tracing::Span::current();
-        if disbursal
-            .approval_process_concluded(approved, audit_info.clone())
-            .was_already_applied()
-        {
+        let Idempotent::Executed(disbursal_data) =
+            disbursal.approval_process_concluded(approved, audit_info.clone())
+        else {
             span.record("already_applied", true);
             return Ok(disbursal);
-        }
+        };
         span.record("already_applied", false);
 
         let mut credit_facility = self
@@ -104,63 +104,41 @@ impl ApproveDisbursal {
             .find_by_id(disbursal.facility_id)
             .await?;
 
-        let executed_at = crate::time::now();
+        let executed_at = db.now();
         let disbursal_audit_info = self
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
                 AppObject::CreditFacility,
-                CreditFacilityAction::ConfirmDisbursal,
+                CreditFacilityAction::SettleDisbursal,
             )
             .await?;
 
-        match disbursal.record(executed_at, disbursal_audit_info.clone()) {
-            Ok(disbursal_data) => {
-                span.record("disbursal_executed", true);
-                credit_facility.confirm_disbursal(
-                    &disbursal,
-                    Some(disbursal_data.tx_id),
-                    executed_at,
-                    disbursal_audit_info,
-                );
+        let (now, mut tx) = (db.now(), db.into_tx());
+        let sub_op = {
+            use sqlx::Acquire;
+            es_entity::DbOp::new(tx.begin().await?, now)
+        };
 
-                let (now, mut tx) = (db.now(), db.into_tx());
-                let sub_op = {
-                    use sqlx::Acquire;
-                    es_entity::DbOp::new(tx.begin().await?, now)
-                };
+        if let Idempotent::Executed(_) = credit_facility.disbursal_concluded(
+            &disbursal,
+            Some(disbursal_data.tx_id),
+            executed_at,
+            disbursal_audit_info,
+        ) {
+            self.ledger
+                .conclude_disbursal(sub_op, disbursal_data)
+                .await?;
 
-                self.ledger
-                    .record_disbursal(sub_op, disbursal_data.clone())
-                    .await?;
-
-                let mut db = es_entity::DbOp::new(tx, now);
-                self.disbursal_repo
-                    .update_in_op(&mut db, &mut disbursal)
-                    .await?;
-                self.credit_facility_repo
-                    .update_in_op(&mut db, &mut credit_facility)
-                    .await?;
-                db.commit().await?;
-            }
-            Err(DisbursalError::Denied) => {
-                span.record("disbursal_executed", false);
-                credit_facility.confirm_disbursal(
-                    &disbursal,
-                    None,
-                    executed_at,
-                    audit_info.clone(),
-                );
-                self.credit_facility_repo
-                    .update_in_op(&mut db, &mut credit_facility)
-                    .await?;
-                db.commit().await?;
-            }
-            Err(e) => {
-                return Err(e.into());
-            }
+            let mut db = es_entity::DbOp::new(tx, now);
+            self.disbursal_repo
+                .update_in_op(&mut db, &mut disbursal)
+                .await?;
+            self.credit_facility_repo
+                .update_in_op(&mut db, &mut credit_facility)
+                .await?;
+            db.commit().await?;
         }
-
         Ok(disbursal)
     }
 }

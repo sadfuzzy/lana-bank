@@ -312,7 +312,7 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             Object::CreditFacility,
-            CreditFacilityAction::ConfirmDisbursal,
+            CreditFacilityAction::SettleDisbursal,
         )
         .await?;
     authz

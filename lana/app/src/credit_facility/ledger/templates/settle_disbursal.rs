@@ -1,17 +1,15 @@
-use rust_decimal::Decimal;
-use tracing::instrument;
-
+use crate::credit_facility::ledger::error::*;
 use cala_ledger::{
     tx_template::{error::TxTemplateError, Params, *},
     *,
 };
+use rust_decimal::Decimal;
+use tracing::instrument;
 
-use crate::credit_facility::ledger::error::*;
-
-pub const CREDIT_FACILITY_DISBURSAL_CODE: &str = "CREDIT_FACILITY_DISBURSAL";
+pub const SETTLE_DISBURSAL_CODE: &str = "SETTLE_DISBURSAL_CODE";
 
 #[derive(Debug)]
-pub struct CreditFacilityDisbursalParams {
+pub struct SettleDisbursalParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
@@ -21,7 +19,7 @@ pub struct CreditFacilityDisbursalParams {
     pub external_id: String,
 }
 
-impl CreditFacilityDisbursalParams {
+impl SettleDisbursalParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -62,24 +60,23 @@ impl CreditFacilityDisbursalParams {
             NewParamDefinition::builder()
                 .name("effective")
                 .r#type(ParamDataType::Date)
-                .description("Effective date for transaction.")
                 .build()
                 .unwrap(),
         ]
     }
 }
 
-impl From<CreditFacilityDisbursalParams> for Params {
+impl From<SettleDisbursalParams> for Params {
     fn from(
-        CreditFacilityDisbursalParams {
+        SettleDisbursalParams {
             journal_id,
+            credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
             checking_account,
             disbursed_amount,
             external_id,
-            credit_omnibus_account,
-        }: CreditFacilityDisbursalParams,
+        }: SettleDisbursalParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -97,43 +94,44 @@ impl From<CreditFacilityDisbursalParams> for Params {
     }
 }
 
-pub struct CreditFacilityDisbursal;
+pub struct SettleDisbursal;
 
-impl CreditFacilityDisbursal {
-    #[instrument(name = "ledger.credit_facility_disbursal.init", skip_all)]
+impl SettleDisbursal {
+    #[instrument(name = "ledger.settle_disbursal.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .external_id("params.external_id")
-            .description("'Payout disbursal.'")
+            .description("'Settle a disbursal'")
             .build()
             .expect("Couldn't build TxInput");
 
         let entries = vec![
+            // Reverse pending entries
             NewTxTemplateEntry::builder()
+                .entry_type("'SETTLE_DISBURSAL_DRAWDOWN_PENDING_DR'")
+                .currency("'USD'")
                 .account_id("params.credit_omnibus_account")
-                .units("params.disbursed_amount")
-                .currency("'USD'")
-                .entry_type("'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_DR'")
                 .direction("DEBIT")
-                .layer("SETTLED")
+                .layer("PENDING")
+                .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
-                .units("params.disbursed_amount")
+                .entry_type("'SETTLE_DISBURSAL_DRAWDOWN_PENDING_CR'")
                 .currency("'USD'")
-                .entry_type("'CREDIT_FACILITY_DISBURSAL_DRAWDOWN_CR'")
+                .account_id("params.credit_facility_account")
                 .direction("CREDIT")
-                .layer("SETTLED")
+                .layer("PENDING")
+                .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
+            // SETTLED LAYER
             NewTxTemplateEntry::builder()
                 .account_id("params.facility_disbursed_receivable_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CREDIT_FACILITY_DISBURSAL_DR'")
+                .entry_type("'SETTLE_DISBURSAL_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .build()
@@ -142,17 +140,17 @@ impl CreditFacilityDisbursal {
                 .account_id("params.checking_account")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
-                .entry_type("'CREDIT_FACILITY_DISBURSAL_CR'")
+                .entry_type("'SETTLE_DISBURSAL_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
         ];
 
-        let params = CreditFacilityDisbursalParams::defs();
+        let params = SettleDisbursalParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(CREDIT_FACILITY_DISBURSAL_CODE)
+            .code(SETTLE_DISBURSAL_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

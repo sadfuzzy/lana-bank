@@ -66,6 +66,7 @@ pub struct CreditFacilities {
     price: Price,
     config: CreditFacilityConfig,
     approve_disbursal: ApproveDisbursal,
+    cala: CalaLedger,
     approve_credit_facility: ApproveCreditFacility,
 }
 
@@ -100,16 +101,14 @@ impl CreditFacilities {
             governance,
             &ledger,
         );
-        let chart_of_accounts = CreditChartOfAccounts::init(
-            cala,
+        let chart_of_accounts = CreditChartOfAccounts::new(
             collateral_factory,
             facility_factory,
             disbursed_receivable_factory,
             interest_receivable_factory,
             interest_income_factory,
             fee_income_factory,
-        )
-        .await?;
+        );
 
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
@@ -178,6 +177,7 @@ impl CreditFacilities {
             chart_of_accounts,
             price: price.clone(),
             config,
+            cala: cala.clone(),
             approve_disbursal,
             approve_credit_facility,
         })
@@ -251,14 +251,25 @@ impl CreditFacilities {
             .credit_facility_repo
             .create_in_op(&mut db, new_credit_facility)
             .await?;
+
+        let mut op = self.cala.ledger_operation_from_db_op(db);
         self.chart_of_accounts
             .create_accounts_for_credit_facility(
-                db,
+                &mut op,
                 credit_facility.id,
                 credit_facility.account_ids,
                 audit_info,
             )
             .await?;
+
+        self.ledger
+            .add_credit_facility_control_to_account(
+                &mut op,
+                credit_facility.account_ids.facility_account_id,
+            )
+            .await?;
+
+        op.commit().await?;
 
         Ok(credit_facility)
     }
@@ -329,14 +340,6 @@ impl CreditFacilities {
             .find_by_id(credit_facility_id)
             .await?;
 
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
-        credit_facility.balances().check_against_ledger(balances)?;
-
-        credit_facility.balances().check_disbursal_amount(amount)?;
-
         let price = self.price.usd_cents_per_btc().await?;
 
         let mut db = self.credit_facility_repo.begin_op().await?;
@@ -359,7 +362,10 @@ impl CreditFacilities {
             .create_in_op(&mut db, new_disbursal)
             .await?;
 
-        db.commit().await?;
+        self.ledger
+            .initiate_disbursal(db, disbursal.id, disbursal.amount, disbursal.account_ids)
+            .await?;
+
         Ok(disbursal)
     }
 

@@ -10,12 +10,6 @@ pub enum DisbursalError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("DisbursalError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
-    #[error("DisbursalError - AlreadyConfirmed")]
-    AlreadyConfirmed,
-    #[error("DisbursalError - ApprovalInProgress")]
-    ApprovalInProgress,
-    #[error("DisbursalError - Denied")]
-    Denied,
 }
 
 es_entity::from_es_entity_error!(DisbursalError);

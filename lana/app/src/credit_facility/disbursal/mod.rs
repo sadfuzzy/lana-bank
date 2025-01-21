@@ -7,4 +7,3 @@ pub(super) use repo::*;
 pub use repo::{DisbursalsSortBy, FindManyDisbursals};
 
 pub use entity::Disbursal;
-use error::*;

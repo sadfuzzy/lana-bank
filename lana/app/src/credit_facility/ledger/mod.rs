@@ -1,9 +1,11 @@
 mod credit_facility_accounts;
 pub mod error;
 mod templates;
+mod velocity;
 
 use cala_ledger::{
     account::{error::AccountError, NewAccount},
+    velocity::{NewVelocityControl, VelocityControlId},
     AccountId, CalaLedger, Currency, DebitOrCredit, JournalId, TransactionId,
 };
 
@@ -14,6 +16,8 @@ use error::*;
 
 pub(super) const BANK_COLLATERAL_ACCOUNT_CODE: &str = "BANK.COLLATERAL.OMNIBUS";
 pub(super) const CREDIT_OMNIBUS_ACCOUNT_CODE: &str = "CREDIT.OMNIBUS";
+pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
+    uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
@@ -29,6 +33,7 @@ pub struct CreditLedger {
     journal_id: JournalId,
     credit_omnibus_account: AccountId,
     bank_collateral_account_id: AccountId,
+    credit_facility_control_id: VelocityControlId,
     usd: Currency,
     btc: Currency,
 }
@@ -49,13 +54,30 @@ impl CreditLedger {
         templates::RecordPayment::init(cala).await?;
         templates::CreditFacilityIncurInterest::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
-        templates::CreditFacilityDisbursal::init(cala).await?;
+        templates::InitiateDisbursal::init(cala).await?;
+        templates::CancelDisbursal::init(cala).await?;
+        templates::SettleDisbursal::init(cala).await?;
+
+        let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
+
+        let credit_facility_control_id = Self::create_credit_facility_control(cala).await?;
+
+        match cala
+            .velocities()
+            .add_limit_to_control(credit_facility_control_id, disbursal_limit_id)
+            .await
+        {
+            Ok(_)
+            | Err(cala_ledger::velocity::error::VelocityError::LimitAlreadyAddedToControl) => {}
+            Err(e) => return Err(e.into()),
+        }
 
         Ok(Self {
             cala: cala.clone(),
             journal_id,
             bank_collateral_account_id,
             credit_omnibus_account,
+            credit_facility_control_id,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
         })
@@ -342,7 +364,32 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_disbursal(
+    pub async fn initiate_disbursal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        amount: UsdCents,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id.into(),
+                templates::INITIATE_DISBURSAL_CODE,
+                templates::InitiateDisbursalParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.credit_omnibus_account,
+                    credit_facility_account: credit_facility_account_ids.facility_account_id,
+                    disbursed_amount: amount.to_usd(),
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn conclude_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
         DisbursalData {
@@ -351,26 +398,43 @@ impl CreditLedger {
             amount,
             credit_facility_account_ids,
             debit_account_id,
+            cancelled: canceled,
         }: DisbursalData,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.cala
-            .post_transaction_in_op(
-                &mut op,
-                tx_id,
-                templates::CREDIT_FACILITY_DISBURSAL_CODE,
-                templates::CreditFacilityDisbursalParams {
-                    journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account,
-                    credit_facility_account: credit_facility_account_ids.facility_account_id,
-                    facility_disbursed_receivable_account: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
-                    checking_account: debit_account_id,
-                    disbursed_amount: amount.to_usd(),
-                    external_id: tx_ref,
-                },
-            )
-            .await?;
+        if canceled {
+            self.cala
+                .post_transaction_in_op(
+                    &mut op,
+                    tx_id,
+                    templates::CANCEL_DISBURSAL_CODE,
+                    templates::CancelDisbursalParams {
+                        journal_id: self.journal_id,
+                        credit_omnibus_account: self.credit_omnibus_account,
+                        credit_facility_account: credit_facility_account_ids.facility_account_id,
+                        disbursed_amount: amount.to_usd(),
+                    },
+                )
+                .await?;
+        } else {
+            self.cala
+                .post_transaction_in_op(
+                    &mut op,
+                    tx_id,
+                    templates::SETTLE_DISBURSAL_CODE,
+                    templates::SettleDisbursalParams {
+                        journal_id: self.journal_id,
+                        credit_omnibus_account: self.credit_omnibus_account,
+                        credit_facility_account: credit_facility_account_ids.facility_account_id,
+                        facility_disbursed_receivable_account: credit_facility_account_ids
+                            .disbursed_receivable_account_id,
+                        checking_account: debit_account_id,
+                        disbursed_amount: amount.to_usd(),
+                        external_id: tx_ref,
+                    },
+                )
+                .await?;
+        }
         op.commit().await?;
         Ok(())
     }
@@ -417,5 +481,42 @@ impl CreditLedger {
             Err(e) => Err(e.into()),
             Ok(account) => Ok(account.id),
         }
+    }
+
+    pub async fn create_credit_facility_control(
+        cala: &CalaLedger,
+    ) -> Result<VelocityControlId, CreditLedgerError> {
+        let control = NewVelocityControl::builder()
+            .id(CREDIT_FACILITY_VELOCITY_CONTROL_ID)
+            .name("Credit Facility Control")
+            .description("Velocity Control for Deposits")
+            .build()
+            .expect("build control");
+
+        match cala.velocities().create_control(control).await {
+            Err(cala_ledger::velocity::error::VelocityError::ControlIdAlreadyExists) => {
+                Ok(CREDIT_FACILITY_VELOCITY_CONTROL_ID.into())
+            }
+            Err(e) => Err(e.into()),
+            Ok(control) => Ok(control.id()),
+        }
+    }
+
+    pub async fn add_credit_facility_control_to_account(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        account_id: impl Into<AccountId>,
+    ) -> Result<(), CreditLedgerError> {
+        self.cala
+            .velocities()
+            .attach_control_to_account_in_op(
+                op,
+                self.credit_facility_control_id,
+                account_id.into(),
+                cala_ledger::tx_template::Params::default(),
+            )
+            .await?;
+
+        Ok(())
     }
 }

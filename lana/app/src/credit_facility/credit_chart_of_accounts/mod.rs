@@ -1,5 +1,5 @@
 use audit::AuditInfo;
-use cala_ledger::CalaLedger;
+use cala_ledger::LedgerOperation;
 use chart_of_accounts::TransactionAccountFactory;
 use lana_ids::CreditFacilityId;
 
@@ -11,7 +11,6 @@ use super::CreditFacilityAccountIds;
 
 #[derive(Clone)]
 pub struct CreditChartOfAccounts {
-    cala: CalaLedger,
     collateral_factory: TransactionAccountFactory,
     facility_factory: TransactionAccountFactory,
     disbursed_receivable_factory: TransactionAccountFactory,
@@ -21,35 +20,31 @@ pub struct CreditChartOfAccounts {
 }
 
 impl CreditChartOfAccounts {
-    pub async fn init(
-        cala: &CalaLedger,
+    pub fn new(
         collateral_factory: TransactionAccountFactory,
         facility_factory: TransactionAccountFactory,
         disbursed_receivable_factory: TransactionAccountFactory,
         interest_receivable_factory: TransactionAccountFactory,
         interest_income_factory: TransactionAccountFactory,
         fee_income_factory: TransactionAccountFactory,
-    ) -> Result<Self, CreditChartOfAccountsError> {
-        Ok(Self {
-            cala: cala.clone(),
+    ) -> Self {
+        Self {
             collateral_factory,
             facility_factory,
             disbursed_receivable_factory,
             interest_receivable_factory,
             interest_income_factory,
             fee_income_factory,
-        })
+        }
     }
 
     pub async fn create_accounts_for_credit_facility(
         &self,
-        op: es_entity::DbOp<'_>,
+        op: &mut LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
         audit_info: AuditInfo,
     ) -> Result<(), CreditChartOfAccountsError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-
         let collateral_name = &format!(
             "Credit Facility Collateral Account for {}",
             credit_facility_id
@@ -57,7 +52,7 @@ impl CreditChartOfAccounts {
         let _collateral_details = self
             .collateral_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.collateral_account_id,
                 collateral_name,
                 collateral_name,
@@ -72,7 +67,7 @@ impl CreditChartOfAccounts {
         let _facility_details = self
             .facility_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.facility_account_id,
                 facility_name,
                 facility_name,
@@ -87,7 +82,7 @@ impl CreditChartOfAccounts {
         let _disbursed_receivable_details = self
             .disbursed_receivable_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.disbursed_receivable_account_id,
                 disbursed_receivable_name,
                 disbursed_receivable_name,
@@ -102,7 +97,7 @@ impl CreditChartOfAccounts {
         let _interest_receivable_details = self
             .interest_receivable_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.interest_receivable_account_id,
                 interest_receivable_name,
                 interest_receivable_name,
@@ -117,7 +112,7 @@ impl CreditChartOfAccounts {
         let _interest_income_details = self
             .interest_income_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.interest_account_id,
                 interest_income_name,
                 interest_income_name,
@@ -132,15 +127,13 @@ impl CreditChartOfAccounts {
         let _fee_income_details = self
             .fee_income_factory
             .create_transaction_account_in_op(
-                &mut op,
+                op,
                 account_ids.fee_income_account_id,
                 fee_income_name,
                 fee_income_name,
                 audit_info.clone(),
             )
             .await?;
-
-        op.commit().await?;
 
         Ok(())
     }

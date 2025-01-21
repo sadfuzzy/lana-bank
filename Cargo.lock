@@ -2531,6 +2531,7 @@ dependencies = [
 name = "lana-ids"
 version = "0.3.7-dev"
 dependencies = [
+ "cala-ledger",
  "deposit",
  "es-entity",
  "governance",

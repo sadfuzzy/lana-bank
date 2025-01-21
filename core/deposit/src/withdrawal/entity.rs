@@ -29,9 +29,6 @@ pub enum WithdrawalEvent {
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
-        audit_info: AuditInfo,
-    },
-    ApprovalProcessStarted {
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -174,25 +171,21 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
     fn try_from_events(events: EntityEvents<WithdrawalEvent>) -> Result<Self, EsEntityError> {
         let mut builder = WithdrawalBuilder::default();
         for event in events.iter_all() {
-            match event {
-                WithdrawalEvent::Initialized {
-                    id,
-                    reference,
-                    deposit_account_id,
-                    amount,
-                    ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .deposit_account_id(*deposit_account_id)
-                        .amount(*amount)
-                        .reference(reference.clone());
-                }
-                WithdrawalEvent::ApprovalProcessStarted {
-                    approval_process_id,
-                    ..
-                } => builder = builder.approval_process_id(*approval_process_id),
-                _ => {}
+            if let WithdrawalEvent::Initialized {
+                id,
+                reference,
+                deposit_account_id,
+                amount,
+                approval_process_id,
+                ..
+            } = event
+            {
+                builder = builder
+                    .id(*id)
+                    .deposit_account_id(*deposit_account_id)
+                    .amount(*amount)
+                    .reference(reference.clone())
+                    .approval_process_id(*approval_process_id);
             }
         }
         builder.events(events).build()
@@ -232,19 +225,14 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
     fn into_events(self) -> EntityEvents<WithdrawalEvent> {
         EntityEvents::init(
             self.id,
-            [
-                WithdrawalEvent::Initialized {
-                    reference: self.reference(),
-                    id: self.id,
-                    deposit_account_id: self.deposit_account_id,
-                    amount: self.amount,
-                    audit_info: self.audit_info.clone(),
-                },
-                WithdrawalEvent::ApprovalProcessStarted {
-                    approval_process_id: self.approval_process_id,
-                    audit_info: self.audit_info,
-                },
-            ],
+            [WithdrawalEvent::Initialized {
+                reference: self.reference(),
+                id: self.id,
+                deposit_account_id: self.deposit_account_id,
+                amount: self.amount,
+                approval_process_id: self.approval_process_id,
+                audit_info: self.audit_info,
+            }],
         )
     }
 }
