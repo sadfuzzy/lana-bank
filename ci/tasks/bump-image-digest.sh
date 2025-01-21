@@ -4,7 +4,7 @@ set -eu
 export digest=$(cat ./latest-image/digest)
 export admin_panel_image_digest=$(cat ./admin-panel-latest-image/digest)
 export customer_portal_image_digest=$(cat ./customer-portal-latest-image/digest)
-export meltano_image_digest=$(cat ./meltano-image/digest)
+export meltano_image_digest=$(cat ./meltano-latest-image/digest)
 
 
 export ref=$(cat ./repo/.git/short_ref)
