@@ -19,6 +19,10 @@ plugins:
   - name: tap-postgres
     variant: meltanolabs
     pip_url: git+https://github.com/MeltanoLabs/tap-postgres.git
+    config:
+      json_as_object: true
+      flattening_enabled: true
+      flattening_max_depth: 10
     select:
     - public-*.*
   loaders:
@@ -27,6 +31,7 @@ plugins:
     pip_url: git+https://github.com/z3z1ma/target-bigquery.git
     config:
       project: lana-dev-440721
+      generate_view: true
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
@@ -34,3 +39,18 @@ plugins:
     config:
       auth_method: service-account
       project: lana-dev-440721
+  utilities:
+  - name: sqlfluff
+    variant: sqlfluff
+    pip_url: sqlfluff sqlfluff-templater-dbt dbt-core dbt-bigquery
+    settings:
+    - name: dataset
+      env: DBT_BIGQUERY_DATASET
+    - name: keyfile
+      env: DBT_BIGQUERY_KEYFILE
+    - name: auth_method
+      env: DBT_BIGQUERY_AUTH_METHOD
+      value: service-account
+    - name: project
+      env: DBT_BIGQUERY_PROJECT
+      value: lana-dev-440721
