@@ -21,5 +21,5 @@ git status
 git add -A
 
 if [[ "$(git status -s -uno)" != ""  ]]; then
-  git commit -m "ci(dev): set version to ${VERSION}"
+  git commit -m "ci(dev): set version to ${VERSION} [ci skip]"
 fi

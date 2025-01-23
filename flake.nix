@@ -41,6 +41,7 @@
           rustToolchain
           opentofu
           alejandra
+          ytt
           sqlx-cli
           cargo-nextest
           cargo-audit
