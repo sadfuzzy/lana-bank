@@ -42,7 +42,6 @@ struct Cli {
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
-
     let config = Config::init(
         cli.config,
         EnvSecrets {
