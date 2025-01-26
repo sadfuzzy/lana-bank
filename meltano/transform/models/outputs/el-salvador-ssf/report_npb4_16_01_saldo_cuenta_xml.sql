@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 select
     right(id_codigo_cuenta, 10) as id_codigo_cuenta,
     left(nom_cuenta, 80) as nom_cuenta,

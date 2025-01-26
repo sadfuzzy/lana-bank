@@ -3,6 +3,7 @@ extend-exclude = [
 	"CHANGELOG.md",
 	"jwks.json",
 	"/definitions/*/el-salvador-ssf/*",
+	"/meltano/transform/models/*/el-salvador-ssf/*",
 	"dev/fake-service-account.json",
 	"**/pnpm-lock.yaml",
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
