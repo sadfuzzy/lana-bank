@@ -1,6 +1,6 @@
 [package]
 name = "lana-cli"
-version = "0.3.17-dev"
+version = "0.3.18-dev"
 edition = "2021"
 
 [features]
