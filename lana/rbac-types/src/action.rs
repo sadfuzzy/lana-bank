@@ -221,8 +221,6 @@ pub enum ReportAction {
     Read,
     List,
     Create,
-    Compile,
-    Invoke,
     Upload,
     GenerateDownloadLink,
 }

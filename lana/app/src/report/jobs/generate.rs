@@ -10,10 +10,7 @@ use crate::{
     storage::Storage,
 };
 
-use crate::report::{
-    dataform_client::DataformClient, entity::ReportGenerationProcessStep, repo::ReportRepo, upload,
-    ReportConfig,
-};
+use crate::report::{repo::ReportRepo, upload, ReportConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {
@@ -87,75 +84,28 @@ impl JobRunner for GenerateReportJobRunner {
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut report = self.repo.find_by_id(self.config.report_id).await?;
-        let mut client = DataformClient::connect(&self.report_config).await?;
 
-        match report.next_step() {
-            ReportGenerationProcessStep::Compilation => {
-                let mut db = self.repo.begin_op().await?;
+        let mut db = self.repo.begin_op().await?;
 
-                let audit_info = self
-                    .audit
-                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Compile)
-                    .await?;
-                match client.compile().await {
-                    Ok(res) => {
-                        report.compilation_completed(res, audit_info);
-                    }
-                    Err(e) => {
-                        report.compilation_failed(e.to_string(), audit_info);
-                    }
-                }
+        let audit_info = self
+            .audit
+            .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Upload)
+            .await?;
+
+        match upload::execute(&self.report_config, &self.storage).await {
+            Ok(files) => report.files_uploaded(files, audit_info),
+            Err(e) => {
+                report.upload_failed(e.to_string(), audit_info);
+
                 self.repo.update_in_op(&mut db, &mut report).await?;
                 db.commit().await?;
 
                 return Ok(JobCompletion::RescheduleNow);
-            }
-
-            ReportGenerationProcessStep::Invocation => {
-                let mut db = self.repo.begin_op().await?;
-
-                let audit_info = self
-                    .audit
-                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Invoke)
-                    .await?;
-                match client.invoke(&report.compilation_result()).await {
-                    Ok(res) => {
-                        report.invocation_completed(res, audit_info);
-                    }
-                    Err(e) => {
-                        report.invocation_failed(e.to_string(), audit_info);
-                    }
-                }
-                self.repo.update_in_op(&mut db, &mut report).await?;
-                db.commit().await?;
-
-                return Ok(JobCompletion::RescheduleNow);
-            }
-
-            ReportGenerationProcessStep::Upload => {
-                let mut db = self.repo.begin_op().await?;
-
-                let audit_info = self
-                    .audit
-                    .record_system_entry_in_tx(db.tx(), Object::Report, ReportAction::Upload)
-                    .await?;
-
-                match upload::execute(&self.report_config, &self.storage).await {
-                    Ok(files) => report.files_uploaded(files, audit_info),
-                    Err(e) => {
-                        report.upload_failed(e.to_string(), audit_info);
-
-                        self.repo.update_in_op(&mut db, &mut report).await?;
-                        db.commit().await?;
-
-                        return Ok(JobCompletion::RescheduleNow);
-                    }
-                }
-
-                self.repo.update_in_op(&mut db, &mut report).await?;
-                db.commit().await?;
             }
         }
+
+        self.repo.update_in_op(&mut db, &mut report).await?;
+        db.commit().await?;
 
         Ok(JobCompletion::Complete)
     }

@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{audit::AuditInfo, primitives::*, storage::LocationInCloud};
 
-use super::{
-    dataform_client::{CompilationResult, WorkflowInvocation},
-    upload::ReportFileUpload,
-};
+use super::upload::ReportFileUpload;
 
 #[derive(Debug)]
 pub struct ReportLocationInCloud {
@@ -46,26 +43,6 @@ pub enum ReportEvent {
         id: ReportId,
         audit_info: AuditInfo,
     },
-    CompilationCompleted {
-        result: CompilationResult,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
-    },
-    CompilationFailed {
-        error: String,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
-    },
-    InvocationCompleted {
-        result: WorkflowInvocation,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
-    },
-    InvocationFailed {
-        error: String,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
-    },
     FileUploaded {
         report_name: String,
         path_in_bucket: String,
@@ -93,13 +70,6 @@ pub enum ReportEvent {
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum ReportGenerationProcessStep {
-    Compilation,
-    Invocation,
-    Upload,
-}
-
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Report {
@@ -114,29 +84,8 @@ impl Report {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub(super) fn next_step(&self) -> ReportGenerationProcessStep {
-        let last_step = self.events.iter_all().rev().find_map(|event| match event {
-            ReportEvent::CompilationCompleted { .. } | ReportEvent::InvocationFailed { .. } => {
-                Some(ReportGenerationProcessStep::Invocation)
-            }
-            ReportEvent::InvocationCompleted { .. } | ReportEvent::UploadFailed { .. } => {
-                Some(ReportGenerationProcessStep::Upload)
-            }
-
-            _ => None,
-        });
-
-        last_step.unwrap_or(ReportGenerationProcessStep::Compilation)
-    }
-
     pub fn last_error(&self) -> Option<String> {
         for e in self.events.iter_all().rev() {
-            if let ReportEvent::CompilationFailed { error, .. } = e {
-                return Some(format!("CompilationFailed: {}", error));
-            }
-            if let ReportEvent::InvocationFailed { error, .. } = e {
-                return Some(format!("InvocationFailed: {}", error));
-            }
             if let ReportEvent::UploadFailed { error, .. } = e {
                 return Some(format!("UploadFailed: {}", error));
             }
@@ -154,55 +103,6 @@ impl Report {
             }
         }
         ReportProgress::Running
-    }
-
-    pub(super) fn compilation_completed(
-        &mut self,
-        compilation_result: CompilationResult,
-        audit_info: AuditInfo,
-    ) {
-        self.events.push(ReportEvent::CompilationCompleted {
-            result: compilation_result,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
-    }
-
-    pub(super) fn compilation_failed(&mut self, error: String, audit_info: AuditInfo) {
-        self.events.push(ReportEvent::CompilationFailed {
-            error,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
-    }
-
-    pub fn compilation_result(&self) -> CompilationResult {
-        for e in self.events.iter_all().rev() {
-            if let ReportEvent::CompilationCompleted { result, .. } = e {
-                return result.clone();
-            }
-        }
-        unreachable!("Only called after successful compilation");
-    }
-
-    pub(super) fn invocation_completed(
-        &mut self,
-        invocation_result: WorkflowInvocation,
-        audit_info: AuditInfo,
-    ) {
-        self.events.push(ReportEvent::InvocationCompleted {
-            result: invocation_result,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
-    }
-
-    pub(super) fn invocation_failed(&mut self, error: String, audit_info: AuditInfo) {
-        self.events.push(ReportEvent::InvocationFailed {
-            error,
-            audit_info,
-            recorded_at: Utc::now(),
-        });
     }
 
     pub(super) fn files_uploaded(
@@ -315,89 +215,5 @@ impl IntoEvents<ReportEvent> for NewReport {
                 audit_info: self.audit_info,
             }],
         )
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use crate::audit::AuditEntryId;
-
-    use super::*;
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
-
-    fn init_report(events: Vec<ReportEvent>) -> Report {
-        Report::try_from_events(EntityEvents::init(ReportId::new(), events)).unwrap()
-    }
-
-    #[test]
-    fn next_step() {
-        let id = ReportId::new();
-        let mut events = vec![ReportEvent::Initialized {
-            id,
-            audit_info: dummy_audit_info(),
-        }];
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Compilation
-        );
-
-        events.push(ReportEvent::CompilationFailed {
-            error: "".to_string(),
-            audit_info: dummy_audit_info(),
-            recorded_at: Utc::now(),
-        });
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Compilation
-        );
-
-        events.push(ReportEvent::CompilationCompleted {
-            result: CompilationResult::default(),
-            audit_info: dummy_audit_info(),
-            recorded_at: Utc::now(),
-        });
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Invocation
-        );
-
-        events.push(ReportEvent::InvocationFailed {
-            error: "".to_string(),
-            audit_info: dummy_audit_info(),
-            recorded_at: Utc::now(),
-        });
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Invocation
-        );
-
-        events.push(ReportEvent::InvocationCompleted {
-            result: WorkflowInvocation {
-                name: "".to_string(),
-                state: crate::report::dataform_client::WorkflowInvocationState::Succeeded,
-            },
-            audit_info: dummy_audit_info(),
-            recorded_at: Utc::now(),
-        });
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Upload
-        );
-
-        events.push(ReportEvent::UploadFailed {
-            error: "".to_string(),
-            audit_info: dummy_audit_info(),
-            recorded_at: Utc::now(),
-        });
-        assert_eq!(
-            init_report(events.clone()).next_step(),
-            ReportGenerationProcessStep::Upload
-        );
     }
 }

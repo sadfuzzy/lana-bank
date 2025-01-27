@@ -1,5 +1,4 @@
 mod config;
-pub mod dataform_client;
 mod entity;
 pub mod error;
 mod jobs;
