@@ -27,7 +27,6 @@ async fn deposit() -> anyhow::Result<()> {
     let jobs = job::Jobs::new(&pool, job::JobExecutorConfig::default());
 
     let journal_id = helpers::init_journal(&cala).await?;
-    let omnibus_code = journal_id.to_string();
 
     let chart_id = ChartId::new();
     let chart_of_accounts = CoreChartOfAccounts::init(&pool, &authz, &cala, journal_id).await?;
@@ -39,24 +38,46 @@ async fn deposit() -> anyhow::Result<()> {
         )
         .await?;
 
-    let control_account_path = chart_of_accounts
+    let control_account = chart_of_accounts
         .create_control_account(
+            LedgerAccountSetId::new(),
             chart_id,
             ChartCategory::Liabilities,
             "Deposits".to_string(),
             "deposits".to_string(),
         )
         .await?;
-    let control_sub_account_path = chart_of_accounts
+    let control_sub_account = chart_of_accounts
         .create_control_sub_account(
             LedgerAccountSetId::new(),
             chart_id,
-            control_account_path,
+            control_account,
             "User Deposits".to_string(),
             "user-deposits".to_string(),
         )
         .await?;
-    let factory = chart_of_accounts.transaction_account_factory(control_sub_account_path);
+    let factory = chart_of_accounts.transaction_account_factory(control_sub_account);
+
+    let omnibus_control_account = chart_of_accounts
+        .create_control_account(
+            LedgerAccountSetId::new(),
+            chart_id,
+            ChartCategory::Assets,
+            "Deposits Omnibus".to_string(),
+            "deposits-omnibus".to_string(),
+        )
+        .await?;
+    let omnibus_control_sub_account = chart_of_accounts
+        .create_control_sub_account(
+            LedgerAccountSetId::new(),
+            chart_id,
+            omnibus_control_account,
+            "User Deposits Omnibus".to_string(),
+            "user-deposits-omnibus".to_string(),
+        )
+        .await?;
+    let omnibus_factory =
+        chart_of_accounts.transaction_account_factory(omnibus_control_sub_account);
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -65,9 +86,9 @@ async fn deposit() -> anyhow::Result<()> {
         &governance,
         &jobs,
         factory,
+        omnibus_factory,
         &cala,
         journal_id,
-        omnibus_code,
     )
     .await?;
 

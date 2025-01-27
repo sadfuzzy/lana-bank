@@ -10,12 +10,15 @@ pub mod customer;
 pub mod document;
 pub mod price;
 pub mod primitives;
+pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
+pub mod statement;
 pub mod storage;
 pub mod terms;
 pub mod terms_template;
 mod time;
+pub mod trial_balance;
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;

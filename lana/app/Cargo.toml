@@ -4,7 +4,7 @@ version = "0.3.19-dev"
 edition = "2021"
 
 [features]
-sim-time = ["dep:sim-time", "es-entity/sim-time" ]
+sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 fail-on-warnings = []
 
@@ -68,4 +68,4 @@ cloud-storage = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
-serial_test = { version = "3.1.1", features = [ "file_locks" ] }
+serial_test = { version = "3.1.1", features = ["file_locks"] }
