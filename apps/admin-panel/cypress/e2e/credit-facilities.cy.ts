@@ -15,15 +15,15 @@ describe("credit facility", () => {
       marginCallCvl: "120",
       initialCvl: "140",
       duration: {
-        units: 12,
+        units: 12 * 100,
         period: Period.Months,
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
     })
 
-    const testEmail = `test-${Date.now()}@example.com`
-    const testTelegramId = `user${Date.now()}`
+    const testEmail = `t${Date.now().toString().slice(-6)}@example.com`
+    const testTelegramId = `t${Date.now()}`
     cy.createCustomer(testEmail, testTelegramId).then((customer) => {
       customerId = customer.customerId
       cy.log(`Created customer with ID: ${customerId}`)
