@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { gql } from "@apollo/client"
+import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
 
 import { useCreateContext } from "../create"
@@ -15,7 +15,10 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import { useCreateDepositMutation } from "@/lib/graphql/generated"
+import {
+  GetCustomerOverviewDocument,
+  useCreateDepositMutation,
+} from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 
 gql`
@@ -26,12 +29,15 @@ gql`
         account {
           customer {
             id
+            customerId
             depositAccount {
+              id
               deposits {
                 ...DepositFields
               }
             }
             depositAccount {
+              id
               balance {
                 settled
                 pending
@@ -68,7 +74,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
   const [amount, setAmount] = useState<string>("")
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
-
+  const client = useApolloClient()
   const { customer } = useCreateContext()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,6 +91,14 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
         },
       })
       if (result.data) {
+        await client.query({
+          query: GetCustomerOverviewDocument,
+          variables: {
+            id: result.data.depositRecord.deposit.account.customer.customerId,
+          },
+          fetchPolicy: "network-only",
+        })
+
         toast.success("Deposit created successfully")
         handleCloseDialog()
       } else {

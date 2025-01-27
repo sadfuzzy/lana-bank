@@ -13,6 +13,7 @@ gql`
       id
       customerId
       depositAccount {
+        id
         balance {
           settled
           pending

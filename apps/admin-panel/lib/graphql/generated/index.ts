@@ -1843,7 +1843,7 @@ export type GetCustomerOverviewQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerOverviewQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, depositAccount: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } | null };
+export type GetCustomerOverviewQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, depositAccount: { __typename?: 'DepositAccount', id: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } | null };
 
 export type GetCustomerTransactionsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -1886,7 +1886,7 @@ export type CreateDepositMutationVariables = Exact<{
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, depositAccount: { __typename?: 'DepositAccount', deposits: Array<{ __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } } } } };
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, depositAccount: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } } } } };
 
 export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents };
 
@@ -3835,6 +3835,7 @@ export const GetCustomerOverviewDocument = gql`
     id
     customerId
     depositAccount {
+      id
       balance {
         settled
         pending
@@ -4097,12 +4098,15 @@ export const CreateDepositDocument = gql`
       account {
         customer {
           id
+          customerId
           depositAccount {
+            id
             deposits {
               ...DepositFields
             }
           }
           depositAccount {
+            id
             balance {
               settled
               pending
