@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 select
     left(`num_referencia`, 20) as `num_referencia`,
     left(`cod_cartera`, 2) as cod_cartera,
