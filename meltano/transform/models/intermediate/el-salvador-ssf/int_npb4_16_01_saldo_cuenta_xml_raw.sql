@@ -16,8 +16,6 @@ with set_hierarchy_strings as (
         {{ ref('int_account_sets') }} as account_sets
         on parent_set_id = account_sets.account_set_id
 
-    where set_name != "Balance Sheet"
-
     group by account_set_id, member_id, member_type
 
 )
@@ -42,4 +40,3 @@ left join {{ ref('int_account_balances') }} as balances
 
 where
     member_type = "Account"
-    and set_name = "Balance Sheet"
