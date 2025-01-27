@@ -10,10 +10,6 @@ pub enum ReportError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("ReportError - SerdeJson: {0}")]
     Deserialization(#[from] serde_json::Error),
-    #[error("ReportError - DataformCompilation: {0}")]
-    DataformCompilation(String),
-    #[error("ReportError - DataformInvocation: {0}")]
-    DataformInvocation(String),
     #[error("ReportError - Reqwest: {0}")]
     Reqwest(#[from] reqwest::Error),
     #[error("ReportError - GCPAuth: {0}")]

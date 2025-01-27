@@ -31,11 +31,6 @@ jobs:
       - name: build backend
         run: nix develop -c make build-for-tests
 
-      - name: sync dataform-branch
-        run: nix develop -c make push-dataform-branch
-        env:
-          DATAFORM_BRANCH: "gha-dataform"
-
       - name: keep tilt running
         run: nix develop -c make tilt-in-ci
         env:

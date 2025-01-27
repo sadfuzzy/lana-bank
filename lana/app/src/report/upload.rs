@@ -107,7 +107,7 @@ pub(super) mod bq {
             .table()
             .list(
                 &config.service_account().gcp_project,
-                &config.dataform_output_dataset,
+                &config.dbt_output_dataset,
                 ListOptions::default(),
             )
             .await?;
@@ -135,7 +135,7 @@ pub(super) mod bq {
         let gcp_project = &config.service_account().gcp_project;
         let query = format!(
             "SELECT * FROM `{}.{}.{}`",
-            gcp_project, config.dataform_output_dataset, report
+            gcp_project, config.dbt_output_dataset, report
         );
         let res = client
             .job()

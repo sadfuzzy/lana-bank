@@ -9,9 +9,7 @@ app:
     bucket_name: "gha-lana-documents"
     root_folder: "gha"
   report:
-    dataform_repo: "gha-repo"
-    dataform_output_dataset: "dataform_gha"
-    dataform_release_config: "gha-release"
+    dbt_output_dataset: "dbt_gha"
     dev_disable_auto_create: true
 time:
   realtime: false
