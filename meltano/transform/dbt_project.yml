@@ -24,3 +24,5 @@ clean-targets:
 - logs
 models:
   my_meltano_project: null
+on-run-start:
+- '{{create_udfs()}}'
