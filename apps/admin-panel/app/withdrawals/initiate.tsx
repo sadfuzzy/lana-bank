@@ -91,6 +91,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
         onCompleted: (data) => {
           toast.success("Withdrawal initiated successfully")
           navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
+          setOpenWithdrawalInitiateDialog(false)
         },
       })
     } catch (error) {
