@@ -25,7 +25,7 @@ impl ReportConfig {
     ) -> ReportConfig {
         Self {
             dataform_repo: format!("{}-repo", name_prefix),
-            dataform_output_dataset: format!("dataform_{}", name_prefix),
+            dataform_output_dataset: format!("dbt_{}", name_prefix),
             dataform_release_config: format!("{}-release", name_prefix),
             dev_disable_auto_create,
             service_account: Some(service_account),

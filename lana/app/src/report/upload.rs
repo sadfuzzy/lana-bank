@@ -31,7 +31,7 @@ pub async fn execute(
     for report_name in bq::find_report_outputs(config).await? {
         let day = chrono::Utc::now().format("%Y-%m-%d").to_string();
 
-        let rows = match bq::query_report(config, &report_name, &day).await {
+        let rows = match bq::query_report(config, &report_name).await {
             Ok(rows) => rows,
             Err(e) => {
                 res.push(ReportFileUpload::Failure {
@@ -128,15 +128,14 @@ pub(super) mod bq {
     pub(super) async fn query_report(
         config: &ReportConfig,
         report: &str,
-        day: &str,
     ) -> Result<Vec<QueryRow>, ReportError> {
         let client =
             Client::from_service_account_key(config.service_account().service_account_key(), false)
                 .await?;
         let gcp_project = &config.service_account().gcp_project;
         let query = format!(
-            "SELECT * FROM `{}.{}.{}`('{}')",
-            gcp_project, config.dataform_output_dataset, report, day
+            "SELECT * FROM `{}.{}.{}`",
+            gcp_project, config.dataform_output_dataset, report
         );
         let res = client
             .job()

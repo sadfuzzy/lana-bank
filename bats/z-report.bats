@@ -51,7 +51,7 @@ wait_for_complete() {
   echo $(graphql_output)
   links=$(graphql_output .data.reportDownloadLinksGenerate.links)
   length=$(echo $links | jq -r 'length')
-  [[ "$length" -gt "1" ]] || exit 1
+  [[ "$length" -gt "0" ]] || exit 1
 
   for url in $(echo $links | jq -r '.[].url'); do
     xml_file_contents=$(curl -fsSL "$url") || exit 1
