@@ -9,7 +9,7 @@ use crate::{
         interest_incurrences, ledger::*, repo::*, CreditFacilityError,
         CreditFacilityInterestAccrual,
     },
-    job::{error::*, *},
+    job::*,
     primitives::CreditFacilityId,
 };
 
@@ -150,29 +150,25 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        match self
-            .jobs
+        let accrual_id = credit_facility
+            .interest_accrual_in_progress()
+            .expect("First accrual not found")
+            .id;
+        self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                credit_facility
-                    .interest_accrual_in_progress()
-                    .expect("Expected accrual missing")
-                    .id,
+                accrual_id,
                 interest_incurrences::CreditFacilityJobConfig {
                     credit_facility_id: credit_facility.id,
                 },
                 periods.incurrence.end,
             )
-            .await
-        {
-            Ok(_) | Err(JobError::DuplicateId) => (),
-            Err(err) => Err(err)?,
-        };
+            .await?;
 
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
-        return Ok(JobCompletion::RescheduleAtWithOp(db, periods.accrual.end));
+        return Ok(JobCompletion::CompleteWithOp(db));
     }
 }

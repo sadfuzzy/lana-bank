@@ -1,3 +1,5 @@
+db:
+  pool_size: 90
 app:
   job_execution:
     poll_interval: 1

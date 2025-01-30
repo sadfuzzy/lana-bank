@@ -89,6 +89,14 @@ impl CreditFacilityPublisher {
                     })
                 }
 
+                InterestAccrualConcluded {
+                    amount, accrued_at, ..
+                } => Some(CreditEvent::AccrualExecuted {
+                    id: entity.id,
+                    amount: *amount,
+                    accrued_at: *accrued_at,
+                }),
+
                 _ => None,
             })
             .collect::<Vec<_>>();

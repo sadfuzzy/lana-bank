@@ -270,7 +270,7 @@ impl FacilityCVL {
 #[derive(Debug)]
 pub(super) struct NewAccrualPeriods {
     pub(super) incurrence: InterestPeriod,
-    pub(super) accrual: InterestPeriod,
+    pub(super) _accrual: InterestPeriod,
 }
 
 impl From<(InterestIncurrenceData, CreditFacilityAccountIds)> for CreditFacilityInterestIncurrence {
@@ -511,8 +511,7 @@ impl CreditFacility {
         activated_at: DateTime<Utc>,
         price: PriceOfOneBTC,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<(CreditFacilityActivation, NewAccrualPeriods)>, CreditFacilityError>
-    {
+    ) -> Result<Idempotent<(CreditFacilityActivation, InterestPeriod)>, CreditFacilityError> {
         if self.is_activated() {
             return Ok(Idempotent::AlreadyApplied);
         }
@@ -555,7 +554,7 @@ impl CreditFacility {
             structuring_fee_amount: self.structuring_fee(),
         };
 
-        Ok(Idempotent::Executed((activation, periods)))
+        Ok(Idempotent::Executed((activation, periods.incurrence)))
     }
 
     pub(super) fn initiate_disbursal(
@@ -698,7 +697,7 @@ impl CreditFacility {
                 .interest_accruals
                 .add_new(new_accrual)
                 .first_incurrence_period(),
-            accrual: accrual_period,
+            _accrual: accrual_period,
         }))
     }
 
@@ -706,10 +705,11 @@ impl CreditFacility {
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<CreditFacilityInterestAccrual, CreditFacilityError> {
-        let interest_accrual = self
+        let accrual_data = self
             .interest_accrual_in_progress()
             .expect("accrual not found")
-            .accrual_data()
+            .accrual_data();
+        let interest_accrual = accrual_data
             .map(|data| CreditFacilityInterestAccrual::from((data, self.account_ids)))
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
 

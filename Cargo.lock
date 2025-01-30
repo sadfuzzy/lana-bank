@@ -689,8 +689,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ff0b7f1a527e817bee80c185a4c8a2659c8ae84f52de618a9187179022961dc8"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -704,8 +705,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dddf33c7f3bf86d08c3ef9fed46df7d96ac5f06ff5e610c08ad5472c4c96d16d"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -713,8 +715,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "47e7ab2070fdc5ba9d620f591b75e2a687a284b7a73fab96fa9188613d2729d4"
 dependencies = [
  "cached 0.51.4",
  "cala-cel-interpreter",
@@ -745,8 +748,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eba1f5bd414eba955c58fa97fbca4308d802caccdf1480156db34fe57f799033"
 dependencies = [
  "cala-cel-interpreter",
  "chrono",
@@ -762,8 +766,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4624fc9c799a50e48d3e344aff46a530244d6676fcdc82f13bed1b19e2702a6d"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -1369,8 +1374,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7053e31c12da33c987bac59b74d99e130d71818e2a4975cf1b24c8efca3048bc"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1388,8 +1394,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3923a80f7aeb2df126c7a21a52789660f3a1ffbb716b1e9371d3d200682318ca"
 dependencies = [
  "convert_case",
  "darling",
@@ -2507,6 +2514,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "sim-bootstrap",
  "sim-time",
  "sqlx",
  "tokio",
@@ -4005,9 +4013,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.133"
+version = "1.0.138"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7fceb2473b9166b2294ef05efcb65a3db80803f0b03ef86a5fc88a2b85ee377"
+checksum = "d434192e7da787e94a6ea7e9670b26a036d0ca41e0b7efb2676dd32bae872949"
 dependencies = [
  "itoa",
  "memchr",
@@ -4154,9 +4162,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "sim-bootstrap"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "es-entity",
+ "futures",
+ "lana-app",
+ "lana-events",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "sim-time",
+ "tokio",
+]
+
+[[package]]
 name = "sim-time"
-version = "0.3.3-dev"
-source = "git+https://github.com/galoymoney/cala.git?branch=main#f39c76821303bf22772cca7f2f0d915e0c4e2a44"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e365fd54f169fd9c81b2ba55c5ddff569272c762d518f0e3c126baf337da7987"
 dependencies = [
  "chrono",
  "serde",

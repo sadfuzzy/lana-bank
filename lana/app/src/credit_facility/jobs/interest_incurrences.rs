@@ -23,6 +23,7 @@ pub struct CreditFacilityProcessingJobInitializer {
     ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo,
     audit: Audit,
+    jobs: Jobs,
 }
 
 impl CreditFacilityProcessingJobInitializer {
@@ -30,11 +31,13 @@ impl CreditFacilityProcessingJobInitializer {
         ledger: &CreditLedger,
         credit_facility_repo: CreditFacilityRepo,
         audit: &Audit,
+        jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             credit_facility_repo,
             audit: audit.clone(),
+            jobs: jobs.clone(),
         }
     }
 }
@@ -55,6 +58,7 @@ impl JobInitializer for CreditFacilityProcessingJobInitializer {
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             audit: self.audit.clone(),
+            jobs: self.jobs.clone(),
         }))
     }
 }
@@ -71,6 +75,7 @@ pub struct CreditFacilityProcessingJobRunner {
     credit_facility_repo: CreditFacilityRepo,
     ledger: CreditLedger,
     audit: Audit,
+    jobs: Jobs,
 }
 
 impl CreditFacilityProcessingJobRunner {
@@ -151,10 +156,19 @@ impl JobRunner for CreditFacilityProcessingJobRunner {
             .record_interest_incurrence(sub_op, interest_incurrence)
             .await?;
 
-        let db = es_entity::DbOp::new(tx, now);
+        let mut db = es_entity::DbOp::new(tx, now);
         if let Some(period) = next_incurrence_period {
             Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
         } else {
+            self.jobs
+                .create_and_spawn_in_op(
+                    &mut db,
+                    uuid::Uuid::new_v4(),
+                    super::interest_accruals::CreditFacilityJobConfig {
+                        credit_facility_id: self.config.credit_facility_id,
+                    },
+                )
+                .await?;
             println!(
             "Credit Facility interest incurrences job completed for accrual index {:?} for credit_facility: {:?}",
             accrual_idx, self.config.credit_facility_id

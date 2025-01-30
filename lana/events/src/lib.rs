@@ -62,6 +62,11 @@ pub enum CreditEvent {
         action: FacilityCollateralUpdateAction,
         recorded_at: DateTime<Utc>,
     },
+    AccrualExecuted {
+        id: CreditFacilityId,
+        amount: UsdCents,
+        accrued_at: DateTime<Utc>,
+    },
 }
 
 macro_rules! impl_event_marker {

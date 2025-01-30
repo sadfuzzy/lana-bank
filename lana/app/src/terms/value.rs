@@ -76,6 +76,12 @@ impl OneTimeFeeRatePct {
     }
 }
 
+impl From<Decimal> for OneTimeFeeRatePct {
+    fn from(value: Decimal) -> Self {
+        OneTimeFeeRatePct(value)
+    }
+}
+
 #[derive(Clone)]
 pub struct CVLData {
     amount: UsdCents,

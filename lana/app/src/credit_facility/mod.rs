@@ -119,6 +119,7 @@ impl CreditFacilities {
                 &ledger,
                 credit_facility_repo.clone(),
                 authz.audit(),
+                jobs,
             ),
         );
         jobs.add_initializer(

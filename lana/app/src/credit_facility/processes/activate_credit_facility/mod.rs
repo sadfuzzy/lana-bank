@@ -5,10 +5,10 @@ use tracing::instrument;
 use crate::{
     audit::{Audit, AuditSvc},
     credit_facility::{
-        error::CreditFacilityError, interest_accruals, interest_incurrences, ledger::CreditLedger,
-        CreditFacility, CreditFacilityRepo, DisbursalRepo,
+        error::CreditFacilityError, interest_incurrences, ledger::CreditLedger, CreditFacility,
+        CreditFacilityRepo, DisbursalRepo,
     },
-    job::{error::JobError, Jobs},
+    job::Jobs,
     price::Price,
     primitives::CreditFacilityId,
 };
@@ -106,36 +106,16 @@ impl ActivateCreditFacility {
             .interest_accrual_in_progress()
             .expect("First accrual not found")
             .id;
-        match self
-            .jobs
+        self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
                 interest_incurrences::CreditFacilityJobConfig {
                     credit_facility_id: id,
                 },
-                next_incurrence_period.incurrence.end,
+                next_incurrence_period.end,
             )
-            .await
-        {
-            Ok(_) | Err(JobError::DuplicateId) => (),
-            Err(err) => Err(err)?,
-        };
-        match self
-            .jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                id,
-                interest_accruals::CreditFacilityJobConfig {
-                    credit_facility_id: id,
-                },
-                next_incurrence_period.accrual.end,
-            )
-            .await
-        {
-            Ok(_) | Err(JobError::DuplicateId) => (),
-            Err(err) => Err(err)?,
-        };
+            .await?;
 
         self.ledger
             .activate_credit_facility(db, credit_facility_activation)

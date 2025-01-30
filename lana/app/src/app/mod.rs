@@ -53,7 +53,7 @@ pub struct LanaApp {
     report: Reports,
     terms_templates: TermsTemplates,
     documents: Documents,
-    _outbox: Outbox,
+    outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
 }
@@ -154,7 +154,7 @@ impl LanaApp {
             balance_sheets,
             terms_templates,
             documents,
-            _outbox: outbox,
+            outbox,
             governance,
             dashboard,
         })
@@ -182,6 +182,10 @@ impl LanaApp {
 
     pub fn price(&self) -> &Price {
         &self.price
+    }
+
+    pub fn outbox(&self) -> &Outbox {
+        &self.outbox
     }
 
     #[instrument(name = "lana.audit.list_audit", skip(self), err)]
