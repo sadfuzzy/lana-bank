@@ -8,6 +8,7 @@ mod jobs;
 pub mod ledger;
 mod processes;
 mod publisher;
+mod repayment_plan;
 mod repo;
 
 use std::collections::HashMap;
@@ -44,6 +45,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
+pub use repayment_plan::*;
 use repo::CreditFacilityRepo;
 pub use repo::{
     credit_facility_cursor::*, CreditFacilitiesSortBy, FindManyCreditFacilities, ListDirection,

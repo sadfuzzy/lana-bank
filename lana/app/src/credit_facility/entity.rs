@@ -12,8 +12,8 @@ use crate::{
 };
 
 use super::{
-    disbursal::*, history, interest_accrual::*, ledger::*, CreditFacilityCollateralUpdate,
-    CreditFacilityError,
+    disbursal::*, history, interest_accrual::*, ledger::*, repayment_plan,
+    CreditFacilityCollateralUpdate, CreditFacilityError,
 };
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -435,6 +435,10 @@ impl CreditFacility {
 
     pub fn history(&self) -> Vec<history::CreditFacilityHistoryEntry> {
         history::project(self.events.iter_all())
+    }
+
+    pub fn repayment_plan(&self) -> Vec<repayment_plan::CreditFacilityRepaymentInPlan> {
+        repayment_plan::project(self.events.iter_all())
     }
 
     pub(super) fn is_approval_process_concluded(&self) -> bool {
