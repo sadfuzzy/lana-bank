@@ -18,7 +18,6 @@ import {
 import { Input } from "@/ui/input"
 import { Button } from "@/ui/button"
 import { Label } from "@/ui/label"
-import { sendMagicLinkToEmail } from "@/lib/user/server-actions/send-magic-link"
 import { formatRole } from "@/lib/utils"
 import { Checkbox } from "@/ui/check-box"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -62,9 +61,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
   const [error, setError] = useState<string | null>(null)
   const [assignRoleError, setAssignRoleError] = useState<string | null>(null)
-  const [isSendingMagicLink, setIsSendingMagicLink] = useState(false)
 
-  const isLoading = creatingUser || assigningRole || isSendingMagicLink || isNavigating
+  const isLoading = creatingUser || assigningRole || isNavigating
   const isSubmitDisabled = isLoading || selectedRoles.length === 0
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +83,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       if (result.data) {
         const userId = result.data.userCreate.user.userId
         await assignUserRoles(userId)
-        await sendMagicLinkAndFinalize(userId)
+        finalize(userId)
       }
     } catch (error) {
       handleError(error, "Error creating user:")
@@ -106,21 +104,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     return true
   }
 
-  const sendMagicLinkAndFinalize = async (userId: string) => {
-    setIsSendingMagicLink(true)
-    try {
-      await sendMagicLinkToEmail(email)
-      toast.success("Magic link sent successfully")
-      finalize(userId)
-    } catch (error) {
-      console.error("Error sending magic link:", error)
-      toast.error("Failed to send magic link. Please try again later.")
-    } finally {
-      setIsSendingMagicLink(false)
-    }
-  }
-
   const finalize = (userId: string) => {
+    toast.success("User created successfully")
     navigate(`/users/${userId}`)
   }
 
@@ -136,7 +121,6 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     setSelectedRoles([])
     setError(null)
     setAssignRoleError(null)
-    setIsSendingMagicLink(false)
   }
 
   const handleRoleToggle = (role: Role) => {

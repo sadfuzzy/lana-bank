@@ -30,6 +30,11 @@ pub mod dashboard {
     pub use dashboard::DashboardValues;
 }
 
+pub mod user_onboarding {
+    pub use user_onboarding::config::UserOnboardingConfig;
+    pub use user_onboarding::*;
+}
+
 pub mod user {
     pub use core_user::{error, User};
     pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;

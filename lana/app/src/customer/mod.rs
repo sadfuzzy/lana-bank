@@ -26,7 +26,7 @@ pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustom
 pub struct Customers {
     repo: CustomerRepo,
     deposit: Deposits,
-    kratos: KratosClient,
+    _kratos: KratosClient,
     authz: Authorization,
 }
 
@@ -41,7 +41,7 @@ impl Customers {
         let kratos = KratosClient::new(&config.kratos);
         Self {
             repo,
-            kratos,
+            _kratos: kratos,
             authz: authz.clone(),
             deposit: deposits.clone(),
         }
@@ -78,7 +78,7 @@ impl Customers {
             .subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
-        let customer_id: uuid::Uuid = self.kratos.create_identity(&email).await?;
+        let customer_id = CustomerId::new();
         let account_name = &format!("Deposit Account for Customer {}", customer_id);
         self.deposit
             .create_account(sub, customer_id, account_name, account_name)

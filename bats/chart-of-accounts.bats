@@ -7,6 +7,7 @@ RUN_LOG_FILE="chart-of-accounts.run.e2e-logs"
 
 setup_file() {
   start_server
+  login_superadmin
 }
 
 teardown_file() {

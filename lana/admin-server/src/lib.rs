@@ -1,7 +1,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod auth;
 mod config;
 pub mod graphql;
 mod primitives;
@@ -42,7 +41,6 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
-        .merge(auth::auth_routes())
         .merge(sumsub::sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
@@ -61,7 +59,7 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AdminJwtClaims {
-    pub subject: String,
+    pub sub: String,
 }
 
 #[instrument(name = "server_admin.graphql", skip_all, fields(error, error.level, error.message))]
@@ -74,7 +72,7 @@ pub async fn graphql_handler(
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    match uuid::Uuid::parse_str(&jwt_claims.subject) {
+    match uuid::Uuid::parse_str(&jwt_claims.sub) {
         Ok(id) => {
             let auth_context = AdminAuthContext::new(id);
             req = req.data(auth_context);

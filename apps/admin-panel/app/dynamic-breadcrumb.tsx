@@ -1,3 +1,5 @@
+"use client"
+
 import { useBreadcrumb } from "./breadcrumb-provider"
 
 import { BreadCrumbWrapper } from "@/components/breadcrumb-wrapper"

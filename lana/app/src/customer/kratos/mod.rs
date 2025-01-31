@@ -11,7 +11,7 @@ use error::KratosClientError;
 
 #[derive(Clone)]
 pub struct KratosClient {
-    config: Configuration,
+    _config: Configuration,
 }
 
 impl KratosClient {
@@ -19,11 +19,11 @@ impl KratosClient {
         let mut kratos_config = Configuration::new();
         kratos_config.base_path.clone_from(&config.admin_url);
         Self {
-            config: kratos_config,
+            _config: kratos_config,
         }
     }
 
-    pub async fn create_identity(&self, email: &str) -> Result<uuid::Uuid, KratosClientError> {
+    pub async fn _create_identity(&self, email: &str) -> Result<uuid::Uuid, KratosClientError> {
         let identity_body = CreateIdentityBody::new(
             "email".to_string(),
             serde_json::json!({
@@ -31,7 +31,7 @@ impl KratosClient {
             }),
         );
 
-        identity_api::create_identity(&self.config, Some(&identity_body))
+        identity_api::create_identity(&self._config, Some(&identity_body))
             .await
             .map_err(KratosClientError::CouldNotCreateIdentity)
             .and_then(|identity| {

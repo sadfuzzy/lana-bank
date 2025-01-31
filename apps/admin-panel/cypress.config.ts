@@ -48,7 +48,7 @@ export default defineConfig({
       "cypress/e2e/dashboard.cy.ts",
       "cypress/e2e/profit-and-loss.cy.ts",
     ],
-    baseUrl: "http://localhost:4455/admin-panel",
+    baseUrl: "http://localhost:4455/admin",
     defaultCommandTimeout: 4000 * multiplier,
     requestTimeout: 5000 * multiplier,
     pageLoadTimeout: 60000 * multiplier,
@@ -57,7 +57,7 @@ export default defineConfig({
     video: true,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
-      MAGIC_LINK: process.env.MAGIC_LINK,
+      COOKIES: process.env.COOKIES,
     },
   },
 })

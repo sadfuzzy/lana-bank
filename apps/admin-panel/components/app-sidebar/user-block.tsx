@@ -2,7 +2,6 @@
 
 import { gql } from "@apollo/client"
 import { ChevronsUpDown, LogOut } from "lucide-react"
-import { signOut } from "next-auth/react"
 
 import { useAvatarQuery } from "@/lib/graphql/generated"
 import { Skeleton } from "@/ui/skeleton"
@@ -17,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/ui/dropdown-menu"
+import { useLogout } from "@/app/auth/session"
 
 gql`
   query Avatar {
@@ -31,6 +31,7 @@ gql`
 `
 
 export function UserBlock() {
+  const { logout } = useLogout()
   const { data, loading } = useAvatarQuery()
 
   if (loading && !data) {
@@ -86,8 +87,8 @@ export function UserBlock() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => signOut()}
+              className="text-destructive focus:text-destructive cursor-pointer"
+              onClick={logout}
             >
               <LogOut className="mr-2 h-4 w-4" />
               Log out

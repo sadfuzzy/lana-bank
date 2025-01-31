@@ -29,6 +29,7 @@ use crate::{
     terms_template::TermsTemplates,
     trial_balance::TrialBalances,
     user::Users,
+    user_onboarding::UserOnboarding,
 };
 
 pub use config::*;
@@ -56,6 +57,7 @@ pub struct LanaApp {
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    _user_onboarding: UserOnboarding,
 }
 
 impl LanaApp {
@@ -73,6 +75,7 @@ impl LanaApp {
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
+        let user_onboarding = UserOnboarding::init(&jobs, &outbox, config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
@@ -157,6 +160,7 @@ impl LanaApp {
             outbox,
             governance,
             dashboard,
+            _user_onboarding: user_onboarding,
         })
     }
 

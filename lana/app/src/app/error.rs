@@ -20,6 +20,8 @@ pub enum ApplicationError {
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
+    #[error("ApplicationError - UserOnboardingError: {0}")]
+    UserOnboardingError(#[from] user_onboarding::error::UserOnboardingError),
     #[error("ApplicationError - AuthorizationError: {0}")]
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("ApplicationError - AuditError: {0}")]

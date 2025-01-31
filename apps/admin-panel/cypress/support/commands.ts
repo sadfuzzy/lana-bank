@@ -29,6 +29,11 @@ declare global {
 Cypress.Commands.add(
   "graphqlRequest",
   <T>(query: string, variables?: Record<string, unknown>): Cypress.Chainable<T> => {
+    const cookies = JSON.parse(
+      Buffer.from(Cypress.env("COOKIES"), "base64").toString("utf-8"),
+    )
+    const cookieHeader = `${cookies["cookie1_name"]}=${cookies["cookie1_value"]}; ${cookies["cookie2_name"]}=${cookies["cookie2_value"]}`
+
     return cy
       .request({
         method: "POST",
@@ -39,6 +44,7 @@ Cypress.Commands.add(
         },
         headers: {
           "Content-Type": "application/json",
+          "Cookie": cookieHeader,
         },
       })
       .then((response) => {

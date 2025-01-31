@@ -1,93 +1,41 @@
-- id: public-core-api
+- id: kratos
   upstream:
-    url: "http://dockerhost-alias:5252"
+    url: http://dockerhost-alias:4433
+    strip_path: /admin
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/graphql"
-    methods: ["POST", "GET", "OPTIONS"]
+    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/<(sessions|self-service)>/<.*>
+    methods: [ GET, POST, PUT, OPTIONS, DELETE, PATCH ]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+
+- id: admin-api # lana/admin-server
+  upstream:
+    url: http://dockerhost-alias:5253
+    strip_path: /admin
+  match:
+    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/graphql
+    methods: [ GET, POST, OPTIONS ]
   authenticators:
     - handler: cookie_session
-      config:
-        check_session_url: http://kratos:4433/sessions/whoami
-        preserve_path: true
-        subject_from: identity.id
-        extra_from: identity.traits
-        only:
-          - ory_kratos_session
-
     - handler: bearer_token
   authorizer:
     handler: allow
   mutators:
     - handler: id_token
       config:
-        claims: '{"sub": "{{ print .Subject }}", "aud": ["https://public-api/graphql"] }'
-
-- id: lana-core-customer-portal
-  upstream:
-    url: "http://dockerhost-alias:3000"
-    preserve_host: true
-  match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(?!sessions|self-service|graphql|admin|admin-panel).*>"
-    methods: ["POST", "GET", "OPTIONS"]
-  authenticators:
-    - handler: cookie_session
-      config:
-        check_session_url: http://kratos:4433/sessions/whoami
-        preserve_path: true
-        subject_from: identity.id
-        extra_from: identity.traits
-        only:
-          - ory_kratos_session
-    - handler: anonymous
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: id_token
-
-- id: admin-core-api
-  upstream:
-    url: "http://dockerhost-alias:5253"
-    strip_path: /admin
-  match:
-    # we are adding /admin so that oathkeeper know how to differentiate between public and admin api
-    # otherwise, both call would point to http://localhost:4455/graphql
-    # the /admin is stripped when oathkeeper call the upstream
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/admin/graphql"
-    methods: ["POST", "GET", "OPTIONS"]
-  authenticators:
-    - handler: cookie_session
-    # only be in local dev. to simplify tests set up, until admin API is API-auth friendly
-    - handler: anonymous
-      config:
-        subject: admin@galoy.io
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: hydrator
-    - handler: id_token
-      config:
         claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
-- id: admin-panel
+- id: admin-panel-ui # apps/admin-panel
   upstream:
-    url: "http://dockerhost-alias:3001"
-    preserve_host: true
+    url: http://dockerhost-alias:3001
+    # strip_path: /admin # nextjs base path will handle this
   match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/admin-panel<.*>"
-    methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
-  authenticators:
-    - handler: noop
-  authorizer:
-    handler: allow
-  mutators:
-    - handler: noop
-
-- id: kratos-public
-  upstream:
-    url: "http://dockerhost-alias:4433"
-  match:
-    url: "<(http|https)>://<[a-zA-Z0-9-.:]+>/<(sessions|self-service)>/<.*>"
-    methods: ["POST", "GET", "OPTIONS", "PUT", "DELETE", "PATCH"]
+    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin<(?!\/sessions|\/self-service|\/graphql).*>
+    methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
   authenticators:
     - handler: noop
   authorizer:

@@ -1,17 +1,30 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { getCsrfToken } from "next-auth/react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+
+import { loginUser } from "../ory"
 
 import { Input } from "@/components/input"
-import { basePath } from "@/env"
 import { Button } from "@/ui/button"
 
 const Login: React.FC = () => {
-  const [csrfToken, setCsrfToken] = useState<string | null>(null)
-  useEffect(() => {
-    getCsrfToken().then((token) => token && setCsrfToken(token))
-  })
+  const router = useRouter()
+
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState("")
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError("")
+
+    try {
+      const flowId = await loginUser(email)
+      router.push(`/auth/verify?flow=${flowId}`)
+    } catch {
+      setError("Please check your credentials and try again.")
+    }
+  }
 
   return (
     <>
@@ -20,20 +33,18 @@ const Login: React.FC = () => {
         <div className="text-md">Welcome to Lana Bank Admin Panel</div>
         <div className="text-md font-light">Enter your email address to continue</div>
       </div>
-      <form
-        className="space-y-[20px] w-full"
-        action={`${basePath}/api/auth/signin/email`}
-        method="POST"
-      >
-        <input name="csrfToken" type="hidden" defaultValue={csrfToken || ""} />
+      <form className="space-y-[20px] w-full" onSubmit={onSubmit}>
         <Input
           label="Your email"
           type="email"
           name="email"
           autofocus
           placeholder="Please enter your email address"
+          defaultValue={email}
+          onChange={setEmail}
         />
         <Button type="submit">Submit</Button>
+        {error && <div className="text-destructive">{error}</div>}
       </form>
     </>
   )

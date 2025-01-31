@@ -100,15 +100,17 @@ where
             .await?
             .expect("audit info missing");
 
+        let email = email.into();
+
         let new_user = NewUser::builder()
-            .email(email)
+            .email(email.clone())
             .audit_info(audit_info)
             .build()
             .expect("Could not build user");
         let mut db = self.repo.begin_op().await?;
         let user = self.repo.create_in_op(&mut db, new_user).await?;
         self.outbox
-            .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id })
+            .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id, email })
             .await?;
         db.commit().await?;
         Ok(user)
@@ -324,7 +326,7 @@ where
         };
         if let Some(user) = user {
             self.outbox
-                .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id })
+                .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id, email })
                 .await?;
         }
         db.commit().await?;

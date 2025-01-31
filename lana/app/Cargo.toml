@@ -14,6 +14,7 @@ lana-events = { path = "../events" }
 lana-ids = { path = "../ids" }
 
 dashboard = { path = "../dashboard" }
+user-onboarding = { path = "../user-onboarding" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }

@@ -123,9 +123,26 @@ exec_graphql() {
     "${GQL_PUBLIC_ENDPOINT}"
 }
 
+login_superadmin() {
+  local email="admin@galoy.io"
+
+  flowId=$(curl -s -X GET -H "Accept: application/json" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login/api" | jq -r '.id')
+  variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
+  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login?flow=$flowId"
+  sleep 1
+
+  code=$(getEmailCode $email)
+  variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
+  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login?flow=$flowId")
+  token=$(echo $session | jq -r '.session_token')
+  cache_value "superadmin" $token
+}
+
 exec_admin_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
+
+  AUTH_HEADER="Authorization: Bearer $(read_value "superadmin")"
 
   if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
     run_cmd="run"
@@ -135,6 +152,7 @@ exec_admin_graphql() {
 
   ${run_cmd} curl -s \
     -X POST \
+    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
@@ -146,7 +164,10 @@ exec_admin_graphql_upload() {
   local file_path=$3
   local file_var_name=${4:-"file"}
 
+  AUTH_HEADER="Authorization: Bearer $(read_value "superadmin")"
+
   curl -s -X POST \
+    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
     -H "Content-Type: multipart/form-data" \
     -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \

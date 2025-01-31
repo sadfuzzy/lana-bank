@@ -7,7 +7,9 @@
     {
       "os": "Windows 11",
       "browser": "chrome",
-      "versions": ["latest"]
+      "versions": [
+        "latest"
+      ]
     }
   ],
   "run_settings": {
@@ -25,9 +27,16 @@
       "react": "18",
       "@faker-js/faker": "latest"
     },
-    "exclude": ["node_modules/**/*", ".git/**/*", ".next/**/*"],
+    "exclude": [
+      "node_modules/**/*",
+      ".git/**/*",
+      ".next/**/*"
+    ],
     "resolution": "2560x1920",
-    "downloads": ["./results", "./cypress"]
+    "downloads": [
+      "./results",
+      "./cypress"
+    ]
   },
   "connection_settings": {
     "local": true

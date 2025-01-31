@@ -9,8 +9,9 @@ describe("Regulatory Report Management", () => {
   })
 
   it("should create a new report", () => {
-    cy.get('[data-testid="generate-report-button"]').click()
+    cy.get('[data-testid="generate-report-button"]').should("be.visible")
     cy.takeScreenshot("1_generate_report_button")
+    cy.get('[data-testid="generate-report-button"]').click()
 
     cy.get('[data-testid="create-report-dialog"]').within(() => {
       cy.get('[data-testid="dialog-title"]').should("contain", "Create New Report")

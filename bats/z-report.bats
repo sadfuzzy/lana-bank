@@ -4,6 +4,7 @@ load "helpers"
 
 setup_file() {
   start_server
+  login_superadmin
 }
 
 teardown_file() {

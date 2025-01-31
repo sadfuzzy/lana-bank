@@ -1,9 +1,9 @@
 docker_compose("../docker-compose.yml", project_name="lana-bank")
 docker_groups = {
-    "auth": ["kratos", "kratos-pg", "oathkeeper"],
+    "auth": ["kratos", "kratos-pg", "oathkeeper", "mailhog"],
     "otel": ["otel-agent"],
     "core": ["core-pg"],
-    "dev": ["mailhog", "next-auth-pg"],
+    "reporting": ["meltano"],
 }
 
 for service, deps in docker_groups.items():
@@ -25,8 +25,8 @@ local_resource(
     readiness_probe=probe(
         period_secs=5,
         http_get=http_get_action(
-            path="/admin/graphql",
-            port=4455,
+            path="/graphql",
+            port=5253,
         ),
     ),
     allow_parallel=True,
@@ -42,23 +42,22 @@ local_resource(
     "admin-panel",
     labels=["apps"],
     serve_env={
-        "NEXT_PUBLIC_BASE_PATH": "/admin-panel"
+        "NEXT_PUBLIC_BASE_PATH": "/admin"
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     readiness_probe = probe(
         period_secs  = 5,
         http_get = http_get_action(
-            path = "/admin-panel",
+            path = "/admin",
             port = 4455,
         ),
     ),
     allow_parallel=True,
     resource_deps=[
-        "next-auth-pg",
         "mailhog",
         "core",
     ],
     links = [
-        link("http://localhost:4455/admin-panel", "admin-panel"),
+        link("http://localhost:4455/admin", "admin-panel"),
     ]
 )

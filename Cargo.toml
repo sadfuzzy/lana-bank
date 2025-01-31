@@ -8,6 +8,7 @@ members = [
   "lana/events",
   "lana/ids",
   "lana/dashboard",
+  "lana/user-onboarding",
 
   "core/user",
   "core/governance",

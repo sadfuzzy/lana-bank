@@ -1,87 +1,51 @@
 services:
-  integration-deps:
-    image: busybox
-    command: sh -c "while :; do sleep 10; done"
-    depends_on:
-      - core-pg
-      - otel-agent
-      - kratos
-      - kratos-pg
-      - oathkeeper
-      - mailhog
-  core-pg:
-    image: postgres:16.4
-    ports:
-      - "5433:5432"
-    environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=pg
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
-      interval: 1s
-      timeout: 1s
-      retries: 20
+  #! Telemetry
   otel-agent:
-    ports:
-      - "4317:4317" # OpenTelemetry receiver
     image: otel/opentelemetry-collector-contrib:0.57.2
-    command: ["--config=/etc/otel-agent-config.yaml"]
+    ports: [ 4317:4317 ]
     environment:
       - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
       - HONEYCOMB_API_KEY=${HONEYCOMB_API_KEY}
-    volumes:
-      - ./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml
+    command: --config=/etc/otel-agent-config.yaml
+    volumes: [ "./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml" ]
+
+  #! Auth Services (ORY Stack)
   kratos:
     image: oryd/kratos:v1.2.0
-    extra_hosts:
-      - "dockerhost-alias:host-gateway"
-    ports:
-      - "4433:4433" #! public
-      - "4434:4434" #! admin
+    extra_hosts: [ "dockerhost-alias:host-gateway" ]
+    ports: [ 4433:4433, 4434:4434 ]
     entrypoint: sh -c
-    command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/kratos.yml --watch-courier --sqa-opt-out"'
+    command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/admin/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
       DSN: postgres://dbuser:secret@kratos-pg:5432/default?sslmode=disable
-    links:
-      - kratos-pg:kratos-pg
-      - mailhog:mailhog
-    volumes:
-      - ./dev/ory:/home/ory
-  kratos-pg:
-    image: postgres:16.4
-    ports:
-      - "5434:5432"
-    environment:
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=default
-  next-auth-pg:
-    image: postgres:16.4
-    ports:
-      - "5435:5432"
-    environment:
-      - POSTGRES_USER=dbuser
-      - POSTGRES_PASSWORD=secret
-      - POSTGRES_DB=default
+    links: [ kratos-pg:kratos-pg, mailhog:mailhog ]
+    volumes: [ "./dev/ory:/home/ory" ]
+
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
-    extra_hosts:
-      - "dockerhost-alias:host-gateway"
-    ports:
-      - 4455:4455
-      - 4456:4456
+    extra_hosts: [ "dockerhost-alias:host-gateway" ]
+    ports: [ 4455:4455, 4456:4456 ]
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
-    volumes:
-      - ./dev/ory:/home/ory
-    depends_on:
-      - kratos
-      - otel-agent
+    volumes: [ "./dev/ory:/home/ory" ]
+    depends_on: [ kratos, otel-agent ]
+
   mailhog:
     image: mailhog/mailhog:latest
-    ports:
-      - "1025:1025"
-      - "8025:8025"
+    ports: [ 1025:1025, 8025:8025 ]
+
+  #! Databases
+  core-pg:
+    image: postgres:16.4
+    ports: [ 5433:5432 ]
+    environment: [ POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg ]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
+
+  kratos-pg:
+    image: postgres:16.4
+    ports: [ 5434:5432 ]
+    environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+
+  #! Reporting
   meltano:
     image: us.gcr.io/galoyorg/meltano
     volumes:
@@ -93,3 +57,15 @@ services:
       - TARGET_BIGQUERY_LOCATION=${TARGET_BIGQUERY_LOCATION}
       - DBT_BIGQUERY_DATASET=${DBT_BIGQUERY_DATASET}
       - DBT_BIGQUERY_KEYFILE=${DBT_BIGQUERY_KEYFILE}
+
+  #! All
+  integration-deps:
+    image: busybox
+    command: sh -c "while :; do sleep 10; done"
+    depends_on:
+      - core-pg
+      - otel-agent
+      - kratos
+      - kratos-pg
+      - oathkeeper
+      - mailhog
