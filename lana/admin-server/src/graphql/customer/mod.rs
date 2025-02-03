@@ -11,8 +11,8 @@ use super::{
 pub use lana_app::{
     app::LanaApp,
     customer::{
-        Customer as DomainCustomer, CustomersCursor, CustomersSortBy as DomainCustomersSortBy,
-        FindManyCustomers, Sort,
+        AccountStatus, Customer as DomainCustomer, CustomersCursor,
+        CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
     },
 };
 

@@ -1,0 +1,32 @@
+[package]
+name = "core-customer"
+version = "0.3.32-dev"
+edition = "2021"
+
+[features]
+
+default = ["governance"]
+fail-on-warnings = []
+graphql = ["es-entity/graphql", "governance/graphql"]
+governance = ["dep:governance"]
+
+[dependencies]
+governance = { path = "../governance", optional = true }
+deposit = { path = "../deposit" }
+
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+outbox = { path = "../../lib/outbox" }
+
+es-entity = { workspace = true }
+strum = { workspace = true }
+serde = { workspace = true }
+derive_builder = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+async-graphql = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }

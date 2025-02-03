@@ -4,6 +4,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+use core_customer::CoreCustomerEvent;
 use core_money::{Satoshis, UsdCents};
 use core_user::CoreUserEvent;
 use deposit::CoreDepositEvent;
@@ -16,6 +17,7 @@ use outbox::OutboxEventMarker;
 pub enum LanaEvent {
     Governance(GovernanceEvent),
     User(CoreUserEvent),
+    Customer(CoreCustomerEvent),
     Credit(CreditEvent),
     Deposit(CoreDepositEvent),
 }
@@ -91,3 +93,4 @@ impl_event_marker!(GovernanceEvent, Governance);
 impl_event_marker!(CoreUserEvent, User);
 impl_event_marker!(CreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);
+impl_event_marker!(CoreCustomerEvent, Customer);

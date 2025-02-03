@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
+pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_user::UserId;
 pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
@@ -53,13 +54,6 @@ pub enum LedgerAccountSetMemberType {
     AccountSet,
 }
 
-#[derive(async_graphql::Enum, Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
-pub enum KycLevel {
-    NotKyced,
-    Basic,
-    Advanced,
-}
-
 #[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum LoanStatus {
     New,
@@ -95,33 +89,6 @@ pub enum DisbursalStatus {
     Approved,
     Denied,
     Confirmed,
-}
-
-impl std::fmt::Display for KycLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            KycLevel::NotKyced => write!(f, "not-kyc"),
-            KycLevel::Basic => write!(f, "basic-kyc-level"),
-            KycLevel::Advanced => write!(f, "advanced-kyc-level"),
-        }
-    }
-}
-
-#[derive(
-    async_graphql::Enum,
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-pub enum AccountStatus {
-    #[default]
-    Inactive,
-    Active,
 }
 
 pub use cala_ledger::primitives::{

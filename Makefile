@@ -21,6 +21,7 @@ sqlx-prepare:
 	cd lib/audit && cargo sqlx prepare
 	cd lib/outbox && cargo sqlx prepare
 	cd core/governance && cargo sqlx prepare
+	cd core/customer && cargo sqlx prepare
 	cd core/user && cargo sqlx prepare
 	cd core/deposit && cargo sqlx prepare
 	cd core/chart-of-accounts && cargo sqlx prepare

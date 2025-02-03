@@ -19,6 +19,7 @@ user-onboarding = { path = "../user-onboarding" }
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money" }
 core-user = { path = "../../core/user", features = ["graphql"] }
+core-customer = { path = "../../core/customer", features = ["graphql"] }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
 chart-of-accounts = { path = "../../core/chart-of-accounts" }
 

@@ -7,8 +7,8 @@ mod object;
 use serde::{Deserialize, Serialize};
 use uuid::{uuid, Uuid};
 
+use core_customer::CustomerId;
 use core_user::UserId;
-use lana_ids::CustomerId;
 
 pub use action::*;
 pub use object::*;

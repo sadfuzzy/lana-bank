@@ -987,6 +987,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-customer"
+version = "0.3.32-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "audit",
+ "authz",
+ "chrono",
+ "deposit",
+ "derive_builder",
+ "es-entity",
+ "governance",
+ "outbox",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2463,6 +2484,7 @@ dependencies = [
  "chrono",
  "clap",
  "cloud-storage",
+ "core-customer",
  "core-money",
  "core-user",
  "dashboard",
@@ -2527,6 +2549,7 @@ name = "lana-events"
 version = "0.3.33-dev"
 dependencies = [
  "chrono",
+ "core-customer",
  "core-money",
  "core-user",
  "deposit",
@@ -3474,6 +3497,7 @@ dependencies = [
  "audit",
  "authz",
  "chart-of-accounts",
+ "core-customer",
  "core-user",
  "dashboard",
  "deposit",

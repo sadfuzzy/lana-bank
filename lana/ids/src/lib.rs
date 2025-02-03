@@ -3,7 +3,6 @@ use cala_ledger::primitives::{
 };
 
 es_entity::entity_id! {
-    CustomerId,
     DocumentId,
     CreditFacilityId,
     DisbursalId,
@@ -21,7 +20,6 @@ es_entity::entity_id! {
     InterestAccrualId => job::JobId,
 
     DisbursalId => LedgerTransactionId,
-    CustomerId => deposit::DepositAccountHolderId,
     TrialBalanceId => LedgerAccountSetId,
     ProfitAndLossStatementId => LedgerAccountSetId,
 }

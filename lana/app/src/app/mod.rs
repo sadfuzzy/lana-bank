@@ -117,7 +117,7 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        let customers = Customers::new(&pool, &config.customer, &deposits, &authz);
+        let customers = Customers::new(&pool, &deposits, &authz, &outbox);
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
         let credit_account_factories =

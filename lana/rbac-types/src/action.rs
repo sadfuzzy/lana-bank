@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use chart_of_accounts::CoreChartOfAccountsAction;
+use core_customer::CoreCustomerAction;
 use core_user::CoreUserAction;
 use dashboard::DashboardModuleAction;
 use deposit::CoreDepositAction;
@@ -13,6 +14,7 @@ pub enum LanaAction {
     App(AppAction),
     Governance(GovernanceAction),
     User(CoreUserAction),
+    Customer(CoreCustomerAction),
     ChartOfAccounts(CoreChartOfAccountsAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
@@ -38,6 +40,11 @@ impl From<CoreUserAction> for LanaAction {
         LanaAction::User(action)
     }
 }
+impl From<CoreCustomerAction> for LanaAction {
+    fn from(action: CoreCustomerAction) -> Self {
+        LanaAction::Customer(action)
+    }
+}
 impl From<CoreChartOfAccountsAction> for LanaAction {
     fn from(action: CoreChartOfAccountsAction) -> Self {
         LanaAction::ChartOfAccounts(action)
@@ -57,6 +64,7 @@ impl Display for LanaAction {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
+            Customer(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -74,6 +82,7 @@ impl FromStr for LanaAction {
             App => LanaAction::from(action.parse::<AppAction>()?),
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             User => LanaAction::from(action.parse::<CoreUserAction>()?),
+            Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             ChartOfAccounts => LanaAction::from(action.parse::<CoreChartOfAccountsAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
@@ -103,7 +112,6 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
-    Customer(CustomerAction),
     Report(ReportAction),
     Audit(AuditAction),
     Ledger(LedgerAction),
@@ -120,7 +128,6 @@ impl Display for AppAction {
         use AppAction::*;
         match self {
             TermsTemplate(action) => action.fmt(f),
-            Customer(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Ledger(action) => action.fmt(f),
@@ -143,7 +150,6 @@ impl FromStr for AppAction {
         use AppActionDiscriminants::*;
         let res = match entity.parse()? {
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
-            Customer => AppAction::from(action.parse::<CustomerAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
@@ -228,20 +234,6 @@ pub enum AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum CustomerAction {
-    Read,
-    Create,
-    StartKyc,
-    ApproveKyc,
-    DeclineKyc,
-    List,
-    Update,
-}
-
-impl_trivial_action!(CustomerAction, Customer);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]

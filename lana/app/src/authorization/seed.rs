@@ -1,5 +1,6 @@
 use authz::error::AuthorizationError;
 use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
+use core_customer::{CoreCustomerAction, CustomerObject};
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
@@ -238,29 +239,29 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Create,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::List,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Read,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Update,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_UPDATE,
         )
         .await?;
     authz
@@ -489,15 +490,15 @@ async fn add_permissions_for_accountant(authz: &Authorization) -> Result<(), Aut
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::List,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::Customer(CustomerAllOrOne::All),
-            CustomerAction::Read,
+            CustomerObject::all_customers(),
+            CoreCustomerAction::CUSTOMER_LIST,
         )
         .await?;
     authz

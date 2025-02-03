@@ -2,11 +2,11 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 use chart_of_accounts::CoreChartOfAccountsObject;
+use core_customer::{CustomerId, CustomerObject};
 use core_user::UserObject;
 use dashboard::DashboardModuleObject;
 use deposit::CoreDepositObject;
 use governance::GovernanceObject;
-use lana_ids::CustomerId;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -15,6 +15,7 @@ pub enum LanaObject {
     App(AppObject),
     Governance(GovernanceObject),
     User(UserObject),
+    Customer(CustomerObject),
     ChartOfAccounts(CoreChartOfAccountsObject),
     Deposit(CoreDepositObject),
     Dashboard(DashboardModuleObject),
@@ -40,6 +41,11 @@ impl From<UserObject> for LanaObject {
         LanaObject::User(action)
     }
 }
+impl From<CustomerObject> for LanaObject {
+    fn from(action: CustomerObject) -> Self {
+        LanaObject::Customer(action)
+    }
+}
 impl From<CoreChartOfAccountsObject> for LanaObject {
     fn from(object: CoreChartOfAccountsObject) -> Self {
         LanaObject::ChartOfAccounts(object)
@@ -59,6 +65,7 @@ impl Display for LanaObject {
             App(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             User(action) => action.fmt(f),
+            Customer(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
@@ -76,6 +83,7 @@ impl FromStr for LanaObject {
             App => LanaObject::from(object.parse::<AppObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             User => LanaObject::from(object.parse::<UserObject>()?),
+            Customer => LanaObject::from(object.parse::<CustomerObject>()?),
             ChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Dashboard => LanaObject::from(
@@ -94,7 +102,6 @@ impl FromStr for LanaObject {
 pub enum AppObject {
     Applicant,
     TermsTemplate,
-    Customer(CustomerAllOrOne),
     Document,
     Deposit,
     Withdrawal,
@@ -109,14 +116,7 @@ pub enum AppObject {
 
 impl Display for AppObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = AppObjectDiscriminants::from(self);
-        use AppObject::*;
-        match self {
-            Customer(customer_ref) => {
-                write!(f, "{}/{}", discriminant, customer_ref)
-            }
-            _ => write!(f, "{}", discriminant),
-        }
+        write!(f, "{}", AppObjectDiscriminants::from(self))
     }
 }
 
@@ -130,14 +130,6 @@ impl FromStr for AppObject {
         let res = match entity.parse().expect("invalid entity") {
             Applicant => AppObject::Applicant,
             TermsTemplate => AppObject::TermsTemplate,
-            Customer => {
-                let customer_ref = elems
-                    .next()
-                    .ok_or("could not parse AppObject")?
-                    .parse()
-                    .map_err(|_| "could not parse AppObject")?;
-                AppObject::Customer(customer_ref)
-            }
             Deposit => AppObject::Deposit,
             Withdrawal => AppObject::Withdrawal,
             Report => AppObject::Report,
@@ -172,10 +164,10 @@ mod test {
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
         // App
-        test_to_and_from_string(
-            LanaObject::App(AppObject::Customer(AllOrOne::All)),
-            "app/customer/*",
-        )?;
+        // test_to_and_from_string(
+        //     LanaObject::App(AppObject::Customer(AllOrOne::All)),
+        //     "app/customer/*",
+        // )?;
 
         // Governance
         test_to_and_from_string(
