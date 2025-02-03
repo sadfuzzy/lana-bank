@@ -20,30 +20,6 @@ locals {
   dataset_id            = local.setup_bq ? "${replace(var.name_prefix, "-", "_")}_dataset" : null
 }
 
-
 provider "google" {
   project = local.project_id
-}
-
-provider "cala" {
-  endpoint = "http://localhost:2252/graphql"
-}
-
-module "setup" {
-  source = "./cala-setup"
-
-  name_prefix         = var.name_prefix
-  sa_creds            = var.sa_creds
-  gcp_region          = local.gcp_region
-  setup_bq            = local.setup_bq
-  deletion_protection = false
-}
-
-terraform {
-  required_providers {
-    cala = {
-      source  = "registry.terraform.io/galoymoney/cala"
-      version = "0.0.20"
-    }
-  }
 }
