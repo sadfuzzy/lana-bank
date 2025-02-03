@@ -15,7 +15,7 @@ COPY lib/js/shared-web/package.json ./lib/js/shared-web/
 COPY lib/js/shared-web ./lib/js/shared-web
 COPY apps/admin-panel ./apps/admin-panel
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --filter admin-panel...
 
 WORKDIR /app/apps/admin-panel
 RUN pnpm run build
@@ -29,19 +29,17 @@ RUN adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/apps/admin-panel/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+COPY --from=builder --chown=nextjs:nodejs \
+  /app/apps/admin-panel/.next/standalone ./
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin-panel/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/admin-panel/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs \
+  /app/apps/admin-panel/.next/static \
+  ./apps/admin-panel/.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD HOSTNAME="0.0.0.0" node apps/admin-panel/server.js
