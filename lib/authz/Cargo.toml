@@ -1,6 +1,6 @@
 [package]
 name = "authz"
-version = "0.3.37-dev"
+version = "0.3.39-dev"
 edition = "2021"
 
 [features]
