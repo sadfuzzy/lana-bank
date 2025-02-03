@@ -3,11 +3,7 @@ import { z } from "zod"
 
 export const env = createEnv({
   shared: {
-    NEXT_PUBLIC_CORE_ADMIN_URL: z
-      .string()
-      .url()
-      .default("http://localhost:4455/admin/graphql"),
-
+    NEXT_PUBLIC_CORE_ADMIN_URL: z.string().default("/graphql"),
     NEXT_PUBLIC_BASE_PATH: z.string().default("/"),
   },
   client: {

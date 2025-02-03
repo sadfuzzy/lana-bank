@@ -21,6 +21,7 @@
 
 #@ load("app-template.lib.yml",
 #@   "app_src_resource",
+#@   "app_src_resource_name",
 #@   "build_app_edge_image_name",
 #@   "app_edge_image_resource_name",
 #@   "app_latest_image_resource_name",
@@ -98,12 +99,9 @@ jobs:
             trigger: true
           - get: pipeline-tasks
           - get: version
-          - get: #@ app_edge_image_resource_name("admin-panel")
+          - get: #@ app_src_resource_name("admin-panel")
             passed:
               -  #@ build_app_edge_image_name("admin-panel")
-          - get: #@ app_edge_image_resource_name("customer-portal")
-            passed:
-              -  #@ build_app_edge_image_name("customer-portal")
           - get: meltano-edge-image
             passed:
               - build-meltano-edge-image
@@ -120,27 +118,66 @@ jobs:
             - name: artifacts
           run:
             path: pipeline-tasks/ci/vendor/tasks/prep-release-src.sh
-      - task: build-static-release
-        privileged: true
+      - task: prep-release-apps
         config:
           platform: linux
-          image_resource:
-            type: registry-image
-            source: { repository: clux/muslrust, tag: 1.78.0-stable }
+          image_resource: #@ release_task_image_config()
           inputs:
-            - name: version
             - name: pipeline-tasks
-            - name: repo
+            - name: version
+            - name: #@ app_src_resource_name("admin-panel")
+              path: admin-panel-src
           outputs:
-            - name: x86_64-unknown-linux-musl
-          caches:
-            - path: cargo-home
-            - path: cargo-target-dir
-          params:
-            TARGET: x86_64-unknown-linux-musl
-            OUT: x86_64-unknown-linux-musl
+            - name: #@ app_src_resource_name("admin-panel")
+              path: admin-panel-src
           run:
-            path: pipeline-tasks/ci/tasks/build-release.sh
+            path: pipeline-tasks/ci/tasks/prep-release-apps.sh
+      - in_parallel:
+        - task: build-static-release
+          privileged: true
+          config:
+            platform: linux
+            image_resource:
+              type: registry-image
+              source: { repository: clux/muslrust, tag: 1.78.0-stable }
+            inputs:
+              - name: version
+              - name: pipeline-tasks
+              - name: repo
+            outputs:
+              - name: x86_64-unknown-linux-musl
+            caches:
+              - path: cargo-home
+              - path: cargo-target-dir
+            params:
+              TARGET: x86_64-unknown-linux-musl
+              OUT: x86_64-unknown-linux-musl
+            run:
+              path: pipeline-tasks/ci/tasks/build-release.sh
+        - do:
+          - task: build-admin-panel-release
+            attempts: 2
+            privileged: true
+            config:
+              platform: linux
+              image_resource:
+                type: registry-image
+                source:
+                  repository: vito/oci-build-task
+              inputs:
+                - name: admin-panel-src
+              outputs:
+                - name: admin-panel-image
+                  path: image
+              params:
+                CONTEXT: admin-panel-src
+                DOCKERFILE: admin-panel-src/apps/admin-panel/Dockerfile"
+              run:
+                path: build
+          - put: #@ app_latest_image_resource_name("admin-panel")
+            params:
+              image: admin-panel-image/image.tar
+              additional_tags: version/version
       - put: repo
         params:
           tag: artifacts/gh-release-tag
@@ -183,16 +220,6 @@ jobs:
               - release
             trigger: true
           - get: pipeline-tasks
-          - get: #@ app_edge_image_resource_name("admin-panel")
-            passed:
-              - release
-            params:
-              format: oci
-          - get: #@ app_edge_image_resource_name("customer-portal")
-            passed:
-              - release
-            params:
-              format: oci
           - get: meltano-edge-image
             passed:
               - release
@@ -236,14 +263,6 @@ jobs:
             params:
               image: image/image.tar
               additional_tags: version/version
-          - put: #@ app_latest_image_resource_name("admin-panel")
-            params:
-              image: #@ app_edge_image_resource_name("admin-panel") + "/image.tar"
-              additional_tags: version/version
-          - put: #@ app_latest_image_resource_name("customer-portal")
-            params:
-              image: #@ app_edge_image_resource_name("customer-portal") + "/image.tar"
-              additional_tags: version/version
           - put: meltano-latest-image
             params:
               image: meltano-edge-image/image.tar
@@ -285,8 +304,6 @@ jobs:
             params: { skip_download: true }
           - get: #@ app_latest_image_resource_name("admin-panel")
           - get: #@ app_latest_image_resource_name("customer-portal")
-            passed: [release-docker]
-            params: { skip_download: true }
           - get: meltano-latest-image
             passed: [release-docker]
             params: { skip_download: true }

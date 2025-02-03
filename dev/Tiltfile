@@ -42,7 +42,8 @@ local_resource(
     "admin-panel",
     labels=["apps"],
     serve_env={
-        "NEXT_PUBLIC_BASE_PATH": "/admin"
+        "NEXT_PUBLIC_BASE_PATH": "/admin",
+        "NEXT_PUBLIC_CORE_ADMIN_URL": "/admin/graphql"
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     readiness_probe = probe(
