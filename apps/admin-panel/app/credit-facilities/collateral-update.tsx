@@ -9,9 +9,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
+import { Input } from "@lana/web/ui/input"
+
+import { Label } from "@lana/web/ui/label"
+
 import {
   useCreditFacilityCollateralUpdateMutation,
   useGetCreditFacilityOverviewQuery,
@@ -19,7 +22,6 @@ import {
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
-import { Label } from "@/ui/label"
 import { Satoshis } from "@/types"
 
 gql`

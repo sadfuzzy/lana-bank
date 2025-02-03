@@ -3,10 +3,11 @@
 import React, { useState } from "react"
 import Link from "next/link"
 
+import { Button } from "@lana/web/ui/button"
+
 import { DisbursalStatusBadge } from "../status-badge"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import { ApprovalProcessStatus, GetDisbursalDetailsQuery } from "@/lib/graphql/generated"
 import ApprovalDialog from "@/app/actions/approve"

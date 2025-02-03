@@ -9,8 +9,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
+
 import {
   GetWithdrawalDetailsQuery,
   useWithdrawalCancelMutation,

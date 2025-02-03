@@ -8,8 +8,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
+
+import { Textarea } from "@lana/web/ui/textarea"
+
 import {
   ApprovalProcessType,
   GetCreditFacilityBasicDetailsDocument,
@@ -20,7 +23,6 @@ import {
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatDate, formatProcessType } from "@/lib/utils"
-import { Textarea } from "@/ui/textarea"
 
 gql`
   mutation ApprovalProcessDeny($input: ApprovalProcessDenyInput!, $reason: String!) {

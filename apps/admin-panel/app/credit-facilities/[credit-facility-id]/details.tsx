@@ -2,13 +2,14 @@
 
 import React from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import {
   ApprovalProcessStatus,
   GetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import { formatCollateralizationState } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"

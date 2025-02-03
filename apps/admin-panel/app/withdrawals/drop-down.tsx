@@ -1,14 +1,14 @@
 "use client"
 import { useRouter } from "next/navigation"
 import { IoEllipsisHorizontal } from "react-icons/io5"
-
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dropdown-menu"
+import { Button } from "@lana/web/ui/button"
+
 import { WithdrawalStatus } from "@/lib/graphql/generated"
 
 interface WithdrawalDropdownProps {

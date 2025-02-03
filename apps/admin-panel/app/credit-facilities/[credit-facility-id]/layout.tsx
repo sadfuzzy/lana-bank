@@ -3,10 +3,11 @@
 import { gql, useApolloClient } from "@apollo/client"
 import { useEffect } from "react"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
+
 import CreditFacilityDetailsCard from "./details"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/tab"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
 import {

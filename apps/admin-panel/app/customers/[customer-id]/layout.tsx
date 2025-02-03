@@ -4,9 +4,12 @@ import { gql } from "@apollo/client"
 
 import { useEffect } from "react"
 
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
+
+import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
+
 import { CustomerDetailsCard } from "./details"
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/ui/tab"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
@@ -15,7 +18,6 @@ import {
 import { useCreateContext } from "@/app/create"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
-import { ScrollArea, ScrollBar } from "@/ui/scroll-area"
 
 const TABS = [
   { id: "1", url: "/", tabLabel: "Overview" },

@@ -1,7 +1,13 @@
 "use client"
-import AuditLogsList from "./list"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@lana/web/ui/card"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
+import AuditLogsList from "./list"
 
 const AuditLogs: React.FC = () => (
   <>

@@ -3,8 +3,6 @@ import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
 
-import { useCreateContext } from "../create"
-
 import {
   Dialog,
   DialogContent,
@@ -12,9 +10,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Input } from "@/ui/input"
-import { Label } from "@/ui/label"
+} from "@lana/web/ui/dialog"
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
+
+import { Button } from "@lana/web/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
+
+import { useCreateContext } from "../create"
+
 import {
   InterestInterval,
   Period,
@@ -22,14 +32,6 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/ui/select"
 import {
   formatInterval,
   formatPeriod,

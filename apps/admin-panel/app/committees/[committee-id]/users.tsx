@@ -2,12 +2,15 @@
 import React, { useState } from "react"
 import { IoTrashOutline } from "react-icons/io5"
 
+import { Button } from "@lana/web/ui/button"
+
+import { Badge } from "@lana/web/ui/badge"
+
 import { RemoveUserCommitteeDialog } from "../remove-user"
 
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
 import { formatRole } from "@/lib/utils"
-import { Badge } from "@/ui/badge"
+
 import DataTable, { Column } from "@/components/data-table"
 import CardWrapper from "@/components/card-wrapper"
 

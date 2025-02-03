@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
+import { Button } from "@lana/web/ui/button"
+
 import { loginUser } from "../ory"
 
 import { Input } from "@/components/input"
-import { Button } from "@/ui/button"
 
 const Login: React.FC = () => {
   const router = useRouter()

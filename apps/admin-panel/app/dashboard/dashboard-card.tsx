@@ -4,9 +4,20 @@ import Link from "next/link"
 import { HiArrowRight } from "react-icons/hi"
 import { ReactNode } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/ui/card"
-import { Button } from "@/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@lana/web/ui/card"
+import { Button } from "@lana/web/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@lana/web/ui/tooltip"
 
 type DashboardCardProps = {
   h1?: ReactNode

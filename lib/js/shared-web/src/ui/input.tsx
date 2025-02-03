@@ -1,7 +1,7 @@
 import * as React from "react"
 import { NumericFormat, NumericFormatProps } from "react-number-format"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@lana/web/utils"
 
 const BaseInput = React.forwardRef<
   HTMLInputElement,

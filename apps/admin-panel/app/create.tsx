@@ -5,6 +5,22 @@ import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@lana/web/ui/tooltip"
+
+import { Button } from "@lana/web/ui/button"
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@lana/web/ui/dropdown-menu"
+
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
@@ -16,8 +32,6 @@ import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/ui/tooltip"
-
 import {
   CreditFacility,
   Customer,
@@ -28,13 +42,6 @@ import {
   TermsTemplateQuery,
   GetDisbursalDetailsQuery,
 } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
 
 export const PATH_CONFIGS = {
   COMMITTEES: "/committees",

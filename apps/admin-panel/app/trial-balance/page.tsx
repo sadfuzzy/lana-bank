@@ -3,13 +3,6 @@ import React, { useCallback, useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
 
 import {
-  GetOffBalanceSheetTrialBalanceQuery,
-  GetOnBalanceSheetTrialBalanceQuery,
-  useGetOffBalanceSheetTrialBalanceQuery,
-  useGetOnBalanceSheetTrialBalanceQuery,
-} from "@/lib/graphql/generated"
-
-import {
   Table,
   TableBody,
   TableCell,
@@ -17,8 +10,26 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/ui/table"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/ui/tab"
+} from "@lana/web/ui/table"
+
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@lana/web/ui/tab"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
+import { Skeleton } from "@lana/web/ui/skeleton"
+
+import {
+  GetOffBalanceSheetTrialBalanceQuery,
+  GetOnBalanceSheetTrialBalanceQuery,
+  useGetOffBalanceSheetTrialBalanceQuery,
+  useGetOnBalanceSheetTrialBalanceQuery,
+} from "@/lib/graphql/generated"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
@@ -27,8 +38,6 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Skeleton } from "@/ui/skeleton"
 
 gql`
   query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {

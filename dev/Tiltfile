@@ -55,7 +55,7 @@ local_resource(
     allow_parallel=True,
     resource_deps=[
         "mailhog",
-        "core",
+        # "core",
     ],
     links = [
         link("http://localhost:4455/admin", "admin-panel"),

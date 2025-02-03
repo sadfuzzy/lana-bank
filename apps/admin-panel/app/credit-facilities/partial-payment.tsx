@@ -9,10 +9,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
-import { Input } from "@/ui/input"
-import { Label } from "@/ui/label"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
+
 import { useCreditFacilityPartialPaymentMutation } from "@/lib/graphql/generated"
 import { UsdCents } from "@/types"
 

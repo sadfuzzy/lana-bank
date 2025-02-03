@@ -3,7 +3,7 @@ import { useState } from "react"
 
 import { IoCheckmark, IoCopy } from "react-icons/io5"
 
-import { Button } from "../../ui/button"
+import { Button } from "@lana/web/ui/button"
 
 function CopyButton({ value }: { value: string }) {
   const [hasCopied, setHasCopied] = useState(false)

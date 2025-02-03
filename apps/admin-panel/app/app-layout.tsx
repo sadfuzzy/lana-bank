@@ -1,12 +1,13 @@
 "use client"
 
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@lana/web/ui/sidebar"
+
 import { CommandMenu } from "./command-menu"
 import CreateButton, { CreateContextProvider } from "./create"
 import { DynamicBreadcrumb } from "./dynamic-breadcrumb"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { RealtimePriceUpdates } from "@/components/realtime-price"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/ui/sidebar"
 
 import { env } from "@/env"
 

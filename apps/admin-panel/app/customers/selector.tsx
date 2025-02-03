@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
+
 import { Customer, useCustomersQuery } from "@/lib/graphql/generated"
 
 import PaginatedTable, {

@@ -10,9 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
+} from "@lana/web/ui/dialog"
+
+import { Button } from "@lana/web/ui/button"
+
 import { useCommitteeRemoveUserMutation } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
 
 gql`
   mutation CommitteeRemoveUser($input: CommitteeRemoveUserInput!) {

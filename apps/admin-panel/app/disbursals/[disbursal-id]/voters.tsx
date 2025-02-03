@@ -1,7 +1,14 @@
 "use client"
 import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
 import {
   ApprovalProcessStatus,
   GetCreditFacilityOverviewQuery,

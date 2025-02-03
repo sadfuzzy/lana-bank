@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react"
 
-import { DetailsCard, DetailItemProps } from "./"
+import { Button } from "@lana/web/ui/button"
 
-import { Button } from "@/ui/button"
+import { DetailsCard, DetailItemProps } from "./"
 
 const meta: Meta<typeof DetailsCard> = {
   title: "Components/Details/Card",

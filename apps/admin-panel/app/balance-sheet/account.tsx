@@ -3,9 +3,10 @@ import { useState } from "react"
 
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
+import { TableCell, TableRow } from "@lana/web/ui/table"
+
 import { AccountSetSubAccount, usePnlAccountSetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { TableCell, TableRow } from "@/ui/table"
 import { DateRange } from "@/components/date-range-picker"
 
 export const Account = ({

@@ -2,9 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react"
 
 import { Home, Users, LayoutGrid, ClipboardList } from "lucide-react"
 
-import { NavSection } from "./nav-section"
+import { SidebarProvider } from "@lana/web/ui/sidebar"
 
-import { SidebarProvider } from "@/ui/sidebar"
+import { NavSection } from "./nav-section"
 
 const demoNavItems = [
   { title: "Dashboard", url: "/dashboard", icon: Home },

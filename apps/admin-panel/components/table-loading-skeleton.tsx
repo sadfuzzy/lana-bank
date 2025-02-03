@@ -1,5 +1,5 @@
-import { Skeleton } from "../ui/skeleton"
-import { Table, TableBody, TableCell, TableRow } from "../ui/table"
+import { Skeleton } from "@lana/web/ui/skeleton"
+import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
 export const TableLoadingSkeleton = ({
   rows = 10,

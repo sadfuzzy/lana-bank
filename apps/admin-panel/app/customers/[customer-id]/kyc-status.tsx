@@ -8,12 +8,13 @@ import { Copy } from "lucide-react"
 
 import { toast } from "sonner"
 
+import { Skeleton } from "@lana/web/ui/skeleton"
+
 import {
   useGetKycStatusForCustomerQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { Skeleton } from "@/ui/skeleton"
 import { removeUnderscore } from "@/lib/utils"
 
 gql`

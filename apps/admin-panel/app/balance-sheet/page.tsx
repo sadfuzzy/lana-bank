@@ -2,6 +2,18 @@
 import { gql } from "@apollo/client"
 import { useState, useCallback, useMemo } from "react"
 
+import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
+import { Skeleton } from "@lana/web/ui/skeleton"
+
 import { Account } from "./account"
 
 import {
@@ -10,15 +22,13 @@ import {
   useBalanceSheetQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { Table, TableBody, TableCell, TableRow } from "@/ui/table"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
   DateRange,
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Skeleton } from "@/ui/skeleton"
+
 import { Satoshis, SignedSatoshis, SignedUsdCents, UsdCents } from "@/types"
 
 gql`

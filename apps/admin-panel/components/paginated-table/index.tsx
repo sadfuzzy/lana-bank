@@ -12,18 +12,26 @@ import {
 
 import { useRouter } from "next/navigation"
 
-import { useBreakpointDown } from "@/hooks/use-media-query"
-import { Card } from "@/ui/card"
-import { Separator } from "@/ui/separator"
+import { Card } from "@lana/web/ui/card"
+import { Separator } from "@lana/web/ui/separator"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuCheckboxItem,
-} from "@/ui/dropdown-menu"
-import { Button } from "@/ui/button"
-import { Skeleton } from "@/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
+} from "@lana/web/ui/dropdown-menu"
+import { Button } from "@lana/web/ui/button"
+import { Skeleton } from "@lana/web/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@lana/web/ui/table"
+
+import { useBreakpointDown } from "@lana/web/hooks"
 
 export type Column<T> = {
   [K in keyof T]: {

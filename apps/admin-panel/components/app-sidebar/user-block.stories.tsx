@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import { MockedProvider } from "@apollo/client/testing"
 
+import { SidebarProvider } from "@lana/web/ui/sidebar"
+
 import { UserBlock } from "./user-block"
 
-import { SidebarProvider } from "@/ui/sidebar"
 import { Role, AvatarDocument } from "@/lib/graphql/generated"
 
 const meta = {

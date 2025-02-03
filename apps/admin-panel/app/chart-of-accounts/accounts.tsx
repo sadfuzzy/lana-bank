@@ -4,12 +4,13 @@ import React from "react"
 import { gql } from "@apollo/client"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
+import { TableCell, TableRow } from "@lana/web/ui/table"
+
 import {
   AccountAmountsByCurrency,
   AccountSetSubAccount,
   useChartOfAccountsAccountSetQuery,
 } from "@/lib/graphql/generated"
-import { TableCell, TableRow } from "@/ui/table"
 import { DateRange } from "@/components/date-range-picker"
 
 gql`

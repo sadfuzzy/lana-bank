@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   useSidebar,
-} from "@/ui/sidebar"
+} from "@lana/web/ui/sidebar"
 
 export type NavItem = {
   title: string

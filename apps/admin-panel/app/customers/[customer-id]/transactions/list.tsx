@@ -2,7 +2,14 @@
 
 import React from "react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionsQuery } from "@/lib/graphql/generated"

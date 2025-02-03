@@ -3,9 +3,10 @@
 import React, { useState, Suspense, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
+import { Button } from "@lana/web/ui/button"
+
 import { loginUserWithOtp } from "../ory"
 
-import { Button } from "@/ui/button"
 import { Input } from "@/components/input"
 
 const Verify: React.FC = () => {

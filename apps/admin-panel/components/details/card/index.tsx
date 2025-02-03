@@ -2,8 +2,6 @@
 import React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
-import { DetailItem, DetailItemProps, DetailsGroup } from ".."
-
 import {
   Card,
   CardContent,
@@ -11,9 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/ui/card"
-import { Separator } from "@/ui/separator"
-import { useBreakpointDown } from "@/hooks/use-media-query"
+} from "@lana/web/ui/card"
+import { Separator } from "@lana/web/ui/separator"
+
+import { useBreakpointDown } from "@lana/web/hooks"
+
+import { DetailItem, DetailItemProps, DetailsGroup } from ".."
 
 const footerVariants = cva(
   "pt-4 pb-4 gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto md:[&>*]:mb-0 last:[&>*]:mb-0",

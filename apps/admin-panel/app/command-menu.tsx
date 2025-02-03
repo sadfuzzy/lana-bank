@@ -16,6 +16,17 @@ import {
   XSquare,
 } from "lucide-react"
 
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@lana/web/ui/command"
+
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
@@ -38,16 +49,6 @@ import { WithdrawalCancelDialog } from "./withdrawals/[withdrawal-id]/cancel"
 import CommitteeAssignmentDialog from "./policies/[policy-id]/assign-to-committee"
 import AddUserCommitteeDialog from "./committees/add-user"
 
-import {
-  Command,
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/ui/command"
 import {
   ApprovalProcessStatus,
   CreditFacilityStatus,

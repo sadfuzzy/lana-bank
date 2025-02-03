@@ -1,8 +1,10 @@
 import React from "react"
 
+import { Label } from "@lana/web/ui/label"
+
+import { RadioGroup, RadioGroupItem } from "@lana/web/ui/radio-group"
+
 import { Currency } from "../balance/balance"
-import { Label } from "../../ui/label"
-import { RadioGroup, RadioGroupItem } from "../../ui/radio-group"
 
 interface CurrencyLayerSelectionProps {
   currency: Currency

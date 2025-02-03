@@ -1,4 +1,5 @@
-import { Badge, BadgeProps } from "@/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
+
 import { WithdrawalStatus } from "@/lib/graphql/generated"
 
 interface StatusBadgeProps extends BadgeProps {

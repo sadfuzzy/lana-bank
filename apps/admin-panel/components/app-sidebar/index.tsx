@@ -4,6 +4,16 @@ import type { ComponentProps } from "react"
 import { ShipWheel } from "lucide-react"
 import Link from "next/link"
 
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@lana/web/ui/sidebar"
+
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
 import {
@@ -14,16 +24,6 @@ import {
   navCustomersItems,
   navAdminItems,
 } from "./nav-items"
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/ui/sidebar"
 
 interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   appVersion?: string

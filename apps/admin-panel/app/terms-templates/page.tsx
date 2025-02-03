@@ -2,10 +2,17 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
 import DataTable, { Column } from "../../components/data-table"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 import { formatPeriod } from "@/lib/utils"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 

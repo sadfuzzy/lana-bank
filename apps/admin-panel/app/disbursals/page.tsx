@@ -1,8 +1,14 @@
 "use client"
 
-import DisbursalsList from "./list"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@lana/web/ui/card"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
+import DisbursalsList from "./list"
 
 const Disbursals: React.FC = () => (
   <>

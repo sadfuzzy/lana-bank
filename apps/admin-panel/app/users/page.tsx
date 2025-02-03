@@ -1,13 +1,20 @@
 "use client"
 import { gql } from "@apollo/client"
 
+import { Badge } from "@lana/web/ui/badge"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
 import DataTable, { Column } from "../../components/data-table"
 
 import { useUsersQuery } from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
-
-import { Badge } from "@/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
 
 gql`
   fragment UserFields on User {

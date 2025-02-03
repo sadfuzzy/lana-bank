@@ -1,8 +1,9 @@
 "use client"
 
+import { Skeleton } from "@lana/web/ui/skeleton"
+
 import { useGetRealtimePriceUpdatesQuery } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
-import { Skeleton } from "@/ui/skeleton"
 
 export function MarketRate() {
   const { data, loading } = useGetRealtimePriceUpdatesQuery()

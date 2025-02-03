@@ -9,15 +9,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select"
+} from "@lana/web/ui/select"
+
 import { useCommitteeAddUserMutation, useUsersQuery } from "@/lib/graphql/generated"
 import { formatRole } from "@/lib/utils"
 

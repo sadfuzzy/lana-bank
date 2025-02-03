@@ -6,7 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { LuX } from "react-icons/lu"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@lana/web/utils"
 
 const Sheet = SheetPrimitive.Root
 

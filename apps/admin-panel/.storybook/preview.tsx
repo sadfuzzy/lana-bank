@@ -3,7 +3,7 @@ import type { Preview } from "@storybook/react"
 import { MockedProvider } from "@apollo/client/testing"
 import "../app/globals.css"
 import { AppSidebar } from "../components/app-sidebar"
-import { SidebarInset, SidebarProvider } from "../ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@lana/web/ui/sidebar"
 import {
   AvatarDocument,
   GetRealtimePriceUpdatesDocument,

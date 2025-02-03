@@ -9,23 +9,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import {
-  useUpdateTermsTemplateMutation,
-  InterestInterval,
-  Period,
-  TermsTemplate,
-} from "@/lib/graphql/generated"
-import { Input } from "@/ui/input"
-import { Button } from "@/ui/button"
-import { Label } from "@/ui/label"
+} from "@lana/web/ui/dialog"
+
+import { Input } from "@lana/web/ui/input"
+import { Button } from "@lana/web/ui/button"
+import { Label } from "@lana/web/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select"
+} from "@lana/web/ui/select"
+
+import {
+  useUpdateTermsTemplateMutation,
+  InterestInterval,
+  Period,
+  TermsTemplate,
+} from "@/lib/graphql/generated"
 import { formatInterval, formatPeriod } from "@/lib/utils"
 
 gql`

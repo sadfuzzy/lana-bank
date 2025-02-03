@@ -2,13 +2,14 @@
 
 import React, { useState } from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { WithdrawalStatusBadge } from "../status-badge"
 
 import { WithdrawalConfirmDialog } from "./confirm"
 import { WithdrawalCancelDialog } from "./cancel"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { Button } from "@/ui/button"
 import Balance from "@/components/balance/balance"
 import {
   ApprovalProcessStatus,

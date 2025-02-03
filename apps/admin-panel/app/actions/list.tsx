@@ -4,7 +4,16 @@ import Link from "next/link"
 import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@lana/web/ui/card"
+
+import { Skeleton } from "@lana/web/ui/skeleton"
+
 import {
   ApprovalProcessStatus,
   ApprovalProcessType,
@@ -12,7 +21,6 @@ import {
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-import { Skeleton } from "@/ui/skeleton"
 
 const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 

@@ -3,11 +3,10 @@
 import { gql } from "@apollo/client"
 import { ChevronsUpDown, LogOut } from "lucide-react"
 
-import { useAvatarQuery } from "@/lib/graphql/generated"
-import { Skeleton } from "@/ui/skeleton"
-import { Badge } from "@/ui/badge"
-import { ID } from "@/components/id"
-import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/ui/sidebar"
+import { Skeleton } from "@lana/web/ui/skeleton"
+import { Badge } from "@lana/web/ui/badge"
+
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@lana/web/ui/sidebar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +14,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
+} from "@lana/web/ui/dropdown-menu"
+
+import { ID } from "@/components/id"
+import { useAvatarQuery } from "@/lib/graphql/generated"
 import { useLogout } from "@/app/auth/session"
 
 gql`

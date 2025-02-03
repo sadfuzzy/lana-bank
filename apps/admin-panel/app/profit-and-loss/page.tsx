@@ -2,6 +2,18 @@
 import { gql } from "@apollo/client"
 import { useCallback, useState } from "react"
 
+import { Table, TableBody, TableCell, TableFooter, TableRow } from "@lana/web/ui/table"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
+import { Skeleton } from "@lana/web/ui/skeleton"
+
 import { Account } from "./account"
 
 import {
@@ -10,7 +22,6 @@ import {
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { Table, TableBody, TableCell, TableFooter, TableRow } from "@/ui/table"
 
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
@@ -18,8 +29,6 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-import { Skeleton } from "@/ui/skeleton"
 
 gql`
   query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {

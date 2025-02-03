@@ -1,11 +1,12 @@
 "use client"
 import React from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { CommitteeAssignmentDialog } from "./assign-to-committee"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { ApprovalRules, GetPolicyDetailsQuery } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
 import { formatRule, formatProcessType } from "@/lib/utils"
 
 type PolicyDetailsProps = {

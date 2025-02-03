@@ -5,9 +5,27 @@ import { ApolloError, gql } from "@apollo/client"
 
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
-import { Skeleton } from "@/ui/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/ui/tab"
+import { Skeleton } from "@lana/web/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@lana/web/ui/table"
+import { Tabs, TabsList, TabsContent, TabsTrigger } from "@lana/web/ui/tab"
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
+import { Badge } from "@lana/web/ui/badge"
+
 import {
   ChartCategory,
   ChartOfAccountsQuery,
@@ -15,9 +33,6 @@ import {
   useChartOfAccountsQuery,
   useOffBalanceSheetChartOfAccountsQuery,
 } from "@/lib/graphql/generated"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
-
-import { Badge } from "@/ui/badge"
 
 gql`
   fragment ControlSubAccountFields on ChartControlSubAccount {

@@ -3,11 +3,12 @@
 import { useState } from "react"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
 
+import { Badge } from "@lana/web/ui/badge"
+
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { AccountStatus, GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
-import { Badge } from "@/ui/badge"
 import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {

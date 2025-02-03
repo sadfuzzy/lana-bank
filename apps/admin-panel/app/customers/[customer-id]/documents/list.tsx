@@ -6,8 +6,9 @@ import { gql, ApolloError } from "@apollo/client"
 import { CgSpinner } from "react-icons/cg"
 import { toast } from "sonner"
 
-import { Card, CardContent } from "@/ui/card"
-import { Button } from "@/ui/button"
+import { Card, CardContent } from "@lana/web/ui/card"
+import { Button } from "@lana/web/ui/button"
+
 import DataTable, { Column } from "@/components/data-table"
 
 import {

@@ -10,21 +10,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Button } from "@/ui/button"
+} from "@lana/web/ui/dialog"
+import { Button } from "@lana/web/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select"
+} from "@lana/web/ui/select"
+
+import { Input } from "@lana/web/ui/input"
+import { Label } from "@lana/web/ui/label"
+
 import {
   useCommitteesQuery,
   usePolicyAssignCommitteeMutation,
 } from "@/lib/graphql/generated"
-import { Input } from "@/ui/input"
-import { Label } from "@/ui/label"
 
 gql`
   mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {

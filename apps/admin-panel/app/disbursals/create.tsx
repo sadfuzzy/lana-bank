@@ -10,10 +10,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Input } from "@/ui/input"
-import { Button } from "@/ui/button"
-import { Label } from "@/ui/label"
+} from "@lana/web/ui/dialog"
+import { Input } from "@lana/web/ui/input"
+import { Button } from "@lana/web/ui/button"
+import { Label } from "@lana/web/ui/label"
+
 import { useCreditFacilityDisbursalInitiateMutation } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
 

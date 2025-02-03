@@ -2,8 +2,6 @@ import React, { useState } from "react"
 import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
 
-import { useCreateContext } from "../create"
-
 import {
   Dialog,
   DialogContent,
@@ -11,10 +9,13 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
-import { Input } from "@/ui/input"
-import { Button } from "@/ui/button"
-import { Label } from "@/ui/label"
+} from "@lana/web/ui/dialog"
+import { Input } from "@lana/web/ui/input"
+import { Button } from "@lana/web/ui/button"
+import { Label } from "@lana/web/ui/label"
+
+import { useCreateContext } from "../create"
+
 import {
   GetCustomerOverviewDocument,
   useCreateDepositMutation,

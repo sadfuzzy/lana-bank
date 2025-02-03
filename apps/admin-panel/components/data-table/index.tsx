@@ -6,12 +6,22 @@ import { ArrowRight } from "lucide-react"
 
 import { useRouter } from "next/navigation"
 
-import { useBreakpointDown } from "@/hooks/use-media-query"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/ui/table"
-import { Button } from "@/ui/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@lana/web/ui/table"
+import { Button } from "@lana/web/ui/button"
+
+import { Skeleton } from "@lana/web/ui/skeleton"
+import { Card } from "@lana/web/ui/card"
+
+import { useBreakpointDown } from "@lana/web/hooks"
+
 import { cn } from "@/lib/utils"
-import { Skeleton } from "@/ui/skeleton"
-import { Card } from "@/ui/card"
 
 export type Column<T> = {
   [K in keyof T]: {

@@ -1,4 +1,5 @@
-import { Badge, BadgeProps } from "@/ui/badge"
+import { Badge, BadgeProps } from "@lana/web/ui/badge"
+
 import { CreditFacilityStatus } from "@/lib/graphql/generated"
 import { cn } from "@/lib/utils"
 

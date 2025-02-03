@@ -7,7 +7,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
+} from "@lana/web/ui/dropdown-menu"
 
 export type TimeRange =
   | "LastDay"

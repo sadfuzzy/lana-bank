@@ -3,14 +3,7 @@
 import React from "react"
 import { toast } from "sonner"
 
-import {
-  Role,
-  GetUserDetailsQuery,
-  useUserAssignRoleMutation,
-  useUserRevokeRoleMutation,
-} from "@/lib/graphql/generated"
-import { DetailsCard, DetailItemProps } from "@/components/details"
-import { Button } from "@/ui/button"
+import { Button } from "@lana/web/ui/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,8 +11,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/ui/dropdown-menu"
-import { Badge } from "@/ui/badge"
+} from "@lana/web/ui/dropdown-menu"
+import { Badge } from "@lana/web/ui/badge"
+
+import { DetailsCard, DetailItemProps } from "@/components/details"
+import {
+  Role,
+  GetUserDetailsQuery,
+  useUserAssignRoleMutation,
+  useUserRevokeRoleMutation,
+} from "@/lib/graphql/generated"
 import { formatDate, formatRole } from "@/lib/utils"
 
 type UserDetailsProps = {

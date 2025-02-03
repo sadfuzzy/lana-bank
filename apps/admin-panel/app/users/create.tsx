@@ -9,17 +9,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/ui/dialog"
+} from "@lana/web/ui/dialog"
+
+import { Input } from "@lana/web/ui/input"
+import { Button } from "@lana/web/ui/button"
+import { Label } from "@lana/web/ui/label"
+
+import { Checkbox } from "@lana/web/ui/check-box"
+
+import { formatRole } from "@/lib/utils"
 import {
   Role,
   useUserAssignRoleMutation,
   useUserCreateMutation,
 } from "@/lib/graphql/generated"
-import { Input } from "@/ui/input"
-import { Button } from "@/ui/button"
-import { Label } from "@/ui/label"
-import { formatRole } from "@/lib/utils"
-import { Checkbox } from "@/ui/check-box"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`

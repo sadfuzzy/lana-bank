@@ -1,8 +1,14 @@
 "use client"
 
-import CommitteesList from "./list"
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@lana/web/ui/card"
 
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/ui/card"
+import CommitteesList from "./list"
 
 const Committees: React.FC = () => (
   <>

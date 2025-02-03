@@ -1,6 +1,6 @@
-import { Skeleton } from "../ui/skeleton"
+import { Card, CardHeader, CardContent } from "@lana/web/ui/card"
 
-import { Card, CardHeader, CardContent } from "@/ui/card"
+import { Skeleton } from "@lana/web/ui/skeleton"
 
 export const CardSkeleton = () => (
   <Card className="w-full">

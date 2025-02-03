@@ -1,4 +1,4 @@
-import { Skeleton } from "../ui/skeleton"
+import { Skeleton } from "@lana/web/ui/skeleton"
 
 export const DetailsPageSkeleton = ({
   tabs = 2,

@@ -1,10 +1,11 @@
 "use client"
 import React, { useState } from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
-import { Button } from "@/ui/button"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 type TermsTemplateDetailsProps = {

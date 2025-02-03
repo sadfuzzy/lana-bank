@@ -2,11 +2,12 @@
 
 import React from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { AddUserCommitteeDialog } from "../add-user"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCommitteeDetailsQuery } from "@/lib/graphql/generated"
-import { Button } from "@/ui/button"
 import { formatDate } from "@/lib/utils"
 
 type CommitteeDetailsProps = {

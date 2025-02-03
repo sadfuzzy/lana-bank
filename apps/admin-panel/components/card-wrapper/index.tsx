@@ -1,6 +1,13 @@
 import React from "react"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@lana/web/ui/card"
+
 import { cn } from "@/lib/utils"
 
 interface CardWrapperProps {
