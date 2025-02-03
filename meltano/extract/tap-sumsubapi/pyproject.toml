@@ -1,12 +1,12 @@
 [project]
-name = "tap-bitfinexapi"
+name = "tap-sumsubapi"
 version = "0.0.1"
-description = "Singer tap for BitfinexApi, built with the Meltano Singer SDK."
+description = "Singer tap for SumsubApi, built with the Meltano Singer SDK."
 readme = "README.md"
 authors = [{ name = "Jose Rojas Echenique", email = "jir@galoy.io" }]
 keywords = [
     "ELT",
-    "BitfinexApi",
+    "SumsubApi",
 ]
 classifiers = [
     "Intended Audience :: Developers",
@@ -28,6 +28,8 @@ dynamic = ["dependencies"]
 [tool.poetry.dependencies]
 singer-sdk = { version="~=0.43.1", extras = [] }
 requests = "~=2.32.3"
+psycopg2-binary = "2.9.10"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8"
@@ -65,4 +67,4 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 # CLI declaration
-tap-bitfinexapi = 'tap_bitfinexapi.tap:TapBitfinexApi.cli'
+tap-sumsubapi = 'tap_sumsubapi.tap:TapSumsubApi.cli'

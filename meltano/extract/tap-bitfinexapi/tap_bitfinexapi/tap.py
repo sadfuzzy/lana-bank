@@ -5,9 +5,10 @@ from __future__ import annotations
 from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 
-from tap_bitfinexapi import TickerStream
+from tap_bitfinexapi.streams import TickerStream
 
 STREAM_TYPES = [TickerStream]
+
 
 class TapBitfinexApi(Tap):
     """BitfinexApi tap class."""
@@ -33,9 +34,8 @@ class TapBitfinexApi(Tap):
         ),
     ).to_dict()
 
-    def discover_streams(self) -> list[streams.BitfinexApiStream]:
-        """Return a list of discovered streams.
-        """
+    def discover_streams(self):
+        """Return a list of discovered streams."""
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
 
 

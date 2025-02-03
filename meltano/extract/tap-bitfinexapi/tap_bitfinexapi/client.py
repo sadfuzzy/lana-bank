@@ -12,6 +12,7 @@ if t.TYPE_CHECKING:
     import requests
     from singer_sdk.helpers.types import Context
 
+
 class BitfinexApiStream(RESTStream):
     """BitfinexApi stream class."""
 
@@ -31,7 +32,20 @@ class BitfinexApiStream(RESTStream):
             Each record from the source.
         """
 
-        yield dict(zip(
-		["BID", "BID_SIZE", "ASK", "ASK_SIZE", "DAILY_CHANGE", "DAILY_CHANGE_RELATIVE", "LAST_PRICE", "VOLUME", "HIGH", "LOW"],
-		response.json(parse_float=decimal.Decimal),
-	)) | {"requested_at": datetime.now().isoformat()}
+        yield dict(
+            zip(
+                [
+                    "BID",
+                    "BID_SIZE",
+                    "ASK",
+                    "ASK_SIZE",
+                    "DAILY_CHANGE",
+                    "DAILY_CHANGE_RELATIVE",
+                    "LAST_PRICE",
+                    "VOLUME",
+                    "HIGH",
+                    "LOW",
+                ],
+                response.json(parse_float=decimal.Decimal),
+            )
+        ) | {"requested_at": datetime.now().isoformat()}

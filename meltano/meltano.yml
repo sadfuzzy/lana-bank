@@ -12,6 +12,12 @@ environments:
           user: user
           database: pg
           password: password
+      - name: tap-sumsubapi
+        config:
+          host: core-pg
+          user: user
+          database: pg
+          password: password
 - name: staging
 - name: prod
 jobs:
@@ -21,6 +27,9 @@ jobs:
 - name: poll-bitfinex
   tasks:
   - tap-bitfinexapi target-bigquery
+- name: sync-sumsub
+  tasks:
+  - tap-sumsubapi target-bigquery
 schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/5 * * * *'
@@ -28,6 +37,9 @@ schedules:
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
+- name: sync-sumsub-hourly
+  interval: '@hourly'
+  job: sync-sumsub
 plugins:
   extractors:
   - name: tap-postgres
@@ -43,6 +55,17 @@ plugins:
     namespace: tap_bitfinexapi
     pip_url: -e extract/tap-bitfinexapi
     executable: tap-bitfinexapi
+  - name: tap-sumsubapi
+    namespace: tap_sumsubapi
+    pip_url: -e extract/tap-sumsubapi
+    executable: tap-sumsubapi
+    settings:
+    - name: host
+    - name: user
+    - name: database
+    - name: password
+    - name: key
+    - name: secret
   loaders:
   - name: target-bigquery
     variant: z3z1ma

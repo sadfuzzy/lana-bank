@@ -3,16 +3,17 @@
 from __future__ import annotations
 
 import typing as t
-from importlib import resources
 
 from singer_sdk import typing as th  # JSON Schema typing helpers
 
 from tap_bitfinexapi.client import BitfinexApiStream
 
+
 class TickerStream(BitfinexApiStream):
     """Ticker
     https://docs.bitfinex.com/reference/rest-public-ticker
     """
+
     name = "ticker"
     path = "/v2/ticker/tBTCUSD"
     primary_keys: t.ClassVar[list[str]] = ["requested_at"]

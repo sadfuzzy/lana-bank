@@ -1,41 +1,14 @@
 # tap-bitfinexapi
 
-`tap-bitfinexapi` is a Singer tap for BitfinexApi.
+`tap-bitfinexapi` is a Singer tap for the Bitfinex Api.
 
 Built with the [Meltano Tap SDK](https://sdk.meltano.com) for Singer Taps.
 
-## Configuration
-
-### Accepted Config Options
-
-<!--
-Developer TODO: Provide a list of config options accepted by the tap.
-
-This section can be created by copy-pasting the CLI output from:
+## Installation
 
 ```
-tap-bitfinexapi --about --format=markdown
+poetry install
 ```
--->
-
-A full list of supported settings and capabilities for this
-tap is available by running:
-
-```bash
-tap-bitfinexapi --about
-```
-
-### Configure using environment variables
-
-This Singer tap will automatically import any environment variables within the working directory's
-`.env` if the `--config=ENV` is provided, such that config values will be considered if a matching
-environment variable is set either in the terminal context or in the `.env` file.
-
-### Source Authentication and Authorization
-
-<!--
-Developer TODO: If your tap requires special access on the source system, or any special authentication requirements, provide those here.
--->
 
 ## Usage
 
