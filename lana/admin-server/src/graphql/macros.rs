@@ -14,7 +14,7 @@
 macro_rules! app_and_sub_from_ctx {
     ($ctx:expr) => {{
         let app = $ctx.data_unchecked::<lana_app::app::LanaApp>();
-        let AdminAuthContext { sub } = $ctx.data()?;
+        let $crate::primitives::AdminAuthContext { sub } = $ctx.data()?;
         (app, sub)
     }};
 }

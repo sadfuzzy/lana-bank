@@ -4,7 +4,6 @@
 mod config;
 pub mod graphql;
 mod primitives;
-mod sumsub;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
@@ -14,15 +13,15 @@ use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;
 use tracing::instrument;
 
+use std::sync::Arc;
+
 use jwks_utils::{Claims, JwtDecoderState, RemoteJwksDecoder};
 use lana_app::app::LanaApp;
 
 pub use config::*;
 use primitives::*;
 
-use std::sync::Arc;
-
-pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> {
+pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<()> {
     let port = config.port;
     let aud = config.aud.as_ref();
 
@@ -41,7 +40,6 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
-        .merge(sumsub::sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
         })
@@ -50,7 +48,7 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
         .layer(Extension(app))
         .layer(cors);
 
-    println!("Starting admin server on port {}", port);
+    println!("Starting customer server on port {}", port);
     let listener =
         tokio::net::TcpListener::bind(&std::net::SocketAddr::from(([0, 0, 0, 0], port))).await?;
     axum::serve(listener, app.into_make_service()).await?;
@@ -58,15 +56,15 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct AdminJwtClaims {
+pub struct CustomerJwtClaims {
     pub sub: String,
 }
 
-#[instrument(name = "admin_server.graphql", skip_all, fields(error, error.level, error.message))]
+#[instrument(name = "customer_server.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
-    schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
-    Claims(jwt_claims): Claims<AdminJwtClaims>,
+    schema: Extension<Schema<graphql::Query, EmptyMutation, EmptySubscription>>,
+    Claims(jwt_claims): Claims<CustomerJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {
     tracing_utils::http::extract_tracing(&headers);
@@ -74,7 +72,7 @@ pub async fn graphql_handler(
 
     match uuid::Uuid::parse_str(&jwt_claims.sub) {
         Ok(id) => {
-            let auth_context = AdminAuthContext::new(id);
+            let auth_context = CustomerAuthContext::new(id);
             req = req.data(auth_context);
             schema.execute(req).await.into()
         }
@@ -88,7 +86,7 @@ pub async fn graphql_handler(
 
 async fn playground() -> impl axum::response::IntoResponse {
     axum::response::Html(async_graphql::http::playground_source(
-        async_graphql::http::GraphQLPlaygroundConfig::new("/admin/graphql")
+        async_graphql::http::GraphQLPlaygroundConfig::new("/customer/graphql")
             .with_setting("request.credentials", "include"),
     ))
 }

@@ -1128,6 +1128,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "customer-server"
+version = "0.3.32-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "core-customer",
+ "es-entity",
+ "jwks-utils",
+ "lana-app",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2533,6 +2556,7 @@ dependencies = [
  "admin-server",
  "anyhow",
  "clap",
+ "customer-server",
  "lana-app",
  "serde",
  "serde_json",

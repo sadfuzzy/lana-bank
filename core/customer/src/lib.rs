@@ -142,6 +142,18 @@ where
         Ok(customer)
     }
 
+    #[instrument(name = "core_custorem.find_for_subject", skip(self))]
+    pub async fn find_for_subject(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Customer, CustomerError>
+    where
+        CustomerId: for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        let id = CustomerId::try_from(sub).map_err(|_| CustomerError::SubjectIsNotCustomer)?;
+        self.repo.find_by_id(id).await
+    }
+
     #[instrument(name = "customer.create_customer", skip(self), err)]
     pub async fn find_by_id(
         &self,

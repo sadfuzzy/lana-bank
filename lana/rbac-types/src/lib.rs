@@ -144,6 +144,17 @@ impl std::fmt::Display for Subject {
     }
 }
 
+impl TryFrom<&Subject> for CustomerId {
+    type Error = &'static str;
+
+    fn try_from(value: &Subject) -> Result<Self, Self::Error> {
+        match value {
+            Subject::Customer(id) => Ok(*id),
+            _ => Err("Subject is not Customer"),
+        }
+    }
+}
+
 impl TryFrom<&Subject> for UserId {
     type Error = &'static str;
 

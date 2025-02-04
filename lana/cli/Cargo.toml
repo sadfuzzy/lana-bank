@@ -12,6 +12,7 @@ fail-on-warnings = []
 [dependencies]
 lana-app = { path = "../app" }
 admin-server = { path = "../admin-server" }
+customer-server = { path = "../customer-server" }
 
 sim-bootstrap = { path = "../sim-bootstrap", optional = true }
 

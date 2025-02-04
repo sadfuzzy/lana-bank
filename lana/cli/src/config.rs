@@ -13,6 +13,7 @@ use std::path::Path;
 
 use super::db::*;
 use admin_server::AdminServerConfig;
+use customer_server::CustomerServerConfig;
 use lana_app::{app::AppConfig, report::ReportConfig, storage::config::StorageConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -21,6 +22,8 @@ pub struct Config {
     pub db: DbConfig,
     #[serde(default)]
     pub admin_server: AdminServerConfig,
+    #[serde(default)]
+    pub customer_server: CustomerServerConfig,
     #[serde(default)]
     pub app: AppConfig,
     #[serde(default)]

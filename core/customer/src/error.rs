@@ -16,6 +16,8 @@ pub enum CustomerError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CustomerError - DepositError: {0}")]
     DepositError(#[from] deposit::error::CoreDepositError),
+    #[error("CustomerError - SubjectIsNotCustomer")]
+    SubjectIsNotCustomer,
 }
 
 es_entity::from_es_entity_error!(CustomerError);

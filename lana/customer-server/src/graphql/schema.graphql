@@ -1,0 +1,43 @@
+enum AccountStatus {
+	INACTIVE
+	ACTIVE
+}
+
+
+type Customer {
+	id: ID!
+	customerId: UUID!
+	status: AccountStatus!
+	level: KycLevel!
+	createdAt: Timestamp!
+	email: String!
+	telegramId: String!
+}
+
+
+
+
+enum KycLevel {
+	NOT_KYCED
+	BASIC
+	ADVANCED
+}
+
+type Query {
+	me: Subject!
+}
+
+
+type Subject {
+	customer: Customer!
+}
+
+scalar Timestamp
+
+scalar UUID
+
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+schema {
+	query: Query
+}

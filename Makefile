@@ -81,6 +81,9 @@ sdl:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	cd apps/admin-panel && pnpm install && pnpm codegen
 
+customer-sdl:
+	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+
 test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
 

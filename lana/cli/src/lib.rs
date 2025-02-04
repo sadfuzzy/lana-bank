@@ -76,6 +76,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let superuser_email = config.app.user.superuser_email.clone().expect("super user");
 
     let admin_app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
+    let customer_app = admin_app.clone();
 
     #[cfg(feature = "sim-bootstrap")]
     {
@@ -89,6 +90,14 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
             admin_server::run(config.admin_server, admin_app)
                 .await
                 .context("Admin server error"),
+        );
+    }));
+    let customer_send = send.clone();
+    handles.push(tokio::spawn(async move {
+        let _ = customer_send.try_send(
+            customer_server::run(config.customer_server, customer_app)
+                .await
+                .context("Customer server error"),
         );
     }));
 

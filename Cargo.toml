@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "lana/cli",
   "lana/admin-server",
+  "lana/customer-server",
   "lana/app",
   "lana/rbac-types",
   "lana/events",
