@@ -145,6 +145,7 @@ CREATE TABLE terms_template_events (
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
+  authentication_id UUID NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

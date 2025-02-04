@@ -17,7 +17,7 @@ authenticators:
       check_session_url: http://kratos:4433/sessions/whoami
       preserve_path: true
       preserve_query: true
-      subject_from: identity.traits.user_id
+      subject_from: identity.id
       extra_from: "@this"
 
   cookie_session:
@@ -26,7 +26,7 @@ authenticators:
       check_session_url: http://kratos:4433/sessions/whoami
       preserve_path: true
       preserve_query: true
-      subject_from: identity.traits.user_id
+      subject_from: identity.id
       extra_from: "@this"
 
   noop:
@@ -42,16 +42,16 @@ mutators:
     config:
       jwks_url: file:///home/ory/jwks.json
       issuer_url: "lana.bank"
-      claims: '{"sub": "{{ print .Extra.identity.traits.user_id }}" }'
-
-  header:
-    enabled: true
-    config:
-      headers:
-        X-USER-ID: "{{ .Subject }}"
+      claims: '{"sub": "{{ print .Subject }}" }'
 
   noop:
     enabled: true
+
+  hydrator:
+    enabled: true
+    config:
+      api:
+        url: http://example.local
 
 errors:
   fallback:

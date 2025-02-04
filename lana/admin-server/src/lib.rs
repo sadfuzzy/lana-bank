@@ -4,6 +4,8 @@
 mod config;
 pub mod graphql;
 mod primitives;
+
+mod auth;
 mod sumsub;
 
 use async_graphql::*;
@@ -41,6 +43,7 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
+        .merge(auth::auth_routes())
         .merge(sumsub::sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
@@ -59,7 +62,7 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AdminJwtClaims {
-    pub sub: String,
+    pub subject: String,
 }
 
 #[instrument(name = "admin_server.graphql", skip_all, fields(error, error.level, error.message))]
@@ -72,7 +75,7 @@ pub async fn graphql_handler(
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    match uuid::Uuid::parse_str(&jwt_claims.sub) {
+    match uuid::Uuid::parse_str(&jwt_claims.subject) {
         Ok(id) => {
             let auth_context = AdminAuthContext::new(id);
             req = req.data(auth_context);

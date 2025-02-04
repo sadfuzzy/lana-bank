@@ -75,7 +75,8 @@ impl LanaApp {
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
         let users = Users::init(&pool, &authz, &outbox, config.user.superuser_email).await?;
-        let user_onboarding = UserOnboarding::init(&jobs, &outbox, config.user_onboarding).await?;
+        let user_onboarding =
+            UserOnboarding::init(&jobs, &outbox, &users, config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())

@@ -12,6 +12,7 @@ lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
+core-user = { path = "../../core/user" }
 
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils" }

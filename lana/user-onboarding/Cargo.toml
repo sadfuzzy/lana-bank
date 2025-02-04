@@ -13,6 +13,7 @@ core-user = { path = "../../core/user" }
 
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+audit = { path = "../../lib/audit" }
 
 sim-time = { workspace = true, optional = true }
 es-entity = { workspace = true, features = ["graphql"] }

@@ -167,6 +167,43 @@ where
         }
     }
 
+    #[instrument(name = "core_user.update_authentication_id_for_user", skip(self))]
+    pub async fn update_authentication_id_for_user(
+        &self,
+        user_id: UserId,
+        authentication_id: AuthenticationId,
+    ) -> Result<User, UserError> {
+        self.authz
+            .audit()
+            .record_system_entry(
+                UserObject::user(user_id),
+                CoreUserAction::USER_UPDATE_AUTHENTICATION_ID,
+            )
+            .await?;
+
+        let mut user = self.repo.find_by_id(user_id).await?;
+        if user
+            .update_authentication_id(authentication_id)
+            .did_execute()
+        {
+            self.repo.update(&mut user).await?;
+        }
+        Ok(user)
+    }
+
+    #[instrument(
+        name = "core_user.find_by_authentication_id",
+        skip(self, authentication_id)
+    )]
+    pub async fn find_by_authentication_id(
+        &self,
+        authentication_id: AuthenticationId,
+    ) -> Result<User, UserError> {
+        self.repo
+            .find_by_authentication_id(Some(authentication_id))
+            .await
+    }
+
     #[instrument(name = "core_user.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,

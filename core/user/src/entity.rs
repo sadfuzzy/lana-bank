@@ -16,6 +16,9 @@ pub enum UserEvent {
         email: String,
         audit_info: AuditInfo,
     },
+    AuthenticationIdUpdated {
+        authentication_id: AuthenticationId,
+    },
     RoleAssigned {
         role: Role,
         audit_info: AuditInfo,
@@ -31,6 +34,8 @@ pub enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
+    #[builder(setter(strip_option), default)]
+    pub authentication_id: Option<AuthenticationId>,
     events: EntityEvents<UserEvent>,
 }
 
@@ -81,6 +86,20 @@ impl User {
         }
         res
     }
+
+    pub fn update_authentication_id(
+        &mut self,
+        authentication_id: AuthenticationId,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            UserEvent::AuthenticationIdUpdated { authentication_id: existing_id } if existing_id == &authentication_id
+        );
+        self.authentication_id = Some(authentication_id);
+        self.events
+            .push(UserEvent::AuthenticationIdUpdated { authentication_id });
+        Idempotent::Executed(())
+    }
 }
 
 impl core::fmt::Display for User {
@@ -100,8 +119,12 @@ impl TryFromEvents<UserEvent> for User {
                 }
                 UserEvent::RoleAssigned { .. } => (),
                 UserEvent::RoleRevoked { .. } => (),
+                UserEvent::AuthenticationIdUpdated { authentication_id } => {
+                    builder = builder.authentication_id(*authentication_id);
+                }
             }
         }
+
         builder.events(events).build()
     }
 }
@@ -112,6 +135,8 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
+    #[builder(setter(skip), default)]
+    pub(super) authentication_id: Option<AuthenticationId>,
     pub(super) audit_info: AuditInfo,
 }
 

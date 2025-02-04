@@ -19,15 +19,10 @@
               }
             }
           }
-        },
-        "user_id": {
-          "type": "string",
-          "title": "User ID"
         }
       },
       "required": [
-        "email",
-        "user_id"
+        "email"
       ]
     }
   }

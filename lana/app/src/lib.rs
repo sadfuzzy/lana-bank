@@ -31,7 +31,8 @@ pub mod dashboard {
 
 pub mod user_onboarding {
     pub use user_onboarding::config::UserOnboardingConfig;
-    pub use user_onboarding::*;
+    pub type UserOnboarding =
+        user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod user {

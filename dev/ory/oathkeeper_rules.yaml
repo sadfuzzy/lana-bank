@@ -25,6 +25,10 @@
   authorizer:
     handler: allow
   mutators:
+    - handler: hydrator
+      config:
+        api:
+          url: http://dockerhost-alias:5253/user/user-id-from-authentication-id
     - handler: id_token
       config:
         claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
