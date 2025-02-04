@@ -171,7 +171,7 @@ jobs:
                   path: image
               params:
                 CONTEXT: admin-panel-src
-                DOCKERFILE: admin-panel-src/apps/admin-panel/Dockerfile"
+                DOCKERFILE: admin-panel-src/apps/admin-panel/Dockerfile
               run:
                 path: build
           - put: #@ app_latest_image_resource_name("admin-panel")
