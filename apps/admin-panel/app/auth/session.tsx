@@ -1,6 +1,13 @@
 "use client"
 
-import { useEffect, useState, useCallback, createContext, useContext } from "react"
+import {
+  useEffect,
+  useState,
+  useCallback,
+  createContext,
+  useContext,
+  useMemo,
+} from "react"
 import { usePathname, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 
@@ -9,8 +16,8 @@ import { AppLayout } from "../app-layout"
 import { getSession, logoutUser } from "./ory"
 
 const AuthenticatedStore = createContext({
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars, no-empty-function
-  updateAuthState: (_: boolean) => {},
+  // eslint-disable-next-line no-empty-function
+  logoutInAuthState: () => {},
 })
 
 type Props = {
@@ -24,10 +31,16 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   const [isAuthSetInLocalStorage, setIsAuthSetInLocalStorage] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
-  const updateAuthState = (state: boolean) => {
-    setIsAuthSetInLocalStorage(state)
-    setIsAuthenticated(state)
-  }
+  const logoutInAuthState = useMemo(
+    () => () => {
+      setIsAuthSetInLocalStorage(false)
+      setIsAuthenticated(false)
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("isAuthenticated")
+      }
+    },
+    [setIsAuthSetInLocalStorage, setIsAuthenticated],
+  )
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -57,7 +70,7 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   }, [pathName, router])
 
   const Stack =
-    isAuthenticated || isAuthSetInLocalStorage ? (
+    isAuthenticated || (isAuthenticated === null && isAuthSetInLocalStorage) ? (
       // If we know the user is authenticated or is marked authenticated in localStorage
       <AppLayout>{children}</AppLayout>
     ) : (
@@ -66,7 +79,7 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
     )
 
   return (
-    <AuthenticatedStore.Provider value={{ updateAuthState }}>
+    <AuthenticatedStore.Provider value={{ logoutInAuthState }}>
       {Stack}
     </AuthenticatedStore.Provider>
   )
@@ -78,16 +91,13 @@ export const Authenticated = dynamic(() => Promise.resolve(AuthenticatedGuard), 
 
 export const useLogout = () => {
   const router = useRouter()
-  const { updateAuthState } = useContext(AuthenticatedStore)
+  const { logoutInAuthState } = useContext(AuthenticatedStore)
 
   const logout = useCallback(async () => {
     await logoutUser()
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("isAuthenticated")
-      updateAuthState(false)
-    }
+    logoutInAuthState()
     router.push("/")
-  }, [router, updateAuthState])
+  }, [router, logoutInAuthState])
 
   return { logout }
 }
