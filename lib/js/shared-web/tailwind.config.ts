@@ -53,6 +53,7 @@ const tailwindConfig = {
         },
         warning: {
           DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
         },
         chart: {
           "1": "hsl(var(--chart-1))",

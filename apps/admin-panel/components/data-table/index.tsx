@@ -213,11 +213,8 @@ const DataTable = <T,>({
         ))}
       </div>
     ) : (
-      <div
-        className="w-full overflow-x-auto border rounded-md"
-        data-testid="loading-skeleton"
-      >
-        <Table className={className}>
+      <div className="overflow-x-auto border rounded-md" data-testid="loading-skeleton">
+        <Table className={cn("table-fixed w-full", className)}>
           <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
             <TableRow className={headerClassName}>
               {columns.map((column, index) => (
@@ -229,23 +226,25 @@ const DataTable = <T,>({
                   )}
                   style={{ width: column.width }}
                 >
-                  {column.header}
+                  <div className="flex items-center space-x-2 justify-between">
+                    <span>{column.header}</span>
+                  </div>
                 </TableHead>
               ))}
-              {navigateTo && <TableHead className="w-24"></TableHead>}
+              {navigateTo && <TableHead className="w-24" />}
             </TableRow>
           </TableHeader>
           <TableBody>
             {Array.from({ length: 5 }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex}>
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell key={colIndex} className="h-[3.8rem]">
+                    <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell>
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell className="h-[3.8rem]">
+                    <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
               </TableRow>
@@ -331,7 +330,7 @@ const DataTable = <T,>({
   return (
     <div
       ref={tableRef}
-      className="w-full overflow-x-auto border rounded-md focus:outline-none"
+      className="overflow-x-auto border rounded-md focus:outline-none"
       tabIndex={0}
       role="grid"
       onFocus={() => setIsTableFocused(true)}
@@ -342,7 +341,7 @@ const DataTable = <T,>({
         }
       }}
     >
-      <Table className={className}>
+      <Table className={cn("table-fixed w-full", className)}>
         <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
           <TableRow className={headerClassName}>
             {columns.map((column, index) => (
@@ -354,10 +353,12 @@ const DataTable = <T,>({
                 )}
                 style={{ width: column.width }}
               >
-                {column.header}
+                <div className="flex items-center space-x-2 justify-between">
+                  <span>{column.header}</span>
+                </div>
               </TableHead>
             ))}
-            {navigateTo && <TableHead className="w-24"></TableHead>}
+            {navigateTo && <TableHead className="w-24" />}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -383,6 +384,7 @@ const DataTable = <T,>({
                 <TableCell
                   key={colIndex}
                   className={cn(
+                    "whitespace-normal break-words h-[3.8rem]",
                     column.align === "center" && "text-center",
                     column.align === "right" && "text-right",
                     typeof cellClassName === "function"
@@ -396,7 +398,7 @@ const DataTable = <T,>({
                 </TableCell>
               ))}
               {shouldShowNavigation(item) && (
-                <TableCell>
+                <TableCell className="h-[3.8rem]">
                   <Link href={getNavigationUrl(item) || ""}>
                     <Button
                       variant="outline"

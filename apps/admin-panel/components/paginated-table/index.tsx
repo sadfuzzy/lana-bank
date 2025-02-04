@@ -276,11 +276,37 @@ const PaginatedTable = <T,>({
       </div>
     ) : (
       <div className="overflow-x-auto border rounded-md">
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
             <TableRow>
               {columns.map((col) => (
-                <TableHead key={col.key as string}>{col.label}</TableHead>
+                <TableHead key={col.key as string}>
+                  <div className="flex items-center space-x-2 justify-between">
+                    <span>{col.label}</span>
+                    <div className="flex items-center">
+                      {col.sortable && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-8 p-0"
+                          disabled
+                        >
+                          <HiSelector className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {col.filterValues && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-9 w-8 p-0"
+                          disabled
+                        >
+                          <HiFilter className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </TableHead>
               ))}
               {navigateTo && <TableHead className="w-24" />}
             </TableRow>
@@ -289,19 +315,31 @@ const PaginatedTable = <T,>({
             {Array.from({ length: pageSize }).map((_, rowIndex) => (
               <TableRow key={rowIndex}>
                 {columns.map((_, colIndex) => (
-                  <TableCell key={colIndex}>
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell key={colIndex} className="h-[3.8rem]">
+                    <Skeleton className="h-9 w-full" />
                   </TableCell>
                 ))}
                 {navigateTo && (
-                  <TableCell>
-                    <Skeleton className="h-4 w-full" />
+                  <TableCell className="h-[3.8rem]">
+                    <Skeleton className="h-9 w-full" />
                   </TableCell>
                 )}
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Separator />
+        <div className="flex items-center justify-end space-x-4 py-2 mr-2">
+          <Button variant="outline" size="sm" disabled>
+            <HiChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center gap-1">
+            <span className="text-sm font-medium">1</span>
+          </div>
+          <Button variant="outline" size="sm" disabled>
+            <HiChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     )
   }
@@ -525,7 +563,7 @@ const PaginatedTable = <T,>({
                 {columns.map((col) => (
                   <TableCell
                     key={col.key as string}
-                    className="whitespace-normal break-words"
+                    className="whitespace-normal break-words h-[3.8rem]"
                   >
                     {col.render ? col.render(node[col.key], node) : String(node[col.key])}
                   </TableCell>

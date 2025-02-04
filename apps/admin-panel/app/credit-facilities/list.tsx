@@ -121,7 +121,12 @@ const columns: Column<CreditFacility>[] = [
   {
     key: "status",
     label: "Status",
-    render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
+    render: (status) => (
+      <LoanAndCreditFacilityStatusBadge
+        className="flex items-center justify-center text-center min-h-full min-w-full"
+        status={status}
+      />
+    ),
     filterValues: Object.values(CreditFacilityStatus),
   },
   {
@@ -133,7 +138,7 @@ const columns: Column<CreditFacility>[] = [
   },
   {
     key: "collateralizationState",
-    label: "Collateralization State",
+    label: "State",
     render: (state) => formatCollateralizationState(state),
     filterValues: Object.values(CollateralizationState),
   },

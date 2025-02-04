@@ -13,6 +13,8 @@ const getVariant = (status: CreditFacilityStatus) => {
       return "success"
     case CreditFacilityStatus.PendingApproval:
       return "default"
+    case CreditFacilityStatus.PendingCollateralization:
+      return "warning"
     default:
       return "secondary"
   }
