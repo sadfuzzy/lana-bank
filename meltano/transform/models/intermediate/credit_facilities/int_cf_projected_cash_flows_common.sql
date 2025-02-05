@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with terms_and_disbursal as (
     select
         *,
@@ -21,7 +23,8 @@ with terms_and_disbursal as (
                     )
                 )
         end as credit_facility_end_date
-    from {{ ref('int_cf_denormalized') }}
+    from {{ ref('int_credit_facilities') }}
+    full join {{ ref('int_cf_disbursals') }} using (event_id)
     where
         disbursal_concluded_event_recorded_at_date_key != 19000101
         and terms_accrual_interval_type = 'end_of_month'

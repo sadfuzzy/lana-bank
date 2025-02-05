@@ -135,3 +135,6 @@ lint-code-pipeline:
 
 bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery
+
+sumsub-run:
+	meltano run tap-sumsubapi target-bigquery

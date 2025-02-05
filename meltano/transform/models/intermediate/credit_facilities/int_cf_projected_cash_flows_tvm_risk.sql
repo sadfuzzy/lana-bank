@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with projected_cash_flows_common as (
     select *
     from {{ ref('int_cf_projected_cash_flows_common') }}

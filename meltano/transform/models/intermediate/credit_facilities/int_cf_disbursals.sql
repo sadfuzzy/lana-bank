@@ -1,3 +1,5 @@
+{{ config(materialized='table') }}
+
 with disbursal_initiated as (
 
     select

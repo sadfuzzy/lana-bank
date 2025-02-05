@@ -59,7 +59,7 @@ payments as (
         id as credit_facility_id,
         sum(cast(json_value(event, "$.interest_amount") as numeric))
             as total_interest_paid,
-        sum(cast(json_value(event, "$.disbursement_amount") as numeric))
+        sum(cast(json_value(event, "$.disbursal_amount") as numeric))
             as total_disbursement_paid,
         max(
             if(
@@ -74,7 +74,7 @@ payments as (
         max(
             if(
                 coalesce(
-                    cast(json_value(event, "$.disbursement_amount") as numeric),
+                    cast(json_value(event, "$.disbursal_amount") as numeric),
                     0
                 )
                 > 0,

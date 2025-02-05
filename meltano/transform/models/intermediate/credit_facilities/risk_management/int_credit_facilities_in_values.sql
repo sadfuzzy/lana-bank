@@ -1,13 +1,19 @@
+{{ config(materialized='table') }}
+
 with value_approved_cf as (
     select safe_divide(sum(facility), 100.0) as amount_in_usd
     from {{ ref("int_credit_facilities") }}
-    where approval_process_concluded_approved
+    where
+        approval_process_concluded_approved
+        and completed_recorded_at is null
 ),
 
 disbursed as (
-    select safe_divide(sum(amount), 100.0) as amount_in_usd
-    from {{ ref("int_cf_disbursals") }}
-    where disbursal_concluded_event_recorded_at_date_key != 19000101
+    select safe_divide(sum(total_disbursed_amount), 100.0) as amount_in_usd
+    from {{ ref("int_cf_flatten") }}
+    where
+        disbursal_concluded_event_recorded_at_date_key != 19000101
+        and completed_recorded_at is null
 ),
 
 breakeven as (
@@ -16,10 +22,11 @@ breakeven as (
         5.53 as bench_mark,              	      -- TODO get from proper source
         cfe.terms_annual_rate,
         facility as credit_facility_limit_in_cents,
-        coalesce(amount, 0) as disbursal_amount_in_cents
-    from {{ ref("int_cf_denormalized") }} as cfe
+        coalesce(total_disbursed_amount, 0) as disbursal_amount_in_cents
+    from {{ ref("int_cf_flatten") }} as cfe
     where
         approval_process_concluded_approved
+        and completed_recorded_at is null
         and facility > 0
 ),
 
@@ -86,37 +93,37 @@ breakeven_sum as (
 
 select
     1 as order_by,
-    cast(amount_in_usd as string) as the_value,
+    cast(amount_in_usd as numeric) as the_value,
     'Total Value of Approved Credit Facilities' as the_name
 from value_approved_cf
 union all
 select
     2 as order_by,
-    cast(amount_in_usd as string) as the_value,
+    cast(amount_in_usd as numeric) as the_value,
     'Total Value Disbursed from Approved Credit Facilities' as the_name
 from disbursed
 union all
 select
     3 as order_by,
-    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as string) as the_value,
+    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as numeric) as the_value,
     'Total Value NOT-YET Disbursed from Approved Credit Facilities' as the_name
 from value_approved_cf as v, disbursed as d
 union all
 select
     4 as order_by,
-    cast(safe_divide(d.amount_in_usd, v.amount_in_usd) * 100 as string) as the_value,
+    cast(safe_divide(d.amount_in_usd, v.amount_in_usd) * 100 as numeric) as the_value,
     'Disbursed-to-Approved ratio (%)' as the_name
 from value_approved_cf as v, disbursed as d
 union all
 select
     5 as order_by,
-    cast(disbursal_ratio * 100 as string) as the_value,
+    cast(disbursal_ratio * 100 as numeric) as the_value,
     'Disbursal ratio (%) - proportional' as the_name
 from breakeven_sum
 union all
 select
     6 as order_by,
-    cast(breakeven_disbursal_ratio * 100 as string) as the_value,
+    cast(breakeven_disbursal_ratio * 100 as numeric) as the_value,
     'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' as the_name
 from breakeven_sum
 
