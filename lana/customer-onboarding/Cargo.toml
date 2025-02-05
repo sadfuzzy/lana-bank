@@ -1,6 +1,6 @@
 [package]
-name = "user-onboarding"
-version = "0.3.46-dev"
+name = "customer-onboarding"
+version = "0.3.43-dev"
 edition = "2021"
 
 [features]
@@ -9,11 +9,15 @@ fail-on-warnings = []
 
 [dependencies]
 lana-events = { path = "../events" }
-core-user = { path = "../../core/user" }
+
+core-customer = { path = "../../core/customer" }
+deposit = { path = "../../core/deposit" }
+governance = { path = "../../core/governance" }
 
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
 sim-time = { workspace = true, optional = true }
@@ -28,7 +32,6 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 async-graphql = { workspace = true }
-ory-kratos-client = { workspace = true }
 
 [dev-dependencies]
 tokio = { workspace = true }

@@ -1129,6 +1129,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "customer-onboarding"
+version = "0.3.43-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-customer",
+ "deposit",
+ "es-entity",
+ "futures",
+ "governance",
+ "job",
+ "kratos-admin",
+ "lana-events",
+ "outbox",
+ "serde",
+ "serde_json",
+ "sim-time",
+ "strum",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "customer-server"
 version = "0.3.46-dev"
 dependencies = [
@@ -2459,6 +2487,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "kratos-admin"
+version = "0.3.43-dev"
+dependencies = [
+ "ory-kratos-client",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "uuid",
+]
+
+[[package]]
 name = "lalrpop"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2511,6 +2550,7 @@ dependencies = [
  "core-customer",
  "core-money",
  "core-user",
+ "customer-onboarding",
  "dashboard",
  "deposit",
  "derive_builder",
@@ -5381,6 +5421,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
+ "kratos-admin",
  "lana-events",
  "ory-kratos-client",
  "outbox",
