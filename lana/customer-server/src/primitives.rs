@@ -3,11 +3,15 @@ use serde::{Deserialize, Serialize};
 
 pub use std::sync::Arc;
 
-pub use lana_app::primitives::{
-    CustomerId, DepositAccountId, DepositId, Subject, UsdCents, WithdrawalId,
+pub use lana_app::{
+    primitives::{
+        CreditFacilityId, CustomerId, DepositAccountId, DepositId, Satoshis, Subject, UsdCents,
+        WithdrawalId,
+    },
+    terms::CollateralizationState,
 };
 
-pub use es_entity::{graphql::UUID, ListDirection};
+pub use es_entity::graphql::UUID;
 
 #[derive(Debug, Clone)]
 pub struct CustomerAuthContext {
@@ -52,5 +56,6 @@ impl_to_global_id! {
     CustomerId,
     DepositAccountId,
     DepositId,
-    WithdrawalId
+    WithdrawalId,
+    CreditFacilityId
 }

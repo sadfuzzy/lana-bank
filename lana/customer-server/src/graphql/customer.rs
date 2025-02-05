@@ -5,7 +5,7 @@ use core_customer::{AccountStatus, Customer as DomainCustomer, KycLevel};
 
 use crate::primitives::*;
 
-use super::deposit_account::*;
+use super::{credit_facility::*, deposit_account::*};
 
 use thiserror::Error;
 
@@ -64,5 +64,22 @@ impl Customer {
             .map(DepositAccount::from)
             .next()
             .ok_or(CustomerError::DepositAccountNotFound)?)
+    }
+
+    async fn credit_facilities(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacility>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        Ok(app
+            .credit_facilities()
+            .for_subject(sub)?
+            .list_credit_facilities_by_created_at(Default::default(), ListDirection::Descending)
+            .await?
+            .entities
+            .into_iter()
+            .map(CreditFacility::from)
+            .collect())
     }
 }

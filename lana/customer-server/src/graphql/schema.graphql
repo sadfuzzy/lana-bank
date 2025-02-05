@@ -3,6 +3,29 @@ enum AccountStatus {
 	ACTIVE
 }
 
+scalar AnnualRatePct
+
+
+scalar CVLPct
+
+enum CollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_MARGIN_CALL_THRESHOLD
+	UNDER_LIQUIDATION_THRESHOLD
+	NO_COLLATERAL
+}
+
+type CreditFacility {
+	id: ID!
+	creditFacilityId: UUID!
+	activatedAt: Timestamp
+	expiresAt: Timestamp
+	createdAt: Timestamp!
+	collateralizationState: CollateralizationState!
+	facilityAmount: UsdCents!
+	collateral: Satoshis!
+	creditFacilityTerms: TermValues!
+}
 
 type Customer {
 	id: ID!
@@ -13,6 +36,7 @@ type Customer {
 	email: String!
 	telegramId: String!
 	depositAccount: DepositAccount!
+	creditFacilities: [CreditFacility!]!
 }
 
 type Deposit {
@@ -39,8 +63,18 @@ type DepositAccountBalance {
 	pending: UsdCents!
 }
 
+type Duration {
+	period: Period!
+	units: Int!
+}
 
 
+
+
+enum InterestInterval {
+	END_OF_MONTH
+	END_OF_DAY
+}
 
 enum KycLevel {
 	NOT_KYCED
@@ -48,13 +82,32 @@ enum KycLevel {
 	ADVANCED
 }
 
+scalar OneTimeFeeRatePct
+
+enum Period {
+	MONTHS
+}
+
 type Query {
 	me: Subject!
 }
 
+scalar Satoshis
+
 
 type Subject {
 	customer: Customer!
+}
+
+type TermValues {
+	annualRate: AnnualRatePct!
+	accrualInterval: InterestInterval!
+	incurrenceInterval: InterestInterval!
+	oneTimeFeeRate: OneTimeFeeRatePct!
+	duration: Duration!
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
 }
 
 scalar Timestamp

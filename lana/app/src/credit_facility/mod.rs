@@ -2,6 +2,7 @@ mod config;
 mod disbursal;
 mod entity;
 pub mod error;
+mod for_subject;
 mod history;
 mod interest_accrual;
 mod jobs;
@@ -37,6 +38,7 @@ pub use config::*;
 pub use disbursal::{disbursal_cursor::*, *};
 pub use entity::*;
 use error::*;
+use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
@@ -181,6 +183,20 @@ impl CreditFacilities {
                 enforce,
             )
             .await?)
+    }
+
+    pub fn for_subject<'s>(
+        &'s self,
+        sub: &'s Subject,
+    ) -> Result<CreditFacilitiesForSubject<'s>, CreditFacilityError> {
+        let customer_id =
+            CustomerId::try_from(sub).map_err(|_| CreditFacilityError::SubjectIsNotCustomer)?;
+        Ok(CreditFacilitiesForSubject::new(
+            sub,
+            customer_id,
+            &self.authz,
+            &self.credit_facility_repo,
+        ))
     }
 
     #[instrument(name = "credit_facility.initiate", skip(self), err)]

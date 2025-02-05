@@ -66,6 +66,8 @@ pub enum CreditFacilityError {
     InterestAccrualWithInvalidFutureStartDate,
     #[error("CreditFacilityError - SubjectIsNotUser")]
     SubjectIsNotUser,
+    #[error("CreditFacilityError - SubjectIsNotCustomer")]
+    SubjectIsNotCustomer,
     #[error(
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]

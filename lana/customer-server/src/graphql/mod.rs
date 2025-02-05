@@ -1,10 +1,12 @@
 #[macro_use]
 pub mod macros;
 mod authenticated_subject;
+mod credit_facility;
 mod customer;
 mod deposit;
 mod deposit_account;
 mod schema;
+mod terms;
 mod withdrawal;
 
 use async_graphql::*;
