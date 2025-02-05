@@ -3,5 +3,5 @@ pub mod error;
 mod repo;
 
 pub use entity::DepositAccount;
-pub(super) use entity::*;
-pub(super) use repo::*;
+pub(crate) use entity::*;
+pub(crate) use repo::*;

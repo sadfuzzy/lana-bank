@@ -149,7 +149,7 @@ async fn make_deposit(
     for customer_id in customer_ids {
         let deposit_account_id = app
             .deposits()
-            .list_account_by_created_at_for_account_holder(
+            .list_accounts_by_created_at_for_account_holder(
                 sub,
                 *customer_id,
                 Default::default(),

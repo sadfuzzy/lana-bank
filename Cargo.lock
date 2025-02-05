@@ -1172,6 +1172,7 @@ dependencies = [
  "lana-app",
  "serde",
  "serde_json",
+ "thiserror 1.0.69",
  "tokio",
  "tower-http",
  "tracing",

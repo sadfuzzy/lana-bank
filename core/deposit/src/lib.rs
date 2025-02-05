@@ -6,6 +6,7 @@ mod deposit;
 mod deposit_account_balance;
 pub mod error;
 mod event;
+mod for_subject;
 mod ledger;
 mod primitives;
 mod processes;
@@ -29,6 +30,7 @@ pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;
+pub use for_subject::DepositsForSubject;
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
@@ -133,6 +135,27 @@ where
         Ok(res)
     }
 
+    pub fn for_subject<'s>(
+        &'s self,
+        sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<DepositsForSubject<'s, Perms>, CoreDepositError>
+    where
+        DepositAccountHolderId:
+            for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
+    {
+        let holder_id = DepositAccountHolderId::try_from(sub)
+            .map_err(|_| CoreDepositError::SubjectIsNotDepositAccountHolder)?;
+        Ok(DepositsForSubject::new(
+            sub,
+            holder_id,
+            &self.accounts,
+            &self.deposits,
+            &self.withdrawals,
+            &self.ledger,
+            &self.authz,
+        ))
+    }
+
     #[instrument(name = "deposit.create_account", skip(self))]
     pub async fn create_account(
         &self,
@@ -177,6 +200,7 @@ where
             .add_deposit_control_to_account(&mut op, account_id)
             .await?;
 
+        // self.authz.assign_role_to_subject_in_scope(holder_id, self.account_holder_role, account_id).await?;
         op.commit().await?;
 
         Ok(account)
@@ -464,7 +488,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                CoreDepositObject::all_deposits(),
+                CoreDepositObject::deposit_account(account_id),
                 CoreDepositAction::DEPOSIT_LIST,
             )
             .await?;
@@ -503,7 +527,7 @@ where
             .entities)
     }
 
-    pub async fn list_account_by_created_at_for_account_holder(
+    pub async fn list_accounts_by_created_at_for_account_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,

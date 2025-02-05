@@ -12,6 +12,31 @@ type Customer {
 	createdAt: Timestamp!
 	email: String!
 	telegramId: String!
+	depositAccount: DepositAccount!
+}
+
+type Deposit {
+	id: ID!
+	depositId: UUID!
+	accountId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	reference: String!
+}
+
+type DepositAccount {
+	id: ID!
+	depositAccountId: UUID!
+	customerId: UUID!
+	createdAt: Timestamp!
+	balance: DepositAccountBalance!
+	deposits: [Deposit!]!
+	withdrawals: [Withdrawal!]!
+}
+
+type DepositAccountBalance {
+	settled: UsdCents!
+	pending: UsdCents!
 }
 
 
@@ -35,6 +60,26 @@ type Subject {
 scalar Timestamp
 
 scalar UUID
+
+scalar UsdCents
+
+type Withdrawal {
+	id: ID!
+	withdrawalId: UUID!
+	accountId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	reference: String!
+	status: WithdrawalStatus!
+}
+
+enum WithdrawalStatus {
+	PENDING_APPROVAL
+	PENDING_CONFIRMATION
+	CONFIRMED
+	DENIED
+	CANCELLED
+}
 
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT

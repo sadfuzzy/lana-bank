@@ -24,4 +24,8 @@ pub enum CoreDepositError {
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
     ProcessError(#[from] crate::processes::error::ProcessError),
+    #[error("CoreDepositError - SubjectIsNotDepositAccountHolder")]
+    SubjectIsNotDepositAccountHolder,
+    #[error("CoreDepositError - SubjectIsNotDepositAccountHolder")]
+    DepositAccountNotFound,
 }

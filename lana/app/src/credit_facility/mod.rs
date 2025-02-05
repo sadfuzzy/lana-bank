@@ -198,7 +198,7 @@ impl CreditFacilities {
 
         let deposit_accounts: Vec<DepositAccount> = self
             .deposits
-            .list_account_by_created_at_for_account_holder(
+            .list_accounts_by_created_at_for_account_holder(
                 sub,
                 customer_id,
                 Default::default(),
