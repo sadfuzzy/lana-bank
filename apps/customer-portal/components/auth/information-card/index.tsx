@@ -2,8 +2,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@lana/web/
 
 const InformationCard = () => {
   return (
-    <Card className="md:w-3/6 md:ml-8">
-      <CardHeader className="pt-2">
+    <Card className="md:w-3/6 md:ml-8" variant="transparent">
+      <CardHeader className="pt-2 pb-4">
         <CardTitle className="text-2xl">
           <div>Bitcoin backed loans. Based in Bitcoin Country.</div>
         </CardTitle>
@@ -16,7 +16,6 @@ const InformationCard = () => {
       </CardContent>
       <CardFooter>
         <ul className="list-disc list-inside">
-          <li>Connect your Bitfinex account</li>
           <li>Fixed or variable rate loans </li>
           <li>High-touch customer service</li>
         </ul>

@@ -4,7 +4,7 @@ import { kratosPublic } from "../sdk"
 
 export const toSession = async ({ cookie }: { cookie: string }) => {
   try {
-    const { data } = await kratosPublic.toSession({
+    const { data } = await kratosPublic().toSession({
       cookie,
     })
     return data

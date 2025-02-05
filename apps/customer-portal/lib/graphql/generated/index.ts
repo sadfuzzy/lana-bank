@@ -17,9 +17,6 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
-  AnnualRatePct: { input: any; output: any; }
-  CVLPct: { input: any; output: any; }
-  Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
@@ -30,139 +27,68 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
-export type Checking = {
-  __typename?: 'Checking';
-  pending: Scalars['UsdCents']['output'];
-  settled: Scalars['UsdCents']['output'];
-};
-
-export type Collateral = {
-  __typename?: 'Collateral';
-  btcBalance: Scalars['Satoshis']['output'];
-};
-
 export type Customer = {
   __typename?: 'Customer';
-  applicantId?: Maybe<Scalars['String']['output']>;
-  balance: CustomerBalance;
+  createdAt: Scalars['Timestamp']['output'];
   customerId: Scalars['UUID']['output'];
-  deposits: Array<Deposit>;
+  depositAccount: DepositAccount;
   email: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   level: KycLevel;
-  loans: Array<Loan>;
   status: AccountStatus;
-  withdrawals: Array<Withdrawal>;
-};
-
-export type CustomerBalance = {
-  __typename?: 'CustomerBalance';
-  checking: Checking;
+  telegramId: Scalars['String']['output'];
 };
 
 export type Deposit = {
   __typename?: 'Deposit';
+  accountId: Scalars['UUID']['output'];
   amount: Scalars['UsdCents']['output'];
-  customer?: Maybe<Customer>;
-  customerId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  reference: Scalars['String']['output'];
 };
 
-export type Duration = {
-  __typename?: 'Duration';
-  period: Period;
-  units: Scalars['Int']['output'];
+export type DepositAccount = {
+  __typename?: 'DepositAccount';
+  balance: DepositAccountBalance;
+  createdAt: Scalars['Timestamp']['output'];
+  customerId: Scalars['UUID']['output'];
+  depositAccountId: Scalars['UUID']['output'];
+  deposits: Array<Deposit>;
+  id: Scalars['ID']['output'];
+  withdrawals: Array<Withdrawal>;
 };
 
-export type InterestIncome = {
-  __typename?: 'InterestIncome';
-  usdBalance: Scalars['UsdCents']['output'];
+export type DepositAccountBalance = {
+  __typename?: 'DepositAccountBalance';
+  pending: Scalars['UsdCents']['output'];
+  settled: Scalars['UsdCents']['output'];
 };
-
-export enum InterestInterval {
-  EndOfMonth = 'END_OF_MONTH'
-}
 
 export enum KycLevel {
-  One = 'ONE',
-  Two = 'TWO',
-  Zero = 'ZERO'
-}
-
-export type Loan = {
-  __typename?: 'Loan';
-  balance: LoanBalance;
-  createdAt: Scalars['Timestamp']['output'];
-  customer: Customer;
-  id: Scalars['ID']['output'];
-  loanId: Scalars['UUID']['output'];
-  loanTerms: TermValues;
-  status: LoanStatus;
-};
-
-export type LoanBalance = {
-  __typename?: 'LoanBalance';
-  collateral: Collateral;
-  interestIncurred: InterestIncome;
-  outstanding: LoanOutstanding;
-};
-
-export type LoanOutstanding = {
-  __typename?: 'LoanOutstanding';
-  usdBalance: Scalars['UsdCents']['output'];
-};
-
-export enum LoanStatus {
-  Active = 'ACTIVE',
-  Closed = 'CLOSED',
-  New = 'NEW'
-}
-
-export type Mutation = {
-  __typename?: 'Mutation';
-  sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
-  sumsubTokenCreate: SumsubTokenCreatePayload;
-};
-
-export enum Period {
-  Months = 'MONTHS'
+  Advanced = 'ADVANCED',
+  Basic = 'BASIC',
+  NotKyced = 'NOT_KYCED'
 }
 
 export type Query = {
   __typename?: 'Query';
-  loan?: Maybe<Loan>;
-  me?: Maybe<Customer>;
+  me: Subject;
 };
 
-
-export type QueryLoanArgs = {
-  id: Scalars['UUID']['input'];
-};
-
-export type SumsubPermalinkCreatePayload = {
-  __typename?: 'SumsubPermalinkCreatePayload';
-  url: Scalars['String']['output'];
-};
-
-export type SumsubTokenCreatePayload = {
-  __typename?: 'SumsubTokenCreatePayload';
-  token: Scalars['String']['output'];
-};
-
-export type TermValues = {
-  __typename?: 'TermValues';
-  annualRate: Scalars['AnnualRatePct']['output'];
-  duration: Duration;
-  initialCvl: Scalars['CVLPct']['output'];
-  interval: InterestInterval;
-  liquidationCvl: Scalars['CVLPct']['output'];
-  marginCallCvl: Scalars['CVLPct']['output'];
+export type Subject = {
+  __typename?: 'Subject';
+  customer: Customer;
 };
 
 export type Withdrawal = {
   __typename?: 'Withdrawal';
+  accountId: Scalars['UUID']['output'];
   amount: Scalars['UsdCents']['output'];
-  customer?: Maybe<Customer>;
-  customerId: Scalars['UUID']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
 };
@@ -170,222 +96,54 @@ export type Withdrawal = {
 export enum WithdrawalStatus {
   Cancelled = 'CANCELLED',
   Confirmed = 'CONFIRMED',
-  Initiated = 'INITIATED'
+  Denied = 'DENIED',
+  PendingApproval = 'PENDING_APPROVAL',
+  PendingConfirmation = 'PENDING_CONFIRMATION'
 }
-
-export type SumsubPermalinkCreateMutationVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SumsubPermalinkCreateMutation = { __typename?: 'Mutation', sumsubPermalinkCreate: { __typename?: 'SumsubPermalinkCreatePayload', url: string } };
-
-export type SumsubTokenCreateMutationVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SumsubTokenCreateMutation = { __typename?: 'Mutation', sumsubTokenCreate: { __typename?: 'SumsubTokenCreatePayload', token: string } };
-
-export type GetLoanQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetLoanQuery = { __typename?: 'Query', loan?: { __typename?: 'Loan', id: string, loanId: any, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } }, loanTerms: { __typename?: 'TermValues', annualRate: any, interval: InterestInterval, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
-
-export type GetMyLoansQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetMyLoansQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, loans: Array<{ __typename?: 'Loan', id: string, loanId: any, createdAt: any, balance: { __typename?: 'LoanBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'LoanOutstanding', usdBalance: any }, interestIncurred: { __typename?: 'InterestIncome', usdBalance: any } } }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'Customer', customerId: any, email: string, applicantId?: string | null, status: AccountStatus, level: KycLevel, balance: { __typename?: 'CustomerBalance', checking: { __typename?: 'Checking', settled: any, pending: any } } } | null };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> } } } };
 
 
-export const SumsubPermalinkCreateDocument = gql`
-    mutation SumsubPermalinkCreate {
-  sumsubPermalinkCreate {
-    url
-  }
-}
-    `;
-export type SumsubPermalinkCreateMutationFn = Apollo.MutationFunction<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-
-/**
- * __useSumsubPermalinkCreateMutation__
- *
- * To run a mutation, you first call `useSumsubPermalinkCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubPermalinkCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sumsubPermalinkCreateMutation, { data, loading, error }] = useSumsubPermalinkCreateMutation({
- *   variables: {
- *   },
- * });
- */
-export function useSumsubPermalinkCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>(SumsubPermalinkCreateDocument, options);
-      }
-export type SumsubPermalinkCreateMutationHookResult = ReturnType<typeof useSumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationResult = Apollo.MutationResult<SumsubPermalinkCreateMutation>;
-export type SumsubPermalinkCreateMutationOptions = Apollo.BaseMutationOptions<SumsubPermalinkCreateMutation, SumsubPermalinkCreateMutationVariables>;
-export const SumsubTokenCreateDocument = gql`
-    mutation SumsubTokenCreate {
-  sumsubTokenCreate {
-    token
-  }
-}
-    `;
-export type SumsubTokenCreateMutationFn = Apollo.MutationFunction<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>;
-
-/**
- * __useSumsubTokenCreateMutation__
- *
- * To run a mutation, you first call `useSumsubTokenCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useSumsubTokenCreateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [sumsubTokenCreateMutation, { data, loading, error }] = useSumsubTokenCreateMutation({
- *   variables: {
- *   },
- * });
- */
-export function useSumsubTokenCreateMutation(baseOptions?: Apollo.MutationHookOptions<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>(SumsubTokenCreateDocument, options);
-      }
-export type SumsubTokenCreateMutationHookResult = ReturnType<typeof useSumsubTokenCreateMutation>;
-export type SumsubTokenCreateMutationResult = Apollo.MutationResult<SumsubTokenCreateMutation>;
-export type SumsubTokenCreateMutationOptions = Apollo.BaseMutationOptions<SumsubTokenCreateMutation, SumsubTokenCreateMutationVariables>;
-export const GetLoanDocument = gql`
-    query getLoan($id: UUID!) {
-  loan(id: $id) {
-    id
-    loanId
-    createdAt
-    balance {
-      collateral {
-        btcBalance
-      }
-      outstanding {
-        usdBalance
-      }
-      interestIncurred {
-        usdBalance
-      }
-    }
-    loanTerms {
-      annualRate
-      interval
-      liquidationCvl
-      marginCallCvl
-      initialCvl
-      duration {
-        period
-        units
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetLoanQuery__
- *
- * To run a query within a React component, call `useGetLoanQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetLoanQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetLoanQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetLoanQuery(baseOptions: Apollo.QueryHookOptions<GetLoanQuery, GetLoanQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetLoanQuery, GetLoanQueryVariables>(GetLoanDocument, options);
-      }
-export function useGetLoanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetLoanQuery, GetLoanQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetLoanQuery, GetLoanQueryVariables>(GetLoanDocument, options);
-        }
-export type GetLoanQueryHookResult = ReturnType<typeof useGetLoanQuery>;
-export type GetLoanLazyQueryHookResult = ReturnType<typeof useGetLoanLazyQuery>;
-export type GetLoanQueryResult = Apollo.QueryResult<GetLoanQuery, GetLoanQueryVariables>;
-export const GetMyLoansDocument = gql`
-    query GetMyLoans {
-  me {
-    customerId
-    loans {
-      id
-      loanId
-      createdAt
-      balance {
-        collateral {
-          btcBalance
-        }
-        outstanding {
-          usdBalance
-        }
-        interestIncurred {
-          usdBalance
-        }
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetMyLoansQuery__
- *
- * To run a query within a React component, call `useGetMyLoansQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMyLoansQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMyLoansQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetMyLoansQuery(baseOptions?: Apollo.QueryHookOptions<GetMyLoansQuery, GetMyLoansQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetMyLoansQuery, GetMyLoansQueryVariables>(GetMyLoansDocument, options);
-      }
-export function useGetMyLoansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMyLoansQuery, GetMyLoansQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetMyLoansQuery, GetMyLoansQueryVariables>(GetMyLoansDocument, options);
-        }
-export type GetMyLoansQueryHookResult = ReturnType<typeof useGetMyLoansQuery>;
-export type GetMyLoansLazyQueryHookResult = ReturnType<typeof useGetMyLoansLazyQuery>;
-export type GetMyLoansQueryResult = Apollo.QueryResult<GetMyLoansQuery, GetMyLoansQueryVariables>;
 export const MeDocument = gql`
-    query Me {
+    query me {
   me {
-    customerId
-    email
-    applicantId
-    status
-    level
-    balance {
-      checking {
-        settled
-        pending
+    customer {
+      id
+      customerId
+      status
+      level
+      createdAt
+      email
+      telegramId
+      depositAccount {
+        id
+        depositAccountId
+        customerId
+        createdAt
+        balance {
+          settled
+          pending
+        }
+        deposits {
+          id
+          depositId
+          accountId
+          amount
+          createdAt
+          reference
+        }
+        withdrawals {
+          id
+          withdrawalId
+          accountId
+          amount
+          createdAt
+          reference
+          status
+        }
       }
     }
   }

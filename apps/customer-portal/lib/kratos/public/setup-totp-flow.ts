@@ -18,7 +18,7 @@ export const createTotpSetupFlow = async (): Promise<
   let data: SettingsFlow
 
   try {
-    data = (await kratosPublic.createBrowserSettingsFlow()).data
+    data = (await kratosPublic().createBrowserSettingsFlow()).data
   } catch (error) {
     if (error instanceof AxiosError) {
       if (error?.response?.data?.ui?.messages[0]?.text)
@@ -62,7 +62,7 @@ export const submitTotpSetupFlow = async ({
   csrfToken: string
 }): Promise<{ success: boolean } | Error> => {
   try {
-    await kratosPublic.updateSettingsFlow({
+    await kratosPublic().updateSettingsFlow({
       flow: flowId,
       updateSettingsFlowBody: {
         csrf_token: csrfToken,

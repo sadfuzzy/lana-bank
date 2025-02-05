@@ -71,13 +71,6 @@ local_resource(
         "NEXT_PUBLIC_CORE_APP_URL": "/app/graphql"
     },
     serve_cmd="cd ../apps/customer-portal && pnpm install && pnpm run dev",
-    # readiness_probe = probe(
-    #    period_secs  = 5,
-    #    http_get = http_get_action(
-    #        path = "/app",
-    #        port = 4455,
-    #    ),
-    #),
     allow_parallel=True,
     resource_deps=[
         "mailhog",

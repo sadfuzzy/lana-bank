@@ -22,7 +22,7 @@ export const submitWebAuthnFow = async ({
 > => {
   const method = "webauthn"
   try {
-    await kratosPublic.updateLoginFlow({
+    await kratosPublic().updateLoginFlow({
       flow: flowId,
       updateLoginFlowBody: {
         method,

@@ -24,7 +24,7 @@ export const submitTotpFow = async ({
   let flow: LoginFlow
 
   try {
-    flow = (await kratosPublic.getLoginFlow({ id: flowId })).data
+    flow = (await kratosPublic().getLoginFlow({ id: flowId })).data
   } catch {
     return new Error("Flow not found, please go back and try again")
   }
@@ -33,7 +33,7 @@ export const submitTotpFow = async ({
   if (!csrfToken) return new Error("Kratos API didn't send CSRF token")
 
   try {
-    await kratosPublic.updateLoginFlow({
+    await kratosPublic().updateLoginFlow({
       flow: flowId,
       updateLoginFlowBody: {
         method,

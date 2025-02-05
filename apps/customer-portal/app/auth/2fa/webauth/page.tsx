@@ -29,7 +29,7 @@ async function TwoFactorAuthWithWebAuthPage({
 
   try {
     signInFlow = (
-      await kratosPublic.getLoginFlow({
+      await kratosPublic().getLoginFlow({
         id: flowId,
         cookie: getCsrfCookiesAsString(allCookies),
       })

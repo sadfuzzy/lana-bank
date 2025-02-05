@@ -54,7 +54,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
       } else if (response.userHasWebAuth) {
         router.replace(`/auth/2fa/webauth?flowId=${response.flowId}`)
       } else {
-        window.location.href = "/"
+        router.replace(`/`)
       }
     } catch (error) {
       console.error(error)
@@ -79,10 +79,10 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
   }, [otp, flowId, type, router])
 
   return (
-    <Card className="md:w-2/5">
+    <Card className="md:w-2/5" variant="transparent">
       <CardHeader className="pt-4">
         <CardTitle>One time Password</CardTitle>
-        <CardDescription className="text-textColor-secondary">
+        <CardDescription>
           An email has been sent to your email address. Please enter the OTP to continue.
         </CardDescription>
       </CardHeader>

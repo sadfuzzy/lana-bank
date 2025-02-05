@@ -13,7 +13,7 @@ export const { getClient } = registerApolloClient(() => {
     cache: new InMemoryCache(),
     link: ApolloLink.from([
       new HttpLink({
-        uri: `${env.NEXT_PUBLIC_CORE_URL}/graphql`,
+        uri: `${env.NEXT_PUBLIC_CORE_URL + env.NEXT_PUBLIC_BASE_PATH}/graphql`,
         fetchOptions: { cache: "no-store" },
         headers: requestHeaders,
       }),

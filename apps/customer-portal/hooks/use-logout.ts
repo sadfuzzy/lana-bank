@@ -10,8 +10,8 @@ const useLogout = () => {
   const logout = async () => {
     setLoading(true)
     try {
-      const { data } = await kratosPublic.createBrowserLogoutFlow()
-      await kratosPublic.updateLogoutFlow({ token: data.logout_token })
+      const { data } = await kratosPublic().createBrowserLogoutFlow()
+      await kratosPublic().updateLogoutFlow({ token: data.logout_token })
       window.location.href = "/auth"
     } catch (error) {
       setLoading(false)

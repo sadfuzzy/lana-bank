@@ -47,10 +47,10 @@ const AuthForm = () => {
   }
 
   return (
-    <Card className="md:w-2/5">
+    <Card className="md:w-2/5" variant="transparent">
       <CardHeader className="pt-4">
-        <CardTitle>Create an Account / Sign-in</CardTitle>
-        <CardDescription className="text-textColor-secondary">
+        <CardTitle>Welcome Back</CardTitle>
+        <CardDescription>
           Getting started is easy. Simply enter and confirm your email address.
         </CardDescription>
       </CardHeader>
@@ -64,11 +64,7 @@ const AuthForm = () => {
           />
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-          <Button
-            data-test-id="auth-email-submit-btn"
-            type="submit"
-            className="rounded-full px-6 w-full"
-          >
+          <Button data-test-id="auth-email-submit-btn" type="submit" className="w-full">
             Next
           </Button>
           {error && (

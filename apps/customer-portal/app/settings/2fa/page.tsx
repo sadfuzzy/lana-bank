@@ -27,7 +27,7 @@ const SettingsPage = async () => {
 
   try {
     settingsFlowResponse = (
-      await kratosPublic.createBrowserSettingsFlow({
+      await kratosPublic().createBrowserSettingsFlow({
         cookie: cookieParam,
       })
     ).data
