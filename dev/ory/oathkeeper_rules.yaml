@@ -55,7 +55,7 @@
 # CUSTOMER PORTAL
 - id: kratos-customer
   upstream:
-    url: http://dockerhost-alias:4433
+    url: http://dockerhost-alias:4435
     strip_path: /app
   match:
     url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/<(sessions|self-service)>/<.*>

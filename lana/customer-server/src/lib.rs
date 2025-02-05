@@ -59,7 +59,7 @@ pub async fn run(config: CustomerServerConfig, app: LanaApp) -> anyhow::Result<(
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CustomerJwtClaims {
-    pub sub: String,
+    pub subject: String,
 }
 
 #[instrument(name = "customer_server.graphql", skip_all, fields(error, error.level, error.message))]
@@ -72,7 +72,7 @@ pub async fn graphql_handler(
     tracing_utils::http::extract_tracing(&headers);
     let mut req = req.into_inner();
 
-    match uuid::Uuid::parse_str(&jwt_claims.sub) {
+    match uuid::Uuid::parse_str(&jwt_claims.subject) {
         Ok(id) => {
             let auth_context = CustomerAuthContext::new(id);
             req = req.data(auth_context);
