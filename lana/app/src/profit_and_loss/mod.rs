@@ -8,7 +8,7 @@ use rbac_types::{ProfitAndLossStatementAction, Subject};
 
 use crate::{
     authorization::{Authorization, Object},
-    primitives::{LedgerAccountSetId, ProfitAndLossStatementId},
+    primitives::LedgerAccountSetId,
     statement::*,
 };
 
@@ -20,7 +20,7 @@ pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
 pub struct ProfitAndLossStatementIds {
-    pub id: ProfitAndLossStatementId,
+    pub id: LedgerAccountSetId,
     pub revenue: LedgerAccountSetId,
     pub expenses: LedgerAccountSetId,
 }
@@ -48,13 +48,10 @@ impl ProfitAndLossStatements {
         })
     }
 
-    pub async fn create_pl_statement(
+    pub async fn find_or_create_pl_statement(
         &self,
-        id: impl Into<ProfitAndLossStatementId>,
         name: String,
     ) -> Result<ProfitAndLossStatementIds, ProfitAndLossStatementError> {
-        let account_set_id: LedgerAccountSetId = id.into().into();
-
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
@@ -62,74 +59,23 @@ impl ProfitAndLossStatements {
             .record_system_entry_in_tx(
                 op.tx(),
                 Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Create,
+                ProfitAndLossStatementAction::FindOrCreate,
             )
             .await?;
 
-        Ok(self
-            .pl_statement_ledger
-            .create(op, account_set_id, &name)
-            .await?)
-    }
-
-    pub async fn find_by_name(
-        &self,
-        name: String,
-    ) -> Result<Option<ProfitAndLossStatementIds>, ProfitAndLossStatementError> {
-        self.authz
-            .audit()
-            .record_system_entry(
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Read,
-            )
-            .await?;
-
-        let pl_statements = self
-            .pl_statement_ledger
-            .list_for_name(name.to_string(), Default::default())
-            .await?
-            .entities;
-
-        let statement_id = match pl_statements.len() {
-            0 => return Ok(None),
-            1 => pl_statements[0].id,
-            _ => return Err(ProfitAndLossStatementError::MultipleFound(name)),
-        };
-
-        let members = self
-            .pl_statement_ledger
-            .get_member_account_sets(statement_id)
-            .await?;
-
-        let revenue_id = members
-            .iter()
-            .find(|m| m.name == REVENUE_NAME)
-            .ok_or(ProfitAndLossStatementError::NotFound(
-                REVENUE_NAME.to_string(),
-            ))?
-            .id;
-
-        let expenses_id = members
-            .iter()
-            .find(|m| m.name == EXPENSES_NAME)
-            .ok_or(ProfitAndLossStatementError::NotFound(
-                EXPENSES_NAME.to_string(),
-            ))?
-            .id;
-
-        Ok(Some(ProfitAndLossStatementIds {
-            id: statement_id.into(),
-            revenue: revenue_id,
-            expenses: expenses_id,
-        }))
+        Ok(self.pl_statement_ledger.find_or_create(op, &name).await?)
     }
 
     pub async fn add_to_revenue(
         &self,
-        statement_ids: ProfitAndLossStatementIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_name(name.to_string())
+            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -151,10 +97,14 @@ impl ProfitAndLossStatements {
 
     pub async fn add_to_expenses(
         &self,
-        statement_ids: ProfitAndLossStatementIds,
+        name: String,
         member_id: impl Into<LedgerAccountSetId>,
     ) -> Result<(), ProfitAndLossStatementError> {
         let member_id = member_id.into();
+        let statement_ids = self
+            .pl_statement_ledger
+            .find_by_name(name.to_string())
+            .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
@@ -187,21 +137,13 @@ impl ProfitAndLossStatements {
             )
             .await?;
 
-        let pl_statement_ids = self
-            .find_by_name(name.to_string())
-            .await?
-            .ok_or(ProfitAndLossStatementError::NotFound(name))?;
-
-        Ok(self
-            .pl_statement_ledger
-            .get_pl_statement(pl_statement_ids)
-            .await?)
+        Ok(self.pl_statement_ledger.get_pl_statement(name).await?)
     }
 }
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatement {
-    pub id: ProfitAndLossStatementId,
+    pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalance,

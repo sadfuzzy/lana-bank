@@ -189,7 +189,7 @@ impl_trivial_action!(CreditFacilityAction, CreditFacility);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum TrialBalanceAction {
-    Create,
+    FindOrCreate,
     Update,
     Read,
 }
@@ -199,7 +199,7 @@ impl_trivial_action!(TrialBalanceAction, TrialBalance);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossStatementAction {
-    Create,
+    FindOrCreate,
     Update,
     Read,
 }
@@ -209,7 +209,7 @@ impl_trivial_action!(ProfitAndLossStatementAction, ProfitAndLossStatement);
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum BalanceSheetAction {
-    Create,
+    FindOrCreate,
     Update,
     Read,
 }

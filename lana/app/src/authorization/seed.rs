@@ -348,12 +348,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Create)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Update)
-        .await?;
-    authz
         .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Read)
         .await?;
     authz
@@ -361,20 +355,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             Object::ProfitAndLossStatement,
             ProfitAndLossStatementAction::Read,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Create,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Update,
         )
         .await?;
     authz
