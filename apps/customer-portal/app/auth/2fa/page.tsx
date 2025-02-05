@@ -2,15 +2,16 @@ import { redirect } from "next/navigation"
 
 import Link from "next/link"
 
-import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
-import { Button } from "@/components/primitive/button"
+} from "@lana/web/ui/card"
+import { Button } from "@lana/web/ui/button"
+
+import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 
 async function TwoFactorAuthPage({
   searchParams,
@@ -24,7 +25,7 @@ async function TwoFactorAuthPage({
 
   return (
     <AuthTemplateCard>
-      <Card variant="transparent" className="md:w-2/5">
+      <Card className="md:w-2/5">
         <CardHeader className="pt-4">
           <CardTitle>Continue with two-factor authentication.</CardTitle>
           <CardDescription className="text-textColor-secondary">
@@ -33,15 +34,12 @@ async function TwoFactorAuthPage({
         </CardHeader>
         <CardContent className="flex flex-col gap-2 w-full">
           <Link href={`/auth/2fa/webauth?flowId=${flowId}`}>
-            <Button variant="primary" className="align-middle w-30 items-center w-full">
+            <Button className="align-middle w-30 items-center w-full">
               Continue with Passkey
             </Button>
           </Link>
           <Link href={`/auth/2fa/totp?flowId=${flowId}`}>
-            <Button
-              variant="primary"
-              className="align-middle w-30 items-center min-h-max w-full"
-            >
+            <Button className="align-middle w-30 items-center min-h-max w-full">
               Continue with Authenticator
             </Button>
           </Link>

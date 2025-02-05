@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@lana/web/ui/button"
 import {
   Card,
   CardContent,
@@ -11,9 +11,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/primitive/otp-input"
-import { Alert, AlertDescription } from "@/components/primitive/alert"
+} from "@lana/web/ui/card"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@lana/web/ui/input-otp"
+
+import { Alert, AlertDescription } from "@lana/web/ui/alert"
 
 import {
   checkIfTwoFactorRequired,
@@ -78,7 +79,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
   }, [otp, flowId, type, router])
 
   return (
-    <Card variant="transparent" className="md:w-2/5">
+    <Card className="md:w-2/5">
       <CardHeader className="pt-4">
         <CardTitle>One time Password</CardTitle>
         <CardDescription className="text-textColor-secondary">

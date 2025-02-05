@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@lana/web/ui/button"
 import {
   Card,
   CardContent,
@@ -9,9 +9,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
-import { Input } from "@/components/primitive/input"
-import { Alert, AlertDescription } from "@/components/primitive/alert"
+} from "@lana/web/ui/card"
+import { Input } from "@lana/web/ui/input"
+import { Alert, AlertDescription } from "@lana/web/ui/alert"
+
 import { submitTotpFow } from "@/lib/kratos/public/submit-totp"
 
 const TotpForm = ({ flowId }: { flowId: string }) => {
@@ -39,7 +40,7 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
   }
 
   return (
-    <Card variant="transparent" className="md:w-2/5">
+    <Card className="md:w-2/5">
       <CardHeader className="pt-4">
         <CardTitle>Authenticator Code</CardTitle>
         <CardDescription className="text-textColor-secondary">

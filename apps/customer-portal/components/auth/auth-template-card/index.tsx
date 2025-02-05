@@ -1,6 +1,7 @@
 import { ReactNode } from "react"
 
-import { Card, CardContent, CardHeader, CardTitle } from "../../primitive/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
+
 import { BitcoinIcon } from "../../icons"
 
 import { InformationCard } from "../information-card"
@@ -19,7 +20,7 @@ async function AuthTemplateCard({ children }: { children: ReactNode }) {
       <CardHeader className="md:pb-0">
         <div className="flex align-middle gap-4">
           <BitcoinIcon className="hidden md:block w-10 h-10" />
-          <CardTitle className="mt-2">WELCOME TO LAVA BANK!</CardTitle>
+          <CardTitle className="mt-2">WELCOME TO lana BANK!</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="flex flex-col md:flex-row p-0 md:p-6 md:pt-0 justify-between">

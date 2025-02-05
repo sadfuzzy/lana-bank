@@ -178,5 +178,5 @@ export function safeBase64UrlToArrayBuffer(base64Url: string): ArrayBuffer {
     bytes[i] = base64.charCodeAt(i)
   }
 
-  return bytes
+  return bytes.buffer
 }

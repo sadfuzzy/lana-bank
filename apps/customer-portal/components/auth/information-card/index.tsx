@@ -1,14 +1,8 @@
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/primitive/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@lana/web/ui/card"
 
 const InformationCard = () => {
   return (
-    <Card variant="transparent" className="md:w-3/6 md:ml-8">
+    <Card className="md:w-3/6 md:ml-8">
       <CardHeader className="pt-2">
         <CardTitle className="text-2xl">
           <div>Bitcoin backed loans. Based in Bitcoin Country.</div>
@@ -16,7 +10,7 @@ const InformationCard = () => {
       </CardHeader>
       <CardContent>
         <p>
-          Lava is offers loan products for bitcoin holders. Post Bitcoin as collateral and
+          lana is offers loan products for bitcoin holders. Post Bitcoin as collateral and
           withdraw Dollars or USDT.
         </p>
       </CardContent>

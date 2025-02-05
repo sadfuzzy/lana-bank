@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 
 import { IoAdd, IoTrashOutline } from "react-icons/io5"
 
-import { Button } from "@/components/primitive/button"
+import { Button } from "@lana/web/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -17,13 +17,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
-import {
-  createPasskeySetup,
-  submitPasskeySetupFlow,
-} from "@/lib/kratos/public/setup-passkey-flow"
-import { signupWithPasskey } from "@/lib/webauth"
+} from "@lana/web/ui/dialog"
+import { Input } from "@lana/web/ui/input"
+
 import {
   Table,
   TableBody,
@@ -31,7 +27,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/primitive/table"
+} from "@lana/web/ui/table"
+
+import {
+  createPasskeySetup,
+  submitPasskeySetupFlow,
+} from "@/lib/kratos/public/setup-passkey-flow"
+import { signupWithPasskey } from "@/lib/webauth"
 
 export interface AuthenticatorDialogProps {
   open: boolean
@@ -143,11 +145,7 @@ const SetupWebAuth = ({ addedWebAuthNode }: { addedWebAuthNode: UiNode[] }) => {
             placeholder="Enter a name for this passkey"
           />
           <DialogFooter>
-            <Button
-              data-test-id="submit-passkey-name"
-              onClick={validateWebAuthnHandler}
-              variant="primary"
-            >
+            <Button data-test-id="submit-passkey-name" onClick={validateWebAuthnHandler}>
               Add Passkey
             </Button>
           </DialogFooter>

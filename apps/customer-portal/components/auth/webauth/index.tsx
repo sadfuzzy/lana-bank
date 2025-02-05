@@ -9,13 +9,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
+} from "@lana/web/ui/card"
+
+import { Button } from "@lana/web/ui/button"
+import { Alert, AlertDescription } from "@lana/web/ui/alert"
+
 import {
   SerializedPublicKeyCredentialRequestOptions,
   signinWithPasskey,
 } from "@/lib/webauth"
-import { Button } from "@/components/primitive/button"
-import { Alert, AlertDescription } from "@/components/primitive/alert"
 import { submitWebAuthnFow } from "@/lib/kratos/public/submit-webauthn"
 
 const PasskeySignIn = ({
@@ -54,7 +56,7 @@ const PasskeySignIn = ({
   }, [])
 
   return (
-    <Card variant="transparent" className="md:w-2/5">
+    <Card className="md:w-2/5">
       <CardHeader className="pt-4">
         <CardTitle>Continue With Passkey</CardTitle>
         <CardDescription className="text-textColor-secondary">
@@ -63,7 +65,6 @@ const PasskeySignIn = ({
       </CardHeader>
       <CardContent>
         <Button
-          variant="primary"
           onClick={startWebAuth}
           className="align-middle w-30 items-center min-h-max"
         >

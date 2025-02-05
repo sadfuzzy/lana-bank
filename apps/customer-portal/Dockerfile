@@ -3,36 +3,43 @@ FROM node:20-alpine AS base
 
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
-RUN corepack enable pnpm
-COPY apps/customer-portal .
-RUN pnpm install --frozen-lockfile
+WORKDIR /src
+
+RUN npm install -g pnpm@9.15.2
+
+COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+
+COPY apps/customer-portal/package.json ./apps/customer-portal/
+COPY lib/js/shared-web/package.json ./lib/js/shared-web/
+
+COPY lib/js/shared-web ./lib/js/shared-web
+COPY apps/customer-portal ./apps/customer-portal
+
+RUN pnpm install --frozen-lockfile --filter customer-portal...
+
+WORKDIR /src/apps/customer-portal
 RUN pnpm run build
 
 FROM base AS runner
-WORKDIR /app
+WORKDIR /src
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+COPY --from=builder /src/apps/customer-portal/public ./public
 
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+COPY --from=builder --chown=nextjs:nodejs \
+  /src/apps/customer-portal/.next/standalone ./
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs \
+  /src/apps/customer-portal/.next/static \
+  ./apps/customer-portal/.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 
-# server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD HOSTNAME="0.0.0.0" node apps/customer-portal/server.js

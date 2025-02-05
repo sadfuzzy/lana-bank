@@ -7,6 +7,7 @@ const nextConfig = {
     })
     return config
   },
+  transpilePackages: ["@lana/web"],
   output: "standalone",
 }
 

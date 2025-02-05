@@ -11,11 +11,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/primitive/card"
+} from "@lana/web/ui/card"
+
+import { Separator } from "@lana/web/ui/separator"
+
 import { SetupAuthenticator } from "@/components/settings/authenticator"
 import { SetupWebAuth } from "@/components/settings/webauth"
 import { kratosPublic } from "@/lib/kratos/sdk"
-import { Separator } from "@/components/primitive/separator"
 
 const SettingsPage = async () => {
   let settingsFlowResponse: SettingsFlow

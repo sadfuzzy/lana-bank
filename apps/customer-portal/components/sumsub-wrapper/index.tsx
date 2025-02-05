@@ -4,8 +4,8 @@ import SumsubWebSdk from "@sumsub/websdk-react"
 
 import { toast } from "sonner"
 
-import { Checkbox } from "../primitive/check-box"
-import { Label } from "../primitive/label"
+import { Checkbox } from "@lana/web/ui/check-box"
+import { Label } from "@lana/web/ui/label"
 
 import {
   Dialog,
@@ -13,12 +13,11 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "../primitive/dialog"
+} from "@lana/web/ui/dialog"
 
-import { Button } from "../primitive/button"
+import { Button } from "@lana/web/ui/button"
 
-import { CopyButton } from "../primitive/copy-button"
-import { Separator } from "../primitive/separator"
+import { Separator } from "@lana/web/ui/separator"
 
 import {
   generateKycPermalink,
@@ -105,7 +104,6 @@ function KycKybWrapper({ kycCompleted }: { kycCompleted: boolean }) {
             {permalink ? (
               <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
                 <p className="text-sm text-textColor-secondary">{permalink}</p>
-                <CopyButton value={permalink} />
               </div>
             ) : (
               <Button

@@ -5,12 +5,13 @@ import { Inter_Tight } from "next/font/google"
 import "./globals.css"
 import { PublicEnvScript } from "next-runtime-env"
 
-import { Toaster } from "@/components/primitive/toast"
-import NavBar from "@/components/nav-bar"
+import { ThemeProvider } from "next-themes"
+
+import { Toaster } from "@lana/web/ui/toast"
 
 export const metadata: Metadata = {
-  title: "Lava Bank",
-  description: "Where the lava keeps flowing",
+  title: "lana Bank",
+  description: "Where the lana keeps flowing",
 }
 const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
 
@@ -28,9 +29,15 @@ export default function RootLayout({
         </head>
       )}
       <body className={inter.className}>
-        <NavBar />
-        {children}
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

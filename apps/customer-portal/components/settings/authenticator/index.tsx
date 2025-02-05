@@ -10,16 +10,16 @@ import { useRouter } from "next/navigation"
 
 import { IoAdd, IoTrashOutline } from "react-icons/io5"
 
-import { Button } from "@/components/primitive/button"
-import { CopyButton } from "@/components/primitive/copy-button"
+import { Button } from "@lana/web/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/primitive/dialog"
-import { Input } from "@/components/primitive/input"
+} from "@lana/web/ui/dialog"
+import { Input } from "@lana/web/ui/input"
+
 import {
   createTotpSetupFlow,
   submitTotpSetupFlow,
@@ -62,7 +62,6 @@ export const AuthenticatorDialog: React.FC<AuthenticatorDialogProps> = ({
         </div>
         <div className="bg-secondary-foreground p-1 rounded-md px-2 flex gap-2 items-center">
           <p className="text-textColor-secondary text-xs">{totpSecret}</p>
-          <CopyButton value={totpSecret} />
         </div>
         <Input
           value={totpCode}

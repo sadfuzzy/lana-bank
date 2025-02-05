@@ -99,7 +99,7 @@ start-admin:
 start-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm dev
 
-check-code-apps: check-code-apps-admin-panel
+check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
 
 check-code-apps-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm lint && pnpm tsc-check && pnpm build
