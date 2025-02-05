@@ -4,6 +4,7 @@ dialect = bigquery
 exclude_rules = structure.using,references.qualification,references.from
 runaway_limit = 10
 max_line_length = 100
+large_file_skip_byte_limit = 40000
 
 [sqlfluff:indentation]
 indented_joins = False
