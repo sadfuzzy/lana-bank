@@ -5,6 +5,7 @@ mod credit_facility;
 mod customer;
 mod deposit;
 mod deposit_account;
+mod price;
 mod schema;
 mod terms;
 mod withdrawal;

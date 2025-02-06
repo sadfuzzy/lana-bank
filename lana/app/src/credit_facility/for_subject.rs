@@ -64,6 +64,25 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         Ok(credit_facility.balances())
     }
 
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<CreditFacilityId>,
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        match self.credit_facilities.find_by_id(id.into()).await {
+            Ok(cf) => {
+                self.ensure_credit_facility_access(
+                    &cf,
+                    Object::CreditFacility,
+                    CreditFacilityAction::Read,
+                )
+                .await?;
+                Ok(Some(cf))
+            }
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     async fn ensure_credit_facility_access(
         &self,
         credit_facility: &CreditFacility,

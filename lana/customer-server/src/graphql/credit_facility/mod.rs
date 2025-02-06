@@ -1,14 +1,16 @@
 mod balance;
+mod history;
 
 use async_graphql::*;
 
-use crate::primitives::*;
+pub use lana_app::credit_facility::{CreditFacility as DomainCreditFacility, ListDirection};
+
+use crate::{primitives::*, LanaApp};
 
 use super::terms::*;
 
-pub use lana_app::credit_facility::{CreditFacility as DomainCreditFacility, ListDirection};
-
 use balance::*;
+use history::*;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -63,5 +65,36 @@ impl CreditFacility {
             .await?;
 
         Ok(CreditFacilityBalance::from(balance))
+    }
+
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
+        let app = ctx.data_unchecked::<LanaApp>();
+        let price = app.price().usd_cents_per_btc().await?;
+        Ok(FacilityCVL::from(
+            self.entity.facility_cvl_data().cvl(price),
+        ))
+    }
+
+    async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
+        self.entity
+            .history()
+            .into_iter()
+            .map(CreditFacilityHistoryEntry::from)
+            .collect()
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct FacilityCVL {
+    total: CVLPct,
+    disbursed: CVLPct,
+}
+
+impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
+    fn from(value: lana_app::credit_facility::FacilityCVL) -> Self {
+        Self {
+            total: value.total,
+            disbursed: value.disbursed,
+        }
     }
 }
