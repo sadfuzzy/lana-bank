@@ -2,12 +2,16 @@ import { Configuration, FrontendApi } from "@ory/client"
 
 import axios from "axios"
 
-import { basePath, env } from "@/env"
+import { basePath } from "@/env"
 
 export const kratosPublic = () =>
   new FrontendApi(
     new Configuration({
-      basePath: env.NEXT_PUBLIC_KRATOS_PUBLIC_API + basePath,
+      basePath,
+      baseOptions: {
+        withCredentials: true,
+        timeout: 10000,
+      },
     }),
     "",
     axios,
