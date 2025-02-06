@@ -20,12 +20,11 @@ pub(crate) async fn init(
 }
 
 async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), AccountingInitError> {
-    let _primary_id = trial_balances
-        .find_or_create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
+    trial_balances
+        .create_trial_balance_statement(TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?;
-
-    let _off_balance_sheet_id = trial_balances
-        .find_or_create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
+    trial_balances
+        .create_trial_balance_statement(OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string())
         .await?;
 
     Ok(())
@@ -34,20 +33,20 @@ async fn create_trial_balances(trial_balances: &TrialBalances) -> Result<(), Acc
 async fn create_pl_statements(
     pl_statements: &ProfitAndLossStatements,
 ) -> Result<(), AccountingInitError> {
-    let _primary_id = pl_statements
-        .find_or_create_pl_statement(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
+    pl_statements
+        .create_pl_statement(PROFIT_AND_LOSS_STATEMENT_NAME.to_string())
         .await?;
 
     Ok(())
 }
 
 async fn create_balance_sheets(balance_sheets: &BalanceSheets) -> Result<(), AccountingInitError> {
-    let _primary_id = balance_sheets
-        .find_or_create_balance_sheet(BALANCE_SHEET_NAME.to_string())
+    balance_sheets
+        .create_balance_sheet(BALANCE_SHEET_NAME.to_string())
         .await?;
 
-    let _off_balance_sheet_id = balance_sheets
-        .find_or_create_balance_sheet(OBS_BALANCE_SHEET_NAME.to_string())
+    balance_sheets
+        .create_balance_sheet(OBS_BALANCE_SHEET_NAME.to_string())
         .await?;
 
     Ok(())
