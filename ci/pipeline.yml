@@ -102,6 +102,9 @@ jobs:
           - get: #@ app_src_resource_name("admin-panel")
             passed:
               -  #@ build_app_edge_image_name("admin-panel")
+          - get: #@ app_src_resource_name("customer-portal")
+            passed:
+              -  #@ build_app_edge_image_name("customer-portal")
           - get: meltano-edge-image
             passed:
               - build-meltano-edge-image
@@ -127,9 +130,13 @@ jobs:
             - name: version
             - name: #@ app_src_resource_name("admin-panel")
               path: admin-panel-src
+            - name: #@ app_src_resource_name("customer-portal")
+              path: customer-portal-src
           outputs:
             - name: #@ app_src_resource_name("admin-panel")
               path: admin-panel-src
+            - name: #@ app_src_resource_name("customer-portal")
+              path: customer-portal-src
           run:
             path: pipeline-tasks/ci/tasks/prep-release-apps.sh
       - in_parallel:
@@ -177,6 +184,30 @@ jobs:
           - put: #@ app_latest_image_resource_name("admin-panel")
             params:
               image: admin-panel-image/image.tar
+              additional_tags: version/version
+        - do:
+          - task: build-customer-portal-release
+            attempts: 2
+            privileged: true
+            config:
+              platform: linux
+              image_resource:
+                type: registry-image
+                source:
+                  repository: vito/oci-build-task
+              inputs:
+                - name: customer-portal-src
+              outputs:
+                - name: customer-portal-image
+                  path: image
+              params:
+                CONTEXT: customer-portal-src
+                DOCKERFILE: customer-portal-src/apps/customer-portal/Dockerfile
+              run:
+                path: build
+          - put: #@ app_latest_image_resource_name("customer-portal")
+            params:
+              image: customer-portal-image/image.tar
               additional_tags: version/version
       - put: repo
         params:
