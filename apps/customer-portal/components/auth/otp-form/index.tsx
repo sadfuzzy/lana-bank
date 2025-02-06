@@ -54,7 +54,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
       } else if (response.userHasWebAuth) {
         router.replace(`/auth/2fa/webauth?flowId=${response.flowId}`)
       } else {
-        router.replace(`/`)
+        window.location.reload()
       }
     } catch (error) {
       console.error(error)
@@ -108,7 +108,6 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
           <Button
             data-test-id="auth-otp-submit-btn"
             type="submit"
-            className="rounded-full w-full"
             onClick={submitOtpHandler}
             disabled={loading}
           >

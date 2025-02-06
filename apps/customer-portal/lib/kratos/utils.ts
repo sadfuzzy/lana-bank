@@ -7,6 +7,8 @@ import {
 } from "@ory/client"
 import { RequestCookie } from "next/dist/compiled/@edge-runtime/cookies"
 
+import { Period } from "../graphql/generated"
+
 export const kratosUiMessageIds = {
   USER_NOT_EXIST: 4000035,
   OTP_EMAIL_SENT_SIGN_IN: 1010014,
@@ -70,4 +72,16 @@ export const getCsrfCookiesAsString = (allCookies: RequestCookie[]): string => {
     .join("; ")
 
   return cookieString
+}
+
+export const removeUnderscore = (str: string) => {
+  return str
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}
+
+export const formatPeriod = (period: Period) => {
+  return period.charAt(0).toUpperCase() + period.slice(1).toLowerCase()
 }

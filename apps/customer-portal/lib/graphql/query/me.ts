@@ -42,6 +42,21 @@ gql`
             status
           }
         }
+        creditFacilities {
+          id
+          creditFacilityId
+          collateralizationState
+          status
+          createdAt
+          balance {
+            collateral {
+              btcBalance
+            }
+            outstanding {
+              usdBalance
+            }
+          }
+        }
       }
     }
   }

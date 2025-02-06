@@ -9,17 +9,21 @@ import { ThemeProvider } from "next-themes"
 
 import { Toaster } from "@lana/web/ui/toast"
 
+import NavBar from "@/components/nav-bar"
+import { meQuery } from "@/lib/graphql/query/me"
+
 export const metadata: Metadata = {
   title: "lana Bank",
   description: "Where the lana keeps flowing",
 }
 const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const session = await meQuery()
   return (
     <html lang="en">
       {process.env.NODE_ENV === "development" ||
@@ -31,10 +35,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
+          {session instanceof Error ? null : <NavBar meQueryData={session} />}
           {children}
           <Toaster />
         </ThemeProvider>

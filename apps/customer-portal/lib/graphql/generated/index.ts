@@ -17,6 +17,10 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  AnnualRatePct: { input: any; output: any; }
+  CVLPct: { input: any; output: any; }
+  OneTimeFeeRatePct: { input: any; output: any; }
+  Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
   UUID: { input: any; output: any; }
   UsdCents: { input: any; output: any; }
@@ -27,9 +31,111 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export type Collateral = {
+  __typename?: 'Collateral';
+  btcBalance: Scalars['Satoshis']['output'];
+};
+
+export enum CollateralAction {
+  Add = 'ADD',
+  Remove = 'REMOVE'
+}
+
+export enum CollateralizationState {
+  FullyCollateralized = 'FULLY_COLLATERALIZED',
+  NoCollateral = 'NO_COLLATERAL',
+  UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
+  UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
+}
+
+export type CreditFacility = {
+  __typename?: 'CreditFacility';
+  activatedAt?: Maybe<Scalars['Timestamp']['output']>;
+  balance: CreditFacilityBalance;
+  collateral: Scalars['Satoshis']['output'];
+  collateralizationState: CollateralizationState;
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacilityId: Scalars['UUID']['output'];
+  creditFacilityTerms: TermValues;
+  currentCvl: FacilityCvl;
+  expiresAt?: Maybe<Scalars['Timestamp']['output']>;
+  facilityAmount: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  status: CreditFacilityStatus;
+  transactions: Array<CreditFacilityHistoryEntry>;
+};
+
+export type CreditFacilityBalance = {
+  __typename?: 'CreditFacilityBalance';
+  collateral: Collateral;
+  disbursed: Disbursed;
+  dueOutstanding: Outstanding;
+  facilityRemaining: FacilityRemaining;
+  interest: Interest;
+  outstanding: Outstanding;
+};
+
+export type CreditFacilityCollateralUpdated = {
+  __typename?: 'CreditFacilityCollateralUpdated';
+  action: CollateralAction;
+  recordedAt: Scalars['Timestamp']['output'];
+  satoshis: Scalars['Satoshis']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityCollateralizationUpdated = {
+  __typename?: 'CreditFacilityCollateralizationUpdated';
+  collateral: Scalars['Satoshis']['output'];
+  outstandingDisbursal: Scalars['UsdCents']['output'];
+  outstandingInterest: Scalars['UsdCents']['output'];
+  price: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  state: CollateralizationState;
+};
+
+export type CreditFacilityDisbursalExecuted = {
+  __typename?: 'CreditFacilityDisbursalExecuted';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityOrigination;
+
+export type CreditFacilityIncrementalPayment = {
+  __typename?: 'CreditFacilityIncrementalPayment';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityInterestAccrued = {
+  __typename?: 'CreditFacilityInterestAccrued';
+  cents: Scalars['UsdCents']['output'];
+  days: Scalars['Int']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityOrigination = {
+  __typename?: 'CreditFacilityOrigination';
+  cents: Scalars['UsdCents']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export enum CreditFacilityStatus {
+  Active = 'ACTIVE',
+  Closed = 'CLOSED',
+  Expired = 'EXPIRED',
+  PendingApproval = 'PENDING_APPROVAL',
+  PendingCollateralization = 'PENDING_COLLATERALIZATION'
+}
+
 export type Customer = {
   __typename?: 'Customer';
   createdAt: Scalars['Timestamp']['output'];
+  creditFacilities: Array<CreditFacility>;
   customerId: Scalars['UUID']['output'];
   depositAccount: DepositAccount;
   email: Scalars['String']['output'];
@@ -66,20 +172,94 @@ export type DepositAccountBalance = {
   settled: Scalars['UsdCents']['output'];
 };
 
+export type Disbursed = {
+  __typename?: 'Disbursed';
+  dueOutstanding: Outstanding;
+  outstanding: Outstanding;
+  total: Total;
+};
+
+export type Duration = {
+  __typename?: 'Duration';
+  period: Period;
+  units: Scalars['Int']['output'];
+};
+
+export type FacilityCvl = {
+  __typename?: 'FacilityCVL';
+  disbursed: Scalars['CVLPct']['output'];
+  total: Scalars['CVLPct']['output'];
+};
+
+export type FacilityRemaining = {
+  __typename?: 'FacilityRemaining';
+  usdBalance: Scalars['UsdCents']['output'];
+};
+
+export type Interest = {
+  __typename?: 'Interest';
+  dueOutstanding: Outstanding;
+  outstanding: Outstanding;
+  total: Total;
+};
+
+export enum InterestInterval {
+  EndOfDay = 'END_OF_DAY',
+  EndOfMonth = 'END_OF_MONTH'
+}
+
 export enum KycLevel {
   Advanced = 'ADVANCED',
   Basic = 'BASIC',
   NotKyced = 'NOT_KYCED'
 }
 
+export type Outstanding = {
+  __typename?: 'Outstanding';
+  usdBalance: Scalars['UsdCents']['output'];
+};
+
+export enum Period {
+  Months = 'MONTHS'
+}
+
 export type Query = {
   __typename?: 'Query';
+  creditFacility?: Maybe<CreditFacility>;
   me: Subject;
+  realtimePrice: RealtimePrice;
+};
+
+
+export type QueryCreditFacilityArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+export type RealtimePrice = {
+  __typename?: 'RealtimePrice';
+  usdCentsPerBtc: Scalars['UsdCents']['output'];
 };
 
 export type Subject = {
   __typename?: 'Subject';
   customer: Customer;
+};
+
+export type TermValues = {
+  __typename?: 'TermValues';
+  accrualInterval: InterestInterval;
+  annualRate: Scalars['AnnualRatePct']['output'];
+  duration: Duration;
+  incurrenceInterval: InterestInterval;
+  initialCvl: Scalars['CVLPct']['output'];
+  liquidationCvl: Scalars['CVLPct']['output'];
+  marginCallCvl: Scalars['CVLPct']['output'];
+  oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['output'];
+};
+
+export type Total = {
+  __typename?: 'Total';
+  usdBalance: Scalars['UsdCents']['output'];
 };
 
 export type Withdrawal = {
@@ -101,12 +281,160 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
+export type GetCreditFacilityQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetCreditFacilityQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, expiresAt?: any | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> }> } } };
+
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> } } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{
+  transactions: CreditFacilityHistoryEntry[]; __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } 
+}> } } };
+
+export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
+export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: any } };
+
+
+export const GetCreditFacilityDocument = gql`
+    query GetCreditFacility {
+  me {
+    customer {
+      creditFacilities {
+        id
+        creditFacilityId
+        facilityAmount
+        collateral
+        collateralizationState
+        status
+        createdAt
+        activatedAt
+        expiresAt
+        creditFacilityTerms {
+          annualRate
+          accrualInterval
+          incurrenceInterval
+          oneTimeFeeRate
+          duration {
+            period
+            units
+          }
+          liquidationCvl
+          marginCallCvl
+          initialCvl
+        }
+        balance {
+          facilityRemaining {
+            usdBalance
+          }
+          disbursed {
+            total {
+              usdBalance
+            }
+            outstanding {
+              usdBalance
+            }
+            dueOutstanding {
+              usdBalance
+            }
+          }
+          interest {
+            total {
+              usdBalance
+            }
+            outstanding {
+              usdBalance
+            }
+            dueOutstanding {
+              usdBalance
+            }
+          }
+          collateral {
+            btcBalance
+          }
+          dueOutstanding {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+        currentCvl {
+          total
+          disbursed
+        }
+        transactions {
+          ... on CreditFacilityIncrementalPayment {
+            cents
+            recordedAt
+            txId
+          }
+          ... on CreditFacilityCollateralUpdated {
+            satoshis
+            recordedAt
+            action
+            txId
+          }
+          ... on CreditFacilityOrigination {
+            cents
+            recordedAt
+            txId
+          }
+          ... on CreditFacilityCollateralizationUpdated {
+            state
+            collateral
+            outstandingInterest
+            outstandingDisbursal
+            recordedAt
+            price
+          }
+          ... on CreditFacilityDisbursalExecuted {
+            cents
+            recordedAt
+            txId
+          }
+          ... on CreditFacilityInterestAccrued {
+            cents
+            recordedAt
+            txId
+            days
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCreditFacilityQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetCreditFacilityQuery(baseOptions?: Apollo.QueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
+      }
+export function useGetCreditFacilityLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
+        }
+export type GetCreditFacilityQueryHookResult = ReturnType<typeof useGetCreditFacilityQuery>;
+export type GetCreditFacilityLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLazyQuery>;
+export type GetCreditFacilityQueryResult = Apollo.QueryResult<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>;
 export const MeDocument = gql`
     query me {
   me {
@@ -145,6 +473,21 @@ export const MeDocument = gql`
           status
         }
       }
+      creditFacilities {
+        id
+        creditFacilityId
+        collateralizationState
+        status
+        createdAt
+        balance {
+          collateral {
+            btcBalance
+          }
+          outstanding {
+            usdBalance
+          }
+        }
+      }
     }
   }
 }
@@ -176,3 +519,37 @@ export function useMeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MeQuery
 export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const GetRealtimePriceUpdatesDocument = gql`
+    query GetRealtimePriceUpdates {
+  realtimePrice {
+    usdCentsPerBtc
+  }
+}
+    `;
+
+/**
+ * __useGetRealtimePriceUpdatesQuery__
+ *
+ * To run a query within a React component, call `useGetRealtimePriceUpdatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetRealtimePriceUpdatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetRealtimePriceUpdatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetRealtimePriceUpdatesQuery(baseOptions?: Apollo.QueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+      }
+export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>(GetRealtimePriceUpdatesDocument, options);
+        }
+export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
+export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
+export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
