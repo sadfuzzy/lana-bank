@@ -72,6 +72,8 @@ pub enum CreditFacilityError {
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
     DisbursalAmountTooLarge(UsdCents, UsdCents),
+    #[error("CreditFacilityError - CustomerMismatchForCreditFacility")]
+    CustomerMismatchForCreditFacility,
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);
