@@ -34,11 +34,16 @@ export async function executeQuery<
 
     return response.data
   } catch (error) {
+    console.log("Error on apollo client => ", error)
     if (error instanceof Error) {
-      console.error(`Query ${options.document} failed with error: ${error.message}`)
+      console.error(
+        `Query ${options.document.definitions} failed with error: ${error.message}`,
+      )
       return error
     }
-    console.error(`Query ${options.document} failed with error: Unknown error`)
+    console.error(
+      `Query ${options.document.definitions} failed with error: Unknown error`,
+    )
     return new Error("An unknown error occurred")
   }
 }
