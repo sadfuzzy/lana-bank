@@ -9,10 +9,6 @@ export const { getClient } = registerApolloClient(() => {
     Array.from(headers()).map(([key, value]) => [key, value]),
   )
 
-  console.log("kratos url ----", env.NEXT_PUBLIC_KRATOS_PUBLIC_API)
-  console.log("core url ---------", `${env.NEXT_PUBLIC_CORE_URL + basePath}/graphql`)
-  console.log("Headers Object:", JSON.stringify(requestHeaders, null, 2))
-
   return new ApolloClient({
     cache: new InMemoryCache(),
     link: ApolloLink.from([

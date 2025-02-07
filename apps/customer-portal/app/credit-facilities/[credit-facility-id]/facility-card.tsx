@@ -23,11 +23,10 @@ function FacilityCard({ data }: { data: NonNullable<CreditFacility> }) {
         <Balance amount={data.balance.interest.outstanding.usdBalance} currency="usd" />
       ),
     },
-    // {
-    //   label: "Total Outstanding",
-    //   value: <Balance amount={data.balance.outstanding.usdBalance} currency="usd" />,
-    // },
-    // { label: "Total Cost", value:},
+    {
+      label: "Total Outstanding Balance",
+      value: <Balance amount={data.balance.outstanding.usdBalance} currency="usd" />,
+    },
   ]
   return (
     <DetailsCard className="w-full" title="Facility" details={facilityData} columns={2} />

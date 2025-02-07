@@ -108,6 +108,7 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
           <Button
             data-test-id="auth-otp-submit-btn"
             type="submit"
+            className="w-full"
             onClick={submitOtpHandler}
             disabled={loading}
           >
