@@ -2,8 +2,6 @@ import { ArrowDownUp, CreditCard, Wallet } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
 
-import { Alert, AlertDescription, AlertTitle } from "@lana/web/ui/alert"
-
 import React from "react"
 
 import { CustomerTransactionsTable } from "./transaction"
@@ -12,7 +10,6 @@ import { CustomerCreditFacilitiesTable } from "./credit-facility"
 import UserDetailsCard from "./user-details-card"
 
 import { meQuery } from "@/lib/graphql/query/me"
-import { KycLevel } from "@/lib/graphql/generated"
 import { BalanceCard } from "@/components/balance-card"
 import Balance from "@/components/balance"
 
@@ -37,7 +34,6 @@ export default async function Home() {
 
   return (
     <main className="max-w-7xl mx-auto px-2 flex flex-col gap-2">
-      <Message level={customer.level} />
       <div className="block md:hidden">
         <BalanceCard
           icon={<Wallet className="h-4 w-4 text-foreground dark:text-foreground" />}
@@ -73,18 +69,5 @@ export default async function Home() {
         </TabsContent>
       </Tabs>
     </main>
-  )
-}
-
-function Message({ level }: { level: KycLevel }) {
-  return (
-    level === KycLevel.NotKyced && (
-      <Alert variant="destructive">
-        <AlertTitle>Account Not Active</AlertTitle>
-        <AlertDescription>
-          Please complete KYC verification and contact admin to activate your account.
-        </AlertDescription>
-      </Alert>
-    )
   )
 }

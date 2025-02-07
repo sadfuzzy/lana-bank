@@ -29,14 +29,6 @@ function UserDetailsCard({
         ]
       : []),
     {
-      label: "Joined on",
-      value: formatDate(customer.createdAt),
-    },
-    {
-      label: "Telegram",
-      value: customer.telegramId,
-    },
-    {
       label: "Account Status",
       value: (
         <Badge
@@ -45,6 +37,14 @@ function UserDetailsCard({
           {customer.status}
         </Badge>
       ),
+    },
+    {
+      label: "Telegram",
+      value: customer.telegramId,
+    },
+    {
+      label: "Joined on",
+      value: formatDate(customer.createdAt),
     },
   ]
 
