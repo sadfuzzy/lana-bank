@@ -1757,6 +1757,15 @@ export type GetCreditFacilityOverviewQueryVariables = Exact<{
 
 export type GetCreditFacilityOverviewQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, collateral: Satoshis, expiresAt?: any | null, collateralToMatchInitialCvl?: Satoshis | null, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', marginCallCvl: any, liquidationCvl: any, initialCvl: any }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
 
+export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
+
+export type GetCreditFacilityRepaymentPlanQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
+
 export type GetCreditFacilityTermsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -2325,6 +2334,16 @@ export const CreditFacilityOverviewFragmentFragmentDoc = gql`
   }
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const RepaymentOnFacilityPageFragmentDoc = gql`
+    fragment RepaymentOnFacilityPage on CreditFacilityRepaymentInPlan {
+  repaymentType
+  status
+  initial
+  outstanding
+  accrualAt
+  dueAt
+}
+    `;
 export const CreditFacilityTransactionsFragmentFragmentDoc = gql`
     fragment CreditFacilityTransactionsFragment on CreditFacility {
   id
@@ -3245,6 +3264,45 @@ export function useGetCreditFacilityOverviewLazyQuery(baseOptions?: Apollo.LazyQ
 export type GetCreditFacilityOverviewQueryHookResult = ReturnType<typeof useGetCreditFacilityOverviewQuery>;
 export type GetCreditFacilityOverviewLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityOverviewLazyQuery>;
 export type GetCreditFacilityOverviewQueryResult = Apollo.QueryResult<GetCreditFacilityOverviewQuery, GetCreditFacilityOverviewQueryVariables>;
+export const GetCreditFacilityRepaymentPlanDocument = gql`
+    query GetCreditFacilityRepaymentPlan($id: UUID!) {
+  creditFacility(id: $id) {
+    id
+    creditFacilityId
+    repaymentPlan {
+      ...RepaymentOnFacilityPage
+    }
+  }
+}
+    ${RepaymentOnFacilityPageFragmentDoc}`;
+
+/**
+ * __useGetCreditFacilityRepaymentPlanQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityRepaymentPlanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityRepaymentPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityRepaymentPlanQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityRepaymentPlanQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityRepaymentPlanQuery, GetCreditFacilityRepaymentPlanQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityRepaymentPlanQuery, GetCreditFacilityRepaymentPlanQueryVariables>(GetCreditFacilityRepaymentPlanDocument, options);
+      }
+export function useGetCreditFacilityRepaymentPlanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityRepaymentPlanQuery, GetCreditFacilityRepaymentPlanQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityRepaymentPlanQuery, GetCreditFacilityRepaymentPlanQueryVariables>(GetCreditFacilityRepaymentPlanDocument, options);
+        }
+export type GetCreditFacilityRepaymentPlanQueryHookResult = ReturnType<typeof useGetCreditFacilityRepaymentPlanQuery>;
+export type GetCreditFacilityRepaymentPlanLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityRepaymentPlanLazyQuery>;
+export type GetCreditFacilityRepaymentPlanQueryResult = Apollo.QueryResult<GetCreditFacilityRepaymentPlanQuery, GetCreditFacilityRepaymentPlanQueryVariables>;
 export const GetCreditFacilityTermsDocument = gql`
     query GetCreditFacilityTerms($id: UUID!) {
   creditFacility(id: $id) {

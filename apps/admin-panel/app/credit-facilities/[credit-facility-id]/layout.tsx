@@ -16,6 +16,7 @@ import {
   CreditFacilityStatus,
   GetCreditFacilityBasicDetailsDocument,
   GetCreditFacilityOverviewDocument,
+  GetCreditFacilityRepaymentPlanDocument,
   GetCreditFacilityTransactionsDocument,
   useGetCreditFacilityBasicDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -60,6 +61,7 @@ const TABS = [
   { id: "2", url: "/terms", tabLabel: "Terms" },
   { id: "3", url: "/transactions", tabLabel: "Transactions" },
   { id: "4", url: "/disbursals", tabLabel: "Disbursals" },
+  { id: "5", url: "/repayment-plan", tabLabel: "Repayment Plan" },
 ]
 
 export default function CreditFacilityLayout({
@@ -103,6 +105,11 @@ export default function CreditFacilityLayout({
         })
         client.query({
           query: GetCreditFacilityTransactionsDocument,
+          variables: { id: creditFacilityId },
+          fetchPolicy: "network-only",
+        })
+        client.query({
+          query: GetCreditFacilityRepaymentPlanDocument,
           variables: { id: creditFacilityId },
           fetchPolicy: "network-only",
         })
