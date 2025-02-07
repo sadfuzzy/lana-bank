@@ -4,9 +4,9 @@ import { ReactNode } from "react"
 type BalanceCardProps = {
   h1?: ReactNode
   title: string
-  description: string
+  description?: string
   icon?: ReactNode
-  variant?: "pending" | "settled"
+  variant?: "pending" | "settled" | "balance"
 }
 
 export const BalanceCard: React.FC<BalanceCardProps> = ({
@@ -14,14 +14,29 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
   title,
   description,
   icon,
-  variant = "pending",
+  variant = "balance",
 }) => {
-  const getVariantClasses = (variant: "pending" | "settled") => {
+  const getVariantClasses = (variant: "pending" | "settled" | "balance") => {
     switch (variant) {
       case "pending":
         return "border-orange-200 bg-orange-50 dark:bg-orange-950 dark:border-orange-800"
       case "settled":
         return "border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800"
+      case "balance":
+        return "border-muted bg-muted/50 dark:bg-muted/50 dark:border-muted"
+      default:
+        return ""
+    }
+  }
+
+  const getTextColorClass = (variant: "pending" | "settled" | "balance") => {
+    switch (variant) {
+      case "pending":
+        return "text-orange-700 dark:text-orange-300"
+      case "settled":
+        return "text-green-700 dark:text-green-300"
+      case "balance":
+        return "text-foreground dark:text-foreground"
       default:
         return ""
     }
@@ -38,19 +53,13 @@ export const BalanceCard: React.FC<BalanceCardProps> = ({
           <CardDescription className="text-md font-medium">{title}</CardDescription>
         </div>
         <div className="flex flex-col">
-          <CardTitle
-            className={`text-4xl ${
-              variant === "pending"
-                ? "text-orange-700 dark:text-orange-300"
-                : "text-green-700 dark:text-green-300"
-            }`}
-          >
-            {h1}
-          </CardTitle>
+          <CardTitle className={`text-4xl ${getTextColorClass(variant)}`}>{h1}</CardTitle>
         </div>
-        <CardDescription className="text-sm text-muted-foreground">
-          {description}
-        </CardDescription>
+        {description && (
+          <CardDescription className="text-sm text-muted-foreground">
+            {description}
+          </CardDescription>
+        )}
       </CardHeader>
     </Card>
   )
