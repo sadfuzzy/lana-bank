@@ -38,6 +38,8 @@ type CreditFacility {
 	balance: CreditFacilityBalance!
 	currentCvl: FacilityCVL!
 	transactions: [CreditFacilityHistoryEntry!]!
+	disbursals: [CreditFacilityDisbursal!]!
+	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
 }
 
 type CreditFacilityBalance {
@@ -65,6 +67,15 @@ type CreditFacilityCollateralizationUpdated {
 	price: UsdCents!
 }
 
+type CreditFacilityDisbursal {
+	id: ID!
+	disbursalId: UUID!
+	index: DisbursalIdx!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	status: DisbursalStatus!
+}
+
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
@@ -90,6 +101,27 @@ type CreditFacilityOrigination {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	txId: UUID!
+}
+
+type CreditFacilityRepaymentInPlan {
+	repaymentType: CreditFacilityRepaymentType!
+	status: CreditFacilityRepaymentStatus!
+	initial: UsdCents!
+	outstanding: UsdCents!
+	accrualAt: Timestamp!
+	dueAt: Timestamp!
+}
+
+enum CreditFacilityRepaymentStatus {
+	UPCOMING
+	DUE
+	OVERDUE
+	PAID
+}
+
+enum CreditFacilityRepaymentType {
+	DISBURSAL
+	INTEREST
 }
 
 enum CreditFacilityStatus {
@@ -134,6 +166,15 @@ type DepositAccount {
 type DepositAccountBalance {
 	settled: UsdCents!
 	pending: UsdCents!
+}
+
+scalar DisbursalIdx
+
+enum DisbursalStatus {
+	NEW
+	APPROVED
+	DENIED
+	CONFIRMED
 }
 
 type Disbursed {

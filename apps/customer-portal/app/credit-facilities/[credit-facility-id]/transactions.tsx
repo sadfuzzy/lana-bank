@@ -4,8 +4,6 @@ import React from "react"
 
 import DataTable, { Column } from "@lana/web/components/data-table"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
-
 import {
   MeQuery,
   CreditFacilityHistoryEntry,
@@ -131,21 +129,14 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
   ]
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Transactions</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <DataTable
-          data={creditFacility.transactions}
-          columns={columns}
-          emptyMessage={
-            <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
-              No transactions found
-            </div>
-          }
-        />
-      </CardContent>
-    </Card>
+    <DataTable
+      data={creditFacility.transactions}
+      columns={columns}
+      emptyMessage={
+        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+          No transactions found
+        </div>
+      }
+    />
   )
 }

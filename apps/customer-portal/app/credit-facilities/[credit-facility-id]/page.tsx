@@ -4,7 +4,9 @@ import { DetailItemProps, DetailsCard } from "@lana/web/components/details"
 
 import Link from "next/link"
 
-import { ArrowLeft } from "lucide-react"
+import { ArrowDownUp, ArrowLeft, Banknote, Clock } from "lucide-react"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
 
 import FacilityCard from "./facility-card"
 
@@ -14,6 +16,10 @@ import TermsCard from "./terms-card"
 
 import { CreditFacilityTransactions } from "./transactions"
 
+import { CreditFacilityDisbursals } from "./disbursals"
+
+import { CreditFacilityRepaymentPlan } from "./repayment-plan"
+
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
@@ -21,109 +27,121 @@ import { removeUnderscore } from "@/lib/kratos/utils"
 import { formatDate } from "@/lib/utils"
 
 gql`
-  query GetCreditFacility {
-    me {
-      customer {
-        creditFacilities {
-          id
-          creditFacilityId
-          facilityAmount
+  query GetCreditFacility($id: UUID!) {
+    creditFacility(id: $id) {
+      id
+      creditFacilityId
+      facilityAmount
+      collateral
+      collateralizationState
+      status
+      createdAt
+      activatedAt
+      expiresAt
+      disbursals {
+        id
+        disbursalId
+        index
+        amount
+        status
+        createdAt
+      }
+      creditFacilityTerms {
+        annualRate
+        accrualInterval
+        incurrenceInterval
+        oneTimeFeeRate
+        duration {
+          period
+          units
+        }
+        liquidationCvl
+        marginCallCvl
+        initialCvl
+      }
+      balance {
+        facilityRemaining {
+          usdBalance
+        }
+        disbursed {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          dueOutstanding {
+            usdBalance
+          }
+        }
+        interest {
+          total {
+            usdBalance
+          }
+          outstanding {
+            usdBalance
+          }
+          dueOutstanding {
+            usdBalance
+          }
+        }
+        collateral {
+          btcBalance
+        }
+        dueOutstanding {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      currentCvl {
+        total
+        disbursed
+      }
+      repaymentPlan {
+        repaymentType
+        status
+        initial
+        outstanding
+        accrualAt
+        dueAt
+      }
+      transactions {
+        ... on CreditFacilityIncrementalPayment {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralUpdated {
+          satoshis
+          recordedAt
+          action
+          txId
+        }
+        ... on CreditFacilityOrigination {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityCollateralizationUpdated {
+          state
           collateral
-          collateralizationState
-          status
-          createdAt
-          activatedAt
-          expiresAt
-          creditFacilityTerms {
-            annualRate
-            accrualInterval
-            incurrenceInterval
-            oneTimeFeeRate
-            duration {
-              period
-              units
-            }
-            liquidationCvl
-            marginCallCvl
-            initialCvl
-          }
-          balance {
-            facilityRemaining {
-              usdBalance
-            }
-            disbursed {
-              total {
-                usdBalance
-              }
-              outstanding {
-                usdBalance
-              }
-              dueOutstanding {
-                usdBalance
-              }
-            }
-            interest {
-              total {
-                usdBalance
-              }
-              outstanding {
-                usdBalance
-              }
-              dueOutstanding {
-                usdBalance
-              }
-            }
-            collateral {
-              btcBalance
-            }
-            dueOutstanding {
-              usdBalance
-            }
-            outstanding {
-              usdBalance
-            }
-          }
-          currentCvl {
-            total
-            disbursed
-          }
-          transactions {
-            ... on CreditFacilityIncrementalPayment {
-              cents
-              recordedAt
-              txId
-            }
-            ... on CreditFacilityCollateralUpdated {
-              satoshis
-              recordedAt
-              action
-              txId
-            }
-            ... on CreditFacilityOrigination {
-              cents
-              recordedAt
-              txId
-            }
-            ... on CreditFacilityCollateralizationUpdated {
-              state
-              collateral
-              outstandingInterest
-              outstandingDisbursal
-              recordedAt
-              price
-            }
-            ... on CreditFacilityDisbursalExecuted {
-              cents
-              recordedAt
-              txId
-            }
-            ... on CreditFacilityInterestAccrued {
-              cents
-              recordedAt
-              txId
-              days
-            }
-          }
+          outstandingInterest
+          outstandingDisbursal
+          recordedAt
+          price
+        }
+        ... on CreditFacilityDisbursalExecuted {
+          cents
+          recordedAt
+          txId
+        }
+        ... on CreditFacilityInterestAccrued {
+          cents
+          recordedAt
+          txId
+          days
         }
       }
     }
@@ -136,29 +154,29 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
     id,
   })
 
-  if (!data || data instanceof Error) {
+  if (!data || data instanceof Error || !data.creditFacility) {
     return <div>Not found</div>
   }
 
   const details: DetailItemProps[] = [
     {
       label: "Created At",
-      value: formatDate(data.createdAt),
+      value: formatDate(data.creditFacility.createdAt),
     },
     {
       label: "Collateralization State",
-      value: removeUnderscore(data.collateralizationState),
+      value: removeUnderscore(data.creditFacility.collateralizationState),
     },
     {
       label: "Expires At",
-      value: data.expiresAt || "N/A",
+      value: formatDate(data.creditFacility.expiresAt) || "N/A",
     },
     {
       label: "Status",
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
-          status={data.status}
+          status={data.creditFacility.status}
         />
       ),
     },
@@ -178,11 +196,45 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
         details={details}
       />
       <div className="flex flex-col gap-2 md:flex-row">
-        <FacilityCard data={data} />
-        <CollateralCard data={data} />
+        <FacilityCard data={data.creditFacility} />
+        <CollateralCard data={data.creditFacility} />
       </div>
-      <TermsCard data={data} />
-      <CreditFacilityTransactions creditFacility={data} />
+      <TermsCard data={data.creditFacility} />
+      <Tabs defaultValue="transactions" className="w-full">
+        <TabsList className="flex h-12 w-full items-center rounded-lg bg-muted p-1">
+          <TabsTrigger
+            value="transactions"
+            className="flex h-full flex-1 items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-primary"
+          >
+            <ArrowDownUp className="h-4 w-4" />
+            Transactions
+          </TabsTrigger>
+          <TabsTrigger
+            value="repayments"
+            className="flex h-full flex-1 items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-primary"
+          >
+            <Clock className="h-4 w-4" />
+            Repayment Plan
+          </TabsTrigger>
+          <TabsTrigger
+            value="disbursals"
+            className="flex h-full flex-1 items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-primary"
+          >
+            <Banknote className="h-4 w-4" />
+            Disbursals
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="transactions" className="mt-2">
+          <CreditFacilityTransactions creditFacility={data.creditFacility} />
+        </TabsContent>
+        <TabsContent value="repayments" className="mt-2">
+          <CreditFacilityRepaymentPlan creditFacility={data.creditFacility} />
+        </TabsContent>
+        <TabsContent value="disbursals" className="mt-2">
+          <CreditFacilityDisbursals creditFacility={data.creditFacility} />
+        </TabsContent>
+      </Tabs>
     </main>
   )
 }

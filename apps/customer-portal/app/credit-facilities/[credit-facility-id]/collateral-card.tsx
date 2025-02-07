@@ -1,24 +1,55 @@
 import { DetailsCard } from "@lana/web/components/details"
-
 import React from "react"
 
-import Balance from "@/components/balance"
-import { CreditFacility } from "@/lib/graphql/generated"
+import Balance, { CENTS_PER_USD, SATS_PER_BTC } from "@/components/balance"
+import {
+  CreditFacility,
+  CreditFacilityStatus,
+  DisbursalStatus,
+} from "@/lib/graphql/generated"
+import { priceQuery } from "@/lib/graphql/query/price"
 
-function CollateralCard({ data }: { data: NonNullable<CreditFacility> }) {
+async function CollateralCard({ data }: { data: NonNullable<CreditFacility> }) {
+  const priceData = await priceQuery()
+  if (!priceData || priceData instanceof Error) return null
+
+  const basisAmountInUsd = calculateBaseAmountInCents(data) / CENTS_PER_USD
+  const initialCvlDecimal = data.creditFacilityTerms.initialCvl / 100
+  const requiredCollateralInSats =
+    (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
+    (priceData.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
+
+  const basisAmountInCents = calculateBaseAmountInCents(data)
+  const MarginCallPrice = calculatePrice({
+    cvlPercentage: data.creditFacilityTerms.marginCallCvl,
+    basisAmountInCents,
+    collateralInSatoshis: data.collateral,
+  })
+  const LiquidationCallPrice = calculatePrice({
+    cvlPercentage: data.creditFacilityTerms.liquidationCvl,
+    basisAmountInCents,
+    collateralInSatoshis: data.collateral,
+  })
+
   const collateralData = [
     {
       label: "Collateral Balance (BTC)",
       value: <Balance amount={data.balance.collateral.btcBalance} currency="btc" />,
     },
-    // { label: "Current BTC/USD Price", value: "$98,092.14" },
-    // { label: "Collateral Balance (USD)", value: "$1,000,092.14" },
-    // { label: "Disbursed and Outstanding", value: "$250,000.00" },
-    // { label: "Current CVL", value: `${data.currentCvl.total}%` },
-    // { label: "Margin Call Price", value: "$49,939.99 / BTC" },
-    // { label: "Liquidation Price", value: "$45,939.99 / BTC" },
-    // { label: "Collateral to Reach Full CVL (150%)", value: "0.89029300 BTC" },
+    {
+      label: "Margin Call Price (USD/BTC)",
+      value: <Balance amount={MarginCallPrice} currency="usd" />,
+    },
+    {
+      label: "Liquidation Price (USD/BTC)",
+      value: <Balance amount={LiquidationCallPrice} currency="usd" />,
+    },
+    {
+      label: `Collateral to reach target (${data.creditFacilityTerms.initialCvl}%)`,
+      value: <Balance amount={requiredCollateralInSats} currency="btc" />,
+    },
   ]
+
   return (
     <DetailsCard
       className="w-full"
@@ -30,3 +61,51 @@ function CollateralCard({ data }: { data: NonNullable<CreditFacility> }) {
 }
 
 export default CollateralCard
+
+const calculatePrice = ({
+  cvlPercentage,
+  basisAmountInCents,
+  collateralInSatoshis,
+}: {
+  cvlPercentage: number
+  basisAmountInCents: number
+  collateralInSatoshis: number
+}) => {
+  if (collateralInSatoshis === 0) return 0
+  const cvlDecimal = cvlPercentage / 100
+  const basisAmountUsd = basisAmountInCents / CENTS_PER_USD
+  const collateralBtc = collateralInSatoshis / SATS_PER_BTC
+  const priceUsd = (cvlDecimal * basisAmountUsd) / collateralBtc
+  const priceInCents = priceUsd * CENTS_PER_USD
+  return priceInCents
+}
+
+export const calculateBaseAmountInCents = ({
+  status,
+  facilityAmount,
+  disbursals,
+  balance,
+}: {
+  status: CreditFacilityStatus
+  facilityAmount: number
+  disbursals: { status: DisbursalStatus }[]
+  balance: { outstanding: { usdBalance: number } }
+}) => {
+  if (
+    [
+      CreditFacilityStatus.PendingCollateralization,
+      CreditFacilityStatus.PendingApproval,
+    ].includes(status)
+  ) {
+    return facilityAmount
+  }
+
+  if (status === CreditFacilityStatus.Active) {
+    const hasApprovedDisbursals = disbursals.some(
+      (d) => d.status === DisbursalStatus.Approved,
+    )
+    return hasApprovedDisbursals ? balance.outstanding.usdBalance : facilityAmount
+  }
+
+  return 0
+}

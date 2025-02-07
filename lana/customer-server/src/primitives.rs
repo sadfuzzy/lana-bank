@@ -5,8 +5,8 @@ pub use std::sync::Arc;
 
 pub use lana_app::{
     primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DepositAccountId, DepositId, Satoshis,
-        Subject, UsdCents, WithdrawalId,
+        CreditFacilityId, CreditFacilityStatus, CustomerId, DepositAccountId, DepositId,
+        DisbursalId, DisbursalIdx, DisbursalStatus, Satoshis, Subject, UsdCents, WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -57,5 +57,6 @@ impl_to_global_id! {
     DepositAccountId,
     DepositId,
     WithdrawalId,
-    CreditFacilityId
+    CreditFacilityId,
+    DisbursalId
 }

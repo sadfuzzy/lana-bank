@@ -32,7 +32,7 @@ export default async function RootLayout({
           <PublicEnvScript />
         </head>
       )}
-      <body className={inter.className}>
+      <body className={`${inter.className} mb-8`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

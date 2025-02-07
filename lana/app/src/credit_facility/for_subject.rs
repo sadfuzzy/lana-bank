@@ -8,6 +8,7 @@ pub struct CreditFacilitiesForSubject<'a> {
     subject: &'a Subject,
     authz: &'a Authorization,
     credit_facilities: &'a CreditFacilityRepo,
+    disbursals: &'a DisbursalRepo,
 }
 
 impl<'a> CreditFacilitiesForSubject<'a> {
@@ -16,12 +17,14 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         customer_id: CustomerId,
         authz: &'a Authorization,
         credit_facilities: &'a CreditFacilityRepo,
+        disbursals: &'a DisbursalRepo,
     ) -> Self {
         Self {
             customer_id,
             subject,
             authz,
             credit_facilities,
+            disbursals,
         }
     }
 
@@ -102,5 +105,31 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .record_entry(self.subject, object, action, true)
             .await?;
         Ok(())
+    }
+
+    pub async fn list_disbursals_for_credit_facility(
+        &self,
+        id: CreditFacilityId,
+        query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
+        sort: impl Into<Sort<DisbursalsSortBy>>,
+    ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CreditFacilityError>
+    {
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            Object::CreditFacility,
+            CreditFacilityAction::ListDisbursals,
+        )
+        .await?;
+
+        let disbursals = self
+            .disbursals
+            .find_many(
+                FindManyDisbursals::WithCreditFacilityId(id),
+                sort.into(),
+                query,
+            )
+            .await?;
+        Ok(disbursals)
     }
 }

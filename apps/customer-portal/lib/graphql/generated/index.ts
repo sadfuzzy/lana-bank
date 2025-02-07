@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  DisbursalIdx: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
@@ -58,9 +59,11 @@ export type CreditFacility = {
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
   currentCvl: FacilityCvl;
+  disbursals: Array<CreditFacilityDisbursal>;
   expiresAt?: Maybe<Scalars['Timestamp']['output']>;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];
+  repaymentPlan: Array<CreditFacilityRepaymentInPlan>;
   status: CreditFacilityStatus;
   transactions: Array<CreditFacilityHistoryEntry>;
 };
@@ -93,6 +96,16 @@ export type CreditFacilityCollateralizationUpdated = {
   state: CollateralizationState;
 };
 
+export type CreditFacilityDisbursal = {
+  __typename?: 'CreditFacilityDisbursal';
+  amount: Scalars['UsdCents']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  disbursalId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  index: Scalars['DisbursalIdx']['output'];
+  status: DisbursalStatus;
+};
+
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
@@ -123,6 +136,28 @@ export type CreditFacilityOrigination = {
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
+
+export type CreditFacilityRepaymentInPlan = {
+  __typename?: 'CreditFacilityRepaymentInPlan';
+  accrualAt: Scalars['Timestamp']['output'];
+  dueAt: Scalars['Timestamp']['output'];
+  initial: Scalars['UsdCents']['output'];
+  outstanding: Scalars['UsdCents']['output'];
+  repaymentType: CreditFacilityRepaymentType;
+  status: CreditFacilityRepaymentStatus;
+};
+
+export enum CreditFacilityRepaymentStatus {
+  Due = 'DUE',
+  Overdue = 'OVERDUE',
+  Paid = 'PAID',
+  Upcoming = 'UPCOMING'
+}
+
+export enum CreditFacilityRepaymentType {
+  Disbursal = 'DISBURSAL',
+  Interest = 'INTEREST'
+}
 
 export enum CreditFacilityStatus {
   Active = 'ACTIVE',
@@ -171,6 +206,13 @@ export type DepositAccountBalance = {
   pending: Scalars['UsdCents']['output'];
   settled: Scalars['UsdCents']['output'];
 };
+
+export enum DisbursalStatus {
+  Approved = 'APPROVED',
+  Confirmed = 'CONFIRMED',
+  Denied = 'DENIED',
+  New = 'NEW'
+}
 
 export type Disbursed = {
   __typename?: 'Disbursed';
@@ -281,10 +323,12 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
-export type GetCreditFacilityQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetCreditFacilityQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, expiresAt?: any | null, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> }> } } };
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateral: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, expiresAt?: any | null, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, index: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, incurrenceInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentInPlan', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, transactions: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> } | null };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -300,109 +344,121 @@ export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice
 
 
 export const GetCreditFacilityDocument = gql`
-    query GetCreditFacility {
-  me {
-    customer {
-      creditFacilities {
-        id
-        creditFacilityId
-        facilityAmount
+    query GetCreditFacility($id: UUID!) {
+  creditFacility(id: $id) {
+    id
+    creditFacilityId
+    facilityAmount
+    collateral
+    collateralizationState
+    status
+    createdAt
+    activatedAt
+    expiresAt
+    disbursals {
+      id
+      disbursalId
+      index
+      amount
+      status
+      createdAt
+    }
+    creditFacilityTerms {
+      annualRate
+      accrualInterval
+      incurrenceInterval
+      oneTimeFeeRate
+      duration {
+        period
+        units
+      }
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+    }
+    balance {
+      facilityRemaining {
+        usdBalance
+      }
+      disbursed {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        dueOutstanding {
+          usdBalance
+        }
+      }
+      interest {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+        dueOutstanding {
+          usdBalance
+        }
+      }
+      collateral {
+        btcBalance
+      }
+      dueOutstanding {
+        usdBalance
+      }
+      outstanding {
+        usdBalance
+      }
+    }
+    currentCvl {
+      total
+      disbursed
+    }
+    repaymentPlan {
+      repaymentType
+      status
+      initial
+      outstanding
+      accrualAt
+      dueAt
+    }
+    transactions {
+      ... on CreditFacilityIncrementalPayment {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralUpdated {
+        satoshis
+        recordedAt
+        action
+        txId
+      }
+      ... on CreditFacilityOrigination {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityCollateralizationUpdated {
+        state
         collateral
-        collateralizationState
-        status
-        createdAt
-        activatedAt
-        expiresAt
-        creditFacilityTerms {
-          annualRate
-          accrualInterval
-          incurrenceInterval
-          oneTimeFeeRate
-          duration {
-            period
-            units
-          }
-          liquidationCvl
-          marginCallCvl
-          initialCvl
-        }
-        balance {
-          facilityRemaining {
-            usdBalance
-          }
-          disbursed {
-            total {
-              usdBalance
-            }
-            outstanding {
-              usdBalance
-            }
-            dueOutstanding {
-              usdBalance
-            }
-          }
-          interest {
-            total {
-              usdBalance
-            }
-            outstanding {
-              usdBalance
-            }
-            dueOutstanding {
-              usdBalance
-            }
-          }
-          collateral {
-            btcBalance
-          }
-          dueOutstanding {
-            usdBalance
-          }
-          outstanding {
-            usdBalance
-          }
-        }
-        currentCvl {
-          total
-          disbursed
-        }
-        transactions {
-          ... on CreditFacilityIncrementalPayment {
-            cents
-            recordedAt
-            txId
-          }
-          ... on CreditFacilityCollateralUpdated {
-            satoshis
-            recordedAt
-            action
-            txId
-          }
-          ... on CreditFacilityOrigination {
-            cents
-            recordedAt
-            txId
-          }
-          ... on CreditFacilityCollateralizationUpdated {
-            state
-            collateral
-            outstandingInterest
-            outstandingDisbursal
-            recordedAt
-            price
-          }
-          ... on CreditFacilityDisbursalExecuted {
-            cents
-            recordedAt
-            txId
-          }
-          ... on CreditFacilityInterestAccrued {
-            cents
-            recordedAt
-            txId
-            days
-          }
-        }
+        outstandingInterest
+        outstandingDisbursal
+        recordedAt
+        price
+      }
+      ... on CreditFacilityDisbursalExecuted {
+        cents
+        recordedAt
+        txId
+      }
+      ... on CreditFacilityInterestAccrued {
+        cents
+        recordedAt
+        txId
+        days
       }
     }
   }
@@ -421,10 +477,11 @@ export const GetCreditFacilityDocument = gql`
  * @example
  * const { data, loading, error } = useGetCreditFacilityQuery({
  *   variables: {
+ *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetCreditFacilityQuery(baseOptions?: Apollo.QueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
+export function useGetCreditFacilityQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
         return Apollo.useQuery<GetCreditFacilityQuery, GetCreditFacilityQueryVariables>(GetCreditFacilityDocument, options);
       }

@@ -196,6 +196,7 @@ impl CreditFacilities {
             customer_id,
             &self.authz,
             &self.credit_facility_repo,
+            &self.disbursal_repo,
         ))
     }
 
