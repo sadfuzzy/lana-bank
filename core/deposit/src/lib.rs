@@ -200,7 +200,6 @@ where
             .add_deposit_control_to_account(&mut op, account_id)
             .await?;
 
-        // self.authz.assign_role_to_subject_in_scope(holder_id, self.account_holder_role, account_id).await?;
         op.commit().await?;
 
         Ok(account)
@@ -226,6 +225,7 @@ where
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
+            .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
             .amount(amount)
             .reference(reference)
