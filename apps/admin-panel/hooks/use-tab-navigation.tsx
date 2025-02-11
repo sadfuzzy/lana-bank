@@ -25,13 +25,17 @@ export function useTabNavigation(tabs: Tab[], entityId: string) {
     (value: string) => {
       const basePath = pathname.split(entityId)[0] + entityId
       const newPath = value === tabs[0].url ? basePath : `${basePath}${value}`
-      router.push(newPath)
+      router.replace(newPath)
     },
     [pathname, entityId, router, tabs],
   )
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+        return
+      }
+
       const tagName = document.activeElement?.tagName
       if (
         tagName === "INPUT" ||
