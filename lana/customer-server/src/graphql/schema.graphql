@@ -211,8 +211,8 @@ type DepositEntry {
 }
 
 type DisbursalEntry {
-	txId: UUID!
 	recordedAt: Timestamp!
+	disbursal: CreditFacilityDisbursal!
 }
 
 scalar DisbursalIdx

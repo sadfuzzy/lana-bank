@@ -49,6 +49,8 @@ pub struct Disbursal {
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub deposit_account_id: DepositAccountId,
+    #[builder(setter(strip_option), default)]
+    pub concluded_tx_id: Option<LedgerTxId>,
     pub(super) events: EntityEvents<DisbursalEvent>,
 }
 
@@ -76,9 +78,13 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .account_ids(*account_ids)
                         .deposit_account_id(*deposit_account_id)
                 }
+                DisbursalEvent::Settled { ledger_tx_id, .. } => {
+                    builder = builder.concluded_tx_id(*ledger_tx_id)
+                }
+                DisbursalEvent::Cancelled { ledger_tx_id, .. } => {
+                    builder = builder.concluded_tx_id(*ledger_tx_id)
+                }
                 DisbursalEvent::ApprovalProcessConcluded { .. } => (),
-                DisbursalEvent::Settled { .. } => (),
-                DisbursalEvent::Cancelled { .. } => (),
             }
         }
         builder.events(events).build()

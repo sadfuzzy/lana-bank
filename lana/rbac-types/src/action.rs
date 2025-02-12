@@ -177,6 +177,7 @@ pub enum CreditFacilityAction {
     ConcludeDisbursalApprovalProcess,
     SettleDisbursal,
     ListDisbursals,
+    ReadDisbursal,
     UpdateCollateral,
     RecordPayment,
     RecordInterest,

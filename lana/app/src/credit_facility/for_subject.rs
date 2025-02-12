@@ -132,4 +132,25 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             .await?;
         Ok(disbursals)
     }
+
+    pub async fn find_disbursal_by_concluded_tx_id(
+        &self,
+        tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
+    ) -> Result<Disbursal, CreditFacilityError> {
+        let tx_id = tx_id.into();
+        let disbursal = self.disbursals.find_by_concluded_tx_id(Some(tx_id)).await?;
+
+        let credit_facility = self
+            .credit_facilities
+            .find_by_id(disbursal.facility_id)
+            .await?;
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            Object::CreditFacility,
+            CreditFacilityAction::ReadDisbursal,
+        )
+        .await?;
+
+        Ok(disbursal)
+    }
 }

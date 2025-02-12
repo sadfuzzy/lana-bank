@@ -1,5 +1,5 @@
 mod balance;
-mod disbursal;
+pub mod disbursal;
 mod history;
 mod repayment;
 
