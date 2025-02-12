@@ -1,6 +1,6 @@
 [package]
 name = "customer-server"
-version = "0.3.65-dev"
+version = "0.3.66-dev"
 edition = "2021"
 
 [features]
