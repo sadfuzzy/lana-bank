@@ -12,7 +12,7 @@ use super::{entity::*, error::*};
     err = "UserError",
     columns(
         email(ty = "String", list_by),
-        authentication_id(ty = "Option<AuthenticationId>", list_by),
+        authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
     )
 )]
 pub(crate) struct UserRepo {

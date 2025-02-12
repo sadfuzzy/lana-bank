@@ -6,8 +6,8 @@ pub use chart_of_accounts::ChartId;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, JournalId as LedgerJournalId,
-    TransactionId as LedgerTransactionId,
+    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, EntryId as LedgerEntryId,
+    JournalId as LedgerJournalId, TransactionId as LedgerTransactionId,
 };
 
 es_entity::entity_id! {
@@ -171,6 +171,7 @@ impl FromStr for CoreDepositAction {
 pub enum DepositAccountAction {
     Create,
     ReadBalance,
+    ReadTxHistory,
     Read,
     List,
 }

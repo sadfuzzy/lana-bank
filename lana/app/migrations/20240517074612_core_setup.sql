@@ -97,6 +97,7 @@ CREATE TABLE core_withdrawals (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES deposit_accounts(id),
   approval_process_id UUID REFERENCES approval_processes(id),
+  cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
@@ -112,7 +113,7 @@ CREATE TABLE core_withdrawal_events (
 
 CREATE TABLE customers (
   id UUID PRIMARY KEY,
-  authentication_id UUID NULL UNIQUE,
+  authentication_id UUID UNIQUE DEFAULT NULL,
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
@@ -146,7 +147,7 @@ CREATE TABLE terms_template_events (
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
-  authentication_id UUID NULL UNIQUE,
+  authentication_id UUID UNIQUE DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

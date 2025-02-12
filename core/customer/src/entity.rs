@@ -179,8 +179,6 @@ pub struct NewCustomer {
     pub(super) id: CustomerId,
     #[builder(setter(into))]
     pub(super) email: String,
-    #[builder(setter(skip), default)]
-    pub(super) authentication_id: Option<AuthenticationId>,
     #[builder(setter(into))]
     pub(super) telegram_id: String,
     #[builder(setter(skip), default)]

@@ -13,7 +13,7 @@ use super::{entity::*, error::*};
     err = "CustomerError",
     columns(
         email(ty = "String", list_by),
-        authentication_id(ty = "Option<AuthenticationId>", list_by),
+        authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
     )

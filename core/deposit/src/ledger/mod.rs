@@ -63,6 +63,38 @@ impl DepositLedger {
         })
     }
 
+    pub async fn account_history<T, U>(
+        &self,
+        id: impl Into<AccountId>,
+        cursor: es_entity::PaginatedQueryArgs<U>,
+    ) -> Result<es_entity::PaginatedQueryRet<T, U>, DepositLedgerError>
+    where
+        T: From<cala_ledger::entry::Entry>,
+        U: std::fmt::Debug + From<cala_ledger::entry::EntriesByCreatedAtCursor>,
+        cala_ledger::entry::EntriesByCreatedAtCursor: From<U>,
+    {
+        let id = id.into();
+
+        let cala_cursor = es_entity::PaginatedQueryArgs {
+            after: cursor
+                .after
+                .map(cala_ledger::entry::EntriesByCreatedAtCursor::from),
+            first: cursor.first,
+        };
+
+        let ret = self
+            .cala
+            .entries()
+            .list_for_account_id(id, cala_cursor, es_entity::ListDirection::Descending)
+            .await?;
+        let entities = ret.entities.into_iter().map(T::from).collect();
+        Ok(es_entity::PaginatedQueryRet {
+            entities,
+            has_next_page: ret.has_next_page,
+            end_cursor: ret.end_cursor.map(U::from),
+        })
+    }
+
     pub async fn record_deposit(
         &self,
         op: es_entity::DbOp<'_>,

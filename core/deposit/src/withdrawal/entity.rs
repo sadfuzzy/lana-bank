@@ -55,6 +55,8 @@ pub struct Withdrawal {
     pub reference: String,
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
+    #[builder(setter(strip_option), default)]
+    pub cancelled_tx_id: Option<LedgerTransactionId>,
 
     pub(super) events: EntityEvents<WithdrawalEvent>,
 }
@@ -171,21 +173,26 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
     fn try_from_events(events: EntityEvents<WithdrawalEvent>) -> Result<Self, EsEntityError> {
         let mut builder = WithdrawalBuilder::default();
         for event in events.iter_all() {
-            if let WithdrawalEvent::Initialized {
-                id,
-                reference,
-                deposit_account_id,
-                amount,
-                approval_process_id,
-                ..
-            } = event
-            {
-                builder = builder
-                    .id(*id)
-                    .deposit_account_id(*deposit_account_id)
-                    .amount(*amount)
-                    .reference(reference.clone())
-                    .approval_process_id(*approval_process_id);
+            match event {
+                WithdrawalEvent::Initialized {
+                    id,
+                    reference,
+                    deposit_account_id,
+                    amount,
+                    approval_process_id,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .deposit_account_id(*deposit_account_id)
+                        .amount(*amount)
+                        .reference(reference.clone())
+                        .approval_process_id(*approval_process_id)
+                }
+                WithdrawalEvent::Cancelled { ledger_tx_id, .. } => {
+                    builder = builder.cancelled_tx_id(*ledger_tx_id)
+                }
+                _ => (),
             }
         }
         builder.events(events).build()

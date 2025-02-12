@@ -1,9 +1,16 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use tracing::instrument;
 
 use crate::{
-    account::*, deposit::*, deposit_account_balance::*,
-    deposit_account_cursor::DepositAccountsByCreatedAtCursor, error::*, ledger::*, primitives::*,
+    account::*,
+    deposit::*,
+    deposit_account_balance::*,
+    deposit_account_cursor::DepositAccountsByCreatedAtCursor,
+    error::*,
+    history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry},
+    ledger::*,
+    primitives::*,
     withdrawal::*,
 };
 
@@ -76,6 +83,7 @@ where
             .await?)
     }
 
+    #[instrument(name = "deposit.for_subject.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
@@ -91,6 +99,33 @@ where
 
         let balance = self.ledger.balance(account_id).await?;
         Ok(balance)
+    }
+
+    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    pub async fn account_history(
+        &self,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<DepositAccountHistoryCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccountHistoryEntry, DepositAccountHistoryCursor>,
+        CoreDepositError,
+    > {
+        let account_id = account_id.into();
+
+        self.ensure_account_access(
+            account_id,
+            CoreDepositObject::deposit_account(account_id),
+            CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+        )
+        .await?;
+
+        let history = self
+            .ledger
+            .account_history::<DepositAccountHistoryEntry, DepositAccountHistoryCursor>(
+                account_id, query,
+            )
+            .await?;
+        Ok(history)
     }
 
     pub async fn list_deposits_for_account(
@@ -117,6 +152,23 @@ where
             .entities)
     }
 
+    pub async fn find_deposit_by_id(
+        &self,
+        deposit_id: impl Into<DepositId> + std::fmt::Debug,
+    ) -> Result<Deposit, CoreDepositError> {
+        let deposit_id = deposit_id.into();
+        let deposit = self.deposits.find_by_id(deposit_id).await?;
+
+        self.ensure_account_access(
+            deposit.deposit_account_id,
+            CoreDepositObject::deposit(deposit_id),
+            CoreDepositAction::DEPOSIT_READ,
+        )
+        .await?;
+
+        Ok(deposit)
+    }
+
     pub async fn list_withdrawals_for_account(
         &self,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
@@ -139,6 +191,43 @@ where
             )
             .await?
             .entities)
+    }
+
+    pub async fn find_withdrawal_by_id(
+        &self,
+        withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let withdrawal_id = withdrawal_id.into();
+        let withdrawal = self.withdrawals.find_by_id(withdrawal_id).await?;
+
+        self.ensure_account_access(
+            withdrawal.deposit_account_id,
+            CoreDepositObject::withdrawal(withdrawal_id),
+            CoreDepositAction::WITHDRAWAL_READ,
+        )
+        .await?;
+
+        Ok(withdrawal)
+    }
+
+    pub async fn find_withdrawal_by_cancelled_tx_id(
+        &self,
+        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let cancelled_tx_id = cancelled_tx_id.into();
+        let withdrawal = self
+            .withdrawals
+            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
+            .await?;
+
+        self.ensure_account_access(
+            withdrawal.deposit_account_id,
+            CoreDepositObject::withdrawal(withdrawal.id),
+            CoreDepositAction::WITHDRAWAL_READ,
+        )
+        .await?;
+
+        Ok(withdrawal)
     }
 
     async fn ensure_account_access(

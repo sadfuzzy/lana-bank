@@ -1,10 +1,13 @@
-use async_graphql::*;
+use async_graphql::{connection::*, *};
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::DepositAccount as DomainDepositAccount;
+pub use lana_app::deposit::{
+    DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
+    DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry,
+};
 
-use super::{deposit::*, withdrawal::*};
+use super::{deposit::*, deposit_account_history::*, withdrawal::*};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -76,5 +79,50 @@ impl DepositAccount {
             .list_withdrawals_for_account(self.entity.id)
             .await?;
         Ok(withdrawals.into_iter().map(Withdrawal::from).collect())
+    }
+
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            DepositAccountHistoryCursor,
+            DepositAccountHistoryEntry,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let query_args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app
+                    .deposits()
+                    .for_subject(sub)?
+                    .account_history(self.entity.id, query_args)
+                    .await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection.edges.extend(
+                    res.entities
+                        .into_iter()
+                        .filter(|entry| matches!(entry, DomainDepositAccountHistoryEntry::Ignored))
+                        .map(|entry| {
+                            let cursor = DepositAccountHistoryCursor::from(&entry);
+                            Edge::new(cursor, DepositAccountHistoryEntry::from(entry))
+                        }),
+                );
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 }

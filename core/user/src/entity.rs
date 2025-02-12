@@ -135,8 +135,6 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
-    #[builder(setter(skip), default)]
-    pub(super) authentication_id: Option<AuthenticationId>,
     pub(super) audit_info: AuditInfo,
 }
 
