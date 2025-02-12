@@ -2,8 +2,7 @@ pub mod error;
 
 use cala_ledger::{
     account_set::{AccountSetMemberId, NewAccountSet},
-    balance::error::BalanceError,
-    AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
 use crate::statement::*;
@@ -24,30 +23,54 @@ impl TrialBalanceLedger {
         }
     }
 
+    async fn create_unique_account_set(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        reference: &str,
+        normal_balance_type: DebitOrCredit,
+        parents: Vec<AccountSetId>,
+    ) -> Result<AccountSetId, TrialBalanceLedgerError> {
+        let id = AccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(self.journal_id)
+            .external_id(reference)
+            .name(reference)
+            .description(reference)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        self.cala
+            .account_sets()
+            .create_in_op(op, new_account_set)
+            .await?;
+
+        for parent_id in parents {
+            self.cala
+                .account_sets()
+                .add_member_in_op(op, parent_id, id)
+                .await?;
+        }
+
+        Ok(id)
+    }
+
     pub async fn create(
         &self,
         op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let statement_id = AccountSetId::new();
-        let new_account_set = NewAccountSet::builder()
-            .id(statement_id)
-            .journal_id(self.journal_id)
-            .external_id(reference)
-            .name(reference)
-            .description(reference)
-            .normal_balance_type(DebitOrCredit::Debit)
-            .build()
-            .expect("Could not build new account set");
-        self.cala.account_sets().create(new_account_set).await?;
+        let statement_id = self
+            .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])
+            .await?;
 
         op.commit().await?;
         Ok(statement_id)
     }
 
-    pub async fn find_by_name(
+    pub async fn get_id_from_reference(
         &self,
         reference: String,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
@@ -82,61 +105,34 @@ impl TrialBalanceLedger {
         Ok(())
     }
 
-    async fn get_account_set_in_op(
+    async fn get_account_set(
         &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
+        account_set_id: AccountSetId,
+        balances_by_id: &BalancesByAccount,
     ) -> Result<StatementAccountSet, TrialBalanceLedgerError> {
-        let id = id.into();
-
-        let values = self.cala.account_sets().find(id).await?.into_values();
-
-        let btc_currency =
-            Currency::try_from("BTC".to_string()).expect("Cannot deserialize 'BTC' as Currency");
-        let btc_balance = match self
+        let values = self
             .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, btc_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => BtcStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
-        };
-
-        let usd_currency =
-            Currency::try_from("USD".to_string()).expect("Cannot deserialize 'USD' as Currency");
-        let usd_balance = match self
-            .cala
-            .balances()
-            .find_in_op(op, self.journal_id, id, usd_currency)
-            .await
-        {
-            Ok(balance) => balance.try_into()?,
-            Err(BalanceError::NotFound(_, _, _)) => UsdStatementAccountSetBalance::ZERO,
-            Err(e) => return Err(e.into()),
-        };
+            .account_sets()
+            .find(account_set_id)
+            .await?
+            .into_values();
 
         Ok(StatementAccountSet {
-            id: values.id,
+            id: account_set_id,
             name: values.name,
             description: values.description,
-            btc_balance,
-            usd_balance,
+            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
         })
     }
 
-    async fn get_member_account_sets_in_op(
+    async fn get_member_account_set_ids(
         &self,
-        op: &mut LedgerOperation<'_>,
-        id: impl Into<AccountSetId> + Copy,
-    ) -> Result<Vec<StatementAccountSet>, TrialBalanceLedgerError> {
-        let id = id.into();
-
-        let member_ids = self
-            .cala
+        account_set_id: AccountSetId,
+    ) -> Result<Vec<AccountSetId>, TrialBalanceLedgerError> {
+        self.cala
             .account_sets()
-            .list_members_in_op(op, id, Default::default())
+            .list_members(account_set_id, Default::default())
             .await?
             .entities
             .into_iter()
@@ -144,32 +140,39 @@ impl TrialBalanceLedger {
                 AccountSetMemberId::AccountSet(id) => Ok(id),
                 _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
             })
-            .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()?;
-
-        let mut accounts: Vec<StatementAccountSet> = vec![];
-        for id in member_ids {
-            accounts.push(self.get_account_set_in_op(op, id).await?);
-        }
-
-        Ok(accounts)
+            .collect::<Result<Vec<AccountSetId>, TrialBalanceLedgerError>>()
     }
 
     pub async fn get_trial_balance(
         &self,
         name: String,
     ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
-        let id = self.find_by_name(name).await?;
+        let statement_id = self.get_id_from_reference(name).await?;
+        let mut all_account_set_ids = vec![statement_id];
 
-        let mut op = self.cala.begin_operation().await?;
-        let trial_balance_set = self.get_account_set_in_op(&mut op, id).await?;
-        let accounts = self.get_member_account_sets_in_op(&mut op, id).await?;
+        let member_account_sets_ids = self.get_member_account_set_ids(statement_id).await?;
+        all_account_set_ids.extend(&member_account_sets_ids);
+
+        let balance_ids =
+            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
+        let balances_by_id = self.cala.balances().find_all(&balance_ids).await?.into();
+
+        let statement_account_set = self.get_account_set(statement_id, &balances_by_id).await?;
+
+        let mut accounts = Vec::new();
+        for account_set_id in member_account_sets_ids {
+            accounts.push(
+                self.get_account_set(account_set_id, &balances_by_id)
+                    .await?,
+            );
+        }
 
         Ok(StatementAccountSetWithAccounts {
-            id: trial_balance_set.id,
-            name: trial_balance_set.name,
-            description: trial_balance_set.description,
-            btc_balance: trial_balance_set.btc_balance,
-            usd_balance: trial_balance_set.usd_balance,
+            id: statement_account_set.id,
+            name: statement_account_set.name,
+            description: statement_account_set.description,
+            btc_balance: statement_account_set.btc_balance,
+            usd_balance: statement_account_set.usd_balance,
             accounts,
         })
     }

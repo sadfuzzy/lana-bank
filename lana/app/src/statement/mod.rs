@@ -1,6 +1,8 @@
 pub mod error;
 
-use cala_ledger::balance::AccountBalance;
+use std::collections::HashMap;
+
+use cala_ledger::{balance::AccountBalance, AccountId, BalanceId, Currency, JournalId};
 
 use crate::primitives::{LedgerAccountSetId, Satoshis, SignedSatoshis, SignedUsdCents, UsdCents};
 
@@ -216,4 +218,113 @@ impl UsdStatementBalanceAmount {
         net_dr_balance: SignedUsdCents::ZERO,
         net_cr_balance: SignedUsdCents::ZERO,
     };
+}
+
+#[derive(Clone)]
+pub struct BalancesByAccount {
+    balances: HashMap<AccountId, HashMap<Currency, AccountBalance>>,
+}
+
+impl BalancesByAccount {
+    fn new() -> Self {
+        Self {
+            balances: HashMap::new(),
+        }
+    }
+
+    fn insert(&mut self, account_id: AccountId, currency: Currency, balance: AccountBalance) {
+        self.balances
+            .entry(account_id)
+            .or_default()
+            .insert(currency, balance);
+    }
+
+    pub fn btc_for_account(
+        &self,
+        account_set_id: LedgerAccountSetId,
+    ) -> Result<BtcStatementAccountSetBalance, StatementError> {
+        let currency = "BTC".parse().expect("BTC is not a valid currency");
+        Ok(
+            match self
+                .balances
+                .get(&account_set_id.into())
+                .and_then(|currencies| currencies.get(&currency))
+            {
+                Some(bal) => bal.clone().try_into()?,
+                None => BtcStatementAccountSetBalance::ZERO,
+            },
+        )
+    }
+
+    pub fn usd_for_account(
+        &self,
+        account_set_id: LedgerAccountSetId,
+    ) -> Result<UsdStatementAccountSetBalance, StatementError> {
+        let currency = "USD".parse().expect("USD is not a valid currency");
+        Ok(
+            match self
+                .balances
+                .get(&account_set_id.into())
+                .and_then(|currencies| currencies.get(&currency))
+            {
+                Some(bal) => bal.clone().try_into()?,
+                None => UsdStatementAccountSetBalance::ZERO,
+            },
+        )
+    }
+}
+
+impl From<HashMap<BalanceId, AccountBalance>> for BalancesByAccount {
+    fn from(all_balances: HashMap<BalanceId, AccountBalance>) -> Self {
+        let mut balances_by_account = Self::new();
+        for ((_, account_id, currency), balance) in all_balances {
+            balances_by_account.insert(account_id, currency, balance);
+        }
+
+        balances_by_account
+    }
+}
+
+struct BalanceIdsForSingleAccountSet {
+    balance_ids: Vec<BalanceId>,
+}
+
+impl From<(JournalId, LedgerAccountSetId)> for BalanceIdsForSingleAccountSet {
+    fn from(ids: (JournalId, LedgerAccountSetId)) -> Self {
+        let journal_id = ids.0;
+        let account_set_id = ids.1;
+        Self {
+            balance_ids: vec![
+                (
+                    journal_id,
+                    account_set_id.into(),
+                    "BTC".parse().expect("BTC is not a valid currency"),
+                ),
+                (
+                    journal_id,
+                    account_set_id.into(),
+                    "USD".parse().expect("USD is not a valid currency"),
+                ),
+            ],
+        }
+    }
+}
+
+pub struct BalanceIdsForAccountSets {
+    pub balance_ids: Vec<BalanceId>,
+}
+
+impl From<(JournalId, Vec<LedgerAccountSetId>)> for BalanceIdsForAccountSets {
+    fn from(values: (JournalId, Vec<LedgerAccountSetId>)) -> Self {
+        let journal_id = values.0;
+        let account_set_ids = values.1;
+        Self {
+            balance_ids: account_set_ids
+                .into_iter()
+                .flat_map(|account_set_id| {
+                    BalanceIdsForSingleAccountSet::from((journal_id, account_set_id)).balance_ids
+                })
+                .collect(),
+        }
+    }
 }
