@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -327,7 +327,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -339,7 +339,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -832,7 +832,7 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "chart-of-accounts"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -992,7 +992,7 @@ dependencies = [
 
 [[package]]
 name = "core-customer"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1039,7 +1039,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -1050,7 +1050,7 @@ dependencies = [
 
 [[package]]
 name = "core-user"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -1133,7 +1133,7 @@ dependencies = [
 
 [[package]]
 name = "customer-onboarding"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1161,7 +1161,7 @@ dependencies = [
 
 [[package]]
 name = "customer-server"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1220,7 +1220,7 @@ dependencies = [
 
 [[package]]
 name = "dashboard"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1252,7 +1252,7 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "deposit"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1774,7 +1774,7 @@ checksum = "d2fabcfbdc87f4758337ca535fb41a6d701b65693ce38287d856d1674551ec9b"
 
 [[package]]
 name = "governance"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2420,7 +2420,7 @@ checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 
 [[package]]
 name = "job"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2480,7 +2480,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "axum",
  "axum-extra",
@@ -2493,7 +2493,7 @@ dependencies = [
 
 [[package]]
 name = "kratos-admin"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "ory-kratos-client",
  "serde",
@@ -2535,7 +2535,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2597,7 +2597,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -2616,7 +2616,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "chrono",
  "core-customer",
@@ -2631,7 +2631,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "cala-ledger",
  "deposit",
@@ -3061,7 +3061,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3560,7 +3560,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -4258,7 +4258,7 @@ dependencies = [
 
 [[package]]
 name = "sim-bootstrap"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -5250,7 +5250,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -5415,7 +5415,7 @@ dependencies = [
 
 [[package]]
 name = "user-onboarding"
-version = "0.3.66-dev"
+version = "0.3.67-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
