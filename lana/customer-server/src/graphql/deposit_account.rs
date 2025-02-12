@@ -114,7 +114,7 @@ impl DepositAccount {
                 connection.edges.extend(
                     res.entities
                         .into_iter()
-                        .filter(|entry| matches!(entry, DomainDepositAccountHistoryEntry::Ignored))
+                        .filter(|entry| !matches!(entry, DomainDepositAccountHistoryEntry::Ignored))
                         .map(|entry| {
                             let cursor = DepositAccountHistoryCursor::from(&entry);
                             Edge::new(cursor, DepositAccountHistoryEntry::from(entry))
