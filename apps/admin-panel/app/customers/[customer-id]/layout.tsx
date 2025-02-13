@@ -10,6 +10,10 @@ import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
 
 import { CustomerDetailsCard } from "./details"
 
+import { KycStatus } from "./kyc-status"
+
+import { CustomerAccountBalances } from "./balances"
+
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
   Customer as CustomerType,
@@ -20,9 +24,8 @@ import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 const TABS = [
-  { id: "1", url: "/", tabLabel: "Overview" },
+  { id: "1", url: "/", tabLabel: "Transactions" },
   { id: "2", url: "/credit-facilities", tabLabel: "Credit Facilities" },
-  { id: "3", url: "/transactions", tabLabel: "Transactions" },
   { id: "4", url: "/documents", tabLabel: "Documents" },
 ]
 
@@ -39,6 +42,10 @@ gql`
       depositAccount {
         id
         depositAccountId
+        balance {
+          settled
+          pending
+        }
       }
     }
   }
@@ -91,6 +98,10 @@ export default function CustomerLayout({
   return (
     <main className="max-w-7xl m-auto">
       <CustomerDetailsCard customer={data.customer} />
+      <div className="flex flex-col md:flex-row w-full gap-2 my-2">
+        <KycStatus customerId={customerId} />
+        <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
+      </div>
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}

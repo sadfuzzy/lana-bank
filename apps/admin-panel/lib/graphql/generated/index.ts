@@ -1852,14 +1852,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, createdAt: any, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: string } } | null };
-
-export type GetCustomerOverviewQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
-}>;
-
-
-export type GetCustomerOverviewQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, depositAccount: { __typename?: 'DepositAccount', id: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, createdAt: any, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } | null };
 
 export type GetCustomerTransactionsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3771,6 +3764,10 @@ export const GetCustomerBasicDetailsDocument = gql`
     depositAccount {
       id
       depositAccountId
+      balance {
+        settled
+        pending
+      }
     }
   }
 }
@@ -3803,49 +3800,6 @@ export function useGetCustomerBasicDetailsLazyQuery(baseOptions?: Apollo.LazyQue
 export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsQuery>;
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
-export const GetCustomerOverviewDocument = gql`
-    query GetCustomerOverview($id: UUID!) {
-  customer(id: $id) {
-    id
-    customerId
-    depositAccount {
-      id
-      balance {
-        settled
-        pending
-      }
-    }
-  }
-}
-    `;
-
-/**
- * __useGetCustomerOverviewQuery__
- *
- * To run a query within a React component, call `useGetCustomerOverviewQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerOverviewQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetCustomerOverviewQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetCustomerOverviewQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerOverviewQuery, GetCustomerOverviewQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerOverviewQuery, GetCustomerOverviewQueryVariables>(GetCustomerOverviewDocument, options);
-      }
-export function useGetCustomerOverviewLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerOverviewQuery, GetCustomerOverviewQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerOverviewQuery, GetCustomerOverviewQueryVariables>(GetCustomerOverviewDocument, options);
-        }
-export type GetCustomerOverviewQueryHookResult = ReturnType<typeof useGetCustomerOverviewQuery>;
-export type GetCustomerOverviewLazyQueryHookResult = ReturnType<typeof useGetCustomerOverviewLazyQuery>;
-export type GetCustomerOverviewQueryResult = Apollo.QueryResult<GetCustomerOverviewQuery, GetCustomerOverviewQueryVariables>;
 export const GetCustomerTransactionsDocument = gql`
     query GetCustomerTransactions($id: UUID!) {
   customer(id: $id) {

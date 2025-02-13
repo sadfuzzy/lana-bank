@@ -2,38 +2,40 @@
 
 import { gql } from "@apollo/client"
 
-import { CustomerAccountBalances } from "./balances"
-import { KycStatus } from "./kyc-status"
+import { CustomerTransactionsTable } from "./transactions"
 
-import { useGetCustomerOverviewQuery } from "@/lib/graphql/generated"
+import { useGetCustomerTransactionsQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCustomerOverview($id: UUID!) {
+  query GetCustomerTransactions($id: UUID!) {
     customer(id: $id) {
       id
-      customerId
       depositAccount {
-        id
-        balance {
-          settled
-          pending
+        deposits {
+          ...DepositFields
+        }
+        withdrawals {
+          ...WithdrawalFields
         }
       }
     }
   }
 `
 
-export default function CustomerPage({ params }: { params: { "customer-id": string } }) {
-  const { data } = useGetCustomerOverviewQuery({
+export default function CustomerTransactionsPage({
+  params,
+}: {
+  params: { "customer-id": string }
+}) {
+  const { data } = useGetCustomerTransactionsQuery({
     variables: { id: params["customer-id"] },
   })
-
-  if (!data?.customer) return null
-
-  return (
-    <div className="flex flex-col md:flex-row w-full gap-2">
-      <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
-      <KycStatus customerId={params["customer-id"]} />
-    </div>
-  )
+  const transactions = [
+    ...(data?.customer?.depositAccount.deposits || []),
+    ...(data?.customer?.depositAccount.withdrawals || []),
+  ].sort((a, b) => {
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+  if (!transactions) return null
+  return <CustomerTransactionsTable transactions={transactions} />
 }

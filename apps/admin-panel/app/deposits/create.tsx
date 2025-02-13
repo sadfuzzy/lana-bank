@@ -17,7 +17,7 @@ import { Label } from "@lana/web/ui/label"
 import { useCreateContext } from "../create"
 
 import {
-  GetCustomerOverviewDocument,
+  GetCustomerBasicDetailsDocument,
   useCreateDepositMutation,
 } from "@/lib/graphql/generated"
 import { currencyConverter } from "@/lib/utils"
@@ -93,7 +93,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
       })
       if (result.data) {
         await client.query({
-          query: GetCustomerOverviewDocument,
+          query: GetCustomerBasicDetailsDocument,
           variables: {
             id: result.data.depositRecord.deposit.account.customer.customerId,
           },

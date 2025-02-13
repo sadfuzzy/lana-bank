@@ -35,7 +35,10 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.takeScreenshot("2_deposit_select")
 
     // Create dialog
-    cy.get('[data-testid="deposit-amount-input"]').type(depositAmount.toString())
+    cy.get('[data-testid="deposit-amount-input"]').type(depositAmount.toString(), {
+      delay: 0,
+      waitForAnimations: false,
+    })
     cy.takeScreenshot("3_deposit_enter_amount")
 
     cy.get('[data-testid="deposit-submit-button"]').click()
@@ -52,7 +55,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should show newly created Deposit in customer details page", () => {
-    cy.visit(`/customers/${customerId}/transactions`)
+    cy.visit(`/customers/${customerId}`)
     cy.contains(`$${depositAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("7_deposit_in_transactions")
   })
@@ -67,7 +70,10 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.get('[data-testid="create-withdrawal-button"]').should("be.visible").click()
     cy.takeScreenshot("9_withdrawal_select")
 
-    cy.get('[data-testid="withdraw-amount-input"]').type(withdrawAmount.toString())
+    cy.get('[data-testid="withdraw-amount-input"]').type(withdrawAmount.toString(), {
+      delay: 0,
+      waitForAnimations: false,
+    })
     cy.takeScreenshot("10_withdrawal_enter_amount")
 
     cy.get('[data-testid="withdraw-submit-button"]').click()
@@ -87,7 +93,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should show newly created Withdraw in customer details page", () => {
-    cy.visit(`/customers/${customerId}/transactions`)
+    cy.visit(`/customers/${customerId}`)
     cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("13_withdrawal_in_transactions")
   })
@@ -103,7 +109,10 @@ describe("Transactions Deposit and Withdraw", () => {
           if (badge.text() === "PENDING APPROVAL") {
             // case when we have policy attached for withdrawal no ss needed here
             cy.get('[data-testid="approval-process-deny-button"]').click()
-            cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
+            cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
+              "testing",
+              { delay: 0, waitForAnimations: false },
+            )
             cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
           } else {
             // expected flow
