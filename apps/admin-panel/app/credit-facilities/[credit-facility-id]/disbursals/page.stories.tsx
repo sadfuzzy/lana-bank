@@ -6,7 +6,7 @@ import CreditFacilityLayout from "../layout"
 import CreditFacilityDisbursalsPage from "./page"
 
 import {
-  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityDisbursalsDocument,
   DisbursalStatus,
 } from "@/lib/graphql/generated"
@@ -34,7 +34,7 @@ const mockParams = { "credit-facility-id": "test-id" }
 const layoutMocks = [
   {
     request: {
-      query: GetCreditFacilityBasicDetailsDocument,
+      query: GetCreditFacilityLayoutDetailsDocument,
       variables: {
         id: "test-id",
       },

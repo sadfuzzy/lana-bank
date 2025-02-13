@@ -17,7 +17,7 @@ import { Label } from "@lana/web/ui/label"
 
 import {
   useCreditFacilityCollateralUpdateMutation,
-  useGetCreditFacilityOverviewQuery,
+  useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter } from "@/lib/utils"
@@ -36,8 +36,8 @@ gql`
           }
         }
         ...CreditFacilityTransactionsFragment
-        ...CreditFacilityOverviewFragment
-        ...CreditFacilityBasicDetailsFragment
+
+        ...CreditFacilityLayoutFragment
       }
     }
   }
@@ -58,7 +58,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")
 
-  const { data: creditFacilityDetails } = useGetCreditFacilityOverviewQuery({
+  const { data: creditFacilityDetails } = useGetCreditFacilityLayoutDetailsQuery({
     variables: { id: creditFacilityId },
   })
 

@@ -36,8 +36,7 @@ gql`
             ...DisbursalOnFacilityPage
           }
           ...CreditFacilityTransactionsFragment
-          ...CreditFacilityBasicDetailsFragment
-          ...CreditFacilityOverviewFragment
+          ...CreditFacilityLayoutFragment
         }
       }
     }

@@ -15,8 +15,8 @@ import { Textarea } from "@lana/web/ui/textarea"
 
 import {
   ApprovalProcessType,
-  GetCreditFacilityBasicDetailsDocument,
-  GetCreditFacilityBasicDetailsQuery,
+  GetCreditFacilityLayoutDetailsDocument,
+  GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
   GetWithdrawalDetailsDocument,
   useApprovalProcessDenyMutation,
@@ -38,7 +38,7 @@ type DenialDialogProps = {
   setOpenDenialDialog: (isOpen: boolean) => void
   openDenialDialog: boolean
   approvalProcess: NonNullable<
-    GetCreditFacilityBasicDetailsQuery["creditFacility"]
+    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
   >["approvalProcess"]
 }
 
@@ -82,7 +82,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           const processType = approvalProcessDeny.approvalProcess.approvalProcessType
           if (processType === ApprovalProcessType.CreditFacilityApproval) {
             await client.query({
-              query: GetCreditFacilityBasicDetailsDocument,
+              query: GetCreditFacilityLayoutDetailsDocument,
               variables: { id: approvalProcess.approvalProcessId },
               fetchPolicy: "network-only",
             })

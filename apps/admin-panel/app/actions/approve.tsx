@@ -12,8 +12,8 @@ import { Button } from "@lana/web/ui/button"
 
 import {
   ApprovalProcessType,
-  GetCreditFacilityBasicDetailsDocument,
-  GetCreditFacilityBasicDetailsQuery,
+  GetCreditFacilityLayoutDetailsDocument,
+  GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
   GetWithdrawalDetailsDocument,
   useApprovalProcessApproveMutation,
@@ -73,7 +73,7 @@ type ApprovalDialogProps = {
   setOpenApprovalDialog: (isOpen: boolean) => void
   openApprovalDialog: boolean
   approvalProcess: NonNullable<
-    GetCreditFacilityBasicDetailsQuery["creditFacility"]
+    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
   >["approvalProcess"]
 }
 
@@ -110,7 +110,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
           const processType = approvalProcessApprove.approvalProcess.approvalProcessType
           if (processType === ApprovalProcessType.CreditFacilityApproval) {
             await client.query({
-              query: GetCreditFacilityBasicDetailsDocument,
+              query: GetCreditFacilityLayoutDetailsDocument,
               variables: { id: approvalProcess.approvalProcessId },
               fetchPolicy: "network-only",
             })

@@ -6,7 +6,7 @@ import CreditFacilityLayout from "./layout"
 import {
   ApprovalProcessStatus,
   CreditFacilityStatus,
-  GetCreditFacilityBasicDetailsDocument,
+  GetCreditFacilityLayoutDetailsDocument,
 } from "@/lib/graphql/generated"
 import { mockApprovalProcess, mockCreditFacility } from "@/lib/graphql/generated/mocks"
 
@@ -24,7 +24,7 @@ export const Default: StoryObj<typeof CreditFacilityLayout> = {
     const mocks = [
       {
         request: {
-          query: GetCreditFacilityBasicDetailsDocument,
+          query: GetCreditFacilityLayoutDetailsDocument,
           variables: { id: creditFacilityId },
         },
         result: {

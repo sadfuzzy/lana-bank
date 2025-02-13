@@ -7,6 +7,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
 
 import CreditFacilityDetailsCard from "./details"
 
+import { CreditFacilityCollateral } from "./collateral-card"
+
+import FacilityCard from "./facility-card"
+
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
@@ -14,22 +18,73 @@ import {
   ApprovalProcessStatus,
   CreditFacility,
   CreditFacilityStatus,
-  GetCreditFacilityBasicDetailsDocument,
-  GetCreditFacilityOverviewDocument,
+  GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityRepaymentPlanDocument,
   GetCreditFacilityTransactionsDocument,
-  useGetCreditFacilityBasicDetailsQuery,
+  useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useCreateContext } from "@/app/create"
+import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 gql`
-  fragment CreditFacilityBasicDetailsFragment on CreditFacility {
+  fragment CreditFacilityLayoutFragment on CreditFacility {
     id
     creditFacilityId
     status
     facilityAmount
+    expiresAt
+    collateral
     collateralizationState
+    createdAt
+    currentCvl {
+      total
+      disbursed
+    }
+    collateralToMatchInitialCvl @client
+    disbursals {
+      status
+    }
+    balance {
+      facilityRemaining {
+        usdBalance
+      }
+      disbursed {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      interest {
+        total {
+          usdBalance
+        }
+        outstanding {
+          usdBalance
+        }
+      }
+      outstanding {
+        usdBalance
+      }
+      collateral {
+        btcBalance
+      }
+    }
+    creditFacilityTerms {
+      annualRate
+      accrualInterval
+      incurrenceInterval
+      liquidationCvl
+      marginCallCvl
+      initialCvl
+      oneTimeFeeRate
+      duration {
+        period
+        units
+      }
+    }
     customer {
       customerId
       email
@@ -42,6 +97,7 @@ gql`
       approvalProcessId
       approvalProcessType
       createdAt
+      ...ApprovalProcessFields
     }
     subjectCanUpdateCollateral
     subjectCanInitiateDisbursal
@@ -49,17 +105,15 @@ gql`
     subjectCanComplete
   }
 
-  query GetCreditFacilityBasicDetails($id: UUID!) {
+  query GetCreditFacilityLayoutDetails($id: UUID!) {
     creditFacility(id: $id) {
-      ...CreditFacilityBasicDetailsFragment
+      ...CreditFacilityLayoutFragment
     }
   }
 `
 
 const TABS = [
-  { id: "1", url: "/", tabLabel: "Overview" },
-  { id: "2", url: "/terms", tabLabel: "Terms" },
-  { id: "3", url: "/transactions", tabLabel: "Transactions" },
+  { id: "1", url: "/", tabLabel: "Transactions" },
   { id: "4", url: "/disbursals", tabLabel: "Disbursals" },
   { id: "5", url: "/repayment-plan", tabLabel: "Repayment Plan" },
 ]
@@ -77,7 +131,7 @@ export default function CreditFacilityLayout({
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
 
-  const { data, loading, error } = useGetCreditFacilityBasicDetailsQuery({
+  const { data, loading, error } = useGetCreditFacilityLayoutDetailsQuery({
     variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
@@ -94,12 +148,7 @@ export default function CreditFacilityLayout({
     ) {
       const timer = setInterval(() => {
         client.query({
-          query: GetCreditFacilityBasicDetailsDocument,
-          variables: { id: creditFacilityId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityOverviewDocument,
+          query: GetCreditFacilityLayoutDetailsDocument,
           variables: { id: creditFacilityId },
           fetchPolicy: "network-only",
         })
@@ -151,6 +200,11 @@ export default function CreditFacilityLayout({
         creditFacilityId={creditFacilityId}
         creditFacilityDetails={data.creditFacility}
       />
+      <div className="flex md:flex-row flex-col gap-2 my-2">
+        <FacilityCard creditFacility={data.creditFacility} />
+        <CreditFacilityCollateral creditFacility={data.creditFacility} />
+      </div>
+      <VotersCard approvalProcess={data.creditFacility.approvalProcess} />
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}

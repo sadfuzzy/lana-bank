@@ -2,81 +2,75 @@
 
 import { gql } from "@apollo/client"
 
-import { CreditFacilityOverview } from "./overview"
+import { CreditFacilityTransactions } from "./transaction"
 
-import { useGetCreditFacilityOverviewQuery } from "@/lib/graphql/generated"
+import { useGetCreditFacilityTransactionsQuery } from "@/lib/graphql/generated"
 
 gql`
-  fragment CreditFacilityOverviewFragment on CreditFacility {
+  fragment CreditFacilityTransactionsFragment on CreditFacility {
     id
     creditFacilityId
-    status
-    facilityAmount
-    collateral
-    expiresAt
-    currentCvl {
-      total
-      disbursed
-    }
-    collateralToMatchInitialCvl @client
-    disbursals {
-      status
-    }
-    balance {
-      facilityRemaining {
-        usdBalance
+    transactions {
+      ... on CreditFacilityIncrementalPayment {
+        cents
+        recordedAt
+        txId
       }
-      disbursed {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+      ... on CreditFacilityCollateralUpdated {
+        satoshis
+        recordedAt
+        action
+        txId
       }
-      interest {
-        total {
-          usdBalance
-        }
-        outstanding {
-          usdBalance
-        }
+      ... on CreditFacilityOrigination {
+        cents
+        recordedAt
+        txId
       }
-      outstanding {
-        usdBalance
+      ... on CreditFacilityCollateralizationUpdated {
+        state
+        collateral
+        outstandingInterest
+        outstandingDisbursal
+        recordedAt
+        price
       }
-      collateral {
-        btcBalance
+      ... on CreditFacilityDisbursalExecuted {
+        cents
+        recordedAt
+        txId
       }
-    }
-    creditFacilityTerms {
-      marginCallCvl
-      liquidationCvl
-      initialCvl
-    }
-    approvalProcess {
-      ...ApprovalProcessFields
+      ... on CreditFacilityInterestAccrued {
+        cents
+        recordedAt
+        txId
+        days
+      }
     }
   }
 
-  query GetCreditFacilityOverview($id: UUID!) {
+  query GetCreditFacilityTransactions($id: UUID!) {
     creditFacility(id: $id) {
-      ...CreditFacilityOverviewFragment
+      ...CreditFacilityTransactionsFragment
     }
   }
 `
 
-export default function CreditFacilityPage({
+interface CreditFacilityTransactionsPageProps {
+  params: {
+    "credit-facility-id": string
+  }
+}
+
+export default function CreditFacilityTransactionsPage({
   params,
-}: {
-  params: { "credit-facility-id": string }
-}) {
-  const { data } = useGetCreditFacilityOverviewQuery({
+}: CreditFacilityTransactionsPageProps) {
+  const { data } = useGetCreditFacilityTransactionsQuery({
     variables: { id: params["credit-facility-id"] },
     fetchPolicy: "cache-and-network",
   })
 
   if (!data?.creditFacility) return null
 
-  return <CreditFacilityOverview creditFacility={data.creditFacility} />
+  return <CreditFacilityTransactions creditFacility={data.creditFacility} />
 }
