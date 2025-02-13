@@ -63,7 +63,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
     <Dialog open={openTermsDialog} onOpenChange={setOpenTermsDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Credit Facility Terms</DialogTitle>
+          <DialogTitle>Terms</DialogTitle>
         </DialogHeader>
         <div className="py-2">
           <DetailsCard columns={2} variant="container" details={details} />
