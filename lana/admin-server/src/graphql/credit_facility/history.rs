@@ -90,7 +90,7 @@ impl From<lana_app::credit_facility::IncrementalPayment> for CreditFacilityIncre
         Self {
             cents: payment.cents,
             recorded_at: payment.recorded_at.into(),
-            tx_id: UUID::from(payment.tx_id),
+            tx_id: UUID::from(payment.payment_id),
         }
     }
 }

@@ -26,6 +26,8 @@ pub enum CreditFacilityError {
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
+    #[error("CreditFacilityError - PaymentError: {0}")]
+    PaymentError(#[from] super::payment::error::PaymentError),
     #[error("CreditFacilityError - InterestAccrualError: {0}")]
     InterestAccrualError(#[from] super::interest_accrual::error::InterestAccrualError),
     #[error("CreditFacilityError - DepositAccountForHolderNotFound: {0}")]

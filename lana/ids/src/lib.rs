@@ -4,6 +4,7 @@ es_entity::entity_id! {
     DocumentId,
     CreditFacilityId,
     DisbursalId,
+    PaymentId,
     InterestAccrualId,
     TermsTemplateId,
     ReportId;
@@ -16,4 +17,5 @@ es_entity::entity_id! {
     InterestAccrualId => job::JobId,
 
     DisbursalId => LedgerTransactionId,
+    PaymentId => LedgerTransactionId,
 }

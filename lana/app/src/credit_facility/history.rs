@@ -7,7 +7,7 @@ use super::CreditFacilityEvent;
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub tx_id: LedgerTxId,
+    pub payment_id: PaymentId,
 }
 
 pub struct CollateralUpdated {
@@ -91,16 +91,16 @@ pub(super) fn project<'a>(
             },
 
             CreditFacilityEvent::PaymentRecorded {
+                payment_id,
                 disbursal_amount,
                 interest_amount,
-                recorded_in_ledger_at,
-                tx_id,
+                recorded_at: recorded_in_ledger_at,
                 ..
             } => {
                 history.push(CreditFacilityHistoryEntry::Payment(IncrementalPayment {
                     cents: *disbursal_amount + *interest_amount,
                     recorded_at: *recorded_in_ledger_at,
-                    tx_id: *tx_id,
+                    payment_id: *payment_id,
                 }));
             }
 

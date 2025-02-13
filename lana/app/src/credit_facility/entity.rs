@@ -12,7 +12,7 @@ use crate::{
 };
 
 use super::{
-    disbursal::*, history, interest_accrual::*, ledger::*, repayment_plan,
+    disbursal::*, history, interest_accrual::*, ledger::*, payment::*, repayment_plan,
     CreditFacilityCollateralUpdate, CreditFacilityError,
 };
 
@@ -88,11 +88,10 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
     },
     PaymentRecorded {
-        tx_id: LedgerTxId,
-        tx_ref: String,
+        payment_id: PaymentId,
         disbursal_amount: UsdCents,
         interest_amount: UsdCents,
-        recorded_in_ledger_at: DateTime<Utc>,
+        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
     Completed {
@@ -828,7 +827,7 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         now: DateTime<Utc>,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityRepayment, CreditFacilityError> {
+    ) -> Result<NewPayment, CreditFacilityError> {
         if self.outstanding().is_zero() {
             return Err(
                 CreditFacilityError::PaymentExceedsOutstandingCreditFacilityAmount(
@@ -840,28 +839,30 @@ impl CreditFacility {
 
         let amounts = self.outstanding_from_due().allocate_payment(amount)?;
 
+        let payment_id = PaymentId::new();
         let tx_ref = format!("{}-payment-{}", self.id, self.count_recorded_payments() + 1);
 
-        let res = CreditFacilityRepayment {
-            tx_id: LedgerTxId::new(),
-            tx_ref,
-            credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.deposit_account_id.into(),
-            amounts,
-        };
-
         self.events.push(CreditFacilityEvent::PaymentRecorded {
-            tx_id: res.tx_id,
-            tx_ref: res.tx_ref.clone(),
-            disbursal_amount: res.amounts.disbursal,
-            interest_amount: res.amounts.interest,
-            recorded_in_ledger_at: now,
+            payment_id,
+            disbursal_amount: amounts.disbursal,
+            interest_amount: amounts.interest,
+            recorded_at: now,
             audit_info: audit_info.clone(),
         });
 
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
 
-        Ok(res)
+        Ok(NewPayment::builder()
+            .id(payment_id)
+            .ledger_tx_id(payment_id)
+            .ledger_tx_ref(tx_ref)
+            .credit_facility_id(self.id)
+            .amounts(amounts)
+            .account_ids(self.account_ids)
+            .deposit_account_id(self.deposit_account_id)
+            .audit_info(audit_info)
+            .build()
+            .expect("could not build new payment"))
     }
 
     fn count_recorded_payments(&self) -> usize {

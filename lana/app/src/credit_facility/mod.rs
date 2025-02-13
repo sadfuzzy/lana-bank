@@ -7,6 +7,7 @@ mod history;
 mod interest_accrual;
 mod jobs;
 pub mod ledger;
+mod payment;
 mod processes;
 mod publisher;
 mod repayment_plan;
@@ -43,6 +44,7 @@ pub use history::*;
 pub use interest_accrual::*;
 use jobs::*;
 pub use ledger::*;
+pub use payment::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
@@ -60,6 +62,7 @@ pub struct CreditFacilities {
     deposits: Deposits,
     credit_facility_repo: CreditFacilityRepo,
     disbursal_repo: DisbursalRepo,
+    payment_repo: PaymentRepo,
     governance: Governance,
     ledger: CreditLedger,
     price: Price,
@@ -87,6 +90,7 @@ impl CreditFacilities {
         let publisher = CreditFacilityPublisher::new(outbox);
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
+        let payment_repo = PaymentRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id, account_factories).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
@@ -159,6 +163,7 @@ impl CreditFacilities {
             deposits: deposits.clone(),
             credit_facility_repo,
             disbursal_repo,
+            payment_repo,
             governance: governance.clone(),
             ledger,
             price: price.clone(),
@@ -501,19 +506,29 @@ impl CreditFacilities {
             .balances()
             .check_against_ledger(ledger_balances)?;
 
-        let repayment = credit_facility.initiate_repayment(
+        let new_payment = credit_facility.initiate_repayment(
             amount,
             price,
             self.config.upgrade_buffer_cvl_pct,
             db.now(),
             audit_info,
         )?;
+
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
+        let payment = self.payment_repo.create_in_op(&mut db, new_payment).await?;
+
         self.ledger
-            .record_credit_facility_repayment(db, repayment)
+            .record_credit_facility_repayment(
+                db,
+                payment.ledger_tx_id,
+                payment.ledger_tx_ref,
+                payment.amounts,
+                payment.account_ids,
+                payment.deposit_account_id.into(),
+            )
             .await?;
 
         Ok(credit_facility)

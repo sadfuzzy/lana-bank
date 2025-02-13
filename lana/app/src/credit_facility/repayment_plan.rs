@@ -261,12 +261,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(2),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: first_interest_accrued_at,
+                recorded_at: first_interest_accrued_at,
             },
         ]
     }
@@ -386,12 +385,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(2),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -471,12 +469,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(12),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
             CreditFacilityEvent::InterestAccrualConcluded {
                 idx: second_interest_idx.next(),
@@ -487,12 +484,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::from(100),
                 interest_amount: UsdCents::from(6),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: third_interest_accrued_at,
+                recorded_at: third_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());
@@ -533,12 +529,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::ZERO,
                 interest_amount: UsdCents::from(12),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: second_interest_accrued_at,
+                recorded_at: second_interest_accrued_at,
             },
             CreditFacilityEvent::InterestAccrualConcluded {
                 idx: second_interest_idx.next(),
@@ -549,12 +544,11 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::PaymentRecorded {
-                tx_id: LedgerTxId::new(),
+                payment_id: PaymentId::new(),
                 disbursal_amount: UsdCents::from(1000),
                 interest_amount: UsdCents::from(6),
                 audit_info: dummy_audit_info(),
-                tx_ref: LedgerTxId::new().to_string(),
-                recorded_in_ledger_at: third_interest_accrued_at,
+                recorded_at: third_interest_accrued_at,
             },
         ]);
         let repayment_plan = super::project(events.iter());

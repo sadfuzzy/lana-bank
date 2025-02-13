@@ -56,7 +56,7 @@ impl CreditFacilityPublisher {
                 PaymentRecorded {
                     disbursal_amount,
                     interest_amount,
-                    recorded_in_ledger_at,
+                    recorded_at: recorded_in_ledger_at,
                     ..
                 } => Some(CreditEvent::FacilityRepaymentRecorded {
                     id: entity.id,

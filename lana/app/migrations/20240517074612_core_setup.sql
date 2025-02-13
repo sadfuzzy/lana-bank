@@ -179,6 +179,21 @@ CREATE TABLE credit_facility_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE payments (
+  id UUID PRIMARY KEY,
+  credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE payment_events (
+  id UUID NOT NULL REFERENCES payments(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE disbursals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),

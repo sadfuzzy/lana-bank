@@ -207,13 +207,11 @@ impl CreditLedger {
     pub async fn record_credit_facility_repayment(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityRepayment {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            debit_account_id,
-            amounts,
-        }: CreditFacilityRepayment,
+        tx_id: TransactionId,
+        tx_ref: String,
+        amounts: CreditFacilityPaymentAmounts,
+        credit_facility_account_ids: CreditFacilityAccountIds,
+        debit_account_id: AccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
