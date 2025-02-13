@@ -14,9 +14,8 @@ bfx_local_price = os.getenv("BFX_LOCAL_PRICE", "1")
 serve_env_core = {
     "PG_CON": "postgres://user:password@localhost:5433/pg",
     "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+    "BFX_LOCAL_PRICE": bfx_local_price
 }
-if bfx_local_price != None:
-    serve_env_core["BFX_LOCAL_PRICE"] = bfx_local_price
 local_resource(
     "core",
     labels=["core"],

@@ -67,6 +67,7 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
         data={repaymentPlanData}
         columns={columns}
         emptyMessage="No Plan found"
+        autoFocus={false}
       />
     </CardWrapper>
   )

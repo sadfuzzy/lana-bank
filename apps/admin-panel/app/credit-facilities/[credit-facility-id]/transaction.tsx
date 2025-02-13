@@ -116,6 +116,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       <DataTable
         data={creditFacility.transactions}
         columns={columns}
+        autoFocus={false}
         emptyMessage="No transactions found"
       />
     </CardWrapper>

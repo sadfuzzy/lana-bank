@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
-
 import { useRouter } from "next/navigation"
 
 import {
@@ -15,10 +14,8 @@ import {
   TableRow,
 } from "@lana/web/ui/table"
 import { Button } from "@lana/web/ui/button"
-
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Card } from "@lana/web/ui/card"
-
 import { useBreakpointDown } from "@lana/web/hooks"
 
 import { cn } from "@/lib/utils"
@@ -44,6 +41,7 @@ interface DataTableProps<T> {
   emptyMessage?: React.ReactNode
   loading?: boolean
   navigateTo?: (record: T) => string | null
+  autoFocus?: boolean
 }
 
 const DataTable = <T,>({
@@ -57,6 +55,7 @@ const DataTable = <T,>({
   emptyMessage = "No data to display",
   loading = false,
   navigateTo,
+  autoFocus = true,
 }: DataTableProps<T>) => {
   const isMobile = useBreakpointDown("md")
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
@@ -89,7 +88,7 @@ const DataTable = <T,>({
   }
 
   const smartFocus = () => {
-    if (isNoFocusActive()) {
+    if (autoFocus && isNoFocusActive()) {
       if (focusTimeoutRef.current) {
         clearTimeout(focusTimeoutRef.current)
       }
@@ -172,26 +171,28 @@ const DataTable = <T,>({
   }, [data, focusedRowIndex, onRowClick, navigateTo, isTableFocused])
 
   useEffect(() => {
-    const shouldAutoFocus = data && data.length > 0 && !loading
+    const shouldAutoFocus = autoFocus && data && data.length > 0 && !loading
     if (shouldAutoFocus) {
       smartFocus()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.length, loading])
+  }, [data?.length, loading, autoFocus])
 
   useEffect(() => {
     const handleFocusOut = (e: FocusEvent) => {
       if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-        if (isNoFocusActive()) {
+        if (autoFocus && isNoFocusActive()) {
           smartFocus()
         }
       }
     }
 
-    document.addEventListener("focusout", handleFocusOut)
-    return () => document.removeEventListener("focusout", handleFocusOut)
+    if (autoFocus) {
+      document.addEventListener("focusout", handleFocusOut)
+      return () => document.removeEventListener("focusout", handleFocusOut)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [autoFocus])
 
   useEffect(() => {
     return () => {

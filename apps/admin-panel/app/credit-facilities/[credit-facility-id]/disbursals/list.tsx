@@ -50,6 +50,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
         <DataTable
           data={creditFacility.disbursals}
           columns={columns}
+          autoFocus={false}
           emptyMessage="No disbursals found"
           navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
         />

@@ -135,6 +135,7 @@ describe("credit facility", () => {
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("6_visit_credit_facility_page")
 
+    cy.wait(2000)
     cy.get('[data-testid="collateral-to-reach-target"]')
       .should("be.visible")
       .invoke("text")
