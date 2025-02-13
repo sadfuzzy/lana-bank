@@ -1,4 +1,9 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized = 'incremental',
+    unique_key = ['id', 'sequence'],
+    full_refresh = true,
+) }}
+-- TODO: remove full_refresh config after rollout
 
 with ordered as (
 
@@ -8,6 +13,7 @@ with ordered as (
         event_type,
         event,
         recorded_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by id, sequence
@@ -16,6 +22,10 @@ with ordered as (
             as order_received_desc
 
     from {{ source("lana", "public_credit_facility_events_view") }}
+
+    {% if is_incremental() %}
+    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
+    {% endif %}
 
 )
 

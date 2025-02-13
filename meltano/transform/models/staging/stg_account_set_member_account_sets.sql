@@ -1,9 +1,17 @@
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'account_set_id',
+    full_refresh = true,
+) }}
+-- TODO: remove full_refresh config after rollout
+
 with ordered as (
 
     select
         account_set_id,
         member_account_set_id,
         created_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by account_set_id
@@ -13,6 +21,10 @@ with ordered as (
 
     from
         {{ source("lana", "public_cala_account_set_member_account_sets_view") }}
+
+    {% if is_incremental() %}
+    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
+    {% endif %}
 
 )
 

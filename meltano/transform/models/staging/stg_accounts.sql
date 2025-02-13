@@ -1,3 +1,10 @@
+{{ config(
+    materialized = 'incremental',
+    unique_key = 'id',
+    full_refresh = true,
+) }}
+-- TODO: remove full_refresh config after rollout
+
 with ordered as (
 
     select
@@ -7,6 +14,7 @@ with ordered as (
         normal_balance_type,
         latest_values,
         created_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by id
@@ -15,6 +23,10 @@ with ordered as (
             as order_received_desc
 
     from {{ source("lana", "public_cala_accounts_view") }}
+
+    {% if is_incremental() %}
+    where _sdc_batched_at >= (select coalesce(max(_sdc_batched_at),'1900-01-01') from {{ this }} )
+    {% endif %}
 
 )
 
