@@ -205,10 +205,7 @@ impl InterestAccrual {
     }
 
     pub(crate) fn accrual_data(&self) -> Option<InterestAccrualData> {
-        let last_incurrence_period = match self.last_incurrence_period() {
-            Some(period) => period,
-            None => return None,
-        };
+        let last_incurrence_period = self.last_incurrence_period()?;
 
         match last_incurrence_period.next().truncate(self.accrues_at()) {
             Some(_) => None,

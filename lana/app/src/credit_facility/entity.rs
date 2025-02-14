@@ -474,7 +474,7 @@ impl CreditFacility {
 
     pub(super) fn is_expired(&self) -> bool {
         let now = crate::time::now();
-        self.expires_at.map_or(false, |expires_at| now > expires_at)
+        self.expires_at.is_some_and(|expires_at| now > expires_at)
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
