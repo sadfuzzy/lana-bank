@@ -207,6 +207,34 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    pub async fn account_history(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<DepositAccountHistoryCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<DepositAccountHistoryEntry, DepositAccountHistoryCursor>,
+        CoreDepositError,
+    > {
+        let account_id = account_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        let history = self
+            .ledger
+            .account_history::<DepositAccountHistoryEntry, DepositAccountHistoryCursor>(
+                account_id, query,
+            )
+            .await?;
+        Ok(history)
+    }
+
     #[instrument(name = "deposit.record_deposit", skip(self), err)]
     pub async fn record_deposit(
         &self,

@@ -207,6 +207,11 @@ type BtcAccountAmountsInPeriod {
 
 scalar CVLPct
 
+type CancelledWithdrawalEntry {
+	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
+}
+
 type CashFlowStatement {
 	name: String!
 	total: AccountAmountsByCurrency!
@@ -540,6 +545,15 @@ type CreditFacilityPartialPaymentPayload {
 	creditFacility: CreditFacility!
 }
 
+type CreditFacilityPayment {
+	id: ID!
+	paymentId: UUID!
+	interestAmount: UsdCents!
+	disbursalAmount: UsdCents!
+	createdAt: Timestamp!
+	creditFacility: CreditFacility!
+}
+
 type CreditFacilityRepaymentInPlan {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
@@ -675,6 +689,7 @@ type DepositAccount {
 	createdAt: Timestamp!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
+	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 	balance: DepositAccountBalance!
 	customer: Customer!
 }
@@ -682,6 +697,37 @@ type DepositAccount {
 type DepositAccountBalance {
 	settled: UsdCents!
 	pending: UsdCents!
+}
+
+union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
+
+type DepositAccountHistoryEntryConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [DepositAccountHistoryEntryEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [DepositAccountHistoryEntry!]!
+}
+
+"""
+An edge in a connection.
+"""
+type DepositAccountHistoryEntryEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: DepositAccountHistoryEntry!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type DepositConnection {
@@ -713,6 +759,11 @@ type DepositEdge {
 	cursor: String!
 }
 
+type DepositEntry {
+	recordedAt: Timestamp!
+	deposit: Deposit!
+}
+
 input DepositRecordInput {
 	depositAccountId: UUID!
 	amount: UsdCents!
@@ -721,6 +772,11 @@ input DepositRecordInput {
 
 type DepositRecordPayload {
 	deposit: Deposit!
+}
+
+type DisbursalEntry {
+	recordedAt: Timestamp!
+	disbursal: CreditFacilityDisbursal!
 }
 
 scalar DisbursalIdx
@@ -903,6 +959,11 @@ type PageInfo {
 	When paginating forwards, the cursor to continue.
 	"""
 	endCursor: String
+}
+
+type PaymentEntry {
+	recordedAt: Timestamp!
+	payment: CreditFacilityPayment!
 }
 
 enum Period {
@@ -1169,6 +1230,11 @@ type TrialBalance {
 
 scalar UUID
 
+type UnknownEntry {
+	txId: UUID!
+	recordedAt: Timestamp!
+}
+
 scalar Upload
 
 type UsdAccountAmounts {
@@ -1290,6 +1356,11 @@ type WithdrawalEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+type WithdrawalEntry {
+	recordedAt: Timestamp!
+	withdrawal: Withdrawal!
 }
 
 input WithdrawalInitiateInput {

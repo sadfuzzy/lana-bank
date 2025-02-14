@@ -10,6 +10,7 @@ mod customer;
 mod dashboard;
 mod deposit;
 mod deposit_account;
+mod deposit_account_history;
 mod document;
 mod financials;
 mod loader;

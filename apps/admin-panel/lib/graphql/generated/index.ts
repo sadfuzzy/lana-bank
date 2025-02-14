@@ -226,6 +226,12 @@ export type BtcAccountAmountsInPeriod = {
   openingBalance: LayeredBtcAccountAmounts;
 };
 
+export type CancelledWithdrawalEntry = {
+  __typename?: 'CancelledWithdrawalEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  withdrawal: Withdrawal;
+};
+
 export type CashFlowStatement = {
   __typename?: 'CashFlowStatement';
   categories: Array<StatementCategory>;
@@ -556,6 +562,16 @@ export type CreditFacilityPartialPaymentPayload = {
   creditFacility: CreditFacility;
 };
 
+export type CreditFacilityPayment = {
+  __typename?: 'CreditFacilityPayment';
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacility: CreditFacility;
+  disbursalAmount: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  interestAmount: Scalars['UsdCents']['output'];
+  paymentId: Scalars['UUID']['output'];
+};
+
 export type CreditFacilityRepaymentInPlan = {
   __typename?: 'CreditFacilityRepaymentInPlan';
   accrualAt: Scalars['Timestamp']['output'];
@@ -689,14 +705,42 @@ export type DepositAccount = {
   customerId: Scalars['UUID']['output'];
   depositAccountId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
+  history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
   withdrawals: Array<Withdrawal>;
+};
+
+
+export type DepositAccountHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type DepositAccountBalance = {
   __typename?: 'DepositAccountBalance';
   pending: Scalars['UsdCents']['output'];
   settled: Scalars['UsdCents']['output'];
+};
+
+export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | PaymentEntry | UnknownEntry | WithdrawalEntry;
+
+export type DepositAccountHistoryEntryConnection = {
+  __typename?: 'DepositAccountHistoryEntryConnection';
+  /** A list of edges. */
+  edges: Array<DepositAccountHistoryEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<DepositAccountHistoryEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type DepositAccountHistoryEntryEdge = {
+  __typename?: 'DepositAccountHistoryEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: DepositAccountHistoryEntry;
 };
 
 export type DepositConnection = {
@@ -718,6 +762,12 @@ export type DepositEdge = {
   node: Deposit;
 };
 
+export type DepositEntry = {
+  __typename?: 'DepositEntry';
+  deposit: Deposit;
+  recordedAt: Scalars['Timestamp']['output'];
+};
+
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
   depositAccountId: Scalars['UUID']['input'];
@@ -727,6 +777,12 @@ export type DepositRecordInput = {
 export type DepositRecordPayload = {
   __typename?: 'DepositRecordPayload';
   deposit: Deposit;
+};
+
+export type DisbursalEntry = {
+  __typename?: 'DisbursalEntry';
+  disbursal: CreditFacilityDisbursal;
+  recordedAt: Scalars['Timestamp']['output'];
 };
 
 export enum DisbursalStatus {
@@ -1059,6 +1115,12 @@ export type PageInfo = {
   hasPreviousPage: Scalars['Boolean']['output'];
   /** When paginating backwards, the cursor to continue. */
   startCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type PaymentEntry = {
+  __typename?: 'PaymentEntry';
+  payment: CreditFacilityPayment;
+  recordedAt: Scalars['Timestamp']['output'];
 };
 
 export enum Period {
@@ -1487,6 +1549,12 @@ export type TrialBalance = {
   total: AccountAmountsByCurrency;
 };
 
+export type UnknownEntry = {
+  __typename?: 'UnknownEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type UsdAccountAmounts = {
   __typename?: 'UsdAccountAmounts';
   credit: Scalars['UsdCents']['output'];
@@ -1604,6 +1672,12 @@ export type WithdrawalEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: Withdrawal;
+};
+
+export type WithdrawalEntry = {
+  __typename?: 'WithdrawalEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  withdrawal: Withdrawal;
 };
 
 export type WithdrawalInitiateInput = {
