@@ -9,6 +9,7 @@ pub struct CreditFacilitiesForSubject<'a> {
     authz: &'a Authorization,
     credit_facilities: &'a CreditFacilityRepo,
     disbursals: &'a DisbursalRepo,
+    payments: &'a PaymentRepo,
 }
 
 impl<'a> CreditFacilitiesForSubject<'a> {
@@ -18,6 +19,7 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         authz: &'a Authorization,
         credit_facilities: &'a CreditFacilityRepo,
         disbursals: &'a DisbursalRepo,
+        payments: &'a PaymentRepo,
     ) -> Self {
         Self {
             customer_id,
@@ -25,6 +27,7 @@ impl<'a> CreditFacilitiesForSubject<'a> {
             authz,
             credit_facilities,
             disbursals,
+            payments,
         }
     }
 
@@ -152,5 +155,26 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         .await?;
 
         Ok(disbursal)
+    }
+
+    pub async fn find_payment_by_id(
+        &self,
+        tx_id: impl Into<PaymentId> + std::fmt::Debug,
+    ) -> Result<Payment, CreditFacilityError> {
+        let tx_id = tx_id.into();
+        let payment = self.payments.find_by_id(tx_id).await?;
+
+        let credit_facility = self
+            .credit_facilities
+            .find_by_id(payment.facility_id)
+            .await?;
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            Object::CreditFacility,
+            CreditFacilityAction::ReadPayment,
+        )
+        .await?;
+
+        Ok(payment)
     }
 }

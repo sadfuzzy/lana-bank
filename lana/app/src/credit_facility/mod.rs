@@ -28,10 +28,7 @@ use crate::{
     job::*,
     outbox::Outbox,
     price::Price,
-    primitives::{
-        CreditFacilityId, CreditFacilityStatus, CustomerId, DisbursalId, Satoshis, Subject,
-        UsdCents,
-    },
+    primitives::*,
     terms::{CollateralizationState, TermValues},
 };
 
@@ -202,6 +199,7 @@ impl CreditFacilities {
             &self.authz,
             &self.credit_facility_repo,
             &self.disbursal_repo,
+            &self.payment_repo,
         ))
     }
 

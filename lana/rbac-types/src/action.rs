@@ -180,6 +180,7 @@ pub enum CreditFacilityAction {
     ReadDisbursal,
     UpdateCollateral,
     RecordPayment,
+    ReadPayment,
     RecordInterest,
     Complete,
     UpdateCollateralizationState,

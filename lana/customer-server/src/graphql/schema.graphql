@@ -108,6 +108,15 @@ type CreditFacilityOrigination {
 	txId: UUID!
 }
 
+type CreditFacilityPayment {
+	id: ID!
+	paymentId: UUID!
+	interestAmount: UsdCents!
+	disbursalAmount: UsdCents!
+	createdAt: Timestamp!
+	creditFacility: CreditFacility!
+}
+
 type CreditFacilityRepaymentInPlan {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
@@ -293,8 +302,8 @@ type PageInfo {
 }
 
 type PaymentEntry {
-	txId: UUID!
 	recordedAt: Timestamp!
+	payment: CreditFacilityPayment!
 }
 
 enum Period {

@@ -3,7 +3,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    credit_facility::disbursal::CreditFacilityDisbursal, deposit::Deposit, withdrawal::Withdrawal,
+    credit_facility::disbursal::CreditFacilityDisbursal,
+    credit_facility::payment::CreditFacilityPayment, deposit::Deposit, withdrawal::Withdrawal,
 };
 
 #[derive(Union)]
@@ -48,7 +49,9 @@ pub struct DisbursalEntry {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct PaymentEntry {
+    #[graphql(skip)]
     pub tx_id: UUID,
     pub recorded_at: Timestamp,
 }
@@ -116,6 +119,21 @@ impl DisbursalEntry {
             .await?;
 
         Ok(CreditFacilityDisbursal::from(disbursal))
+    }
+}
+
+#[ComplexObject]
+impl PaymentEntry {
+    async fn payment(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityPayment> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let payment = app
+            .credit_facilities()
+            .for_subject(sub)?
+            .find_payment_by_id(self.tx_id)
+            .await?;
+
+        Ok(CreditFacilityPayment::from(payment))
     }
 }
 
