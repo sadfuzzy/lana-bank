@@ -150,7 +150,7 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         self.ensure_credit_facility_access(
             &credit_facility,
             Object::CreditFacility,
-            CreditFacilityAction::ReadDisbursal,
+            CreditFacilityAction::Read,
         )
         .await?;
 
@@ -171,7 +171,7 @@ impl<'a> CreditFacilitiesForSubject<'a> {
         self.ensure_credit_facility_access(
             &credit_facility,
             Object::CreditFacility,
-            CreditFacilityAction::ReadPayment,
+            CreditFacilityAction::Read,
         )
         .await?;
 

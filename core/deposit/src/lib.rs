@@ -446,6 +446,27 @@ where
         }
     }
 
+    pub async fn find_withdrawal_by_cancelled_tx_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+    ) -> Result<Withdrawal, CoreDepositError> {
+        let cancelled_tx_id = cancelled_tx_id.into();
+        let withdrawal = self
+            .withdrawals
+            .find_by_cancelled_tx_id(Some(cancelled_tx_id))
+            .await?;
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::withdrawal(withdrawal.id),
+                CoreDepositAction::WITHDRAWAL_READ,
+            )
+            .await?;
+
+        Ok(withdrawal)
+    }
+
     #[instrument(name = "deposit.find_all_withdrawals", skip(self), err)]
     pub async fn find_all_withdrawals<T: From<Withdrawal>>(
         &self,

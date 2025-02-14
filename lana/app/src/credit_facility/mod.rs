@@ -389,6 +389,24 @@ impl CreditFacilities {
         }
     }
 
+    pub async fn find_disbursal_by_concluded_tx_id(
+        &self,
+        sub: &Subject,
+        tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
+    ) -> Result<Disbursal, CreditFacilityError> {
+        let tx_id = tx_id.into();
+        let disbursal = self
+            .disbursal_repo
+            .find_by_concluded_tx_id(Some(tx_id))
+            .await?;
+
+        self.authz
+            .enforce_permission(sub, Object::CreditFacility, CreditFacilityAction::Read)
+            .await?;
+
+        Ok(disbursal)
+    }
+
     pub async fn ensure_up_to_date_disbursal_status(
         &self,
         disbursal: &Disbursal,

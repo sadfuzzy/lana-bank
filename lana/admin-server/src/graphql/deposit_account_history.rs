@@ -69,9 +69,9 @@ impl DepositEntry {
 
         let deposit = app
             .deposits()
-            .for_subject(sub)?
-            .find_deposit_by_id(self.tx_id)
-            .await?;
+            .find_deposit_by_id(sub, self.tx_id)
+            .await?
+            .expect("deposit should exist");
 
         Ok(Deposit::from(deposit))
     }
@@ -84,9 +84,9 @@ impl WithdrawalEntry {
 
         let withdrawal = app
             .deposits()
-            .for_subject(sub)?
-            .find_withdrawal_by_id(self.tx_id)
-            .await?;
+            .find_withdrawal_by_id(sub, self.tx_id)
+            .await?
+            .expect("withdrawal should exist");
 
         Ok(Withdrawal::from(withdrawal))
     }
@@ -99,8 +99,7 @@ impl CancelledWithdrawalEntry {
 
         let withdrawal = app
             .deposits()
-            .for_subject(sub)?
-            .find_withdrawal_by_cancelled_tx_id(self.tx_id)
+            .find_withdrawal_by_cancelled_tx_id(sub, self.tx_id)
             .await?;
 
         Ok(Withdrawal::from(withdrawal))
@@ -114,8 +113,7 @@ impl DisbursalEntry {
 
         let disbursal = app
             .credit_facilities()
-            .for_subject(sub)?
-            .find_disbursal_by_concluded_tx_id(self.tx_id)
+            .find_disbursal_by_concluded_tx_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityDisbursal::from(disbursal))
