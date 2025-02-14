@@ -15,18 +15,37 @@ type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
 }
 
+const getCvlStatus = (
+  currentCvl: number,
+  marginCallCvl: number,
+  liquidationCvl: number,
+) => {
+  if (currentCvl >= marginCallCvl) return { label: "High", color: "text-success" }
+  if (currentCvl >= liquidationCvl) return { label: "Moderate", color: "text-warning" }
+  return { label: "Critical", color: "text-destructive" }
+}
+
+const CvlStatusText: React.FC<{
+  currentCvl: number
+  marginCallCvl: number
+  liquidationCvl: number
+}> = ({ currentCvl, marginCallCvl, liquidationCvl }) => {
+  const { label, color } = getCvlStatus(currentCvl, marginCallCvl, liquidationCvl)
+  return <span className={`font-medium ${color}`}>{label}</span>
+}
+
 export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = ({
   creditFacility,
 }) => {
   const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
   const MarginCallPrice = calculatePrice({
     cvlPercentage: creditFacility.creditFacilityTerms.marginCallCvl,
-    basisAmountInCents: basisAmountInCents,
+    basisAmountInCents,
     collateralInSatoshis: creditFacility.collateral,
   })
   const LiquidationCallPrice = calculatePrice({
     cvlPercentage: creditFacility.creditFacilityTerms.liquidationCvl,
-    basisAmountInCents: basisAmountInCents,
+    basisAmountInCents,
     collateralInSatoshis: creditFacility.collateral,
   })
 
@@ -78,7 +97,18 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
     },
     {
       label: "Current CVL",
-      value: `${creditFacility.currentCvl.total}%`,
+      value: (
+        <div className="flex items-center gap-2">
+          <span>{creditFacility.currentCvl.total}%</span>
+          {creditFacility.status === CreditFacilityStatus.Active && (
+            <CvlStatusText
+              currentCvl={creditFacility.currentCvl.total}
+              marginCallCvl={creditFacility.creditFacilityTerms.marginCallCvl}
+              liquidationCvl={creditFacility.creditFacilityTerms.liquidationCvl}
+            />
+          )}
+        </div>
+      ),
     },
   ]
 
