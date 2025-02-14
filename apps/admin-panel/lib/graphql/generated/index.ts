@@ -1928,12 +1928,14 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 
 export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, createdAt: any, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } } | null };
 
-export type GetCustomerTransactionsQueryVariables = Exact<{
+export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetCustomerTransactionsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, depositAccount: { __typename?: 'DepositAccount', deposits: Array<{ __typename?: 'Deposit', id: string, createdAt: any, depositId: string, reference: string, amount: UsdCents }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }> } } | null };
+export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, depositAccount: { __typename?: 'DepositAccount', depositAccountId: string, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, index: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: string, interestAmount: UsdCents, disbursalAmount: UsdCents, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } } | null };
 
 export type CustomerUpdateMutationVariables = Exact<{
   input: CustomerUpdateInput;
@@ -3874,50 +3876,116 @@ export function useGetCustomerBasicDetailsLazyQuery(baseOptions?: Apollo.LazyQue
 export type GetCustomerBasicDetailsQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsQuery>;
 export type GetCustomerBasicDetailsLazyQueryHookResult = ReturnType<typeof useGetCustomerBasicDetailsLazyQuery>;
 export type GetCustomerBasicDetailsQueryResult = Apollo.QueryResult<GetCustomerBasicDetailsQuery, GetCustomerBasicDetailsQueryVariables>;
-export const GetCustomerTransactionsDocument = gql`
-    query GetCustomerTransactions($id: UUID!) {
+export const GetCustomerTransactionHistoryDocument = gql`
+    query GetCustomerTransactionHistory($id: UUID!, $first: Int!, $after: String) {
   customer(id: $id) {
     id
+    customerId
     depositAccount {
-      deposits {
-        ...DepositFields
-      }
-      withdrawals {
-        ...WithdrawalFields
+      depositAccountId
+      history(first: $first, after: $after) {
+        pageInfo {
+          hasNextPage
+          endCursor
+          hasPreviousPage
+          startCursor
+        }
+        edges {
+          cursor
+          node {
+            ... on DepositEntry {
+              recordedAt
+              deposit {
+                id
+                depositId
+                accountId
+                amount
+                createdAt
+                reference
+              }
+            }
+            ... on WithdrawalEntry {
+              recordedAt
+              withdrawal {
+                id
+                withdrawalId
+                accountId
+                amount
+                createdAt
+                reference
+                status
+              }
+            }
+            ... on CancelledWithdrawalEntry {
+              recordedAt
+              withdrawal {
+                id
+                withdrawalId
+                accountId
+                amount
+                createdAt
+                reference
+                status
+              }
+            }
+            ... on DisbursalEntry {
+              recordedAt
+              disbursal {
+                id
+                disbursalId
+                index
+                amount
+                createdAt
+                status
+              }
+            }
+            ... on PaymentEntry {
+              recordedAt
+              payment {
+                id
+                paymentId
+                interestAmount
+                disbursalAmount
+                createdAt
+              }
+            }
+          }
+        }
       }
     }
   }
 }
-    ${DepositFieldsFragmentDoc}
-${WithdrawalFieldsFragmentDoc}`;
+    `;
 
 /**
- * __useGetCustomerTransactionsQuery__
+ * __useGetCustomerTransactionHistoryQuery__
  *
- * To run a query within a React component, call `useGetCustomerTransactionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCustomerTransactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCustomerTransactionHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerTransactionHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetCustomerTransactionsQuery({
+ * const { data, loading, error } = useGetCustomerTransactionHistoryQuery({
  *   variables: {
  *      id: // value for 'id'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
  *   },
  * });
  */
-export function useGetCustomerTransactionsQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerTransactionsQuery, GetCustomerTransactionsQueryVariables>) {
+export function useGetCustomerTransactionHistoryQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCustomerTransactionsQuery, GetCustomerTransactionsQueryVariables>(GetCustomerTransactionsDocument, options);
+        return Apollo.useQuery<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>(GetCustomerTransactionHistoryDocument, options);
       }
-export function useGetCustomerTransactionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerTransactionsQuery, GetCustomerTransactionsQueryVariables>) {
+export function useGetCustomerTransactionHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCustomerTransactionsQuery, GetCustomerTransactionsQueryVariables>(GetCustomerTransactionsDocument, options);
+          return Apollo.useLazyQuery<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>(GetCustomerTransactionHistoryDocument, options);
         }
-export type GetCustomerTransactionsQueryHookResult = ReturnType<typeof useGetCustomerTransactionsQuery>;
-export type GetCustomerTransactionsLazyQueryHookResult = ReturnType<typeof useGetCustomerTransactionsLazyQuery>;
-export type GetCustomerTransactionsQueryResult = Apollo.QueryResult<GetCustomerTransactionsQuery, GetCustomerTransactionsQueryVariables>;
+export type GetCustomerTransactionHistoryQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistoryQuery>;
+export type GetCustomerTransactionHistoryLazyQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistoryLazyQuery>;
+export type GetCustomerTransactionHistoryQueryResult = Apollo.QueryResult<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>;
 export const CustomerUpdateDocument = gql`
     mutation CustomerUpdate($input: CustomerUpdateInput!) {
   customerUpdate(input: $input) {

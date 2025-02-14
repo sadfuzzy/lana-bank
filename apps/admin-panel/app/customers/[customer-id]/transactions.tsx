@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-
 import {
   Card,
   CardContent,
@@ -12,60 +11,118 @@ import {
 
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
-import { GetCustomerTransactionsQuery } from "@/lib/graphql/generated"
+import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { UsdCents } from "@/types"
+import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
-type Deposit = NonNullable<
-  GetCustomerTransactionsQuery["customer"]
->["depositAccount"]["deposits"][number]
-type Withdrawal = NonNullable<
-  GetCustomerTransactionsQuery["customer"]
->["depositAccount"]["withdrawals"][number]
-type Transaction = Deposit | Withdrawal
-
-const isWithdrawal = (transaction: Transaction): transaction is Withdrawal => {
-  return "withdrawalId" in transaction
-}
+type HistoryNode = NonNullable<
+  GetCustomerTransactionHistoryQuery["customer"]
+>["depositAccount"]["history"]["edges"][number]["node"]
 
 type CustomerTransactionsTableProps = {
-  transactions: Transaction[]
+  historyEntries: HistoryNode[]
 }
 
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
-  transactions,
+  historyEntries,
 }) => {
-  const columns: Column<Transaction>[] = [
-    {
-      key: "createdAt",
-      header: "Date",
-      render: (value: string) => formatDate(value, { includeTime: false }),
-    },
-    {
-      key: "reference",
-      header: "Type",
-      render: (_: string, record: Transaction) =>
-        isWithdrawal(record) ? "Withdrawal" : "Deposit",
-    },
-    {
-      key: "amount",
-      header: "Amount",
-      render: (value: UsdCents) => <Balance amount={value} currency="usd" />,
-    },
-    {
-      key: "reference",
-      header: "Status",
-      render: (_: string, record: Transaction) =>
-        isWithdrawal(record) ? <WithdrawalStatusBadge status={record.status} /> : "N/A",
-    },
-  ] as const
+  // TEMP FIX: for unknown entries
+  const validEntries = historyEntries.filter(
+    (entry) =>
+      entry.__typename &&
+      [
+        "DepositEntry",
+        "WithdrawalEntry",
+        "CancelledWithdrawalEntry",
+        "DisbursalEntry",
+        "PaymentEntry",
+      ].includes(entry.__typename),
+  )
 
-  const getNavigateUrl = (record: Transaction) => {
-    if (isWithdrawal(record)) {
-      return `/withdrawals/${record.withdrawalId}`
+  const columns: Column<HistoryNode>[] = [
+    {
+      key: "__typename",
+      header: "Date",
+      render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
+        if (!entry.recordedAt) return "-"
+        return formatDate(entry.recordedAt, { includeTime: true })
+      },
+    },
+    {
+      key: "__typename",
+      header: "Type",
+      render: (type: HistoryNode["__typename"]) => {
+        switch (type) {
+          case "DepositEntry":
+            return "Deposit"
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return "Withdrawal"
+          case "DisbursalEntry":
+            return "Disbursal"
+          case "PaymentEntry":
+            return "Payment"
+          default:
+            return "-"
+        }
+      },
+    },
+    {
+      key: "__typename",
+      header: "Amount",
+      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+        switch (entry.__typename) {
+          case "DepositEntry":
+            return <Balance amount={entry.deposit.amount} currency="usd" />
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return <Balance amount={entry.withdrawal.amount} currency="usd" />
+          case "DisbursalEntry":
+            return <Balance amount={entry.disbursal.amount} currency="usd" />
+          case "PaymentEntry":
+            return (
+              <Balance
+                amount={
+                  (entry.payment.disbursalAmount +
+                    entry.payment.interestAmount) as UsdCents
+                }
+                currency="usd"
+              />
+            )
+          default:
+            return "-"
+        }
+      },
+    },
+    {
+      key: "__typename",
+      header: "Status",
+      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+        switch (entry.__typename) {
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return <WithdrawalStatusBadge status={entry.withdrawal.status} />
+          case "DisbursalEntry":
+            return <DisbursalStatusBadge status={entry.disbursal.status} />
+          default:
+            return "-"
+        }
+      },
+    },
+  ]
+
+  const getNavigateUrl = (entry: HistoryNode): string | null => {
+    switch (entry.__typename) {
+      case "WithdrawalEntry":
+      case "CancelledWithdrawalEntry":
+        return `/withdrawals/${entry.withdrawal.withdrawalId}`
+      case "DisbursalEntry":
+        return `/disbursals/${entry.disbursal.disbursalId}`
+      default:
+        return null
     }
-    return null
   }
 
   return (
@@ -76,9 +133,9 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       </CardHeader>
       <CardContent>
         <DataTable
-          data={transactions}
+          data={validEntries}
           columns={columns}
-          emptyMessage="No data to display"
+          emptyMessage="No transactions found"
           navigateTo={getNavigateUrl}
           className="w-full table-fixed"
           headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"

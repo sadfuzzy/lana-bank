@@ -12,9 +12,12 @@ import UserDetailsCard from "./user-details-card"
 import { meQuery } from "@/lib/graphql/query/me"
 import { BalanceCard } from "@/components/balance-card"
 import Balance from "@/components/balance"
+import { getTransactionHistoryQuery } from "@/lib/graphql/query/transaction-history"
 
 export default async function Home() {
   const data = await meQuery()
+  const transactionHistory = await getTransactionHistoryQuery()
+
   if (data instanceof Error) {
     return <div className="text-destructive">{data.message}</div>
   }
@@ -24,13 +27,6 @@ export default async function Home() {
     data.me?.customer.depositAccount.balance.pending
 
   const customer = data.me?.customer
-
-  const transactions = [
-    ...(customer?.depositAccount.deposits || []),
-    ...(customer?.depositAccount.withdrawals || []),
-  ].sort((a, b) => {
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  })
 
   return (
     <main className="max-w-7xl mx-auto px-2 flex flex-col gap-2">
@@ -62,7 +58,15 @@ export default async function Home() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="transactions" className="mt-2">
-          <CustomerTransactionsTable transactions={transactions} />
+          {transactionHistory instanceof Error ? (
+            <div className="text-destructive">{transactionHistory.message}</div>
+          ) : (
+            <CustomerTransactionsTable
+              historyEntries={transactionHistory.me.customer.depositAccount.history.edges.map(
+                (edge) => edge.node,
+              )}
+            />
+          )}
         </TabsContent>
         <TabsContent value="credit-facilities" className="mt-2">
           <CustomerCreditFacilitiesTable creditFacilities={customer.creditFacilities} />

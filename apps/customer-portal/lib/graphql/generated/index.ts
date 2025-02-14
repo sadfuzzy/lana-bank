@@ -32,6 +32,12 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
+export type CancelledWithdrawalEntry = {
+  __typename?: 'CancelledWithdrawalEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  withdrawal: Withdrawal;
+};
+
 export type Collateral = {
   __typename?: 'Collateral';
   btcBalance: Scalars['Satoshis']['output'];
@@ -137,6 +143,16 @@ export type CreditFacilityOrigination = {
   txId: Scalars['UUID']['output'];
 };
 
+export type CreditFacilityPayment = {
+  __typename?: 'CreditFacilityPayment';
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacility: CreditFacility;
+  disbursalAmount: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  interestAmount: Scalars['UsdCents']['output'];
+  paymentId: Scalars['UUID']['output'];
+};
+
 export type CreditFacilityRepaymentInPlan = {
   __typename?: 'CreditFacilityRepaymentInPlan';
   accrualAt: Scalars['Timestamp']['output'];
@@ -197,14 +213,54 @@ export type DepositAccount = {
   customerId: Scalars['UUID']['output'];
   depositAccountId: Scalars['UUID']['output'];
   deposits: Array<Deposit>;
+  history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
   withdrawals: Array<Withdrawal>;
+};
+
+
+export type DepositAccountHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 export type DepositAccountBalance = {
   __typename?: 'DepositAccountBalance';
   pending: Scalars['UsdCents']['output'];
   settled: Scalars['UsdCents']['output'];
+};
+
+export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | PaymentEntry | UnknownEntry | WithdrawalEntry;
+
+export type DepositAccountHistoryEntryConnection = {
+  __typename?: 'DepositAccountHistoryEntryConnection';
+  /** A list of edges. */
+  edges: Array<DepositAccountHistoryEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<DepositAccountHistoryEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type DepositAccountHistoryEntryEdge = {
+  __typename?: 'DepositAccountHistoryEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: DepositAccountHistoryEntry;
+};
+
+export type DepositEntry = {
+  __typename?: 'DepositEntry';
+  deposit: Deposit;
+  recordedAt: Scalars['Timestamp']['output'];
+};
+
+export type DisbursalEntry = {
+  __typename?: 'DisbursalEntry';
+  disbursal: CreditFacilityDisbursal;
+  recordedAt: Scalars['Timestamp']['output'];
 };
 
 export enum DisbursalStatus {
@@ -261,6 +317,25 @@ export type Outstanding = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+/** Information about pagination in a connection */
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  /** When paginating forwards, the cursor to continue. */
+  endCursor?: Maybe<Scalars['String']['output']>;
+  /** When paginating forwards, are there more items? */
+  hasNextPage: Scalars['Boolean']['output'];
+  /** When paginating backwards, are there more items? */
+  hasPreviousPage: Scalars['Boolean']['output'];
+  /** When paginating backwards, the cursor to continue. */
+  startCursor?: Maybe<Scalars['String']['output']>;
+};
+
+export type PaymentEntry = {
+  __typename?: 'PaymentEntry';
+  payment: CreditFacilityPayment;
+  recordedAt: Scalars['Timestamp']['output'];
+};
+
 export enum Period {
   Months = 'MONTHS'
 }
@@ -304,6 +379,12 @@ export type Total = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type UnknownEntry = {
+  __typename?: 'UnknownEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
 export type Withdrawal = {
   __typename?: 'Withdrawal';
   accountId: Scalars['UUID']['output'];
@@ -313,6 +394,12 @@ export type Withdrawal = {
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
+};
+
+export type WithdrawalEntry = {
+  __typename?: 'WithdrawalEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  withdrawal: Withdrawal;
 };
 
 export enum WithdrawalStatus {
@@ -333,14 +420,20 @@ export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{
-  transactions: CreditFacilityHistoryEntry[]; __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } 
-}> } } };
+export type MeQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', id: string, customerId: any, status: AccountStatus, level: KycLevel, createdAt: any, email: string, telegramId: string, depositAccount: { __typename?: 'DepositAccount', id: string, depositAccountId: any, customerId: any, createdAt: any, balance: { __typename?: 'DepositAccountBalance', settled: any, pending: any }, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string }>, withdrawals: Array<{ __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus }> }, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } } }> } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: any } };
+
+export type GetTransactionHistoryQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typename?: 'Subject', customer: { __typename?: 'Customer', depositAccount: { __typename?: 'DepositAccount', history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, index: any, amount: any, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: any, interestAmount: any, disbursalAmount: any, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } } } };
 
 
 export const GetCreditFacilityDocument = gql`
@@ -610,3 +703,111 @@ export function useGetRealtimePriceUpdatesLazyQuery(baseOptions?: Apollo.LazyQue
 export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesQuery>;
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export const GetTransactionHistoryDocument = gql`
+    query GetTransactionHistory($first: Int!, $after: String) {
+  me {
+    customer {
+      depositAccount {
+        history(first: $first, after: $after) {
+          pageInfo {
+            hasNextPage
+            endCursor
+            hasPreviousPage
+            startCursor
+          }
+          edges {
+            cursor
+            node {
+              ... on DepositEntry {
+                recordedAt
+                deposit {
+                  id
+                  depositId
+                  accountId
+                  amount
+                  createdAt
+                  reference
+                }
+              }
+              ... on WithdrawalEntry {
+                recordedAt
+                withdrawal {
+                  id
+                  withdrawalId
+                  accountId
+                  amount
+                  createdAt
+                  reference
+                  status
+                }
+              }
+              ... on CancelledWithdrawalEntry {
+                recordedAt
+                withdrawal {
+                  id
+                  withdrawalId
+                  accountId
+                  amount
+                  createdAt
+                  reference
+                  status
+                }
+              }
+              ... on DisbursalEntry {
+                recordedAt
+                disbursal {
+                  id
+                  disbursalId
+                  index
+                  amount
+                  createdAt
+                  status
+                }
+              }
+              ... on PaymentEntry {
+                recordedAt
+                payment {
+                  id
+                  paymentId
+                  interestAmount
+                  disbursalAmount
+                  createdAt
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetTransactionHistoryQuery__
+ *
+ * To run a query within a React component, call `useGetTransactionHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTransactionHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTransactionHistoryQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useGetTransactionHistoryQuery(baseOptions: Apollo.QueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
+      }
+export function useGetTransactionHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>(GetTransactionHistoryDocument, options);
+        }
+export type GetTransactionHistoryQueryHookResult = ReturnType<typeof useGetTransactionHistoryQuery>;
+export type GetTransactionHistoryLazyQueryHookResult = ReturnType<typeof useGetTransactionHistoryLazyQuery>;
+export type GetTransactionHistoryQueryResult = Apollo.QueryResult<GetTransactionHistoryQuery, GetTransactionHistoryQueryVariables>;

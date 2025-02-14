@@ -6,7 +6,7 @@ import CustomerLayout from "./layout"
 import CustomerTransactionsPage from "./page"
 
 import {
-  GetCustomerTransactionsDocument,
+  GetCustomerTransactionHistoryDocument,
   GetCustomerBasicDetailsDocument,
   AccountStatus,
 } from "@/lib/graphql/generated"
@@ -54,7 +54,7 @@ const layoutMocks = [
 const transactionsMocks = [
   {
     request: {
-      query: GetCustomerTransactionsDocument,
+      query: GetCustomerTransactionHistoryDocument,
       variables: {
         id: "4178b451-c9cb-4841-b248-5cc20e7774a6",
       },

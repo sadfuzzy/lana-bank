@@ -1,81 +1,124 @@
 "use client"
 
 import React from "react"
+
 import DataTable, { Column } from "@lana/web/components/data-table"
+
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
-import { ArrowUpCircle, ArrowDownCircle } from "lucide-react"
+import { DisbursalStatusBadge } from "./disbursal-badge"
 
-import { MeQuery, WithdrawalStatus } from "@/lib/graphql/generated"
+import { GetTransactionHistoryQuery, WithdrawalStatus } from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
+
 import Balance from "@/components/balance"
 
-type Deposit = NonNullable<
-  MeQuery["me"]["customer"]
->["depositAccount"]["deposits"][number]
-type Withdrawal = NonNullable<
-  MeQuery["me"]["customer"]
->["depositAccount"]["withdrawals"][number]
-type Transaction = Deposit | Withdrawal
-
-const isWithdrawal = (transaction: Transaction): transaction is Withdrawal => {
-  return "withdrawalId" in transaction
-}
+type HistoryNode = NonNullable<
+  GetTransactionHistoryQuery["me"]["customer"]
+>["depositAccount"]["history"]["edges"][number]["node"]
 
 type CustomerTransactionsTableProps = {
-  transactions: Transaction[]
+  historyEntries: HistoryNode[]
 }
 
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
-  transactions,
+  historyEntries,
 }) => {
-  const columns: Column<Transaction>[] = [
+  // TEMP FIX: for unknown entries
+  const validEntries = historyEntries.filter(
+    (entry) =>
+      entry.__typename &&
+      [
+        "DepositEntry",
+        "WithdrawalEntry",
+        "CancelledWithdrawalEntry",
+        "DisbursalEntry",
+        "PaymentEntry",
+      ].includes(entry.__typename),
+  )
+
+  const columns: Column<HistoryNode>[] = [
     {
-      key: "createdAt",
+      key: "__typename",
       header: "Date",
-      render: (value: string) => formatDate(value),
+      render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
+        if (!entry.recordedAt) return "-"
+        return formatDate(entry.recordedAt)
+      },
     },
     {
-      key: "reference",
+      key: "__typename",
       header: "Type",
-      render: (_: string, record: Transaction) => (
-        <div className="flex items-center gap-2">
-          {isWithdrawal(record) ? (
-            <>
-              <span>Withdrawal</span>
-              <ArrowUpCircle className="w-4 h-4 text-destructive" />
-            </>
-          ) : (
-            <>
-              <span>Deposit</span>
-              <ArrowDownCircle className="w-4 h-4 text-success" />
-            </>
-          )}
-        </div>
-      ),
+      render: (type: HistoryNode["__typename"]) => {
+        switch (type) {
+          case "DepositEntry":
+            return "Deposit"
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return "Withdrawal"
+          case "DisbursalEntry":
+            return "Disbursal"
+          case "PaymentEntry":
+            return "Payment"
+          default:
+            return "-"
+        }
+      },
     },
     {
-      key: "amount",
+      key: "__typename",
       header: "Amount",
-      render: (value: number) => <Balance amount={value} currency="usd" />,
+      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+        switch (entry.__typename) {
+          case "DepositEntry":
+            return <Balance amount={entry.deposit.amount} currency="usd" />
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return <Balance amount={entry.withdrawal.amount} currency="usd" />
+          case "DisbursalEntry":
+            return <Balance amount={entry.disbursal.amount} currency="usd" />
+          case "PaymentEntry":
+            return (
+              <Balance
+                amount={entry.payment.disbursalAmount + entry.payment.interestAmount}
+                currency="usd"
+              />
+            )
+          default:
+            return "-"
+        }
+      },
     },
     {
-      key: "reference",
+      key: "__typename",
       header: "Status",
-      render: (_: string, record: Transaction) =>
-        isWithdrawal(record) ? <WithdrawalStatusBadge status={record.status} /> : "N/A",
+      render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
+        switch (entry.__typename) {
+          case "WithdrawalEntry":
+          case "CancelledWithdrawalEntry":
+            return <WithdrawalStatusBadge status={entry.withdrawal.status} />
+          case "DisbursalEntry":
+            return <DisbursalStatusBadge status={entry.disbursal.status} />
+          default:
+            return "-"
+        }
+      },
     },
   ]
 
+  const getNavigateUrl = (entry: HistoryNode): string | null => {
+    switch (entry.__typename) {
+      default:
+        return null
+    }
+  }
+
   return (
     <DataTable
-      data={transactions}
+      data={validEntries}
       columns={columns}
-      emptyMessage={
-        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
-          No transactions found
-        </div>
-      }
+      emptyMessage="No transactions found"
+      navigateTo={getNavigateUrl}
       className="w-full table-fixed"
       headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"
     />

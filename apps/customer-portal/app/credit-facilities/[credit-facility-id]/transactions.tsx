@@ -5,10 +5,10 @@ import React from "react"
 import DataTable, { Column } from "@lana/web/components/data-table"
 
 import {
-  MeQuery,
   CreditFacilityHistoryEntry,
   CollateralAction,
   CollateralizationState,
+  GetCreditFacilityQuery,
 } from "@/lib/graphql/generated"
 
 import { formatDate, cn } from "@/lib/utils"
@@ -41,7 +41,7 @@ export const formatCollateralizationState = (
 }
 
 type CreditFacilityTransactionsProps = {
-  creditFacility: NonNullable<MeQuery["me"]["customer"]["creditFacilities"][0]>
+  creditFacility: NonNullable<GetCreditFacilityQuery["creditFacility"]>
 }
 
 export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProps> = ({
