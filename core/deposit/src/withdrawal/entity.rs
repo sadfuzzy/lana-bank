@@ -112,6 +112,8 @@ impl Withdrawal {
             ledger_tx_id,
             audit_info,
         });
+        self.cancelled_tx_id = Some(ledger_tx_id);
+
         Ok(ledger_tx_id)
     }
 

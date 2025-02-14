@@ -149,6 +149,8 @@ impl Disbursal {
                 audit_info,
             });
         }
+        self.concluded_tx_id = Some(tx_id);
+
         Idempotent::Executed(data)
     }
 
