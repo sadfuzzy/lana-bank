@@ -1,11 +1,12 @@
 pub mod error;
 pub mod ledger;
 
+use chrono::{DateTime, Utc};
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chrono::{DateTime, Utc};
-use rbac_types::{BalanceSheetAction, Subject};
+use rbac_types::{CashFlowStatementAction, Subject};
 
 use crate::{
     authorization::{Authorization, Object},
@@ -16,55 +17,62 @@ use crate::{
 use error::*;
 use ledger::*;
 
-pub(crate) const ASSETS_NAME: &str = "Assets";
-pub(crate) const LIABILITIES_NAME: &str = "Liabilities";
-pub(crate) const EQUITY_NAME: &str = "Equity";
+pub(crate) const FROM_OPERATIONS_NAME: &str = "Cash Flow From Operations";
+pub(crate) const FROM_INVESTING_NAME: &str = "Cash Flow From Investing";
+pub(crate) const FROM_FINANCING_NAME: &str = "Cash Flow From Financing";
 pub(crate) const NET_INCOME_NAME: &str = "Net Income";
 pub(crate) const REVENUE_NAME: &str = "Revenue";
 pub(crate) const EXPENSES_NAME: &str = "Expenses";
 
 #[derive(Clone, Copy)]
-pub struct BalanceSheetIds {
+pub struct CashFlowStatementIds {
     pub id: LedgerAccountSetId,
-    pub assets: LedgerAccountSetId,
-    pub liabilities: LedgerAccountSetId,
-    pub equity: LedgerAccountSetId,
-    pub revenue: LedgerAccountSetId,
-    pub expenses: LedgerAccountSetId,
+    from_operations: LedgerAccountSetId,
+    from_investing: LedgerAccountSetId,
+    from_financing: LedgerAccountSetId,
+    revenue: LedgerAccountSetId,
+    expenses: LedgerAccountSetId,
 }
 
 #[derive(Clone)]
-pub struct BalanceSheets {
+pub struct CashFlowStatements {
     pool: sqlx::PgPool,
     authz: Authorization,
-    balance_sheet_ledger: BalanceSheetLedger,
+    cash_flow_statement_ledger: CashFlowStatementLedger,
 }
 
-impl BalanceSheets {
+impl CashFlowStatements {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Authorization,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
-    ) -> Result<Self, BalanceSheetError> {
-        let balance_sheet_ledger = BalanceSheetLedger::new(cala, journal_id);
+    ) -> Result<Self, CashFlowStatementError> {
+        let cash_flow_statement_ledger = CashFlowStatementLedger::new(cala, journal_id);
 
         Ok(Self {
             pool: pool.clone(),
-            balance_sheet_ledger,
+            cash_flow_statement_ledger,
             authz: authz.clone(),
         })
     }
 
-    pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
+    pub async fn create_cash_flow_statement(
+        &self,
+        name: String,
+    ) -> Result<(), CashFlowStatementError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                Object::CashFlowStatement,
+                CashFlowStatementAction::Create,
+            )
             .await?;
 
-        match self.balance_sheet_ledger.create(op, &name).await {
+        match self.cash_flow_statement_ledger.create(op, &name).await {
             Ok(_) => Ok(()),
             Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
@@ -75,69 +83,73 @@ impl BalanceSheets {
         &self,
         account_set_id: LedgerAccountSetId,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let member_id = member_id.into();
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Update)
+            .record_system_entry_in_tx(
+                op.tx(),
+                Object::CashFlowStatement,
+                CashFlowStatementAction::Update,
+            )
             .await?;
 
-        self.balance_sheet_ledger
+        self.cash_flow_statement_ledger
             .add_member(op, account_set_id, member_id)
             .await?;
 
         Ok(())
     }
 
-    pub async fn add_to_assets(
+    pub async fn add_to_from_operations(
         &self,
         reference: String,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
-            .balance_sheet_ledger
+            .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
-        self.add_to(statement_ids.assets, member_id).await
+        self.add_to(statement_ids.from_operations, member_id).await
     }
 
-    pub async fn add_to_liabilities(
+    pub async fn add_to_from_investing(
         &self,
         reference: String,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
-            .balance_sheet_ledger
+            .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
-        self.add_to(statement_ids.liabilities, member_id).await
+        self.add_to(statement_ids.from_investing, member_id).await
     }
 
-    pub async fn add_to_equity(
+    pub async fn add_to_from_financing(
         &self,
         reference: String,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
-            .balance_sheet_ledger
+            .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
-        self.add_to(statement_ids.equity, member_id).await
+        self.add_to(statement_ids.from_financing, member_id).await
     }
 
     pub async fn add_to_revenue(
         &self,
         reference: String,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
-            .balance_sheet_ledger
+            .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
@@ -148,35 +160,39 @@ impl BalanceSheets {
         &self,
         reference: String,
         member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), BalanceSheetError> {
+    ) -> Result<(), CashFlowStatementError> {
         let statement_ids = self
-            .balance_sheet_ledger
+            .cash_flow_statement_ledger
             .get_ids_from_reference(reference)
             .await?;
 
         self.add_to(statement_ids.expenses, member_id).await
     }
 
-    pub async fn balance_sheet(
+    pub async fn cash_flow_statement(
         &self,
         sub: &Subject,
         reference: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-    ) -> Result<BalanceSheet, BalanceSheetError> {
+    ) -> Result<CashFlowStatement, CashFlowStatementError> {
         self.authz
-            .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Read)
+            .enforce_permission(
+                sub,
+                Object::CashFlowStatement,
+                CashFlowStatementAction::Read,
+            )
             .await?;
 
         Ok(self
-            .balance_sheet_ledger
-            .get_balance_sheet(reference, from, until)
+            .cash_flow_statement_ledger
+            .get_cash_flow_statement(reference, from, until)
             .await?)
     }
 }
 
 #[derive(Clone)]
-pub struct BalanceSheet {
+pub struct CashFlowStatement {
     pub id: LedgerAccountSetId,
     pub name: String,
     pub description: Option<String>,
