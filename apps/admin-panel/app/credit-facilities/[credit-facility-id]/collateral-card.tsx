@@ -17,21 +17,30 @@ type CreditFacilityOverviewProps = {
 
 const getCvlStatus = (
   currentCvl: number,
+  initialCvl: number,
   marginCallCvl: number,
   liquidationCvl: number,
 ) => {
-  if (currentCvl >= marginCallCvl) return { label: "High", color: "text-success" }
-  if (currentCvl >= liquidationCvl) return { label: "Moderate", color: "text-warning" }
+  if (currentCvl >= initialCvl) return { label: null, color: null }
+  if (currentCvl >= marginCallCvl) return { label: "Moderate", color: "text-warning" }
+  if (currentCvl >= liquidationCvl) return { label: "High", color: "text-warning" }
   return { label: "Critical", color: "text-destructive" }
 }
 
 const CvlStatusText: React.FC<{
   currentCvl: number
+  initialCvl: number
   marginCallCvl: number
   liquidationCvl: number
-}> = ({ currentCvl, marginCallCvl, liquidationCvl }) => {
-  const { label, color } = getCvlStatus(currentCvl, marginCallCvl, liquidationCvl)
-  return <span className={`font-medium ${color}`}>{label}</span>
+}> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl }) => {
+  const { label, color } = getCvlStatus(
+    currentCvl,
+    initialCvl,
+    marginCallCvl,
+    liquidationCvl,
+  )
+  if (label && color) return <span className={`font-medium ${color}`}>{label}</span>
+  return <></>
 }
 
 export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = ({
@@ -103,6 +112,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
           {creditFacility.status === CreditFacilityStatus.Active && (
             <CvlStatusText
               currentCvl={creditFacility.currentCvl.total}
+              initialCvl={creditFacility.creditFacilityTerms.initialCvl}
               marginCallCvl={creditFacility.creditFacilityTerms.marginCallCvl}
               liquidationCvl={creditFacility.creditFacilityTerms.liquidationCvl}
             />
