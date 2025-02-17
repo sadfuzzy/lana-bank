@@ -14,7 +14,7 @@ pub struct SettleDisbursalParams {
     pub credit_omnibus_account: AccountId,
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
-    pub checking_account: AccountId,
+    pub debit_account_id: AccountId,
     pub disbursed_amount: Decimal,
     pub external_id: String,
 }
@@ -43,7 +43,7 @@ impl SettleDisbursalParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("checking_account")
+                .name("debit_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -73,7 +73,7 @@ impl From<SettleDisbursalParams> for Params {
             credit_omnibus_account,
             credit_facility_account,
             facility_disbursed_receivable_account,
-            checking_account,
+            debit_account_id,
             disbursed_amount,
             external_id,
         }: SettleDisbursalParams,
@@ -86,7 +86,7 @@ impl From<SettleDisbursalParams> for Params {
             "facility_disbursed_receivable_account",
             facility_disbursed_receivable_account,
         );
-        params.insert("checking_account", checking_account);
+        params.insert("debit_account_id", debit_account_id);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
         params.insert("effective", chrono::Utc::now().date_naive());
@@ -137,7 +137,7 @@ impl SettleDisbursal {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.checking_account")
+                .account_id("params.debit_account_id")
                 .units("params.disbursed_amount")
                 .currency("'USD'")
                 .entry_type("'SETTLE_DISBURSAL_SETTLED_CR'")

@@ -17,7 +17,7 @@ pub struct ApproveCreditFacilityParams {
     pub credit_facility_account: AccountId,
     pub facility_disbursed_receivable_account: AccountId,
     pub facility_fee_income_account: AccountId,
-    pub checking_account: AccountId,
+    pub debit_account_id: AccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
     pub currency: Currency,
@@ -53,7 +53,7 @@ impl ApproveCreditFacilityParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("checking_account")
+                .name("debit_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -94,7 +94,7 @@ impl From<ApproveCreditFacilityParams> for Params {
             credit_facility_account,
             facility_disbursed_receivable_account,
             facility_fee_income_account,
-            checking_account,
+            debit_account_id,
             facility_amount,
             structuring_fee_amount,
             currency,
@@ -110,7 +110,7 @@ impl From<ApproveCreditFacilityParams> for Params {
             facility_disbursed_receivable_account,
         );
         params.insert("facility_fee_income_account", facility_fee_income_account);
-        params.insert("checking_account", checking_account);
+        params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("structuring_fee_amount", structuring_fee_amount);
         params.insert("currency", currency);
@@ -180,7 +180,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.checking_account")
+                .account_id("params.debit_account_id")
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_DISBURSEMENT_CR'")
@@ -189,7 +189,7 @@ impl ApproveCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .account_id("params.checking_account")
+                .account_id("params.debit_account_id")
                 .units("params.structuring_fee_amount")
                 .currency("params.currency")
                 .entry_type("'APPROVE_CREDIT_FACILITY_STRUCTURING_FEE_DR'")
