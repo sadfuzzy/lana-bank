@@ -232,6 +232,7 @@ mod tests {
                 terms: terms(),
                 audit_info: dummy_audit_info(),
                 deposit_account_id,
+                approval_process_id: ApprovalProcessId::new(),
             },
             CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),

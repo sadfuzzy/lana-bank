@@ -27,9 +27,6 @@ pub enum CreditFacilityEvent {
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
         deposit_account_id: DepositAccountId,
-        audit_info: AuditInfo,
-    },
-    ApprovalProcessStarted {
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -1121,6 +1118,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     account_ids,
                     deposit_account_id,
                     terms: t,
+                    approval_process_id,
                     ..
                 } => {
                     terms = Some(*t);
@@ -1130,11 +1128,8 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .terms(*t)
                         .account_ids(*account_ids)
                         .deposit_account_id(*deposit_account_id)
+                        .approval_process_id(*approval_process_id)
                 }
-                CreditFacilityEvent::ApprovalProcessStarted {
-                    approval_process_id,
-                    ..
-                } => builder = builder.approval_process_id(*approval_process_id),
                 CreditFacilityEvent::Activated { activated_at, .. } => {
                     builder = builder.activated_at(*activated_at).expires_at(
                         terms
@@ -1188,21 +1183,16 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
     fn into_events(self) -> EntityEvents<CreditFacilityEvent> {
         EntityEvents::init(
             self.id,
-            [
-                CreditFacilityEvent::Initialized {
-                    id: self.id,
-                    audit_info: self.audit_info.clone(),
-                    customer_id: self.customer_id,
-                    terms: self.terms,
-                    facility: self.facility,
-                    account_ids: self.account_ids,
-                    deposit_account_id: self.deposit_account_id,
-                },
-                CreditFacilityEvent::ApprovalProcessStarted {
-                    approval_process_id: self.approval_process_id,
-                    audit_info: self.audit_info,
-                },
-            ],
+            [CreditFacilityEvent::Initialized {
+                id: self.id,
+                audit_info: self.audit_info.clone(),
+                customer_id: self.customer_id,
+                terms: self.terms,
+                facility: self.facility,
+                account_ids: self.account_ids,
+                deposit_account_id: self.deposit_account_id,
+                approval_process_id: self.approval_process_id,
+            }],
         )
     }
 }
@@ -1262,21 +1252,16 @@ mod test {
     }
 
     fn initial_events() -> Vec<CreditFacilityEvent> {
-        vec![
-            CreditFacilityEvent::Initialized {
-                id: CreditFacilityId::new(),
-                audit_info: dummy_audit_info(),
-                customer_id: CustomerId::new(),
-                facility: default_facility(),
-                terms: default_terms(),
-                account_ids: CreditFacilityAccountIds::new(),
-                deposit_account_id: DepositAccountId::new(),
-            },
-            CreditFacilityEvent::ApprovalProcessStarted {
-                approval_process_id: ApprovalProcessId::new(),
-                audit_info: dummy_audit_info(),
-            },
-        ]
+        vec![CreditFacilityEvent::Initialized {
+            id: CreditFacilityId::new(),
+            audit_info: dummy_audit_info(),
+            customer_id: CustomerId::new(),
+            facility: default_facility(),
+            terms: default_terms(),
+            account_ids: CreditFacilityAccountIds::new(),
+            deposit_account_id: DepositAccountId::new(),
+            approval_process_id: ApprovalProcessId::new(),
+        }]
     }
 
     fn hydrate_accruals_in_facility(credit_facility: &mut CreditFacility) {
