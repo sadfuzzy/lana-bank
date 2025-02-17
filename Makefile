@@ -1,4 +1,4 @@
-dev-up: reset-tf-state
+dev-up:
 	cd dev && tilt up
 
 dev-down:
@@ -28,24 +28,7 @@ sqlx-prepare:
 	cd lana/app && cargo sqlx prepare
 	cd lana/dashboard && cargo sqlx prepare
 
-reset-tf-state:
-	rm -rf tf/terraform.tfstate
-
-reset-tf-provider:
-	rm -rf tf/.terraform
-	rm -rf tf/.terraform.lock.hcl
-
-delete-bq-tables:
-	cd tf && tofu state list | grep 'module\.setup\.google_bigquery_table\.' | awk '{print "-target='\''" $$1 "'\''"}' | xargs tofu destroy -auto-approve
-
-init-bq: delete-bq-tables reset-tf-state clean-deps start-deps setup-db
-	rm tf/import.tf || true
-	cd tf && tofu init && tofu apply -auto-approve || true
-	sleep 5
-	cd tf && tofu apply -auto-approve
-	git checkout tf/import.tf
-
-reset-deps: reset-tf-state clean-deps start-deps setup-db
+reset-deps: clean-deps start-deps setup-db
 
 run-server:
 	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
@@ -70,7 +53,7 @@ build:
 build-for-tests:
 	SQLX_OFFLINE=true cargo build --locked --features sim-time
 
-e2e: reset-tf-state clean-deps start-deps build-for-tests
+e2e: clean-deps start-deps build-for-tests
 	bats -t bats
 
 e2e-in-ci: clean-deps start-deps build-for-tests
