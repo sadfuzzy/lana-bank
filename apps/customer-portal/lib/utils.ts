@@ -65,20 +65,34 @@ export const createErrorResponse = ({
   }
 }
 
-export const formatDate = (isoDateString: string): string => {
+export const formatDate = (
+  isoDateString: string | null | undefined,
+  options: {
+    includeTime: boolean
+  } = { includeTime: true },
+): string => {
+  if (isoDateString === "-") return "-"
+  if (!isoDateString) return "N/A"
+
   const date = new Date(isoDateString)
-  const options: Intl.DateTimeFormatOptions = {
+
+  const dateOptions: Intl.DateTimeFormatOptions = {
     year: "numeric",
     month: "long",
     day: "numeric",
   }
 
-  const formattedDate = date.toLocaleDateString("en-US", options)
+  const formattedDate = date.toLocaleDateString("en-US", dateOptions)
+
+  if (!options.includeTime) {
+    return formattedDate
+  }
+
   const formattedTime = date
     .toLocaleTimeString("en-US", {
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
+      hour12: false,
     })
     .toUpperCase()
 

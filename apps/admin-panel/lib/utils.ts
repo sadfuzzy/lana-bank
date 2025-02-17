@@ -39,12 +39,13 @@ export const currencyConverter = {
 }
 
 export const formatDate = (
-  isoDateString: string,
+  isoDateString: string | null | undefined,
   options: {
     includeTime: boolean
   } = { includeTime: true },
 ): string => {
   if (isoDateString === "-") return "-"
+  if (!isoDateString) return "N/A"
 
   const date = new Date(isoDateString)
 
