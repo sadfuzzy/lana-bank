@@ -93,38 +93,45 @@ breakeven_sum as (
 
 select
     1 as order_by,
-    cast(amount_in_usd as numeric) as the_value,
-    'Total Value of Approved Credit Facilities' as the_name
+    'Value Approved CF (USD)' as kpi_title,
+    'value_approved_cf_usd' as kpi_name,
+    cast(amount_in_usd as numeric) as kpi_value
 from value_approved_cf
 union all
 select
     2 as order_by,
-    cast(amount_in_usd as numeric) as the_value,
-    'Total Value Disbursed from Approved Credit Facilities' as the_name
+    'Value Disbursed from Approved CF (USD)' as kpi_title,
+    'value_disbursed_from_approved_cf_usd' as kpi_name,
+    cast(amount_in_usd as numeric) as kpi_value
 from disbursed
 union all
 select
     3 as order_by,
-    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as numeric) as the_value,
-    'Total Value NOT-YET Disbursed from Approved Credit Facilities' as the_name
+    'Value NOT-YET Dsbd from Appd CF (USD)' as kpi_title,
+    'value_not_yet_dsbd_from_appd_cf_usd' as kpi_name,
+    cast(safe_subtract(v.amount_in_usd, d.amount_in_usd) as numeric) as kpi_value
 from value_approved_cf as v, disbursed as d
 union all
 select
     4 as order_by,
-    cast(safe_divide(d.amount_in_usd, v.amount_in_usd) * 100 as numeric) as the_value,
-    'Disbursed-to-Approved ratio (%)' as the_name
+    'Disbursed-to-Approved Ratio (%)' as kpi_title,
+    'disbursed_to_approved_ratio_percent' as kpi_name,
+    cast(safe_multiply(safe_divide(d.amount_in_usd, v.amount_in_usd), 100.0) as numeric)
+        as kpi_value
 from value_approved_cf as v, disbursed as d
 union all
 select
     5 as order_by,
-    cast(disbursal_ratio * 100 as numeric) as the_value,
-    'Disbursal ratio (%) - proportional' as the_name
+    'Disbursal Ratio (%) - proportional' as kpi_title,
+    'disbursal_ratio_percent_proportional' as kpi_name,
+    cast(safe_multiply(disbursal_ratio, 100.0) as numeric) as kpi_value
 from breakeven_sum
 union all
 select
     6 as order_by,
-    cast(breakeven_disbursal_ratio * 100 as numeric) as the_value,
-    'Breakeven ratio (%) - proportional @' || bench_mark || '% benchmark' as the_name
+    'Breakeven Ratio (%) - prop @' || bench_mark || '% bmk' as kpi_title,
+    'breakeven_ratio_percent_prop_bmk' as kpi_name,
+    cast(safe_multiply(breakeven_disbursal_ratio, 100.0) as numeric) as kpi_value
 from breakeven_sum
 
 order by order_by

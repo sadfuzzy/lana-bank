@@ -7,56 +7,65 @@ with final as (
 
 select
     0 as order_by,
-    cast(disbursal_pv as numeric) as the_value,
-    'Present Value of disbursal cashflows' as the_name
+    'PV Disbursal Cash Flows (USD)' as kpi_title,
+    'pv_disbursal_cash_flows_usd' as kpi_name,
+    cast(disbursal_pv as numeric) as kpi_value
 from final
 union all
 select
     1 as order_by,
-    cast(pv as numeric) as the_value,
-    'Present Value of future cashflows' as the_name
+    'PV Future Cash Flows (USD)' as kpi_title,
+    'pv_future_cash_flows_usd' as kpi_name,
+    cast(pv as numeric) as kpi_value
 from final
 union all
 select
     2 as order_by,
-    cast(npv as numeric) as the_value,
-    'Net Present Value of disbursal & future cashflows' as the_name
+    'Net PV Dsbd & Future Cash Flows (USD)' as kpi_title,
+    'net_pv_dsbd_future_cash_flows_usd' as kpi_name,
+    cast(npv as numeric) as kpi_value
 from final
 union all
 select
     3 as order_by,
-    cast(ytm as numeric) as the_value,
-    'YTM' as the_name
+    'YTM (%)' as kpi_title,
+    'ytm_percent' as kpi_name,
+    cast(safe_multiply(ytm, 100.0) as numeric) as kpi_value
 from final
 union all
 select
     4 as order_by,
-    cast(ytm_from_price as numeric) as the_value,
-    'YTM @ disbursal pv' as the_name
+    'YTM @ Disbursal PV (%)' as kpi_title,
+    'ytm_disbursal_pv_percent' as kpi_name,
+    cast(safe_multiply(ytm_from_price, 100.0) as numeric) as kpi_value
 from final
 union all
 select
     5 as order_by,
-    cast(mac_duration as numeric) as the_value,
-    'MacDuration' as the_name
+    'Macaulay Duration' as kpi_title,
+    'macaulay_duration_number' as kpi_name,
+    cast(mac_duration as numeric) as kpi_value
 from final
 union all
 select
     6 as order_by,
-    cast(format_date('%Y%m%d', mac_duration_date) as numeric) as the_value,
-    'MacDurationDate' as the_name
+    'Macaulay Duration (Date)' as kpi_title,
+    'macaulay_duration_date' as kpi_name,
+    cast(format_date('%Y%m%d', mac_duration_date) as numeric) as kpi_value
 from final
 union all
 select
     7 as order_by,
-    cast(dv01 as numeric) as the_value,
-    'DV01' as the_name
+    'Dollar Value [DV01] (USD)' as kpi_title,
+    'dollar_value_dv01_usd' as kpi_name,
+    cast(dv01 as numeric) as kpi_value
 from final
 union all
 select
     8 as order_by,
-    cast(pv_at_dv01 as numeric) as the_value,
-    'PV @ DV01' as the_name
+    'PV @ DV01 (USD)' as kpi_title,
+    'pv_dv01_usd' as kpi_name,
+    cast(pv_at_dv01 as numeric) as kpi_value
 from final
 
 order by order_by
