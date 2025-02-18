@@ -1,0 +1,8 @@
+query me {
+  me {
+    customer {
+      id
+      customerId
+    }
+  }
+}

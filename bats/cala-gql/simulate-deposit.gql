@@ -1,7 +1,0 @@
-mutation SimulateDeposit($address: String!, $amount: Decimal!, $currency: String!) {
-  bitfinex {
-    simulate {
-      deposit(depositAddress: $address, amount: $amount, currency: $currency)
-    }
-  }
-}

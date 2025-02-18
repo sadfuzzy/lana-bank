@@ -54,11 +54,11 @@ build-for-tests:
 	SQLX_OFFLINE=true cargo build --locked --features sim-time
 
 e2e: clean-deps start-deps build-for-tests
-	bats -t bats
+	bats --setup-suite-file bats/ci-setup-suite.bash -t bats
 
 e2e-in-ci: clean-deps start-deps build-for-tests
 	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
-	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
+	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats --setup-suite-file bats/ci-setup-suite.bash -t bats
 
 
 sdl:

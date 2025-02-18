@@ -4,10 +4,11 @@ COMPOSE_PROJECT_NAME="${COMPOSE_PROJECT_NAME:-${REPO_ROOT##*/}}"
 CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
-KRATOS_PUBLIC_ENDPOINT="http://localhost:4455"
-GQL_PUBLIC_ENDPOINT="http://localhost:4455/graphql"
-GQL_ADMIN_ENDPOINT="http://localhost:4455/admin/graphql"
-GQL_CALA_ENDPOINT="http://localhost:2252/graphql"
+OATHKEEPER_PROXY="http://localhost:4455"
+MAILHOG_ENDPOINT="http://localhost:8025"
+
+GQL_APP_ENDPOINT="${OATHKEEPER_PROXY}/app/graphql"
+GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
@@ -79,7 +80,7 @@ gql_query() {
 }
 
 gql_file() {
-  echo "${REPO_ROOT}/bats/gql/$1.gql"
+  echo "${REPO_ROOT}/bats/customer-gql/$1.gql"
 }
 
 gql_admin_query() {
@@ -90,19 +91,26 @@ gql_admin_file() {
   echo "${REPO_ROOT}/bats/admin-gql/$1.gql"
 }
 
-gql_cala_query() {
-  cat "$(gql_cala_file $1)" | tr '\n' ' ' | sed 's/"/\\"/g'
-}
-
-gql_cala_file() {
-  echo "${REPO_ROOT}/bats/cala-gql/$1.gql"
-}
-
 graphql_output() {
   echo $output | jq -r "$@"
 }
 
-exec_graphql() {
+login_customer() {
+  local email=$1
+
+  flowId=$(curl -s -X GET -H "Accept: application/json" "${OATHKEEPER_PROXY}/app/self-service/login/api" | jq -r '.id')
+  variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
+  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/app/self-service/login?flow=$flowId"
+  sleep 1
+
+  code=$(getEmailCode $email)
+  variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
+  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/app/self-service/login?flow=$flowId")
+  token=$(echo $session | jq -r '.session_token')
+  cache_value "$email" $token
+}
+
+exec_customer_graphql() {
   local token_name=$1
   local query_name=$2
   local variables=${3:-"{}"}
@@ -120,20 +128,20 @@ exec_graphql() {
     ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables}" \
-    "${GQL_PUBLIC_ENDPOINT}"
+    "${GQL_APP_ENDPOINT}"
 }
 
 login_superadmin() {
   local email="admin@galoy.io"
 
-  flowId=$(curl -s -X GET -H "Accept: application/json" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login/api" | jq -r '.id')
+  flowId=$(curl -s -X GET -H "Accept: application/json" "${OATHKEEPER_PROXY}/admin/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login?flow=$flowId"
+  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId"
   sleep 1
 
   code=$(getEmailCode $email)
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
-  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${KRATOS_PUBLIC_ENDPOINT}/admin/self-service/login?flow=$flowId")
+  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId")
   token=$(echo $session | jq -r '.session_token')
   cache_value "superadmin" $token
 }
@@ -173,24 +181,6 @@ exec_admin_graphql_upload() {
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \
     -F "0=@$file_path" \
     "${GQL_ADMIN_ENDPOINT}"
-}
-
-exec_cala_graphql() {
-  local query_name=$1
-  local variables=${2:-"{}"}
-
-  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
-    run_cmd="run"
-  else
-    run_cmd=""
-  fi
-
-  ${run_cmd} curl -s \
-    -X POST \
-    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
-    -H "Content-Type: application/json" \
-    -d "{\"query\": \"$(gql_cala_query $query_name)\", \"variables\": $variables}" \
-    "${GQL_CALA_ENDPOINT}"
 }
 
 # Run the given command in the background. Useful for starting a
@@ -254,20 +244,17 @@ reset_log_files() {
     done
 }
 
-KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
-
 getEmailCode() {
   local email="$1"
-  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
 
-  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
-
-  if [[ -z "$result" ]]; then
-    echo "No message for email ${email}" >&2
+  local emails=$(curl -s -X GET "${MAILHOG_ENDPOINT}/api/v2/search?kind=to&query=${email}")
+  if [[ $(echo "$emails" | jq '.total') -eq 0 ]]; then
+    echo "No message for email ${email}"
     exit 1
   fi
 
-  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+  local email_content=$(echo "$emails" | jq '.items[0].MIME.Parts[0].Body' | tr -d '"')
+  local code=$(echo "$email_content" | grep -Eo '[0-9]{6}' | head -n1)
 
   echo "$code"
 }

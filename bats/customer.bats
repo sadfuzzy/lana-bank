@@ -22,16 +22,6 @@ wait_for_approval() {
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
 
-# @test "customer: unauthorized" {
-#   cache_value "alice" "invalid-token"
-#   exec_graphql 'alice' 'me'
-#   error_code=$(graphql_output '.error.code')
-#   [[ "$error_code" == 401 ]] || exit 1
-#
-#   error_status=$(graphql_output '.error.status')
-#   [[ "$error_status" == "Unauthorized" ]] || exit 1
-# }
-
 @test "customer: can create a customer" {
   customer_email=$(generate_email)
   telegramId=$(generate_email)
@@ -56,6 +46,34 @@ wait_for_approval() {
   variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
   echo $(graphql_output) | jq .
+}
+
+@test "customer: can login" {
+  customer_email=$(generate_email)
+  telegramId=$(generate_email)
+
+  variables=$(
+    jq -n \
+    --arg email "$customer_email" \
+    --arg telegramId "$telegramId" \
+    '{
+      input: {
+        email: $email,
+        telegramId: $telegramId
+      }
+    }'
+  )
+
+  exec_admin_graphql 'customer-create' "$variables"
+  customer_id=$(graphql_output .data.customerCreate.customer.customerId)
+  [[ "$customer_id" != "null" ]] || exit 1
+
+  sleep 0.1 # wait for customer-onboarding steps
+
+  login_customer $customer_email
+  exec_customer_graphql $customer_email 'me'
+  echo $(graphql_output) | jq .
+  [[ "$(graphql_output .data.me.customer.customerId)" == "$customer_id" ]] || exit 1
 }
 
 @test "customer: can deposit" {
