@@ -15,6 +15,17 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
 # Lana bank
 
+Mandatory environment variables:
+- `TF_VAR_sa_creds`: Service account credentials for GCP. needs access to BigQuery and Documents
+
+Optional environment variables:
+- `SUMSUB_KEY`: SumSub API key for identity verification
+- `SUMSUB_SECRET`: SumSub API secret for identity verification
+
+Add the values the appropriate values in your `.env` file.
+
+We are going to remove the hard dependencies and make those values optionals in future versions
+
 **to run entire stack**
 ```bash
 make dev-up # Bring the stack up
