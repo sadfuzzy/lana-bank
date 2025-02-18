@@ -1,3 +1,1209 @@
+export const cashFlowMockData = JSON.parse(`{
+    "data": {
+        "cashFlowStatement": {
+            "name": "Cash Flow Statement",
+            "total": {
+                "btc": {
+                    "openingBalance": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "__typename": "LayeredBtcAccountAmounts"
+                    },
+                    "closingBalance": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "__typename": "LayeredBtcAccountAmounts"
+                    },
+                    "amount": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "BtcAccountAmounts"
+                        },
+                        "__typename": "LayeredBtcAccountAmounts"
+                    },
+                    "__typename": "BtcAccountAmountsInPeriod"
+                },
+                "usd": {
+                    "openingBalance": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "__typename": "LayeredUsdAccountAmounts"
+                    },
+                    "closingBalance": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "__typename": "LayeredUsdAccountAmounts"
+                    },
+                    "amount": {
+                        "all": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "settled": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "pending": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "encumbrance": {
+                            "debit": 0,
+                            "credit": 0,
+                            "netDebit": 0,
+                            "netCredit": 0,
+                            "__typename": "UsdAccountAmounts"
+                        },
+                        "__typename": "LayeredUsdAccountAmounts"
+                    },
+                    "__typename": "UsdAccountAmountsInPeriod"
+                },
+                "__typename": "AccountAmountsByCurrency"
+            },
+            "categories": [
+                {
+                    "name": "Cash Flow From Operations",
+                    "accounts": [
+                        {
+                            "__typename": "AccountSet",
+                            "id": "50e7e317-52df-463e-bb0b-50d70b22bb69",
+                            "name": "Credit Facilities Interest Receivable",
+                            "amounts": {
+                                "btc": {
+                                    "openingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "closingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "amount": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "__typename": "BtcAccountAmountsInPeriod"
+                                },
+                                "usd": {
+                                    "openingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "closingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "amount": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "__typename": "UsdAccountAmountsInPeriod"
+                                },
+                                "__typename": "AccountAmountsByCurrency"
+                            }
+                        },
+                        {
+                            "__typename": "AccountSet",
+                            "id": "97cddb0a-f3a9-42f4-bb0b-158eaa441be1",
+                            "name": "Net Income",
+                            "amounts": {
+                                "btc": {
+                                    "openingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "closingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "amount": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "BtcAccountAmounts"
+                                        },
+                                        "__typename": "LayeredBtcAccountAmounts"
+                                    },
+                                    "__typename": "BtcAccountAmountsInPeriod"
+                                },
+                                "usd": {
+                                    "openingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "closingBalance": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "amount": {
+                                        "all": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "settled": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "pending": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "encumbrance": {
+                                            "debit": 0,
+                                            "credit": 0,
+                                            "netDebit": 0,
+                                            "netCredit": 0,
+                                            "__typename": "UsdAccountAmounts"
+                                        },
+                                        "__typename": "LayeredUsdAccountAmounts"
+                                    },
+                                    "__typename": "UsdAccountAmountsInPeriod"
+                                },
+                                "__typename": "AccountAmountsByCurrency"
+                            }
+                        }
+                    ],
+                    "amounts": {
+                        "btc": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "__typename": "BtcAccountAmountsInPeriod"
+                        },
+                        "usd": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "__typename": "UsdAccountAmountsInPeriod"
+                        },
+                        "__typename": "AccountAmountsByCurrency"
+                    },
+                    "__typename": "StatementCategory"
+                },
+                {
+                    "name": "Cash Flow From Investing",
+                    "accounts": [],
+                    "amounts": {
+                        "btc": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "__typename": "BtcAccountAmountsInPeriod"
+                        },
+                        "usd": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "__typename": "UsdAccountAmountsInPeriod"
+                        },
+                        "__typename": "AccountAmountsByCurrency"
+                    },
+                    "__typename": "StatementCategory"
+                },
+                {
+                    "name": "Cash Flow From Financing",
+                    "accounts": [],
+                    "amounts": {
+                        "btc": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "BtcAccountAmounts"
+                                },
+                                "__typename": "LayeredBtcAccountAmounts"
+                            },
+                            "__typename": "BtcAccountAmountsInPeriod"
+                        },
+                        "usd": {
+                            "openingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "closingBalance": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "amount": {
+                                "all": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "settled": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "pending": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "encumbrance": {
+                                    "debit": 0,
+                                    "credit": 0,
+                                    "netDebit": 0,
+                                    "netCredit": 0,
+                                    "__typename": "UsdAccountAmounts"
+                                },
+                                "__typename": "LayeredUsdAccountAmounts"
+                            },
+                            "__typename": "UsdAccountAmountsInPeriod"
+                        },
+                        "__typename": "AccountAmountsByCurrency"
+                    },
+                    "__typename": "StatementCategory"
+                }
+            ],
+            "__typename": "CashFlowStatement"
+        }
+    }
+}`)
 export const regularChartOfAccountsMockData = JSON.parse(`{
     "data": {
         "chartOfAccounts": {

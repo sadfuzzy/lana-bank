@@ -48,13 +48,14 @@ export const navAdminItems: NavItem[] = [
 ]
 
 export const navFinanceItems: NavItem[] = [
+  { title: "Balance Sheet", url: "/balance-sheet", icon: PieChart },
+  { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },
+  { title: "Cash Flow", url: "/cash-flow", icon: ArrowUpCircle },
+  { title: "Profit & Loss", url: "/profit-and-loss", icon: DollarSign },
   {
     title: "Regulatory Reporting",
     url: "/regulatory-reporting",
     icon: FileText,
   },
-  { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },
-  { title: "Balance Sheet", url: "/balance-sheet", icon: PieChart },
-  { title: "Profit & Loss", url: "/profit-and-loss", icon: DollarSign },
   { title: "Trial Balance", url: "/trial-balance", icon: LineChart },
 ]

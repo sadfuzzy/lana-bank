@@ -47,6 +47,7 @@ export default defineConfig({
       "cypress/e2e/balance-sheet.cy.ts",
       "cypress/e2e/dashboard.cy.ts",
       "cypress/e2e/profit-and-loss.cy.ts",
+      "cypress/e2e/cash-flow.cy.ts",
     ],
     baseUrl: "http://localhost:4455/admin",
     defaultCommandTimeout: 4000 * multiplier,
