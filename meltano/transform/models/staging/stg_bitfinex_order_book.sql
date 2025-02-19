@@ -1,9 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key ='requested_at',
-    full_refresh = true,
 ) }}
--- TODO: turn off full_refresh after rollout
 
 select
     requested_at,

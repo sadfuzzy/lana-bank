@@ -1,9 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key ='ID',
-    full_refresh = true,
 ) }}
--- TODO: turn off full_refresh after rollout
 
 select
     id,
