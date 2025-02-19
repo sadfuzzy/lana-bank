@@ -33,6 +33,10 @@ pub enum CustomerEvent {
         applicant_id: String,
         audit_info: AuditInfo,
     },
+    AccountStatusUpdated {
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    },
     TelegramIdUpdated {
         telegram_id: String,
         audit_info: AuditInfo,
@@ -94,33 +98,73 @@ impl Customer {
         self.applicant_id = Some(applicant_id);
     }
 
-    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String, audit_info: AuditInfo) {
+    pub fn approve_kyc(
+        &mut self,
+        level: KycLevel,
+        applicant_id: String,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycApproved { .. },
+            => CustomerEvent::KycDeclined { .. }
+        );
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
-            audit_info,
+            audit_info: audit_info.clone(),
         });
 
         self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
-        self.status = AccountStatus::Active;
+
+        self.update_account_status(AccountStatus::Active, audit_info)
     }
 
-    pub fn deactivate(&mut self, applicant_id: String, audit_info: AuditInfo) {
+    pub fn decline_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::KycDeclined { .. },
+            => CustomerEvent::KycApproved { .. }
+        );
         self.events.push(CustomerEvent::KycDeclined {
             applicant_id,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
         self.level = KycLevel::NotKyced;
-        self.status = AccountStatus::Inactive;
+        self.update_account_status(AccountStatus::Inactive, audit_info)
     }
 
-    pub fn update_telegram_id(&mut self, new_telegram_id: String, audit_info: AuditInfo) {
+    fn update_account_status(
+        &mut self,
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status
+        );
+        self.events
+            .push(CustomerEvent::AccountStatusUpdated { status, audit_info });
+        self.status = status;
+        Idempotent::Executed(())
+    }
+
+    pub fn update_telegram_id(
+        &mut self,
+        new_telegram_id: String,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::TelegramIdUpdated { telegram_id: existing_telegram_id , ..} if existing_telegram_id == &new_telegram_id
+        );
         self.events.push(CustomerEvent::TelegramIdUpdated {
             telegram_id: new_telegram_id.clone(),
             audit_info,
         });
         self.telegram_id = new_telegram_id;
+        Idempotent::Executed(())
     }
 }
 
@@ -152,16 +196,12 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     level,
                     applicant_id,
                     ..
-                } => {
-                    builder = builder
-                        .applicant_id(applicant_id.clone())
-                        .level(*level)
-                        .status(AccountStatus::Active);
-                }
+                } => builder = builder.applicant_id(applicant_id.clone()).level(*level),
                 CustomerEvent::KycDeclined { applicant_id, .. } => {
-                    builder = builder
-                        .applicant_id(applicant_id.clone())
-                        .status(AccountStatus::Inactive);
+                    builder = builder.applicant_id(applicant_id.clone())
+                }
+                CustomerEvent::AccountStatusUpdated { status, .. } => {
+                    builder = builder.status(*status);
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
                     builder = builder.telegram_id(telegram_id.clone());

@@ -5,6 +5,7 @@ mod entity;
 pub mod error;
 mod event;
 mod primitives;
+mod publisher;
 mod repo;
 
 use std::collections::HashMap;
@@ -24,6 +25,8 @@ pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
+use publisher::*;
+
 pub struct Customers<Perms, E>
 where
     Perms: PermissionCheck,
@@ -34,7 +37,7 @@ where
     authz: Perms,
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
-    repo: CustomerRepo,
+    repo: CustomerRepo<E>,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -71,7 +74,8 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
     ) -> Self {
-        let repo = CustomerRepo::new(pool);
+        let publisher = CustomerPublisher::new(outbox);
+        let repo = CustomerRepo::new(pool, &publisher);
         Self {
             repo,
             authz: authz.clone(),
@@ -125,16 +129,6 @@ where
         let account_name = &format!("Deposit Account for Customer {}", customer.id);
         self.deposit
             .create_account(sub, customer.id, account_name, account_name)
-            .await?;
-
-        self.outbox
-            .publish_persisted(
-                db.tx(),
-                CoreCustomerEvent::CustomerCreated {
-                    id: customer.id,
-                    email,
-                },
-            )
             .await?;
 
         db.commit().await?;
@@ -290,7 +284,7 @@ where
         Ok(customer)
     }
 
-    pub async fn approve_basic(
+    pub async fn approve_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
@@ -308,14 +302,17 @@ where
             )
             .await?;
 
-        customer.approve_kyc(KycLevel::Basic, applicant_id, audit_info);
-
-        self.repo.update_in_op(db, &mut customer).await?;
+        if customer
+            .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
+            .did_execute()
+        {
+            self.repo.update_in_op(db, &mut customer).await?;
+        }
 
         Ok(customer)
     }
 
-    pub async fn deactivate(
+    pub async fn decline_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
         customer_id: CustomerId,
@@ -333,8 +330,9 @@ where
             )
             .await?;
 
-        customer.deactivate(applicant_id, audit_info);
-        self.repo.update_in_op(db, &mut customer).await?;
+        if customer.decline_kyc(applicant_id, audit_info).did_execute() {
+            self.repo.update_in_op(db, &mut customer).await?;
+        }
 
         Ok(customer)
     }
@@ -364,8 +362,12 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        customer.update_telegram_id(new_telegram_id, audit_info);
-        self.repo.update(&mut customer).await?;
+        if customer
+            .update_telegram_id(new_telegram_id, audit_info)
+            .did_execute()
+        {
+            self.repo.update(&mut customer).await?;
+        }
 
         Ok(customer)
     }
