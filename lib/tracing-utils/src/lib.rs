@@ -104,3 +104,49 @@ pub mod http {
         header_map
     }
 }
+
+#[cfg(feature = "persistence")]
+pub mod persistence {
+    use serde::{Deserialize, Serialize};
+    use tracing_opentelemetry::OpenTelemetrySpanExt;
+
+    #[derive(Serialize, Deserialize, Debug, Clone)]
+    pub struct SerializableTraceContext {
+        pub traceparent: Option<String>,
+        pub tracestate: Option<String>,
+    }
+
+    pub fn extract() -> SerializableTraceContext {
+        use opentelemetry::propagation::TextMapPropagator;
+        use opentelemetry_sdk::propagation::TraceContextPropagator;
+
+        let mut carrier = std::collections::HashMap::new();
+        let propagator = TraceContextPropagator::new();
+        let current_context = tracing::Span::current().context();
+
+        propagator.inject_context(&current_context, &mut carrier);
+
+        SerializableTraceContext {
+            traceparent: carrier.get("traceparent").cloned(),
+            tracestate: carrier.get("tracestate").cloned(),
+        }
+    }
+
+    pub fn set_parent(context: &SerializableTraceContext) {
+        use opentelemetry::propagation::TextMapPropagator;
+        use opentelemetry_sdk::propagation::TraceContextPropagator;
+
+        let mut carrier = std::collections::HashMap::new();
+
+        if let Some(traceparent) = &context.traceparent {
+            carrier.insert("traceparent".to_string(), traceparent.clone());
+        }
+        if let Some(tracestate) = &context.tracestate {
+            carrier.insert("tracestate".to_string(), tracestate.clone());
+        }
+
+        let propagator = TraceContextPropagator::new();
+        let extracted_context = propagator.extract(&carrier);
+        tracing::Span::current().set_parent(extracted_context);
+    }
+}

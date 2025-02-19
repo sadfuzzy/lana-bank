@@ -24,6 +24,7 @@ impl KratosAdmin {
         }
     }
 
+    #[tracing::instrument(name = "kratos_admin.create_user", skip(self))]
     pub async fn create_user<T>(&self, email: String) -> Result<T, KratosAdminError>
     where
         T: From<Uuid>,

@@ -53,6 +53,7 @@ where
     pub sequence: EventSequence,
     #[serde(bound = "T: DeserializeOwned")]
     pub payload: Option<T>,
+    pub(crate) tracing_context: Option<tracing_utils::persistence::SerializableTraceContext>,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -65,6 +66,7 @@ where
             id: self.id,
             sequence: self.sequence,
             payload: self.payload.clone(),
+            tracing_context: self.tracing_context.clone(),
             recorded_at: self.recorded_at,
         }
     }
@@ -82,6 +84,12 @@ where
             payload.as_event()
         } else {
             None
+        }
+    }
+
+    pub fn inject_trace_parent(&self) {
+        if let Some(context) = &self.tracing_context {
+            tracing_utils::persistence::set_parent(context);
         }
     }
 }

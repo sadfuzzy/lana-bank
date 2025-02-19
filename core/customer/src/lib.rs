@@ -136,7 +136,7 @@ where
         Ok(customer)
     }
 
-    #[instrument(name = "core_custorem.find_for_subject", skip(self))]
+    #[instrument(name = "customer.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -220,7 +220,7 @@ where
     }
 
     #[instrument(
-        name = "core_customer.update_authentication_id_for_customer",
+        name = "customer.update_authentication_id_for_customer",
         skip(self, authentication_id)
     )]
     pub async fn update_authentication_id_for_customer(
@@ -247,7 +247,7 @@ where
     }
 
     #[instrument(
-        name = "core_customer.find_by_authentication_id",
+        name = "customer.find_by_authentication_id",
         skip(self, authentication_id)
     )]
     pub async fn find_by_authentication_id(

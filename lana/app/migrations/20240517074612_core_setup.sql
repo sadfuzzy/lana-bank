@@ -362,6 +362,7 @@ CREATE TABLE persistent_outbox_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   sequence BIGSERIAL UNIQUE,
   payload JSONB,
+  tracing_context JSONB,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

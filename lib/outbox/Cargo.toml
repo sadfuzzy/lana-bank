@@ -9,6 +9,7 @@ fail-on-warnings = []
 
 [dependencies]
 es-entity = { workspace = true }
+tracing-utils = { path = "../tracing-utils", features = ["persistence"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

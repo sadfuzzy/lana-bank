@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use kratos_admin::KratosAdmin;
+use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -11,7 +12,7 @@ use deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
@@ -145,20 +146,48 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerCreated { id, email }) =
-                &message.as_ref().as_event()
-            {
-                let authentication_id = self
-                    .kratos_admin
-                    .create_user::<AuthenticationId>(email.clone())
-                    .await?;
-                self.customers
-                    .update_authentication_id_for_customer(*id, authentication_id)
-                    .await?;
+            if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
+                self.handle_customer_created_event(message.as_ref()).await?;
             }
         }
 
         let now = crate::time::now();
         Ok(JobCompletion::RescheduleAt(now))
+    }
+}
+
+impl<Perms, E> CustomerOnboardingJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
+    #[instrument(
+        name = "customer_onboarding.handle_customer_created_event",
+        skip(self, message)
+    )]
+    async fn handle_customer_created_event(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>>
+    where
+        E: OutboxEventMarker<CoreCustomerEvent>,
+    {
+        if let Some(CoreCustomerEvent::CustomerCreated { id, email }) = message.as_event() {
+            message.inject_trace_parent();
+            let authentication_id = self
+                .kratos_admin
+                .create_user::<AuthenticationId>(email.clone())
+                .await?;
+            self.customers
+                .update_authentication_id_for_customer(*id, authentication_id)
+                .await?;
+        }
+        Ok(())
     }
 }

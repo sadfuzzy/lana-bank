@@ -62,15 +62,20 @@ where
             return Ok(Vec::new());
         }
 
+        let tracing_context = tracing_utils::persistence::extract();
+        let tracing_json =
+            serde_json::to_value(&tracing_context).expect("Could not serialize tracing context");
+
         let rows = sqlx::query!(
             r#"WITH new_events AS (
-                 INSERT INTO persistent_outbox_events (payload)
-                 SELECT unnest($1::jsonb[]) AS payload
+                 INSERT INTO persistent_outbox_events (payload, tracing_context)
+                 SELECT unnest($1::jsonb[]) AS payload, $2::jsonb AS tracing_context
                  RETURNING id AS "id: OutboxEventId", sequence AS "sequence: EventSequence", recorded_at
                 )
                 SELECT * FROM new_events
             "#,
             &serialized_events as _,
+            tracing_json
         )
         .fetch_all(&mut **db)
         .await?;
@@ -81,6 +86,7 @@ where
                 id: row.id,
                 sequence: row.sequence,
                 recorded_at: row.recorded_at,
+                tracing_context: Some(tracing_context.clone()),
                 payload: Some(payload),
             })
             .collect::<Vec<_>>();
@@ -101,6 +107,7 @@ where
               g.seq AS "sequence!: EventSequence",
               e.id AS "id?",
               e.payload AS "payload?",
+              e.tracing_context AS "tracing_context?",
               e.recorded_at AS "recorded_at?"
             FROM
                 generate_series(LEAST($1 + 1, (SELECT max FROM max_sequence)),
@@ -131,6 +138,9 @@ where
                 payload: row
                     .payload
                     .map(|p| serde_json::from_value(p).expect("Could not deserialize payload")),
+                tracing_context: row
+                    .tracing_context
+                    .map(|p| serde_json::from_value(p).expect("Could not deserialize payload")),
                 recorded_at: row.recorded_at.unwrap_or_default(),
             });
         }
@@ -142,7 +152,7 @@ where
                 SELECT unnest($1::bigint[]) AS sequence
                 ON CONFLICT (sequence) DO UPDATE
                 SET sequence = EXCLUDED.sequence
-                RETURNING id, sequence AS "sequence!: EventSequence", payload, recorded_at
+                RETURNING id, sequence AS "sequence!: EventSequence", payload, tracing_context, recorded_at
             "#,
                 &empty_ids as &[EventSequence]
             )
@@ -154,6 +164,9 @@ where
                     sequence: row.sequence,
                     payload: row
                         .payload
+                        .map(|p| serde_json::from_value(p).expect("Could not deserialize payload")),
+                    tracing_context: row
+                        .tracing_context
                         .map(|p| serde_json::from_value(p).expect("Could not deserialize payload")),
                     recorded_at: row.recorded_at,
                 });
