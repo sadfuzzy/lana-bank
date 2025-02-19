@@ -24,6 +24,9 @@ jobs:
 - name: tap-postgres-to-target-bigquery-run-dbt
   tasks:
   - tap-postgres target-bigquery dbt-bigquery:run
+- name: test-dbt
+  tasks:
+  - dbt-bigquery:test
 - name: poll-bitfinex
   tasks:
   - tap-bitfinexapi target-bigquery
@@ -40,6 +43,9 @@ schedules:
 - name: sync-sumsub-hourly
   interval: '@hourly'
   job: sync-sumsub
+- name: test-dbt-daily
+  interval: '@daily'
+  job: test-dbt
 plugins:
   extractors:
   - name: tap-postgres

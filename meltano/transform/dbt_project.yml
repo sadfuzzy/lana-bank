@@ -24,6 +24,9 @@ clean-targets:
 - logs
 models:
   my_meltano_project: null
+tests:
+  schema: null
+  store_failures: true
 on-run-start:
 - '{{create_udfs()}}'
 vars:
