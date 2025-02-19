@@ -13,8 +13,8 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-pub use chart_of_accounts::tree;
 use chart_of_accounts::*;
+pub use chart_of_accounts::{tree, Chart};
 use error::*;
 pub use path::ControlSubAccountPath;
 pub use primitives::*;
@@ -108,6 +108,14 @@ where
         op.commit().await?;
 
         Ok(chart)
+    }
+
+    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Chart>>(
+        &self,
+        ids: &[ChartId],
+    ) -> Result<std::collections::HashMap<ChartId, T>, CoreChartOfAccountsError> {
+        Ok(self.repo.find_all(ids).await?)
     }
 
     #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]

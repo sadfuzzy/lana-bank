@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
+pub use chart_of_accounts::ChartId;
 pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
