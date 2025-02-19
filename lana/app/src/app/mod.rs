@@ -74,7 +74,7 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let price = Price::init(&jobs).await?;
+        let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;

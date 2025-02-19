@@ -1049,6 +1049,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-price"
+version = "0.3.98-dev"
+dependencies = [
+ "anyhow",
+ "cached 0.53.1",
+ "core-money",
+ "reqwest 0.12.9",
+ "rust_decimal",
+ "rust_decimal_macros",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "core-user"
 version = "0.3.99-dev"
 dependencies = [
@@ -2554,6 +2570,7 @@ dependencies = [
  "cloud-storage",
  "core-customer",
  "core-money",
+ "core-price",
  "core-user",
  "customer-onboarding",
  "dashboard",

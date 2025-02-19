@@ -1,39 +1,35 @@
 mod bfx_client;
 pub mod error;
-use cached::proc_macro::cached;
-mod job;
+mod primitives;
 
-use crate::{
-    job::Jobs,
-    primitives::{PriceOfOneBTC, UsdCents},
-};
+use cached::proc_macro::cached;
+
+use core_money::UsdCents;
 
 use bfx_client::BfxClient;
 use error::PriceError;
+pub use primitives::*;
 
 #[derive(Clone)]
 pub struct Price {
     bfx: BfxClient,
-    _jobs: Jobs,
 }
 
 impl Price {
-    pub async fn init(jobs: &Jobs) -> Result<Self, PriceError> {
-        let price = Self {
+    pub fn new() -> Self {
+        Self {
             bfx: BfxClient::new(),
-            _jobs: jobs.clone(),
-        };
-
-        jobs.add_initializer_and_spawn_unique(
-            job::ExportPriceInitializer::new(&price),
-            job::ExportPriceJobConfig::default(),
-        )
-        .await?;
-        Ok(price)
+        }
     }
 
     pub async fn usd_cents_per_btc(&self) -> Result<PriceOfOneBTC, PriceError> {
         usd_cents_per_btc_cached(&self.bfx).await
+    }
+}
+
+impl Default for Price {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

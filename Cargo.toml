@@ -18,6 +18,7 @@ members = [
   "core/money",
   "core/chart-of-accounts",
   "core/deposit",
+  "core/price",
 
   "lib/authz",
   "lib/audit",

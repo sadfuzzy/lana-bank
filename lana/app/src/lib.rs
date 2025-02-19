@@ -9,7 +9,6 @@ pub mod balance_sheet;
 pub mod cash_flow;
 pub mod credit_facility;
 pub mod document;
-pub mod price;
 pub mod primitives;
 pub mod profit_and_loss;
 pub mod report;
@@ -56,6 +55,10 @@ pub mod customer_onboarding {
         crate::authorization::Authorization,
         lana_events::LanaEvent,
     >;
+}
+
+pub mod price {
+    pub use core_price::*;
 }
 
 pub mod job {
