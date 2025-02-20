@@ -42,14 +42,14 @@ export const navTransactionItems: NavItem[] = [
 ]
 
 export const navAdminItems: NavItem[] = [
-  { title: "Users", url: "/users", icon: UserCircle },
-  { title: "Committees", url: "/committees", icon: Users2 },
   { title: "Audit Logs", url: "/audit", icon: BookText },
+  { title: "Committees", url: "/committees", icon: Users2 },
+  { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },
+  { title: "Users", url: "/users", icon: UserCircle },
 ]
 
 export const navFinanceItems: NavItem[] = [
   { title: "Balance Sheet", url: "/balance-sheet", icon: PieChart },
-  { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },
   { title: "Cash Flow", url: "/cash-flow", icon: ArrowUpCircle },
   { title: "Profit & Loss", url: "/profit-and-loss", icon: DollarSign },
   {
