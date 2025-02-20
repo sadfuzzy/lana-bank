@@ -44,14 +44,3 @@ resource "google_bigquery_dataset_iam_member" "dbt_additional_owners" {
   role       = "roles/bigquery.dataOwner"
   member     = "user:${each.value}"
 }
-
-resource "google_bigquery_dataset_access" "view_access" {
-  dataset_id = google_bigquery_dataset.dataset.dataset_id
-  dataset {
-    dataset {
-      project_id = local.gcp_project
-      dataset_id = google_bigquery_dataset.dbt.dataset_id
-    }
-    target_types = ["VIEWS"]
-  }
-}
