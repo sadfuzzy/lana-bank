@@ -33,8 +33,8 @@ use error::*;
 pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
-pub use ledger::DepositAccountFactories;
 use ledger::*;
+pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -98,13 +98,14 @@ where
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         factories: DepositAccountFactories,
+        omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, factories.deposits_omnibus).await?;
+        let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
@@ -163,6 +164,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        reference: &str,
         name: &str,
         description: &str,
     ) -> Result<DepositAccount, CoreDepositError> {
@@ -179,6 +181,7 @@ where
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
+            .reference(reference.to_string())
             .name(name.to_string())
             .description(description.to_string())
             .audit_info(audit_info.clone())
@@ -193,6 +196,7 @@ where
             .create_transaction_account_in_op(
                 &mut op,
                 account_id,
+                &account.reference,
                 &account.name,
                 &account.description,
             )

@@ -9,9 +9,11 @@ use cala_ledger::{
     velocity::{NewVelocityControl, VelocityControlId},
     CalaLedger, Currency, JournalId, TransactionId,
 };
-use chart_of_accounts::TransactionAccountFactory;
 
-use crate::{primitives::UsdCents, DepositAccountBalance};
+use crate::{
+    primitives::{LedgerAccountId, UsdCents},
+    DepositAccountBalance,
+};
 
 pub use accounts::*;
 use error::*;
@@ -32,11 +34,8 @@ impl DepositLedger {
     pub async fn init(
         cala: &CalaLedger,
         journal_id: JournalId,
-        omnibus_account_factory: TransactionAccountFactory,
+        deposit_omnibus_account_id: LedgerAccountId,
     ) -> Result<Self, DepositLedgerError> {
-        let deposit_omnibus_account_id =
-            Self::create_deposit_omnibus_account(cala, omnibus_account_factory).await?;
-
         templates::RecordDeposit::init(cala).await?;
         templates::InitiateWithdraw::init(cala).await?;
         templates::CancelWithdraw::init(cala).await?;
@@ -200,26 +199,6 @@ impl DepositLedger {
             .await?;
         op.commit().await?;
         Ok(())
-    }
-
-    async fn create_deposit_omnibus_account(
-        cala: &CalaLedger,
-        account_factory: TransactionAccountFactory,
-    ) -> Result<AccountId, DepositLedgerError> {
-        let id = AccountId::new();
-
-        let mut op = cala.begin_operation().await?;
-        account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
-            .await?;
-        op.commit().await?;
-
-        Ok(id)
     }
 
     pub async fn balance(
