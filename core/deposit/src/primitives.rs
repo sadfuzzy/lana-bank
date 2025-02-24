@@ -16,6 +16,7 @@ es_entity::entity_id! {
     WithdrawalId,
     DepositId;
 
+    DepositAccountHolderId => core_customer::CustomerId,
     DepositAccountId => LedgerAccountId,
     DepositId => LedgerTransactionId,
     WithdrawalId => LedgerTransactionId,

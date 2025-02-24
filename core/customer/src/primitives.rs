@@ -6,7 +6,6 @@ pub use authz::AllOrOne;
 
 es_entity::entity_id! {
     CustomerId;
-    CustomerId => deposit::DepositAccountHolderId,
 }
 
 es_entity::entity_id! { AuthenticationId }

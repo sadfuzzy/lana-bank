@@ -114,12 +114,13 @@ impl LanaApp {
             &chart_of_accounts,
         )
         .await?;
-
+        let customers = Customers::new(&pool, &authz, &outbox);
         let deposits = Deposits::init(
             &pool,
             &authz,
             &outbox,
             &governance,
+            &customers,
             &jobs,
             charts_init.deposits.factories,
             charts_init.deposits.omnibus_ids,
@@ -127,10 +128,14 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        let customers = Customers::new(&pool, &deposits, &authz, &outbox);
-        let customer_onboarding =
-            CustomerOnboarding::init(&jobs, &outbox, &customers, config.customer_onboarding)
-                .await?;
+        let customer_onboarding = CustomerOnboarding::init(
+            &jobs,
+            &outbox,
+            &customers,
+            &deposits,
+            config.customer_onboarding,
+        )
+        .await?;
         let applicants = Applicants::new(&pool, &config.sumsub, &customers, &jobs);
 
         let credit_facilities = CreditFacilities::init(

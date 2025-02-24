@@ -1,3 +1,4 @@
+use audit::SystemSubject;
 use authz::error::AuthorizationError;
 use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
@@ -12,6 +13,11 @@ use rbac_types::LanaRole;
 pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationError> {
     seed_roles(authz).await?;
     seed_role_hierarchy(authz).await?;
+
+    authz
+        .assign_role_to_subject(Subject::system(), &Role::SUPERUSER)
+        .await?;
+
     Ok(())
 }
 

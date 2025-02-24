@@ -20,6 +20,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chart_of_accounts::TransactionAccountFactory;
+use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -46,7 +47,9 @@ pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor}
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     accounts: DepositAccountRepo,
     deposits: DepositRepo,
@@ -57,13 +60,16 @@ where
     account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
+    customers: Customers<Perms, E>,
     outbox: Outbox<E>,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -75,6 +81,7 @@ where
             account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
+            customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
             outbox: self.outbox.clone(),
         }
@@ -88,7 +95,9 @@ where
         From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
@@ -96,6 +105,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
+        customers: &Customers<Perms, E>,
         jobs: &Jobs,
         factories: DepositAccountFactories,
         omnibus_ids: DepositOmnibusAccountIds,
@@ -130,6 +140,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
+            customers: customers.clone(),
             cala: cala.clone(),
             approve_withdrawal,
             ledger,

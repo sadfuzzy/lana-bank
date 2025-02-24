@@ -22,6 +22,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 
 pub mod action {
     use chart_of_accounts::CoreChartOfAccountsAction;
+    use core_customer::CoreCustomerAction;
     use deposit::{CoreDepositAction, GovernanceAction};
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -35,6 +36,12 @@ pub mod action {
 
     impl From<GovernanceAction> for DummyAction {
         fn from(_: GovernanceAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCustomerAction> for DummyAction {
+        fn from(_: CoreCustomerAction) -> Self {
             Self
         }
     }
@@ -63,6 +70,7 @@ pub mod action {
 
 pub mod object {
     use chart_of_accounts::CoreChartOfAccountsObject;
+    use core_customer::CustomerObject;
     use deposit::{CoreDepositObject, GovernanceObject};
 
     #[derive(Clone, Copy, Debug, PartialEq)]
@@ -81,6 +89,12 @@ pub mod object {
 
     impl From<GovernanceObject> for DummyObject {
         fn from(_: GovernanceObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<CustomerObject> for DummyObject {
+        fn from(_: CustomerObject) -> Self {
             Self
         }
     }
@@ -104,6 +118,7 @@ pub mod object {
 pub mod event {
     use serde::{Deserialize, Serialize};
 
+    use core_customer::CoreCustomerEvent;
     use deposit::CoreDepositEvent;
     use governance::GovernanceEvent;
 
@@ -111,6 +126,7 @@ pub mod event {
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreDeposit(CoreDepositEvent),
+        CoreCustomer(CoreCustomerEvent),
         Governance(GovernanceEvent),
     }
 
@@ -134,4 +150,5 @@ pub mod event {
 
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreDepositEvent, CoreDeposit);
+    impl_event_marker!(CoreCustomerEvent, CoreCustomer);
 }

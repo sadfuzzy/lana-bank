@@ -12,7 +12,6 @@ governance = ["dep:governance"]
 
 [dependencies]
 governance = { path = "../governance", optional = true }
-deposit = { path = "../deposit" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

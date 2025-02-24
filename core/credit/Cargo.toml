@@ -14,7 +14,6 @@ core-money = { path = "../money" }
 core-price = { path = "../price" }
 core-customer = { path = "../customer" }
 governance = { path = "../governance" }
-deposit = { path = "../deposit" }
 chart-of-accounts = { path = "../chart-of-accounts" }
 
 audit = { path = "../../lib/audit" }

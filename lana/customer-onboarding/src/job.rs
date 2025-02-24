@@ -3,13 +3,14 @@ use futures::StreamExt;
 use kratos_admin::KratosAdmin;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_customer::{
     AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
 };
 use deposit::{
-    CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
+    GovernanceObject,
 };
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -51,6 +52,7 @@ where
     outbox: Outbox<E>,
     kratos_admin: KratosAdmin,
     customers: Customers<Perms, E>,
+    deposit: CoreDeposit<Perms, E>,
 }
 
 impl<Perms, E> CustomerOnboardingJobInitializer<Perms, E>
@@ -63,11 +65,13 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
+        deposit: &CoreDeposit<Perms, E>,
         kratos_admin: KratosAdmin,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
+            deposit: deposit.clone(),
             kratos_admin,
         }
     }
@@ -96,6 +100,7 @@ where
         Ok(Box::new(CustomerOnboardingJobRunner {
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
+            deposit: self.deposit.clone(),
             kratos_admin: self.kratos_admin.clone(),
         }))
     }
@@ -122,6 +127,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
+    deposit: CoreDeposit<Perms, E>,
     kratos_admin: KratosAdmin,
 }
 #[async_trait]
@@ -180,6 +186,13 @@ where
     {
         if let Some(CoreCustomerEvent::CustomerCreated { id, email }) = message.as_event() {
             message.inject_trace_parent();
+            let description = &format!("Deposit Account for Customer {}", id);
+            let account_ref = &format!("deposit-customer-account:{}", id);
+            self.deposit
+                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
+                "customer-deposits", description)
+                .await?;
+
             let authentication_id = self
                 .kratos_admin
                 .create_user::<AuthenticationId>(email.clone())

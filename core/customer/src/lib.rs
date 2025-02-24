@@ -15,7 +15,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-use deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 pub use entity::Customer;
@@ -30,27 +29,21 @@ use publisher::*;
 pub struct Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     authz: Perms,
     outbox: Outbox<E>,
-    deposit: CoreDeposit<Perms, E>,
     repo: CustomerRepo<E>,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            deposit: self.deposit.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }
@@ -61,25 +54,17 @@ impl<Perms, E> Customers<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreCustomerAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        From<CustomerObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(
-        pool: &sqlx::PgPool,
-        deposit: &CoreDeposit<Perms, E>,
-        authz: &Perms,
-        outbox: &Outbox<E>,
-    ) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
         Self {
             repo,
             authz: authz.clone(),
-            deposit: deposit.clone(),
             outbox: outbox.clone(),
         }
     }
@@ -125,12 +110,6 @@ where
 
         let mut db = self.repo.begin_op().await?;
         let customer = self.repo.create_in_op(&mut db, new_customer).await?;
-
-        let account_ref = &format!("deposit-customer-account:{}", customer.id);
-        let account_name = &format!("Deposit Account for Customer {}", customer.id);
-        self.deposit
-            .create_account(sub, customer.id, account_ref, account_name, account_name)
-            .await?;
 
         db.commit().await?;
 

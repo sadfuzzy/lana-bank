@@ -14,8 +14,6 @@ pub enum CustomerError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CustomerError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("CustomerError - DepositError: {0}")]
-    DepositError(#[from] deposit::error::CoreDepositError),
     #[error("CustomerError - SubjectIsNotCustomer")]
     SubjectIsNotCustomer,
 }

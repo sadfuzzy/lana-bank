@@ -11,6 +11,7 @@ graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
 [dependencies]
 core-money = { path = "../money" }
 governance = { path = "../governance" }
+core-customer = { path = "../customer" }
 chart-of-accounts = { path = "../chart-of-accounts" }
 
 audit = { path = "../../lib/audit" }

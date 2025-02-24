@@ -14,7 +14,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use deposit::{
-    CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
+    GovernanceObject,
 };
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
@@ -60,12 +61,13 @@ where
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
+        deposit: &CoreDeposit<Perms, E>,
         config: CustomerOnboardingConfig,
     ) -> Result<Self, CustomerOnboardingError> {
         let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin);
 
         jobs.add_initializer_and_spawn_unique(
-            CustomerOnboardingJobInitializer::new(outbox, customers, kratos_admin),
+            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, kratos_admin),
             CustomerOnboardingJobConfig::new(),
         )
         .await?;

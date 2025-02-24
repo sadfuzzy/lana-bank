@@ -48,8 +48,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<deposit::CoreDepositEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
     credit_facility_repo: CreditFacilityRepo<E>,
@@ -70,8 +69,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<deposit::CoreDepositEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -94,18 +92,13 @@ where
 impl<Perms, E> CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<deposit::CoreDepositAction>
-        + From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<deposit::CoreDepositObject>
-        + From<CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject> + From<CustomerObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<deposit::CoreDepositEvent>,
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
