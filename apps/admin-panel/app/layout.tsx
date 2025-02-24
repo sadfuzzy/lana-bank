@@ -1,16 +1,16 @@
-"use client"
+import type { Metadata } from "next"
 
-import { useMemo } from "react"
 import { Inter_Tight } from "next/font/google"
 
-import { ApolloProvider } from "@apollo/client"
+import AppLoading from "./app-loading"
 
-import { BreadcrumbProvider } from "./breadcrumb-provider"
 import { Authenticated } from "./auth/session"
 
-import { makeClient } from "@/lib/apollo-client/client"
-import { Toast } from "@/components/toast"
-import { env } from "@/env"
+export const metadata: Metadata = {
+  title: "Lana Bank",
+  description:
+    "Unlock the power of Bitcoin-backed lending with Lana Bank – fast, secure, and seamless",
+}
 
 // eslint-disable-next-line import/no-unassigned-import
 import "./globals.css"
@@ -21,22 +21,12 @@ const inter = Inter_Tight({
 })
 
 const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const appVersion = env.NEXT_PUBLIC_APP_VERSION
-  const client = useMemo(() => {
-    return makeClient({
-      coreAdminGqlUrl: appVersion.endsWith("dev") ? "/admin/graphql" : "/graphql",
-    })
-  }, [appVersion])
-
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased bg-background`}>
-        <BreadcrumbProvider>
-          <ApolloProvider client={client}>
-            <Toast />
-            <Authenticated>{children}</Authenticated>
-          </ApolloProvider>
-        </BreadcrumbProvider>
+        <AppLoading>
+          <Authenticated>{children}</Authenticated>
+        </AppLoading>
       </body>
     </html>
   )

@@ -13,12 +13,15 @@ const Verify: React.FC = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const [isLoading, setIsLoading] = useState(false)
   const [otp, setOtp] = useState("")
   const [error, setError] = useState("")
   const formRef = React.useRef<HTMLFormElement>(null)
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setError("")
+    setIsLoading(true)
 
     try {
       const flowId = searchParams.get("flow") || ""
@@ -26,6 +29,8 @@ const Verify: React.FC = () => {
       router.push("/dashboard")
     } catch {
       setError("Entered OTP is incorrect or has expired, please try again")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -57,7 +62,9 @@ const Verify: React.FC = () => {
           defaultValue={otp}
           onChange={setOtp}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" loading={isLoading}>
+          Submit
+        </Button>
         {error && <div className="text-destructive">{error}</div>}
       </form>
     </>

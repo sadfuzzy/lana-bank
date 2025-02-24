@@ -12,11 +12,13 @@ import { Input } from "@/components/input"
 const Login: React.FC = () => {
   const router = useRouter()
 
+  const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [error, setError] = useState("")
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setIsLoading(true)
     setError("")
 
     try {
@@ -24,6 +26,8 @@ const Login: React.FC = () => {
       router.push(`/auth/verify?flow=${flowId}`)
     } catch {
       setError("Please check your credentials and try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -44,7 +48,9 @@ const Login: React.FC = () => {
           defaultValue={email}
           onChange={setEmail}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" loading={isLoading}>
+          Submit
+        </Button>
         {error && <div className="text-destructive">{error}</div>}
       </form>
     </>

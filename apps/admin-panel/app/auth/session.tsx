@@ -11,9 +11,20 @@ import {
 import { usePathname, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 
+import { ApolloProvider } from "@apollo/client"
+
 import { AppLayout } from "../app-layout"
 
+import { BreadcrumbProvider } from "../breadcrumb-provider"
+
+import { useAppLoading } from "../app-loading"
+
 import { getSession, logoutUser } from "./ory"
+
+import { Toast } from "@/components/toast"
+
+import { makeClient } from "@/lib/apollo-client/client"
+import { env } from "@/env"
 
 const AuthenticatedStore = createContext({
   // eslint-disable-next-line no-empty-function
@@ -27,6 +38,7 @@ type Props = {
 const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   const router = useRouter()
   const pathName = usePathname()
+  const { stopAppLoadingAnimation } = useAppLoading()
 
   const [isAuthSetInLocalStorage, setIsAuthSetInLocalStorage] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
@@ -65,9 +77,18 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
           localStorage.removeItem("isAuthenticated")
         }
         if (!pathName.startsWith("/auth")) router.push("/auth/login")
+      } finally {
+        stopAppLoadingAnimation()
       }
     })()
-  }, [pathName, router])
+  }, [pathName, router, stopAppLoadingAnimation])
+
+  const appVersion = env.NEXT_PUBLIC_APP_VERSION
+  const client = useMemo(() => {
+    return makeClient({
+      coreAdminGqlUrl: appVersion.endsWith("dev") ? "/admin/graphql" : "/graphql",
+    })
+  }, [appVersion])
 
   const Stack =
     isAuthenticated || (isAuthenticated === null && isAuthSetInLocalStorage) ? (
@@ -79,9 +100,14 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
     )
 
   return (
-    <AuthenticatedStore.Provider value={{ logoutInAuthState }}>
-      {Stack}
-    </AuthenticatedStore.Provider>
+    <BreadcrumbProvider>
+      <ApolloProvider client={client}>
+        <AuthenticatedStore.Provider value={{ logoutInAuthState }}>
+          <Toast />
+          {Stack}
+        </AuthenticatedStore.Provider>
+      </ApolloProvider>
+    </BreadcrumbProvider>
   )
 }
 
