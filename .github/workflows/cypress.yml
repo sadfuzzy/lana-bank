@@ -3,11 +3,8 @@ name: cypress
 on:
   pull_request:
     branches: [main]
-    paths: ["apps/admin-panel/**"]
   push:
     branches: [main]
-    paths: ["apps/admin-panel/**"]
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
