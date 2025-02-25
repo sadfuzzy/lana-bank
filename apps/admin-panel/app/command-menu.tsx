@@ -492,7 +492,7 @@ const CommandMenu = () => {
         setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
       />
 
-      {customer && (
+      {customer && customer.depositAccount && (
         <>
           <CreateDepositDialog
             openCreateDepositDialog={createDeposit}

@@ -100,7 +100,9 @@ export default function CustomerLayout({
       <CustomerDetailsCard customer={data.customer} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus customerId={customerId} />
-        <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
+        {data.customer.depositAccount && (
+          <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
+        )}
       </div>
       <Tabs
         defaultValue={TABS[0].url}

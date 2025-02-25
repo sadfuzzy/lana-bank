@@ -64,10 +64,8 @@ where
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerOnboardingConfig,
     ) -> Result<Self, CustomerOnboardingError> {
-        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin);
-
         jobs.add_initializer_and_spawn_unique(
-            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, kratos_admin),
+            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, config),
             CustomerOnboardingJobConfig::new(),
         )
         .await?;

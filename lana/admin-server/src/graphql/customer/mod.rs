@@ -58,7 +58,10 @@ impl Customer {
         self.entity.applicant_id.as_deref()
     }
 
-    async fn deposit_account(&self, ctx: &Context<'_>) -> async_graphql::Result<DepositAccount> {
+    async fn deposit_account(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<DepositAccount>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         Ok(app
@@ -73,8 +76,7 @@ impl Customer {
             .entities
             .into_iter()
             .map(DepositAccount::from)
-            .next()
-            .ok_or(CustomerError::DepositAccountNotFound)?)
+            .next())
     }
 
     async fn credit_facilities(

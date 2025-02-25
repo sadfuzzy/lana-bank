@@ -593,7 +593,7 @@ type Customer {
 	email: String!
 	telegramId: String!
 	applicantId: String
-	depositAccount: DepositAccount!
+	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	documents: [Document!]!
 	subjectCanCreateCreditFacility: Boolean!

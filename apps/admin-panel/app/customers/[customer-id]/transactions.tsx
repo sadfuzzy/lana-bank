@@ -18,8 +18,8 @@ import { UsdCents } from "@/types"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
-  GetCustomerTransactionHistoryQuery["customer"]
->["depositAccount"]["history"]["edges"][number]["node"]
+  NonNullable<GetCustomerTransactionHistoryQuery["customer"]>["depositAccount"]
+>["history"]["edges"][number]["node"]
 
 type CustomerTransactionsTableProps = {
   historyEntries: HistoryNode[]

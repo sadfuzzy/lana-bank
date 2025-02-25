@@ -119,9 +119,12 @@ const columns: Column<Customer>[] = [
   {
     key: "depositAccount",
     label: "USD Balance",
-    render: (depositAccount) => (
-      <Balance amount={depositAccount?.balance?.settled ?? 0} currency="usd" />
-    ),
+    render: (depositAccount) =>
+      depositAccount?.balance?.settled ? (
+        <Balance amount={depositAccount?.balance?.settled} currency="usd" />
+      ) : (
+        <></>
+      ),
   },
 ]
 export default Customers

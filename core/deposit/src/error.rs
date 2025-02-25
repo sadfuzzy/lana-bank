@@ -4,7 +4,7 @@ use thiserror::Error;
 pub enum CoreDepositError {
     #[error("CoreDepositError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("CoreChartOfAccountsError - AuditError: {0}")]
+    #[error("CoreDepositError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreDepositError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
@@ -28,4 +28,17 @@ pub enum CoreDepositError {
     SubjectIsNotDepositAccountHolder,
     #[error("CoreDepositError - DepositAccountNotFound")]
     DepositAccountNotFound,
+}
+
+impl CoreDepositError {
+    pub fn is_account_already_exists(&self) -> bool {
+        matches!(
+            self,
+            Self::CoreChartOfAccountsError(
+                chart_of_accounts::error::CoreChartOfAccountsError::CalaAccount(
+                    cala_ledger::account::error::AccountError::ExternalIdAlreadyExists
+                )
+            )
+        )
+    }
 }

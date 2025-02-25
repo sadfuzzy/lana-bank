@@ -9,8 +9,8 @@ import { GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
   balance: NonNullable<
-    GetCustomerBasicDetailsQuery["customer"]
-  >["depositAccount"]["balance"]
+    NonNullable<GetCustomerBasicDetailsQuery["customer"]>["depositAccount"]
+  >["balance"]
 }
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({

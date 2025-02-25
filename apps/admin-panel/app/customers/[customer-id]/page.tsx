@@ -102,7 +102,7 @@ export default function CustomerTransactionsPage({
   if (error) return <div>{error.message}</div>
 
   const historyEntries =
-    data?.customer?.depositAccount.history.edges.map((edge) => edge.node) || []
+    data?.customer?.depositAccount?.history.edges.map((edge) => edge.node) || []
 
   return <CustomerTransactionsTable historyEntries={historyEntries} />
 }

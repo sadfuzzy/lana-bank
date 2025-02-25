@@ -17,6 +17,8 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
+use crate::config::*;
+
 #[derive(serde::Serialize)]
 pub struct CustomerOnboardingJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -53,6 +55,7 @@ where
     kratos_admin: KratosAdmin,
     customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
+    config: CustomerOnboardingConfig,
 }
 
 impl<Perms, E> CustomerOnboardingJobInitializer<Perms, E>
@@ -66,13 +69,16 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
-        kratos_admin: KratosAdmin,
+        config: CustomerOnboardingConfig,
     ) -> Self {
+        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
+
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
             deposit: deposit.clone(),
             kratos_admin,
+            config,
         }
     }
 }
@@ -102,6 +108,7 @@ where
             customers: self.customers.clone(),
             deposit: self.deposit.clone(),
             kratos_admin: self.kratos_admin.clone(),
+            config: self.config.clone(),
         }))
     }
 
@@ -129,6 +136,7 @@ where
     customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
     kratos_admin: KratosAdmin,
+    config: CustomerOnboardingConfig,
 }
 #[async_trait]
 impl<Perms, E> JobRunner for CustomerOnboardingJobRunner<Perms, E>
@@ -186,12 +194,19 @@ where
     {
         if let Some(CoreCustomerEvent::CustomerCreated { id, email }) = message.as_event() {
             message.inject_trace_parent();
-            let description = &format!("Deposit Account for Customer {}", id);
-            let account_ref = &format!("deposit-customer-account:{}", id);
-            self.deposit
+
+            if self.config.auto_create_deposit_account {
+                let description = &format!("Deposit Account for Customer {}", id);
+                let account_ref = &format!("deposit-customer-account:{}", id);
+                match self.deposit
                 .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
                 "customer-deposits", description)
-                .await?;
+                .await {
+                Ok(_) => {}
+                Err(e) if e.is_account_already_exists() => {},
+                Err(e) => return Err(e.into()),
+                }
+            }
 
             let authentication_id = self
                 .kratos_admin
