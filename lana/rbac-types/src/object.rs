@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 use chart_of_accounts::CoreChartOfAccountsObject;
+use core_credit::CoreCreditObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_user::UserObject;
 use dashboard::DashboardModuleObject;
@@ -18,6 +19,7 @@ pub enum LanaObject {
     Customer(CustomerObject),
     ChartOfAccounts(CoreChartOfAccountsObject),
     Deposit(CoreDepositObject),
+    Credit(CoreCreditObject),
     Dashboard(DashboardModuleObject),
 }
 
@@ -56,6 +58,11 @@ impl From<CoreDepositObject> for LanaObject {
         LanaObject::Deposit(object)
     }
 }
+impl From<CoreCreditObject> for LanaObject {
+    fn from(object: CoreCreditObject) -> Self {
+        LanaObject::Credit(object)
+    }
+}
 
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -68,6 +75,7 @@ impl Display for LanaObject {
             Customer(action) => action.fmt(f),
             ChartOfAccounts(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
+            Credit(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
     }
@@ -86,6 +94,7 @@ impl FromStr for LanaObject {
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
             ChartOfAccounts => LanaObject::from(object.parse::<CoreChartOfAccountsObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
+            Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
             Dashboard => LanaObject::from(
                 object
                     .parse::<DashboardModuleObject>()
@@ -108,7 +117,6 @@ pub enum AppObject {
     Report,
     Audit,
     Ledger,
-    CreditFacility,
     TrialBalance,
     ProfitAndLossStatement,
     BalanceSheet,
@@ -136,7 +144,6 @@ impl FromStr for AppObject {
             Report => AppObject::Report,
             Audit => AppObject::Audit,
             Ledger => AppObject::Ledger,
-            CreditFacility => AppObject::CreditFacility,
             TrialBalance => AppObject::TrialBalance,
             ProfitAndLossStatement => AppObject::ProfitAndLossStatement,
             BalanceSheet => AppObject::BalanceSheet,

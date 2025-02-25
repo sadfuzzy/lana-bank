@@ -7,7 +7,6 @@ use cala_ledger::{
     velocity::{NewVelocityControl, VelocityControlId},
     AccountId, CalaLedger, Currency, JournalId, TransactionId,
 };
-use chart_of_accounts::TransactionAccountFactory;
 
 use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
 
@@ -42,17 +41,8 @@ impl CreditLedger {
         cala: &CalaLedger,
         journal_id: JournalId,
         account_factories: CreditFacilityAccountFactories,
+        omnibus_ids: CreditFacilityOmnibusAccountIds,
     ) -> Result<Self, CreditLedgerError> {
-        let bank_collateral_account_id = Self::create_bank_collateral_account(
-            cala,
-            account_factories.collateral_omnibus.clone(),
-        )
-        .await?;
-
-        let credit_omnibus_account_id =
-            Self::create_credit_omnibus_account(cala, account_factories.facility_omnibus.clone())
-                .await?;
-
         templates::AddCollateral::init(cala).await?;
         templates::ApproveCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -80,8 +70,8 @@ impl CreditLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            bank_collateral_account_id,
-            credit_omnibus_account_id,
+            bank_collateral_account_id: omnibus_ids.bank_collateral,
+            credit_omnibus_account_id: omnibus_ids.facility,
             credit_facility_control_id,
             account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
@@ -440,48 +430,6 @@ impl CreditLedger {
         }
         op.commit().await?;
         Ok(())
-    }
-
-    async fn create_bank_collateral_account(
-        cala: &CalaLedger,
-        account_factory: TransactionAccountFactory,
-    ) -> Result<AccountId, CreditLedgerError> {
-        let id = AccountId::new();
-
-        let mut op = cala.begin_operation().await?;
-        account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.reference,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
-            .await?;
-        op.commit().await?;
-
-        Ok(id)
-    }
-
-    async fn create_credit_omnibus_account(
-        cala: &CalaLedger,
-        account_factory: TransactionAccountFactory,
-    ) -> Result<AccountId, CreditLedgerError> {
-        let id = AccountId::new();
-
-        let mut op = cala.begin_operation().await?;
-        account_factory
-            .create_transaction_account_in_op(
-                &mut op,
-                id,
-                &account_factory.control_sub_account.reference,
-                &account_factory.control_sub_account.name,
-                &account_factory.control_sub_account.name,
-            )
-            .await?;
-        op.commit().await?;
-
-        Ok(id)
     }
 
     pub async fn create_credit_facility_control(

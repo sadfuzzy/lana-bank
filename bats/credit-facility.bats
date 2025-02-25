@@ -16,6 +16,21 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_customer_activation() {
+  customer_id=$1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{ id: $customerId }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  status=$(graphql_output '.data.customer.status')
+  [[ "$status" == "ACTIVE" ]] || exit 1
+
+}
+
 wait_for_active() {
   credit_facility_id=$1
 
@@ -80,15 +95,31 @@ ymd() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
+  # retry 10 1 wait_for_customer_activation "$customer_id"
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
+  [[ "$deposit_account_id" != "null" ]] || exit 1
+
   facility=100000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
+    --arg disbursal_credit_account_id "$deposit_account_id" \
     --argjson facility "$facility" \
     '{
       input: {
         customerId: $customerId,
         facility: $facility,
+        disbursalCreditAccountId: $disbursal_credit_account_id,
         terms: {
           annualRate: "12",
           accrualInterval: "END_OF_MONTH",
@@ -112,7 +143,6 @@ ymd() {
 
 @test "credit-facility: can update collateral" {
   credit_facility_id=$(read_value 'credit_facility_id')
-  echo "credit_facility_id: $credit_facility_id"
 
   variables=$(
     jq -n \
@@ -125,7 +155,6 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-collateral-update' "$variables"
-  echo $(graphql_output)
   credit_facility_id=$(graphql_output '.data.creditFacilityCollateralUpdate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
 
@@ -148,7 +177,6 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  echo $(graphql_output)
   disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
   [[ "$disbursal_index" != "null" ]] || exit 1
 

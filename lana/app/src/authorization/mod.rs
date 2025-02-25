@@ -4,6 +4,7 @@ use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
+use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 pub use core_user::{CoreUserAction, UserObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
@@ -115,10 +116,10 @@ pub async fn get_visible_navigation_items(
         credit_facilities: authz
             .check_all_permissions(
                 sub,
-                Object::CreditFacility,
+                CoreCreditObject::all_credit_facilities(),
                 &[
-                    Action::CreditFacility(CreditFacilityAction::Read),
-                    Action::CreditFacility(CreditFacilityAction::List),
+                    CoreCreditAction::CREDIT_FACILITY_READ,
+                    CoreCreditAction::CREDIT_FACILITY_LIST,
                 ],
             )
             .await?,

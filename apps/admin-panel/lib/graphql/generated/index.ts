@@ -462,6 +462,7 @@ export type CreditFacilityConnection = {
 
 export type CreditFacilityCreateInput = {
   customerId: Scalars['UUID']['input'];
+  disbursalCreditAccountId: Scalars['UUID']['input'];
   facility: Scalars['UsdCents']['input'];
   terms: TermsInput;
 };

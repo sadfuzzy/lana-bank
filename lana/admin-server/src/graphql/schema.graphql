@@ -438,6 +438,7 @@ type CreditFacilityConnection {
 
 input CreditFacilityCreateInput {
 	customerId: UUID!
+	disbursalCreditAccountId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
 }

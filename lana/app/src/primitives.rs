@@ -3,6 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 
 pub use chart_of_accounts::ChartId;
+pub use core_credit::{
+    CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalIdx,
+    DisbursalStatus, PaymentId,
+};
 pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
@@ -12,25 +16,6 @@ pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId
 pub use job::JobId;
 pub use lana_ids::*;
 pub use rbac_types::{LanaRole, Role, Subject};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
-#[serde(transparent)]
-#[sqlx(transparent)]
-pub struct DisbursalIdx(i32);
-async_graphql::scalar!(DisbursalIdx);
-
-impl fmt::Display for DisbursalIdx {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl DisbursalIdx {
-    pub const FIRST: Self = Self(1);
-    pub const fn next(&self) -> Self {
-        Self(self.0 + 1)
-    }
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
@@ -60,36 +45,6 @@ pub enum LoanStatus {
     New,
     Active,
     Closed,
-}
-
-#[derive(
-    async_graphql::Enum,
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    PartialEq,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-pub enum CreditFacilityStatus {
-    #[default]
-    PendingCollateralization,
-    PendingApproval,
-    Active,
-    Matured,
-    Closed,
-}
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub enum DisbursalStatus {
-    New,
-    Approved,
-    Denied,
-    Confirmed,
 }
 
 pub use cala_ledger::primitives::{
@@ -144,10 +99,4 @@ mod test {
         let sats = Satoshis::from(12_345);
         assert_eq!(UsdCents::from(617), price.sats_to_cents_round_down(sats));
     }
-}
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
-pub enum CollateralAction {
-    Add,
-    Remove,
 }

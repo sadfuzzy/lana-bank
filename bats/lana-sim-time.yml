@@ -13,6 +13,8 @@ app:
   report:
     dbt_output_dataset: "dbt_gha"
     dev_disable_auto_create: true
+  credit_facility:
+    customer_active_check_enabled: false
 time:
   realtime: false
   sim_time:

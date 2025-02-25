@@ -1,15 +1,13 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+pub use core_credit::{CoreCreditEvent, FacilityCollateralUpdateAction};
 use core_customer::CoreCustomerEvent;
-use core_money::{Satoshis, UsdCents};
 use core_user::CoreUserEvent;
 use deposit::CoreDepositEvent;
 use governance::GovernanceEvent;
-use lana_ids::CreditFacilityId;
 use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -18,57 +16,8 @@ pub enum LanaEvent {
     Governance(GovernanceEvent),
     User(CoreUserEvent),
     Customer(CoreCustomerEvent),
-    Credit(CreditEvent),
+    Credit(CoreCreditEvent),
     Deposit(CoreDepositEvent),
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum FacilityCollateralUpdateAction {
-    Add,
-    Remove,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "tag")]
-pub enum CreditEvent {
-    FacilityCreated {
-        id: CreditFacilityId,
-        created_at: DateTime<Utc>,
-    },
-    FacilityApproved {
-        id: CreditFacilityId,
-    },
-    FacilityActivated {
-        id: CreditFacilityId,
-        activated_at: DateTime<Utc>,
-    },
-    FacilityCompleted {
-        id: CreditFacilityId,
-        completed_at: DateTime<Utc>,
-    },
-    DisbursalExecuted {
-        id: CreditFacilityId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-    },
-    FacilityRepaymentRecorded {
-        id: CreditFacilityId,
-        disbursal_amount: UsdCents,
-        interest_amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-    },
-    FacilityCollateralUpdated {
-        id: CreditFacilityId,
-        new_amount: Satoshis,
-        abs_diff: Satoshis,
-        action: FacilityCollateralUpdateAction,
-        recorded_at: DateTime<Utc>,
-    },
-    AccrualExecuted {
-        id: CreditFacilityId,
-        amount: UsdCents,
-        accrued_at: DateTime<Utc>,
-    },
 }
 
 macro_rules! impl_event_marker {
@@ -91,6 +40,6 @@ macro_rules! impl_event_marker {
 
 impl_event_marker!(GovernanceEvent, Governance);
 impl_event_marker!(CoreUserEvent, User);
-impl_event_marker!(CreditEvent, Credit);
+impl_event_marker!(CoreCreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);
 impl_event_marker!(CoreCustomerEvent, Customer);

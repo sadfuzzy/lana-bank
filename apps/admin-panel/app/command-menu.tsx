@@ -508,6 +508,7 @@ const CommandMenu = () => {
             openCreateCreditFacilityDialog={createFacility}
             setOpenCreateCreditFacilityDialog={() => setCreateFacility(false)}
             customerId={customer.customerId}
+            disbursalCreditAccountId={customer.depositAccount.depositAccountId}
           />
         </>
       )}

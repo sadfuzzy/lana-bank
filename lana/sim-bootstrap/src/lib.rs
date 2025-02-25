@@ -55,11 +55,26 @@ async fn create_and_process_facility(
 
     let mut stream = app.outbox().listen_persisted(None).await?;
 
+    let deposit_account = app
+        .deposits()
+        .list_accounts_by_created_at_for_account_holder(
+            &sub,
+            customer_id,
+            Default::default(),
+            es_entity::ListDirection::Descending,
+        )
+        .await?
+        .entities
+        .into_iter()
+        .next()
+        .expect("Deposit account not found");
+
     let cf = app
         .credit_facilities()
         .initiate(
             &sub,
             customer_id,
+            deposit_account.id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
         )
@@ -67,17 +82,19 @@ async fn create_and_process_facility(
 
     while let Some(msg) = stream.next().await {
         match &msg.payload {
-            Some(LanaEvent::Credit(CreditEvent::FacilityApproved { id })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
                 app.credit_facilities()
                     .update_collateral(&sub, cf.id, Satoshis::try_from_btc(dec!(230))?)
                     .await?;
             }
-            Some(LanaEvent::Credit(CreditEvent::FacilityActivated { id, .. })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
+                if cf.id == *id =>
+            {
                 app.credit_facilities()
                     .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
             }
-            Some(LanaEvent::Credit(CreditEvent::AccrualExecuted { id, amount, .. }))
+            Some(LanaEvent::Credit(CoreCreditEvent::AccrualExecuted { id, amount, .. }))
                 if { cf.id == *id && amount > &UsdCents::ZERO } =>
             {
                 let _ = app
@@ -98,7 +115,7 @@ async fn create_and_process_facility(
                         .await?;
                 }
             }
-            Some(LanaEvent::Credit(CreditEvent::FacilityCompleted { id, .. })) => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
                 if cf.id == *id {
                     break;
                 }

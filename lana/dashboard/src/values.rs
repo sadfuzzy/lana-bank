@@ -17,30 +17,31 @@ impl DashboardValues {
     pub(crate) fn process_event(&mut self, recorded_at: DateTime<Utc>, event: &LanaEvent) -> bool {
         self.last_updated = recorded_at;
         match event {
-            LanaEvent::Credit(CreditEvent::FacilityCreated { .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::FacilityCreated { .. }) => {
                 self.pending_facilities += 1;
                 true
             }
-            LanaEvent::Credit(CreditEvent::FacilityActivated { .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::FacilityActivated { .. }) => {
                 self.pending_facilities -= 1;
                 self.active_facilities += 1;
                 true
             }
-            LanaEvent::Credit(CreditEvent::FacilityCompleted { .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { .. }) => {
                 self.active_facilities -= 1;
                 true
             }
-            LanaEvent::Credit(CreditEvent::DisbursalExecuted { amount, .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::DisbursalExecuted { amount, .. }) => {
                 self.total_disbursed += *amount;
                 true
             }
-            LanaEvent::Credit(CreditEvent::FacilityRepaymentRecorded {
-                disbursal_amount, ..
+            LanaEvent::Credit(CoreCreditEvent::FacilityRepaymentRecorded {
+                disbursal_amount,
+                ..
             }) => {
                 self.total_disbursed -= *disbursal_amount;
                 true
             }
-            LanaEvent::Credit(CreditEvent::FacilityCollateralUpdated {
+            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
                 action: FacilityCollateralUpdateAction::Add,
                 ..
@@ -48,7 +49,7 @@ impl DashboardValues {
                 self.total_collateral += *abs_diff;
                 true
             }
-            LanaEvent::Credit(CreditEvent::FacilityCollateralUpdated {
+            LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
                 action: FacilityCollateralUpdateAction::Remove,
                 ..

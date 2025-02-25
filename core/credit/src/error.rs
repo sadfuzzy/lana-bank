@@ -34,6 +34,8 @@ pub enum CoreCreditError {
     SubjectIsNotCustomer,
     #[error("CreditFacilityError - CustomerIsNotActive")]
     CustomerNotActive,
+    #[error("CreditFacilityError - CustomerNotFound")]
+    CustomerNotFound,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);

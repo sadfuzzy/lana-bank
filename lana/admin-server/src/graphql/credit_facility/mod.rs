@@ -218,6 +218,7 @@ impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
 #[derive(InputObject)]
 pub struct CreditFacilityCreateInput {
     pub customer_id: UUID,
+    pub disbursal_credit_account_id: UUID,
     pub facility: UsdCents,
     pub terms: TermsInput,
 }

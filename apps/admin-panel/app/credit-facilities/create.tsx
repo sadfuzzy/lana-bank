@@ -76,6 +76,7 @@ type CreateCreditFacilityDialogProps = {
   setOpenCreateCreditFacilityDialog: (isOpen: boolean) => void
   openCreateCreditFacilityDialog: boolean
   customerId: string
+  disbursalCreditAccountId: string
 }
 
 const initialFormValues = {
@@ -95,6 +96,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   setOpenCreateCreditFacilityDialog,
   openCreateCreditFacilityDialog,
   customerId,
+  disbursalCreditAccountId,
 }) => {
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenCreateCreditFacilityDialog(false),
@@ -215,6 +217,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       await createCreditFacility({
         variables: {
           input: {
+            disbursalCreditAccountId,
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
             terms: {

@@ -25,7 +25,7 @@ pub enum CreditFacilityEvent {
         terms: TermValues,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        deposit_account_id: uuid::Uuid,
+        disbursal_credit_account_id: LedgerAccountId,
         approval_process_id: ApprovalProcessId,
         audit_info: AuditInfo,
     },
@@ -318,7 +318,7 @@ pub struct CreditFacility {
     pub customer_id: CustomerId,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
-    pub deposit_account_id: uuid::Uuid,
+    pub disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -548,7 +548,7 @@ impl CreditFacility {
             tx_id,
             tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.deposit_account_id.into(),
+            debit_account_id: self.disbursal_credit_account_id,
             facility_amount: self.initial_facility(),
             structuring_fee_amount: self.structuring_fee(),
         };
@@ -601,7 +601,7 @@ impl CreditFacility {
             .idx(idx)
             .amount(amount)
             .account_ids(self.account_ids)
-            .deposit_account_id(self.deposit_account_id)
+            .disbursal_credit_account_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal"))
@@ -732,7 +732,7 @@ impl CreditFacility {
         Ok(interest_accrual)
     }
 
-    pub(crate) fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
+    pub fn interest_accrual_in_progress(&mut self) -> Option<&mut InterestAccrual> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -794,7 +794,11 @@ impl CreditFacility {
         }
     }
 
-    fn collateral(&self) -> Satoshis {
+    pub fn can_be_completed(&self) -> bool {
+        self.outstanding().is_zero()
+    }
+
+    pub fn collateral(&self) -> Satoshis {
         self.events
             .iter_all()
             .rev()
@@ -851,7 +855,7 @@ impl CreditFacility {
             .credit_facility_id(self.id)
             .amounts(amounts)
             .account_ids(self.account_ids)
-            .deposit_account_id(self.deposit_account_id)
+            .disbursal_credit_account_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
             .build()
             .expect("could not build new payment"))
@@ -864,7 +868,7 @@ impl CreditFacility {
             .count()
     }
 
-    pub(super) fn last_collateralization_state(&self) -> CollateralizationState {
+    pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
         }
@@ -1111,7 +1115,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     id,
                     customer_id,
                     account_ids,
-                    deposit_account_id,
+                    disbursal_credit_account_id,
                     terms: t,
                     approval_process_id,
                     ..
@@ -1122,7 +1126,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .customer_id(*customer_id)
                         .terms(*t)
                         .account_ids(*account_ids)
-                        .deposit_account_id(*deposit_account_id)
+                        .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
                 }
                 CreditFacilityEvent::Activated { activated_at, .. } => {
@@ -1163,7 +1167,7 @@ pub struct NewCreditFacility {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
     account_ids: CreditFacilityAccountIds,
-    deposit_account_id: uuid::Uuid,
+    disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -1185,7 +1189,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 terms: self.terms,
                 facility: self.facility,
                 account_ids: self.account_ids,
-                deposit_account_id: self.deposit_account_id,
+                disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
             }],
         )
@@ -1254,7 +1258,7 @@ mod test {
             facility: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
-            deposit_account_id: uuid::Uuid::new_v4(),
+            disbursal_credit_account_id: LedgerAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
         }]
     }
@@ -1939,7 +1943,7 @@ mod test {
                 .terms(default_terms())
                 .facility(UsdCents::from(1_000_000_00))
                 .account_ids(CreditFacilityAccountIds::new())
-                .deposit_account_id(uuid::Uuid::new_v4())
+                .disbursal_credit_account_id(LedgerAccountId::new())
                 .audit_info(dummy_audit_info())
                 .build()
                 .expect("could not build new credit facility");

@@ -1,5 +1,5 @@
 [package]
-name = "credit"
+name = "core-credit"
 version = "0.3.114-dev"
 edition = "2021"
 

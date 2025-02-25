@@ -18,7 +18,7 @@ pub enum PaymentEvent {
         facility_id: CreditFacilityId,
         amounts: CreditFacilityPaymentAmounts,
         account_ids: CreditFacilityAccountIds,
-        deposit_account_id: uuid::Uuid,
+        disbursal_credit_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
 }
@@ -32,7 +32,7 @@ pub struct Payment {
     pub facility_id: CreditFacilityId,
     pub amounts: CreditFacilityPaymentAmounts,
     pub account_ids: CreditFacilityAccountIds,
-    pub deposit_account_id: uuid::Uuid,
+    pub disbursal_credit_account_id: LedgerAccountId,
 
     pub(super) events: EntityEvents<PaymentEvent>,
 }
@@ -49,7 +49,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     facility_id,
                     account_ids,
                     amounts,
-                    deposit_account_id,
+                    disbursal_credit_account_id,
                     ..
                 } => {
                     builder = builder
@@ -59,7 +59,7 @@ impl TryFromEvents<PaymentEvent> for Payment {
                         .facility_id(*facility_id)
                         .amounts(*amounts)
                         .account_ids(*account_ids)
-                        .deposit_account_id(*deposit_account_id)
+                        .disbursal_credit_account_id(*disbursal_credit_account_id)
                 }
             }
         }
@@ -87,7 +87,7 @@ pub struct NewPayment {
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amounts: CreditFacilityPaymentAmounts,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) deposit_account_id: uuid::Uuid,
+    pub(super) disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -108,7 +108,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 facility_id: self.credit_facility_id,
                 amounts: self.amounts,
                 account_ids: self.account_ids,
-                deposit_account_id: self.deposit_account_id,
+                disbursal_credit_account_id: self.disbursal_credit_account_id,
                 audit_info: self.audit_info,
             }],
         )

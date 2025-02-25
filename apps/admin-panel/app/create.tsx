@@ -324,6 +324,7 @@ const CreateButton = () => {
               setCreateFacility(false)
             }}
             customerId={customer.customerId}
+            disbursalCreditAccountId={customer.depositAccount.depositAccountId}
           />
         </>
       )}

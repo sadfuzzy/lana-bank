@@ -185,7 +185,7 @@ impl Loader<TermsTemplateId> for LanaLoader {
 
 impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
-    type Error = Arc<lana_app::credit_facility::error::CreditFacilityError>;
+    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
 
     async fn load(
         &self,
@@ -201,7 +201,7 @@ impl Loader<CreditFacilityId> for LanaLoader {
 
 impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
-    type Error = Arc<lana_app::credit_facility::error::CreditFacilityError>;
+    type Error = Arc<lana_app::credit_facility::error::CoreCreditError>;
 
     async fn load(
         &self,

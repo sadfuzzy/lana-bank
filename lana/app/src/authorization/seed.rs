@@ -1,6 +1,7 @@
 use audit::SystemSubject;
 use authz::error::AuthorizationError;
 use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
+use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
@@ -293,61 +294,95 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(&role, Object::Document, DocumentAction::Archive)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Create)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::CreditFacility, CreditFacilityAction::List)
-        .await?;
-    authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::Activate,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::InitiateDisbursal,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::SettleDisbursal,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::ListDisbursals,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::UpdateCollateral,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_COMPLETE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::RecordPayment,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CreditFacility,
-            CreditFacilityAction::Complete,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERAL,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::DISBURSAL_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::DISBURSAL_SETTLE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::DISBURSAL_INITIATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreCreditObject::all_credit_facilities(),
+            CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
         )
         .await?;
     authz

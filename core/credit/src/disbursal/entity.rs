@@ -18,7 +18,7 @@ pub enum DisbursalEvent {
         idx: DisbursalIdx,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
-        deposit_account_id: uuid::Uuid,
+        disbursal_credit_account_id: LedgerAccountId,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -45,7 +45,7 @@ pub struct Disbursal {
     pub idx: DisbursalIdx,
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
-    pub deposit_account_id: uuid::Uuid,
+    pub disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     pub(super) events: EntityEvents<DisbursalEvent>,
@@ -63,7 +63,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     idx,
                     amount,
                     account_ids,
-                    deposit_account_id,
+                    disbursal_credit_account_id,
                     ..
                 } => {
                     builder = builder
@@ -73,7 +73,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .idx(*idx)
                         .amount(*amount)
                         .account_ids(*account_ids)
-                        .deposit_account_id(*deposit_account_id)
+                        .disbursal_credit_account_id(*disbursal_credit_account_id)
                 }
                 DisbursalEvent::Settled { ledger_tx_id, .. } => {
                     builder = builder.concluded_tx_id(*ledger_tx_id)
@@ -133,7 +133,7 @@ impl Disbursal {
             amount: self.amount,
             cancelled: !approved,
             credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.deposit_account_id.into(),
+            debit_account_id: self.disbursal_credit_account_id,
         };
         if approved {
             self.events.push(DisbursalEvent::Settled {
@@ -182,7 +182,7 @@ pub struct NewDisbursal {
     pub(super) idx: DisbursalIdx,
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
-    pub(super) deposit_account_id: uuid::Uuid,
+    pub(super) disbursal_credit_account_id: LedgerAccountId,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -204,7 +204,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 idx: self.idx,
                 amount: self.amount,
                 account_ids: self.account_ids,
-                deposit_account_id: self.deposit_account_id,
+                disbursal_credit_account_id: self.disbursal_credit_account_id,
                 audit_info: self.audit_info,
             }],
         )

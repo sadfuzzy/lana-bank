@@ -41,7 +41,7 @@ use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
 pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
-use terms::*;
+pub use terms::*;
 
 pub struct CreditFacilities<Perms, E>
 where
@@ -111,6 +111,7 @@ where
         price: &Price,
         outbox: &Outbox<E>,
         account_factories: CreditFacilityAccountFactories,
+        omnibus_account_ids: CreditFacilityOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CoreCreditError> {
@@ -118,7 +119,8 @@ where
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
         let payment_repo = PaymentRepo::new(pool);
-        let ledger = CreditLedger::init(cala, journal_id, account_factories).await?;
+        let ledger =
+            CreditLedger::init(cala, journal_id, account_factories, omnibus_account_ids).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,
@@ -241,6 +243,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        disbursal_credit_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
         facility: UsdCents,
         terms: TermValues,
     ) -> Result<CreditFacility, CoreCreditError> {
@@ -249,13 +252,14 @@ where
             .await?
             .expect("audit info missing");
 
-        if self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerMismatchForCreditFacility)?
-            .status
-            .is_inactive()
+        if self.config.customer_active_check_enabled
+            && self
+                .customer
+                .find_by_id(sub, customer_id)
+                .await?
+                .ok_or(CoreCreditError::CustomerNotFound)?
+                .status
+                .is_inactive()
         {
             return Err(CoreCreditError::CustomerNotActive);
         }
@@ -268,7 +272,7 @@ where
             .terms(terms)
             .facility(facility)
             .account_ids(CreditFacilityAccountIds::new())
-            .deposit_account_id(uuid::Uuid::new_v4())
+            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");
@@ -587,7 +591,7 @@ where
                 payment.ledger_tx_ref,
                 payment.amounts,
                 payment.account_ids,
-                payment.deposit_account_id.into(),
+                payment.disbursal_credit_account_id,
             )
             .await?;
 

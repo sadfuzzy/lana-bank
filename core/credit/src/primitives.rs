@@ -23,7 +23,6 @@ es_entity::entity_id! {
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
 
-
     CreditFacilityId => job::JobId,
     InterestAccrualId => job::JobId,
 
