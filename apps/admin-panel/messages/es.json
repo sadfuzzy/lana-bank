@@ -299,7 +299,7 @@
         },
         "status": {
           "upcoming": "PRÓXIMO",
-          "due": "VENCIDO",
+          "due": "POR PAGAR",
           "overdue": "ATRASADO",
           "paid": "PAGADO"
         }
@@ -759,7 +759,7 @@
           "headers": {
             "email": "Correo Electrónico"
           },
-          "noRoles": "No hay roles asignados",
+          "noRoles": "Sin roles asignados",
           "emptyMessage": "No se encontraron miembros en este comité"
         },
         "buttons": {
