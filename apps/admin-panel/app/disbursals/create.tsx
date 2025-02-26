@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -52,6 +53,7 @@ type CreditFacilityDisbursalInitiateDialogProps = {
 export const CreditFacilityDisbursalInitiateDialog: React.FC<
   CreditFacilityDisbursalInitiateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
+  const t = useTranslations("Disbursals.DisbursalDetails.CreditFacilityDisbursalInitiate")
   const router = useRouter()
   const [initiateDisbursal, { loading, reset }] =
     useCreditFacilityDisbursalInitiateMutation({
@@ -83,7 +85,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
             router.push(
               `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
             )
-            toast.success("Disbursal initiated successfully")
+            toast.success(t("messages.success"))
             handleCloseDialog()
           }
         },
@@ -93,7 +95,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError("An unknown error occurred")
+        setError(t("messages.unknownError"))
       }
     }
   }
@@ -109,20 +111,18 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent data-testid="disbursal-dialog-content">
         <DialogHeader>
-          <DialogTitle>Initiate Credit Facility Disbursal</DialogTitle>
-          <DialogDescription>
-            Enter the amount you want to disburse from this credit facility.
-          </DialogDescription>
+          <DialogTitle>{t("dialog.title")}</DialogTitle>
+          <DialogDescription>{t("dialog.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <Label htmlFor="amount">Amount (USD)</Label>
+            <Label htmlFor="amount">{t("form.labels.amount")}</Label>
             <div className="flex items-center gap-1">
               <Input
                 id="amount"
                 type="number"
                 required
-                placeholder="Enter amount"
+                placeholder={t("form.placeholders.amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 data-testid="disbursal-amount-input"
@@ -133,10 +133,10 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
           {error && <p className="text-destructive mb-4">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
-              Cancel
+              {t("buttons.cancel")}
             </Button>
             <Button type="submit" loading={loading} data-testid="disbursal-submit-button">
-              Initiate Disbursal
+              {t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>

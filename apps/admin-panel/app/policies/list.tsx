@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { gql } from "@apollo/client"
 
 import { Policy, usePoliciesQuery } from "@/lib/graphql/generated"
@@ -46,6 +47,8 @@ gql`
 `
 
 const PolicyList = () => {
+  const t = useTranslations("Policies.table")
+
   const { data, loading, error, fetchMore } = usePoliciesQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -54,9 +57,9 @@ const PolicyList = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable
-        columns={columns}
+        columns={columns(t)}
         data={data?.policies as PaginatedData<Policy>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -69,21 +72,23 @@ const PolicyList = () => {
 
 export default PolicyList
 
-const columns: Column<Policy>[] = [
+const columns = (t: ReturnType<typeof useTranslations>): Column<Policy>[] => [
   {
     key: "approvalProcessType",
-    label: "Process Type",
+    label: t("headers.approvalProcessType"),
     render: (type) => formatProcessType(type),
   },
   {
     key: "rules",
-    label: "Rule",
+    label: t("headers.rules"),
     render: (rules) => {
       if (rules.__typename === "CommitteeThreshold") {
-        return `${rules.committee.name} Committee`
+        return t("rules.committeeThreshold", { committeeName: rules.committee.name })
       }
       if (rules.__typename === "SystemApproval") {
-        return <span className="text-textColor-secondary">System</span>
+        return (
+          <span className="text-textColor-secondary">{t("rules.systemApproval")}</span>
+        )
       }
       return ""
     },

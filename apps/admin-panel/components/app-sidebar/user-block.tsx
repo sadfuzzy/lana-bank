@@ -1,7 +1,8 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { ChevronsUpDown, LogOut } from "lucide-react"
+import { ChevronsUpDown, LogOut, Globe } from "lucide-react"
+import { useLocale } from "next-intl"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Badge } from "@lana/web/ui/badge"
@@ -35,6 +36,12 @@ gql`
 export function UserBlock() {
   const { logout } = useLogout()
   const { data, loading } = useAvatarQuery()
+  const locale = useLocale()
+
+  const switchLocale = (newLocale: string) => {
+    document.cookie = `NEXT_LOCALE=${newLocale};path=/`
+    window.location.reload()
+  }
 
   if (loading && !data) {
     return (
@@ -87,6 +94,25 @@ export function UserBlock() {
                 <ID type="Your" id={userId} />
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="font-normal text-sm">
+              Language
+            </DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => switchLocale("en")}
+              className={locale === "en" ? "bg-accent" : ""}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              English
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => switchLocale("es")}
+              className={locale === "es" ? "bg-accent" : ""}
+            >
+              <Globe className="mr-2 h-4 w-4" />
+              Español
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-destructive focus:text-destructive cursor-pointer"

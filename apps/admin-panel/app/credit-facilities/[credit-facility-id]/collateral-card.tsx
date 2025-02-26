@@ -1,4 +1,5 @@
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
@@ -20,11 +21,14 @@ const getCvlStatus = (
   initialCvl: number,
   marginCallCvl: number,
   liquidationCvl: number,
+  t: (key: string) => string,
 ) => {
   if (currentCvl >= initialCvl) return { label: null, color: null }
-  if (currentCvl >= marginCallCvl) return { label: "Moderate", color: "text-warning" }
-  if (currentCvl >= liquidationCvl) return { label: "High", color: "text-warning" }
-  return { label: "Critical", color: "text-destructive" }
+  if (currentCvl >= marginCallCvl)
+    return { label: t("status.moderate"), color: "text-warning" }
+  if (currentCvl >= liquidationCvl)
+    return { label: t("status.high"), color: "text-warning" }
+  return { label: t("status.critical"), color: "text-destructive" }
 }
 
 const CvlStatusText: React.FC<{
@@ -32,12 +36,14 @@ const CvlStatusText: React.FC<{
   initialCvl: number
   marginCallCvl: number
   liquidationCvl: number
-}> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl }) => {
+  t: (key: string) => string
+}> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl, t }) => {
   const { label, color } = getCvlStatus(
     currentCvl,
     initialCvl,
     marginCallCvl,
     liquidationCvl,
+    t,
   )
   if (label && color) return <span className={`font-medium ${color}`}>{label}</span>
   return <></>
@@ -46,6 +52,8 @@ const CvlStatusText: React.FC<{
 export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = ({
   creditFacility,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.CollateralCard")
+
   const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
   const MarginCallPrice = calculatePrice({
     cvlPercentage: creditFacility.creditFacilityTerms.marginCallCvl,
@@ -69,33 +77,39 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
 
   const collateralDependentDetails: DetailItemProps[] = [
     {
-      label: "Collateral balance (BTC)",
+      label: t("details.collateralBalance"),
       value: (
         <Balance amount={creditFacility.balance.collateral.btcBalance} currency="btc" />
       ),
     },
     {
-      label: "Current BTC/USD Price",
+      label: t("details.currentPrice"),
       value: priceInfo && (
         <Balance amount={priceInfo.realtimePrice.usdCentsPerBtc} currency="usd" />
       ),
     },
     {
-      label: "Collateral value (USD)",
+      label: t("details.collateralValue"),
       value: priceInfo && (
         <Balance amount={(collateralInUsd * CENTS_PER_USD) as UsdCents} currency="usd" />
       ),
     },
     {
-      label: `Margin Call Price BTC/USD (${creditFacility.creditFacilityTerms.marginCallCvl}%)`,
+      label: t("details.marginCallPrice", {
+        percentage: creditFacility.creditFacilityTerms.marginCallCvl,
+      }),
       value: <Balance amount={MarginCallPrice as UsdCents} currency="usd" />,
     },
     {
-      label: `Liquidation Price BTC/USD (${creditFacility.creditFacilityTerms.liquidationCvl}%)`,
+      label: t("details.liquidationPrice", {
+        percentage: creditFacility.creditFacilityTerms.liquidationCvl,
+      }),
       value: <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />,
     },
     {
-      label: `Collateral to reach target (${creditFacility.creditFacilityTerms.initialCvl}%)`,
+      label: t("details.collateralToReachTarget", {
+        percentage: creditFacility.creditFacilityTerms.initialCvl,
+      }),
       value: (
         <Balance
           amount={(creditFacility.collateralToMatchInitialCvl ?? 0) as Satoshis}
@@ -105,7 +119,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
       valueTestId: "collateral-to-reach-target",
     },
     {
-      label: "Current CVL",
+      label: t("details.currentCvl"),
       value: (
         <div className="flex items-center gap-2">
           <span>{creditFacility.currentCvl.total}%</span>
@@ -115,6 +129,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
               initialCvl={creditFacility.creditFacilityTerms.initialCvl}
               marginCallCvl={creditFacility.creditFacilityTerms.marginCallCvl}
               liquidationCvl={creditFacility.creditFacilityTerms.liquidationCvl}
+              t={t}
             />
           )}
         </div>
@@ -125,7 +140,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
   return (
     <DetailsCard
       className="w-full"
-      title="Collateral"
+      title={t("title")}
       details={collateralDependentDetails}
       columns={2}
     />

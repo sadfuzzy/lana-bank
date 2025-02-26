@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -44,6 +45,8 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   setOpenCreateUserDialog,
   openCreateUserDialog,
 }) => {
+  const t = useTranslations("Users.createDialog")
+
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenCreateUserDialog(false),
   })
@@ -74,7 +77,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     setAssignRoleError(null)
 
     if (selectedRoles.length === 0) {
-      setError("Please select at least one role.")
+      setError(t("errors.selectRole"))
       return
     }
 
@@ -89,7 +92,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         finalize(userId)
       }
     } catch (error) {
-      handleError(error, "Error creating user:")
+      handleError(error, t("errors.createPrefix"))
     }
   }
 
@@ -100,7 +103,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           variables: { input: { id: userId, role } },
         })
       } catch (error) {
-        handleError(error, "Error assigning role:")
+        handleError(error, t("errors.assignRolePrefix"))
         return false
       }
     }
@@ -108,14 +111,13 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   }
 
   const finalize = (userId: string) => {
-    toast.success("User created successfully")
+    toast.success(t("success.userCreated"))
     navigate(`/users/${userId}`)
   }
 
   const handleError = (error: unknown, prefix: string) => {
     console.error(prefix, error)
-    const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred"
+    const errorMessage = error instanceof Error ? error.message : t("errors.unknown")
     setError(`${prefix} ${errorMessage}`)
   }
 
@@ -144,31 +146,28 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add new User</DialogTitle>
-          <DialogDescription>
-            Add a new user to the admin-panel by providing their email address and
-            selecting roles
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label>Email</Label>
+            <Label>{t("fields.email")}</Label>
             <Input
               type="email"
               required
-              placeholder="Please enter the email address"
+              placeholder={t("placeholders.email")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
               data-testid="create-user-email-input"
             />
             <p className="text-textColor-secondary text-xs ml-1 mt-1.5">
-              A magic link will be sent to the email address provided.
+              {t("emailHelperText")}
             </p>
           </div>
 
           <div>
-            <Label>Roles</Label>
+            <Label>{t("fields.roles")}</Label>
             <div className="ml-1 flex flex-col gap-1 align-middle">
               {Object.values(Role)
                 .filter((role) => role !== Role.Superuser)
@@ -197,7 +196,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               disabled={isSubmitDisabled}
               data-testid="create-user-submit-button"
             >
-              {isLoading ? "Processing..." : "Submit"}
+              {isLoading ? t("buttons.processing") : t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>

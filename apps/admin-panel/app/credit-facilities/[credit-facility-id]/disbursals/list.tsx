@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import CardWrapper from "@/components/card-wrapper"
 import { GetCreditFacilityDisbursalsQuery } from "@/lib/graphql/generated"
@@ -20,20 +21,22 @@ type CreditFacilityDisbursalsProps = {
 export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> = ({
   creditFacility,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.Disbursals")
+
   const columns: Column<Disbursal>[] = [
     {
       key: "amount",
-      header: "Amount",
+      header: t("columns.amount"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {
       key: "createdAt",
-      header: "Created At",
+      header: t("columns.createdAt"),
       render: (date) => formatDate(date, { includeTime: false }),
     },
     {
       key: "status",
-      header: "Status",
+      header: t("columns.status"),
       align: "right",
       render: (_, disbursal) => {
         return <DisbursalStatusBadge status={disbursal.status} />
@@ -43,15 +46,12 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
 
   return (
     <>
-      <CardWrapper
-        title="Disbursals"
-        description="Disbursals associated with this credit facility"
-      >
+      <CardWrapper title={t("title")} description={t("description")}>
         <DataTable
           data={creditFacility.disbursals}
           columns={columns}
           autoFocus={false}
-          emptyMessage="No disbursals found"
+          emptyMessage={t("messages.emptyTable")}
           navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
         />
       </CardWrapper>

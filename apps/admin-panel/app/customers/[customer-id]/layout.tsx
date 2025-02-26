@@ -1,17 +1,14 @@
 "use client"
 
 import { gql } from "@apollo/client"
-
 import { useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
-
 import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
 
 import { CustomerDetailsCard } from "./details"
-
 import { KycStatus } from "./kyc-status"
-
 import { CustomerAccountBalances } from "./balances"
 
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
@@ -22,12 +19,6 @@ import {
 import { useCreateContext } from "@/app/create"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
-
-const TABS = [
-  { id: "1", url: "/", tabLabel: "Transactions" },
-  { id: "2", url: "/credit-facilities", tabLabel: "Credit Facilities" },
-  { id: "4", url: "/documents", tabLabel: "Documents" },
-]
 
 gql`
   query GetCustomerBasicDetails($id: UUID!) {
@@ -58,6 +49,14 @@ export default function CustomerLayout({
   children: React.ReactNode
   params: { "customer-id": string }
 }) {
+  const t = useTranslations("Customers.CustomerDetails.layout")
+
+  const TABS = [
+    { id: "1", url: "/", tabLabel: t("tabs.transactions") },
+    { id: "2", url: "/credit-facilities", tabLabel: t("tabs.creditFacilities") },
+    { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
+  ]
+
   const { "customer-id": customerId } = params
   const { currentTab, handleTabChange } = useTabNavigation(TABS, customerId)
 
@@ -69,7 +68,7 @@ export default function CustomerLayout({
   })
 
   useEffect(() => {
-    data?.customer && setCustomer(data?.customer as CustomerType)
+    if (data?.customer) setCustomer(data.customer as CustomerType)
     return () => setCustomer(null)
   }, [data?.customer, setCustomer])
 
@@ -77,8 +76,8 @@ export default function CustomerLayout({
     if (data?.customer) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Customers", href: "/customers" },
+        { title: t("breadcrumbs.dashboard"), href: "/dashboard" },
+        { title: t("breadcrumbs.customers"), href: "/customers" },
         { title: data.customer.email, href: `/customers/${customerId}` },
         ...(currentTabData?.url === "/"
           ? []
@@ -92,7 +91,7 @@ export default function CustomerLayout({
   }, [data?.customer, currentTab])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={3} tabs={6} />
-  if (error) return <div className="text-destructive">{error.message}</div>
+  if (error) return <div className="text-destructive">{t("errors.error")}</div>
   if (!data || !data.customer) return null
 
   return (

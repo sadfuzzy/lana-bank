@@ -24,6 +24,8 @@ import {
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import {
   GetOffBalanceSheetTrialBalanceQuery,
   GetOnBalanceSheetTrialBalanceQuery,
@@ -239,6 +241,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   dateRange,
   setDateRange,
 }) => {
+  const t = useTranslations("TrialBalance")
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
@@ -249,12 +252,12 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   if (loading && !data) {
     return <LoadingSkeleton />
   }
-  if (!total) return <div>No data</div>
+  if (!total) return <div>{t("noData")}</div>
 
   return (
     <>
       <div className="flex gap-6 items-center">
-        <div>Date Range:</div>
+        <div>{t("dateRange")}:</div>
         <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
       </div>
       <CurrencyLayerSelection
@@ -265,10 +268,10 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
       />
       <Table className="mt-6">
         <TableHeader>
-          <TableHead>Account Name</TableHead>
-          <TableHead className="text-right">Debit</TableHead>
-          <TableHead className="text-right">Credit</TableHead>
-          <TableHead className="text-right">Net</TableHead>
+          <TableHead>{t("table.headers.accountName")}</TableHead>
+          <TableHead className="text-right">{t("table.headers.debit")}</TableHead>
+          <TableHead className="text-right">{t("table.headers.credit")}</TableHead>
+          <TableHead className="text-right">{t("table.headers.net")}</TableHead>
         </TableHeader>
         <TableBody>
           {subAccounts?.map((memberBalance, index) => (
@@ -300,7 +303,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
         </TableBody>
         <TableFooter className="border-t-4">
           <TableRow>
-            <TableCell className="uppercase font-bold">Totals</TableCell>
+            <TableCell className="uppercase font-bold">{t("totals")}</TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
@@ -329,6 +332,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   )
 }
 function TrialBalancePage() {
+  const t = useTranslations("TrialBalance")
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
     setDateRange(newDateRange)
@@ -358,17 +362,14 @@ function TrialBalancePage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Trial Balance</CardTitle>
-        <CardDescription>
-          A summary of all accounts listing debit and credit balances to ensure accounting
-          entries are balanced.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="onBalanceSheet">
           <TabsList className="mb-4">
-            <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
-            <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
+            <TabsTrigger value="onBalanceSheet">{t("tabs.regular")}</TabsTrigger>
+            <TabsTrigger value="offBalanceSheet">{t("tabs.offBalanceSheet")}</TabsTrigger>
           </TabsList>
           <TabsContent value="onBalanceSheet">
             <TrialBalanceValues

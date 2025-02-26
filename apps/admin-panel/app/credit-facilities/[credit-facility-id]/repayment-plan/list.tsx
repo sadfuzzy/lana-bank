@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import { Badge, BadgeProps } from "@lana/web/ui/badge"
 
@@ -25,33 +26,46 @@ type CreditFacilityRepaymentPlanProps = {
 export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanProps> = ({
   creditFacility,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.RepaymentPlan")
+
+  const getRepaymentTypeDisplay = (type: RepaymentPlan["repaymentType"]) => {
+    switch (type) {
+      case "DISBURSAL":
+        return t("repaymentTypes.principal")
+      case "INTEREST":
+        return t("repaymentTypes.interest")
+      default:
+        return type
+    }
+  }
+
   const columns: Column<RepaymentPlan>[] = [
     {
       key: "repaymentType",
-      header: "Type",
+      header: t("columns.type"),
       render: (type) => getRepaymentTypeDisplay(type),
     },
     {
       key: "initial",
-      header: "Initial Amount",
+      header: t("columns.initialAmount"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {
       key: "outstanding",
-      header: "Outstanding",
+      header: t("columns.outstanding"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {
       key: "dueAt",
-      header: "Due Date",
+      header: t("columns.dueDate"),
       render: (date) => formatDate(date),
     },
     {
       key: "status",
-      header: "Status",
+      header: t("columns.status"),
       align: "right",
       render: (_, repayment) => {
-        return <RepaymentStatusBadge status={repayment.status} />
+        return <RepaymentStatusBadge status={repayment.status} t={t} />
       },
     },
   ]
@@ -59,14 +73,11 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
   const repaymentPlanData = creditFacility?.repaymentPlan ?? []
 
   return (
-    <CardWrapper
-      title="Repayment Plan"
-      description="Repayment plan associated with this credit facility"
-    >
+    <CardWrapper title={t("title")} description={t("description")}>
       <DataTable
         data={repaymentPlanData}
         columns={columns}
-        emptyMessage="No Plan found"
+        emptyMessage={t("messages.emptyTable")}
         autoFocus={false}
       />
     </CardWrapper>
@@ -75,6 +86,7 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
 
 interface StatusBadgeProps extends BadgeProps {
   status: RepaymentPlan["status"]
+  t: (key: string) => string
 }
 
 const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"] => {
@@ -92,22 +104,13 @@ const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"
   }
 }
 
-const RepaymentStatusBadge: React.FC<StatusBadgeProps> = ({ status, ...props }) => {
+const RepaymentStatusBadge: React.FC<StatusBadgeProps> = ({ status, t, ...props }) => {
   const variant = getStatusVariant(status)
+  const statusKey = status.toLowerCase()
+
   return (
     <Badge variant={variant} {...props}>
-      {status}
+      {t(`status.${statusKey}`)}
     </Badge>
   )
-}
-
-const getRepaymentTypeDisplay = (type: RepaymentPlan["repaymentType"]) => {
-  switch (type) {
-    case "DISBURSAL":
-      return "Principal"
-    case "INTEREST":
-      return "Interest"
-    default:
-      return type
-  }
 }

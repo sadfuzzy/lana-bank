@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import ActionsList from "../actions/list"
 
@@ -27,6 +28,8 @@ gql`
 `
 
 const Dashboard = () => {
+  const t = useTranslations("Dashboard")
+
   const { data, loading } = useDashboardQuery({
     fetchPolicy: "cache-and-network",
   })
@@ -58,17 +61,23 @@ const Dashboard = () => {
             <>
               <DashboardCard
                 h1={data?.dashboard.activeFacilities.toString()}
-                h2={data?.dashboard.pendingFacilities.toString() + " Pending"}
-                title="Active Facilities"
-                description="Credit Facilities where money has been disbursed"
+                h2={
+                  data?.dashboard.pendingFacilities.toString() +
+                  " " +
+                  t("cards.activeFacilities.pending")
+                }
+                title={t("cards.activeFacilities.title")}
+                description={t("cards.activeFacilities.description")}
                 to="/credit-facilities?filter=active"
+                buttonText={t("cards.activeFacilities.buttonText")}
               />
               {totalDisbursedUsdCents !== undefined && (
                 <DashboardCard
                   h1={<Balance currency="usd" amount={totalDisbursedUsdCents} />}
-                  title="Total Disbursed"
-                  description="Total amount of money customers withdrew from the bank"
+                  title={t("cards.totalDisbursed.title")}
+                  description={t("cards.totalDisbursed.description")}
                   to="/disbursals"
+                  buttonText={t("cards.totalDisbursed.buttonText")}
                 />
               )}
               {totalCollateralSats !== undefined && (
@@ -80,9 +89,10 @@ const Dashboard = () => {
                     />
                   }
                   h2={<Balance currency="btc" amount={totalCollateralSats} />}
-                  title="Total Collateral"
-                  description="Total bitcoin collateral value at market rate that the bank holds"
+                  title={t("cards.totalCollateral.title")}
+                  description={t("cards.totalCollateral.description")}
                   to="/credit-facilities"
+                  buttonText={t("cards.totalCollateral.buttonText")}
                 />
               )}
             </>

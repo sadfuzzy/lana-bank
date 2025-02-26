@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import {
   CheckCircle2,
@@ -54,14 +55,8 @@ import {
   CreditFacilityStatus,
   WithdrawalStatus,
 } from "@/lib/graphql/generated"
-import {
-  navDashboardItems,
-  navLoansItems,
-  navCustomersItems,
-  navTransactionItems,
-  navAdminItems,
-  navFinanceItems,
-} from "@/components/app-sidebar/nav-items"
+
+import { useNavItems } from "@/components/app-sidebar/nav-items"
 
 const isItemAllowedOnCurrentPath = (
   allowedPaths: (string | RegExp)[],
@@ -77,15 +72,6 @@ const isItemAllowedOnCurrentPath = (
   })
 }
 
-const allNavItems = [
-  ...navDashboardItems,
-  ...navLoansItems,
-  ...navCustomersItems,
-  ...navTransactionItems,
-  ...navAdminItems,
-  ...navFinanceItems,
-]
-
 type ApprovalAction = {
   type: "facility" | "withdraw" | "disbursal" | null
   action: "approve" | "deny" | null
@@ -96,6 +82,27 @@ type groups = "main" | "navigation" | "actions"
 const CommandMenu = () => {
   const router = useRouter()
   const pathName = usePathname()
+
+  const t = useTranslations("CommandMenu")
+
+  const {
+    navDashboardItems,
+    navLoansItems,
+    navCustomersItems,
+    navTransactionItems,
+    navAdminItems,
+    navFinanceItems,
+  } = useNavItems()
+
+  // Combine all nav items
+  const allNavItems = [
+    ...navDashboardItems,
+    ...navLoansItems,
+    ...navCustomersItems,
+    ...navTransactionItems,
+    ...navAdminItems,
+    ...navFinanceItems,
+  ]
 
   const [open, setOpen] = useState(false)
   const [pages, setPages] = useState<groups>("main")
@@ -172,7 +179,7 @@ const CommandMenu = () => {
 
   const menuItems = [
     {
-      label: "Create Deposit",
+      label: t("actions.createDeposit"),
       icon: Plus,
       action: () => {
         if (!customer) return
@@ -182,7 +189,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Create Withdrawal",
+      label: t("actions.createWithdrawal"),
       icon: Plus,
       action: () => {
         if (!customer) return
@@ -192,7 +199,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Create Customer",
+      label: t("actions.createCustomer"),
       icon: Plus,
       action: () => {
         setCreateCustomer(true)
@@ -201,7 +208,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMERS, PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Create Credit Facility",
+      label: t("actions.createCreditFacility"),
       icon: Plus,
       action: () => {
         if (!customer) return
@@ -211,7 +218,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Update Collateral",
+      label: t("actions.updateCollateral"),
       icon: Shield,
       action: () => {
         if (!facility) return
@@ -225,7 +232,7 @@ const CommandMenu = () => {
         facility?.status !== CreditFacilityStatus.Matured,
     },
     {
-      label: "Create Disbursal",
+      label: t("actions.createDisbursal"),
       icon: Plus,
       action: () => {
         if (!facility) return
@@ -236,7 +243,7 @@ const CommandMenu = () => {
       condition: () => facility?.status === CreditFacilityStatus.Active,
     },
     {
-      label: "Make Payment",
+      label: t("actions.makePayment"),
       icon: Wallet,
       action: () => {
         if (!facility) return
@@ -247,7 +254,7 @@ const CommandMenu = () => {
       condition: () => facility?.status === CreditFacilityStatus.Active,
     },
     {
-      label: "Create User",
+      label: t("actions.createUser"),
       icon: Plus,
       action: () => {
         setOpenCreateUserDialog(true)
@@ -256,7 +263,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.USERS, PATH_CONFIGS.USER_DETAILS],
     },
     {
-      label: "Update Terms Template",
+      label: t("actions.updateTermsTemplate"),
       icon: FileEdit,
       action: () => {
         if (!termsTemplate) return
@@ -267,7 +274,7 @@ const CommandMenu = () => {
       condition: () => termsTemplate?.subjectCanUpdateTermsTemplate,
     },
     {
-      label: "Create Terms Template",
+      label: t("actions.createTermsTemplate"),
       icon: Plus,
       action: () => {
         setOpenCreateTermsTemplateDialog(true)
@@ -276,7 +283,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES, PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
     },
     {
-      label: "Create Committee",
+      label: t("actions.createCommittee"),
       icon: Plus,
       action: () => {
         setOpenCreateCommitteeDialog(true)
@@ -285,7 +292,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
     },
     {
-      label: "Confirm Withdrawal",
+      label: t("actions.confirmWithdrawal"),
       icon: CheckCircle2,
       action: () => {
         if (!withdraw) return
@@ -296,7 +303,7 @@ const CommandMenu = () => {
       condition: () => withdraw?.status === WithdrawalStatus.PendingConfirmation,
     },
     {
-      label: "Cancel Withdrawal",
+      label: t("actions.cancelWithdrawal"),
       icon: XCircle,
       action: () => {
         if (!withdraw) return
@@ -307,7 +314,7 @@ const CommandMenu = () => {
       condition: () => withdraw?.status === WithdrawalStatus.PendingConfirmation,
     },
     {
-      label: "Assign Committee",
+      label: t("actions.assignCommittee"),
       icon: Settings,
       action: () => {
         if (!policy) return
@@ -317,7 +324,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.POLICY_DETAILS],
     },
     {
-      label: "Add Committee Member",
+      label: t("actions.addCommitteeMember"),
       icon: Plus,
       action: () => {
         if (!committee) return
@@ -327,7 +334,7 @@ const CommandMenu = () => {
       allowedPaths: [PATH_CONFIGS.COMMITTEE_DETAILS],
     },
     {
-      label: "Approve",
+      label: t("actions.approve"),
       icon: CheckSquare,
       action: () => {
         setApprovalAction({ type: getActiveEntityType(), action: "approve" })
@@ -347,7 +354,7 @@ const CommandMenu = () => {
       },
     },
     {
-      label: "Deny",
+      label: t("actions.deny"),
       icon: XSquare,
       action: () => {
         setApprovalAction({ type: getActiveEntityType(), action: "deny" })
@@ -379,14 +386,14 @@ const CommandMenu = () => {
           <CommandInput
             placeholder={
               pages === "navigation"
-                ? "Search navigation..."
+                ? t("placeholders.searchNavigation")
                 : pages === "actions"
-                  ? "Search actions..."
-                  : "What do you need?"
+                  ? t("placeholders.searchActions")
+                  : t("placeholders.whatDoYouNeed")
             }
           />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t("noResults")}</CommandEmpty>
             {pages === "main" ? (
               <>
                 {availableItems.length > 0 && (
@@ -395,7 +402,7 @@ const CommandMenu = () => {
                     <CommandGroup
                       heading={
                         <KeyboardControlHeading
-                          heading="Available Actions"
+                          heading={t("headings.availableActions")}
                           combination="Shift + A"
                         />
                       }
@@ -419,7 +426,7 @@ const CommandMenu = () => {
                 <CommandGroup
                   heading={
                     <KeyboardControlHeading
-                      heading="Navigation"
+                      heading={t("headings.navigation")}
                       combination="Shift + N"
                     />
                   }
@@ -440,7 +447,7 @@ const CommandMenu = () => {
                 </CommandGroup>
               </>
             ) : pages === "actions" ? (
-              <CommandGroup heading="Available Actions">
+              <CommandGroup heading={t("headings.availableActions")}>
                 {availableItems.map((item) => (
                   <CommandItem
                     key={item.label}
@@ -455,7 +462,7 @@ const CommandMenu = () => {
                 ))}
               </CommandGroup>
             ) : (
-              <CommandGroup heading="Navigation">
+              <CommandGroup heading={t("headings.navigation")}>
                 {allNavItems.map((item) => (
                   <CommandItem
                     key={item.url}
@@ -631,6 +638,7 @@ function KeyboardControlHeading({
 }
 
 const KeyboardInstructions = () => {
+  const t = useTranslations("CommandMenu")
   const [isMac, setIsMac] = useState(false)
   useEffect(() => {
     const macPlatforms = ["Macintosh", "MacIntel", "MacPPC", "Mac68K"]
@@ -647,7 +655,7 @@ const KeyboardInstructions = () => {
   return (
     <div className="fixed bottom-4 right-4 hidden md:flex items-center gap-2 rounded-lg bg-secondary/80 px-3 py-2 text-sm text-secondary-foreground backdrop-blur z-10">
       <Keyboard className="h-4 w-4" />
-      <span>Command Palette</span>
+      <span>{t("keyboardInstructions.commandPalette")}</span>
       <kbd className="rounded border bg-background px-1.5 text-xs font-semibold">
         {isMac ? "cmd" : "Ctrl"}
       </kbd>

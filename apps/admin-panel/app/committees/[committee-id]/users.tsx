@@ -1,5 +1,7 @@
 "use client"
+
 import React, { useState } from "react"
+import { useTranslations } from "next-intl"
 import { IoTrashOutline } from "react-icons/io5"
 
 import { Button } from "@lana/web/ui/button"
@@ -32,12 +34,13 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
   committee,
   showRemove = true,
 }) => {
+  const t = useTranslations("Committees.CommitteeDetails.CommitteeUsers")
   const [userToRemove, setUserToRemove] = useState<UserToRemove>(null)
 
   const baseColumns: Column<CommitteeMember>[] = [
     {
       key: "email",
-      header: "Email",
+      header: t("table.headers.email"),
     },
     {
       key: "roles",
@@ -50,7 +53,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
                   {formatRole(role)}
                 </Badge>
               ))
-            : "No roles Assigned"}
+            : t("table.noRoles")}
         </div>
       ),
     },
@@ -73,7 +76,7 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
         }}
       >
         <IoTrashOutline className="w-4 h-4" />
-        Remove member
+        {t("buttons.removeMember")}
       </Button>
     ),
   }
@@ -82,11 +85,11 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
 
   return (
     <>
-      <CardWrapper title="Members" description="Members in this committee">
+      <CardWrapper title={t("title")} description={t("description")}>
         <DataTable
           data={committee.currentMembers}
           columns={columns}
-          emptyMessage="No members found in this committee"
+          emptyMessage={t("table.emptyMessage")}
           navigateTo={(user) => `/users/${user.userId}/`}
         />
       </CardWrapper>
@@ -103,3 +106,5 @@ export const CommitteeUsers: React.FC<CommitteeUsersProps> = ({
     </>
   )
 }
+
+export default CommitteeUsers

@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -15,12 +16,13 @@ type CommitteeDetailsProps = {
 }
 
 export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committee }) => {
+  const t = useTranslations("Committees.CommitteeDetails.detailsCard")
   const [openAddUserDialog, setOpenAddUserDialog] = React.useState(false)
 
   const details: DetailItemProps[] = [
-    { label: "Created At", value: formatDate(committee.createdAt) },
-    { label: "Name", value: committee.name },
-    { label: "Total Members", value: committee.currentMembers.length },
+    { label: t("fields.createdAt"), value: formatDate(committee.createdAt) },
+    { label: t("fields.name"), value: committee.name },
+    { label: t("fields.totalMembers"), value: committee.currentMembers.length },
   ]
 
   const footerContent = (
@@ -29,14 +31,14 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
       onClick={() => setOpenAddUserDialog(true)}
       data-testid="committee-add-member-button"
     >
-      Add Member
+      {t("buttons.addMember")}
     </Button>
   )
 
   return (
     <>
       <DetailsCard
-        title="Committee"
+        title={t("title")}
         details={details}
         footerContent={footerContent}
         className="w-full"
@@ -50,3 +52,5 @@ export const CommitteeDetailsCard: React.FC<CommitteeDetailsProps> = ({ committe
     </>
   )
 }
+
+export default CommitteeDetailsCard

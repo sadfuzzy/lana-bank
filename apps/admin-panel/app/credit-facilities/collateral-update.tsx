@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -52,6 +53,10 @@ type CreditFacilityCollateralUpdateDialogProps = {
 export const CreditFacilityCollateralUpdateDialog: React.FC<
   CreditFacilityCollateralUpdateDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
+  const t = useTranslations(
+    "CreditFacilities.CreditFacilityDetails.CreditFacilityCollateralUpdate",
+  )
+
   const [updateCollateral, { loading, reset }] =
     useCreditFacilityCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
@@ -65,7 +70,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (newCollateral === "") {
-      setError("Please enter a valid collateral amount.")
+      setError(t("form.errors.emptyCollateral"))
       return
     }
     setError(null)
@@ -79,17 +84,17 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
         },
       })
       if (result.data) {
-        toast.success("Credit facility collateral updated successfully")
+        toast.success(t("messages.success"))
         handleCloseDialog()
       } else {
-        throw new Error("No data returned from mutation")
+        throw new Error(t("form.errors.noData"))
       }
     } catch (error) {
       console.error("Error updating credit facility collateral:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError("An unknown error occurred")
+        setError(t("form.errors.unknownError"))
       }
     }
   }
@@ -115,10 +120,8 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
         {isConfirmed ? (
           <>
             <DialogHeader>
-              <DialogTitle>Confirm Update</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to update the collateral for this credit facility?
-              </DialogDescription>
+              <DialogTitle>{t("dialog.confirmTitle")}</DialogTitle>
+              <DialogDescription>{t("dialog.confirmDescription")}</DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <input
@@ -134,13 +137,13 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
               />
               <DetailsGroup layout="horizontal">
                 <DetailItem
-                  label="Current Collateral"
+                  label={t("form.labels.currentCollateral")}
                   value={
                     <Balance amount={currentCollateral as Satoshis} currency="btc" />
                   }
                 />
                 <DetailItem
-                  label="New Collateral"
+                  label={t("form.labels.newCollateral")}
                   value={
                     <Balance
                       amount={currencyConverter.btcToSatoshi(Number(newCollateral))}
@@ -160,14 +163,14 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   variant="ghost"
                   disabled={loading}
                 >
-                  Back
+                  {t("form.buttons.back")}
                 </Button>
                 <Button
                   type="submit"
                   loading={loading}
                   data-testid="confirm-update-button"
                 >
-                  {loading ? "Updating..." : "Confirm"}
+                  {loading ? t("form.buttons.updating") : t("form.buttons.confirm")}
                 </Button>
               </DialogFooter>
             </form>
@@ -175,16 +178,14 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Update Credit Facility Collateral</DialogTitle>
-              <DialogDescription>
-                Enter the new collateral amount for this credit facility.
-              </DialogDescription>
+              <DialogTitle>{t("dialog.title")}</DialogTitle>
+              <DialogDescription>{t("dialog.description")}</DialogDescription>
             </DialogHeader>
             <form className="flex flex-col gap-4" onSubmit={handleConfirm}>
               <div className="rounded-md">
                 <DetailsGroup layout="horizontal">
                   <DetailItem
-                    label="Current Collateral"
+                    label={t("form.labels.currentCollateral")}
                     value={
                       <Balance amount={currentCollateral as Satoshis} currency="btc" />
                     }
@@ -192,7 +193,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   />
                   {creditFacilityDetails?.creditFacility?.collateralToMatchInitialCvl && (
                     <DetailItem
-                      label="Expected Collateral"
+                      label={t("form.labels.expectedCollateral")}
                       value={
                         <Balance
                           amount={
@@ -208,18 +209,20 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                 </DetailsGroup>
               </div>
               <div>
-                <Label>New Collateral</Label>
+                <Label>{t("form.labels.newCollateral")}</Label>
                 <div className="flex items-center gap-1">
                   <Input
                     autoFocus
                     type="number"
                     value={newCollateral}
                     onChange={(e) => setNewCollateral(e.target.value)}
-                    placeholder="Enter new collateral amount"
+                    placeholder={t("form.placeholders.newCollateral")}
                     step="0.00000001"
                     data-testid="new-collateral-input"
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
+                  <div className="p-1.5 bg-input-text rounded-md px-4">
+                    {t("units.btc")}
+                  </div>
                 </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}
@@ -229,7 +232,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   onClick={handleConfirm}
                   data-testid="proceed-to-confirm-button"
                 >
-                  Proceed to Confirm
+                  {t("form.buttons.proceedToConfirm")}
                 </Button>
               </DialogFooter>
             </form>

@@ -1,5 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
 import PaginatedTable, {
@@ -43,12 +44,31 @@ gql`
 `
 
 const AuditLogsList = () => {
+  const t = useTranslations("AuditLogs.table")
+
   const { data, loading, error, fetchMore } = useAuditLogsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
     fetchPolicy: "cache-and-network",
   })
+
+  const columns: Column<AuditEntry>[] = [
+    {
+      key: "subject",
+      label: t("headers.subject"),
+      render: (subject) => (
+        <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
+      ),
+    },
+    { key: "object", label: t("headers.object") },
+    { key: "action", label: t("headers.action") },
+    {
+      key: "recordedAt",
+      label: t("headers.recordedAt"),
+      render: (date) => formatDate(date),
+    },
+  ]
 
   return (
     <div>
@@ -65,20 +85,3 @@ const AuditLogsList = () => {
 }
 
 export default AuditLogsList
-
-const columns: Column<AuditEntry>[] = [
-  {
-    key: "subject",
-    label: "Subject",
-    render: (subject) => (
-      <div>{subject.__typename === "User" ? subject.email : subject.__typename}</div>
-    ),
-  },
-  { key: "object", label: "Object" },
-  { key: "action", label: "Action" },
-  {
-    key: "recordedAt",
-    label: "Recorded At",
-    render: (date) => formatDate(date),
-  },
-]

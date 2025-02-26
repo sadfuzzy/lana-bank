@@ -1,4 +1,5 @@
 "use client"
+import { useTranslations } from "next-intl"
 import React, { useState } from "react"
 
 import { Button } from "@lana/web/ui/button"
@@ -15,44 +16,46 @@ type TermsTemplateDetailsProps = {
 const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   termsTemplate,
 }) => {
+  const t = useTranslations("TermsTemplates.TermsTemplateDetails.DetailsCard")
+
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState(false)
 
   const details: DetailItemProps[] = [
-    { label: "Name", value: termsTemplate.name },
-    { label: "Created At", value: formatDate(termsTemplate.createdAt) },
+    { label: t("fields.name"), value: termsTemplate.name },
+    { label: t("fields.createdAt"), value: formatDate(termsTemplate.createdAt) },
     {
-      label: "Duration",
+      label: t("fields.duration"),
       value: `${termsTemplate.values.duration.units} ${formatPeriod(
         termsTemplate.values.duration.period,
       )}`,
     },
     {
-      label: "Accrual Interval",
+      label: t("fields.accrualInterval"),
       value: formatInterval(termsTemplate.values.accrualInterval),
     },
     {
-      label: "Incurrence Interval",
+      label: t("fields.incurrenceInterval"),
       value: formatInterval(termsTemplate.values.incurrenceInterval),
     },
     {
-      label: "Annual Rate",
+      label: t("fields.annualRate"),
       value: `${termsTemplate.values.annualRate}%`,
     },
     {
-      label: "Initial CVL",
+      label: t("fields.initialCvl"),
       value: `${termsTemplate.values.initialCvl}%`,
     },
     {
-      label: "Margin Call CVL",
+      label: t("fields.marginCallCvl"),
       value: `${termsTemplate.values.marginCallCvl}%`,
     },
     {
-      label: "Liquidation CVL",
+      label: t("fields.liquidationCvl"),
       value: `${termsTemplate.values.liquidationCvl}%`,
     },
     {
-      label: "Structuring Fee Rate",
+      label: t("fields.oneTimeFeeRate"),
       value: `${termsTemplate.values.oneTimeFeeRate}%`,
     },
   ]
@@ -63,7 +66,7 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       onClick={() => setOpenUpdateTermsTemplateDialog(true)}
       data-testid="terms-template-update-button"
     >
-      Update
+      {t("buttons.update")}
     </Button>
   )
 
@@ -76,7 +79,7 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       />
 
       <DetailsCard
-        title="Terms Template"
+        title={t("title")}
         details={details}
         footerContent={footerContent}
         className="w-full"

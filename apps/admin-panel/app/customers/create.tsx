@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { toast } from "sonner"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -55,6 +56,7 @@ type FormProps = {
   isLoading: boolean
   error: string | null
   setCurrentStep: (step: "details" | "confirmation") => void
+  t: ReturnType<typeof useTranslations<"Customers.create">>
 }
 
 const DetailsForm = ({
@@ -63,31 +65,32 @@ const DetailsForm = ({
   handleSubmit,
   isLoading,
   error,
+  t,
 }: FormProps) => (
   <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
     <div>
-      <Label htmlFor="email">Email</Label>
+      <Label htmlFor="email">{t("emailLabel")}</Label>
       <Input
         id="email"
         name="email"
         type="email"
         required
         data-testid="customer-create-email"
-        placeholder="Please enter the email address"
+        placeholder={t("emailPlaceholder")}
         value={formData.email}
         onChange={handleInputChange}
         disabled={isLoading}
       />
     </div>
     <div>
-      <Label htmlFor="telegramId">Telegram ID</Label>
+      <Label htmlFor="telegramId">{t("telegramLabel")}</Label>
       <Input
         id="telegramId"
         name="telegramId"
         type="text"
         required
         data-testid="customer-create-telegram-id"
-        placeholder="Please enter the Telegram ID"
+        placeholder={t("telegramPlaceholder")}
         value={formData.telegramId}
         onChange={handleInputChange}
         disabled={isLoading}
@@ -100,7 +103,7 @@ const DetailsForm = ({
         loading={isLoading}
         data-testid="customer-create-submit-button"
       >
-        Review Details
+        {t("reviewButton")}
       </Button>
     </DialogFooter>
   </form>
@@ -112,6 +115,7 @@ const ConfirmationForm = ({
   isLoading,
   error,
   setCurrentStep,
+  t,
 }: FormProps) => (
   <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
     <input
@@ -126,11 +130,11 @@ const ConfirmationForm = ({
       }}
     />
     <div>
-      <Label>Email</Label>
+      <Label>{t("emailLabel")}</Label>
       <p>{formData.email}</p>
     </div>
     <div>
-      <Label>Telegram ID</Label>
+      <Label>{t("telegramLabel")}</Label>
       <p>{formData.telegramId}</p>
     </div>
     {error && <p className="text-destructive">{error}</p>}
@@ -141,14 +145,14 @@ const ConfirmationForm = ({
         disabled={isLoading}
         type="button"
       >
-        Back
+        {t("backButton")}
       </Button>
       <Button
         type="submit"
         loading={isLoading}
         data-testid="customer-create-submit-button"
       >
-        Confirm and Submit
+        {t("confirmButton")}
       </Button>
     </DialogFooter>
   </form>
@@ -158,6 +162,8 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   setOpenCreateCustomerDialog,
   openCreateCustomerDialog,
 }) => {
+  const t = useTranslations("Customers.create")
+
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => {
       setOpenCreateCustomerDialog(false)
@@ -206,10 +212,10 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         },
         onCompleted: (data) => {
           if (data?.customerCreate.customer) {
-            toast.success("Customer created successfully")
+            toast.success(t("successMessage"))
             navigate(`/customers/${data.customerCreate.customer.customerId}`)
           } else {
-            throw new Error("Failed to create customer. Please try again.")
+            throw new Error(t("failedToCreate"))
           }
         },
       })
@@ -220,9 +226,9 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
       } else if (createCustomerError?.message) {
         setError(createCustomerError.message)
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        setError(t("unexpectedError"))
       }
-      toast.error("Failed to create customer")
+      toast.error(t("errorMessage"))
     }
   }
 
@@ -246,14 +252,10 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {currentStep === "confirmation"
-              ? "Confirm Customer Details"
-              : "Add new customer"}
+            {currentStep === "confirmation" ? t("confirmTitle") : t("title")}
           </DialogTitle>
           <DialogDescription>
-            {currentStep === "confirmation"
-              ? "Please review the details before submitting"
-              : "Add a new Customer by providing their email address and Telegram ID"}
+            {currentStep === "confirmation" ? t("confirmDescription") : t("description")}
           </DialogDescription>
         </DialogHeader>
         {currentStep === "details" ? (
@@ -264,6 +266,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
             isLoading={isLoading}
             error={error}
             setCurrentStep={setCurrentStep}
+            t={t}
           />
         ) : (
           <ConfirmationForm
@@ -273,6 +276,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
             isLoading={isLoading}
             error={error}
             setCurrentStep={setCurrentStep}
+            t={t}
           />
         )}
       </DialogContent>

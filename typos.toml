@@ -8,4 +8,5 @@ extend-exclude = [
 	"dev/fake-service-account.json",
 	"**/pnpm-lock.yaml",
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
+	"/apps/admin-panel/messages/es.json",
 ]

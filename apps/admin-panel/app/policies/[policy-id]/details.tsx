@@ -1,4 +1,5 @@
 "use client"
+import { useTranslations } from "next-intl"
 import React from "react"
 
 import { Button } from "@lana/web/ui/button"
@@ -14,22 +15,24 @@ type PolicyDetailsProps = {
 }
 
 export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
+  const t = useTranslations("Policies.PolicyDetails.DetailsCard")
+
   const [openAssignDialog, setOpenAssignDialog] = React.useState(false)
   const policyRuleType = policy.rules.__typename
 
   const details: DetailItemProps[] = [
     {
-      label: "Process Type",
+      label: t("fields.processType"),
       value: formatProcessType(policy.approvalProcessType),
     },
     {
-      label: "Rule",
+      label: t("fields.rule"),
       value: formatRule(policy.rules as ApprovalRules),
     },
     ...(policyRuleType === "CommitteeThreshold"
       ? [
           {
-            label: "Assigned Committee",
+            label: t("fields.assignedCommittee"),
             value: policy.rules.committee.name,
           },
         ]
@@ -42,14 +45,16 @@ export const PolicyDetailsCard: React.FC<PolicyDetailsProps> = ({ policy }) => {
       onClick={() => setOpenAssignDialog(true)}
       data-testid="policy-assign-committee"
     >
-      {policyRuleType === "CommitteeThreshold" ? "Update Policy" : "Assign Committee"}
+      {policyRuleType === "CommitteeThreshold"
+        ? t("buttons.updatePolicy")
+        : t("buttons.assignCommittee")}
     </Button>
   )
 
   return (
     <>
       <DetailsCard
-        title="Policy"
+        title={t("title")}
         details={details}
         footerContent={footerContent}
         className="w-full"

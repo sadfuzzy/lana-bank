@@ -1,6 +1,8 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
+
 import {
   Card,
   CardContent,
@@ -28,6 +30,8 @@ type CustomerTransactionsTableProps = {
 export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps> = ({
   historyEntries,
 }) => {
+  const t = useTranslations("Customers.CustomerDetails.transactions")
+
   // TEMP FIX: for unknown entries
   const validEntries = historyEntries.filter(
     (entry) =>
@@ -44,7 +48,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
   const columns: Column<HistoryNode>[] = [
     {
       key: "__typename",
-      header: "Date",
+      header: t("table.headers.date"),
       render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
         if (!entry.recordedAt) return "-"
         return formatDate(entry.recordedAt, { includeTime: true })
@@ -52,18 +56,18 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: "Type",
+      header: t("table.headers.type"),
       render: (type: HistoryNode["__typename"]) => {
         switch (type) {
           case "DepositEntry":
-            return "Deposit"
+            return t("table.types.deposit")
           case "WithdrawalEntry":
           case "CancelledWithdrawalEntry":
-            return "Withdrawal"
+            return t("table.types.withdrawal")
           case "DisbursalEntry":
-            return "Disbursal"
+            return t("table.types.disbursal")
           case "PaymentEntry":
-            return "Payment"
+            return t("table.types.payment")
           default:
             return "-"
         }
@@ -71,7 +75,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: "Amount",
+      header: t("table.headers.amount"),
       render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
         switch (entry.__typename) {
           case "DepositEntry":
@@ -98,7 +102,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     },
     {
       key: "__typename",
-      header: "Status",
+      header: t("table.headers.status"),
       render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
         switch (entry.__typename) {
           case "WithdrawalEntry":
@@ -128,14 +132,14 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Transactions</CardTitle>
-        <CardDescription>Transactions for this Customer</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <DataTable
           data={validEntries}
           columns={columns}
-          emptyMessage="No transactions found"
+          emptyMessage={t("table.empty")}
           navigateTo={getNavigateUrl}
           className="w-full table-fixed"
           headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"

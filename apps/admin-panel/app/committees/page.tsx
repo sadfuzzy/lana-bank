@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import {
   Card,
   CardHeader,
@@ -10,18 +11,22 @@ import {
 
 import CommitteesList from "./list"
 
-const Committees: React.FC = () => (
-  <>
-    <Card>
-      <CardHeader>
-        <CardTitle>Committees</CardTitle>
-        <CardDescription>Manage approval committees and their members</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <CommitteesList />
-      </CardContent>
-    </Card>
-  </>
-)
+const Committees: React.FC = () => {
+  const t = useTranslations("Committees")
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <CommitteesList />
+        </CardContent>
+      </Card>
+    </>
+  )
+}
 
 export default Committees

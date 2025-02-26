@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { ApolloError, gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
@@ -109,12 +110,14 @@ const AccountCode = ({ code }: { code: string }) => (
 )
 
 const LoadingSkeleton = () => {
+  const t = useTranslations("ChartOfAccounts")
+
   return (
     <Table data-testid="loading-skeleton">
       <TableHeader>
         <TableRow>
-          <TableHead>Account Name</TableHead>
-          <TableHead className="text-right">Account Code</TableHead>
+          <TableHead>{t("table.headers.accountName")}</TableHead>
+          <TableHead className="text-right">{t("table.headers.accountCode")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -155,6 +158,7 @@ type ChartOfAccountsValuesProps = {
 }
 
 const ChartOfAccountsValues = ({ data, loading, error }: ChartOfAccountsValuesProps) => {
+  const t = useTranslations("ChartOfAccounts")
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({})
 
   if (loading && !data) return <LoadingSkeleton />
@@ -238,8 +242,8 @@ const ChartOfAccountsValues = ({ data, loading, error }: ChartOfAccountsValuesPr
     <Table>
       <TableHeader>
         <TableRow className="hover:bg-transparent">
-          <TableHead>Account Name</TableHead>
-          <TableHead className="text-right">Account Code</TableHead>
+          <TableHead>{t("table.headers.accountName")}</TableHead>
+          <TableHead className="text-right">{t("table.headers.accountCode")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -254,6 +258,8 @@ const ChartOfAccountsValues = ({ data, loading, error }: ChartOfAccountsValuesPr
 }
 
 const ChartOfAccountsPage = () => {
+  const t = useTranslations("ChartOfAccounts")
+
   const {
     data: onBalanceSheetData,
     loading: onBalanceSheetLoading,
@@ -273,17 +279,14 @@ const ChartOfAccountsPage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Chart Of Accounts</CardTitle>
-        <CardDescription>
-          A structured list of all accounts used to categorize and track financial
-          records.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="onBalanceSheet">
           <TabsList>
-            <TabsTrigger value="onBalanceSheet">Regular</TabsTrigger>
-            <TabsTrigger value="offBalanceSheet">Off Balance Sheet</TabsTrigger>
+            <TabsTrigger value="onBalanceSheet">{t("tabs.regular")}</TabsTrigger>
+            <TabsTrigger value="offBalanceSheet">{t("tabs.offBalanceSheet")}</TabsTrigger>
           </TabsList>
           <TabsContent value="onBalanceSheet">
             <ChartOfAccountsValues

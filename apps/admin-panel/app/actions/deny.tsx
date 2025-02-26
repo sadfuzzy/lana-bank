@@ -1,6 +1,7 @@
 import React from "react"
 import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -47,6 +48,9 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   openDenialDialog,
   approvalProcess,
 }) => {
+  const t = useTranslations("Actions.ApprovalProcess.Deny")
+  const tCommon = useTranslations("Common")
+
   const client = useApolloClient()
   const [error, setError] = React.useState<string | null>(null)
   const [reason, setReason] = React.useState("")
@@ -66,7 +70,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
   const handleDeny = async () => {
     setError(null)
     if (!reason.trim()) {
-      setError("Please provide a reason for denial")
+      setError(t("errors.reasonRequired"))
       return
     }
 
@@ -99,7 +103,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
               fetchPolicy: "network-only",
             })
           }
-          toast.success("Process approved successfully")
+          toast.success(t("success.processDenied"))
         },
       })
       setOpenDenialDialog(false)
@@ -107,7 +111,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError("An unknown error occurred")
+        setError(t("errors.unknown"))
       }
     }
   }
@@ -116,39 +120,42 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
     <Dialog open={openDenialDialog} onOpenChange={setOpenDenialDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Deny Process</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <DetailsGroup layout="horizontal">
           <DetailItem
-            label="Process Type"
+            label={t("fields.processType")}
             value={formatProcessType(approvalProcess?.approvalProcessType)}
           />
-          <DetailItem label="Created At" value={formatDate(approvalProcess?.createdAt)} />
+          <DetailItem
+            label={t("fields.createdAt")}
+            value={formatDate(approvalProcess?.createdAt)}
+          />
         </DetailsGroup>
         <div className="space-y-2">
           <label htmlFor="reason" className="text-sm font-medium">
-            Reason for Denial
+            {t("fields.reasonLabel")}
           </label>
           <Textarea
             id="reason"
             data-testid="approval-process-dialog-deny-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Please provide a reason for denying this process"
+            placeholder={t("placeholders.reason")}
             className="min-h-[100px]"
           />
         </div>
         {error && <p className="text-destructive text-sm">{error}</p>}
         <DialogFooter className="flex gap-2 sm:gap-0">
           <Button variant="ghost" onClick={() => setOpenDenialDialog(false)}>
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button
             onClick={handleDeny}
             loading={loading}
             data-testid="approval-process-dialog-deny-button"
           >
-            Deny
+            {t("buttons.deny")}
           </Button>
         </DialogFooter>
       </DialogContent>

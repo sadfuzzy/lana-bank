@@ -5,6 +5,7 @@ import { useDropzone } from "react-dropzone"
 import { gql, ApolloError } from "@apollo/client"
 import { CgSpinner } from "react-icons/cg"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Card, CardContent } from "@lana/web/ui/card"
 import { Button } from "@lana/web/ui/button"
@@ -67,6 +68,8 @@ type CustomerDocumentsProps = {
 }
 
 const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetch }) => {
+  const t = useTranslations("Customers.CustomerDetails.Documents")
+
   const [linkLoading, setLinkLoading] = useState<{ [key: string]: boolean }>({})
   const [deleteLoading, setDeleteLoading] = useState<{ [key: string]: boolean }>({})
 
@@ -84,13 +87,13 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
       }).finally(() => setLinkLoading((prev) => ({ ...prev, [id]: false })))
 
       if (!data?.documentDownloadLinkGenerate?.link) {
-        toast.error("Failed to generate download link")
+        toast.error(t("messages.generateLinkError"))
         return
       }
 
       window.open(data.documentDownloadLinkGenerate.link, "_blank")
     },
-    [documentDownloadLinkGenerate],
+    [documentDownloadLinkGenerate, t],
   )
 
   const deleteDocument = useCallback(
@@ -101,26 +104,26 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
         await documentDelete({
           variables: { input: { documentId: id } },
         })
-        toast.success("Document deleted successfully")
+        toast.success(t("messages.deleteSuccess"))
         refetch()
       } catch (error) {
-        toast.error("Failed to delete document")
+        toast.error(t("messages.deleteError"))
         console.error("Delete document error:", error)
       } finally {
         setDeleteLoading((prev) => ({ ...prev, [id]: false }))
       }
     },
-    [documentDelete, refetch],
+    [documentDelete, refetch, t],
   )
 
   const columns: Column<DocumentType>[] = [
     {
       key: "documentId",
-      header: "ID",
+      header: t("columns.id"),
     },
     {
       key: "filename",
-      header: "File Name",
+      header: t("columns.fileName"),
     },
     {
       key: "documentId",
@@ -138,7 +141,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
             {linkLoading[document.documentId] ? (
               <CgSpinner className="animate-spin h-5 w-5" />
             ) : (
-              "View"
+              t("buttons.view")
             )}
           </Button>
           <Button
@@ -152,7 +155,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
             {deleteLoading[document.documentId] ? (
               <CgSpinner className="animate-spin h-5 w-5" />
             ) : (
-              "Delete"
+              t("buttons.delete")
             )}
           </Button>
         </div>
@@ -161,13 +164,15 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
   ]
 
   return (
-    <CardWrapper title="Documents" description="Documents uploaded by this customer">
+    <CardWrapper title={t("title")} description={t("description")}>
       <DataTable data={documents} columns={columns} />
     </CardWrapper>
   )
 }
 
 const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
+  const t = useTranslations("Customers.CustomerDetails.Documents")
+
   const [customerDocumentAttach, { loading }] = useCustomerDocumentAttachMutation({
     refetchQueries: [GetCustomerDocumentsDocument],
   })
@@ -182,13 +187,13 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
           },
         })
         refetch()
-        toast.success("Document uploaded successfully")
+        toast.success(t("messages.uploadSuccess"))
       } catch (err) {
-        const errorMessage = getErrorMessage(err)
+        const errorMessage = getErrorMessage(err, t)
         toast.error(errorMessage)
       }
     },
-    [customerDocumentAttach, customer.customerId, refetch],
+    [customerDocumentAttach, customer.customerId, refetch, t],
   )
 
   const onDrop = useCallback(
@@ -198,11 +203,11 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
         if (file.type === "application/pdf") {
           await handleFileUpload(file)
         } else {
-          toast.error("Please upload only PDF files.")
+          toast.error(t("messages.pdfOnly"))
         }
       }
     },
-    [handleFileUpload],
+    [handleFileUpload, t],
   )
 
   const { getRootProps, getInputProps } = useDropzone({
@@ -223,14 +228,14 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
           if (file) {
             handleFileUpload(file)
           } else {
-            toast.error("Failed to retrieve the pasted file.")
+            toast.error(t("messages.pasteError"))
           }
         } else {
-          toast.error("Please paste only PDF files.")
+          toast.error(t("messages.pdfOnly"))
         }
       }
     },
-    [handleFileUpload],
+    [handleFileUpload, t],
   )
 
   useEffect(() => {
@@ -246,9 +251,7 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
           {loading ? (
             <CgSpinner className="animate-spin h-5 w-5" />
           ) : (
-            <span>
-              Click, drag and drop, or paste a PDF file to upload a document for this user
-            </span>
+            <span>{t("dropzone.prompt")}</span>
           )}
         </CardContent>
       </Card>
@@ -256,21 +259,24 @@ const AddDocument: React.FC<DocumentProps> = ({ customer, refetch }) => {
   )
 }
 
-const getErrorMessage = (err: unknown): string => {
+const getErrorMessage = (
+  err: unknown,
+  t: ReturnType<typeof useTranslations<"Customers.CustomerDetails.Documents">>,
+): string => {
   if (
     err instanceof ApolloError &&
     err.networkError &&
     "statusCode" in err.networkError
   ) {
     if (err.networkError.statusCode === 413) {
-      return "File is too large. Please upload a smaller file."
+      return t("messages.fileTooLarge")
     }
-    return `Upload failed: ${err.message}`
+    return t("messages.uploadFailed", { message: err.message })
   }
   if (err instanceof Error) {
-    return `Upload failed: ${err.message}`
+    return t("messages.uploadFailed", { message: err.message })
   }
-  return "An unexpected error occurred during file upload."
+  return t("messages.unexpectedError")
 }
 
 export default Documents

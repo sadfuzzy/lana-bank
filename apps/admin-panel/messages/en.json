@@ -1,0 +1,1256 @@
+{
+  "Common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "notFound": "Not found",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "close": "Close"
+  },
+  "Sidebar": {
+    "labels": {
+      "loans": "Loans",
+      "customers": "Customers",
+      "transactions": "Transactions",
+      "administration": "Administration",
+      "financialReports": "Financial Reports"
+    },
+    "navItems": {
+      "dashboard": "Dashboard",
+      "actions": "Actions",
+      "creditFacilities": "Credit Facilities",
+      "disbursals": "Disbursals",
+      "termTemplates": "Term Templates",
+      "customers": "Customers",
+      "policies": "Policies",
+      "deposits": "Deposits",
+      "withdrawals": "Withdrawals",
+      "auditLogs": "Audit Logs",
+      "committees": "Committees",
+      "chartOfAccounts": "Chart of Accounts",
+      "users": "Users",
+      "balanceSheet": "Balance Sheet",
+      "cashFlow": "Cash Flow",
+      "profitAndLoss": "Profit & Loss",
+      "regulatoryReporting": "Regulatory Reporting",
+      "trialBalance": "Trial Balance"
+    },
+    "footer": {
+      "appName": "Lana Bank",
+      "version": "v{version}"
+    }
+  },
+  "UserBlock": {
+    "settings": "Settings",
+    "logout": "Logout",
+    "profile": "Profile"
+  },
+  "CommandMenu": {
+    "placeholders": {
+      "searchNavigation": "Search navigation...",
+      "searchActions": "Search actions...",
+      "whatDoYouNeed": "What do you need?"
+    },
+    "noResults": "No results found.",
+    "headings": {
+      "availableActions": "Available Actions",
+      "navigation": "Navigation"
+    },
+    "actions": {
+      "createDeposit": "Create Deposit",
+      "createWithdrawal": "Create Withdrawal",
+      "createCustomer": "Create Customer",
+      "createCreditFacility": "Create Credit Facility",
+      "updateCollateral": "Update Collateral",
+      "createDisbursal": "Create Disbursal",
+      "makePayment": "Make Payment",
+      "createUser": "Create User",
+      "updateTermsTemplate": "Update Terms Template",
+      "createTermsTemplate": "Create Terms Template",
+      "createCommittee": "Create Committee",
+      "confirmWithdrawal": "Confirm Withdrawal",
+      "cancelWithdrawal": "Cancel Withdrawal",
+      "assignCommittee": "Assign Committee",
+      "addCommitteeMember": "Add Committee Member",
+      "approve": "Approve",
+      "deny": "Deny"
+    },
+    "keyboardInstructions": {
+      "commandPalette": "Command Palette"
+    }
+  },
+  "Customers": {
+    "title": "Customers",
+    "description": "Individuals or entities who hold accounts, loans, or credit facilities with the bank",
+    "columns": {
+      "email": "Email",
+      "telegramId": "Telegram",
+      "status": "KYC Status",
+      "depositAccount": "USD Balance"
+    },
+    "status": {
+      "verified": "Verified",
+      "notVerified": "Not Verified"
+    },
+    "create": {
+      "title": "Add new customer",
+      "confirmTitle": "Confirm Customer Details",
+      "description": "Add a new Customer by providing their email address and Telegram ID",
+      "confirmDescription": "Please review the details before submitting",
+      "emailLabel": "Email",
+      "emailPlaceholder": "Please enter the email address",
+      "telegramLabel": "Telegram ID",
+      "telegramPlaceholder": "Please enter the Telegram ID",
+      "reviewButton": "Review Details",
+      "backButton": "Back",
+      "confirmButton": "Confirm and Submit",
+      "successMessage": "Customer created successfully",
+      "errorMessage": "Failed to create customer",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "failedToCreate": "Failed to create customer. Please try again."
+    },
+    "CustomerDetails": {
+      "layout": {
+        "tabs": {
+          "transactions": "Transactions",
+          "creditFacilities": "Credit Facilities",
+          "documents": "Documents"
+        },
+        "breadcrumbs": {
+          "dashboard": "Dashboard",
+          "customers": "Customers"
+        },
+        "errors": {
+          "loading": "Loading...",
+          "error": "An error occurred"
+        }
+      },
+      "details": {
+        "title": "Customer",
+        "labels": {
+          "email": "Email",
+          "createdOn": "Created on",
+          "telegram": "Telegram",
+          "status": "Status"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "actions": {
+          "editTelegram": "Edit Telegram ID"
+        }
+      },
+      "kycStatus": {
+        "title": "KYC Status",
+        "labels": {
+          "level": "Level",
+          "kycApplicationLink": "KYC Application Link"
+        },
+        "actions": {
+          "createLink": "Create link",
+          "creatingLink": "Creating link..."
+        },
+        "messages": {
+          "copied": "Copied to clipboard"
+        }
+      },
+      "accountBalances": {
+        "title": "Account Balances",
+        "labels": {
+          "checkingSettled": "Checking Settled Balance (USD)",
+          "pendingWithdrawals": "Pending Withdrawals (USD)"
+        }
+      },
+      "updateTelegram": {
+        "title": "Update Telegram ID",
+        "description": "Update the Telegram ID for this customer",
+        "labels": {
+          "newTelegramId": "New Telegram ID"
+        },
+        "placeholders": {
+          "newTelegramId": "Please enter the new Telegram ID"
+        },
+        "errors": {
+          "emptyTelegramId": "Telegram ID cannot be empty",
+          "unexpected": "An unexpected error occurred",
+          "updateFailed": "Failed to update Telegram ID: {error}"
+        },
+        "messages": {
+          "updateSuccess": "Telegram ID updated successfully"
+        },
+        "actions": {
+          "update": "Update",
+          "updating": "Updating..."
+        }
+      },
+      "transactions": {
+        "title": "Transactions",
+        "description": "Transactions for this Customer",
+        "table": {
+          "headers": {
+            "date": "Date",
+            "type": "Type",
+            "amount": "Amount",
+            "status": "Status"
+          },
+          "types": {
+            "deposit": "Deposit",
+            "withdrawal": "Withdrawal",
+            "disbursal": "Disbursal",
+            "payment": "Payment"
+          },
+          "empty": "No transactions found"
+        }
+      },
+      "creditFacilities": {
+        "title": "Credit Facilities",
+        "description": "Credit Facilities for this Customer",
+        "table": {
+          "headers": {
+            "status": "Status",
+            "outstandingBalance": "Outstanding Balance",
+            "collateralBtc": "Collateral (BTC)",
+            "collateralizationState": "Collateralization State",
+            "createdAt": "Created At"
+          }
+        }
+      },
+      "Documents": {
+        "title": "Documents",
+        "description": "Documents uploaded by this customer",
+        "columns": {
+          "id": "ID",
+          "fileName": "File Name"
+        },
+        "buttons": {
+          "view": "View",
+          "delete": "Delete"
+        },
+        "dropzone": {
+          "prompt": "Click, drag and drop, or paste a PDF file to upload a document for this user"
+        },
+        "messages": {
+          "uploadSuccess": "Document uploaded successfully",
+          "deleteSuccess": "Document deleted successfully",
+          "generateLinkError": "Failed to generate download link",
+          "deleteError": "Failed to delete document",
+          "pdfOnly": "Please upload only PDF files.",
+          "pasteError": "Failed to retrieve the pasted file.",
+          "fileTooLarge": "File is too large. Please upload a smaller file.",
+          "uploadFailed": "Upload failed: {message}",
+          "unexpectedError": "An unexpected error occurred during file upload."
+        }
+      }
+    }
+  },
+  "CreditFacilities": {
+    "title": "Credit Facilities",
+    "description": "Pre-approved financial arrangements allowing borrowers to access funds up to a certain limit as needed",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "status": "Status",
+        "outstanding": "Outstanding",
+        "collateralizationState": "State",
+        "cvl": "CVL",
+        "createdAt": "Created At"
+      }
+    },
+    "CreditFacilityStatus": {
+      "active": "Active",
+      "pendingApproval": "Pending Approval",
+      "pendingCollateralization": "Pending Collateralization",
+      "closed": "Closed",
+      "matured": "Matured"
+    },
+    "errors": {
+      "fetchError": "An error occurred while fetching data.",
+      "general": "An error occurred"
+    },
+    "CreditFacilityDetails": {
+      "RepaymentPlan": {
+        "title": "Repayment Plan",
+        "description": "Repayment plan associated with this credit facility",
+        "columns": {
+          "type": "Type",
+          "initialAmount": "Initial Amount",
+          "outstanding": "Outstanding",
+          "dueDate": "Due Date",
+          "status": "Status"
+        },
+        "messages": {
+          "emptyTable": "No Plan found"
+        },
+        "repaymentTypes": {
+          "principal": "Principal",
+          "interest": "Interest"
+        },
+        "status": {
+          "upcoming": "UPCOMING",
+          "due": "DUE",
+          "overdue": "OVERDUE",
+          "paid": "PAID"
+        }
+      },
+      "Disbursals": {
+        "title": "Disbursals",
+        "description": "Disbursals associated with this credit facility",
+        "columns": {
+          "amount": "Amount",
+          "createdAt": "Created At",
+          "status": "Status"
+        },
+        "messages": {
+          "emptyTable": "No disbursals found"
+        }
+      },
+      "Transactions": {
+        "title": "Transactions",
+        "description": "Credit Facility Transactions",
+        "columns": {
+          "transactionType": "Transaction Type",
+          "recordedAt": "Recorded At",
+          "amount": "Amount"
+        },
+        "messages": {
+          "unknownType": "Unknown Transaction Type",
+          "emptyTable": "No transactions found"
+        }
+      },
+      "TermsDialog": {
+        "title": "Terms",
+        "details": {
+          "duration": "Duration",
+          "interestRate": "Interest (APR)",
+          "accrualInterval": "Accrual Interval",
+          "targetCvl": "Target/initial CVL %",
+          "marginCallCvl": "Margin call CVL %",
+          "liquidationCvl": "Liquidation CVL %",
+          "dateCreated": "Date created",
+          "incurrenceInterval": "Incurrence Interval",
+          "structuringFeeRate": "Structuring Fee Rate"
+        }
+      },
+      "CollateralCard": {
+        "title": "Collateral",
+        "details": {
+          "collateralBalance": "Collateral balance (BTC)",
+          "currentPrice": "Current BTC/USD Price",
+          "collateralValue": "Collateral value (USD)",
+          "marginCallPrice": "Margin Call Price BTC/USD ({percentage}%)",
+          "liquidationPrice": "Liquidation Price BTC/USD ({percentage}%)",
+          "collateralToReachTarget": "Collateral to reach target ({percentage}%)",
+          "currentCvl": "Current CVL"
+        },
+        "status": {
+          "moderate": "Moderate",
+          "high": "High",
+          "critical": "Critical"
+        }
+      },
+      "FacilityCard": {
+        "title": "Facility",
+        "details": {
+          "facilityAmount": "Facility Amount",
+          "facilityRemaining": "Facility Remaining",
+          "disbursedOutstanding": "Disbursed and Outstanding",
+          "outstandingInterest": "Outstanding Interest",
+          "totalOutstanding": "Total Outstanding",
+          "totalInterest": "Total Interest",
+          "totalDisbursed": "Total Disbursed",
+          "totalCost": "Total Cost"
+        }
+      },
+      "DetailsCard": {
+        "title": "Credit Facility",
+        "details": {
+          "customerEmail": "Customer Email",
+          "collateralizationState": "Collateralization State",
+          "status": "Status",
+          "expiresAt": "Expires At"
+        },
+        "buttons": {
+          "loanTerms": "Loan Terms",
+          "updateCollateral": "Update Collateral",
+          "approve": "Approve",
+          "deny": "Deny"
+        }
+      },
+      "Layout": {
+        "tabs": {
+          "transactions": "Transactions",
+          "disbursals": "Disbursals",
+          "repaymentPlan": "Repayment Plan"
+        },
+        "breadcrumbs": {
+          "dashboard": "Dashboard",
+          "creditFacilities": "Credit Facilities"
+        },
+        "errors": {
+          "notFound": "Not found",
+          "loading": "Loading..."
+        }
+      },
+      "CreateCreditFacility": {
+        "dialog": {
+          "customerInfo": "Creating credit facility for {email}",
+          "title": "Create Credit Facility",
+          "description": "Fill in the details to create a credit facility."
+        },
+        "form": {
+          "labels": {
+            "facilityAmount": "Facility Amount",
+            "termsTemplate": "Terms Template",
+            "creditFacilityTerms": "Credit Facility Terms",
+            "interestRate": "Interest Rate (APR)",
+            "initialCvl": "Initial CVL (%)",
+            "duration": "Duration",
+            "marginCallCvl": "Margin Call CVL (%)",
+            "accrualInterval": "Accrual Interval",
+            "liquidationCvl": "Liquidation CVL (%)",
+            "incurrenceInterval": "Incurrence Interval",
+            "structuringFeeRate": "Structuring Fee Rate (%)"
+          },
+          "placeholders": {
+            "facilityAmount": "Enter the facility amount",
+            "termsTemplate": "Select from predefined terms template",
+            "annualRate": "Enter the annual rate",
+            "initialCvl": "Enter the initial CVL",
+            "duration": "Duration",
+            "marginCallCvl": "Enter the margin call CVL",
+            "accrualInterval": "Select accrual interval",
+            "liquidationCvl": "Enter the liquidation CVL",
+            "incurrenceInterval": "Select incurrence interval",
+            "structuringFeeRate": "Enter the Structuring Fee Rate",
+            "selectPeriod": "Select period"
+          },
+          "buttons": {
+            "back": "Back",
+            "create": "Create Credit Facility"
+          },
+          "messages": {
+            "collateralRequired": "collateral required",
+            "btcUsdRate": "BTC/USD:",
+            "noTemplates": "No terms templates available please create one or manually specify the terms below.",
+            "fillAllFields": "Please fill in all the fields.",
+            "success": "Credit Facility created successfully"
+          }
+        }
+      },
+      "CreditFacilityPartialPayment": {
+        "dialog": {
+          "title": "Process Partial Payment",
+          "description": "Enter the amount you wish to pay towards this credit facility."
+        },
+        "form": {
+          "labels": {
+            "amount": "Amount"
+          },
+          "placeholders": {
+            "amount": "Enter the desired principal amount"
+          },
+          "errors": {
+            "invalidAmount": "Please enter a valid amount",
+            "unknownError": "An unknown error occurred"
+          },
+          "buttons": {
+            "cancel": "Cancel",
+            "processPayment": "Process Payment"
+          }
+        },
+        "messages": {
+          "success": "Partial payment processed successfully"
+        }
+      },
+      "CreditFacilityCollateralUpdate": {
+        "dialog": {
+          "title": "Update Credit Facility Collateral",
+          "description": "Enter the new collateral amount for this credit facility.",
+          "confirmTitle": "Confirm Update",
+          "confirmDescription": "Are you sure you want to update the collateral for this credit facility?"
+        },
+        "form": {
+          "labels": {
+            "currentCollateral": "Current Collateral",
+            "expectedCollateral": "Expected Collateral",
+            "newCollateral": "New Collateral"
+          },
+          "placeholders": {
+            "newCollateral": "Enter new collateral amount"
+          },
+          "errors": {
+            "emptyCollateral": "Please enter a valid collateral amount.",
+            "noData": "No data returned from mutation",
+            "unknownError": "An unknown error occurred"
+          },
+          "buttons": {
+            "back": "Back",
+            "proceedToConfirm": "Proceed to Confirm",
+            "confirm": "Confirm",
+            "updating": "Updating..."
+          }
+        },
+        "messages": {
+          "success": "Credit facility collateral updated successfully"
+        },
+        "units": {
+          "btc": "BTC"
+        }
+      }
+    }
+  },
+  "Disbursals": {
+    "title": "Disbursals",
+    "description": "Payments made from a credit facility to user",
+    "table": {
+      "headers": {
+        "amount": "Amount",
+        "createdAt": "Date",
+        "status": "Status"
+      }
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
+    "DisbursalStatus": {
+      "new": "New",
+      "approved": "Approved",
+      "confirmed": "Confirmed",
+      "denied": "Denied"
+    },
+    "DisbursalDetails": {
+      "VotersCard": {
+        "title": "Approval process decision from the {committeeName} Committee",
+        "description": "Users who can approve the process",
+        "voter": {
+          "approved": "Approved",
+          "denied": "Denied",
+          "notVoted": "Has not voted yet"
+        }
+      },
+      "DetailsCard": {
+        "title": "Disbursal",
+        "details": {
+          "customerEmail": "Customer Email",
+          "disbursalAmount": "Disbursal Amount",
+          "facilityAmount": "Facility Amount",
+          "status": "Status"
+        },
+        "buttons": {
+          "approve": "Approve",
+          "deny": "Deny",
+          "viewCreditFacility": "View Credit Facility"
+        }
+      },
+      "CreditFacilityDisbursalInitiate": {
+        "dialog": {
+          "title": "Initiate Credit Facility Disbursal",
+          "description": "Enter the amount you want to disburse from this credit facility."
+        },
+        "form": {
+          "labels": {
+            "amount": "Amount (USD)"
+          },
+          "placeholders": {
+            "amount": "Enter amount"
+          }
+        },
+        "buttons": {
+          "cancel": "Cancel",
+          "submit": "Initiate Disbursal"
+        },
+        "messages": {
+          "success": "Disbursal initiated successfully",
+          "unknownError": "An unknown error occurred"
+        }
+      }
+    }
+  },
+  "TermsTemplates": {
+    "title": "Terms Templates",
+    "description": "Terms templates that can be used with loans and credit facilities",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "duration": "Duration",
+        "annualRate": "Annual Rate",
+        "initialCvl": "Initial CVL",
+        "marginCallCvl": "Margin Call CVL",
+        "liquidationCvl": "Liquidation CVL"
+      }
+    },
+    "errors": {
+      "general": "An error occurred"
+    },
+    "TermsTemplateDetails": {
+      "DetailsCard": {
+        "title": "Terms Template",
+        "fields": {
+          "name": "Name",
+          "createdAt": "Created At",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "annualRate": "Annual Rate",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "buttons": {
+          "update": "Update"
+        }
+      },
+      "UpdateTermsTemplate": {
+        "title": "Update {name}",
+        "description": "Update the Terms Template by modifying the required information.",
+        "fields": {
+          "annualRate": "Interest Rate (APR)",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "placeholders": {
+          "annualRate": "Enter the annual rate",
+          "durationUnits": "Duration",
+          "durationPeriod": "Select period",
+          "accrualInterval": "Select accrual interval",
+          "incurrenceInterval": "Select incurrence interval",
+          "initialCvl": "Enter the initial CVL",
+          "marginCallCvl": "Enter the margin call CVL",
+          "liquidationCvl": "Enter the liquidation CVL",
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "buttons": {
+          "submit": "Update Terms Template"
+        },
+        "errors": {
+          "general": "An unexpected error occurred. Please try again.",
+          "updateFailed": "Failed to update Terms Template"
+        },
+        "success": {
+          "updated": "Terms Template updated successfully"
+        }
+      },
+      "CreateTermsTemplate": {
+        "title": "Create Terms Template",
+        "description": "Create a new Terms Template by providing the required information.",
+        "fields": {
+          "name": "Template Name",
+          "annualRate": "Interest Rate (APR)",
+          "duration": "Duration",
+          "accrualInterval": "Accrual Interval",
+          "incurrenceInterval": "Incurrence Interval",
+          "initialCvl": "Initial CVL (%)",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+        },
+        "placeholders": {
+          "name": "Enter the template name",
+          "annualRate": "Enter the annual rate",
+          "durationUnits": "Duration",
+          "durationPeriod": "Select period",
+          "initialCvl": "Enter the initial CVL",
+          "marginCallCvl": "Enter the margin call CVL",
+          "liquidationCvl": "Enter the liquidation CVL",
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate",
+          "accrualInterval": "Select accrual interval",
+          "incurrenceInterval": "Select incurrence interval"
+        },
+        "buttons": {
+          "submit": "Create Terms Template"
+        },
+        "errors": {
+          "general": "An unexpected error occurred. Please try again.",
+          "creationFailed": "Failed to create Terms Template"
+        },
+        "success": {
+          "created": "Terms Template created successfully"
+        }
+      }
+    }
+  },
+  "Policies": {
+    "title": "Policies",
+    "description": "Policies define the approval process for different types of transactions.",
+    "table": {
+      "headers": {
+        "approvalProcessType": "Process Type",
+        "rules": "Rule"
+      },
+      "errors": {
+        "general": "An error occurred while fetching policies."
+      },
+      "rules": {
+        "committeeThreshold": "{committeeName} Committee",
+        "systemApproval": "System"
+      }
+    },
+    "PolicyDetails": {
+      "DetailsCard": {
+        "title": "Policy",
+        "fields": {
+          "processType": "Process Type",
+          "rule": "Rule",
+          "assignedCommittee": "Assigned Committee"
+        },
+        "buttons": {
+          "updatePolicy": "Update Policy",
+          "assignCommittee": "Assign Committee"
+        }
+      },
+      "CommitteeAssignmentDialog": {
+        "title": "Assign Committee to Policy",
+        "description": "Select a committee and set threshold for this policy.",
+        "fields": {
+          "committee": "Select Committee",
+          "threshold": "Threshold"
+        },
+        "placeholders": {
+          "committee": "Select a committee",
+          "threshold": "Enter threshold value"
+        },
+        "errors": {
+          "selectCommitteeAndThreshold": "Please select a committee and set threshold.",
+          "general": "An unexpected error occurred. Please try again.",
+          "assignmentFailed": "Failed to assign committee to policy."
+        },
+        "success": {
+          "assigned": "Committee assigned to policy successfully."
+        },
+        "buttons": {
+          "assign": "Assign Committee"
+        }
+      }
+    }
+  },
+  "Committees": {
+    "title": "Committees",
+    "description": "Manage approval committees and their members",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "created": "Created",
+        "members": "Members"
+      }
+    },
+    "CommitteeDetails": {
+      "CommitteeUsers": {
+        "title": "Members",
+        "description": "Members in this committee",
+        "table": {
+          "headers": {
+            "email": "Email"
+          },
+          "noRoles": "No roles assigned",
+          "emptyMessage": "No members found in this committee"
+        },
+        "buttons": {
+          "removeMember": "Remove member"
+        }
+      },
+      "detailsCard": {
+        "title": "Committee",
+        "fields": {
+          "createdAt": "Created At",
+          "name": "Name",
+          "totalMembers": "Total Members"
+        },
+        "buttons": {
+          "addMember": "Add Member"
+        }
+      },
+      "create": {
+        "title": "Create Committee",
+        "description": "Create a new committee by providing the required information",
+        "fields": {
+          "name": "Committee Name"
+        },
+        "placeholders": {
+          "name": "Enter the committee name"
+        },
+        "buttons": {
+          "create": "Create Committee"
+        },
+        "success": "Committee created successfully",
+        "errors": {
+          "failed": "Failed to create committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "RemoveUserCommitteeDialog": {
+        "title": "Remove Committee Member",
+        "description": "Are you sure you want to remove {userEmail} from this committee?",
+        "buttons": {
+          "cancel": "Cancel",
+          "remove": "Remove"
+        },
+        "success": "User removed from committee successfully",
+        "errors": {
+          "failed": "Failed to remove user from committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      },
+      "AddUserCommitteeDialog": {
+        "title": "Add User to Committee",
+        "description": "Select a user to add to this committee",
+        "placeholders": {
+          "selectUser": "Select a user"
+        },
+        "buttons": {
+          "addUser": "Add User"
+        },
+        "success": "User added to committee successfully",
+        "errors": {
+          "selectUser": "Please select a user",
+          "failed": "Failed to add user to committee. Please try again.",
+          "general": "An unexpected error occurred. Please try again."
+        }
+      }
+    }
+  },
+  "Deposits": {
+    "title": "Deposits",
+    "description": "Sums of money added from credit facilities into customer’s accounts",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "reference": "Reference",
+        "amount": "Amount"
+      },
+      "errors": {
+        "general": "An error occurred while fetching deposits."
+      }
+    },
+    "CreateDepositDialog": {
+      "title": "Create Deposit",
+      "description": "Provide the required details to create a deposit.",
+      "creatingFor": "Creating deposit for {email}",
+      "fields": {
+        "amount": "Amount",
+        "reference": "Reference"
+      },
+      "placeholders": {
+        "amount": "Enter the deposit amount",
+        "reference": "Enter a reference (optional)"
+      },
+      "buttons": {
+        "submit": "Submit",
+        "submitting": "Submitting..."
+      },
+      "success": "Deposit created successfully",
+      "errors": {
+        "noData": "No data returned from mutation",
+        "unknown": "An unknown error occurred"
+      }
+    }
+  },
+  "Withdrawals": {
+    "title": "Withdrawals",
+    "description": "Money taken out from customer’s accounts",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "reference": "Reference",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "errors": {
+        "general": "An error occurred while fetching withdrawals."
+      },
+      "values": {
+        "na": "N/A"
+      }
+    },
+    "WithdrawalStatus": {
+      "pendingApproval": "Pending Approval",
+      "pendingConfirmation": "Pending Confirmation",
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "denied": "Denied"
+    },
+    "WithdrawDetails": {
+      "WithdrawalCancelDialog": {
+        "title": "Cancel Withdrawal",
+        "description": "Are you sure you want to cancel this withdrawal?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount",
+          "withdrawalReference": "Withdrawal Reference"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "canceling": "Canceling..."
+        },
+        "success": "Withdrawal canceled successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
+      "WithdrawalConfirmDialog": {
+        "title": "Confirm Withdrawal",
+        "description": "Are you sure you want to confirm this withdrawal?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount",
+          "withdrawalReference": "Withdrawal Reference"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "confirming": "Confirming..."
+        },
+        "success": "Withdrawal confirmed successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
+      "WithdrawalDetailsCard": {
+        "title": "Withdrawal",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "withdrawalAmount": "Withdrawal Amount",
+          "withdrawalReference": "Withdrawal Reference",
+          "status": "Status"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirm",
+          "cancel": "Cancel",
+          "approve": "Approve",
+          "deny": "Deny"
+        }
+      }
+    },
+    "WithdrawalInitiateDialog": {
+      "title": "Initiate Withdrawal",
+      "description": "Provide the required details to initiate a withdrawal.",
+      "creatingFor": "Creating withdrawal for {email}",
+      "fields": {
+        "amount": "Amount",
+        "reference": "Reference"
+      },
+      "placeholders": {
+        "amount": "Enter amount",
+        "reference": "Enter a reference (optional)"
+      },
+      "buttons": {
+        "submit": "Initiate Withdrawal",
+        "processing": "Processing..."
+      },
+      "success": "Withdrawal initiated successfully",
+      "errors": {
+        "unknown": "An unknown error occurred"
+      }
+    }
+  },
+  "Actions": {
+    "ApprovalProcess": {
+      "Approve": {
+        "title": "Approve Process",
+        "fields": {
+          "processType": "Process Type",
+          "createdAt": "Created At"
+        },
+        "buttons": {
+          "approve": "Approve"
+        },
+        "errors": {
+          "unknown": "An unknown error occurred"
+        },
+        "success": {
+          "processApproved": "Process approved successfully"
+        }
+      },
+      "Deny": {
+        "title": "Deny Process",
+        "fields": {
+          "processType": "Process Type",
+          "createdAt": "Created At",
+          "reasonLabel": "Reason for Denial"
+        },
+        "placeholders": {
+          "reason": "Please provide a reason for denying this process"
+        },
+        "buttons": {
+          "deny": "Deny"
+        },
+        "errors": {
+          "reasonRequired": "Please provide a reason for denial",
+          "unknown": "An unknown error occurred"
+        },
+        "success": {
+          "processDenied": "Process denied successfully"
+        }
+      }
+    },
+    "table": {
+      "title": "Pending Actions",
+      "description": "Approvals / Rejections waiting your way",
+      "headers": {
+        "customer": "Customer",
+        "type": "Type",
+        "date": "Date"
+      },
+      "values": {
+        "unknown": "Unknown"
+      },
+      "more": "...{count} more",
+      "allCaughtUp": "All Caught Up"
+    }
+  },
+  "Dashboard": {
+    "cards": {
+      "activeFacilities": {
+        "title": "Active Facilities",
+        "description": "Credit Facilities where money has been disbursed",
+        "pending": "Pending",
+        "buttonText": "View Active Facilities"
+      },
+      "totalDisbursed": {
+        "title": "Total Disbursed",
+        "description": "Total amount of money customers withdrew from the bank",
+        "buttonText": "View Disbursals"
+      },
+      "totalCollateral": {
+        "title": "Total Collateral",
+        "description": "Total bitcoin collateral value at market rate that the bank holds",
+        "buttonText": "View Credit Facilities"
+      }
+    }
+  },
+  "Users": {
+    "title": "Users",
+    "description": "Manage system users and their role assignments",
+    "table": {
+      "headers": {
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "No roles Assigned",
+      "emptyMessage": "No users found"
+    },
+    "createDialog": {
+      "title": "Add new User",
+      "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
+      "fields": {
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "placeholders": {
+        "email": "Please enter the email address"
+      },
+      "emailHelperText": "A magic link will be sent to the email address provided.",
+      "buttons": {
+        "submit": "Submit",
+        "processing": "Processing..."
+      },
+      "errors": {
+        "selectRole": "Please select at least one role.",
+        "createPrefix": "Error creating user:",
+        "assignRolePrefix": "Error assigning role:",
+        "unknown": "An unknown error occurred"
+      },
+      "success": {
+        "userCreated": "User created successfully"
+      }
+    },
+    "userDetails": {
+      "title": "User",
+      "fields": {
+        "createdAt": "Created At",
+        "email": "Email",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "No roles assigned",
+      "roleDropdown": {
+        "manageRoles": "Manage Roles",
+        "rolesLabel": "Roles",
+        "success": {
+          "roleAssigned": "Role assigned",
+          "roleRevoked": "Role revoked"
+        },
+        "errors": {
+          "assignFailed": "Failed to assign role",
+          "revokeFailed": "Failed to revoke role"
+        }
+      }
+    }
+  },
+  "AuditLogs": {
+    "title": "Audit Logs",
+    "description": "System-wide audit trail showing user and system actions",
+    "table": {
+      "headers": {
+        "subject": "Subject",
+        "object": "Object",
+        "action": "Action",
+        "recordedAt": "Recorded At"
+      },
+      "error": "An error occurred while fetching audit logs.",
+      "emptyMessage": "No audit logs found."
+    }
+  },
+  "ChartOfAccounts": {
+    "title": "Chart Of Accounts",
+    "description": "A structured list of all accounts used to categorize and track financial records.",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Off Balance Sheet"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Account Name",
+        "accountCode": "Account Code"
+      },
+      "error": "An error occurred while fetching the chart of accounts."
+    }
+  },
+  "BalanceSheet": {
+    "title": "Balance Sheet",
+    "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "total": "Total",
+    "columns": {
+      "assets": "Total Assets",
+      "liabilitiesAndEquity": "Total Liabilities & Equity"
+    }
+  },
+  "CashFlowStatement": {
+    "title": "Cash Flow Statement",
+    "description": "A financial statement showing how changes in balance sheet accounts and income affect cash and cash equivalents.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "total": "Total"
+  },
+  "ProfitAndLoss": {
+    "title": "Profit and Loss Statement",
+    "description": "A financial report showing revenue, expenses, and resulting profit or loss over a specific time period.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "net": "NET"
+  },
+  "Reports": {
+    "title": "Report Management",
+    "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
+    "generateReport": "Generate Report",
+    "noReportsFound": "No reports found",
+    "selectReport": "Select Report",
+    "selectReportPlaceholder": "Select a report",
+    "reportId": "Report ID",
+    "lastError": "Last Error",
+    "currentStatus": "Status",
+    "downloads": "Downloads",
+    "generateLinks": "Generate Links",
+    "status": {
+      "running": "Running (last triggered on {date})",
+      "complete": "Operational (last report created on {date})"
+    },
+    "createDialog": {
+      "title": "Create New Report",
+      "description": "Are you sure you want to create a new report? This action will generate a regulatory report based on the latest financial data.",
+      "create": "Create Report",
+      "creating": "Creating...",
+      "success": "Report creation started",
+      "error": "Failed to create report"
+    }
+  },
+  "TrialBalance": {
+    "title": "Trial Balance",
+    "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
+    "noData": "No data",
+    "dateRange": "Date Range",
+    "totals": "Totals",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Off Balance Sheet"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Account Name",
+        "debit": "Debit",
+        "credit": "Credit",
+        "net": "Net"
+      }
+    }
+  },
+  "CurrencyLayerSelection": {
+    "currency": {
+      "label": "Currency",
+      "options": {
+        "usd": "USD",
+        "btc": "BTC"
+      }
+    },
+    "layer": {
+      "label": "Layer",
+      "options": {
+        "all": "All",
+        "settled": "Settled",
+        "pending": "Pending"
+      }
+    }
+  },
+  "dateTime": {
+    "created": "Created on {date}",
+    "format": {
+      "short": "MMMM d, yyyy, HH:mm"
+    }
+  },
+  "CreateButton": {
+    "buttons": {
+      "create": "Create"
+    },
+    "disabledMessages": {
+      "creditFacilityMustBeActive": "Credit facility must be active to perform actions"
+    },
+    "menuItems": {
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal",
+      "customer": "Customer",
+      "creditFacility": "Credit Facility",
+      "disbursal": "Disbursal",
+      "payment": "Payment",
+      "user": "User",
+      "termsTemplate": "Terms Template",
+      "committee": "Committee"
+    }
+  },
+  "DataTable": {
+    "view": "View",
+    "noData": "No data to display"
+  },
+  "PaginatedTable": {
+    "view": "View",
+    "noData": "No data to display",
+    "sortBy": "Sort By",
+    "all": "All"
+  }
+}

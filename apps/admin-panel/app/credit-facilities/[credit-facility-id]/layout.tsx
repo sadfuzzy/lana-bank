@@ -2,13 +2,12 @@
 
 import { gql, useApolloClient } from "@apollo/client"
 import { useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
 
 import CreditFacilityDetailsCard from "./details"
-
 import { CreditFacilityCollateral } from "./collateral-card"
-
 import FacilityCard from "./facility-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
@@ -112,12 +111,6 @@ gql`
   }
 `
 
-const TABS = [
-  { id: "1", url: "/", tabLabel: "Transactions" },
-  { id: "4", url: "/disbursals", tabLabel: "Disbursals" },
-  { id: "5", url: "/repayment-plan", tabLabel: "Repayment Plan" },
-]
-
 export default function CreditFacilityLayout({
   children,
   params,
@@ -125,11 +118,20 @@ export default function CreditFacilityLayout({
   children: React.ReactNode
   params: { "credit-facility-id": string }
 }) {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
+
   const { "credit-facility-id": creditFacilityId } = params
-  const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
+
+  const TABS = [
+    { id: "1", url: "/", tabLabel: t("tabs.transactions") },
+    { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
+    { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
+  ]
+
+  const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
 
   const { data, loading, error } = useGetCreditFacilityLayoutDetailsQuery({
     variables: { id: creditFacilityId },
@@ -173,8 +175,8 @@ export default function CreditFacilityLayout({
     if (data?.creditFacility) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Credit Facilities", href: "/credit-facilities" },
+        { title: t("breadcrumbs.dashboard"), href: "/dashboard" },
+        { title: t("breadcrumbs.creditFacilities"), href: "/credit-facilities" },
         {
           title: data.creditFacility.creditFacilityId,
           href: `/credit-facilities/${creditFacilityId}`,
@@ -192,7 +194,7 @@ export default function CreditFacilityLayout({
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.creditFacility) return <div>Not found</div>
+  if (!data?.creditFacility) return <div>{t("errors.notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto">

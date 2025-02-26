@@ -12,6 +12,8 @@ import {
 } from "@lana/web/ui/card"
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import { Account } from "./account"
 
 import {
@@ -173,7 +175,6 @@ const LoadingSkeleton = () => {
     </div>
   )
 }
-
 const CategoryRow = ({
   category,
   currency,
@@ -253,6 +254,7 @@ const CashFlowStatement = ({
   dateRange: DateRange
   setDateRange: (dateRange: DateRange) => void
 }) => {
+  const t = useTranslations("CashFlowStatement")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
@@ -261,11 +263,8 @@ const CashFlowStatement = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Cash Flow Statement</CardTitle>
-          <CardDescription>
-            A financial statement showing how changes in balance sheet accounts and income
-            affect cash and cash equivalents.
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <LoadingSkeleton />
@@ -274,20 +273,17 @@ const CashFlowStatement = ({
     )
   }
 
-  if (!data?.total) return <div>No data</div>
+  if (!data?.total) return <div>{t("noData")}</div>
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cash Flow Statement</CardTitle>
-        <CardDescription>
-          A financial statement showing how changes in balance sheet accounts and income
-          affect cash and cash equivalents.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex gap-6 items-center">
-          <div>Date Range:</div>
+          <div>{t("dateRange")}:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
 
@@ -314,7 +310,7 @@ const CashFlowStatement = ({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell className="uppercase font-bold">Total</TableCell>
+              <TableCell className="uppercase font-bold">{t("total")}</TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"

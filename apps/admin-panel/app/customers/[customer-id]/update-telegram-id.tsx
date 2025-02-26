@@ -1,5 +1,8 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -38,6 +41,8 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   openUpdateTelegramIdDialog,
   customerId,
 }) => {
+  const t = useTranslations("Customers.CustomerDetails.updateTelegram")
+
   const [updateTelegramId, { loading, error: mutationError, reset }] =
     useCustomerUpdateMutation()
   const [newTelegramId, setNewTelegramId] = useState<string>("")
@@ -48,7 +53,7 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
     setValidationError(null)
 
     if (!newTelegramId.trim()) {
-      setValidationError("Telegram ID cannot be empty")
+      setValidationError(t("errors.emptyTelegramId"))
       return
     }
 
@@ -61,14 +66,14 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
           },
         },
       })
-      toast.success("Telegram ID updated successfully")
+      toast.success(t("messages.updateSuccess"))
       setOpenUpdateTelegramIdDialog(false)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
-        toast.error(`Failed to update Telegram ID: ${error.message}`)
+        toast.error(t("errors.updateFailed", { error: error.message }))
       } else {
-        toast.error("An unexpected error occurred")
+        toast.error(t("errors.unexpected"))
       }
     }
   }
@@ -91,29 +96,29 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Telegram ID</DialogTitle>
-          <DialogDescription>Update the Telegram ID for this customer</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="newTelegramId">New Telegram ID</Label>
+            <Label htmlFor="newTelegramId">{t("labels.newTelegramId")}</Label>
             <Input
               id="newTelegramId"
               type="text"
               required
-              placeholder="Please enter the new Telegram ID"
+              placeholder={t("placeholders.newTelegramId")}
               value={newTelegramId}
               onChange={(e) => setNewTelegramId(e.target.value)}
             />
           </div>
           {(validationError || mutationError) && (
             <p className="text-destructive">
-              {validationError || mutationError?.message || "An error occurred"}
+              {validationError || mutationError?.message || t("errors.unexpected")}
             </p>
           )}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update"}
+              {loading ? t("actions.updating") : t("actions.update")}
             </Button>
           </DialogFooter>
         </form>

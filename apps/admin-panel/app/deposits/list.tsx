@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { Deposit, useDepositsQuery } from "@/lib/graphql/generated"
 
@@ -45,6 +46,7 @@ gql`
 `
 
 const Deposits = () => {
+  const t = useTranslations("Deposits.table")
   const { data, loading, error, fetchMore } = useDepositsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -55,7 +57,7 @@ const Deposits = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Deposit>
-        columns={columns}
+        columns={columns(t)}
         data={data?.deposits as PaginatedData<Deposit>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -67,15 +69,19 @@ const Deposits = () => {
 
 export default Deposits
 
-const columns: Column<Deposit>[] = [
-  { key: "account", label: "Customer", render: (account) => account.customer.email },
+const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
+  {
+    key: "account",
+    label: t("headers.customer"),
+    render: (account) => account.customer.email,
+  },
   {
     key: "reference",
-    label: "Reference",
+    label: t("headers.reference"),
   },
   {
     key: "amount",
-    label: "Amount",
+    label: t("headers.amount"),
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
 ]

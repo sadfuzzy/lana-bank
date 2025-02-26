@@ -18,6 +18,8 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 import { Card } from "@lana/web/ui/card"
 import { useBreakpointDown } from "@lana/web/hooks"
 
+import { useTranslations } from "next-intl"
+
 import { cn } from "@/lib/utils"
 
 export type Column<T> = {
@@ -57,6 +59,7 @@ const DataTable = <T,>({
   navigateTo,
   autoFocus = true,
 }: DataTableProps<T>) => {
+  const t = useTranslations("DataTable")
   const isMobile = useBreakpointDown("md")
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
@@ -316,7 +319,7 @@ const DataTable = <T,>({
                     variant="outline"
                     className="w-full flex items-center justify-center"
                   >
-                    View
+                    {t("view")}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -405,7 +408,7 @@ const DataTable = <T,>({
                       variant="outline"
                       className="w-full flex items-center justify-between"
                     >
-                      View
+                      {t("view")}
                       <ArrowRight className="h-4 w-4" />
                     </Button>
                   </Link>

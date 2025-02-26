@@ -3,6 +3,7 @@
 import React from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -41,6 +42,7 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
   openRemoveUserDialog,
   setOpenRemoveUserDialog,
 }) => {
+  const t = useTranslations("Committees.CommitteeDetails.RemoveUserCommitteeDialog")
   const [removeUser, { loading }] = useCommitteeRemoveUserMutation()
 
   const handleRemove = async () => {
@@ -54,12 +56,12 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
         },
       })
       if (data?.committeeRemoveUser.committee) {
-        toast.success("User removed from committee successfully")
+        toast.success(t("success"))
         setOpenRemoveUserDialog(false)
       }
     } catch (error) {
       console.error("Error removing user from committee:", error)
-      toast.error("Failed to remove user from committee")
+      toast.error(t("errors.failed"))
     }
   }
 
@@ -67,18 +69,15 @@ export const RemoveUserCommitteeDialog: React.FC<RemoveUserCommitteeDialogProps>
     <Dialog open={openRemoveUserDialog} onOpenChange={setOpenRemoveUserDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove Committee Member</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
-        <p>
-          Are you sure you want to remove <span className="font-bold">{userEmail}</span>{" "}
-          from this committee?
-        </p>
+        <p>{t("description", { userEmail })}</p>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpenRemoveUserDialog(false)}>
-            Cancel
+            {t("buttons.cancel")}
           </Button>
           <Button onClick={handleRemove} loading={loading}>
-            Remove
+            {t("buttons.remove")}
           </Button>
         </DialogFooter>
       </DialogContent>

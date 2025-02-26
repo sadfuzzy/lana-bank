@@ -2,8 +2,9 @@
 
 import { gql } from "@apollo/client"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
-import { LoanAndCreditFacilityStatusBadge } from "../loans/status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import {
   CreditFacilitiesSort,
@@ -72,6 +73,7 @@ gql`
 `
 
 const CreditFacilities = () => {
+  const t = useTranslations("CreditFacilities")
   const [sortBy, setSortBy] = useState<CreditFacilitiesSort | null>(null)
   const [filter, setFilter] = useState<CreditFacilitiesFilter | null>(null)
 
@@ -85,9 +87,9 @@ const CreditFacilities = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<CreditFacility>
-        columns={columns}
+        columns={columns(t)}
         data={data?.creditFacilities as PaginatedData<CreditFacility>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -116,11 +118,15 @@ const CreditFacilities = () => {
 
 export default CreditFacilities
 
-const columns: Column<CreditFacility>[] = [
-  { key: "customer", label: "Customer", render: (customer) => customer.email },
+const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
+  {
+    key: "customer",
+    label: t("table.headers.customer"),
+    render: (customer) => customer.email,
+  },
   {
     key: "status",
-    label: "Status",
+    label: t("table.headers.status"),
     render: (status) => (
       <LoanAndCreditFacilityStatusBadge
         className="flex items-center justify-center text-center min-h-full min-w-full"
@@ -131,26 +137,26 @@ const columns: Column<CreditFacility>[] = [
   },
   {
     key: "balance",
-    label: "Outstanding",
+    label: t("table.headers.outstanding"),
     render: (balance) => (
       <Balance amount={balance.outstanding.usdBalance} currency="usd" />
     ),
   },
   {
     key: "collateralizationState",
-    label: "State",
+    label: t("table.headers.collateralizationState"),
     render: (state) => formatCollateralizationState(state),
     filterValues: Object.values(CollateralizationState),
   },
   {
     key: "currentCvl",
-    label: "CVL",
+    label: t("table.headers.cvl"),
     render: (cvl) => `${cvl.disbursed}%`,
     sortable: true,
   },
   {
     key: "createdAt",
-    label: "Created At",
+    label: t("table.headers.createdAt"),
     render: (date) => formatDate(date, { includeTime: false }),
     sortable: true,
   },

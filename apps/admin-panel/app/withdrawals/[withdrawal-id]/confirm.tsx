@@ -1,5 +1,8 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -41,6 +44,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
   openWithdrawalConfirmDialog,
   withdrawalData,
 }) => {
+  const t = useTranslations("Withdrawals.WithdrawDetails.WithdrawalConfirmDialog")
   const [confirmWithdrawal, { loading, reset }] = useWithdrawalConfirmMutation()
   const [error, setError] = useState<string | null>(null)
 
@@ -56,18 +60,14 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
         },
       })
       if (result.data) {
-        toast.success("Withdrawal confirmed successfully")
+        toast.success(t("success"))
         handleCloseDialog()
       } else {
-        throw new Error("No data returned from mutation")
+        throw new Error(t("errors.noData"))
       }
     } catch (error) {
       console.error("Error confirming withdrawal:", error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError("An unknown error occurred")
-      }
+      setError(error instanceof Error ? error.message : t("errors.unknown"))
     }
   }
 
@@ -81,28 +81,26 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
     <Dialog open={openWithdrawalConfirmDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Withdrawal</DialogTitle>
-          <DialogDescription>
-            Are you sure you want to confirm this withdrawal?
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <DetailsGroup layout="horizontal">
             <DetailItem
-              label="Customer Email"
-              value={withdrawalData.account.customer?.email || "N/A"}
+              label={t("fields.customerEmail")}
+              value={withdrawalData.account.customer?.email || t("values.na")}
             />
             <DetailItem
-              label="Amount"
+              label={t("fields.amount")}
               value={
                 <Balance amount={withdrawalData.amount as UsdCents} currency="usd" />
               }
             />
             <DetailItem
-              label="Withdrawal Reference"
+              label={t("fields.withdrawalReference")}
               value={
                 withdrawalData.reference === withdrawalData.withdrawalId
-                  ? "N/A"
+                  ? t("values.na")
                   : withdrawalData.reference
               }
             />
@@ -114,7 +112,7 @@ export const WithdrawalConfirmDialog: React.FC<WithdrawalConfirmDialogProps> = (
               disabled={loading}
               data-testid="withdrawal-confirm-dialog-button"
             >
-              {loading ? "Confirming..." : "Confirm"}
+              {loading ? t("buttons.confirming") : t("buttons.confirm")}
             </Button>
           </DialogFooter>
         </form>

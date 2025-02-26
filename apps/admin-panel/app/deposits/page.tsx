@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import {
   Card,
   CardHeader,
@@ -10,20 +11,22 @@ import {
 
 import DepositsList from "./list"
 
-const Deposits: React.FC = () => (
-  <>
-    <Card>
-      <CardHeader>
-        <CardTitle>Deposits</CardTitle>
-        <CardDescription>
-          Sums of money added from credit facilities into customer&apos;s accounts
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DepositsList />
-      </CardContent>
-    </Card>
-  </>
-)
+const Deposits: React.FC = () => {
+  const t = useTranslations("Deposits")
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DepositsList />
+        </CardContent>
+      </Card>
+    </>
+  )
+}
 
 export default Deposits

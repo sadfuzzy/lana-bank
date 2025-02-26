@@ -23,6 +23,8 @@ import {
 } from "@lana/web/ui/card"
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useTranslations } from "next-intl"
+
 import { ReportCreateDialog } from "./create-dialog"
 
 import { formatDate } from "@/lib/utils"
@@ -92,8 +94,8 @@ const LoadingSkeleton = () => {
     </div>
   )
 }
-
 const RegulatoryReportingPage: React.FC = () => {
+  const t = useTranslations("Reports")
   const { data, loading, error, refetch: refetchReports } = useReportsQuery()
   const [
     generateLinks,
@@ -146,11 +148,8 @@ const RegulatoryReportingPage: React.FC = () => {
       <Card className="mx-4 md:mx-auto md:max-w-7xl">
         <CardHeader className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
           <div className="flex flex-col gap-1">
-            <CardTitle>Report Management</CardTitle>
-            <CardDescription>
-              Generate and manage regulatory reports, track their status, and download
-              generated documents.
-            </CardDescription>
+            <CardTitle>{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <Button
             data-testid="generate-report-button"
@@ -158,7 +157,7 @@ const RegulatoryReportingPage: React.FC = () => {
             className="w-full md:w-auto"
             onClick={() => setOpenReportCreateDialog(true)}
           >
-            Generate Report
+            {t("generateReport")}
           </Button>
         </CardHeader>
 
@@ -184,7 +183,7 @@ const RegulatoryReportingPage: React.FC = () => {
               )}
             </div>
           ) : (
-            <p className="text-center md:text-left">No reports found</p>
+            <p className="text-center md:text-left">{t("noReportsFound")}</p>
           )}
           {generateLinkError && (
             <p className="text-destructive mt-4">{generateLinkError.message}</p>
@@ -206,14 +205,16 @@ const ReportSelector: React.FC<{
   selectedReport: string | undefined
   onSelectReport: (reportId: string) => void
 }> = ({ reports, selectedReport, onSelectReport }) => {
+  const t = useTranslations("Reports")
+
   return (
     <KeyValueItem
-      label="Select Report"
+      label={t("selectReport")}
       value={
         <div className="w-full md:w-80">
           <Select value={selectedReport} onValueChange={onSelectReport}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a report" />
+              <SelectValue placeholder={t("selectReportPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {reports.length > 0 ? (
@@ -223,7 +224,7 @@ const ReportSelector: React.FC<{
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="">No reports found</SelectItem>
+                <SelectItem value="">{t("noReportsFound")}</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -239,31 +240,35 @@ const ReportDetails: React.FC<{
   generateLinkLoading: boolean
   linksData?: { reportId: string; links: Array<{ reportName: string; url: string }> }
 }> = ({ selectedReportDetails, onGenerateLinks, generateLinkLoading, linksData }) => {
+  const t = useTranslations("Reports")
+
   return (
     <div className="space-y-4 md:space-y-6">
       <KeyValueItem
         data-testid="report-id"
-        label="Report ID"
+        label={t("reportId")}
         value={selectedReportDetails.reportId}
       />
       {selectedReportDetails.lastError && (
         <KeyValueItem
           data-testid="report-error"
-          label="Last Error"
+          label={t("lastError")}
           value={selectedReportDetails.lastError}
         />
       )}
       <KeyValueItem
         data-testid="report-status"
-        label="Status"
-        value={formatStatus({
-          reportProgress: selectedReportDetails.progress,
-          createdAt: selectedReportDetails.createdAt,
-        })}
+        label={t("currentStatus")}
+        value={
+          <FormatStatus
+            reportProgress={selectedReportDetails.progress}
+            createdAt={selectedReportDetails.createdAt}
+          />
+        }
       />
       <KeyValueItem
         data-testid="report-downloads"
-        label="Downloads"
+        label={t("downloads")}
         value={
           linksData && linksData.reportId === selectedReportDetails.reportId ? (
             <DownloadLinks links={linksData.links} />
@@ -282,7 +287,7 @@ const ReportDetails: React.FC<{
               loading={generateLinkLoading}
               className="w-full md:w-auto"
             >
-              Generate Links
+              {t("generateLinks")}
             </Button>
           )
         }
@@ -313,26 +318,28 @@ const DownloadLinks: React.FC<{
   )
 }
 
-const formatStatus = ({
+const FormatStatus = ({
   reportProgress,
   createdAt,
 }: {
   reportProgress: ReportProgress
   createdAt: string
 }) => {
+  const t = useTranslations("Reports.status")
+
   switch (reportProgress) {
     case ReportProgress.Running:
       return (
         <p className="text-warning flex items-center gap-2 flex-wrap">
           <PiWarningCircleFill className="w-5 h-5" />
-          <span>Running (last triggered on {formatDate(createdAt)})</span>
+          <span>{t("running", { date: formatDate(createdAt) })}</span>
         </p>
       )
     case ReportProgress.Complete:
       return (
         <p className="text-success flex items-center gap-2 flex-wrap">
           <PiCheckCircleFill className="w-5 h-5" />
-          <span>Operational (last report created on {formatDate(createdAt)})</span>
+          <span>{t("complete", { date: formatDate(createdAt) })}</span>
         </p>
       )
     default:

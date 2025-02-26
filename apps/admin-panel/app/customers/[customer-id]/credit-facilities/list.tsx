@@ -1,10 +1,12 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 import { formatCollateralizationState, formatDate } from "@/lib/utils"
-import { LoanAndCreditFacilityStatusBadge } from "@/app/loans/status-badge"
+import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacility = NonNullable<
@@ -20,43 +22,42 @@ type CustomerCreditFacilitiesTableProps = {
 export const CustomerCreditFacilitiesTable: React.FC<
   CustomerCreditFacilitiesTableProps
 > = ({ creditFacilities }) => {
+  const t = useTranslations("Customers.CustomerDetails.creditFacilities")
+
   const columns: Column<CreditFacility>[] = [
     {
       key: "status",
-      header: "Status",
+      header: t("table.headers.status"),
       render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
     },
     {
       key: "balance",
-      header: "Outstanding Balance",
+      header: t("table.headers.outstandingBalance"),
       render: (_, facility) => (
         <Balance amount={facility.balance.outstanding.usdBalance} currency="usd" />
       ),
     },
     {
       key: "balance",
-      header: "Collateral (BTC)",
+      header: t("table.headers.collateralBtc"),
       render: (_, facility) => (
         <Balance amount={facility.balance.collateral.btcBalance} currency="btc" />
       ),
     },
     {
       key: "collateralizationState",
-      header: "Collateralization State",
+      header: t("table.headers.collateralizationState"),
       render: (state) => formatCollateralizationState(state),
     },
     {
       key: "createdAt",
-      header: "Created At",
+      header: t("table.headers.createdAt"),
       render: (date) => formatDate(date, { includeTime: false }),
     },
   ]
 
   return (
-    <CardWrapper
-      title="Credit Facilities"
-      description="Credit Facilities for this Customer"
-    >
+    <CardWrapper title={t("title")} description={t("description")}>
       <DataTable
         data={creditFacilities}
         columns={columns}

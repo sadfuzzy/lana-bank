@@ -1,5 +1,6 @@
 "use client"
 import { FaBan, FaCheckCircle, FaQuestion } from "react-icons/fa"
+import { useTranslations } from "next-intl"
 
 import {
   Card,
@@ -24,6 +25,8 @@ export const VotersCard = ({
     | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
     | null
 }) => {
+  const t = useTranslations("Disbursals.DisbursalDetails.VotersCard")
+
   if (!approvalProcess) {
     return null
   }
@@ -36,10 +39,9 @@ export const VotersCard = ({
     <Card className="mt-2">
       <CardHeader>
         <CardTitle>
-          Approval process decision from the {approvalProcess.rules.committee?.name}{" "}
-          Committee
+          {t("title", { committeeName: approvalProcess.rules.committee?.name })}
         </CardTitle>
-        <CardDescription>Users who can approve the process</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         {approvalProcess.voters
@@ -73,9 +75,9 @@ export const VotersCard = ({
                 </p>
                 {
                   <p className="text-xs text-textColor-secondary">
-                    {voter.didApprove && "Approved"}
-                    {voter.didDeny && "Denied"}
-                    {!voter.didVote && "Has not voted yet"}
+                    {voter.didApprove && t("voter.approved")}
+                    {voter.didDeny && t("voter.denied")}
+                    {!voter.didVote && t("voter.notVoted")}
                   </p>
                 }
               </div>

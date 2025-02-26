@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { gql } from "@apollo/client"
 import { HiCheckCircle } from "react-icons/hi"
@@ -21,8 +22,6 @@ import {
 } from "@/lib/graphql/generated"
 import { formatDate, formatProcessType } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-
-const NUMBER_OF_ITEMS_IN_DASHBOARD = 3
 
 gql`
   query AllActions {
@@ -85,6 +84,7 @@ type ActionNode = NonNullable<
 >
 
 const List: React.FC<ListProps> = ({ dashboard = false }) => {
+  const t = useTranslations("Actions.table")
   const { data, loading } = useAllActionsQuery({
     fetchPolicy: "cache-and-network",
   })
@@ -95,11 +95,9 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
       .filter((e) => e.node.status === ApprovalProcessStatus.InProgress)
       .map((e) => e.node) || []
 
-  const tableData = dashboard
-    ? approvalProcesses.slice(0, NUMBER_OF_ITEMS_IN_DASHBOARD)
-    : approvalProcesses
+  const tableData = dashboard ? approvalProcesses.slice(0, 3) : approvalProcesses
 
-  const more = approvalProcesses.length - NUMBER_OF_ITEMS_IN_DASHBOARD
+  const more = approvalProcesses.length - 3
 
   if (loading && !data) return <ActionListSkeleton />
 
@@ -126,7 +124,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
   const columns: Column<ActionNode>[] = [
     {
       key: "target",
-      header: "Customer",
+      header: t("headers.customer"),
       render: (target) => {
         switch (target.__typename) {
           case "CreditFacilityDisbursal":
@@ -136,18 +134,18 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           case "Withdrawal":
             return target.account.customer.email
           default:
-            return "Unknown"
+            return t("values.unknown")
         }
       },
     },
     {
       key: "approvalProcessType",
-      header: "Type",
+      header: t("headers.type"),
       render: (type) => formatProcessType(type),
     },
     {
       key: "createdAt",
-      header: "Date",
+      header: t("headers.date"),
       render: (date) => formatDate(date, { includeTime: false }),
     },
   ]
@@ -155,10 +153,9 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
   return (
     <Card data-testid="dashboard-actions-list">
       <CardHeader>
-        <CardTitle>Pending Actions</CardTitle>
-        <CardDescription>Approvals / Rejections waiting your way</CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
-
       {tableData.length > 0 ? (
         <CardContent>
           <DataTable
@@ -170,7 +167,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
           {dashboard && more > 0 && (
             <div className="mt-4 flex items-center gap-2">
               <Link href="/actions" className="text-sm text-muted-foreground">
-                ...{more} more
+                {t("more", { count: more })}
               </Link>
             </div>
           )}
@@ -179,7 +176,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
         <CardContent className="flex flex-col items-center justify-center w-full gap-2">
           <div className="border rounded-lg w-full flex flex-col items-center py-6">
             <HiCheckCircle className="text-5xl text-green-500" />
-            <div className="text-sm mt-2">All Caught Up</div>
+            <div className="text-sm mt-2">{t("allCaughtUp")}</div>
           </div>
         </CardContent>
       )}

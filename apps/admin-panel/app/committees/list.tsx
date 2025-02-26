@@ -2,6 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { CreateCommitteeDialog } from "./create"
 import { AddUserCommitteeDialog } from "./add-user"
@@ -47,6 +48,7 @@ gql`
 `
 
 const CommitteesList = () => {
+  const t = useTranslations("Committees.table")
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] =
     useState<boolean>(false)
   const [openAddUserDialog, setOpenAddUserDialog] = useState<Committee | null>(null)
@@ -73,7 +75,7 @@ const CommitteesList = () => {
 
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Committee>
-        columns={columns}
+        columns={columns(t)}
         data={data?.committees as PaginatedData<Committee>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -86,19 +88,19 @@ const CommitteesList = () => {
 
 export default CommitteesList
 
-const columns: Column<Committee>[] = [
+const columns = (t: ReturnType<typeof useTranslations>): Column<Committee>[] => [
   {
     key: "name",
-    label: "Name",
+    label: t("headers.name"),
   },
   {
     key: "createdAt",
-    label: "Created",
+    label: t("headers.created"),
     render: (createdAt) => formatDate(createdAt, { includeTime: false }),
   },
   {
     key: "currentMembers",
-    label: "Members",
+    label: t("headers.members"),
     render: (currentMembers) => currentMembers.length,
   },
 ]

@@ -1,3 +1,6 @@
+"use client"
+
+import { useTranslations } from "next-intl"
 import React, { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
@@ -51,6 +54,8 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   openUpdateTermsTemplateDialog,
   termsTemplate,
 }) => {
+  const t = useTranslations("TermsTemplates.TermsTemplateDetails.UpdateTermsTemplate")
+
   const [updateTermsTemplate, { loading, error: updateTermsTemplateError }] =
     useUpdateTermsTemplateMutation()
 
@@ -118,21 +123,21 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         },
       })
       if (data?.termsTemplateUpdate.termsTemplate) {
-        toast.success("Terms Template updated successfully")
+        toast.success(t("success.updated"))
         setOpenUpdateTermsTemplateDialog(false)
       } else {
-        throw new Error("Failed to update Terms Template. Please try again.")
+        throw new Error(t("errors.updateFailed"))
       }
-    } catch (error) {
-      console.error("Error updating Terms Template:", error)
-      if (error instanceof Error) {
-        setError(error.message)
+    } catch (err) {
+      console.error("Error updating Terms Template:", err)
+      if (err instanceof Error) {
+        setError(err.message)
       } else if (updateTermsTemplateError?.message) {
         setError(updateTermsTemplateError.message)
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        setError(t("errors.general"))
       }
-      toast.error("Failed to update Terms Template")
+      toast.error(t("errors.updateFailed"))
     }
   }
 
@@ -164,36 +169,34 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     >
       <DialogContent className="max-w-[38rem]">
         <DialogHeader>
-          <DialogTitle>Update {formValues.name}</DialogTitle>
-          <DialogDescription>
-            Update the Terms Template by modifying the required information
-          </DialogDescription>
+          <DialogTitle>{t("title", { name: formValues.name })}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div className="grid auto-rows-fr sm:grid-cols-2 gap-4">
             <div className="space-y-4">
               <div>
-                <Label htmlFor="annualRate">Interest Rate (APR)</Label>
+                <Label htmlFor="annualRate">{t("fields.annualRate")}</Label>
                 <Input
                   data-testid="terms-template-annual-rate-input"
                   id="annualRate"
                   name="annualRate"
                   type="number"
                   required
-                  placeholder="Enter the annual rate"
+                  placeholder={t("placeholders.annualRate")}
                   value={formValues.annualRate}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <Label>Duration</Label>
+                <Label>{t("fields.duration")}</Label>
                 <div className="flex gap-2">
                   <Input
                     type="number"
                     name="durationUnits"
                     value={formValues.durationUnits}
                     onChange={handleChange}
-                    placeholder="Duration"
+                    placeholder={t("placeholders.durationUnits")}
                     min={0}
                     required
                     className="w-1/2"
@@ -207,7 +210,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select period" />
+                      <SelectValue placeholder={t("placeholders.durationPeriod")} />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.values(Period).map((period) => (
@@ -220,7 +223,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 </div>
               </div>
               <div>
-                <Label htmlFor="accrualInterval">Accrual Interval</Label>
+                <Label htmlFor="accrualInterval">{t("fields.accrualInterval")}</Label>
                 <Select
                   value={formValues.accrualInterval}
                   onValueChange={(value) =>
@@ -230,7 +233,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select accrual interval" />
+                    <SelectValue placeholder={t("placeholders.accrualInterval")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
@@ -242,7 +245,9 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                 </Select>
               </div>
               <div>
-                <Label htmlFor="incurrenceInterval">Incurrence Interval</Label>
+                <Label htmlFor="incurrenceInterval">
+                  {t("fields.incurrenceInterval")}
+                </Label>
                 <Select
                   value={formValues.incurrenceInterval}
                   onValueChange={(value) =>
@@ -252,7 +257,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select incurrence interval" />
+                    <SelectValue placeholder={t("placeholders.incurrenceInterval")} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
@@ -266,49 +271,49 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             </div>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="initialCvl">Initial CVL (%)</Label>
+                <Label htmlFor="initialCvl">{t("fields.initialCvl")}</Label>
                 <Input
                   id="initialCvl"
                   name="initialCvl"
                   type="number"
                   required
-                  placeholder="Enter the initial CVL"
+                  placeholder={t("placeholders.initialCvl")}
                   value={formValues.initialCvl}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <Label htmlFor="marginCallCvl">Margin Call CVL (%)</Label>
+                <Label htmlFor="marginCallCvl">{t("fields.marginCallCvl")}</Label>
                 <Input
                   id="marginCallCvl"
                   name="marginCallCvl"
                   type="number"
                   required
-                  placeholder="Enter the margin call CVL"
+                  placeholder={t("placeholders.marginCallCvl")}
                   value={formValues.marginCallCvl}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <Label htmlFor="liquidationCvl">Liquidation CVL (%)</Label>
+                <Label htmlFor="liquidationCvl">{t("fields.liquidationCvl")}</Label>
                 <Input
                   id="liquidationCvl"
                   name="liquidationCvl"
                   type="number"
                   required
-                  placeholder="Enter the liquidation CVL"
+                  placeholder={t("placeholders.liquidationCvl")}
                   value={formValues.liquidationCvl}
                   onChange={handleChange}
                 />
               </div>
               <div>
-                <Label htmlFor="oneTimeFeeRate">Structuring Fee Rate (%)</Label>
+                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
                 <Input
                   id="oneTimeFeeRate"
                   name="oneTimeFeeRate"
                   type="number"
                   required
-                  placeholder="Enter the Structuring Fee Rate"
+                  placeholder={t("placeholders.oneTimeFeeRate")}
                   value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                 />
@@ -322,7 +327,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               loading={loading}
               data-testid="terms-template-update-submit-button"
             >
-              Update Terms Template
+              {t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>

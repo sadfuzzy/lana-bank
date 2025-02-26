@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -18,25 +19,27 @@ type DisbursalDetailsProps = {
 }
 
 export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursal }) => {
+  const t = useTranslations("Disbursals.DisbursalDetails.DetailsCard")
+
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)
 
   const details: DetailItemProps[] = [
     {
-      label: "Customer Email",
+      label: t("details.customerEmail"),
       value: disbursal.creditFacility.customer.email,
       href: `/customers/${disbursal.creditFacility.customer.customerId}`,
     },
     {
-      label: "Disbursal Amount",
+      label: t("details.disbursalAmount"),
       value: <Balance amount={disbursal.amount} currency="usd" />,
     },
     {
-      label: "Facility Amount",
+      label: t("details.facilityAmount"),
       value: <Balance amount={disbursal.creditFacility.facilityAmount} currency="usd" />,
     },
     {
-      label: "Status",
+      label: t("details.status"),
       value: (
         <DisbursalStatusBadge
           status={disbursal.status}
@@ -56,19 +59,19 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
               onClick={() => setOpenApprovalDialog(true)}
               variant="outline"
             >
-              Approve
+              {t("buttons.approve")}
             </Button>
             <Button
               data-testid="disbursal-deny-button"
               onClick={() => setOpenDenialDialog(true)}
               variant="outline"
             >
-              Deny
+              {t("buttons.deny")}
             </Button>
           </>
         )}
       <Link href={`/credit-facilities/${disbursal.creditFacility.creditFacilityId}`}>
-        <Button variant="outline">View Credit Facility</Button>
+        <Button variant="outline">{t("buttons.viewCreditFacility")}</Button>
       </Link>
     </>
   )
@@ -76,7 +79,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   return (
     <>
       <DetailsCard
-        title="Disbursal"
+        title={t("title")}
         details={details}
         footerContent={footerContent}
         errorMessage={disbursal.approvalProcess.deniedReason}

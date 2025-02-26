@@ -1,5 +1,8 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -41,6 +44,7 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   openWithdrawalCancelDialog,
   withdrawalData,
 }) => {
+  const t = useTranslations("Withdrawals.WithdrawDetails.WithdrawalCancelDialog")
   const [cancelWithdrawal, { loading, reset }] = useWithdrawalCancelMutation()
   const [error, setError] = useState<string | null>(null)
 
@@ -56,18 +60,14 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
         },
       })
       if (result.data) {
-        toast.success("Withdrawal canceled successfully")
+        toast.success(t("success"))
         handleCloseDialog()
       } else {
-        throw new Error("No data returned from mutation")
+        throw new Error(t("errors.noData"))
       }
     } catch (error) {
       console.error("Error canceling withdrawal:", error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError("An unknown error occurred")
-      }
+      setError(error instanceof Error ? error.message : t("errors.unknown"))
     }
   }
 
@@ -80,46 +80,42 @@ export const WithdrawalCancelDialog: React.FC<WithdrawalCancelDialogProps> = ({
   return (
     <Dialog open={openWithdrawalCancelDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
-        <>
-          <DialogHeader>
-            <DialogTitle>Cancel Withdrawal</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this withdrawal?
-            </DialogDescription>
-          </DialogHeader>
-          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-            <DetailsGroup layout="horizontal">
-              <DetailItem
-                label="Customer Email"
-                value={withdrawalData.account.customer?.email || "N/A"}
-              />
-              <DetailItem
-                label="Amount"
-                value={
-                  <Balance amount={withdrawalData.amount as UsdCents} currency="usd" />
-                }
-              />
-              <DetailItem
-                label="Withdrawal Reference"
-                value={
-                  withdrawalData.reference === withdrawalData.withdrawalId
-                    ? "N/A"
-                    : withdrawalData.reference
-                }
-              />
-            </DetailsGroup>
-            {error && <p className="text-destructive">{error}</p>}
-            <DialogFooter>
-              <Button
-                type="submit"
-                disabled={loading}
-                data-testid="withdrawal-confirm-dialog-button"
-              >
-                {loading ? "Canceling..." : "Confirm"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </>
+        <DialogHeader>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+          <DetailsGroup layout="horizontal">
+            <DetailItem
+              label={t("fields.customerEmail")}
+              value={withdrawalData.account.customer?.email || t("values.na")}
+            />
+            <DetailItem
+              label={t("fields.amount")}
+              value={
+                <Balance amount={withdrawalData.amount as UsdCents} currency="usd" />
+              }
+            />
+            <DetailItem
+              label={t("fields.withdrawalReference")}
+              value={
+                withdrawalData.reference === withdrawalData.withdrawalId
+                  ? t("values.na")
+                  : withdrawalData.reference
+              }
+            />
+          </DetailsGroup>
+          {error && <p className="text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={loading}
+              data-testid="withdrawal-cancel-dialog-button"
+            >
+              {loading ? t("buttons.canceling") : t("buttons.confirm")}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

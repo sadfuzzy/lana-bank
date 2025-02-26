@@ -1,4 +1,6 @@
 "use client"
+
+import { useTranslations } from "next-intl"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 
@@ -45,40 +47,42 @@ gql`
   }
 `
 
-const columns: Column<TermsTemplate>[] = [
+const columns = (t: ReturnType<typeof useTranslations>): Column<TermsTemplate>[] => [
   {
     key: "name",
-    header: "Name",
+    header: t("table.headers.name"),
   },
   {
     key: "values",
-    header: "Duration",
+    header: t("table.headers.duration"),
     render: (values) =>
       `${String(values.duration.units)} ${formatPeriod(values.duration.period)}`,
   },
   {
     key: "values",
-    header: "Annual Rate",
+    header: t("table.headers.annualRate"),
     render: (values) => `${values.annualRate}%`,
   },
   {
     key: "values",
-    header: "Initial CVL",
+    header: t("table.headers.initialCvl"),
     render: (values) => `${values.initialCvl}%`,
   },
   {
     key: "values",
-    header: "MarginCall CVL",
+    header: t("table.headers.marginCallCvl"),
     render: (values) => `${values.marginCallCvl}%`,
   },
   {
     key: "values",
-    header: "Liquidation CVL",
+    header: t("table.headers.liquidationCvl"),
     render: (values) => `${values.liquidationCvl}%`,
   },
 ]
 
 function TermPage() {
+  const t = useTranslations("TermsTemplates")
+
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState<TermsTemplate | null>(null)
@@ -87,7 +91,7 @@ function TermPage() {
     return (
       <Card>
         <CardContent>
-          <p className="text-destructive mt-6">{error.message}</p>
+          <p className="text-destructive mt-6">{t("errors.general")}</p>
         </CardContent>
       </Card>
     )
@@ -104,15 +108,13 @@ function TermPage() {
       )}
       <Card>
         <CardHeader>
-          <CardTitle>Terms Templates</CardTitle>
-          <CardDescription>
-            Terms template that can be used with loan and credit facility
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
             data={data?.termsTemplates || []}
-            columns={columns}
+            columns={columns(t)}
             loading={loading}
             navigateTo={(template) => `/terms-templates/${template.termsId}`}
           />

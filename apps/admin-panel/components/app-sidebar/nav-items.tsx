@@ -1,3 +1,5 @@
+"use client"
+
 import {
   Home,
   TriangleAlert,
@@ -17,45 +19,59 @@ import {
   LayoutTemplate,
   Grid2x2,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import type { NavItem } from "./nav-section"
 
-export const navDashboardItems: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: Home },
-  { title: "Actions", url: "/actions", icon: TriangleAlert },
-]
+export function useNavItems() {
+  const t = useTranslations("Sidebar.navItems")
 
-export const navLoansItems: NavItem[] = [
-  { title: "Credit Facilities", url: "/credit-facilities", icon: Grid2x2 },
-  { title: "Disbursals", url: "/disbursals", icon: ClipboardList },
-  { title: "Term Templates", url: "/terms-templates", icon: LayoutTemplate },
-]
+  const navDashboardItems: NavItem[] = [
+    { title: t("dashboard"), url: "/dashboard", icon: Home },
+    { title: t("actions"), url: "/actions", icon: TriangleAlert },
+  ]
 
-export const navCustomersItems: NavItem[] = [
-  { title: "Customers", url: "/customers", icon: Users },
-  { title: "Policies", url: "/policies", icon: GanttChart },
-]
+  const navLoansItems: NavItem[] = [
+    { title: t("creditFacilities"), url: "/credit-facilities", icon: Grid2x2 },
+    { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },
+    { title: t("termTemplates"), url: "/terms-templates", icon: LayoutTemplate },
+  ]
 
-export const navTransactionItems: NavItem[] = [
-  { title: "Deposits", url: "/deposits", icon: ArrowDownCircle },
-  { title: "Withdrawals", url: "/withdrawals", icon: ArrowUpCircle },
-]
+  const navCustomersItems: NavItem[] = [
+    { title: t("customers"), url: "/customers", icon: Users },
+    { title: t("policies"), url: "/policies", icon: GanttChart },
+  ]
 
-export const navAdminItems: NavItem[] = [
-  { title: "Audit Logs", url: "/audit", icon: BookText },
-  { title: "Committees", url: "/committees", icon: Users2 },
-  { title: "Chart of Accounts", url: "/chart-of-accounts", icon: Globe },
-  { title: "Users", url: "/users", icon: UserCircle },
-]
+  const navTransactionItems: NavItem[] = [
+    { title: t("deposits"), url: "/deposits", icon: ArrowDownCircle },
+    { title: t("withdrawals"), url: "/withdrawals", icon: ArrowUpCircle },
+  ]
 
-export const navFinanceItems: NavItem[] = [
-  { title: "Balance Sheet", url: "/balance-sheet", icon: PieChart },
-  { title: "Cash Flow", url: "/cash-flow", icon: ArrowUpCircle },
-  { title: "Profit & Loss", url: "/profit-and-loss", icon: DollarSign },
-  {
-    title: "Regulatory Reporting",
-    url: "/regulatory-reporting",
-    icon: FileText,
-  },
-  { title: "Trial Balance", url: "/trial-balance", icon: LineChart },
-]
+  const navAdminItems: NavItem[] = [
+    { title: t("auditLogs"), url: "/audit", icon: BookText },
+    { title: t("committees"), url: "/committees", icon: Users2 },
+    { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
+    { title: t("users"), url: "/users", icon: UserCircle },
+  ]
+
+  const navFinanceItems: NavItem[] = [
+    { title: t("balanceSheet"), url: "/balance-sheet", icon: PieChart },
+    { title: t("cashFlow"), url: "/cash-flow", icon: ArrowUpCircle },
+    { title: t("profitAndLoss"), url: "/profit-and-loss", icon: DollarSign },
+    {
+      title: t("regulatoryReporting"),
+      url: "/regulatory-reporting",
+      icon: FileText,
+    },
+    { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
+  ]
+
+  return {
+    navDashboardItems,
+    navLoansItems,
+    navCustomersItems,
+    navTransactionItems,
+    navAdminItems,
+    navFinanceItems,
+  }
+}

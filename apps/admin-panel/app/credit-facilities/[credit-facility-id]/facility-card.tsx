@@ -1,7 +1,7 @@
 "use client"
 import { DetailsCard } from "@lana/web/components/details"
 import React from "react"
-
+import { useTranslations } from "next-intl"
 import BigNumber from "bignumber.js"
 
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
@@ -29,14 +29,16 @@ function FacilityCard({
 }: {
   creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
 }) {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.FacilityCard")
+
   const totalCostUsd = calculateTotalCostInCents(creditFacility)
   const facilityData = [
     {
-      label: "Facility Amount",
+      label: t("details.facilityAmount"),
       value: <Balance amount={creditFacility.facilityAmount} currency="usd" />,
     },
     {
-      label: "Facility Remaining",
+      label: t("details.facilityRemaining"),
       value: (
         <Balance
           amount={creditFacility.balance.facilityRemaining.usdBalance}
@@ -45,7 +47,7 @@ function FacilityCard({
       ),
     },
     {
-      label: "Disbursed and Outstanding",
+      label: t("details.disbursedOutstanding"),
       value: (
         <Balance
           amount={creditFacility.balance.disbursed.outstanding.usdBalance}
@@ -54,7 +56,7 @@ function FacilityCard({
       ),
     },
     {
-      label: "Outstanding Interest",
+      label: t("details.outstandingInterest"),
       value: (
         <Balance
           amount={creditFacility.balance.interest.outstanding.usdBalance}
@@ -63,13 +65,13 @@ function FacilityCard({
       ),
     },
     {
-      label: "Total Outstanding",
+      label: t("details.totalOutstanding"),
       value: (
         <Balance amount={creditFacility.balance.outstanding.usdBalance} currency="usd" />
       ),
     },
     {
-      label: "Total Interest",
+      label: t("details.totalInterest"),
       value: (
         <Balance
           amount={creditFacility.balance.interest.total.usdBalance}
@@ -78,7 +80,7 @@ function FacilityCard({
       ),
     },
     {
-      label: "Total Disbursed",
+      label: t("details.totalDisbursed"),
       value: (
         <Balance
           amount={creditFacility.balance.disbursed.total.usdBalance}
@@ -87,13 +89,18 @@ function FacilityCard({
       ),
     },
     {
-      label: "Total Cost",
+      label: t("details.totalCost"),
       value: <Balance amount={totalCostUsd as SignedUsdCents} currency="usd" />,
     },
   ]
 
   return (
-    <DetailsCard className="w-full" title="Facility" details={facilityData} columns={2} />
+    <DetailsCard
+      className="w-full"
+      title={t("title")}
+      details={facilityData}
+      columns={2}
+    />
   )
 }
 

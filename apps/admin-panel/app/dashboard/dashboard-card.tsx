@@ -73,7 +73,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
           <div className={`${buttonToRight ? "text-right" : ""}`}>
             <Link href={to}>
               <Button variant="outline">
-                {buttonText || "View Details"}
+                {buttonText}
                 <HiArrowRight />
               </Button>
             </Link>

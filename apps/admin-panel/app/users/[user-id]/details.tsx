@@ -2,6 +2,7 @@
 
 import React from "react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 import {
@@ -28,6 +29,8 @@ type UserDetailsProps = {
 }
 
 const RolesDropDown = ({ userId, roles }: { userId: string; roles: Role[] }) => {
+  const t = useTranslations("Users.userDetails")
+
   const [assignRole, { loading: assigning, error: assignRoleError }] =
     useUserAssignRoleMutation()
   const [revokeRole, { loading: revoking, error: revokeError }] =
@@ -37,16 +40,18 @@ const RolesDropDown = ({ userId, roles }: { userId: string; roles: Role[] }) => 
     if (roles.includes(role)) {
       try {
         await revokeRole({ variables: { input: { id: userId, role } } })
-        toast.success("Role revoked")
+        toast.success(t("roleDropdown.success.roleRevoked"))
       } catch (err) {
-        toast.error(`Failed to revoke role, ${revokeError?.message}`)
+        toast.error(`${t("roleDropdown.errors.revokeFailed")}, ${revokeError?.message}`)
       }
     } else {
       try {
         await assignRole({ variables: { input: { id: userId, role } } })
-        toast.success("Role assigned")
+        toast.success(t("roleDropdown.success.roleAssigned"))
       } catch (err) {
-        toast.error(`Failed to assign role, ${assignRoleError?.message}`)
+        toast.error(
+          `${t("roleDropdown.errors.assignFailed")}, ${assignRoleError?.message}`,
+        )
       }
     }
   }
@@ -54,10 +59,10 @@ const RolesDropDown = ({ userId, roles }: { userId: string; roles: Role[] }) => 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild data-testid="user-details-manage-role">
-        <Button variant="outline">Manage Roles</Button>
+        <Button variant="outline">{t("roleDropdown.manageRoles")}</Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel>Roles</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("roleDropdown.rolesLabel")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {Object.values(Role)
           .filter((role) => role !== Role.Superuser)
@@ -78,11 +83,13 @@ const RolesDropDown = ({ userId, roles }: { userId: string; roles: Role[] }) => 
 }
 
 const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
+  const t = useTranslations("Users.userDetails")
+
   const details: DetailItemProps[] = [
-    { label: "Created At", value: formatDate(user.createdAt) },
-    { label: "Email", value: user.email, valueTestId: "user-details-email" },
+    { label: t("fields.createdAt"), value: formatDate(user.createdAt) },
+    { label: t("fields.email"), value: user.email, valueTestId: "user-details-email" },
     {
-      label: "Roles",
+      label: t("fields.roles"),
       value: (
         <div className="flex flex-wrap gap-2">
           {user.roles.length > 0 ? (
@@ -95,7 +102,7 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
               </Badge>
             ))
           ) : (
-            <span className="text-muted-foreground">No roles assigned</span>
+            <span className="text-muted-foreground">{t("noRolesAssigned")}</span>
           )}
         </div>
       ),
@@ -104,7 +111,14 @@ const UserDetailsCard: React.FC<UserDetailsProps> = ({ user }) => {
 
   const footer = <RolesDropDown userId={user.userId} roles={user.roles} />
 
-  return <DetailsCard title="User" details={details} footerContent={footer} columns={3} />
+  return (
+    <DetailsCard
+      title={t("title")}
+      details={details}
+      footerContent={footer}
+      columns={3}
+    />
+  )
 }
 
 export default UserDetailsCard

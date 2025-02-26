@@ -1,4 +1,5 @@
 "use client"
+import { useTranslations } from "next-intl"
 import {
   Card,
   CardHeader,
@@ -9,20 +10,22 @@ import {
 
 import AuditLogsList from "./list"
 
-const AuditLogs: React.FC = () => (
-  <>
-    <Card>
-      <CardHeader>
-        <CardTitle>Audit Logs</CardTitle>
-        <CardDescription>
-          System-wide audit trail showing user and system actions
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <AuditLogsList />
-      </CardContent>
-    </Card>
-  </>
-)
+const AuditLogs: React.FC = () => {
+  const t = useTranslations("AuditLogs")
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AuditLogsList />
+        </CardContent>
+      </Card>
+    </>
+  )
+}
 
 export default AuditLogs

@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
@@ -30,15 +31,17 @@ type CreditFacilityTransactionsProps = {
 export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProps> = ({
   creditFacility,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.Transactions")
+
   const columns: Column<CreditFacilityHistoryEntry>[] = [
     {
       key: "__typename",
-      header: "Transaction Type",
+      header: t("columns.transactionType"),
       render: (
         _: CreditFacilityHistoryEntry["__typename"],
         transaction: CreditFacilityHistoryEntry,
       ) => {
-        if (!transaction.__typename) return "Unknown Transaction Type"
+        if (!transaction.__typename) return t("messages.unknownType")
 
         switch (transaction.__typename) {
           case "CreditFacilityCollateralUpdated":
@@ -66,13 +69,13 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
     },
     {
       key: "recordedAt",
-      header: "Recorded At",
+      header: t("columns.recordedAt"),
       render: (recordedAt: string | null | undefined) =>
         recordedAt ? formatDate(recordedAt, { includeTime: false }) : "-",
     },
     {
       key: "__typename",
-      header: "Amount",
+      header: t("columns.amount"),
       align: "right",
       render: (
         _: CreditFacilityHistoryEntry["__typename"],
@@ -112,12 +115,12 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
   ]
 
   return (
-    <CardWrapper title="Transactions" description="Credit Facility Transactions">
+    <CardWrapper title={t("title")} description={t("description")}>
       <DataTable
         data={creditFacility.transactions}
         columns={columns}
         autoFocus={false}
-        emptyMessage="No transactions found"
+        emptyMessage={t("messages.emptyTable")}
       />
     </CardWrapper>
   )

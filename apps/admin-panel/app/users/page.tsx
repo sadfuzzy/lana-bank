@@ -1,5 +1,6 @@
 "use client"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { Badge } from "@lana/web/ui/badge"
 
@@ -53,16 +54,18 @@ type User = NonNullable<
 >["users"][number]
 
 function UsersPage() {
+  const t = useTranslations("Users")
+
   const { data: usersList, loading } = useUsersQuery()
 
   const columns: Column<User>[] = [
     {
       key: "email",
-      header: "Email",
+      header: t("table.headers.email"),
     },
     {
       key: "roles",
-      header: "Roles",
+      header: t("table.headers.roles"),
       render: (roles) => (
         <div className="flex flex-wrap gap-2 text-muted-foreground items-center">
           {roles.length > 0
@@ -71,7 +74,7 @@ function UsersPage() {
                   {formatRole(role)}
                 </Badge>
               ))
-            : "No roles Assigned"}
+            : t("table.noRolesAssigned")}
         </div>
       ),
     },
@@ -81,17 +84,15 @@ function UsersPage() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>Users</CardTitle>
-          <CardDescription>
-            Manage system users and their role assignments
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
             data={usersList?.users || []}
             columns={columns}
             loading={loading}
-            emptyMessage="No users found"
+            emptyMessage={t("table.emptyMessage")}
             navigateTo={(user) => `/users/${user.userId}`}
           />
         </CardContent>

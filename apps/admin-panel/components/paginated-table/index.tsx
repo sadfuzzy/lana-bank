@@ -32,6 +32,7 @@ import {
 } from "@lana/web/ui/table"
 
 import { useBreakpointDown } from "@lana/web/hooks"
+import { useTranslations } from "next-intl"
 
 export type Column<T> = {
   [K in keyof T]: {
@@ -81,6 +82,7 @@ const PaginatedTable = <T,>({
   navigateTo,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
+  const t = useTranslations("PaginatedTable")
   const tableRef = useRef<HTMLDivElement>(null)
   const focusTimeoutRef = useRef<NodeJS.Timeout>()
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
@@ -356,7 +358,7 @@ const PaginatedTable = <T,>({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
-                  Sort By
+                  {t("sortBy", { defaultMessage: "Sort By" })}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
@@ -395,7 +397,7 @@ const PaginatedTable = <T,>({
                     checked={!filterState[col.key]}
                     onCheckedChange={() => handleFilter(col.key, undefined)}
                   >
-                    All
+                    {t("all", { defaultMessage: "All" })}
                   </DropdownMenuCheckboxItem>
                   {col.filterValues?.map((value, idx) => (
                     <DropdownMenuCheckboxItem
@@ -434,7 +436,7 @@ const PaginatedTable = <T,>({
                     variant="outline"
                     className="w-full flex items-center justify-center"
                   >
-                    View
+                    {t("view", { defaultMessage: "View" })}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -524,7 +526,7 @@ const PaginatedTable = <T,>({
                               checked={!filterState[col.key]}
                               onCheckedChange={() => handleFilter(col.key, undefined)}
                             >
-                              All
+                              {t("all", { defaultMessage: "All" })}
                             </DropdownMenuCheckboxItem>
                             {col.filterValues.map((value, idx) => (
                               <DropdownMenuCheckboxItem
@@ -575,7 +577,7 @@ const PaginatedTable = <T,>({
                         variant="outline"
                         className="w-full flex items-center justify-between"
                       >
-                        View
+                        {t("view", { defaultMessage: "View" })}
                         <ArrowRight className="h-4 w-4" />
                       </Button>
                     </Link>

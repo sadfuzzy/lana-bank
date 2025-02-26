@@ -4,6 +4,7 @@
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import {
   Tooltip,
@@ -97,6 +98,8 @@ type MenuItem = {
 }
 
 const CreateButton = () => {
+  const t = useTranslations("CreateButton")
+
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
   const [createWithdrawal, setCreateWithdrawal] = useState(false)
@@ -126,14 +129,14 @@ const CreateButton = () => {
 
   const getDisabledMessage = () => {
     if (pathName.includes("credit-facilities") && isButtonDisabled()) {
-      return "Credit facility must be active to perform actions"
+      return t("disabledMessages.creditFacilityMustBeActive")
     }
     return ""
   }
 
   const menuItems: MenuItem[] = [
     {
-      label: "Deposit",
+      label: t("menuItems.deposit"),
       onClick: () => {
         if (!customer) return
         setCreateDeposit(true)
@@ -142,7 +145,7 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Withdrawal",
+      label: t("menuItems.withdrawal"),
       onClick: () => {
         if (!customer) return
         setCreateWithdrawal(true)
@@ -151,13 +154,13 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Customer",
+      label: t("menuItems.customer"),
       onClick: () => setCreateCustomer(true),
       dataTestId: "create-customer-button",
       allowedPaths: [PATH_CONFIGS.CUSTOMERS, PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Credit Facility",
+      label: t("menuItems.creditFacility"),
       onClick: () => {
         if (!customer) return
         setCreateFacility(true)
@@ -166,7 +169,7 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.CUSTOMER_DETAILS],
     },
     {
-      label: "Disbursal",
+      label: t("menuItems.disbursal"),
       onClick: () => {
         if (!facility) return
         setInitiateDisbursal(true)
@@ -175,7 +178,7 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
     },
     {
-      label: "Payment",
+      label: t("menuItems.payment"),
       onClick: () => {
         if (!facility) return
         setMakePayment(true)
@@ -184,19 +187,19 @@ const CreateButton = () => {
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
     },
     {
-      label: "User",
+      label: t("menuItems.user"),
       onClick: () => setOpenCreateUserDialog(true),
       dataTestId: "create-user-button",
       allowedPaths: [PATH_CONFIGS.USERS, PATH_CONFIGS.USER_DETAILS],
     },
     {
-      label: "Terms Template",
+      label: t("menuItems.termsTemplate"),
       onClick: () => setOpenCreateTermsTemplateDialog(true),
       dataTestId: "create-terms-template-button",
       allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES, PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
     },
     {
-      label: "Committee",
+      label: t("menuItems.committee"),
       onClick: () => setOpenCreateCommitteeDialog(true),
       dataTestId: "create-committee-button",
       allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
@@ -251,7 +254,7 @@ const CreateButton = () => {
                     tabIndex={-1}
                   >
                     <HiPlus className="h-4 w-4" />
-                    Create
+                    {t("buttons.create")}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-36">

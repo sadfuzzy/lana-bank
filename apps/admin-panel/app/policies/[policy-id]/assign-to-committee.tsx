@@ -1,4 +1,5 @@
 "use client"
+import { useTranslations } from "next-intl"
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
@@ -62,6 +63,8 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
   setOpenAssignDialog,
   openAssignDialog,
 }) => {
+  const t = useTranslations("Policies.PolicyDetails.CommitteeAssignmentDialog")
+
   const [assignCommittee, { loading, reset, error: assignCommitteeError }] =
     usePolicyAssignCommitteeMutation()
   const { data: committeeData, loading: committeesLoading } = useCommitteesQuery({
@@ -77,7 +80,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
     setError(null)
 
     if (!selectedCommitteeId || threshold === null) {
-      setError("Please select a committee and set threshold")
+      setError(t("errors.selectCommitteeAndThreshold"))
       return
     }
 
@@ -93,10 +96,10 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
       })
 
       if (data?.policyAssignCommittee.policy) {
-        toast.success("Committee assigned to policy successfully")
+        toast.success(t("success.assigned"))
         setOpenAssignDialog(false)
       } else {
-        throw new Error("Failed to assign committee to policy. Please try again.")
+        throw new Error(t("errors.assignmentFailed"))
       }
     } catch (error) {
       console.error("Error assigning committee to policy:", error)
@@ -105,9 +108,9 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
       } else if (assignCommitteeError?.message) {
         setError(assignCommitteeError.message)
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        setError(t("errors.general"))
       }
-      toast.error("Failed to assign committee to policy")
+      toast.error(t("errors.assignmentFailed"))
     }
   }
 
@@ -130,17 +133,15 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Assign Committee to Policy</DialogTitle>
-          <DialogDescription>
-            Select a committee and set threshold for this policy
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="committee-select">Select Committee</Label>
+            <Label htmlFor="committee-select">{t("fields.committee")}</Label>
             <Select value={selectedCommitteeId} onValueChange={setSelectedCommitteeId}>
               <SelectTrigger data-testid="policy-select-committee-selector">
-                <SelectValue placeholder="Select a committee" />
+                <SelectValue placeholder={t("placeholders.committee")} />
               </SelectTrigger>
               <SelectContent>
                 {committeeData?.committees.edges.map((edge) => (
@@ -153,7 +154,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
           </div>
 
           <div>
-            <Label htmlFor="threshold-input">Threshold</Label>
+            <Label htmlFor="threshold-input">{t("fields.threshold")}</Label>
             <Input
               data-testid="policy-assign-committee-threshold-input"
               id="threshold-input"
@@ -162,7 +163,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
               onChange={(e) =>
                 setThreshold(e.target.value ? Number(e.target.value) : null)
               }
-              placeholder="Enter threshold value"
+              placeholder={t("placeholders.threshold")}
               min="0"
               max="100"
             />
@@ -178,7 +179,7 @@ export const CommitteeAssignmentDialog: React.FC<CommitteeAssignmentDialogProps>
                 loading || committeesLoading || !selectedCommitteeId || threshold === null
               }
             >
-              Assign Committee
+              {t("buttons.assign")}
             </Button>
           </DialogFooter>
         </form>

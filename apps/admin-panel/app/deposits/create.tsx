@@ -1,5 +1,8 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql, useApolloClient } from "@apollo/client"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -51,17 +54,18 @@ gql`
   }
 `
 
-type CreateDepositDialgProps = {
+type CreateDepositDialogProps = {
   setOpenCreateDepositDialog: (isOpen: boolean) => void
   openCreateDepositDialog: boolean
   depositAccountId: string
 }
 
-export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
+export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   setOpenCreateDepositDialog,
   openCreateDepositDialog,
   depositAccountId,
 }) => {
+  const t = useTranslations("Deposits.CreateDepositDialog")
   const [createDeposit, { loading, reset }] = useCreateDepositMutation({
     update: (cache) => {
       cache.modify({
@@ -99,19 +103,14 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
           },
           fetchPolicy: "network-only",
         })
-
-        toast.success("Deposit created successfully")
+        toast.success(t("success"))
         handleCloseDialog()
       } else {
-        throw new Error("No data returned from mutation")
+        throw new Error(t("errors.noData"))
       }
     } catch (error) {
       console.error("Error creating deposit:", error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError("An unknown error occurred")
-      }
+      setError(error instanceof Error ? error.message : t("errors.unknown"))
     }
   }
 
@@ -134,24 +133,22 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
           className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
-          Creating deposit for {customer?.email}
+          {t("creatingFor", { email: customer?.email })}
         </div>
         <DialogHeader className="mt-4">
-          <DialogTitle>Create Deposit</DialogTitle>
-          <DialogDescription>
-            Provide the required details to create a deposit.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">{t("fields.amount")}</Label>
             <div className="flex items-center gap-1">
               <Input
                 data-testid="deposit-amount-input"
                 id="amount"
                 type="number"
                 required
-                placeholder="Enter the deposit amount"
+                placeholder={t("placeholders.amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
               />
@@ -159,11 +156,11 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
             </div>
           </div>
           <div>
-            <Label htmlFor="reference">Reference</Label>
+            <Label htmlFor="reference">{t("fields.reference")}</Label>
             <Input
               id="reference"
               type="text"
-              placeholder="Enter a reference (optional)"
+              placeholder={t("placeholders.reference")}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
@@ -171,7 +168,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialgProps> = ({
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={loading} data-testid="deposit-submit-button">
-              {loading ? "Submitting..." : "Submit"}
+              {loading ? t("buttons.submitting") : t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>

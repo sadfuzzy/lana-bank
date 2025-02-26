@@ -1,7 +1,9 @@
+"use client"
+
 import React, { useState } from "react"
 import { toast } from "sonner"
-
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -17,7 +19,6 @@ import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
 import { useCreateCommitteeMutation } from "@/lib/graphql/generated"
-
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
@@ -39,6 +40,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
   setOpenCreateCommitteeDialog,
   openCreateCommitteeDialog,
 }) => {
+  const t = useTranslations("Committees.CommitteeDetails.create")
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => {
       setOpenCreateCommitteeDialog(false)
@@ -87,10 +89,10 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
         },
         onCompleted: (data) => {
           if (data?.committeeCreate.committee) {
-            toast.success("Committee created successfully")
+            toast.success(t("success"))
             navigate(`/committees/${data.committeeCreate.committee.committeeId}`)
           } else {
-            throw new Error("Failed to create committee. Please try again.")
+            throw new Error(t("errors.failed"))
           }
         },
       })
@@ -101,9 +103,9 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
       } else if (createCommitteeError?.message) {
         setError(createCommitteeError.message)
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        setError(t("errors.general"))
       }
-      toast.error("Failed to create committee")
+      toast.error(t("errors.failed"))
     }
   }
 
@@ -127,20 +129,18 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Committee</DialogTitle>
-          <DialogDescription>
-            Create a new committee by providing the required information
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="name">Committee Name</Label>
+            <Label htmlFor="name">{t("fields.name")}</Label>
             <Input
               id="name"
               name="name"
               type="text"
               required
-              placeholder="Enter the committee name"
+              placeholder={t("placeholders.name")}
               value={formValues.name}
               onChange={handleChange}
               disabled={isLoading}
@@ -156,7 +156,7 @@ export const CreateCommitteeDialog: React.FC<CreateCommitteeDialogProps> = ({
               loading={isLoading}
               data-testid="committee-create-submit-button"
             >
-              Create Committee
+              {t("buttons.create")}
             </Button>
           </DialogFooter>
         </form>

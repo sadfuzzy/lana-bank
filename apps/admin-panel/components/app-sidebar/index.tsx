@@ -3,6 +3,7 @@
 import type { ComponentProps } from "react"
 import { ShipWheel } from "lucide-react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import {
   Sidebar,
@@ -16,20 +17,24 @@ import {
 
 import { UserBlock } from "./user-block"
 import { NavSection } from "./nav-section"
-import {
-  navDashboardItems,
-  navTransactionItems,
-  navFinanceItems,
-  navLoansItems,
-  navCustomersItems,
-  navAdminItems,
-} from "./nav-items"
+import { useNavItems } from "./nav-items"
 
 interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   appVersion?: string
 }
 
 export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
+  const t = useTranslations("Sidebar")
+
+  const {
+    navDashboardItems,
+    navLoansItems,
+    navCustomersItems,
+    navTransactionItems,
+    navAdminItems,
+    navFinanceItems,
+  } = useNavItems()
+
   return (
     <Sidebar variant="inset" {...props}>
       <SidebarHeader>
@@ -37,11 +42,11 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent className="mt-4">
         <NavSection items={navDashboardItems} />
-        <NavSection items={navLoansItems} label="Loans" />
-        <NavSection items={navCustomersItems} label="Customers" />
-        <NavSection items={navTransactionItems} label="Transactions" />
-        <NavSection items={navAdminItems} label="Administration" />
-        <NavSection items={navFinanceItems} label="Financial Reports" />
+        <NavSection items={navLoansItems} label={t("labels.loans")} />
+        <NavSection items={navCustomersItems} label={t("labels.customers")} />
+        <NavSection items={navTransactionItems} label={t("labels.transactions")} />
+        <NavSection items={navAdminItems} label={t("labels.administration")} />
+        <NavSection items={navFinanceItems} label={t("labels.financialReports")} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
@@ -52,8 +57,10 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
                   <ShipWheel className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Lana Bank</span>
-                  <span className="truncate text-xs">v{appVersion || "0.0.0-dev"}</span>
+                  <span className="truncate font-semibold">{t("footer.appName")}</span>
+                  <span className="truncate text-xs">
+                    {t("footer.version", { version: appVersion || "0.0.0-dev" })}
+                  </span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -65,5 +72,4 @@ export function AppSidebar({ appVersion, ...props }: AppSidebarProps) {
 }
 export * from "./nav-section"
 export * from "./user-block"
-export * from "./market-rate"
 export * from "./nav-items"

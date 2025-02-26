@@ -1,0 +1,1256 @@
+{
+  "Sidebar": {
+    "labels": {
+      "loans": "Préstamos",
+      "customers": "Clientes",
+      "transactions": "Transacciones",
+      "administration": "Administración",
+      "financialReports": "Informes Financieros"
+    },
+    "navItems": {
+      "dashboard": "Panel Principal",
+      "actions": "Acciones",
+      "creditFacilities": "Facilidades de Crédito",
+      "disbursals": "Desembolsos",
+      "termTemplates": "Plantillas de Términos",
+      "customers": "Clientes",
+      "policies": "Políticas",
+      "deposits": "Depósitos",
+      "withdrawals": "Retiros",
+      "auditLogs": "Registros de Auditoría",
+      "committees": "Comités",
+      "chartOfAccounts": "Plan de Cuentas",
+      "users": "Usuarios",
+      "balanceSheet": "Balance General",
+      "cashFlow": "Flujo de Caja",
+      "profitAndLoss": "Pérdidas y Ganancias",
+      "regulatoryReporting": "Informes Regulatorios",
+      "trialBalance": "Balance de Comprobación"
+    },
+    "footer": {
+      "appName": "Lana Bank",
+      "version": "v{version}"
+    }
+  },
+  "UserBlock": {
+    "settings": "Configuración",
+    "logout": "Cerrar Sesión",
+    "profile": "Perfil"
+  },
+  "Common": {
+    "loading": "Cargando...",
+    "error": "Ha ocurrido un error",
+    "notFound": "No encontrado",
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "refresh": "Actualizar",
+    "view": "Ver",
+    "download": "Descargar",
+    "upload": "Subir",
+    "close": "Cerrar"
+  },
+  "CommandMenu": {
+    "placeholders": {
+      "searchNavigation": "Buscar navegación...",
+      "searchActions": "Buscar acciones...",
+      "whatDoYouNeed": "¿Qué necesitas?"
+    },
+    "noResults": "No se encontraron resultados.",
+    "headings": {
+      "availableActions": "Acciones Disponibles",
+      "navigation": "Navegación"
+    },
+    "actions": {
+      "createDeposit": "Crear Depósito",
+      "createWithdrawal": "Crear Retiro",
+      "createCustomer": "Crear Cliente",
+      "createCreditFacility": "Crear Facilidad de Crédito",
+      "updateCollateral": "Actualizar Garantía",
+      "createDisbursal": "Crear Desembolso",
+      "makePayment": "Realizar Pago",
+      "createUser": "Crear Usuario",
+      "updateTermsTemplate": "Actualizar Plantilla de Términos",
+      "createTermsTemplate": "Crear Plantilla de Términos",
+      "createCommittee": "Crear Comité",
+      "confirmWithdrawal": "Confirmar Retiro",
+      "cancelWithdrawal": "Cancelar Retiro",
+      "assignCommittee": "Asignar Comité",
+      "addCommitteeMember": "Añadir Miembro al Comité",
+      "approve": "Aprobar",
+      "deny": "Rechazar"
+    },
+    "keyboardInstructions": {
+      "commandPalette": "Paleta de Comandos"
+    }
+  },
+  "Customers": {
+    "title": "Clientes",
+    "description": "Individuos o entidades que tienen cuentas, préstamos o líneas de crédito con el banco",
+    "columns": {
+      "email": "Correo electrónico",
+      "telegramId": "Telegram",
+      "status": "Estado KYC",
+      "depositAccount": "Saldo USD"
+    },
+    "status": {
+      "verified": "Verificado",
+      "notVerified": "No Verificado"
+    },
+    "create": {
+      "title": "Añadir nuevo cliente",
+      "confirmTitle": "Confirmar Detalles del Cliente",
+      "description": "Añadir un nuevo Cliente proporcionando su dirección de correo electrónico e ID de Telegram",
+      "confirmDescription": "Por favor revise los detalles antes de enviar",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "Por favor ingrese la dirección de correo electrónico",
+      "telegramLabel": "ID de Telegram",
+      "telegramPlaceholder": "Por favor ingrese el ID de Telegram",
+      "reviewButton": "Revisar Detalles",
+      "backButton": "Atrás",
+      "confirmButton": "Confirmar y Enviar",
+      "successMessage": "Cliente creado exitosamente",
+      "errorMessage": "Error al crear cliente",
+      "unexpectedError": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+      "failedToCreate": "Error al crear cliente. Por favor intente de nuevo."
+    },
+    "CustomerDetails": {
+      "layout": {
+        "tabs": {
+          "transactions": "Transacciones",
+          "creditFacilities": "Líneas de Crédito",
+          "documents": "Documentos"
+        },
+        "breadcrumbs": {
+          "dashboard": "Panel",
+          "customers": "Clientes"
+        },
+        "errors": {
+          "loading": "Cargando...",
+          "error": "Ocurrió un error"
+        }
+      },
+      "details": {
+        "title": "Cliente",
+        "labels": {
+          "email": "Correo electrónico",
+          "createdOn": "Creado el",
+          "telegram": "Telegram",
+          "status": "Estado"
+        },
+        "status": {
+          "active": "Activo",
+          "inactive": "Inactivo"
+        },
+        "actions": {
+          "editTelegram": "Editar ID de Telegram"
+        }
+      },
+      "kycStatus": {
+        "title": "Estado KYC",
+        "labels": {
+          "level": "Nivel",
+          "kycApplicationLink": "Enlace de Solicitud KYC"
+        },
+        "actions": {
+          "createLink": "Crear enlace",
+          "creatingLink": "Creando enlace..."
+        },
+        "messages": {
+          "copied": "Copiado al portapapeles"
+        }
+      },
+      "accountBalances": {
+        "title": "Saldos de Cuenta",
+        "labels": {
+          "checkingSettled": "Saldo Liquidado de Cuenta Corriente (USD)",
+          "pendingWithdrawals": "Retiros Pendientes (USD)"
+        }
+      },
+      "updateTelegram": {
+        "title": "Actualizar ID de Telegram",
+        "description": "Actualizar el ID de Telegram para este cliente",
+        "labels": {
+          "newTelegramId": "Nuevo ID de Telegram"
+        },
+        "placeholders": {
+          "newTelegramId": "Por favor ingrese el nuevo ID de Telegram"
+        },
+        "errors": {
+          "emptyTelegramId": "El ID de Telegram no puede estar vacío",
+          "unexpected": "Ocurrió un error inesperado",
+          "updateFailed": "Error al actualizar el ID de Telegram: {error}"
+        },
+        "messages": {
+          "updateSuccess": "ID de Telegram actualizado exitosamente"
+        },
+        "actions": {
+          "update": "Actualizar",
+          "updating": "Actualizando..."
+        }
+      },
+      "transactions": {
+        "title": "Transacciones",
+        "description": "Transacciones para este Cliente",
+        "table": {
+          "headers": {
+            "date": "Fecha",
+            "type": "Tipo",
+            "amount": "Monto",
+            "status": "Estado"
+          },
+          "types": {
+            "deposit": "Depósito",
+            "withdrawal": "Retiro",
+            "disbursal": "Desembolso",
+            "payment": "Pago"
+          },
+          "empty": "No se encontraron transacciones"
+        }
+      },
+      "creditFacilities": {
+        "title": "Líneas de Crédito",
+        "description": "Líneas de Crédito para este Cliente",
+        "table": {
+          "headers": {
+            "status": "Estado",
+            "outstandingBalance": "Saldo Pendiente",
+            "collateralBtc": "Garantía (BTC)",
+            "collateralizationState": "Estado de Colateralización",
+            "createdAt": "Creado El"
+          }
+        }
+      },
+      "Documents": {
+        "title": "Documentos",
+        "description": "Documentos subidos por este cliente",
+        "columns": {
+          "id": "ID",
+          "fileName": "Nombre del Archivo"
+        },
+        "buttons": {
+          "view": "Ver",
+          "delete": "Eliminar"
+        },
+        "dropzone": {
+          "prompt": "Haga clic, arrastre y suelte, o pegue un archivo PDF para subir un documento para este usuario"
+        },
+        "messages": {
+          "uploadSuccess": "Documento subido exitosamente",
+          "deleteSuccess": "Documento eliminado exitosamente",
+          "generateLinkError": "Error al generar enlace de descarga",
+          "deleteError": "Error al eliminar documento",
+          "pdfOnly": "Por favor suba únicamente archivos PDF.",
+          "pasteError": "Error al recuperar el archivo pegado.",
+          "fileTooLarge": "El archivo es demasiado grande. Por favor suba un archivo más pequeño.",
+          "uploadFailed": "Carga fallida: {message}",
+          "unexpectedError": "Ocurrió un error inesperado durante la carga del archivo."
+        }
+      }
+    }
+  },
+  "CreditFacilities": {
+    "title": "Líneas de Crédito",
+    "description": "Acuerdos financieros preaprobados que permiten a los prestatarios acceder a fondos hasta cierto límite según sea necesario",
+    "table": {
+      "headers": {
+        "customer": "Cliente",
+        "status": "Estado",
+        "outstanding": "Pendiente",
+        "collateralizationState": "Estado",
+        "cvl": "CVL",
+        "createdAt": "Creado El"
+      }
+    },
+    "CreditFacilityStatus": {
+      "active": "Activo",
+      "pendingApproval": "Aprobación Pendiente",
+      "pendingCollateralization": "Colateralización Pendiente",
+      "closed": "Cerrado",
+      "matured": "Vencido"
+    },
+    "errors": {
+      "fetchError": "Ocurrió un error al obtener los datos.",
+      "general": "Ocurrió un error"
+    },
+    "CreditFacilityDetails": {
+      "RepaymentPlan": {
+        "title": "Plan de Pago",
+        "description": "Plan de pago asociado con esta línea de crédito",
+        "columns": {
+          "type": "Tipo",
+          "initialAmount": "Monto Inicial",
+          "outstanding": "Pendiente",
+          "dueDate": "Fecha de Vencimiento",
+          "status": "Estado"
+        },
+        "messages": {
+          "emptyTable": "No se encontró ningún Plan"
+        },
+        "repaymentTypes": {
+          "principal": "Principal",
+          "interest": "Interés"
+        },
+        "status": {
+          "upcoming": "PRÓXIMO",
+          "due": "VENCIDO",
+          "overdue": "ATRASADO",
+          "paid": "PAGADO"
+        }
+      },
+      "Disbursals": {
+        "title": "Desembolsos",
+        "description": "Desembolsos asociados con esta línea de crédito",
+        "columns": {
+          "amount": "Monto",
+          "createdAt": "Creado El",
+          "status": "Estado"
+        },
+        "messages": {
+          "emptyTable": "No se encontraron desembolsos"
+        }
+      },
+      "Transactions": {
+        "title": "Transacciones",
+        "description": "Transacciones de Línea de Crédito",
+        "columns": {
+          "transactionType": "Tipo de Transacción",
+          "recordedAt": "Registrado El",
+          "amount": "Monto"
+        },
+        "messages": {
+          "unknownType": "Tipo de Transacción Desconocido",
+          "emptyTable": "No se encontraron transacciones"
+        }
+      },
+      "TermsDialog": {
+        "title": "Términos",
+        "details": {
+          "duration": "Duración",
+          "interestRate": "Interés (APR)",
+          "accrualInterval": "Intervalo de Acumulación",
+          "targetCvl": "CVL objetivo/inicial %",
+          "marginCallCvl": "CVL de llamada de margen %",
+          "liquidationCvl": "CVL de liquidación %",
+          "dateCreated": "Fecha de creación",
+          "incurrenceInterval": "Intervalo de Incurrencia",
+          "structuringFeeRate": "Tasa de Comisión de Estructuración"
+        }
+      },
+      "CollateralCard": {
+        "title": "Garantía",
+        "details": {
+          "collateralBalance": "Saldo de garantía (BTC)",
+          "currentPrice": "Precio actual BTC/USD",
+          "collateralValue": "Valor de garantía (USD)",
+          "marginCallPrice": "Precio de Llamada de Margen ({percentage}%)",
+          "liquidationPrice": "Precio de Liquidación BTC/USD ({percentage}%)",
+          "collateralToReachTarget": "Garantía para alcanzar objetivo ({percentage}%)",
+          "currentCvl": "CVL Actual"
+        },
+        "status": {
+          "moderate": "Moderado",
+          "high": "Alto",
+          "critical": "Crítico"
+        }
+      },
+      "FacilityCard": {
+        "title": "Facilidad",
+        "details": {
+          "facilityAmount": "Monto de Facilidad",
+          "facilityRemaining": "Facilidad Restante",
+          "disbursedOutstanding": "Desembolsado y Pendiente",
+          "outstandingInterest": "Interés Pendiente",
+          "totalOutstanding": "Total Pendiente",
+          "totalInterest": "Interés Total",
+          "totalDisbursed": "Total Desembolsado",
+          "totalCost": "Costo Total"
+        }
+      },
+      "DetailsCard": {
+        "title": "Línea de Crédito",
+        "details": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "collateralizationState": "Estado de Colateralización",
+          "status": "Estado",
+          "expiresAt": "Vence El"
+        },
+        "buttons": {
+          "loanTerms": "Términos del Préstamo",
+          "updateCollateral": "Actualizar Garantía",
+          "approve": "Aprobar",
+          "deny": "Rechazar"
+        }
+      },
+      "Layout": {
+        "tabs": {
+          "transactions": "Transacciones",
+          "disbursals": "Desembolsos",
+          "repaymentPlan": "Plan de Pago"
+        },
+        "breadcrumbs": {
+          "dashboard": "Panel",
+          "creditFacilities": "Líneas de Crédito"
+        },
+        "errors": {
+          "notFound": "No encontrado",
+          "loading": "Cargando..."
+        }
+      },
+      "CreateCreditFacility": {
+        "dialog": {
+          "customerInfo": "Creando línea de crédito para {email}",
+          "title": "Crear Línea de Crédito",
+          "description": "Complete los detalles para crear una línea de crédito."
+        },
+        "form": {
+          "labels": {
+            "facilityAmount": "Monto de Facilidad",
+            "termsTemplate": "Plantilla de Términos",
+            "creditFacilityTerms": "Términos de Línea de Crédito",
+            "interestRate": "Tasa de Interés (APR)",
+            "initialCvl": "CVL Inicial (%)",
+            "duration": "Duración",
+            "marginCallCvl": "CVL de Llamada de Margen (%)",
+            "accrualInterval": "Intervalo de Acumulación",
+            "liquidationCvl": "CVL de Liquidación (%)",
+            "incurrenceInterval": "Intervalo de Incurrencia",
+            "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
+          },
+          "placeholders": {
+            "facilityAmount": "Ingrese el monto de la facilidad",
+            "termsTemplate": "Seleccione de la plantilla de términos predefinida",
+            "annualRate": "Ingrese la tasa anual",
+            "initialCvl": "Ingrese el CVL inicial",
+            "duration": "Duración",
+            "marginCallCvl": "Ingrese el CVL de llamada de margen",
+            "accrualInterval": "Seleccione el intervalo de acumulación",
+            "liquidationCvl": "Ingrese el CVL de liquidación",
+            "incurrenceInterval": "Seleccione el intervalo de incurrencia",
+            "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
+            "selectPeriod": "Seleccione período"
+          },
+          "buttons": {
+            "back": "Atrás",
+            "create": "Crear Línea de Crédito"
+          },
+          "messages": {
+            "collateralRequired": "garantía requerida",
+            "btcUsdRate": "BTC/USD:",
+            "noTemplates": "No hay plantillas de términos disponibles, por favor cree una o especifique manualmente los términos a continuación.",
+            "fillAllFields": "Por favor complete todos los campos.",
+            "success": "Línea de Crédito creada exitosamente"
+          }
+        }
+      },
+      "CreditFacilityPartialPayment": {
+        "dialog": {
+          "title": "Procesar Pago Parcial",
+          "description": "Ingrese el monto que desea pagar para esta línea de crédito."
+        },
+        "form": {
+          "labels": {
+            "amount": "Monto"
+          },
+          "placeholders": {
+            "amount": "Ingrese el monto principal deseado"
+          },
+          "errors": {
+            "invalidAmount": "Por favor ingrese un monto válido",
+            "unknownError": "Ocurrió un error desconocido"
+          },
+          "buttons": {
+            "cancel": "Cancelar",
+            "processPayment": "Procesar Pago"
+          }
+        },
+        "messages": {
+          "success": "Pago parcial procesado exitosamente"
+        }
+      },
+      "CreditFacilityCollateralUpdate": {
+        "dialog": {
+          "title": "Actualizar Garantía de Línea de Crédito",
+          "description": "Ingrese el nuevo monto de garantía para esta línea de crédito.",
+          "confirmTitle": "Confirmar Actualización",
+          "confirmDescription": "¿Está seguro de que desea actualizar la garantía para esta línea de crédito?"
+        },
+        "form": {
+          "labels": {
+            "currentCollateral": "Garantía Actual",
+            "expectedCollateral": "Garantía Esperada",
+            "newCollateral": "Nueva Garantía"
+          },
+          "placeholders": {
+            "newCollateral": "Ingrese nuevo monto de garantía"
+          },
+          "errors": {
+            "emptyCollateral": "Por favor ingrese un monto de garantía válido.",
+            "noData": "No se devolvieron datos de la mutación",
+            "unknownError": "Ocurrió un error desconocido"
+          },
+          "buttons": {
+            "back": "Atrás",
+            "proceedToConfirm": "Proceder a Confirmar",
+            "confirm": "Confirmar",
+            "updating": "Actualizando..."
+          }
+        },
+        "messages": {
+          "success": "Garantía de línea de crédito actualizada exitosamente"
+        },
+        "units": {
+          "btc": "BTC"
+        }
+      }
+    }
+  },
+  "Disbursals": {
+    "title": "Desembolsos",
+    "description": "Pagos realizados desde una línea de crédito al usuario",
+    "table": {
+      "headers": {
+        "amount": "Monto",
+        "createdAt": "Fecha",
+        "status": "Estado"
+      }
+    },
+    "errors": {
+      "general": "Ocurrió un error"
+    },
+    "DisbursalStatus": {
+      "new": "Nuevo",
+      "approved": "Aprobado",
+      "confirmed": "Confirmado",
+      "denied": "Denegado"
+    },
+    "DisbursalDetails": {
+      "VotersCard": {
+        "title": "Proceso de aprobación del Comité {committeeName}",
+        "description": "Usuarios que pueden aprobar el proceso",
+        "voter": {
+          "approved": "Aprobado",
+          "denied": "Rechazado",
+          "notVoted": "Aún no ha votado"
+        }
+      },
+      "DetailsCard": {
+        "title": "Desembolso",
+        "details": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "disbursalAmount": "Monto del Desembolso",
+          "facilityAmount": "Monto de la Facilidad",
+          "status": "Estado"
+        },
+        "buttons": {
+          "approve": "Aprobar",
+          "deny": "Rechazar",
+          "viewCreditFacility": "Ver Línea de Crédito"
+        }
+      },
+      "CreditFacilityDisbursalInitiate": {
+        "dialog": {
+          "title": "Iniciar Desembolso de Línea de Crédito",
+          "description": "Ingrese el monto que desea desembolsar de esta línea de crédito."
+        },
+        "form": {
+          "labels": {
+            "amount": "Monto (USD)"
+          },
+          "placeholders": {
+            "amount": "Ingrese el monto"
+          }
+        },
+        "buttons": {
+          "cancel": "Cancelar",
+          "submit": "Iniciar Desembolso"
+        },
+        "messages": {
+          "success": "Desembolso iniciado exitosamente",
+          "unknownError": "Ocurrió un error desconocido"
+        }
+      }
+    }
+  },
+  "TermsTemplates": {
+    "title": "Plantillas de Términos",
+    "description": "Plantillas de términos que se pueden utilizar con préstamos y líneas de crédito",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "duration": "Duración",
+        "annualRate": "Tasa Anual",
+        "initialCvl": "CVL Inicial",
+        "marginCallCvl": "CVL de Llamada de Margen",
+        "liquidationCvl": "CVL de Liquidación"
+      }
+    },
+    "errors": {
+      "general": "Ocurrió un error"
+    },
+    "TermsTemplateDetails": {
+      "DetailsCard": {
+        "title": "Plantilla de Términos",
+        "fields": {
+          "name": "Nombre",
+          "createdAt": "Creado El",
+          "duration": "Duración",
+          "accrualInterval": "Intervalo de Acumulación",
+          "incurrenceInterval": "Intervalo de Incurrencia",
+          "annualRate": "Tasa Anual",
+          "initialCvl": "CVL Inicial (%)",
+          "marginCallCvl": "CVL de Llamada de Margen (%)",
+          "liquidationCvl": "CVL de Liquidación (%)",
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+        },
+        "buttons": {
+          "update": "Actualizar"
+        }
+      },
+      "UpdateTermsTemplate": {
+        "title": "Actualizar {name}",
+        "description": "Actualice la Plantilla de Términos modificando la información requerida.",
+        "fields": {
+          "annualRate": "Tasa de Interés (APR)",
+          "duration": "Duración",
+          "accrualInterval": "Intervalo de Acumulación",
+          "incurrenceInterval": "Intervalo de Incurrencia",
+          "initialCvl": "CVL Inicial (%)",
+          "marginCallCvl": "CVL de Llamada de Margen (%)",
+          "liquidationCvl": "CVL de Liquidación (%)",
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+        },
+        "placeholders": {
+          "annualRate": "Ingrese la tasa anual",
+          "durationUnits": "Duración",
+          "durationPeriod": "Seleccione período",
+          "accrualInterval": "Seleccione intervalo de acumulación",
+          "incurrenceInterval": "Seleccione intervalo de incurrencia",
+          "initialCvl": "Ingrese el CVL inicial",
+          "marginCallCvl": "Ingrese el CVL de llamada de margen",
+          "liquidationCvl": "Ingrese el CVL de liquidación",
+          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+        },
+        "buttons": {
+          "submit": "Actualizar Plantilla de Términos"
+        },
+        "errors": {
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+          "updateFailed": "Error al actualizar la Plantilla de Términos"
+        },
+        "success": {
+          "updated": "Plantilla de Términos actualizada exitosamente"
+        }
+      },
+      "CreateTermsTemplate": {
+        "title": "Crear Plantilla de Términos",
+        "description": "Cree una nueva Plantilla de Términos proporcionando la información requerida.",
+        "fields": {
+          "name": "Nombre de la Plantilla",
+          "annualRate": "Tasa de Interés (APR)",
+          "duration": "Duración",
+          "accrualInterval": "Intervalo de Acumulación",
+          "incurrenceInterval": "Intervalo de Incurrencia",
+          "initialCvl": "CVL Inicial (%)",
+          "marginCallCvl": "CVL de Llamada de Margen (%)",
+          "liquidationCvl": "CVL de Liquidación (%)",
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+        },
+        "placeholders": {
+          "name": "Ingrese el nombre de la plantilla",
+          "annualRate": "Ingrese la tasa anual",
+          "durationUnits": "Duración",
+          "durationPeriod": "Seleccione período",
+          "initialCvl": "Ingrese el CVL inicial",
+          "marginCallCvl": "Ingrese el CVL de llamada de margen",
+          "liquidationCvl": "Ingrese el CVL de liquidación",
+          "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
+          "accrualInterval": "Seleccione intervalo de acumulación",
+          "incurrenceInterval": "Seleccione intervalo de incurrencia"
+        },
+        "buttons": {
+          "submit": "Crear Plantilla de Términos"
+        },
+        "errors": {
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+          "creationFailed": "Error al crear la Plantilla de Términos"
+        },
+        "success": {
+          "created": "Plantilla de Términos creada exitosamente"
+        }
+      }
+    }
+  },
+  "Policies": {
+    "title": "Políticas",
+    "description": "Las políticas definen el proceso de aprobación para diferentes tipos de transacciones.",
+    "table": {
+      "headers": {
+        "approvalProcessType": "Tipo de Proceso",
+        "rules": "Regla"
+      },
+      "errors": {
+        "general": "Ocurrió un error al obtener las políticas."
+      },
+      "rules": {
+        "committeeThreshold": "Comité {committeeName}",
+        "systemApproval": "Sistema"
+      }
+    },
+    "PolicyDetails": {
+      "DetailsCard": {
+        "title": "Política",
+        "fields": {
+          "processType": "Tipo de Proceso",
+          "rule": "Regla",
+          "assignedCommittee": "Comité Asignado"
+        },
+        "buttons": {
+          "updatePolicy": "Actualizar Política",
+          "assignCommittee": "Asignar Comité"
+        }
+      },
+      "CommitteeAssignmentDialog": {
+        "title": "Asignar Comité a Política",
+        "description": "Seleccione un comité y establezca el umbral para esta política.",
+        "fields": {
+          "committee": "Seleccionar Comité",
+          "threshold": "Umbral"
+        },
+        "placeholders": {
+          "committee": "Seleccione un comité",
+          "threshold": "Ingrese valor de umbral"
+        },
+        "errors": {
+          "selectCommitteeAndThreshold": "Por favor seleccione un comité y establezca un umbral.",
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo.",
+          "assignmentFailed": "Error al asignar comité a la política."
+        },
+        "success": {
+          "assigned": "Comité asignado a la política exitosamente."
+        },
+        "buttons": {
+          "assign": "Asignar Comité"
+        }
+      }
+    }
+  },
+  "Committees": {
+    "title": "Comités",
+    "description": "Gestionar comités de aprobación y sus miembros",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "created": "Creado",
+        "members": "Miembros"
+      }
+    },
+    "CommitteeDetails": {
+      "CommitteeUsers": {
+        "title": "Miembros",
+        "description": "Miembros en este comité",
+        "table": {
+          "headers": {
+            "email": "Correo Electrónico"
+          },
+          "noRoles": "No hay roles asignados",
+          "emptyMessage": "No se encontraron miembros en este comité"
+        },
+        "buttons": {
+          "removeMember": "Eliminar miembro"
+        }
+      },
+      "detailsCard": {
+        "title": "Comité",
+        "fields": {
+          "createdAt": "Creado El",
+          "name": "Nombre",
+          "totalMembers": "Total de Miembros"
+        },
+        "buttons": {
+          "addMember": "Añadir Miembro"
+        }
+      },
+      "create": {
+        "title": "Crear Comité",
+        "description": "Crear un nuevo comité proporcionando la información requerida",
+        "fields": {
+          "name": "Nombre del Comité"
+        },
+        "placeholders": {
+          "name": "Ingrese el nombre del comité"
+        },
+        "buttons": {
+          "create": "Crear Comité"
+        },
+        "success": "Comité creado exitosamente",
+        "errors": {
+          "failed": "Error al crear el comité. Por favor intente de nuevo.",
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+        }
+      },
+      "RemoveUserCommitteeDialog": {
+        "title": "Eliminar Miembro del Comité",
+        "description": "¿Está seguro de que desea eliminar a {userEmail} de este comité?",
+        "buttons": {
+          "cancel": "Cancelar",
+          "remove": "Eliminar"
+        },
+        "success": "Usuario eliminado del comité exitosamente",
+        "errors": {
+          "failed": "Error al eliminar al usuario del comité. Por favor intente de nuevo.",
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+        }
+      },
+      "AddUserCommitteeDialog": {
+        "title": "Añadir Usuario al Comité",
+        "description": "Seleccione un usuario para añadir a este comité",
+        "placeholders": {
+          "selectUser": "Seleccione un usuario"
+        },
+        "buttons": {
+          "addUser": "Añadir Usuario"
+        },
+        "success": "Usuario añadido al comité exitosamente",
+        "errors": {
+          "selectUser": "Por favor seleccione un usuario",
+          "failed": "Error al añadir usuario al comité. Por favor intente de nuevo.",
+          "general": "Ocurrió un error inesperado. Por favor intente de nuevo."
+        }
+      }
+    }
+  },
+  "Deposits": {
+    "title": "Depósitos",
+    "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas de los clientes",
+    "table": {
+      "headers": {
+        "customer": "Cliente",
+        "reference": "Referencia",
+        "amount": "Monto"
+      },
+      "errors": {
+        "general": "Ocurrió un error al obtener los depósitos."
+      }
+    },
+    "CreateDepositDialog": {
+      "title": "Crear Depósito",
+      "description": "Proporcione los detalles requeridos para crear un depósito.",
+      "creatingFor": "Creando depósito para {email}",
+      "fields": {
+        "amount": "Monto",
+        "reference": "Referencia"
+      },
+      "placeholders": {
+        "amount": "Ingrese el monto del depósito",
+        "reference": "Ingrese una referencia (opcional)"
+      },
+      "buttons": {
+        "submit": "Enviar",
+        "submitting": "Enviando..."
+      },
+      "success": "Depósito creado exitosamente",
+      "errors": {
+        "noData": "No se devolvieron datos de la mutación",
+        "unknown": "Ocurrió un error desconocido"
+      }
+    }
+  },
+  "Withdrawals": {
+    "title": "Retiros",
+    "description": "Dinero retirado de las cuentas de los clientes",
+    "table": {
+      "headers": {
+        "customer": "Cliente",
+        "reference": "Referencia",
+        "amount": "Monto",
+        "status": "Estado"
+      },
+      "errors": {
+        "general": "Ocurrió un error al obtener los retiros."
+      },
+      "values": {
+        "na": "N/A"
+      }
+    },
+    "WithdrawalStatus": {
+      "pendingApproval": "Aprobación Pendiente",
+      "pendingConfirmation": "Confirmación Pendiente",
+      "confirmed": "Confirmado",
+      "cancelled": "Cancelado",
+      "denied": "Denegado"
+    },
+    "WithdrawDetails": {
+      "WithdrawalCancelDialog": {
+        "title": "Cancelar Retiro",
+        "description": "¿Está seguro de que desea cancelar este retiro?",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "amount": "Monto",
+          "withdrawalReference": "Referencia del Retiro"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirmar",
+          "canceling": "Cancelando..."
+        },
+        "success": "Retiro cancelado exitosamente",
+        "errors": {
+          "noData": "No se devolvieron datos de la mutación",
+          "unknown": "Ocurrió un error desconocido"
+        }
+      },
+      "WithdrawalConfirmDialog": {
+        "title": "Confirmar Retiro",
+        "description": "¿Está seguro de que desea confirmar este retiro?",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "amount": "Monto",
+          "withdrawalReference": "Referencia del Retiro"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirmar",
+          "confirming": "Confirmando..."
+        },
+        "success": "Retiro confirmado exitosamente",
+        "errors": {
+          "noData": "No se devolvieron datos de la mutación",
+          "unknown": "Ocurrió un error desconocido"
+        }
+      },
+      "WithdrawalDetailsCard": {
+        "title": "Retiro",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "withdrawalAmount": "Monto del Retiro",
+          "withdrawalReference": "Referencia del Retiro",
+          "status": "Estado"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "confirm": "Confirmar",
+          "cancel": "Cancelar",
+          "approve": "Aprobar",
+          "deny": "Rechazar"
+        }
+      }
+    },
+    "WithdrawalInitiateDialog": {
+      "title": "Iniciar Retiro",
+      "description": "Proporcione los detalles requeridos para iniciar un retiro.",
+      "creatingFor": "Creando retiro para {email}",
+      "fields": {
+        "amount": "Monto",
+        "reference": "Referencia"
+      },
+      "placeholders": {
+        "amount": "Ingrese el monto",
+        "reference": "Ingrese una referencia (opcional)"
+      },
+      "buttons": {
+        "submit": "Iniciar Retiro",
+        "processing": "Procesando..."
+      },
+      "success": "Retiro iniciado exitosamente",
+      "errors": {
+        "unknown": "Ocurrió un error desconocido"
+      }
+    }
+  },
+  "Actions": {
+    "ApprovalProcess": {
+      "Approve": {
+        "title": "Aprobar Proceso",
+        "fields": {
+          "processType": "Tipo de Proceso",
+          "createdAt": "Creado El"
+        },
+        "buttons": {
+          "approve": "Aprobar"
+        },
+        "errors": {
+          "unknown": "Ocurrió un error desconocido"
+        },
+        "success": {
+          "processApproved": "Proceso aprobado exitosamente"
+        }
+      },
+      "Deny": {
+        "title": "Rechazar Proceso",
+        "fields": {
+          "processType": "Tipo de Proceso",
+          "createdAt": "Creado El",
+          "reasonLabel": "Razón del Rechazo"
+        },
+        "placeholders": {
+          "reason": "Por favor proporcione un motivo para rechazar este proceso"
+        },
+        "buttons": {
+          "deny": "Rechazar"
+        },
+        "errors": {
+          "reasonRequired": "Por favor proporcione un motivo para el rechazo",
+          "unknown": "Ocurrió un error desconocido"
+        },
+        "success": {
+          "processDenied": "Proceso rechazado exitosamente"
+        }
+      }
+    },
+    "table": {
+      "title": "Acciones Pendientes",
+      "description": "Aprobaciones / Rechazos esperando tu decisión",
+      "headers": {
+        "customer": "Cliente",
+        "type": "Tipo",
+        "date": "Fecha"
+      },
+      "values": {
+        "unknown": "Desconocido"
+      },
+      "more": "...{count} más",
+      "allCaughtUp": "Todo al Día"
+    }
+  },
+  "Dashboard": {
+    "cards": {
+      "activeFacilities": {
+        "title": "Facilidades Activas",
+        "description": "Líneas de Crédito donde se ha desembolsado dinero",
+        "pending": "Pendiente",
+        "buttonText": "Ver Facilidades Activas"
+      },
+      "totalDisbursed": {
+        "title": "Total Desembolsado",
+        "description": "Cantidad total de dinero que los clientes retiraron del banco",
+        "buttonText": "Ver Desembolsos"
+      },
+      "totalCollateral": {
+        "title": "Garantía Total",
+        "description": "Valor total de la garantía en bitcoin a precio de mercado que posee el banco",
+        "buttonText": "Ver Líneas de Crédito"
+      }
+    }
+  },
+  "Users": {
+    "title": "Usuarios",
+    "description": "Gestionar usuarios del sistema y sus asignaciones de roles",
+    "table": {
+      "headers": {
+        "email": "Correo Electrónico",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "Sin roles asignados",
+      "emptyMessage": "No se encontraron usuarios"
+    },
+    "createDialog": {
+      "title": "Añadir nuevo Usuario",
+      "description": "Añadir un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando roles",
+      "fields": {
+        "email": "Correo Electrónico",
+        "roles": "Roles"
+      },
+      "placeholders": {
+        "email": "Por favor ingrese la dirección de correo electrónico"
+      },
+      "emailHelperText": "Se enviará un enlace mágico a la dirección de correo electrónico proporcionada.",
+      "buttons": {
+        "submit": "Enviar",
+        "processing": "Procesando..."
+      },
+      "errors": {
+        "selectRole": "Por favor seleccione al menos un rol.",
+        "createPrefix": "Error al crear usuario:",
+        "assignRolePrefix": "Error al asignar rol:",
+        "unknown": "Ocurrió un error desconocido"
+      },
+      "success": {
+        "userCreated": "Usuario creado exitosamente"
+      }
+    },
+    "userDetails": {
+      "title": "Usuario",
+      "fields": {
+        "createdAt": "Creado El",
+        "email": "Correo Electrónico",
+        "roles": "Roles"
+      },
+      "noRolesAssigned": "Sin roles asignados",
+      "roleDropdown": {
+        "manageRoles": "Gestionar Roles",
+        "rolesLabel": "Roles",
+        "success": {
+          "roleAssigned": "Rol asignado",
+          "roleRevoked": "Rol revocado"
+        },
+        "errors": {
+          "assignFailed": "Error al asignar rol",
+          "revokeFailed": "Error al revocar rol"
+        }
+      }
+    }
+  },
+  "AuditLogs": {
+    "title": "Registros de Auditoría",
+    "description": "Registro de auditoría de todo el sistema que muestra acciones de usuarios y del sistema",
+    "table": {
+      "headers": {
+        "subject": "Sujeto",
+        "object": "Objeto",
+        "action": "Acción",
+        "recordedAt": "Registrado El"
+      },
+      "error": "Ocurrió un error al obtener los registros de auditoría.",
+      "emptyMessage": "No se encontraron registros de auditoría."
+    }
+  },
+  "ChartOfAccounts": {
+    "title": "Plan de Cuentas",
+    "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y rastrear registros financieros.",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Fuera del Balance"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Nombre de Cuenta",
+        "accountCode": "Código de Cuenta"
+      },
+      "error": "Ocurrió un error al obtener el plan de cuentas."
+    }
+  },
+  "BalanceSheet": {
+    "title": "Balance General",
+    "description": "Un estado financiero que muestra los activos, pasivos y patrimonio de la empresa en un momento específico.",
+    "noData": "Sin datos",
+    "dateRange": "Rango de Fechas",
+    "total": "Total",
+    "columns": {
+      "assets": "Total de Activos",
+      "liabilitiesAndEquity": "Total de Pasivos y Patrimonio"
+    }
+  },
+  "CashFlowStatement": {
+    "title": "Estado de Flujo de Efectivo",
+    "description": "Un estado financiero que muestra cómo los cambios en las cuentas del balance y los ingresos afectan el efectivo y equivalentes de efectivo.",
+    "noData": "Sin datos",
+    "dateRange": "Rango de Fechas",
+    "total": "Total"
+  },
+  "ProfitAndLoss": {
+    "title": "Estado de Resultados",
+    "description": "Un informe financiero que muestra ingresos, gastos y las ganancias o pérdidas resultantes durante un período específico.",
+    "noData": "Sin datos",
+    "dateRange": "Rango de Fechas",
+    "net": "NETO"
+  },
+  "Reports": {
+    "title": "Gestión de Informes",
+    "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
+    "generateReport": "Generar Informe",
+    "noReportsFound": "No se encontraron informes",
+    "selectReport": "Seleccionar Informe",
+    "selectReportPlaceholder": "Seleccione un informe",
+    "reportId": "ID del Informe",
+    "lastError": "Último Error",
+    "currentStatus": "Estado",
+    "downloads": "Descargas",
+    "generateLinks": "Generar Enlaces",
+    "status": {
+      "running": "En ejecución (última activación el {date})",
+      "complete": "Operativo (último informe creado el {date})"
+    },
+    "createDialog": {
+      "title": "Crear Nuevo Informe",
+      "description": "¿Está seguro de que desea crear un nuevo informe? Esta acción generará un informe regulatorio basado en los datos financieros más recientes.",
+      "create": "Crear Informe",
+      "creating": "Creando...",
+      "success": "Creación de informe iniciada",
+      "error": "Error al crear informe"
+    }
+  },
+  "TrialBalance": {
+    "title": "Balance de Comprobación",
+    "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
+    "noData": "Sin datos",
+    "dateRange": "Rango de Fechas",
+    "totals": "Totales",
+    "tabs": {
+      "regular": "Regular",
+      "offBalanceSheet": "Fuera del Balance"
+    },
+    "table": {
+      "headers": {
+        "accountName": "Nombre de Cuenta",
+        "debit": "Débito",
+        "credit": "Crédito",
+        "net": "Neto"
+      }
+    }
+  },
+  "CurrencyLayerSelection": {
+    "currency": {
+      "label": "Moneda",
+      "options": {
+        "usd": "USD",
+        "btc": "BTC"
+      }
+    },
+    "layer": {
+      "label": "Capa",
+      "options": {
+        "all": "Todas",
+        "settled": "Liquidadas",
+        "pending": "Pendientes"
+      }
+    }
+  },
+  "dateTime": {
+    "created": "Creado el {date}",
+    "format": {
+      "short": "d 'de' MMMM 'de' yyyy, HH:mm"
+    }
+  },
+  "CreateButton": {
+    "buttons": {
+      "create": "Crear"
+    },
+    "disabledMessages": {
+      "creditFacilityMustBeActive": "La línea de crédito debe estar activa para realizar acciones"
+    },
+    "menuItems": {
+      "deposit": "Depósito",
+      "withdrawal": "Retiro",
+      "customer": "Cliente",
+      "creditFacility": "Línea de Crédito",
+      "disbursal": "Desembolso",
+      "payment": "Pago",
+      "user": "Usuario",
+      "termsTemplate": "Plantilla de Términos",
+      "committee": "Comité"
+    }
+  },
+  "DataTable": {
+    "view": "Ver",
+    "noData": "No hay datos para mostrar"
+  },
+  "PaginatedTable": {
+    "view": "Ver",
+    "noData": "No hay datos para mostrar",
+    "sortBy": "Ordenar por",
+    "all": "Todos"
+  }
+}

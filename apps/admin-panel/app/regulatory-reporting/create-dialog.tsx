@@ -12,6 +12,8 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 
+import { useTranslations } from "next-intl"
+
 import { useReportCreateMutation } from "@/lib/graphql/generated"
 
 gql`
@@ -26,7 +28,6 @@ gql`
     }
   }
 `
-
 type ReportCreateDialogProps = {
   setOpenReportCreateDialog: (isOpen: boolean) => void
   openReportCreateDialog: boolean
@@ -38,13 +39,15 @@ export const ReportCreateDialog: React.FC<ReportCreateDialogProps> = ({
   openReportCreateDialog,
   refetch,
 }) => {
+  const t = useTranslations("Reports.createDialog")
+  const tCommon = useTranslations("Common")
   const [createReport, { loading }] = useReportCreateMutation()
 
   const handleCreateReport = async () => {
     try {
       const result = await createReport()
       if (result.data?.reportCreate?.report) {
-        toast.success("Report creation started")
+        toast.success(t("success"))
         refetch()
         setOpenReportCreateDialog(false)
       } else {
@@ -52,7 +55,7 @@ export const ReportCreateDialog: React.FC<ReportCreateDialogProps> = ({
       }
     } catch (error) {
       console.error("Error creating report:", error)
-      toast.error("Failed to create report")
+      toast.error(t("error"))
     }
   }
 
@@ -60,22 +63,21 @@ export const ReportCreateDialog: React.FC<ReportCreateDialogProps> = ({
     <Dialog open={openReportCreateDialog} onOpenChange={setOpenReportCreateDialog}>
       <DialogContent data-testid="create-report-dialog">
         <DialogHeader>
-          <DialogTitle data-testid="dialog-title">Create New Report</DialogTitle>
+          <DialogTitle data-testid="dialog-title">{t("title")}</DialogTitle>
           <DialogDescription data-testid="dialog-description">
-            Are you sure you want to create a new report? This action will generate a
-            regulatory report based on the latest financial data.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="ghost" onClick={() => setOpenReportCreateDialog(false)}>
-            Cancel
+            {tCommon("cancel")}
           </Button>
           <Button
             data-testid="create-report-submit"
             onClick={handleCreateReport}
             loading={loading}
           >
-            {loading ? "Creating..." : "Create Report"}
+            {loading ? t("creating") : t("create")}
           </Button>
         </DialogFooter>
       </DialogContent>

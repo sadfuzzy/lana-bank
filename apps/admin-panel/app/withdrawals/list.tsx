@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { WithdrawalStatusBadge } from "./status-badge"
 
@@ -11,7 +12,6 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-
 import Balance from "@/components/balance/balance"
 
 gql`
@@ -51,6 +51,7 @@ gql`
 `
 
 const Withdrawals = () => {
+  const t = useTranslations("Withdrawals.table")
   const { data, loading, error, fetchMore } = useWithdrawalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
@@ -61,7 +62,7 @@ const Withdrawals = () => {
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
       <PaginatedTable<Withdrawal>
-        columns={columns}
+        columns={columns(t)}
         data={data?.withdrawals as PaginatedData<Withdrawal>}
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
@@ -74,22 +75,26 @@ const Withdrawals = () => {
 
 export default Withdrawals
 
-const columns: Column<Withdrawal>[] = [
-  { key: "account", label: "Customer", render: (account) => account.customer.email },
+const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] => [
+  {
+    key: "account",
+    label: t("headers.customer"),
+    render: (account) => account.customer.email,
+  },
   {
     key: "reference",
-    label: "Reference",
+    label: t("headers.reference"),
     render: (reference, withdrawal) =>
-      reference === withdrawal.withdrawalId ? "N/A" : reference,
+      reference === withdrawal.withdrawalId ? t("values.na") : reference,
   },
   {
     key: "amount",
-    label: "Amount",
+    label: t("headers.amount"),
     render: (amount) => <Balance amount={amount} currency="usd" />,
   },
   {
     key: "status",
-    label: "Status",
+    label: t("headers.status"),
     render: (status) => <WithdrawalStatusBadge status={status} />,
   },
 ]

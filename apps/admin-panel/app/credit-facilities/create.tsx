@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -98,6 +99,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   customerId,
   disbursalCreditAccountId,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.CreateCreditFacility")
+
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenCreateCreditFacilityDialog(false),
   })
@@ -126,7 +129,6 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   const [useTemplateTerms, setUseTemplateTerms] = useState(true)
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("")
 
-  // State and handlers are unchanged...
   const [formValues, setFormValues] = useState(initialFormValues)
 
   useEffect(() => {
@@ -209,7 +211,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       !durationPeriod ||
       !oneTimeFeeRate
     ) {
-      toast.error("Please fill in all the fields.")
+      toast.error(t("form.messages.fillAllFields"))
       return
     }
 
@@ -237,7 +239,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         },
         onCompleted: (data) => {
           if (data.creditFacilityCreate) {
-            toast.success("Credit Facility created successfully")
+            toast.success(t("form.messages.success"))
             navigate(
               `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
             )
@@ -299,24 +301,22 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
-          Creating credit facility for {customer?.email}
+          {t("dialog.customerInfo", { email: customer?.email })}
         </div>
         <DialogHeader>
-          <DialogTitle>Create Credit Facility</DialogTitle>
-          <DialogDescription>
-            Fill in the details to create a credit facility.
-          </DialogDescription>
+          <DialogTitle>{t("dialog.title")}</DialogTitle>
+          <DialogDescription>{t("dialog.description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleCreateCreditFacility}>
           <div>
-            <Label>Facility Amount</Label>
+            <Label>{t("form.labels.facilityAmount")}</Label>
             <div className="flex items-center gap-1">
               <Input
                 type="number"
                 name="facility"
                 value={formValues.facility}
                 onChange={handleChange}
-                placeholder="Enter the facility amount"
+                placeholder={t("form.placeholders.facilityAmount")}
                 min={0}
                 data-testid="facility-amount-input"
                 required
@@ -330,27 +330,24 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 amount={collateralRequiredForDesiredFacility as Satoshis}
                 currency="btc"
               />
-              <div>collateral required (</div>
-              <div>BTC/USD: </div>
+              <div>{t("form.messages.collateralRequired")} (</div>
+              <div>{t("form.messages.btcUsdRate")} </div>
               <Balance amount={priceInfo?.realtimePrice.usdCentsPerBtc} currency="usd" />
               <div>)</div>
             </div>
           )}
           {useTemplateTerms && termsTemplatesData?.termsTemplates.length === 0 ? (
-            <div className="text-sm mt-1">
-              No terms templates available please create one or manually specify the terms
-              below.
-            </div>
+            <div className="text-sm mt-1">{t("form.messages.noTemplates")}</div>
           ) : (
             <div>
-              <Label>Terms Template</Label>
+              <Label>{t("form.labels.termsTemplate")}</Label>
               <Select
                 value={selectedTemplateId}
                 onValueChange={handleTemplateChange}
                 disabled={termsTemplatesLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select from predefined terms template" />
+                  <SelectValue placeholder={t("form.placeholders.termsTemplate")} />
                 </SelectTrigger>
                 <SelectContent>
                   {termsTemplatesData?.termsTemplates.map((template) => (
@@ -369,7 +366,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 onClick={() => setUseTemplateTerms(false)}
                 className="mt-2 flex items-center space-x-2 ml-2 cursor-pointer text-sm hover:underline w-fit"
               >
-                <div>Credit Facility Terms</div>
+                <div>{t("form.labels.creditFacilityTerms")}</div>
                 <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
               </button>
               <DetailsGroup
@@ -377,12 +374,15 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 className="grid auto-rows-fr sm:grid-cols-2"
               >
                 <DetailItem
-                  label="Interest Rate (APR)"
+                  label={t("form.labels.interestRate")}
                   value={formValues.annualRate + "%"}
                 />
-                <DetailItem label="Initial CVL (%)" value={formValues.initialCvl} />
                 <DetailItem
-                  label="Duration"
+                  label={t("form.labels.initialCvl")}
+                  value={formValues.initialCvl}
+                />
+                <DetailItem
+                  label={t("form.labels.duration")}
                   value={
                     String(formValues.durationUnits) +
                     " " +
@@ -390,25 +390,25 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   }
                 />
                 <DetailItem
-                  label="Margin Call CVL (%)"
+                  label={t("form.labels.marginCallCvl")}
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label="Accrual Interval"
+                  label={t("form.labels.accrualInterval")}
                   value={formatInterval(formValues.accrualInterval as InterestInterval)}
                 />
                 <DetailItem
-                  label="Liquidation CVL (%)"
+                  label={t("form.labels.liquidationCvl")}
                   value={formValues.liquidationCvl}
                 />
                 <DetailItem
-                  label="Incurrence Interval"
+                  label={t("form.labels.incurrenceInterval")}
                   value={formatInterval(
                     formValues.incurrenceInterval as InterestInterval,
                   )}
                 />
                 <DetailItem
-                  label="Structuring Fee Rate (%)"
+                  label={t("form.labels.structuringFeeRate")}
                   value={formValues.oneTimeFeeRate}
                 />
               </DetailsGroup>
@@ -417,36 +417,36 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             <>
               <div className="grid auto-rows-fr sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Interest Rate (APR)</Label>
+                  <Label>{t("form.labels.interestRate")}</Label>
                   <Input
                     type="number"
                     name="annualRate"
                     value={formValues.annualRate}
                     onChange={handleChange}
-                    placeholder="Enter the annual rate"
+                    placeholder={t("form.placeholders.annualRate")}
                     required
                   />
                 </div>
                 <div>
-                  <Label>Initial CVL (%)</Label>
+                  <Label>{t("form.labels.initialCvl")}</Label>
                   <Input
                     type="number"
                     name="initialCvl"
                     value={formValues.initialCvl}
                     onChange={handleChange}
-                    placeholder="Enter the initial CVL"
+                    placeholder={t("form.placeholders.initialCvl")}
                     required
                   />
                 </div>
                 <div>
-                  <Label>Duration</Label>
+                  <Label>{t("form.labels.duration")}</Label>
                   <div className="flex gap-2">
                     <Input
                       type="number"
                       name="durationUnits"
                       value={formValues.durationUnits}
                       onChange={handleChange}
-                      placeholder="Duration"
+                      placeholder={t("form.placeholders.duration")}
                       min={0}
                       required
                       className="w-1/2"
@@ -460,7 +460,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                       }
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select period" />
+                        <SelectValue placeholder={t("form.placeholders.selectPeriod")} />
                       </SelectTrigger>
                       <SelectContent>
                         {Object.values(Period).map((period) => (
@@ -473,18 +473,18 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   </div>
                 </div>
                 <div>
-                  <Label>Margin Call CVL (%)</Label>
+                  <Label>{t("form.labels.marginCallCvl")}</Label>
                   <Input
                     type="number"
                     name="marginCallCvl"
                     value={formValues.marginCallCvl}
                     onChange={handleChange}
-                    placeholder="Enter the margin call CVL"
+                    placeholder={t("form.placeholders.marginCallCvl")}
                     required
                   />
                 </div>
                 <div>
-                  <Label>Accrual Interval</Label>
+                  <Label>{t("form.labels.accrualInterval")}</Label>
                   <Select
                     value={formValues.accrualInterval}
                     onValueChange={(value) =>
@@ -494,7 +494,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select accrual interval" />
+                      <SelectValue placeholder={t("form.placeholders.accrualInterval")} />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.values(InterestInterval).map((interval) => (
@@ -506,19 +506,19 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   </Select>
                 </div>
                 <div>
-                  <Label>Liquidation CVL (%)</Label>
+                  <Label>{t("form.labels.liquidationCvl")}</Label>
                   <Input
                     type="number"
                     name="liquidationCvl"
                     value={formValues.liquidationCvl}
                     onChange={handleChange}
-                    placeholder="Enter the liquidation CVL"
+                    placeholder={t("form.placeholders.liquidationCvl")}
                     min={0}
                     required
                   />
                 </div>
                 <div>
-                  <Label>Incurrence Interval</Label>
+                  <Label>{t("form.labels.incurrenceInterval")}</Label>
                   <Select
                     value={formValues.incurrenceInterval}
                     onValueChange={(value) =>
@@ -528,7 +528,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select incurrence interval" />
+                      <SelectValue
+                        placeholder={t("form.placeholders.incurrenceInterval")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.values(InterestInterval).map((interval) => (
@@ -540,13 +542,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   </Select>
                 </div>
                 <div>
-                  <Label>Structuring Fee Rate (%)</Label>
+                  <Label>{t("form.labels.structuringFeeRate")}</Label>
                   <Input
                     type="number"
                     name="oneTimeFeeRate"
                     value={formValues.oneTimeFeeRate}
                     onChange={handleChange}
-                    placeholder="Enter the Structuring Fee Rate"
+                    placeholder={t("form.placeholders.structuringFeeRate")}
                     min={0}
                     required
                   />
@@ -562,7 +564,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 onClick={() => setUseTemplateTerms(true)}
                 variant="ghost"
               >
-                Back
+                {t("form.buttons.back")}
               </Button>
             )}
             <Button
@@ -571,7 +573,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               loading={isLoading}
               data-testid="create-credit-facility-submit"
             >
-              Create Credit Facility
+              {t("form.buttons.create")}
             </Button>
           </DialogFooter>
         </form>

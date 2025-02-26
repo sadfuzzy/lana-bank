@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { PiPencilSimpleLineLight } from "react-icons/pi"
+import { useTranslations } from "next-intl"
 
 import { Badge } from "@lana/web/ui/badge"
 
@@ -16,13 +17,15 @@ type CustomerDetailsCardProps = {
 }
 
 export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {
+  const t = useTranslations("Customers.CustomerDetails.details")
+
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
   const details: DetailItemProps[] = [
-    { label: "Email", value: customer.email },
-    { label: "Created on", value: formatDate(customer.createdAt) },
+    { label: t("labels.email"), value: customer.email },
+    { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
-      label: "Telegram",
+      label: t("labels.telegram"),
       value: (
         <button
           type="button"
@@ -35,12 +38,14 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
       ),
     },
     {
-      label: "Status",
+      label: t("labels.status"),
       value: (
         <Badge
           variant={customer.status === AccountStatus.Active ? "success" : "secondary"}
         >
-          {customer.status}
+          {customer.status === AccountStatus.Active
+            ? t("status.active")
+            : t("status.inactive")}
         </Badge>
       ),
     },
@@ -48,7 +53,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
 
   return (
     <>
-      <DetailsCard title="Customer" details={details} className="w-full" />
+      <DetailsCard title={t("title")} details={details} className="w-full" />
       <UpdateTelegramIdDialog
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}

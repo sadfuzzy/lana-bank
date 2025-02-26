@@ -1,6 +1,7 @@
 "use client"
 import { gql } from "@apollo/client"
 import { useState, useCallback, useMemo } from "react"
+import { useTranslations } from "next-intl"
 
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
 
@@ -135,6 +136,7 @@ const BalanceSheet = ({
   dateRange: DateRange
   setDateRange: (dateRange: DateRange) => void
 }) => {
+  const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<Layers>("all")
 
@@ -144,11 +146,8 @@ const BalanceSheet = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Balance Sheet</CardTitle>
-          <CardDescription>
-            A financial statement showing the company&apos;s assets, liabilities, and
-            equity at a specific point in time.
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <LoadingSkeleton />
@@ -157,7 +156,7 @@ const BalanceSheet = ({
     )
   }
 
-  if (!data?.balance) return <div>No data</div>
+  if (!data?.balance) return <div>{t("noData")}</div>
 
   const assets = data.categories?.filter((category) => category.name === "Assets")
 
@@ -175,15 +174,12 @@ const BalanceSheet = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Balance Sheet</CardTitle>
-        <CardDescription>
-          A financial statement showing the company&apos;s assets, liabilities, and equity
-          at a specific point in time.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex gap-6 items-center">
-          <div>Date Range:</div>
+          <div>{t("dateRange")}:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
 
@@ -197,7 +193,7 @@ const BalanceSheet = ({
         <div className="flex gap-4 justify-between mt-6">
           {assets && assets.length > 0 && (
             <BalanceSheetColumn
-              title="Total Assets"
+              title={t("columns.assets")}
               categories={assets}
               currency={currency}
               layer={layer}
@@ -211,7 +207,7 @@ const BalanceSheet = ({
           <div className="w-0.5 min-h-full bg-secondary"></div>
           {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
             <BalanceSheetColumn
-              title="Total Liabilities & Equity"
+              title={t("columns.liabilitiesAndEquity")}
               categories={liabilitiesAndEquity}
               currency={currency}
               layer={layer}
@@ -305,6 +301,8 @@ function CategoryRow({
   layer: Layers
   transactionType: TransactionType
 }) {
+  const t = useTranslations("BalanceSheet")
+
   return (
     <>
       <TableRow className="bg-secondary">
@@ -329,7 +327,7 @@ function CategoryRow({
         <TableRow>
           <TableCell className="flex items-center gap-2 text-textColor-secondary font-semibold uppercase text-xs">
             <div className="w-6" />
-            Total
+            {t("total")}
           </TableCell>
           <TableCell>
             <Balance

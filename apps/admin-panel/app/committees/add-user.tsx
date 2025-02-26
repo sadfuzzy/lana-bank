@@ -1,6 +1,9 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -43,6 +46,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
   setOpenAddUserDialog,
   openAddUserDialog,
 }) => {
+  const t = useTranslations("Committees.CommitteeDetails.AddUserCommitteeDialog")
   const [addUser, { loading, reset, error: addUserError }] = useCommitteeAddUserMutation()
   const { data: userData, loading: usersLoading } = useUsersQuery()
 
@@ -54,7 +58,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
     setError(null)
 
     if (!selectedUserId) {
-      setError("Please select a user")
+      setError(t("errors.selectUser"))
       return
     }
 
@@ -69,21 +73,15 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
       })
 
       if (data?.committeeAddUser.committee) {
-        toast.success("User added to committee successfully")
+        toast.success(t("success"))
         setOpenAddUserDialog(false)
       } else {
-        throw new Error("Failed to add user to committee. Please try again.")
+        throw new Error(t("errors.failed"))
       }
     } catch (error) {
       console.error("Error adding user to committee:", error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else if (addUserError?.message) {
-        setError(addUserError.message)
-      } else {
-        setError("An unexpected error occurred. Please try again.")
-      }
-      toast.error("Failed to add user to committee")
+      setError(addUserError?.message || t("errors.general"))
+      toast.error(t("errors.failed"))
     }
   }
 
@@ -105,13 +103,13 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add User to Committee</DialogTitle>
-          <DialogDescription>Select a user to add to this committee</DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>
             <SelectTrigger data-testid="committee-add-user-select">
-              <SelectValue placeholder="Select a user" />
+              <SelectValue placeholder={t("placeholders.selectUser")} />
             </SelectTrigger>
             <SelectContent>
               {userData?.users.map((user) => (
@@ -130,7 +128,7 @@ export const AddUserCommitteeDialog: React.FC<AddUserCommitteeDialogProps> = ({
               data-testid="committee-add-user-submit-button"
               disabled={loading || usersLoading || !selectedUserId}
             >
-              Add User
+              {t("buttons.addUser")}
             </Button>
           </DialogFooter>
         </form>

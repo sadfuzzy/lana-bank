@@ -5,7 +5,7 @@ import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
 import { Copy } from "lucide-react"
-
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
@@ -39,6 +39,8 @@ type KycStatusProps = {
 }
 
 export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
+  const t = useTranslations("Customers.CustomerDetails.kycStatus")
+
   const { data, loading } = useGetKycStatusForCustomerQuery({
     variables: {
       id: customerId,
@@ -66,11 +68,11 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
 
   const details: DetailItemProps[] = [
     {
-      label: "Level",
+      label: t("labels.level"),
       value: removeUnderscore(data?.customer?.level),
     },
     {
-      label: "KYC Application Link",
+      label: t("labels.kycApplicationLink"),
       value: data?.customer?.applicantId ? (
         <a
           href={sumsubLink}
@@ -90,7 +92,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
               data-testid="customer-create-kyc-link"
             >
               <HiLink />
-              {linkLoading ? "creating link..." : "Create link"}
+              {linkLoading ? t("actions.creatingLink") : t("actions.createLink")}
             </button>
           )}
           {linkData && linkData.sumsubPermalinkCreate && (
@@ -106,7 +108,7 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(linkData.sumsubPermalinkCreate.url)
-                  toast.success("Copied to clipboard")
+                  toast.success(t("messages.copied"))
                 }}
               >
                 <Copy className="h-4 w-4 cursor-pointer" />
@@ -119,12 +121,5 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     },
   ]
 
-  return (
-    <DetailsCard
-      title="KYC Status"
-      description="KYC Details for this customer"
-      details={details}
-      className="w-full md:w-1/2"
-    />
-  )
+  return <DetailsCard title={t("title")} details={details} className="w-full md:w-1/2" />
 }

@@ -2,6 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { useState } from "react"
+import { useTranslations } from "next-intl"
 
 import {
   AccountStatus,
@@ -56,7 +57,9 @@ gql`
   }
 `
 
-const Customers = () => {
+const CustomersList = () => {
+  const t = useTranslations("Customers")
+
   const [sortBy, setSortBy] = useState<CustomersSort | null>(null)
   const [filter, setFilter] = useState<CustomersFilter | null>(null)
 
@@ -67,6 +70,37 @@ const Customers = () => {
       filter: filter,
     },
   })
+
+  const columns: Column<Customer>[] = [
+    { key: "email", label: t("columns.email"), sortable: true },
+    { key: "telegramId", label: t("columns.telegramId"), sortable: true },
+    {
+      key: "status",
+      label: t("columns.status"),
+      filterValues: Object.values(AccountStatus),
+      render: (status) => (
+        <div
+          className={
+            status === AccountStatus.Inactive ? "text-error font-medium" : undefined
+          }
+        >
+          {status === AccountStatus.Active
+            ? t("status.verified")
+            : t("status.notVerified")}
+        </div>
+      ),
+    },
+    {
+      key: "depositAccount",
+      label: t("columns.depositAccount"),
+      render: (depositAccount) =>
+        depositAccount?.balance?.settled ? (
+          <Balance amount={depositAccount?.balance?.settled} currency="usd" />
+        ) : (
+          <></>
+        ),
+    },
+  ]
 
   return (
     <div>
@@ -99,32 +133,4 @@ const Customers = () => {
   )
 }
 
-const columns: Column<Customer>[] = [
-  { key: "email", label: "Email", sortable: true },
-  { key: "telegramId", label: "Telegram", sortable: true },
-  {
-    key: "status",
-    label: "KYC Status",
-    filterValues: Object.values(AccountStatus),
-    render: (status) => (
-      <div
-        className={
-          status === AccountStatus.Inactive ? "text-error font-medium" : undefined
-        }
-      >
-        {status === AccountStatus.Active ? "Verified" : "Not Verified"}
-      </div>
-    ),
-  },
-  {
-    key: "depositAccount",
-    label: "USD Balance",
-    render: (depositAccount) =>
-      depositAccount?.balance?.settled ? (
-        <Balance amount={depositAccount?.balance?.settled} currency="usd" />
-      ) : (
-        <></>
-      ),
-  },
-]
-export default Customers
+export default CustomersList

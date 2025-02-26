@@ -1,5 +1,8 @@
+"use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -55,6 +58,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
   openWithdrawalInitiateDialog,
   depositAccountId,
 }) => {
+  const t = useTranslations("Withdrawals.WithdrawalInitiateDialog")
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => setOpenWithdrawalInitiateDialog(false),
   })
@@ -90,18 +94,14 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
           },
         },
         onCompleted: (data) => {
-          toast.success("Withdrawal initiated successfully")
+          toast.success(t("success"))
           navigate(`/withdrawals/${data.withdrawalInitiate.withdrawal.withdrawalId}`)
           setOpenWithdrawalInitiateDialog(false)
         },
       })
     } catch (error) {
       console.error("Error initiating withdrawal:", error)
-      if (error instanceof Error) {
-        setError(error.message)
-      } else {
-        setError("An unknown error occurred")
-      }
+      setError(error instanceof Error ? error.message : t("errors.unknown"))
     }
   }
 
@@ -120,24 +120,22 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
           className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}
         >
-          Creating withdrawal for {customer?.email}
+          {t("creatingFor", { email: customer?.email })}
         </div>
         <DialogHeader>
-          <DialogTitle>Initiate Withdrawal</DialogTitle>
-          <DialogDescription>
-            Provide the required details to initiate a withdrawal.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">{t("fields.amount")}</Label>
             <div className="flex items-center gap-1">
               <Input
                 data-testid="withdraw-amount-input"
                 id="amount"
                 type="number"
                 required
-                placeholder="Enter amount"
+                placeholder={t("placeholders.amount")}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 disabled={isLoading}
@@ -146,11 +144,11 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
             </div>
           </div>
           <div>
-            <Label htmlFor="reference">Reference</Label>
+            <Label htmlFor="reference">{t("fields.reference")}</Label>
             <Input
               id="reference"
               type="text"
-              placeholder="Enter a reference (optional)"
+              placeholder={t("placeholders.reference")}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
               disabled={isLoading}
@@ -163,7 +161,7 @@ export const WithdrawalInitiateDialog: React.FC<WithdrawalInitiateDialogProps> =
               loading={isLoading}
               data-testid="withdraw-submit-button"
             >
-              {isLoading ? "Processing..." : "Initiate Withdrawal"}
+              {isLoading ? t("buttons.processing") : t("buttons.submit")}
             </Button>
           </DialogFooter>
         </form>

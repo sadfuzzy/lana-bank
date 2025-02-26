@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -25,6 +26,7 @@ type WithdrawalDetailsProps = {
 }
 
 const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal }) => {
+  const t = useTranslations("Withdrawals.WithdrawDetails.WithdrawalDetailsCard")
   const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] = useState<
     GetWithdrawalDetailsQuery["withdrawal"] | null
   >(null)
@@ -36,21 +38,23 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
 
   const details: DetailItemProps[] = [
     {
-      label: "Customer Email",
+      label: t("fields.customerEmail"),
       value: withdrawal.account.customer.email,
       href: `/customers/${withdrawal.account.customer.customerId}`,
     },
     {
-      label: "Withdrawal Amount",
+      label: t("fields.withdrawalAmount"),
       value: <Balance amount={withdrawal.amount} currency="usd" />,
     },
     {
-      label: "Withdrawal Reference",
+      label: t("fields.withdrawalReference"),
       value:
-        withdrawal.reference === withdrawal.withdrawalId ? "N/A" : withdrawal.reference,
+        withdrawal.reference === withdrawal.withdrawalId
+          ? t("values.na")
+          : withdrawal.reference,
     },
     {
-      label: "Status",
+      label: t("fields.status"),
       value: <WithdrawalStatusBadge status={withdrawal.status} />,
       valueTestId: "withdrawal-status-badge",
     },
@@ -65,14 +69,14 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
             data-testid="withdraw-confirm-button"
             variant="outline"
           >
-            Confirm
+            {t("buttons.confirm")}
           </Button>
           <Button
             data-testid="withdraw-cancel-button"
             variant="outline"
             onClick={() => setOpenWithdrawalCancelDialog(withdrawal)}
           >
-            Cancel
+            {t("buttons.cancel")}
           </Button>
         </>
       )}
@@ -84,14 +88,14 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
               onClick={() => setOpenApprovalDialog(true)}
               data-testid="approval-process-approve-button"
             >
-              Approve
+              {t("buttons.approve")}
             </Button>
             <Button
               variant="outline"
               onClick={() => setOpenDenialDialog(true)}
               data-testid="approval-process-deny-button"
             >
-              Deny
+              {t("buttons.deny")}
             </Button>
           </>
         )}
@@ -101,7 +105,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
   return (
     <>
       <DetailsCard
-        title="Withdrawal"
+        title={t("title")}
         details={details}
         footerContent={footerContent}
         errorMessage={withdrawal.approvalProcess.deniedReason}

@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import {
   Dialog,
@@ -40,6 +41,10 @@ type CreditFacilityPartialPaymentDialogProps = {
 export const CreditFacilityPartialPaymentDialog: React.FC<
   CreditFacilityPartialPaymentDialogProps
 > = ({ setOpenDialog, openDialog, creditFacilityId }) => {
+  const t = useTranslations(
+    "CreditFacilities.CreditFacilityDetails.CreditFacilityPartialPayment",
+  )
+
   const [partialPaymentCreditFacility, { loading, reset }] =
     useCreditFacilityPartialPaymentMutation()
   const [error, setError] = useState<string | null>(null)
@@ -52,7 +57,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     const amountInCents = Math.round(parseFloat(amount) * 100)
 
     if (isNaN(amountInCents) || amountInCents <= 0) {
-      setError("Please enter a valid amount")
+      setError(t("form.errors.invalidAmount"))
       return
     }
 
@@ -66,7 +71,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
         },
         onCompleted: (data) => {
           if (data.creditFacilityPartialPayment) {
-            toast.success("Partial payment processed successfully")
+            toast.success(t("messages.success"))
             handleCloseDialog()
           }
         },
@@ -76,7 +81,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError("An unknown error occurred")
+        setError(t("form.errors.unknownError"))
       }
     }
   }
@@ -92,21 +97,19 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Process Partial Payment</DialogTitle>
-          <DialogDescription>
-            Enter the amount you wish to pay towards this credit facility.
-          </DialogDescription>
+          <DialogTitle>{t("dialog.title")}</DialogTitle>
+          <DialogDescription>{t("dialog.description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <Label>Amount</Label>
+            <Label>{t("form.labels.amount")}</Label>
             <div className="flex items-center gap-1">
               <Input
                 data-testid="facility-partial-payment-amount-input"
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="Enter the desired principal amount"
+                placeholder={t("form.placeholders.amount")}
                 min={0}
               />
               <div className="p-1.5 bg-input-text rounded-md px-4">USD</div>
@@ -115,14 +118,14 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
           {error && <p className="text-destructive">{error}</p>}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={handleCloseDialog}>
-              Cancel
+              {t("form.buttons.cancel")}
             </Button>
             <Button
               type="submit"
               loading={loading}
               data-testid="facility-partial-payment-submit-button"
             >
-              Process Payment
+              {t("form.buttons.processPayment")}
             </Button>
           </DialogFooter>
         </form>

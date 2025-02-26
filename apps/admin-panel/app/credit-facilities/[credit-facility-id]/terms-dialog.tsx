@@ -1,6 +1,7 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
 
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
@@ -18,43 +19,45 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
   setOpenTermsDialog,
   creditFacility,
 }) => {
+  const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
+
   const details: DetailItemProps[] = [
     {
-      label: "Duration",
+      label: t("details.duration"),
       value: `${creditFacility.creditFacilityTerms.duration.units} ${formatPeriod(
         creditFacility.creditFacilityTerms.duration.period,
       )}`,
     },
     {
-      label: "Interest (APR)",
+      label: t("details.interestRate"),
       value: `${creditFacility.creditFacilityTerms.annualRate}%`,
     },
     {
-      label: "Accrual Interval",
+      label: t("details.accrualInterval"),
       value: formatInterval(creditFacility.creditFacilityTerms.accrualInterval),
     },
     {
-      label: "Target/initial CVL %",
+      label: t("details.targetCvl"),
       value: `${creditFacility.creditFacilityTerms.initialCvl}%`,
     },
     {
-      label: "Margin call CVL %",
+      label: t("details.marginCallCvl"),
       value: `${creditFacility.creditFacilityTerms.marginCallCvl}%`,
     },
     {
-      label: "Liquidation CVL %",
+      label: t("details.liquidationCvl"),
       value: `${creditFacility.creditFacilityTerms.liquidationCvl}%`,
     },
     {
-      label: "Date created",
+      label: t("details.dateCreated"),
       value: formatDate(creditFacility.createdAt),
     },
     {
-      label: "Incurrence Interval",
+      label: t("details.incurrenceInterval"),
       value: formatInterval(creditFacility.creditFacilityTerms.incurrenceInterval),
     },
     {
-      label: "Structuring Fee Rate",
+      label: t("details.structuringFeeRate"),
       value: `${creditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
   ]
@@ -63,7 +66,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
     <Dialog open={openTermsDialog} onOpenChange={setOpenTermsDialog}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Terms</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
         <div className="py-2">
           <DetailsCard columns={2} variant="container" details={details} />

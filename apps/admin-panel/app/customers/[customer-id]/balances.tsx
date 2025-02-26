@@ -1,9 +1,9 @@
 "use client"
 
 import React from "react"
+import { useTranslations } from "next-intl"
 
 import Balance from "@/components/balance/balance"
-
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
 
@@ -16,23 +16,18 @@ type CustomerAccountBalancesProps = {
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({
   balance,
 }) => {
+  const t = useTranslations("Customers.CustomerDetails.accountBalances")
+
   const details: DetailItemProps[] = [
     {
-      label: "Checking Settled Balance (USD)",
+      label: t("labels.checkingSettled"),
       value: <Balance amount={balance.settled} currency="usd" />,
     },
     {
-      label: "Pending Withdrawals (USD)",
+      label: t("labels.pendingWithdrawals"),
       value: <Balance amount={balance.pending} currency="usd" />,
     },
   ]
 
-  return (
-    <DetailsCard
-      title="Account Balances"
-      description="Balance Details for this Customer"
-      details={details}
-      className="w-full md:w-1/2"
-    />
-  )
+  return <DetailsCard title={t("title")} details={details} className="w-full md:w-1/2" />
 }

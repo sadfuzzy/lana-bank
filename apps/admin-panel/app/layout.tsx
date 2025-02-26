@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale, getMessages } from "next-intl/server"
 
 import { Inter_Tight } from "next/font/google"
 
@@ -20,13 +22,18 @@ const inter = Inter_Tight({
   variable: "--font-inter",
 })
 
-const RootLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
+const RootLayout: React.FC<React.PropsWithChildren> = async ({ children }) => {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body className={`${inter.className} antialiased bg-background`}>
-        <AppLoading>
-          <Authenticated>{children}</Authenticated>
-        </AppLoading>
+        <NextIntlClientProvider messages={messages}>
+          <AppLoading>
+            <Authenticated>{children}</Authenticated>
+          </AppLoading>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

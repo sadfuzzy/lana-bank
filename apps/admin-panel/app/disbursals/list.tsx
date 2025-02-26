@@ -1,6 +1,7 @@
 "use client"
 
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { DisbursalStatusBadge } from "./status-badge"
 
@@ -38,15 +39,34 @@ gql`
 `
 
 const Disbursals = () => {
+  const t = useTranslations("Disbursals")
   const { data, loading, error, fetchMore } = useDisbursalsQuery({
     variables: {
       first: DEFAULT_PAGESIZE,
     },
   })
 
+  const columns: Column<CreditFacilityDisbursal>[] = [
+    {
+      key: "amount",
+      label: t("table.headers.amount"),
+      render: (amount) => <Balance amount={amount} currency="usd" />,
+    },
+    {
+      key: "createdAt",
+      label: t("table.headers.createdAt"),
+      render: (date) => formatDate(date, { includeTime: false }),
+    },
+    {
+      key: "status",
+      label: t("table.headers.status"),
+      render: (status) => <DisbursalStatusBadge status={status} />,
+    },
+  ]
+
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{error?.message}</p>}
+      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
       <PaginatedTable<CreditFacilityDisbursal>
         columns={columns}
         data={data?.disbursals as PaginatedData<CreditFacilityDisbursal>}
@@ -60,21 +80,3 @@ const Disbursals = () => {
 }
 
 export default Disbursals
-
-const columns: Column<CreditFacilityDisbursal>[] = [
-  {
-    key: "amount",
-    label: "Amount",
-    render: (amount) => <Balance amount={amount} currency="usd" />,
-  },
-  {
-    key: "createdAt",
-    label: "Date",
-    render: (date) => formatDate(date, { includeTime: false }),
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: (status) => <DisbursalStatusBadge status={status} />,
-  },
-]

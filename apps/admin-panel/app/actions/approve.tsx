@@ -1,6 +1,7 @@
 import React from "react"
 import { gql, useApolloClient } from "@apollo/client"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 import {
   Dialog,
   DialogContent,
@@ -82,6 +83,9 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
   openApprovalDialog,
   approvalProcess,
 }) => {
+  const t = useTranslations("Actions.ApprovalProcess.Approve")
+  const tCommon = useTranslations("Common")
+
   const [error, setError] = React.useState<string | null>(null)
   const [approveProcess, { loading }] = useApprovalProcessApproveMutation({
     update: (cache) => {
@@ -127,7 +131,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
               fetchPolicy: "network-only",
             })
           }
-          toast.success("Process approved successfully")
+          toast.success(t("success.processApproved"))
         },
       })
       setOpenApprovalDialog(false)
@@ -135,7 +139,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError("An unknown error occurred")
+        setError(t("errors.unknown"))
       }
     }
   }
@@ -145,7 +149,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Approve Process</DialogTitle>
+            <DialogTitle>{t("title")}</DialogTitle>
           </DialogHeader>
 
           <div className="py-4">
@@ -163,11 +167,11 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 
             <DetailsGroup layout="horizontal">
               <DetailItem
-                label="Process Type"
+                label={t("fields.processType")}
                 value={formatProcessType(approvalProcess?.approvalProcessType)}
               />
               <DetailItem
-                label="Created At"
+                label={t("fields.createdAt")}
                 value={formatDate(approvalProcess?.createdAt)}
               />
             </DetailsGroup>
@@ -181,14 +185,14 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
               onClick={() => setOpenApprovalDialog(false)}
               data-testid="approval-process-dialog-cancel-button"
             >
-              Cancel
+              {tCommon("cancel")}
             </Button>
             <Button
               type="submit"
               loading={loading}
               data-testid="approval-process-dialog-approve-button"
             >
-              Approve
+              {t("buttons.approve")}
             </Button>
           </DialogFooter>
         </form>
