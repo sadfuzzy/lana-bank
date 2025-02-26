@@ -50,8 +50,8 @@ async fn deposit() -> anyhow::Result<()> {
         .await?;
     let deposits_name = "User Deposits";
     let deposits_reference = format!(
-        "user-deposits:{}",
-        format!("{:04}", rand::thread_rng().gen_range(0..10000))
+        "user-deposits:{:04}",
+        rand::thread_rng().gen_range(0..10000)
     );
     let control_sub_account = chart_of_accounts
         .create_control_sub_account(
@@ -74,8 +74,8 @@ async fn deposit() -> anyhow::Result<()> {
         .await?;
     let omnibus_name = "User Deposits Omnibus";
     let omnibus_reference = &format!(
-        "user-deposits-omnibus:{}",
-        format!("{:04}", rand::thread_rng().gen_range(0..10000))
+        "user-deposits-omnibus:{:04}",
+        rand::thread_rng().gen_range(0..10000)
     );
     let omnibus_control_sub_account = chart_of_accounts
         .create_control_sub_account(
