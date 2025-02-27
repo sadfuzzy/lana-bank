@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "next dev --port 3001",
-    "build": "next build",
+    "validate-translations": "node ./i18n/validate-translations.mjs",
+    "build": "npm run validate-translations && next build",
     "start": "next start",
     "lint": "next lint",
     "tsc-check": "tsc --noEmit",
