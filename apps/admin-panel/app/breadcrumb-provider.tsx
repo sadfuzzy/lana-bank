@@ -4,6 +4,7 @@ import { createContext, useContext, useState } from "react"
 
 import { usePathname } from "next/navigation"
 
+import { useNavItems } from "@/components/app-sidebar"
 import type { BreadcrumbLink } from "@/components/breadcrumb-wrapper"
 
 interface BreadcrumbContextType {
@@ -14,31 +15,54 @@ interface BreadcrumbContextType {
 
 const BreadcrumbContext = createContext<BreadcrumbContextType | undefined>(undefined)
 
-function generateDefaultLinks(pathname: string): BreadcrumbLink[] {
+function generateDefaultLinks(
+  pathname: string,
+  useNavItemsResult: ReturnType<typeof useNavItems>,
+): BreadcrumbLink[] {
+  const { findNavItemByUrl } = useNavItemsResult
   const segments = pathname.split("/").filter(Boolean)
-  const links: BreadcrumbLink[] = [{ title: "Dashboard", href: "/dashboard" }]
+
+  const dashboardItem = findNavItemByUrl("/dashboard")
+  const links: BreadcrumbLink[] = [
+    {
+      title: dashboardItem?.title || "Dashboard",
+      href: "/dashboard",
+    },
+  ]
+
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+  let currentPath = ""
   segments.forEach((segment, index) => {
     if (segment === "dashboard") return
-    const href = "/" + segments.slice(0, index + 1).join("/")
+    currentPath += "/" + segment
+    const isLastSegment = index === segments.length - 1
+    const navItem = findNavItemByUrl(currentPath)
+    let title: string
 
-    const title = uuidRegex.test(segment)
-      ? segment
-      : segment
-          .split("-")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
+    if (navItem) {
+      title = navItem.title
+    } else if (uuidRegex.test(segment)) {
+      title = segment
+    } else {
+      title = segment
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    }
 
     links.push({
       title,
-      ...(index === segments.length - 1 ? { isCurrentPage: true as const } : { href }),
+      ...(isLastSegment ? { isCurrentPage: true as const } : { href: currentPath }),
     })
   })
 
   if (pathname === "/" || pathname === "/dashboard") {
-    links[0] = { title: "Dashboard", isCurrentPage: true as const }
+    links[0] = {
+      title: dashboardItem?.title || "Dashboard",
+      isCurrentPage: true as const,
+    }
   }
 
   return links
@@ -48,7 +72,8 @@ export function BreadcrumbProvider({ children }: { children: React.ReactNode }) 
   const pathname = usePathname()
   const [customLinks, setCustomLinks] = useState<BreadcrumbLink[] | null>(null)
 
-  const links = customLinks ?? generateDefaultLinks(pathname)
+  const navItemsResult = useNavItems()
+  const links = customLinks ?? generateDefaultLinks(pathname, navItemsResult)
 
   return (
     <BreadcrumbContext.Provider

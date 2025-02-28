@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import TermsTemplateDetailsCard from "./details"
 
@@ -27,6 +28,7 @@ function TermsTemplatePage({
   const { "terms-template-id": termsTemplateId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setTermsTemplate } = useCreateContext()
+  const navTranslations = useTranslations("Sidebar.navItems")
   const { data, loading, error } = useTermsTemplateQuery({
     variables: { id: termsTemplateId },
   })
@@ -34,8 +36,8 @@ function TermsTemplatePage({
   useEffect(() => {
     if (data?.termsTemplate) {
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Terms Templates", href: "/terms-templates" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        { title: navTranslations("termTemplates"), href: "/terms-templates" },
         { title: data.termsTemplate.name, isCurrentPage: true },
       ])
     }

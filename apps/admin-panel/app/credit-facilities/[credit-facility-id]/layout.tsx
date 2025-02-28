@@ -119,6 +119,7 @@ export default function CreditFacilityLayout({
   params: { "credit-facility-id": string }
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { "credit-facility-id": creditFacilityId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
@@ -175,8 +176,11 @@ export default function CreditFacilityLayout({
     if (data?.creditFacility) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: t("breadcrumbs.dashboard"), href: "/dashboard" },
-        { title: t("breadcrumbs.creditFacilities"), href: "/credit-facilities" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        {
+          title: navTranslations("creditFacilities"),
+          href: "/credit-facilities",
+        },
         {
           title: data.creditFacility.creditFacilityId,
           href: `/credit-facilities/${creditFacilityId}`,

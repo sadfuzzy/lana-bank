@@ -127,10 +127,6 @@
           "creditFacilities": "Credit Facilities",
           "documents": "Documents"
         },
-        "breadcrumbs": {
-          "dashboard": "Dashboard",
-          "customers": "Customers"
-        },
         "errors": {
           "loading": "Loading...",
           "error": "An error occurred"
@@ -393,10 +389,6 @@
           "transactions": "Transactions",
           "disbursals": "Disbursals",
           "repaymentPlan": "Repayment Plan"
-        },
-        "breadcrumbs": {
-          "dashboard": "Dashboard",
-          "creditFacilities": "Credit Facilities"
         },
         "errors": {
           "notFound": "Not found",

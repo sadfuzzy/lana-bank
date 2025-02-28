@@ -296,7 +296,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   })
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
-      <DialogContent className="max-w-[38rem]">
+      <DialogContent className="max-w-[40rem]">
         <div
           className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
           style={{ width: "100.35%" }}

@@ -127,10 +127,6 @@
           "creditFacilities": "Líneas de Crédito",
           "documents": "Documentos"
         },
-        "breadcrumbs": {
-          "dashboard": "Panel",
-          "customers": "Clientes"
-        },
         "errors": {
           "loading": "Cargando...",
           "error": "Ocurrió un error"
@@ -393,10 +389,6 @@
           "transactions": "Transacciones",
           "disbursals": "Desembolsos",
           "repaymentPlan": "Plan de Pago"
-        },
-        "breadcrumbs": {
-          "dashboard": "Panel",
-          "creditFacilities": "Líneas de Crédito"
         },
         "errors": {
           "notFound": "No encontrado",

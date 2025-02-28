@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import UserDetailsCard from "./details"
 
@@ -25,6 +26,7 @@ function UserPage({
 }) {
   const { "user-id": userId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { data, loading, error } = useGetUserDetailsQuery({
     variables: { id: userId },
@@ -33,8 +35,8 @@ function UserPage({
   useEffect(() => {
     if (data?.user) {
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Users", href: "/users" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        { title: navTranslations("users"), href: "/users" },
         { title: data.user.email, isCurrentPage: true },
       ])
     }

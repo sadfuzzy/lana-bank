@@ -66,6 +66,24 @@ export function useNavItems() {
     { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
   ]
 
+  const allNavItems: NavItem[] = [
+    ...navDashboardItems,
+    ...navLoansItems,
+    ...navCustomersItems,
+    ...navTransactionItems,
+    ...navAdminItems,
+    ...navFinanceItems,
+  ]
+
+  const navItemsByUrl = new Map<string, NavItem>()
+  allNavItems.forEach((item) => {
+    navItemsByUrl.set(item.url, item)
+  })
+
+  const findNavItemByUrl = (url: string): NavItem | undefined => {
+    return navItemsByUrl.get(url)
+  }
+
   return {
     navDashboardItems,
     navLoansItems,
@@ -73,5 +91,9 @@ export function useNavItems() {
     navTransactionItems,
     navAdminItems,
     navFinanceItems,
+
+    allNavItems,
+    navItemsByUrl,
+    findNavItemByUrl,
   }
 }

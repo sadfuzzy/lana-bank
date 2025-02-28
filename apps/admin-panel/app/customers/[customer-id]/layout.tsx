@@ -50,6 +50,7 @@ export default function CustomerLayout({
   params: { "customer-id": string }
 }) {
   const t = useTranslations("Customers.CustomerDetails.layout")
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const TABS = [
     { id: "1", url: "/", tabLabel: t("tabs.transactions") },
@@ -76,8 +77,8 @@ export default function CustomerLayout({
     if (data?.customer) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: t("breadcrumbs.dashboard"), href: "/dashboard" },
-        { title: t("breadcrumbs.customers"), href: "/customers" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        { title: navTranslations("customers"), href: "/customers" },
         { title: data.customer.email, href: `/customers/${customerId}` },
         ...(currentTabData?.url === "/"
           ? []

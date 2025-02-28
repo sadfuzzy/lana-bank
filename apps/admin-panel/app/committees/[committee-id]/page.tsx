@@ -3,6 +3,7 @@
 import React, { useEffect } from "react"
 
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { CommitteeDetailsCard } from "./details"
 
@@ -31,6 +32,7 @@ function CommitteePage({
   const { "committee-id": committeeId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setCommittee } = useCreateContext()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { data, loading, error } = useGetCommitteeDetailsQuery({
     variables: { id: committeeId },
@@ -39,8 +41,8 @@ function CommitteePage({
   useEffect(() => {
     if (data?.committee) {
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Committees", href: "/committees" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        { title: navTranslations("committees"), href: "/committees" },
         { title: data.committee.name, isCurrentPage: true },
       ])
     }

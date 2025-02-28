@@ -2,6 +2,8 @@
 import React, { useEffect } from "react"
 import { gql } from "@apollo/client"
 
+import { useTranslations } from "next-intl"
+
 import { PolicyDetailsCard } from "./details"
 
 import { useGetPolicyDetailsQuery } from "@/lib/graphql/generated"
@@ -42,6 +44,7 @@ function PolicyPage({
   const { "policy-id": policyId } = params
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const { setPolicy } = useCreateContext()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { data, loading, error } = useGetPolicyDetailsQuery({
     variables: { id: policyId },
@@ -50,8 +53,8 @@ function PolicyPage({
   useEffect(() => {
     if (data?.policy) {
       setCustomLinks([
-        { title: "Dashboard", href: "/dashboard" },
-        { title: "Policies", href: "/policies" },
+        { title: navTranslations("dashboard"), href: "/dashboard" },
+        { title: navTranslations("policies"), href: "/policies" },
         {
           title: formatProcessType(data.policy.approvalProcessType),
           isCurrentPage: true,
