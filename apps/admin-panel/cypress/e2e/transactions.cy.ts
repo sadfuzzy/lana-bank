@@ -119,7 +119,7 @@ describe("Transactions Deposit and Withdraw", () => {
             cy.get('[data-testid="withdraw-cancel-button"]').should("be.visible").click()
             cy.takeScreenshot("14_withdrawal_cancel_button")
 
-            cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
+            cy.get('[data-testid="withdrawal-cancel-dialog-button"]')
               .should("be.visible")
               .click()
             cy.takeScreenshot("15_withdrawal_cancel_confirm")
