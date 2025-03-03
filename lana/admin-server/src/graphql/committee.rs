@@ -39,7 +39,6 @@ impl Committee {
             .load_many(self.entity.members().into_iter().map(UserId::from))
             .await?
             .into_values()
-            .map(User::from)
             .collect();
 
         Ok(users)
