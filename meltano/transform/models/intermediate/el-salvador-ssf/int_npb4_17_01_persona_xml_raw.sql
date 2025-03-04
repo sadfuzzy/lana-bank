@@ -3,14 +3,13 @@ select
     -- use NIU type (`tipo_identificador` = 'N')
     left(replace(customer_id, '-', ''), 14) as `nit_persona`,
 
-    -- NULL for non-Salvadoran (`nacionalidad` != '9300')
-    cast(null as string) as `dui`,
+    dui,
 
-    upper(first_name) as `primer_apellido`,
-    cast(null as string) as `segundo_apellido`,
+    upper(split(last_name, ' ')[safe_offset(0)]) as `primer_apellido`,
+    upper(split(last_name, ' ')[safe_offset(1)]) as `segundo_apellido`,
+    upper(split(first_name, ' ')[safe_offset(0)]) as `primer_nombre`,
+    cast(split(first_name, ' ')[safe_offset(1)]) as `segundo_nombre`,
     cast(null as string) as `apellido_casada`,
-    upper(last_name) as `primer_nombre`,
-    cast(null as string) as `segundo_nombre`,
 
     -- NULL for natural person
     cast(null as string) as `nombre_sociedad`,
@@ -18,8 +17,7 @@ select
     -- '1' for natural person
     '1' as `tipo_persona`,
 
-    -- '0' for natural person
-    '0' as `tipo_relacion`,
+    relationship_to_bank as `tipo_relacion`,
 
     -- 'U' for non-Salvadoran using the most flexible Unique Identification Number
     'U' as `tipo_identificador`,
@@ -27,8 +25,10 @@ select
     -- NULL for non-Salvadoran
     cast(null as string) as `nit_desactualizado`,
 
-    -- 'N' for non-Salvadoran
-    'N' as `residente`,
+    case
+        when country_of_residence_iso_alpha_3_code = 'SLV' then 'Y'
+        else 'N'
+    end as `residente`,
 
     -- codified main economic activity of the person,
     -- i.e. the one that generates the greatest cash flow
@@ -38,6 +38,7 @@ select
     cast(null as string) as `tipo_empresa`,
 
     -- Provision of sanitation reserves established accounted for by the entity for each debtor
+    -- TODO: use real number
     7060.0 as `reserva`,
 
     -- codified risk category assigned to the debtor depending of the status of the loan
@@ -64,11 +65,11 @@ select
     -- TIN (Tax Identification Number) issued by the country of origin
     tax_id_number as `id_pais_origen`,
 
-
     nationality_code as `nacionalidad`,
     cast(null as string) as `nit_anterior`,
     cast(null as string) as `tipo_ident_anterior`,
-    cast(null as string) as `municipio_residencia`
+
+    el_salvador_municipality as `municipio_residencia`
 
 from {{ ref('int_customers') }}
 left join {{ ref('int_customer_identities') }} using (customer_id)
