@@ -128,7 +128,7 @@ where
         self.repo.find_by_id(id).await
     }
 
-    #[instrument(name = "customer.create_customer", skip(self), err)]
+    #[instrument(name = "customer.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
