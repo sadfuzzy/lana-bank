@@ -1,13 +1,10 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use kratos_admin::KratosAdmin;
 use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{
-    AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
-};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
@@ -20,17 +17,17 @@ use job::*;
 use crate::config::*;
 
 #[derive(serde::Serialize)]
-pub struct CustomerOnboardingJobConfig<Perms, E> {
+pub struct CreateDepositAccountJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CustomerOnboardingJobConfig<Perms, E> {
+impl<Perms, E> CreateDepositAccountJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CustomerOnboardingJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreateDepositAccountJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -41,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CustomerOnboardingJobInitializer<Perms, E>;
+    type Initializer = CreateDepositAccountJobInitializer<Perms, E>;
 }
 
-pub struct CustomerOnboardingJobInitializer<Perms, E>
+pub struct CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -52,13 +49,11 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    kratos_admin: KratosAdmin,
-    customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
     config: CustomerOnboardingConfig,
 }
 
-impl<Perms, E> CustomerOnboardingJobInitializer<Perms, E>
+impl<Perms, E> CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -67,24 +62,20 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerOnboardingConfig,
     ) -> Self {
-        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
-
         Self {
             outbox: outbox.clone(),
-            customers: customers.clone(),
             deposit: deposit.clone(),
-            kratos_admin,
             config,
         }
     }
 }
 
-const CUSTOMER_ONBOARDING_JOB: JobType = JobType::new("customer-onboarding");
-impl<Perms, E> JobInitializer for CustomerOnboardingJobInitializer<Perms, E>
+const CUSTOMER_ONBOARDING_CREATE_DEPOSIT_ACCOUNT: JobType =
+    JobType::new("customer-onboarding-create-deposit-account");
+impl<Perms, E> JobInitializer for CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -99,15 +90,13 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_ONBOARDING_JOB
+        CUSTOMER_ONBOARDING_CREATE_DEPOSIT_ACCOUNT
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerOnboardingJobRunner {
+        Ok(Box::new(CreateDepositAccountJobRunner {
             outbox: self.outbox.clone(),
-            customers: self.customers.clone(),
             deposit: self.deposit.clone(),
-            kratos_admin: self.kratos_admin.clone(),
             config: self.config.clone(),
         }))
     }
@@ -121,11 +110,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CustomerOnboardingJobData {
+struct CreateDepositAccountJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CustomerOnboardingJobRunner<Perms, E>
+pub struct CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -133,13 +122,11 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    customers: Customers<Perms, E>,
     deposit: CoreDeposit<Perms, E>,
-    kratos_admin: KratosAdmin,
     config: CustomerOnboardingConfig,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerOnboardingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -155,13 +142,13 @@ where
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let state = current_job
-            .execution_state::<CustomerOnboardingJobData>()?
+            .execution_state::<CreateDepositAccountJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
             if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
-                self.handle_customer_created_event(message.as_ref()).await?;
+                self.handle_create_deposit_account(message.as_ref()).await?;
             }
         }
 
@@ -170,7 +157,7 @@ where
     }
 }
 
-impl<Perms, E> CustomerOnboardingJobRunner<Perms, E>
+impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -182,17 +169,17 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     #[instrument(
-        name = "customer_onboarding.handle_customer_created_event",
+        name = "customer_onboarding.create_deposit_account",
         skip(self, message)
     )]
-    async fn handle_customer_created_event(
+    async fn handle_create_deposit_account(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>>
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerCreated { id, email }) = message.as_event() {
+        if let Some(CoreCustomerEvent::CustomerCreated { id, .. }) = message.as_event() {
             message.inject_trace_parent();
 
             if self.config.auto_create_deposit_account {
@@ -207,14 +194,6 @@ where
                 Err(e) => return Err(e.into()),
                 }
             }
-
-            let authentication_id = self
-                .kratos_admin
-                .create_user::<AuthenticationId>(email.clone())
-                .await?;
-            self.customers
-                .update_authentication_id_for_customer(*id, authentication_id)
-                .await?;
         }
         Ok(())
     }

@@ -65,8 +65,13 @@ where
         config: CustomerOnboardingConfig,
     ) -> Result<Self, CustomerOnboardingError> {
         jobs.add_initializer_and_spawn_unique(
-            CustomerOnboardingJobInitializer::new(outbox, customers, deposit, config),
-            CustomerOnboardingJobConfig::new(),
+            CreateDepositAccountJobInitializer::new(outbox, deposit, config.clone()),
+            CreateDepositAccountJobConfig::new(),
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            CreateKratosUserJobInitializer::new(outbox, customers, config),
+            CreateKratosUserJobConfig::new(),
         )
         .await?;
         Ok(Self {
