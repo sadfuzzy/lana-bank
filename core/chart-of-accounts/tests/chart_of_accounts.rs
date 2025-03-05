@@ -100,7 +100,7 @@ async fn create_with_duplicate_reference() -> anyhow::Result<()> {
     let chart_of_accounts =
         CoreChartOfAccounts::init(&pool, &authz, &cala, LedgerJournalId::new()).await?;
 
-    let reference = format!("{:02}", rand::thread_rng().gen_range(0..100));
+    let reference = format!("{:06}", rand::thread_rng().gen_range(0..100));
 
     let chart_id = ChartId::new();
     chart_of_accounts

@@ -16,4 +16,6 @@ pub enum CoreChartOfAccountsError {
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("CoreChartOfAccountsError - CalaAccountSetError: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
+    #[error("CoreChartOfAccountsError - CsvParseError: {0}")]
+    CsvParse(#[from] crate::new::CsvParseError),
 }

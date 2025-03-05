@@ -3,6 +3,7 @@
 
 mod chart_of_accounts;
 pub mod error;
+pub mod new;
 mod path;
 mod primitives;
 mod transaction_account_factory;
