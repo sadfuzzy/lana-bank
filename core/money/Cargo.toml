@@ -1,6 +1,6 @@
 [package]
 name = "core-money"
-version = "0.3.138-dev"
+version = "0.3.141-dev"
 edition = "2021"
 
 [dependencies]
