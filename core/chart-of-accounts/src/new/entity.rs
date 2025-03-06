@@ -8,6 +8,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use super::primitives::*;
+use super::tree;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -19,12 +20,7 @@ pub enum ChartEvent {
         reference: String,
         audit_info: AuditInfo,
     },
-    ControlAccountAdded {
-        spec: AccountSpec,
-        ledger_account_set_id: LedgerAccountSetId,
-        audit_info: AuditInfo,
-    },
-    ControlSubAccountAdded {
+    NodeAdded {
         spec: AccountSpec,
         ledger_account_set_id: LedgerAccountSetId,
         audit_info: AuditInfo,
@@ -42,24 +38,7 @@ pub struct Chart {
 }
 
 impl Chart {
-    pub fn create_control_account(
-        &mut self,
-        spec: &AccountSpec,
-        audit_info: AuditInfo,
-    ) -> Idempotent<LedgerAccountSetId> {
-        if self.all_accounts.contains_key(&spec.code) {
-            return Idempotent::AlreadyApplied;
-        }
-        let ledger_account_set_id = LedgerAccountSetId::new();
-        self.events.push(ChartEvent::ControlAccountAdded {
-            spec: spec.clone(),
-            ledger_account_set_id,
-            audit_info,
-        });
-        Idempotent::Executed(ledger_account_set_id)
-    }
-
-    pub fn create_control_sub_account(
+    pub fn create_node(
         &mut self,
         spec: &AccountSpec,
         audit_info: AuditInfo,
@@ -68,7 +47,7 @@ impl Chart {
             return Idempotent::AlreadyApplied;
         }
         let ledger_account_set_id = LedgerAccountSetId::new();
-        self.events.push(ChartEvent::ControlSubAccountAdded {
+        self.events.push(ChartEvent::NodeAdded {
             spec: spec.clone(),
             ledger_account_set_id,
             audit_info,
@@ -79,6 +58,10 @@ impl Chart {
             None
         };
         Idempotent::Executed((parent, ledger_account_set_id))
+    }
+
+    pub fn chart(&self) -> tree::ChartTree {
+        tree::project(self.events.iter_all())
     }
 }
 
@@ -99,14 +82,7 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .reference(reference.to_string())
                         .name(name.to_string())
                 }
-                ChartEvent::ControlAccountAdded {
-                    spec,
-                    ledger_account_set_id,
-                    ..
-                } => {
-                    all_accounts.insert(spec.code.clone(), (spec.clone(), *ledger_account_set_id));
-                }
-                ChartEvent::ControlSubAccountAdded {
+                ChartEvent::NodeAdded {
                     spec,
                     ledger_account_set_id,
                     ..
