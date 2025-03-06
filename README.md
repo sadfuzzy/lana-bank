@@ -1,102 +1,117 @@
-# Digital Asset-Backed Lending for Financial Institutions
+# Lana: Digital Asset-Backed Lending for Financial Institutions
 
 **Lana** is a Bitcoin-backed lending platform that enables financial institutions of all sizes to offer fiat loans secured by Bitcoin collateral. Designed for easy integration, Lana streamlines the complex operational workflows associated with loan origination, collateral management, and liquidation.
 
 ## Key Features
 
-- **Rapid Deployment** – Reduce time to market from months to weeks with Lana’s modular architecture.
-- **Loan Origination & Management** – Automate loan creation, fee collection, and margin call management.
-- **Seamless Banking Integration** – Works with existing core banking systems, custodians, and regulatory frameworks.
-- **Security-First Design** – Adheres to industry security standards and best practices.
-- **Source Code Auditable** – Under Fair Source License.
+- **Rapid Deployment** – Reduce time to market from months to weeks with Lana’s modular architecture
+- **Loan Origination & Management** – Automate loan creation, fee collection, and margin call management
+- **Seamless Banking Integration** – Works with existing core banking systems, custodians, and regulatory frameworks
+- **Security-First Design** – Adheres to industry security standards and best practices
+- **Source Code Auditable** – Under Fair Source License
 
 For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
+---
 
-# Lana bank
+## Setup & Development
 
-Mandatory environment variables:
-- `TF_VAR_sa_creds`: Service account credentials for GCP. needs access to BigQuery and Documents
+### Environment Variables
 
-Optional environment variables:
+Set them in your `.env` file
+
+#### Mandatory
+
+- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
+
+#### Optional
+
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
 
-Add the values the appropriate values in your `.env` file.
+- `BROWSERSTACK_USERNAME`: BrowserStack username for e2e testing via Cypress
+- `BROWSERSTACK_ACCESS_KEY`: BrowserStack access key for e2e testing via Cypress
+- `HONEYCOMB_KEY`: Honeycomb API key for tracing
+- `HONEYCOMB_DATASET`: Honeycomb dataset for tracing
 
-We are going to remove the hard dependencies and make those values optionals in future versions
+### Start & Stop the stack
 
-**to run entire stack**
 ```bash
-make dev-up # Bring the stack up
-make dev-down # Bring the stack down
+make dev-up   # Start the development stack
+make dev-down # Stop the development stack
 ```
 
-**to run (unit) tests:**
+### Access the Frontends
+
+After bringing the development stack up, you can access the following services:
+
+| Service         | URL                                                        | Notes                                 |
+| --------------- | ---------------------------------------------------------- | ------------------------------------- |
+| Admin Panel     | [http://localhost:4455/admin](http://localhost:4455/admin) | Admin panel for managing the platform |
+| Customer Portal | [http://localhost:4455/app](http://localhost:4455/app)     | App for customers to see their data   |
+| Mailhog         | [http://localhost:8025/](http://localhost:8025/)           | SMTP local email                      |
+
+#### Steps to access Admin Panel
+
+1. Open [Admin Panel](http://localhost:4455/admin) in your browser
+1. Use email `admin@galoy.io` to log in
+1. Open [Mailhog](http://localhost:8025/) to see the OTP and enter the same in the login screen
+1. You're in!
+
+#### Steps to access Customer Portal
+
+1. Create customer from Admin Panel
+1. Open [Customer Portal](http://localhost:4455/app) in a separate browser (or incognito mode)
+1. Use the customer email to try and login
+1. Open [Mailhog](http://localhost:8025/) to see the OTP and enter the same in the login screen
+1. You're in!
+
+> If you see a cookie error, delete the cookie and reload the page (but this should not happen if you're using separate browsers)
+
+### Running Tests
+
+#### Unit Tests
 
 ```bash
 make reset-deps next-watch
 ```
 
-**to run e2e tests:**
+#### End-to-End Tests
 
 ```bash
 make e2e
 ```
 
-**to run the server:**
+#### Cypress Tests
 
+```bash
+make dev-up # keep the stack running
+
+# In a different terminal with tilt running:
+cd apps/admin-panel && pnpm run cypress:run ui # or headless
+# or if you want to run the tests via browserstack - needs BROWSERTACK_USERNAME and BROWSERSTACK_ACCESS_KEY in env
+cd apps/admin-panel && pnpm run cypress:run browserstack
 ```
-make run-server
-```
 
-### To fetch latest `cala-enterprise` build
+## BigQuery Setup
 
-1. Auth with `$ gcloud auth login`
+We use BigQuery for analytics and reporting. To set up the BigQuery tables, you need to have the `TF_VAR_sa_creds` environment variable set to the service account credentials.
 
-1. Configure docker `$ gcloud auth configure-docker`
-
-1. Run `$ make bump-cala-docker-image` to test that image can be fetched
-
-### To update cala-enterprise schema
-
-1. Create a github "fine-grained token" with **Content** read-only permission
-
-1. Add token to `.env` file as `export GITHUB_TOKEN=<token-here>`
-
-1. Run `$ direnv allow` to source token
-
-1. Run `$ make bump-cala-schema` to update schema
-
-# access the frontends:
-
-the access through the frontends needs to be proxied to oathkeeper to receive the correct Header
-
-admin panel: http://localhost:4455/admin-panel
-
-use email admin@galoy.io
-connect to http://0.0.0.0:8025/
-
-app: http://localhost:4455/
-
-- if you see a cookie error, delete the cookie and reload the page (for now)
-
-# To setup BQ 
-
-ensure you have the TF_VAR_sa_creds env variable in .env 
-
-run 
+1. Authenticate with Google Cloud SDK
 
 ```
 gcloud auth application-default login
 ```
 
-you can verify you already have access by running 
+1. Verify access
+
 ```
 gcloud auth application-default print-access-token
 ```
 
-commands to re-run when adding new BQ tables:
+### Adding new BigQuery tables
+
+Commands to re-run when adding new BQ tables:
 
 ```
 git checkout pre-merged-commit
@@ -106,4 +121,4 @@ git pull
 make init-bq
 ```
 
-If you are doing work that requires adding a new big query table you need to add it to `./tf/cala-setup/bq.tf`
+If you are doing work that requires adding a new big query table you need to add it to `./tf/bq-setup/bq.tf`
