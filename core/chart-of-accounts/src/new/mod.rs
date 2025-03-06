@@ -13,6 +13,7 @@ use tracing::instrument;
 use super::error::*;
 
 pub(crate) use csv::CsvParseError;
+pub use entity::Chart;
 use entity::*;
 pub use primitives::*;
 use repo::*;
@@ -66,18 +67,17 @@ where
     #[instrument(name = "chart_of_accounts.create_chart", skip(self))]
     pub async fn create_chart(
         &self,
-        id: impl Into<ChartId> + std::fmt::Debug,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
     ) -> Result<Chart, CoreChartOfAccountsError> {
-        let id = id.into();
+        let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObjectNew::chart(id),
                 CoreChartOfAccountsActionNew::CHART_CREATE,
             )
@@ -100,14 +100,15 @@ where
     #[instrument(name = "chart_of_account.import_from_csv", skip(self, data))]
     pub async fn import_from_csv(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
     ) -> Result<(), CoreChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
-            .audit()
-            .record_system_entry(
+            .enforce_permission(
+                sub,
                 CoreChartOfAccountsObjectNew::chart(id),
                 CoreChartOfAccountsActionNew::CHART_LIST,
             )
@@ -154,5 +155,36 @@ where
         }
         op.commit().await?;
         Ok(())
+    }
+
+    #[instrument(name = "chart_of_accounts.find_by_reference", skip(self))]
+    pub async fn find_by_reference(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        reference: String,
+    ) -> Result<Option<Chart>, CoreChartOfAccountsError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreChartOfAccountsObjectNew::all_charts(),
+                CoreChartOfAccountsActionNew::CHART_LIST,
+            )
+            .await?;
+
+        let chart = match self.repo.find_by_reference(reference).await {
+            Ok(chart) => Some(chart),
+            Err(e) if e.was_not_found() => None,
+            Err(e) => return Err(e.into()),
+        };
+
+        Ok(chart)
+    }
+
+    #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Chart>>(
+        &self,
+        ids: &[ChartId],
+    ) -> Result<std::collections::HashMap<ChartId, T>, CoreChartOfAccountsError> {
+        Ok(self.repo.find_all(ids).await?)
     }
 }
