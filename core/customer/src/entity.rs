@@ -15,6 +15,7 @@ pub enum CustomerEvent {
         id: CustomerId,
         email: String,
         telegram_id: String,
+        customer_type: CustomerType,
         audit_info: AuditInfo,
     },
     AuthenticationIdUpdated {
@@ -54,6 +55,7 @@ pub struct Customer {
     #[builder(default)]
     pub status: AccountStatus,
     pub level: KycLevel,
+    pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
     pub(super) events: EntityEvents<CustomerEvent>,
@@ -61,7 +63,11 @@ pub struct Customer {
 
 impl core::fmt::Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "User: {}, email: {}", self.id, self.email)
+        write!(
+            f,
+            "User: {}, email: {}, customer_type: {}",
+            self.id, self.email, self.customer_type
+        )
     }
 }
 
@@ -178,12 +184,14 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     id,
                     email,
                     telegram_id,
+                    customer_type,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .email(email.clone())
                         .telegram_id(telegram_id.clone())
+                        .customer_type(*customer_type)
                         .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::AuthenticationIdUpdated { authentication_id } => {
@@ -221,6 +229,8 @@ pub struct NewCustomer {
     pub(super) email: String,
     #[builder(setter(into))]
     pub(super) telegram_id: String,
+    #[builder(setter(into))]
+    pub(super) customer_type: CustomerType,
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
     pub(super) audit_info: AuditInfo,
@@ -240,6 +250,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 id: self.id,
                 email: self.email,
                 telegram_id: self.telegram_id,
+                customer_type: self.customer_type,
                 audit_info: self.audit_info,
             }],
         )

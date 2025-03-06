@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unassigned-import
 import "cypress-file-upload"
 
-import { TermsTemplateCreateInput } from "@/lib/graphql/generated"
+import { CustomerType, TermsTemplateCreateInput } from "../../lib/graphql/generated"
 
 type Customer = {
   customerId: string
@@ -107,7 +107,7 @@ Cypress.Commands.add(
     `
     return cy
       .graphqlRequest<CustomerCreateResponse>(mutation, {
-        input: { email, telegramId },
+        input: { email, telegramId, customerType: CustomerType.Individual },
       })
       .then((response) => {
         const customerId = response.data.customerCreate.customer.customerId

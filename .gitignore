@@ -24,3 +24,7 @@ node_modules/
 
 *.tgz
 meltano/keyfile.json
+
+.sumsub_customer_id
+*.code-workspace
+tmp/

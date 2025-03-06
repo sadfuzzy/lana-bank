@@ -112,6 +112,9 @@
       "emailPlaceholder": "Please enter the email address",
       "telegramLabel": "Telegram ID",
       "telegramPlaceholder": "Please enter the Telegram ID",
+      "customerTypeLabel": "Customer Type",
+      "individualLabel": "Individual",
+      "companyLabel": "Company",
       "reviewButton": "Review Details",
       "backButton": "Back",
       "confirmButton": "Confirm and Submit",
@@ -138,11 +141,16 @@
           "email": "Email",
           "createdOn": "Created on",
           "telegram": "Telegram",
-          "status": "Status"
+          "status": "Status",
+          "customerType": "Type"
         },
         "status": {
           "active": "Active",
           "inactive": "Inactive"
+        },
+        "customerType": {
+          "individual": "Individual",
+          "company": "Company"
         },
         "actions": {
           "editTelegram": "Edit Telegram ID"
@@ -820,7 +828,7 @@
   },
   "Deposits": {
     "title": "Deposits",
-    "description": "Sums of money added from credit facilities into customer’s accounts",
+    "description": "Sums of money added from credit facilities into customer's accounts",
     "table": {
       "headers": {
         "customer": "Customer",
@@ -856,7 +864,7 @@
   },
   "Withdrawals": {
     "title": "Withdrawals",
-    "description": "Money taken out from customer’s accounts",
+    "description": "Money taken out from customer's accounts",
     "table": {
       "headers": {
         "customer": "Customer",

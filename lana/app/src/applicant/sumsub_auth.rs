@@ -60,40 +60,6 @@ impl SumsubClient {
         }
     }
 
-    pub async fn create_access_token(
-        &self,
-        external_user_id: CustomerId,
-        level_name: &str,
-    ) -> Result<AccessTokenResponse, ApplicantError> {
-        let method = "POST";
-        let url = format!(
-            "/resources/accessTokens?levelName={}&userId={}",
-            level_name, external_user_id
-        );
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
-
-        let body = json!({}).to_string();
-        let headers = self.get_headers(method, &url, Some(&body))?;
-
-        let response = self
-            .client
-            .post(&full_url)
-            .headers(headers)
-            .body(body)
-            .send()
-            .await?;
-
-        match response
-            .json::<SumsubResponse<AccessTokenResponse>>()
-            .await?
-        {
-            SumsubResponse::Success(res) => Ok(res),
-            SumsubResponse::Error(ApiError { description, code }) => {
-                Err(ApplicantError::Sumsub { description, code })
-            }
-        }
-    }
-
     pub async fn create_permalink(
         &self,
         external_user_id: CustomerId,

@@ -38,9 +38,34 @@ pub enum AccountStatus {
     Active,
 }
 
+#[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+pub enum CustomerType {
+    Individual,
+    Company,
+}
+
+impl Display for CustomerType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CustomerType::Individual => write!(f, "Individual"),
+            CustomerType::Company => write!(f, "Company"),
+        }
+    }
+}
+
 impl AccountStatus {
     pub fn is_inactive(&self) -> bool {
         matches!(self, AccountStatus::Inactive)
+    }
+}
+
+impl From<CustomerType> for String {
+    fn from(customer_type: CustomerType) -> Self {
+        match customer_type {
+            CustomerType::Individual => "Individual".to_string(),
+            CustomerType::Company => "Company".to_string(),
+        }
     }
 }
 

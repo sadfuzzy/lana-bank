@@ -614,6 +614,7 @@ type Customer {
 	status: AccountStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
+	customerType: CustomerType!
 	email: String!
 	telegramId: String!
 	applicantId: String
@@ -641,6 +642,7 @@ type CustomerConnection {
 input CustomerCreateInput {
 	email: String!
 	telegramId: String!
+	customerType: CustomerType!
 }
 
 type CustomerCreatePayload {
@@ -659,6 +661,11 @@ type CustomerEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum CustomerType {
+	INDIVIDUAL
+	COMPANY
 }
 
 input CustomerUpdateInput {

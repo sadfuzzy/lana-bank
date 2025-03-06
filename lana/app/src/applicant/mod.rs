@@ -4,6 +4,7 @@ mod job;
 mod repo;
 mod sumsub_auth;
 
+use core_customer;
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
@@ -11,7 +12,7 @@ use tracing::instrument;
 use crate::{
     customer::Customers,
     job::Jobs,
-    primitives::{CustomerId, JobId},
+    primitives::{CustomerId, JobId, Subject},
 };
 
 pub use config::*;
@@ -21,34 +22,78 @@ use sumsub_auth::*;
 use repo::ApplicantRepo;
 pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
+use async_graphql::*;
+
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
-    users: Customers,
+    customers: Customers,
     repo: ApplicantRepo,
     jobs: Jobs,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
+#[strum(serialize_all = "UPPERCASE")]
 pub enum ReviewAnswer {
     Green,
     Red,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum SumsubKycLevel {
-    BasicKycLevel,
-    AdvancedKycLevel,
+impl std::str::FromStr for ReviewAnswer {
+    type Err = ApplicantError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_uppercase().as_str() {
+            "GREEN" => Ok(ReviewAnswer::Green),
+            "RED" => Ok(ReviewAnswer::Red),
+            _ => Err(ApplicantError::ReviewAnswerParseError(s.to_string())),
+        }
+    }
 }
 
-impl std::fmt::Display for SumsubKycLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SumsubKycLevel::BasicKycLevel => write!(f, "basic-kyc-level"),
-            SumsubKycLevel::AdvancedKycLevel => write!(f, "advanced-kyc-level"),
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq, strum::Display)]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
+pub enum SumsubVerificationLevel {
+    #[serde(rename = "basic-kyc-level")]
+    #[strum(serialize = "basic-kyc-level")]
+    BasicKycLevel,
+    #[serde(rename = "basic-kyb-level")]
+    #[strum(serialize = "basic-kyb-level")]
+    BasicKybLevel,
+    Unimplemented,
+}
+
+impl std::str::FromStr for SumsubVerificationLevel {
+    type Err = ApplicantError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "basic-kyc-level" => Ok(SumsubVerificationLevel::BasicKycLevel),
+            "basic-kyb-level" => Ok(SumsubVerificationLevel::BasicKybLevel),
+            _ => {
+                tracing::warn!("Unrecognized SumsubVerificationLevel: {}", s);
+                Err(ApplicantError::SumsubVerificationLevelParseError(
+                    s.to_string(),
+                ))
+            }
         }
+    }
+}
+
+impl From<&core_customer::CustomerType> for SumsubVerificationLevel {
+    fn from(customer_type: &core_customer::CustomerType) -> Self {
+        match customer_type {
+            core_customer::CustomerType::Individual => SumsubVerificationLevel::BasicKycLevel,
+            core_customer::CustomerType::Company => SumsubVerificationLevel::BasicKybLevel,
+        }
+    }
+}
+
+impl From<core_customer::CustomerType> for SumsubVerificationLevel {
+    fn from(customer_type: core_customer::CustomerType) -> Self {
+        (&customer_type).into()
     }
 }
 
@@ -61,7 +106,7 @@ pub enum SumsubCallbackPayload {
         applicant_id: String,
         inspection_id: String,
         correlation_id: String,
-        level_name: SumsubKycLevel,
+        level_name: String,
         external_user_id: CustomerId,
         review_status: String,
         created_at_ms: String,
@@ -75,7 +120,7 @@ pub enum SumsubCallbackPayload {
         inspection_id: String,
         correlation_id: String,
         external_user_id: CustomerId,
-        level_name: SumsubKycLevel,
+        level_name: String,
         review_result: ReviewResult,
         review_status: String,
         created_at_ms: String,
@@ -99,7 +144,7 @@ impl Applicants {
     pub fn new(
         pool: &sqlx::PgPool,
         config: &SumsubConfig,
-        users: &Customers,
+        customers: &Customers,
         jobs: &Jobs,
         // export: &Export,
     ) -> Self {
@@ -113,7 +158,7 @@ impl Applicants {
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            users: users.clone(),
+            customers: customers.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -165,7 +210,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -189,7 +234,7 @@ impl Applicants {
                 ..
             } => {
                 let res = self
-                    .users
+                    .customers
                     .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -209,12 +254,23 @@ impl Applicants {
                         ..
                     },
                 applicant_id,
-                level_name: SumsubKycLevel::BasicKycLevel,
+                level_name,
                 sandbox_mode,
                 ..
             } => {
+                // Try to parse the level name, will return error for unrecognized values
+                match level_name.parse::<SumsubVerificationLevel>() {
+                    Ok(_) => {} // Level is valid, continue
+                    Err(_) => {
+                        return Err(ApplicantError::UnhandledCallbackType(format!(
+                            "Sumsub level {level_name} not implemented",
+                            level_name = level_name
+                        )));
+                    }
+                };
+
                 let res = self
-                    .users
+                    .customers
                     .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
@@ -236,19 +292,6 @@ impl Applicants {
                     )
                     .await?;
             }
-            SumsubCallbackPayload::ApplicantReviewed {
-                review_result:
-                    ReviewResult {
-                        review_answer: ReviewAnswer::Green,
-                        ..
-                    },
-                level_name: SumsubKycLevel::AdvancedKycLevel,
-                ..
-            } => {
-                return Err(ApplicantError::UnhandledCallbackType(
-                    "Advanced KYC level is not supported".to_string(),
-                ));
-            }
             SumsubCallbackPayload::Unknown => {
                 return Err(ApplicantError::UnhandledCallbackType(format!(
                     "callback event not processed for payload {payload}",
@@ -258,26 +301,26 @@ impl Applicants {
         Ok(())
     }
 
-    pub async fn create_access_token(
-        &self,
-        customer_id: CustomerId,
-    ) -> Result<AccessTokenResponse, ApplicantError> {
-        let level_name = SumsubKycLevel::BasicKycLevel;
-
-        self.sumsub_client
-            .create_access_token(customer_id, &level_name.to_string())
-            .await
-    }
-
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
+        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
-        let level_name = SumsubKycLevel::BasicKycLevel;
+        let customer_id: CustomerId = customer_id.into();
+
+        let customer = self.customers.find_by_id(sub, customer_id).await?;
+        let customer = customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!(
+                "Customer with ID {} not found",
+                customer_id
+            ))
+        })?;
+
+        let level: SumsubVerificationLevel = customer.customer_type.into();
 
         self.sumsub_client
-            .create_permalink(customer_id.into(), &level_name.to_string())
+            .create_permalink(customer_id, &level.to_string())
             .await
     }
 }

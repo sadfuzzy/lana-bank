@@ -25,15 +25,18 @@ wait_for_approval() {
 @test "customer: can create a customer" {
   customer_email=$(generate_email)
   telegramId=$(generate_email)
+  customer_type="INDIVIDUAL"
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
     --arg telegramId "$telegramId" \
+    --arg customerType "$customer_type" \
     '{
       input: {
         email: $email,
-        telegramId: $telegramId
+        telegramId: $telegramId,
+        customerType: $customerType
       }
     }'
   )
@@ -42,6 +45,10 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   echo $(graphql_output) | jq .
   [[ "$customer_id" != "null" ]] || exit 1
+  
+  # Verify customerType in response
+  response_customer_type=$(graphql_output .data.customerCreate.customer.customerType)
+  [[ "$response_customer_type" == "$customer_type" ]] || exit 1
 
   variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
@@ -51,15 +58,18 @@ wait_for_approval() {
 @test "customer: can login" {
   customer_email=$(generate_email)
   telegramId=$(generate_email)
+  customer_type="INDIVIDUAL"
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
     --arg telegramId "$telegramId" \
+    --arg customerType "$customer_type" \
     '{
       input: {
         email: $email,
-        telegramId: $telegramId
+        telegramId: $telegramId,
+        customerType: $customerType
       }
     }'
   )
@@ -74,6 +84,9 @@ wait_for_approval() {
   exec_customer_graphql $customer_email 'me'
   echo $(graphql_output) | jq .
   [[ "$(graphql_output .data.me.customer.customerId)" == "$customer_id" ]] || exit 1
+  
+  response_customer_type=$(graphql_output .data.me.customer.customerType)
+  [[ "$response_customer_type" == "$customer_type" ]] || exit 1
 }
 
 @test "customer: can deposit" {

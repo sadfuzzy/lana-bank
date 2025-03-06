@@ -3,6 +3,7 @@ mutation CustomerCreate($input: CustomerCreateInput!) {
     customer {
       customerId
       email
+      customerType
     }
   }
 }

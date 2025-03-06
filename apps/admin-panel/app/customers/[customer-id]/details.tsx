@@ -9,7 +9,11 @@ import { Badge } from "@lana/web/ui/badge"
 import UpdateTelegramIdDialog from "./update-telegram-id"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { AccountStatus, GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
+import {
+  AccountStatus,
+  CustomerType,
+  GetCustomerBasicDetailsQuery,
+} from "@/lib/graphql/generated"
 import { formatDate } from "@/lib/utils"
 
 type CustomerDetailsCardProps = {
@@ -23,6 +27,13 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
 
   const details: DetailItemProps[] = [
     { label: t("labels.email"), value: customer.email },
+    {
+      label: t("labels.customerType"),
+      value:
+        customer.customerType === CustomerType.Individual
+          ? t("customerType.individual")
+          : t("customerType.company"),
+    },
     { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
       label: t("labels.telegram"),

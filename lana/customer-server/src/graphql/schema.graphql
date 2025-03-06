@@ -149,6 +149,7 @@ enum CreditFacilityStatus {
 type Customer {
 	id: ID!
 	customerId: UUID!
+	customerType: CustomerType!
 	status: AccountStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
@@ -156,6 +157,11 @@ type Customer {
 	telegramId: String!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
+}
+
+enum CustomerType {
+	INDIVIDUAL
+	COMPANY
 }
 
 type Deposit {

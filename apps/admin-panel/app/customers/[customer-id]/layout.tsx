@@ -29,6 +29,7 @@ gql`
       telegramId
       status
       level
+      customerType
       createdAt
       depositAccount {
         id

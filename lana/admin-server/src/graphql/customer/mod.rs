@@ -11,7 +11,7 @@ use super::{
 pub use lana_app::{
     app::LanaApp,
     customer::{
-        AccountStatus, Customer as DomainCustomer, CustomersCursor,
+        AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
         CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
     },
 };
@@ -26,6 +26,7 @@ pub struct Customer {
     status: AccountStatus,
     level: KycLevel,
     created_at: Timestamp,
+    customer_type: CustomerType,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCustomer>,
@@ -39,6 +40,7 @@ impl From<DomainCustomer> for Customer {
             status: customer.status,
             level: customer.level,
             created_at: customer.created_at().into(),
+            customer_type: customer.customer_type,
             entity: Arc::new(customer),
         }
     }
@@ -148,6 +150,7 @@ impl Customer {
 pub struct CustomerCreateInput {
     pub email: String,
     pub telegram_id: String,
+    pub customer_type: CustomerType,
 }
 crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
 

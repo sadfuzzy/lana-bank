@@ -18,15 +18,18 @@ teardown_file() {
 
   customer_email=$(generate_email)
   telegramId=$(generate_email)
+  customer_type="INDIVIDUAL"
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
     --arg telegramId "$telegramId" \
+    --arg customerType "$customer_type" \
     '{
       input: {
         email: $email,
-        telegramId: $telegramId
+        telegramId: $telegramId,
+        customerType: $customerType
       }
     }'
   )
@@ -59,7 +62,7 @@ teardown_file() {
   url=$(graphql_output .data.sumsubPermalinkCreate.url)
   [[ "$url" != "null" ]] || exit 1
 
-  curl -v -X POST http://localhost:5253/sumsub/callback \
+  curl -v http://localhost:5253/sumsub/callback \
     -H "Content-Type: application/json" \
     -d '{
         "applicantId": "5c9e177b0a975a6eeccf5960",

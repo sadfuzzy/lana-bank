@@ -20,15 +20,18 @@ teardown_file() {
   # Create a customer
   customer_email=$(generate_email)
   telegramId=$(generate_email)
+  customer_type="INDIVIDUAL"
 
   variables=$(
     jq -n \
     --arg email "$customer_email" \
     --arg telegramId "$telegramId" \
+    --arg customerType "$customer_type" \
     '{
       input: {
         email: $email,
-        telegramId: $telegramId
+        telegramId: $telegramId,
+        customerType: $customerType
       }
     }'
   )

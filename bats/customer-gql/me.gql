@@ -3,6 +3,7 @@ query me {
     customer {
       id
       customerId
+      customerType
     }
   }
 }

@@ -112,6 +112,9 @@
       "emailPlaceholder": "Por favor ingrese la dirección de correo electrónico",
       "telegramLabel": "ID de Telegram",
       "telegramPlaceholder": "Por favor ingrese el ID de Telegram",
+      "customerTypeLabel": "Tipo de Cliente",
+      "individualLabel": "Individuo",
+      "companyLabel": "Empresa",
       "reviewButton": "Revisar Detalles",
       "backButton": "Atrás",
       "confirmButton": "Confirmar y Enviar",
@@ -138,11 +141,16 @@
           "email": "Correo electrónico",
           "createdOn": "Creado el",
           "telegram": "Telegram",
-          "status": "Estado"
+          "status": "Estado",
+          "customerType": "Tipo"
         },
         "status": {
           "active": "Activo",
           "inactive": "Inactivo"
+        },
+        "customerType": {
+          "individual": "Individuo",
+          "company": "Empresa"
         },
         "actions": {
           "editTelegram": "Editar ID de Telegram"

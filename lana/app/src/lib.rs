@@ -38,7 +38,7 @@ pub mod user {
 
 pub mod customer {
     pub use core_customer::{
-        error, AccountStatus, Customer, CustomerId, CustomersCursor, CustomersSortBy,
+        error, AccountStatus, Customer, CustomerId, CustomerType, CustomersCursor, CustomersSortBy,
         FindManyCustomers, KycLevel, Sort,
     };
     pub type Customers =

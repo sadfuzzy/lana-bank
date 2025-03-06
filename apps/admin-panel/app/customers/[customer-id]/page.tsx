@@ -11,6 +11,7 @@ gql`
     customer(id: $id) {
       id
       customerId
+      customerType
       depositAccount {
         depositAccountId
         history(first: $first, after: $after) {
@@ -104,5 +105,9 @@ export default function CustomerTransactionsPage({
   const historyEntries =
     data?.customer?.depositAccount?.history.edges.map((edge) => edge.node) || []
 
-  return <CustomerTransactionsTable historyEntries={historyEntries} />
+  return (
+    <div className="space-y-6">
+      <CustomerTransactionsTable historyEntries={historyEntries} />
+    </div>
+  )
 }

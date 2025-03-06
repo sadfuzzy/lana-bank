@@ -1,7 +1,7 @@
 use async_graphql::*;
 use std::sync::Arc;
 
-use core_customer::{AccountStatus, Customer as DomainCustomer, KycLevel};
+use core_customer::{AccountStatus, Customer as DomainCustomer, CustomerType, KycLevel};
 
 use crate::primitives::*;
 
@@ -20,6 +20,7 @@ pub enum CustomerError {
 pub struct Customer {
     id: ID,
     customer_id: UUID,
+    customer_type: CustomerType,
     status: AccountStatus,
     level: KycLevel,
     created_at: Timestamp,
@@ -33,6 +34,7 @@ impl From<DomainCustomer> for Customer {
         Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
+            customer_type: customer.customer_type,
             status: customer.status,
             level: customer.level,
             created_at: customer.created_at().into(),

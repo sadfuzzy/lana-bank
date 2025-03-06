@@ -8,6 +8,7 @@ use rust_decimal_macros::dec;
 
 use lana_app::{
     app::LanaApp,
+    customer::CustomerType,
     primitives::*,
     terms::{Duration, InterestInterval, TermValues},
 };
@@ -137,6 +138,7 @@ async fn create_customers(
     for i in 1..=config.num_customers {
         let customer_email = format!("customer{}@example.com", i);
         let telegram = format!("customer{}", i);
+        let customer_type = CustomerType::Individual;
 
         let customer = match app
             .customers()
@@ -146,7 +148,7 @@ async fn create_customers(
             Some(existing_customer) => existing_customer,
             None => {
                 app.customers()
-                    .create(sub, customer_email.clone(), telegram)
+                    .create(sub, customer_email.clone(), telegram, customer_type)
                     .await?
             }
         };

@@ -16,7 +16,7 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerCreateMutation } from "@/lib/graphql/generated"
+import { useCustomerCreateMutation, CustomerType } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
@@ -37,6 +37,7 @@ gql`
 type FormData = {
   email: string
   telegramId: string
+  customerType: CustomerType
 }
 
 type CreateCustomerDialogProps = {
@@ -47,6 +48,7 @@ type CreateCustomerDialogProps = {
 const InitialFormData: FormData = {
   email: "",
   telegramId: "",
+  customerType: CustomerType.Individual,
 }
 
 type FormProps = {
@@ -96,6 +98,43 @@ const DetailsForm = ({
         disabled={isLoading}
       />
     </div>
+    <div>
+      <Label>{t("customerTypeLabel")}</Label>
+      <div className="flex gap-4 mt-2">
+        <div className="flex items-center">
+          <input
+            id="individual"
+            name="customerType"
+            type="radio"
+            value={CustomerType.Individual}
+            checked={formData.customerType === CustomerType.Individual}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+            data-testid="customer-type-individual"
+          />
+          <label htmlFor="individual" className="ml-2 block text-sm">
+            {t("individualLabel")}
+          </label>
+        </div>
+        <div className="flex items-center">
+          <input
+            id="company"
+            name="customerType"
+            type="radio"
+            value={CustomerType.Company}
+            checked={formData.customerType === CustomerType.Company}
+            onChange={handleInputChange}
+            disabled={isLoading}
+            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+            data-testid="customer-type-company"
+          />
+          <label htmlFor="company" className="ml-2 block text-sm">
+            {t("companyLabel")}
+          </label>
+        </div>
+      </div>
+    </div>
     {error && <p className="text-destructive">{error}</p>}
     <DialogFooter>
       <Button
@@ -136,6 +175,14 @@ const ConfirmationForm = ({
     <div>
       <Label>{t("telegramLabel")}</Label>
       <p>{formData.telegramId}</p>
+    </div>
+    <div>
+      <Label>{t("customerTypeLabel")}</Label>
+      <p>
+        {formData.customerType === CustomerType.Individual
+          ? t("individualLabel")
+          : t("companyLabel")}
+      </p>
     </div>
     {error && <p className="text-destructive">{error}</p>}
     <DialogFooter>
@@ -192,7 +239,12 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]:
+        name === "customerType"
+          ? value === CustomerType.Individual
+            ? CustomerType.Individual
+            : CustomerType.Company
+          : value,
     }))
   }
 

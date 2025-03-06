@@ -1,0 +1,34 @@
+---
+description: rust rulec
+globs: **.rs
+alwaysApply: false
+---
+
+# Your rule content
+
+## general organization of the repo
+
+the rust application is split across different layer:
+lana/ is the application layer
+you will find most of the code in lana/app/src
+
+
+core/ contains the key primitives of our banking application that are split around multiple repositories
+lib/ contains some general supporting utilities
+
+there are 2 servers enables by the application, the admin api is on lana/admin-server and the custmer facing API is on lana/customer-server.
+this is where you will find the code for the graphql layer
+
+
+they are split into modules for faster compilation time
+
+## verify your work
+
+run `make check-code` to verify that the code compile
+
+
+## general coding rules
+use Strum library for primitive enum <-> string conversion
+
+
+
