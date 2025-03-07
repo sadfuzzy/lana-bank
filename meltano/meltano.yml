@@ -40,8 +40,8 @@ schedules:
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
-- name: sync-sumsub-hourly
-  interval: '@hourly'
+- name: sync-sumsub-on-minute
+  interval: '*/2 * * * *'
   job: sync-sumsub
 - name: test-dbt-daily
   interval: '@daily'
