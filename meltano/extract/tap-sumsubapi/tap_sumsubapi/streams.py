@@ -19,7 +19,7 @@ from tap_sumsubapi.sumsub_client import SumsubClient
 class ApplicantStream(Stream):
     name = "sumsub_applicants"
     path = "resources/applicants"
-    primary_keys: t.ClassVar[list[str]] = ["customer_id"]
+    primary_keys: t.ClassVar[list[str]] = ["customer_id", "recorded_at"]
     replication_key = "recorded_at"
     schema = th.PropertiesList(
         th.Property("customer_id", th.StringType),

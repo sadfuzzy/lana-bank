@@ -26,16 +26,16 @@ select
                 as country_of_residence_iso_alpha_3_code,
             json_value(
                 questions.sections.personalInformation.items.taxIdentificationNum.value
-            ) as tax_id_number
+            ) as tax_id_number,
             json_value(
                 questions.sections.personalInformation.items.phoneNumber.value
-            ) as phone_number
+            ) as phone_number,
             json_value(
                 questions.sections.personalInformation.items.relationshipToBank.value
-            ) as relationship_to_bank
+            ) as relationship_to_bank,
             json_value(
                 questions.sections.personalInformation.items.DUI.value
-            ) as dui
+            ) as dui,
             json_value(
                 questions.sections.personalInformation.items.municipality.value
             ) as el_salvador_municipality

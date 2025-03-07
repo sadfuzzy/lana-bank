@@ -8,7 +8,7 @@ select
     upper(split(last_name, ' ')[safe_offset(0)]) as `primer_apellido`,
     upper(split(last_name, ' ')[safe_offset(1)]) as `segundo_apellido`,
     upper(split(first_name, ' ')[safe_offset(0)]) as `primer_nombre`,
-    cast(split(first_name, ' ')[safe_offset(1)]) as `segundo_nombre`,
+    upper(split(first_name, ' ')[safe_offset(1)]) as `segundo_nombre`,
     cast(null as string) as `apellido_casada`,
 
     -- NULL for natural person
@@ -26,7 +26,7 @@ select
     cast(null as string) as `nit_desactualizado`,
 
     case
-        when country_of_residence_iso_alpha_3_code = 'SLV' then 'Y'
+        when country_of_residence_alpha_3_code = 'SLV' then 'Y'
         else 'N'
     end as `residente`,
 
