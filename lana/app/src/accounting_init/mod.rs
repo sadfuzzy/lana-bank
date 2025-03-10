@@ -8,12 +8,11 @@ use chart_of_accounts::ChartId;
 
 use crate::{
     balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
-    chart_of_accounts::ChartOfAccounts, profit_and_loss::ProfitAndLossStatements,
-    trial_balance::TrialBalances,
+    chart_of_accounts::ChartOfAccounts, new_chart_of_accounts::NewChartOfAccounts,
+    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
-
 use error::*;
 use primitives::*;
 
@@ -63,6 +62,7 @@ impl ChartsInit {
         pl_statements: &ProfitAndLossStatements,
         cash_flow_statements: &CashFlowStatements,
         chart_of_accounts: &ChartOfAccounts,
+        new_chart_of_accounts: &NewChartOfAccounts,
     ) -> Result<Self, AccountingInitError> {
         seed::charts_of_accounts::init(
             balance_sheet,
@@ -70,6 +70,7 @@ impl ChartsInit {
             pl_statements,
             cash_flow_statements,
             chart_of_accounts,
+            new_chart_of_accounts,
         )
         .await
     }

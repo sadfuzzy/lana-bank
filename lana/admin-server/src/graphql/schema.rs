@@ -451,9 +451,8 @@ impl Query {
     async fn new_chart_of_accounts(
         &self,
         ctx: &Context<'_>,
-        reference: String, // TODO: remove and use CHART_REF
     ) -> async_graphql::Result<NewChartOfAccounts> {
-        // let reference = CHART_REF.to_string();
+        let reference = CHART_REF.to_string();
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app

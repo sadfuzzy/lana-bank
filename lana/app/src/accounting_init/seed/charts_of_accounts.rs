@@ -1,6 +1,7 @@
 use crate::{
     accounting_init::{constants::*, *},
     credit_facility::{CreditFacilityAccountFactories, CreditFacilityOmnibusAccountIds},
+    new_chart_of_accounts::NewChartOfAccounts,
     primitives::LedgerAccountSetId,
 };
 
@@ -8,6 +9,7 @@ use chart_of_accounts::{
     ControlAccountCreationDetails, ControlAccountDetails, ControlSubAccountDetails,
 };
 use deposit::{DepositAccountFactories, DepositOmnibusAccountIds};
+use rbac_types::Subject;
 
 pub(crate) async fn init(
     balance_sheets: &BalanceSheets,
@@ -15,8 +17,10 @@ pub(crate) async fn init(
     pl_statements: &ProfitAndLossStatements,
     cash_flow_statements: &CashFlowStatements,
     chart_of_accounts: &ChartOfAccounts,
+    new_chart_of_accounts: &NewChartOfAccounts,
 ) -> Result<ChartsInit, AccountingInitError> {
     let chart_ids = &create_charts_of_accounts(chart_of_accounts).await?;
+    create_new_chart_of_accounts(new_chart_of_accounts).await?;
 
     let deposits = create_deposits_account_paths(
         balance_sheets,
@@ -42,6 +46,26 @@ pub(crate) async fn init(
         deposits,
         credit_facilities,
     })
+}
+
+async fn create_new_chart_of_accounts(
+    chart_of_accounts: &NewChartOfAccounts,
+) -> Result<(), AccountingInitError> {
+    if chart_of_accounts
+        .find_by_reference(&Subject::System, CHART_REF.to_string())
+        .await?
+        .is_none()
+    {
+        chart_of_accounts
+            .create_chart(
+                &Subject::System,
+                CHART_NAME.to_string(),
+                CHART_REF.to_string(),
+            )
+            .await?;
+    }
+
+    Ok(())
 }
 
 async fn create_charts_of_accounts(

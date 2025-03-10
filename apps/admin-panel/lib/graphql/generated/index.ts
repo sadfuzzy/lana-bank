@@ -1374,11 +1374,6 @@ export type QueryDocumentArgs = {
 };
 
 
-export type QueryNewChartOfAccountsArgs = {
-  reference: Scalars['String']['input'];
-};
-
-
 export type QueryOffBalanceSheetTrialBalanceArgs = {
   from: Scalars['Timestamp']['input'];
   until?: InputMaybe<Scalars['Timestamp']['input']>;
