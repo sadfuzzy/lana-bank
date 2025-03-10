@@ -37,7 +37,7 @@ impl ServiceAccountConfig {
 
         let creds = self.get_json_creds()?;
         let service_account_key = serde_json::from_str::<ServiceAccountKey>(&creds)?;
-        std::env::set_var("SERVICE_ACCOUNT_JSON", creds);
+        std::env::set_var("GOOGLE_APPLICATION_CREDENTIALS_JSON", creds);
 
         self.gcp_project = service_account_key
             .project_id

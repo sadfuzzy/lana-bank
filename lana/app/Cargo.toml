@@ -69,7 +69,7 @@ ory-kratos-client = { workspace = true }
 cached = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
-cloud-storage = { workspace = true }
+google-cloud-storage = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
