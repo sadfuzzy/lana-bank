@@ -31,7 +31,7 @@ select
     left(`id_pais_origen`, 20) as `id_pais_origen`,
     left(`nit_anterior`, 14) as `nit_anterior`,
     left(`tipo_ident_anterior`, 1) as `tipo_ident_anterior`,
-    left(`municipio_residencia`, 4) as `municipio_residencia`,
-    current_timestamp() as created_at
+    left(`municipio_residencia`, 4) as `municipio_residencia`
+
 from
-    {{ ref('int_npb4_17_01_persona_xml_raw') }}
+    {{ ref('int_nrp_41_01_persona') }}

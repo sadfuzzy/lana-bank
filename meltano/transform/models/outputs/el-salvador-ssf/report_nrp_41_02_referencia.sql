@@ -91,7 +91,6 @@ select
     format('%.2f', round(`ajuste_brecha`, 2)) as `ajuste_brecha`,
     left(`programa_asist_cafe`, 2) as `programa_asist_cafe`,
     format_date('%Y-%m-%d', cast(`fecha_cump_cafe` as date))
-        as `fecha_cump_cafe`,
-    current_timestamp() as created_at
+        as `fecha_cump_cafe`
 from
-    {{ ref('int_npb4_17_02_referencia_xml_raw') }}
+    {{ ref('int_nrp_41_02_referencia') }}

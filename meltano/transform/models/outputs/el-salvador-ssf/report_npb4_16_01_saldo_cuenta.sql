@@ -8,4 +8,4 @@ select
 
     format('%.2f', round(valor, 2)) as valor
 
-from {{ ref('int_npb4_16_01_saldo_cuenta_xml_raw') }}
+from {{ ref('int_npb4_16_01_saldo_cuenta') }}

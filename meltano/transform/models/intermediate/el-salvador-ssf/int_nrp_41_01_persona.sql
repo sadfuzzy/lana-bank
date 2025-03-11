@@ -38,8 +38,8 @@ select
     cast(null as string) as `tipo_empresa`,
 
     -- Provision of sanitation reserves established accounted for by the entity for each debtor
-    -- TODO: use real number
-    7060.0 as `reserva`,
+    -- Since the value of the collateral is always greater than the value of the loan:
+    0.0 as `reserva`,
 
     -- codified risk category assigned to the debtor depending of the status of the loan
     '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}' as `categoria_riesgo`,
@@ -56,8 +56,8 @@ select
     country_of_residence_code as `pais_residencia`,
 
     -- Sum of the balances of the references that the person has plus the accrued interest
-    -- TODO: use real number
-    7060.0 as `riesgo_consolidado`,
+    -- Since the value of the collateral is always greater than the value of the loan:
+    0.0 as `riesgo_consolidado`,
 
     gender as `sexo_persona`,
     occupation_code as `ocupación`,
