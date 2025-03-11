@@ -16,6 +16,28 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
 ## Setup & Development
 
+### Dependencies
+
+#### Nix package manager
+
+- Recommended install method using https://github.com/DeterminateSystems/nix-installer
+  ```
+  curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+  ```
+
+#### direnv >= 2.30.0
+
+- Recommended install method from https://direnv.net/docs/installation.html:
+  ```
+  curl -sfL https://direnv.net/install.sh | bash
+  echo "eval \"\$(direnv hook bash)\"" >> ~/.bashrc
+  source ~/.bashrc
+  ```
+
+#### Docker
+
+- Choose the install method for your system https://docs.docker.com/desktop/
+
 ### Environment Variables
 
 Set them in your `.env` file
