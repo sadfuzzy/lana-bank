@@ -281,16 +281,6 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
-export type ChartOfAccountsCreateInput = {
-  name: Scalars['String']['input'];
-  reference: Scalars['String']['input'];
-};
-
-export type ChartOfAccountsCreatePayload = {
-  __typename?: 'ChartOfAccountsCreatePayload';
-  chartOfAccounts: NewChartOfAccounts;
-};
-
 export type ChartOfAccountsCsvImportInput = {
   chartId: Scalars['UUID']['input'];
   file: Scalars['Upload']['input'];
@@ -958,7 +948,6 @@ export type Mutation = {
   __typename?: 'Mutation';
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
-  chartOfAccountsCreate: ChartOfAccountsCreatePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -999,11 +988,6 @@ export type MutationApprovalProcessApproveArgs = {
 export type MutationApprovalProcessDenyArgs = {
   input: ApprovalProcessDenyInput;
   reason: Scalars['String']['input'];
-};
-
-
-export type MutationChartOfAccountsCreateArgs = {
-  input: ChartOfAccountsCreateInput;
 };
 
 

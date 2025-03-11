@@ -1,0 +1,6 @@
+query NewChartOfAccounts {
+  newChartOfAccounts {
+    chartId
+    name
+  }
+}

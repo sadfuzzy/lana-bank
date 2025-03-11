@@ -254,15 +254,6 @@ type ChartOfAccounts {
 	categories: ChartCategories!
 }
 
-input ChartOfAccountsCreateInput {
-	name: String!
-	reference: String!
-}
-
-type ChartOfAccountsCreatePayload {
-	chartOfAccounts: NewChartOfAccounts!
-}
-
 input ChartOfAccountsCsvImportInput {
 	chartId: UUID!
 	file: Upload!
@@ -962,7 +953,6 @@ type Mutation {
 	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
-	chartOfAccountsCreate(input: ChartOfAccountsCreateInput!): ChartOfAccountsCreatePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
 }

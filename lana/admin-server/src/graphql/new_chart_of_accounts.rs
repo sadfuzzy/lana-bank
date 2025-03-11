@@ -57,14 +57,6 @@ impl From<lana_app::new_chart_of_accounts::tree::TreeNode> for ChartNode {
 }
 
 #[derive(InputObject)]
-pub struct ChartOfAccountsCreateInput {
-    pub name: String,
-    pub reference: String,
-}
-
-crate::mutation_payload!(ChartOfAccountsCreatePayload, chart_of_accounts: NewChartOfAccounts);
-
-#[derive(InputObject)]
 pub struct ChartOfAccountsCsvImportInput {
     pub chart_id: UUID,
     pub file: Upload,

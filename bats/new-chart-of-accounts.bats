@@ -15,44 +15,19 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-@test "chart-of-accounts: can create a new chart" {
-  name="COA-$(date +%s)"
-  reference="COA-$(date +%s)"
-  
-  variables=$(
-    jq -n \
-    --arg name "$name" \
-    --arg reference "$reference" \
-    '{
-      input: {
-        name: $name,
-        reference: $reference
-      }
-    }'
-  )
-
-  exec_admin_graphql 'chart-of-accounts-create' "$variables"
-
-  chart_id=$(graphql_output '.data.chartOfAccountsCreate.chartOfAccounts.chartId')
-  [[ "$chart_id" != "null" ]] || exit 1
-
-  cache_value "chart_id" "$chart_id"
-
-}
-
 @test "chart-of-accounts: can import CSV file" {
-  chart_id=$(read_value "chart_id")
-  echo "chart_id: $chart_id"
-  
+exec_admin_graphql 'new-chart-of-accounts'
+  chart_id=$(graphql_output '.data.newChartOfAccounts.chartId')
+
   temp_file=$(mktemp)
   echo "
-    1,,,Assets ,,
+    $((RANDOM % 100)),,,Assets ,,
     ,,,,,
-    11,,,Assets,,
+    $((RANDOM % 100)),,,Assets,,
     ,,,,,
-    ,01,,Effective,,
-    ,,0101,Central Office,
-    " > "$temp_file"
+    ,$((RANDOM % 100)),,Effective,,
+    ,,$((RANDOM % 1000)),Central Office,
+  " > "$temp_file"
 
   variables=$(
     jq -n \
@@ -66,7 +41,6 @@ teardown_file() {
   )
 
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
-
   success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
   [[ "$success" == "true" ]] || exit 1
 }

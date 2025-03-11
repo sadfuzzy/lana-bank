@@ -1112,21 +1112,6 @@ impl Mutation {
         Ok(ReportDownloadLinksGeneratePayload::from(links))
     }
 
-    async fn chart_of_accounts_create(
-        &self,
-        ctx: &Context<'_>,
-        input: ChartOfAccountsCreateInput,
-    ) -> async_graphql::Result<ChartOfAccountsCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        let entity = <NewChartOfAccounts>::from(
-            (app.new_chart_of_accounts()
-                .create_chart(sub, input.name, input.reference))
-            .await?,
-        );
-        Ok(<ChartOfAccountsCreatePayload>::from(entity))
-    }
-
     async fn chart_of_accounts_csv_import(
         &self,
         ctx: &Context<'_>,
