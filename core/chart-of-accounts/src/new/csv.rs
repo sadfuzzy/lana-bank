@@ -38,15 +38,14 @@ impl CsvParser {
 
                     for (idx, field) in record.iter().enumerate() {
                         if let Ok(category) = field.parse::<AccountName>() {
-                            if let Some(s) = specs.last() {
-                                if s.code.is_parent(&sections) {
-                                    specs.push(AccountSpec::new(
-                                        Some(s.code.clone()),
-                                        sections,
-                                        category,
-                                    ));
-                                    break;
-                                }
+                            if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections))
+                            {
+                                specs.push(AccountSpec::new(
+                                    Some(specs[s].code.clone()),
+                                    sections,
+                                    category,
+                                ));
+                                break;
                             }
                             specs.push(AccountSpec::new(None, sections, category));
                             break;
@@ -129,5 +128,33 @@ mod tests {
         assert_eq!(Some(&specs[2].code), specs[3].parent.as_ref());
 
         assert_eq!(&specs[3].code.to_string(), "11.01.0101");
+    }
+
+    #[test]
+    fn parse_when_parent_has_multiple_child_nodes() {
+        let data = r#"
+        1,,,Assets,,
+        ,,,,
+        11,,,Current Assets,,
+        ,,,,,
+            ,01,,Cash and Equivalents,,
+        ,,0101,,Operating Cash,,
+        ,,0102,,Petty Cash,,
+        "#;
+
+        let parser = CsvParser::new(data.to_string());
+        let specs = parser.account_specs().unwrap();
+
+        assert_eq!(specs.len(), 5);
+
+        assert_eq!(specs[2].code.len_sections(), 2);
+        assert_eq!(Some(&specs[1].code), specs[2].parent.as_ref());
+
+        assert_eq!(specs[3].code.len_sections(), 3);
+        assert_eq!(Some(&specs[2].code), specs[3].parent.as_ref());
+        assert_eq!(&specs[3].code.to_string(), "11.01.0101");
+
+        assert_eq!(Some(&specs[2].code), specs[4].parent.as_ref());
+        assert_eq!(&specs[4].code.to_string(), "11.01.0102");
     }
 }
