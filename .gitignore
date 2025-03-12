@@ -28,3 +28,4 @@ meltano/keyfile.json
 .sumsub_customer_id
 *.code-workspace
 tmp/
+i18n.cache
