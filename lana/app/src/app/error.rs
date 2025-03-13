@@ -48,4 +48,6 @@ pub enum ApplicationError {
     DepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("ApplicationError - StorageError: {0}")]
     StorageError(#[from] crate::storage::error::StorageError),
+    #[error("ApplicationError - ApplicantError: {0}")]
+    ApplicantError(#[from] crate::applicant::error::ApplicantError),
 }

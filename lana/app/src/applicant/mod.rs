@@ -7,12 +7,14 @@ mod sumsub_auth;
 use core_customer;
 use job::{SumsubExportConfig, SumsubExportInitializer};
 use serde::{Deserialize, Serialize};
+use sqlx::PgPool;
+use std::sync::Arc;
 use tracing::instrument;
 
 use crate::{
     customer::Customers,
     job::Jobs,
-    primitives::{CustomerId, JobId, Subject},
+    primitives::{CustomerId, JobId, Subject, UsdCents, WithdrawalId},
 };
 
 pub use config::*;
@@ -24,12 +26,40 @@ pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 use async_graphql::*;
 
+/// Direction of the transaction from Sumsub's perspective
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum SumsubTransactionDirection {
+    /// Money coming into the customer's account (deposit)
+    #[serde(rename = "in")]
+    In,
+    /// Money going out of the customer's account (withdrawal)
+    #[serde(rename = "out")]
+    Out,
+}
+
+impl std::fmt::Display for SumsubTransactionDirection {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SumsubTransactionDirection::In => write!(f, "in"),
+            SumsubTransactionDirection::Out => write!(f, "out"),
+        }
+    }
+}
+
+/// Helper function to format UsdCents as float dollars
+/// FIXME temporary function, remove when we have a proper conversion
+pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
+    // Use the into_inner method to get the value in cents
+    (cents.into_inner() as f64) / 100.0
+}
+
+/// Applicants service
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
-    customers: Customers,
+    customers: Arc<Customers>,
+    jobs: Arc<Jobs>,
     repo: ApplicantRepo,
-    jobs: Jobs,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
@@ -141,25 +171,15 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(
-        pool: &sqlx::PgPool,
-        config: &SumsubConfig,
-        customers: &Customers,
-        jobs: &Jobs,
-        // export: &Export,
-    ) -> Self {
+    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers, jobs: &Jobs) -> Self {
         let sumsub_client = SumsubClient::new(config);
-        jobs.add_initializer(SumsubExportInitializer::new(
-            // export.clone(),
-            sumsub_client.clone(),
-            pool,
-        ));
+        jobs.add_initializer(SumsubExportInitializer::new(sumsub_client.clone(), pool));
 
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            customers: customers.clone(),
-            jobs: jobs.clone(),
+            customers: Arc::new(customers.clone()),
+            jobs: Arc::new(jobs.clone()),
         }
     }
 
@@ -321,6 +341,27 @@ impl Applicants {
 
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
+            .await
+    }
+
+    /// Submit a withdrawal transaction to Sumsub for monitoring
+    #[instrument(name = "applicants.submit_withdrawal_transaction", skip(self), err)]
+    pub async fn submit_withdrawal_transaction(
+        &self,
+        withdrawal_id: WithdrawalId,
+        customer_id: CustomerId,
+        amount: UsdCents,
+    ) -> Result<(), ApplicantError> {
+        // Submit the transaction to Sumsub using the client directly
+        self.sumsub_client
+            .submit_finance_transaction(
+                customer_id,
+                withdrawal_id.to_string(),
+                "Withdrawal",
+                &SumsubTransactionDirection::Out.to_string(),
+                usd_cents_to_dollars(amount),
+                "USD",
+            )
             .await
     }
 }

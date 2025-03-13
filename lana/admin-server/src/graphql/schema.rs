@@ -775,11 +775,12 @@ impl Mutation {
         input: WithdrawalConfirmInput,
     ) -> async_graphql::Result<WithdrawalConfirmPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
         exec_mutation!(
             WithdrawalConfirmPayload,
             Withdrawal,
             ctx,
-            app.deposits().confirm_withdrawal(sub, input.withdrawal_id)
+            app.confirm_withdrawal_with_sumsub(sub, input.withdrawal_id)
         )
     }
 

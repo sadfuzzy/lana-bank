@@ -161,4 +161,95 @@ impl SumsubClient {
         }
         Ok(hex::encode(mac.finalize().into_bytes()))
     }
+
+    /// Submits a financial transaction to Sumsub for transaction monitoring
+    pub async fn submit_finance_transaction(
+        &self,
+        external_user_id: CustomerId,
+        tx_id: impl Into<String>,
+        tx_type: &str,
+        direction: &str,
+        amount: f64,
+        currency_code: &str,
+    ) -> Result<(), ApplicantError> {
+        let method = "POST";
+
+        // First we need to get the Sumsub applicantId for this customer
+        let applicant_details = self.get_applicant_details(external_user_id).await?;
+
+        // Parse the JSON response to extract the applicantId
+        let applicant_json: serde_json::Value = serde_json::from_str(&applicant_details)?;
+        let applicant_id = applicant_json["id"]
+            .as_str()
+            .ok_or_else(|| ApplicantError::Sumsub {
+                description: "Applicant ID not found in the response".to_string(),
+                code: 500,
+            })?;
+
+        // Use the correct API endpoint for existing applicants
+        let url_path = format!("/resources/applicants/{}/kyt/txns/-/data", applicant_id);
+        let tx_id = tx_id.into();
+
+        // Current timestamp for the request
+        let now = chrono::Utc::now();
+        let timestamp = now.timestamp();
+        let date_format = now.format("%Y-%m-%d %H:%M:%S+0000").to_string();
+
+        // Build the request body
+        let body = json!({
+            "txnId": tx_id,
+            "txnType": tx_type,
+            "txnDirection": direction,
+            "externalTxnId": tx_id,
+            "txnStatus": "pending",
+            "txnTimestamp": timestamp,
+            "txnDate": date_format,
+            "info": {
+                "type": tx_type,
+                "direction": direction,
+                "amount": amount,
+                "currencyCode": currency_code,
+                "currencyType": "fiat",
+                "amountInDefaultCurrency": amount,
+                "defaultCurrencyCode": currency_code,
+                "paymentDetails": ""
+            },
+            "applicant": {
+                "type": "individual",
+                "externalUserId": external_user_id.to_string(),
+                "fullName": ""
+            },
+            "levelName": "basic-kyc-level"
+        });
+
+        // Make the API request
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        // Handle the response
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            // Extract error details if available
+            let response_text = response.text().await?;
+            match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
+                Ok(SumsubResponse::Error(ApiError { description, code })) => {
+                    Err(ApplicantError::Sumsub { description, code })
+                }
+                _ => Err(ApplicantError::Sumsub {
+                    description: format!("Failed to post transaction: {}", response_text),
+                    code: 500,
+                }),
+            }
+        }
+    }
 }
