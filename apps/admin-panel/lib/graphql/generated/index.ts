@@ -21,6 +21,7 @@ export type Scalars = {
   Boolean: { input: boolean; output: boolean; }
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
+  AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
@@ -957,6 +958,45 @@ export type LayeredUsdAccountAmounts = {
   settled: UsdAccountAmounts;
 };
 
+export type LedgerAccount = {
+  __typename?: 'LedgerAccount';
+  code: Scalars['AccountCode']['output'];
+  history: LedgerAccountHistoryEntryConnection;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
+};
+
+
+export type LedgerAccountHistoryArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+export type LedgerAccountHistoryEntry = {
+  __typename?: 'LedgerAccountHistoryEntry';
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
+};
+
+export type LedgerAccountHistoryEntryConnection = {
+  __typename?: 'LedgerAccountHistoryEntryConnection';
+  /** A list of edges. */
+  edges: Array<LedgerAccountHistoryEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<LedgerAccountHistoryEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type LedgerAccountHistoryEntryEdge = {
+  __typename?: 'LedgerAccountHistoryEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: LedgerAccountHistoryEntry;
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
@@ -1257,6 +1297,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
+  ledgerAccountByCode?: Maybe<LedgerAccount>;
   me: Subject;
   offBalanceSheetTrialBalance: TrialBalance;
   policies: PolicyConnection;
@@ -1377,6 +1418,11 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryLedgerAccountByCodeArgs = {
+  code: Scalars['String']['input'];
 };
 
 

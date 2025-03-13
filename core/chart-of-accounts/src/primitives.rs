@@ -12,6 +12,22 @@ es_entity::entity_id! {
     ChartId,
 }
 
+pub struct AccountDetails {
+    pub id: LedgerAccountId,
+    pub name: AccountName,
+    pub code: AccountCode,
+}
+
+impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
+    fn from((spec, _): &(AccountSpec, LedgerAccountSetId)) -> Self {
+        AccountDetails {
+            id: LedgerAccountId::new(),
+            name: spec.name.clone(),
+            code: spec.code.clone(),
+        }
+    }
+}
+
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {
     #[error("empty")]
@@ -111,6 +127,26 @@ impl AccountCode {
 
     pub fn section(&self, idx: usize) -> Option<&AccountCodeSection> {
         self.sections.get(idx)
+    }
+
+    pub fn is_equivalent_to_str(&self, code: &str) -> bool {
+        let mut position = 0;
+
+        for section in &self.sections {
+            let section_len = section.code.len();
+
+            if position + section_len > code.len() {
+                return false;
+            }
+
+            if code[position..position + section_len] != section.code {
+                return false;
+            }
+
+            position += section_len;
+        }
+
+        position == code.len()
     }
 
     pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
@@ -255,6 +291,8 @@ impl FromStr for CoreChartOfAccountsObject {
 impl CoreChartOfAccountsAction {
     pub const CHART_CREATE: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::Create);
     pub const CHART_LIST: Self = CoreChartOfAccountsAction::ChartAction(ChartAction::List);
+    pub const CHART_ACCOUNT_DETAILS_READ: Self =
+        CoreChartOfAccountsAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreChartOfAccountsAction::ChartAction(ChartAction::ImportAccounts);
 }
@@ -288,6 +326,7 @@ impl FromStr for CoreChartOfAccountsAction {
 pub enum ChartAction {
     Create,
     List,
+    AccountDetailsRead,
     ImportAccounts,
     CreateControlAccount,
     FindControlAccount,
@@ -344,5 +383,16 @@ mod tests {
 
         let account_code = AccountCode::new(vec![parent, sub, child]);
         assert_eq!(account_code.chart_level(), 2);
+    }
+
+    #[test]
+    fn is_equivalent_to_str() {
+        let parent = "11".parse::<AccountCodeSection>().unwrap();
+        let sub = "01".parse::<AccountCodeSection>().unwrap();
+        let child = "0201".parse::<AccountCodeSection>().unwrap();
+
+        let account_code = AccountCode::new(vec![parent, sub, child]);
+        assert!(account_code.is_equivalent_to_str("11010201"));
+        assert!(!account_code.is_equivalent_to_str("110102010"));
     }
 }
