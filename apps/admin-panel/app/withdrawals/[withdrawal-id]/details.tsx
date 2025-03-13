@@ -43,6 +43,20 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
       href: `/customers/${withdrawal.account.customer.customerId}`,
     },
     {
+      label: t("fields.withdrawalId") || "ID",
+      value: (
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+          title={`Full ID: ${withdrawal.withdrawalId}`}
+        >
+          {`${withdrawal.withdrawalId.substring(0, 4)}...${withdrawal.withdrawalId.substring(withdrawal.withdrawalId.length - 4)}`}
+        </a>
+      ),
+    },
+    {
       label: t("fields.withdrawalAmount"),
       value: <Balance amount={withdrawal.amount} currency="usd" />,
     },

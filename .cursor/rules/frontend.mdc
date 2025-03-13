@@ -1,0 +1,12 @@
+---
+description: rules for the frontend
+globs: *.tsx
+alwaysApply: false
+---
+
+## verify your work
+
+You should know about those commands:
+
+- `make check-code-apps-admin-panel` to verify code for admin panel
+- `make check-code-apps-customer-portal` to verify code for customer portal

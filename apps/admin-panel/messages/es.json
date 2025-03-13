@@ -836,6 +836,7 @@
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
     "table": {
       "headers": {
+        "depositId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto"
@@ -872,6 +873,7 @@
     "description": "Dinero retirado de las cuentas del cliente",
     "table": {
       "headers": {
+        "withdrawalId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto",
@@ -938,6 +940,7 @@
         "title": "Retiro",
         "fields": {
           "customerEmail": "Correo Electrónico del Cliente",
+          "withdrawalId": "ID",
           "withdrawalAmount": "Monto del Retiro",
           "withdrawalReference": "Referencia del Retiro",
           "status": "Estado"

@@ -759,11 +759,12 @@ impl Mutation {
         input: DepositRecordInput,
     ) -> async_graphql::Result<DepositRecordPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+
         exec_mutation!(
             DepositRecordPayload,
             Deposit,
             ctx,
-            app.deposits().record_deposit(
+            app.confirm_deposit_with_sumsub(
                 sub,
                 input.deposit_account_id,
                 input.amount,

@@ -77,6 +77,26 @@ export default Withdrawals
 
 const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] => [
   {
+    key: "withdrawalId",
+    label: t("headers.withdrawalId") || "ID",
+    render: (withdrawalId) => {
+      // Format the withdrawal ID to show only the first 4 and last 4 characters
+      const shortId = `${withdrawalId.substring(0, 4)}...${withdrawalId.substring(withdrawalId.length - 4)}`
+
+      return (
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawalId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+          title={`Full ID: ${withdrawalId}`}
+        >
+          {shortId}
+        </a>
+      )
+    },
+  },
+  {
     key: "account",
     label: t("headers.customer"),
     render: (account) => account.customer.email,

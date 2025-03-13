@@ -71,6 +71,26 @@ export default Deposits
 
 const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
+    key: "depositId",
+    label: t("headers.depositId") || "ID",
+    render: (depositId) => {
+      // Format the deposit ID to show only the first 4 and last 4 characters
+      const shortId = `${depositId.substring(0, 4)}...${depositId.substring(depositId.length - 4)}`
+
+      return (
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${depositId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:underline"
+          title={`Full ID: ${depositId}`}
+        >
+          {shortId}
+        </a>
+      )
+    },
+  },
+  {
     key: "account",
     label: t("headers.customer"),
     render: (account) => account.customer.email,

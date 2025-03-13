@@ -12,9 +12,9 @@ use std::sync::Arc;
 use tracing::instrument;
 
 use crate::{
-    customer::Customers,
+    customer::{CustomerId, Customers},
     job::Jobs,
-    primitives::{CustomerId, JobId, Subject, UsdCents, WithdrawalId},
+    primitives::{DepositId, JobId, Subject, UsdCents, WithdrawalId},
 };
 
 pub use config::*;
@@ -344,7 +344,6 @@ impl Applicants {
             .await
     }
 
-    /// Submit a withdrawal transaction to Sumsub for monitoring
     #[instrument(name = "applicants.submit_withdrawal_transaction", skip(self), err)]
     pub async fn submit_withdrawal_transaction(
         &self,
@@ -352,13 +351,31 @@ impl Applicants {
         customer_id: CustomerId,
         amount: UsdCents,
     ) -> Result<(), ApplicantError> {
-        // Submit the transaction to Sumsub using the client directly
         self.sumsub_client
             .submit_finance_transaction(
                 customer_id,
                 withdrawal_id.to_string(),
                 "Withdrawal",
                 &SumsubTransactionDirection::Out.to_string(),
+                usd_cents_to_dollars(amount),
+                "USD",
+            )
+            .await
+    }
+
+    #[instrument(name = "applicants.submit_deposit_transaction", skip(self), err)]
+    pub async fn submit_deposit_transaction(
+        &self,
+        deposit_id: DepositId,
+        customer_id: CustomerId,
+        amount: UsdCents,
+    ) -> Result<(), ApplicantError> {
+        self.sumsub_client
+            .submit_finance_transaction(
+                customer_id,
+                deposit_id.to_string(),
+                "Deposit",
+                &SumsubTransactionDirection::In.to_string(),
                 usd_cents_to_dollars(amount),
                 "USD",
             )

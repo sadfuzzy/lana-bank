@@ -192,17 +192,12 @@ impl SumsubClient {
 
         // Current timestamp for the request
         let now = chrono::Utc::now();
-        let timestamp = now.timestamp();
         let date_format = now.format("%Y-%m-%d %H:%M:%S+0000").to_string();
 
         // Build the request body
         let body = json!({
             "txnId": tx_id,
-            "txnType": tx_type,
-            "txnDirection": direction,
-            "externalTxnId": tx_id,
-            "txnStatus": "pending",
-            "txnTimestamp": timestamp,
+            "type": "finance",
             "txnDate": date_format,
             "info": {
                 "type": tx_type,
@@ -210,16 +205,13 @@ impl SumsubClient {
                 "amount": amount,
                 "currencyCode": currency_code,
                 "currencyType": "fiat",
-                "amountInDefaultCurrency": amount,
-                "defaultCurrencyCode": currency_code,
                 "paymentDetails": ""
             },
             "applicant": {
                 "type": "individual",
                 "externalUserId": external_user_id.to_string(),
                 "fullName": ""
-            },
-            "levelName": "basic-kyc-level"
+            }
         });
 
         // Make the API request
