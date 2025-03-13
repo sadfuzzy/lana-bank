@@ -1,3 +1,4 @@
+mod chart_of_accounts_integration;
 mod config;
 mod credit_facility;
 mod disbursal;
@@ -19,6 +20,7 @@ use std::collections::HashMap;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use chart_of_accounts::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -26,6 +28,7 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 pub use config::*;
 pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};
@@ -110,8 +113,6 @@ where
         customer: &Customers<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
-        account_factories: CreditFacilityAccountFactories,
-        omnibus_account_ids: CreditFacilityOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
     ) -> Result<Self, CoreCreditError> {
@@ -119,8 +120,7 @@ where
         let credit_facility_repo = CreditFacilityRepo::new(pool, &publisher);
         let disbursal_repo = DisbursalRepo::new(pool);
         let payment_repo = PaymentRepo::new(pool);
-        let ledger =
-            CreditLedger::init(cala, journal_id, account_factories, omnibus_account_ids).await?;
+        let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
             &credit_facility_repo,
@@ -877,5 +877,85 @@ where
         ids: &[DisbursalId],
     ) -> Result<HashMap<DisbursalId, T>, CoreCreditError> {
         Ok(self.disbursal_repo.find_all(ids).await?)
+    }
+
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CoreCreditError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::chart_of_accounts_integration(),
+                CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?)
+    }
+
+    pub async fn set_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: Chart,
+        config: ChartOfAccountsIntegrationConfig,
+    ) -> Result<ChartOfAccountsIntegrationConfig, CoreCreditError> {
+        if chart.id != config.chart_of_accounts_id {
+            return Err(CoreCreditError::ChartIdMismatch);
+        }
+
+        if self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?
+            .is_some()
+        {
+            return Err(CoreCreditError::CreditConfigAlreadyExists);
+        }
+
+        let facility_omnibus_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_facility_omnibus_parent_code)?;
+        let collateral_omnibus_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_collateral_omnibus_parent_code)?;
+        let facility_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_account_facility_parent_code)?;
+        let collateral_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_account_collateral_parent_code)?;
+        let disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_disbursed_receivable_parent_code)?;
+        let interest_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_interest_receivable_parent_code)?;
+        let interest_income_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_account_interest_income_parent_code)?;
+        let fee_income_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_account_fee_income_parent_code)?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::chart_of_accounts_integration(),
+                CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
+            )
+            .await?;
+
+        self.ledger
+            .attach_chart_of_accounts_account_sets(
+                audit_info,
+                &config,
+                facility_omnibus_parent_account_set_id,
+                collateral_omnibus_parent_account_set_id,
+                facility_parent_account_set_id,
+                collateral_parent_account_set_id,
+                disbursed_receivable_parent_account_set_id,
+                interest_receivable_parent_account_set_id,
+                interest_income_parent_account_set_id,
+                fee_income_parent_account_set_id,
+            )
+            .await?;
+
+        Ok(config)
     }
 }

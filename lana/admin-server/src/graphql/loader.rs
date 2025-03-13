@@ -122,22 +122,6 @@ impl Loader<ChartId> for LanaLoader {
     }
 }
 
-// impl Loader<ChartId> for LanaLoader {
-//     type Value = NewChartOfAccounts;
-//     type Error = Arc<CoreChartOfAccountsError>;
-
-//     async fn load(
-//         &self,
-//         keys: &[ChartId],
-//     ) -> Result<HashMap<ChartId, NewChartOfAccounts>, Self::Error> {
-//         self.app
-//             .new_chart_of_accounts()
-//             .find_all(keys)
-//             .await
-//             .map_err(Arc::new)
-//     }
-// }
-
 impl Loader<WithdrawalId> for LanaLoader {
     type Value = Withdrawal;
     type Error = Arc<CoreDepositError>;

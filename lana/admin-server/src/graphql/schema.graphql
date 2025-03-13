@@ -217,31 +217,6 @@ type CashFlowStatement {
 	categories: [StatementCategory!]!
 }
 
-type ChartCategories {
-	assets: ChartCategory!
-	liabilities: ChartCategory!
-	equity: ChartCategory!
-	revenues: ChartCategory!
-	expenses: ChartCategory!
-}
-
-type ChartCategory {
-	name: String!
-	accountCode: String!
-	controlAccounts: [ChartControlAccount!]!
-}
-
-type ChartControlAccount {
-	name: String!
-	accountCode: String!
-	controlSubAccounts: [ChartControlSubAccount!]!
-}
-
-type ChartControlSubAccount {
-	name: String!
-	accountCode: String!
-}
-
 type ChartNode {
 	name: String!
 	accountCode: String!
@@ -250,8 +225,9 @@ type ChartNode {
 
 type ChartOfAccounts {
 	id: ID!
+	chartId: UUID!
 	name: String!
-	categories: ChartCategories!
+	children: [ChartNode!]!
 }
 
 input ChartOfAccountsCsvImportInput {
@@ -599,6 +575,33 @@ enum CreditFacilityStatus {
 	CLOSED
 }
 
+type CreditModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountFacilityOmnibusParentCode: String
+	chartOfAccountCollateralOmnibusParentCode: String
+	chartOfAccountFacilityParentCode: String
+	chartOfAccountCollateralParentCode: String
+	chartOfAccountDisbursedReceivableParentCode: String
+	chartOfAccountInterestReceivableParentCode: String
+	chartOfAccountInterestIncomeParentCode: String
+	chartOfAccountFeeIncomeParentCode: String
+}
+
+input CreditModuleConfigureInput {
+	chartOfAccountFacilityOmnibusParentCode: String!
+	chartOfAccountCollateralOmnibusParentCode: String!
+	chartOfAccountFacilityParentCode: String!
+	chartOfAccountCollateralParentCode: String!
+	chartOfAccountDisbursedReceivableParentCode: String!
+	chartOfAccountInterestReceivableParentCode: String!
+	chartOfAccountInterestIncomeParentCode: String!
+	chartOfAccountFeeIncomeParentCode: String!
+}
+
+type CreditModuleConfigurePayload {
+	creditConfig: CreditModuleConfig!
+}
+
 type Customer {
 	id: ID!
 	customerId: UUID!
@@ -787,6 +790,21 @@ type DepositEntry {
 	deposit: Deposit!
 }
 
+type DepositModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsDepositAccountsParentCode: String
+	chartOfAccountsOmnibusParentCode: String
+}
+
+input DepositModuleConfigureInput {
+	chartOfAccountsDepositAccountsParentCode: String!
+	chartOfAccountsOmnibusParentCode: String!
+}
+
+type DepositModuleConfigurePayload {
+	depositConfig: DepositModuleConfig!
+}
+
 input DepositRecordInput {
 	depositAccountId: UUID!
 	amount: UsdCents!
@@ -931,12 +949,14 @@ type Mutation {
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
+	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
@@ -955,13 +975,6 @@ type Mutation {
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
-}
-
-type NewChartOfAccounts {
-	id: ID!
-	chartId: UUID!
-	name: String!
-	children: [ChartNode!]!
 }
 
 scalar OneTimeFeeRatePct
@@ -1081,8 +1094,6 @@ type Query {
 	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	newChartOfAccounts: NewChartOfAccounts!
-	offBalanceSheetChartOfAccounts: ChartOfAccounts!
 	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
 	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
 	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement!
@@ -1091,6 +1102,8 @@ type Query {
 	report(id: UUID!): Report
 	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
+	depositConfig: DepositModuleConfig
+	creditConfig: CreditModuleConfig
 }
 
 type RealtimePrice {

@@ -14,7 +14,7 @@ es_entity::entity_id! {
     DepositAccountHolderId,
     DepositAccountId,
     WithdrawalId,
-    DepositConfigId,
+    ChartOfAccountsIntegrationConfigId,
     DepositId;
 
     DepositAccountHolderId => core_customer::CustomerId,
@@ -29,7 +29,14 @@ pub use core_money::UsdCents;
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;
 pub type DepositAllOrOne = AllOrOne<DepositId>;
+pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
+
+#[derive(Debug, Clone)]
+pub struct LedgerOmnibusAccountIds {
+    pub account_set_id: LedgerAccountSetId,
+    pub account_id: LedgerAccountId,
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -37,6 +44,7 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 pub enum CoreDepositObject {
     DepositAccount(DepositAccountAllOrOne),
     Deposit(DepositAllOrOne),
+    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
     Withdrawal(WithdrawalAllOrOne),
 }
 
@@ -64,6 +72,10 @@ impl CoreDepositObject {
     pub fn withdrawal(id: WithdrawalId) -> Self {
         CoreDepositObject::Withdrawal(AllOrOne::ById(id))
     }
+
+    pub fn chart_of_accounts_integration() -> Self {
+        CoreDepositObject::ChartOfAccountsIntegration(AllOrOne::All)
+    }
 }
 
 impl Display for CoreDepositObject {
@@ -74,6 +86,7 @@ impl Display for CoreDepositObject {
             DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -103,6 +116,12 @@ impl FromStr for CoreDepositObject {
                     .map_err(|_| "could not parse CoreDepositObject")?;
                 CoreDepositObject::Withdrawal(obj_ref)
             }
+            ChartOfAccountsIntegration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse CoreDepositObject")?;
+                CoreDepositObject::ChartOfAccountsIntegration(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -114,6 +133,7 @@ impl FromStr for CoreDepositObject {
 pub enum CoreDepositAction {
     DepositAccount(DepositAccountAction),
     Deposit(DepositAction),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Withdrawal(WithdrawalAction),
 }
 
@@ -131,6 +151,15 @@ impl CoreDepositAction {
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
     pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
 
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Update,
+        );
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ: Self =
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(
+            ChartOfAccountsIntegrationConfigAction::Read,
+        );
+
     pub const WITHDRAWAL_INITIATE: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Initiate);
     pub const WITHDRAWAL_CONCLUDE_APPROVAL_PROCESS: Self =
         CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess);
@@ -147,6 +176,7 @@ impl Display for CoreDepositAction {
         match self {
             DepositAccount(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
+            ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Withdrawal(action) => action.fmt(f),
         }
     }
@@ -161,6 +191,9 @@ impl FromStr for CoreDepositAction {
         let res = match entity.parse()? {
             DepositAccount => CoreDepositAction::from(action.parse::<DepositAccountAction>()?),
             Deposit => CoreDepositAction::from(action.parse::<DepositAction>()?),
+            ChartOfAccountsIntegrationConfig => {
+                CoreDepositAction::from(action.parse::<ChartOfAccountsIntegrationConfigAction>()?)
+            }
             Withdrawal => CoreDepositAction::from(action.parse::<WithdrawalAction>()?),
         };
 
@@ -212,5 +245,18 @@ pub enum WithdrawalAction {
 impl From<WithdrawalAction> for CoreDepositAction {
     fn from(action: WithdrawalAction) -> Self {
         CoreDepositAction::Withdrawal(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ChartOfAccountsIntegrationConfigAction {
+    Read,
+    Update,
+}
+
+impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
+    fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
+        CoreDepositAction::ChartOfAccountsIntegrationConfig(action)
     }
 }

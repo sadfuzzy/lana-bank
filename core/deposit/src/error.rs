@@ -14,12 +14,16 @@ pub enum CoreDepositError {
     DepositError(#[from] crate::deposit::error::DepositError),
     #[error("CoreDepositError - WithdrawalError: {0}")]
     WithdrawalError(#[from] crate::withdrawal::error::WithdrawalError),
+    // #[error("CoreDepositError - DepositConfigError: {0}")]
+    // DepositConfigError(#[from] crate::module_config::error::DepositConfigError),
     #[error("CoreDepositError - DepositLedgerError: {0}")]
     DepositLedgerError(#[from] crate::ledger::error::DepositLedgerError),
     #[error("CoreDepositError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
     CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    #[error("CoreDepositError - CoreChartOfAccountsError: {0}")]
+    AltCoreChartOfAccountsError(#[from] chart_of_accounts::error::ChartError),
     #[error("CoreDepositError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreDepositError - ProcessError: {0}")]
@@ -28,6 +32,10 @@ pub enum CoreDepositError {
     SubjectIsNotDepositAccountHolder,
     #[error("CoreDepositError - DepositAccountNotFound")]
     DepositAccountNotFound,
+    #[error("CoreDepositError - ChartIdMismatch")]
+    ChartIdMismatch,
+    #[error("CoreDepositError - DepositConfigAlreadyExists")]
+    DepositConfigAlreadyExists,
 }
 
 impl CoreDepositError {

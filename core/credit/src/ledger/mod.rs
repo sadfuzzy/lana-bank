@@ -1,20 +1,33 @@
+use std::collections::HashMap;
+
+use serde::{Deserialize, Serialize};
+
+use audit::AuditInfo;
+
+mod constants;
 mod credit_facility_accounts;
 pub mod error;
 mod templates;
 mod velocity;
 
 use cala_ledger::{
+    account::NewAccount,
+    account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
-    AccountId, CalaLedger, Currency, JournalId, TransactionId,
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
-use crate::primitives::{CollateralAction, CreditFacilityId, Satoshis, UsdCents};
+use crate::{
+    primitives::{
+        CollateralAction, CreditFacilityId, LedgerAccountId, LedgerAccountSetId,
+        LedgerOmnibusAccountIds, Satoshis, UsdCents,
+    },
+    ChartOfAccountsIntegrationConfig,
+};
 
+use constants::*;
 pub use credit_facility_accounts::*;
 use error::*;
-
-pub(super) const CREDIT_FACILITY_VELOCITY_CONTROL_ID: uuid::Uuid =
-    uuid::uuid!("00000000-0000-0000-0000-000000000002");
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCollateralUpdate {
@@ -24,28 +37,49 @@ pub struct CreditFacilityCollateralUpdate {
     pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
 
+#[derive(Clone, Copy)]
+pub struct InternalAccountSetDetails {
+    id: LedgerAccountSetId,
+    normal_balance_type: DebitOrCredit,
+}
+
+#[derive(Clone, Copy)]
+pub struct CreditFacilityInternalAccountSets {
+    pub facility: InternalAccountSetDetails,
+    pub collateral: InternalAccountSetDetails,
+    pub disbursed_receivable: InternalAccountSetDetails,
+    pub interest_receivable: InternalAccountSetDetails,
+    pub interest_income: InternalAccountSetDetails,
+    pub fee_income: InternalAccountSetDetails,
+}
+
+impl CreditFacilityInternalAccountSets {
+    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        vec![
+            self.facility.id,
+            self.collateral.id,
+            self.disbursed_receivable.id,
+            self.interest_receivable.id,
+            self.interest_income.id,
+            self.fee_income.id,
+        ]
+    }
+}
+
 #[derive(Clone)]
 pub struct CreditLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    credit_omnibus_account_id: AccountId,
-    bank_collateral_account_id: AccountId,
-    fee_income_adjustment_omnibus_account_id: AccountId,
-    debit_account_adjustment_omnibus_account_id: AccountId,
-    non_cash_offset_omnibus_account_id: AccountId,
+    facility_omnibus_account_ids: LedgerOmnibusAccountIds,
+    collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
-    account_factories: CreditFacilityAccountFactories,
     usd: Currency,
     btc: Currency,
 }
 
 impl CreditLedger {
-    pub async fn init(
-        cala: &CalaLedger,
-        journal_id: JournalId,
-        account_factories: CreditFacilityAccountFactories,
-        omnibus_ids: CreditFacilityOmnibusAccountIds,
-    ) -> Result<Self, CreditLedgerError> {
+    pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -55,6 +89,115 @@ impl CreditLedger {
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
         templates::SettleDisbursal::init(cala).await?;
+
+        let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_COLLATERAL_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            collateral_omnibus_normal_balance_type,
+        )
+        .await?;
+
+        let facility_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let facility_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            facility_omnibus_normal_balance_type,
+        )
+        .await?;
+
+        let facility_normal_balance_type = DebitOrCredit::Credit;
+        let facility_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_REMAINING_ACCOUNT_SET_NAME.to_string(),
+            facility_normal_balance_type,
+        )
+        .await?;
+
+        let collateral_normal_balance_type = DebitOrCredit::Credit;
+        let collateral_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_COLLATERAL_ACCOUNT_SET_REF}"),
+            CREDIT_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
+            collateral_normal_balance_type,
+        )
+        .await?;
+
+        let disbursed_receivable_normal_balance_type = DebitOrCredit::Debit;
+        let disbursed_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF}"),
+            CREDIT_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            disbursed_receivable_normal_balance_type,
+        )
+        .await?;
+
+        let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
+        let interest_receivable_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_REF}"),
+            CREDIT_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        )
+        .await?;
+
+        let interest_income_normal_balance_type = DebitOrCredit::Credit;
+        let interest_income_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_INTEREST_INCOME_ACCOUNT_SET_REF}"),
+            CREDIT_INTEREST_INCOME_ACCOUNT_SET_NAME.to_string(),
+            interest_income_normal_balance_type,
+        )
+        .await?;
+
+        let fee_income_normal_balance_type = DebitOrCredit::Credit;
+        let fee_income_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FEE_INCOME_ACCOUNT_SET_REF}"),
+            CREDIT_FEE_INCOME_ACCOUNT_SET_NAME.to_string(),
+            fee_income_normal_balance_type,
+        )
+        .await?;
+
+        let internal_account_sets = CreditFacilityInternalAccountSets {
+            facility: InternalAccountSetDetails {
+                id: facility_account_set_id,
+                normal_balance_type: facility_normal_balance_type,
+            },
+            collateral: InternalAccountSetDetails {
+                id: collateral_account_set_id,
+                normal_balance_type: collateral_normal_balance_type,
+            },
+            disbursed_receivable: InternalAccountSetDetails {
+                id: disbursed_receivable_account_set_id,
+                normal_balance_type: disbursed_receivable_normal_balance_type,
+            },
+            interest_receivable: InternalAccountSetDetails {
+                id: interest_receivable_account_set_id,
+                normal_balance_type: interest_receivable_normal_balance_type,
+            },
+            interest_income: InternalAccountSetDetails {
+                id: interest_income_account_set_id,
+                normal_balance_type: interest_income_normal_balance_type,
+            },
+            fee_income: InternalAccountSetDetails {
+                id: fee_income_account_set_id,
+                normal_balance_type: fee_income_normal_balance_type,
+            },
+        };
 
         let disbursal_limit_id = velocity::DisbursalLimit::init(cala).await?;
 
@@ -73,15 +216,128 @@ impl CreditLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            bank_collateral_account_id: omnibus_ids.bank_collateral,
-            credit_omnibus_account_id: omnibus_ids.facility,
-            fee_income_adjustment_omnibus_account_id: omnibus_ids.fee_income_adjustment,
-            debit_account_adjustment_omnibus_account_id: omnibus_ids.debit_account_adjustment,
-            non_cash_offset_omnibus_account_id: omnibus_ids.non_cash_offset,
+            facility_omnibus_account_ids,
+            collateral_omnibus_account_ids,
+            internal_account_sets,
             credit_facility_control_id,
-            account_factories,
             usd: "USD".parse().expect("Could not parse 'USD'"),
             btc: "BTC".parse().expect("Could not parse 'BTC'"),
+        })
+    }
+
+    async fn find_or_create_account_set(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        reference: String,
+        name: String,
+        normal_balance_type: DebitOrCredit,
+    ) -> Result<LedgerAccountSetId, CreditLedgerError> {
+        match cala
+            .account_sets()
+            .find_by_external_id(reference.to_string())
+            .await
+        {
+            Ok(account_set) if account_set.values().journal_id != journal_id => {
+                return Err(CreditLedgerError::JournalIdMismatch)
+            }
+            Ok(account_set) => return Ok(account_set.id),
+            Err(e) if e.was_not_found() => (),
+            Err(e) => return Err(e.into()),
+        };
+
+        let id = LedgerAccountSetId::new();
+        let new_account_set = NewAccountSet::builder()
+            .id(id)
+            .journal_id(journal_id)
+            .external_id(reference.to_string())
+            .name(name.clone())
+            .description(name)
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+        match cala.account_sets().create(new_account_set).await {
+            Ok(set) => Ok(set.id),
+            Err(cala_ledger::account_set::error::AccountSetError::ExternalIdAlreadyExists) => {
+                Ok(cala.account_sets().find_by_external_id(reference).await?.id)
+            }
+
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    async fn find_or_create_omnibus_account(
+        cala: &CalaLedger,
+        journal_id: JournalId,
+        account_set_reference: String,
+        reference: String,
+        name: String,
+        normal_balance_type: DebitOrCredit,
+    ) -> Result<LedgerOmnibusAccountIds, CreditLedgerError> {
+        let account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            account_set_reference,
+            name.to_string(),
+            normal_balance_type,
+        )
+        .await?;
+
+        let members = cala
+            .account_sets()
+            .list_members(account_set_id, Default::default())
+            .await?
+            .entities;
+        if !members.is_empty() {
+            match members[0].id {
+                AccountSetMemberId::Account(id) => {
+                    return Ok(LedgerOmnibusAccountIds {
+                        account_set_id,
+                        account_id: id,
+                    })
+                }
+                AccountSetMemberId::AccountSet(_) => {
+                    return Err(CreditLedgerError::NonAccountMemberFoundInAccountSet(
+                        account_set_id.to_string(),
+                    ))
+                }
+            }
+        }
+
+        let mut op = cala.begin_operation().await?;
+        let id = LedgerAccountId::new();
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .external_id(reference.to_string())
+            .name(name.clone())
+            .description(name)
+            .code(id.to_string())
+            .normal_balance_type(normal_balance_type)
+            .build()
+            .expect("Could not build new account");
+
+        let account_id = match cala
+            .accounts()
+            .create_in_op(&mut op, new_ledger_account)
+            .await
+        {
+            Ok(account) => {
+                cala.account_sets()
+                    .add_member_in_op(&mut op, account_set_id, account.id)
+                    .await?;
+
+                op.commit().await?;
+                id
+            }
+            Err(cala_ledger::account::error::AccountError::ExternalIdAlreadyExists) => {
+                op.commit().await?;
+                cala.accounts().find_by_external_id(reference).await?.id
+            }
+            Err(e) => return Err(e.into()),
+        };
+
+        Ok(LedgerOmnibusAccountIds {
+            account_set_id,
+            account_id,
         })
     }
 
@@ -173,7 +429,9 @@ impl CreditLedger {
                             amount: abs_diff.to_btc(),
                             collateral_account_id: credit_facility_account_ids
                                 .collateral_account_id,
-                            bank_collateral_account_id: self.bank_collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
                         },
                     )
                     .await
@@ -190,7 +448,9 @@ impl CreditLedger {
                             amount: abs_diff.to_btc(),
                             collateral_account_id: credit_facility_account_ids
                                 .collateral_account_id,
-                            bank_collateral_account_id: self.bank_collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
                         },
                     )
                     .await
@@ -207,7 +467,7 @@ impl CreditLedger {
         tx_ref: String,
         amounts: CreditFacilityPaymentAmounts,
         credit_facility_account_ids: CreditFacilityAccountIds,
-        debit_account_id: AccountId,
+        debit_account_id: LedgerAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -251,7 +511,7 @@ impl CreditLedger {
                     currency: self.btc,
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
-                    bank_collateral_account_id: self.bank_collateral_account_id,
+                    bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
                 },
             )
             .await?;
@@ -279,14 +539,11 @@ impl CreditLedger {
                 templates::ACTIVATE_CREDIT_FACILITY_CODE,
                 templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
                         .disbursed_receivable_account_id,
                     facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
-                    fee_income_adjustment_omnibus_account: self
-                        .fee_income_adjustment_omnibus_account_id,
-                    non_cash_offset_omnibus_account: self.non_cash_offset_omnibus_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
@@ -382,7 +639,7 @@ impl CreditLedger {
                 templates::INITIATE_DISBURSAL_CODE,
                 templates::InitiateDisbursalParams {
                     journal_id: self.journal_id,
-                    credit_omnibus_account: self.credit_omnibus_account_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     disbursed_amount: amount.to_usd(),
                 },
@@ -413,7 +670,7 @@ impl CreditLedger {
                     templates::CANCEL_DISBURSAL_CODE,
                     templates::CancelDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account_id,
+                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         disbursed_amount: amount.to_usd(),
                     },
@@ -427,14 +684,11 @@ impl CreditLedger {
                     templates::SETTLE_DISBURSAL_CODE,
                     templates::SettleDisbursalParams {
                         journal_id: self.journal_id,
-                        credit_omnibus_account: self.credit_omnibus_account_id,
+                        credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                         credit_facility_account: credit_facility_account_ids.facility_account_id,
                         facility_disbursed_receivable_account: credit_facility_account_ids
                             .disbursed_receivable_account_id,
                         debit_account_id,
-                        debit_account_adjustment_omnibus_account: self
-                            .debit_account_adjustment_omnibus_account_id,
-                        non_cash_offset_omnibus_account: self.non_cash_offset_omnibus_account_id,
                         disbursed_amount: amount.to_usd(),
                         external_id: tx_ref,
                     },
@@ -467,7 +721,7 @@ impl CreditLedger {
     pub async fn add_credit_facility_control_to_account(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        account_id: impl Into<AccountId>,
+        account_id: impl Into<LedgerAccountId>,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .velocities()
@@ -478,6 +732,39 @@ impl CreditLedger {
                 cala_ledger::tx_template::Params::default(),
             )
             .await?;
+        Ok(())
+    }
+
+    async fn create_account_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        id: impl Into<LedgerAccountId>,
+        parent_account_set: InternalAccountSetDetails,
+        reference: &str,
+        name: &str,
+        description: &str,
+    ) -> Result<(), CreditLedgerError> {
+        let id = id.into();
+
+        let new_ledger_account = NewAccount::builder()
+            .id(id)
+            .external_id(reference)
+            .name(name)
+            .description(description)
+            .code(id.to_string())
+            .normal_balance_type(parent_account_set.normal_balance_type)
+            .build()
+            .expect("Could not build new account");
+        let ledger_account = self
+            .cala
+            .accounts()
+            .create_in_op(op, new_ledger_account)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set.id, ledger_account.id)
+            .await?;
+
         Ok(())
     }
 
@@ -492,32 +779,30 @@ impl CreditLedger {
             "Credit Facility Collateral Account for {}",
             credit_facility_id
         );
-        self.account_factories
-            .collateral
-            .create_transaction_account_in_op(
-                op,
-                account_ids.collateral_account_id,
-                collateral_reference,
-                collateral_name,
-                collateral_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.collateral_account_id,
+            self.internal_account_sets.collateral,
+            collateral_reference,
+            collateral_name,
+            collateral_name,
+        )
+        .await?;
 
         let facility_reference = &format!("credit-facility-obs-facility:{}", credit_facility_id);
         let facility_name = &format!(
             "Off-Balance-Sheet Facility Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .facility
-            .create_transaction_account_in_op(
-                op,
-                account_ids.facility_account_id,
-                facility_reference,
-                facility_name,
-                facility_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.facility_account_id,
+            self.internal_account_sets.facility,
+            facility_reference,
+            facility_name,
+            facility_name,
+        )
+        .await?;
 
         let disbursed_receivable_reference = &format!(
             "credit-facility-disbursed-receivable:{}",
@@ -527,16 +812,15 @@ impl CreditLedger {
             "Disbursed Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .disbursed_receivable
-            .create_transaction_account_in_op(
-                op,
-                account_ids.disbursed_receivable_account_id,
-                disbursed_receivable_reference,
-                disbursed_receivable_name,
-                disbursed_receivable_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.disbursed_receivable_account_id,
+            self.internal_account_sets.disbursed_receivable,
+            disbursed_receivable_reference,
+            disbursed_receivable_name,
+            disbursed_receivable_name,
+        )
+        .await?;
 
         let interest_receivable_reference =
             &format!("credit-facility-interest-receivable:{}", credit_facility_id);
@@ -544,16 +828,15 @@ impl CreditLedger {
             "Interest Receivable Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .interest_receivable
-            .create_transaction_account_in_op(
-                op,
-                account_ids.interest_receivable_account_id,
-                interest_receivable_reference,
-                interest_receivable_name,
-                interest_receivable_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.interest_receivable_account_id,
+            self.internal_account_sets.interest_receivable,
+            interest_receivable_reference,
+            interest_receivable_name,
+            interest_receivable_name,
+        )
+        .await?;
 
         let interest_income_reference =
             &format!("credit-facility-interest-income:{}", credit_facility_id);
@@ -561,33 +844,244 @@ impl CreditLedger {
             "Interest Income Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .interest_income
-            .create_transaction_account_in_op(
-                op,
-                account_ids.interest_account_id,
-                interest_income_reference,
-                interest_income_name,
-                interest_income_name,
-            )
-            .await?;
+        self.create_account_in_op(
+            op,
+            account_ids.interest_account_id,
+            self.internal_account_sets.interest_income,
+            interest_income_reference,
+            interest_income_name,
+            interest_income_name,
+        )
+        .await?;
 
         let fee_income_reference = &format!("credit-facility-fee-income:{}", credit_facility_id);
         let fee_income_name = &format!(
             "Fee Income Account for Credit Facility {}",
             credit_facility_id
         );
-        self.account_factories
-            .fee_income
-            .create_transaction_account_in_op(
-                op,
-                account_ids.fee_income_account_id,
-                fee_income_reference,
-                fee_income_name,
-                fee_income_name,
-            )
+        self.create_account_in_op(
+            op,
+            account_ids.fee_income_account_id,
+            self.internal_account_sets.fee_income,
+            fee_income_reference,
+            fee_income_name,
+            fee_income_name,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CreditLedgerError> {
+        let account_set_id = *self
+            .internal_account_sets
+            .account_set_ids()
+            .first()
+            .expect("No internal account set ids found");
+        let account_set = self.cala.account_sets().find(account_set_id).await?;
+        if let Some(meta) = account_set.values().metadata.as_ref() {
+            let meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
+            Ok(Some(meta.config))
+        } else {
+            Ok(None)
+        }
+    }
+
+    async fn attach_charts_account_set<F>(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        account_sets: &mut HashMap<LedgerAccountSetId, AccountSet>,
+        internal_account_set_id: LedgerAccountSetId,
+        parent_account_set_id: LedgerAccountSetId,
+        new_meta: &ChartOfAccountsIntegrationMeta,
+        old_parent_id_getter: F,
+    ) -> Result<(), CreditLedgerError>
+    where
+        F: FnOnce(ChartOfAccountsIntegrationMeta) -> LedgerAccountSetId,
+    {
+        let mut internal_account_set = account_sets
+            .remove(&internal_account_set_id)
+            .expect("internal account set not found");
+
+        if let Some(old_meta) = internal_account_set.values().metadata.as_ref() {
+            let old_meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(old_meta.clone()).expect("Could not deserialize metadata");
+            let old_parent_account_set_id = old_parent_id_getter(old_meta);
+            if old_parent_account_set_id != parent_account_set_id {
+                self.cala
+                    .account_sets()
+                    .remove_member_in_op(op, old_parent_account_set_id, internal_account_set_id)
+                    .await?;
+            }
+        }
+
+        self.cala
+            .account_sets()
+            .add_member_in_op(op, parent_account_set_id, internal_account_set_id)
+            .await?;
+        let mut update = AccountSetUpdate::default();
+        update
+            .metadata(new_meta)
+            .expect("Could not update metadata");
+        internal_account_set.update(update);
+        self.cala
+            .account_sets()
+            .persist_in_op(op, &mut internal_account_set)
             .await?;
 
         Ok(())
     }
+
+    #[allow(clippy::too_many_arguments)]
+    pub async fn attach_chart_of_accounts_account_sets(
+        &self,
+        audit_info: AuditInfo,
+        config: &ChartOfAccountsIntegrationConfig,
+        facility_omnibus_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        collateral_omnibus_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        facility_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        collateral_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        disbursed_receivable_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        interest_receivable_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        interest_income_parent_account_set_id: impl Into<LedgerAccountSetId>,
+        fee_income_parent_account_set_id: impl Into<LedgerAccountSetId>,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.begin_operation().await?;
+
+        let mut account_set_ids = vec![
+            self.facility_omnibus_account_ids.account_set_id,
+            self.collateral_omnibus_account_ids.account_set_id,
+        ];
+        account_set_ids.extend(self.internal_account_sets.account_set_ids());
+        let mut account_sets = self
+            .cala
+            .account_sets()
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
+            .await?;
+
+        let new_meta = ChartOfAccountsIntegrationMeta {
+            config: config.clone(),
+            facility_omnibus_parent_account_set_id: facility_omnibus_parent_account_set_id.into(),
+            collateral_omnibus_parent_account_set_id: collateral_omnibus_parent_account_set_id
+                .into(),
+            facility_parent_account_set_id: facility_parent_account_set_id.into(),
+            collateral_parent_account_set_id: collateral_parent_account_set_id.into(),
+            disbursed_receivable_parent_account_set_id: disbursed_receivable_parent_account_set_id
+                .into(),
+            interest_receivable_parent_account_set_id: interest_receivable_parent_account_set_id
+                .into(),
+            interest_income_parent_account_set_id: interest_income_parent_account_set_id.into(),
+            fee_income_parent_account_set_id: fee_income_parent_account_set_id.into(),
+            audit_info,
+        };
+
+        let ChartOfAccountsIntegrationMeta {
+            config: _,
+            audit_info: _,
+
+            facility_omnibus_parent_account_set_id: facility_omnibus_parent_id_for_attach,
+            collateral_omnibus_parent_account_set_id: collateral_omnibus_parent_id_for_attach,
+            facility_parent_account_set_id: facility_parent_id_for_attach,
+            collateral_parent_account_set_id: collateral_parent_id_for_attach,
+            disbursed_receivable_parent_account_set_id: disbursed_receivable_parent_id_for_attach,
+            interest_receivable_parent_account_set_id: interest_receivable_parent_id_for_attach,
+            interest_income_parent_account_set_id: interest_income_parent_id_for_attach,
+            fee_income_parent_account_set_id: fee_income_parent_id_for_attach,
+        } = &new_meta;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.facility_omnibus_account_ids.account_set_id,
+            *facility_omnibus_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.facility_omnibus_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.collateral_omnibus_account_ids.account_set_id,
+            *collateral_omnibus_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.collateral_omnibus_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.facility.id,
+            *facility_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.facility_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.collateral.id,
+            *collateral_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.collateral_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.disbursed_receivable.id,
+            *disbursed_receivable_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.disbursed_receivable_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.interest_receivable.id,
+            *interest_receivable_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.interest_receivable_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.interest_income.id,
+            *interest_income_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.interest_income_parent_account_set_id,
+        )
+        .await?;
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.internal_account_sets.fee_income.id,
+            *fee_income_parent_id_for_attach,
+            &new_meta,
+            |meta| meta.fee_income_parent_account_set_id,
+        )
+        .await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+struct ChartOfAccountsIntegrationMeta {
+    config: ChartOfAccountsIntegrationConfig,
+    facility_omnibus_parent_account_set_id: LedgerAccountSetId,
+    collateral_omnibus_parent_account_set_id: LedgerAccountSetId,
+    facility_parent_account_set_id: LedgerAccountSetId,
+    collateral_parent_account_set_id: LedgerAccountSetId,
+    disbursed_receivable_parent_account_set_id: LedgerAccountSetId,
+    interest_receivable_parent_account_set_id: LedgerAccountSetId,
+    interest_income_parent_account_set_id: LedgerAccountSetId,
+    fee_income_parent_account_set_id: LedgerAccountSetId,
+    audit_info: AuditInfo,
 }

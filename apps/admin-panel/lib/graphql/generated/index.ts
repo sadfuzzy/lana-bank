@@ -238,35 +238,6 @@ export type CashFlowStatement = {
   total: AccountAmountsByCurrency;
 };
 
-export type ChartCategories = {
-  __typename?: 'ChartCategories';
-  assets: ChartCategory;
-  equity: ChartCategory;
-  expenses: ChartCategory;
-  liabilities: ChartCategory;
-  revenues: ChartCategory;
-};
-
-export type ChartCategory = {
-  __typename?: 'ChartCategory';
-  accountCode: Scalars['String']['output'];
-  controlAccounts: Array<ChartControlAccount>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartControlAccount = {
-  __typename?: 'ChartControlAccount';
-  accountCode: Scalars['String']['output'];
-  controlSubAccounts: Array<ChartControlSubAccount>;
-  name: Scalars['String']['output'];
-};
-
-export type ChartControlSubAccount = {
-  __typename?: 'ChartControlSubAccount';
-  accountCode: Scalars['String']['output'];
-  name: Scalars['String']['output'];
-};
-
 export type ChartNode = {
   __typename?: 'ChartNode';
   accountCode: Scalars['String']['output'];
@@ -276,7 +247,8 @@ export type ChartNode = {
 
 export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
-  categories: ChartCategories;
+  chartId: Scalars['UUID']['output'];
+  children: Array<ChartNode>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
@@ -620,6 +592,35 @@ export enum CreditFacilityStatus {
   PendingCollateralization = 'PENDING_COLLATERALIZATION'
 }
 
+export type CreditModuleConfig = {
+  __typename?: 'CreditModuleConfig';
+  chartOfAccountCollateralOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountCollateralParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountDisbursedReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFacilityOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFacilityParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFeeIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountInterestIncomeParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountInterestReceivableParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+};
+
+export type CreditModuleConfigureInput = {
+  chartOfAccountCollateralOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountCollateralParentCode: Scalars['String']['input'];
+  chartOfAccountDisbursedReceivableParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityOmnibusParentCode: Scalars['String']['input'];
+  chartOfAccountFacilityParentCode: Scalars['String']['input'];
+  chartOfAccountFeeIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestIncomeParentCode: Scalars['String']['input'];
+  chartOfAccountInterestReceivableParentCode: Scalars['String']['input'];
+};
+
+export type CreditModuleConfigurePayload = {
+  __typename?: 'CreditModuleConfigurePayload';
+  creditConfig: CreditModuleConfig;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -793,6 +794,23 @@ export type DepositEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export type DepositModuleConfig = {
+  __typename?: 'DepositModuleConfig';
+  chartOfAccountsDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type DepositModuleConfigureInput = {
+  chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
+};
+
+export type DepositModuleConfigurePayload = {
+  __typename?: 'DepositModuleConfigurePayload';
+  depositConfig: DepositModuleConfig;
+};
+
 export type DepositRecordInput = {
   amount: Scalars['UsdCents']['input'];
   depositAccountId: Scalars['UUID']['input'];
@@ -957,9 +975,11 @@ export type Mutation = {
   creditFacilityCreate: CreditFacilityCreatePayload;
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
+  creditModuleConfigure: CreditModuleConfigurePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerUpdate: CustomerUpdatePayload;
+  depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
@@ -1036,6 +1056,11 @@ export type MutationCreditFacilityPartialPaymentArgs = {
 };
 
 
+export type MutationCreditModuleConfigureArgs = {
+  input: CreditModuleConfigureInput;
+};
+
+
 export type MutationCustomerCreateArgs = {
   input: CustomerCreateInput;
 };
@@ -1048,6 +1073,11 @@ export type MutationCustomerDocumentAttachArgs = {
 
 export type MutationCustomerUpdateArgs = {
   input: CustomerUpdateInput;
+};
+
+
+export type MutationDepositModuleConfigureArgs = {
+  input: DepositModuleConfigureInput;
 };
 
 
@@ -1128,14 +1158,6 @@ export type MutationWithdrawalConfirmArgs = {
 
 export type MutationWithdrawalInitiateArgs = {
   input: WithdrawalInitiateInput;
-};
-
-export type NewChartOfAccounts = {
-  __typename?: 'NewChartOfAccounts';
-  chartId: Scalars['UUID']['output'];
-  children: Array<ChartNode>;
-  id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
 };
 
 export type Outstanding = {
@@ -1222,6 +1244,7 @@ export type Query = {
   chartOfAccounts: ChartOfAccounts;
   committee?: Maybe<Committee>;
   committees: CommitteeConnection;
+  creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
   customer?: Maybe<Customer>;
@@ -1229,13 +1252,12 @@ export type Query = {
   customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
+  depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
   me: Subject;
-  newChartOfAccounts: NewChartOfAccounts;
-  offBalanceSheetChartOfAccounts: ChartOfAccounts;
   offBalanceSheetTrialBalance: TrialBalance;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1799,23 +1821,17 @@ export type CashFlowStatementQueryVariables = Exact<{
 
 export type CashFlowStatementQuery = { __typename?: 'Query', cashFlowStatement: { __typename?: 'CashFlowStatement', name: string, total: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } }, categories: Array<{ __typename?: 'StatementCategory', name: string, accounts: Array<{ __typename: 'Account', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } } | { __typename: 'AccountSet', id: string, name: string, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } }>, amounts: { __typename?: 'AccountAmountsByCurrency', btc: { __typename?: 'BtcAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, closingBalance: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } }, amount: { __typename?: 'LayeredBtcAccountAmounts', all: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, settled: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, pending: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis }, encumbrance: { __typename?: 'BtcAccountAmounts', debit: Satoshis, credit: Satoshis, netDebit: SignedSatoshis, netCredit: SignedSatoshis } } }, usd: { __typename?: 'UsdAccountAmountsInPeriod', openingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, closingBalance: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } }, amount: { __typename?: 'LayeredUsdAccountAmounts', all: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, settled: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, pending: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents }, encumbrance: { __typename?: 'UsdAccountAmounts', debit: UsdCents, credit: UsdCents, netDebit: SignedUsdCents, netCredit: SignedUsdCents } } } } }> } };
 
-export type ControlSubAccountFieldsFragment = { __typename?: 'ChartControlSubAccount', name: string, accountCode: string };
-
-export type ControlAccountFieldsFragment = { __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> };
-
-export type CategoryFieldsFragment = { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> };
-
-export type ChartCategoriesFragment = { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } };
-
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', name: string, categories: { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } } } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> } };
 
-export type OffBalanceSheetChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
+export type ChartOfAccountsCsvImportMutationVariables = Exact<{
+  input: ChartOfAccountsCsvImportInput;
+}>;
 
 
-export type OffBalanceSheetChartOfAccountsQuery = { __typename?: 'Query', offBalanceSheetChartOfAccounts: { __typename?: 'ChartOfAccounts', name: string, categories: { __typename?: 'ChartCategories', assets: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, liabilities: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, equity: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, revenues: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> }, expenses: { __typename?: 'ChartCategory', name: string, accountCode: string, controlAccounts: Array<{ __typename?: 'ChartControlAccount', name: string, accountCode: string, controlSubAccounts: Array<{ __typename?: 'ChartControlSubAccount', name: string, accountCode: string }> }> } } } };
+export type ChartOfAccountsCsvImportMutation = { __typename?: 'Mutation', chartOfAccountsCsvImport: { __typename?: 'ChartOfAccountsCsvImportPayload', success: boolean } };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2055,6 +2071,30 @@ export type DisbursalsQueryVariables = Exact<{
 
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type CreditModuleConfigureMutationVariables = Exact<{
+  input: CreditModuleConfigureInput;
+}>;
+
+
+export type CreditModuleConfigureMutation = { __typename?: 'Mutation', creditModuleConfigure: { __typename?: 'CreditModuleConfigurePayload', creditConfig: { __typename?: 'CreditModuleConfig', chartOfAccountsId?: string | null, chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } } };
+
+export type DepositModuleConfigureMutationVariables = Exact<{
+  input: DepositModuleConfigureInput;
+}>;
+
+
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } } };
+
+export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
+
+export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type CreditConfigQuery = { __typename?: 'Query', creditConfig?: { __typename?: 'CreditModuleConfig', chartOfAccountFacilityOmnibusParentCode?: string | null, chartOfAccountCollateralOmnibusParentCode?: string | null, chartOfAccountFacilityParentCode?: string | null, chartOfAccountCollateralParentCode?: string | null, chartOfAccountDisbursedReceivableParentCode?: string | null, chartOfAccountInterestReceivableParentCode?: string | null, chartOfAccountInterestIncomeParentCode?: string | null, chartOfAccountFeeIncomeParentCode?: string | null } | null };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -2327,49 +2367,6 @@ export const AmountsByCurrencyFragmentDoc = gql`
 }
     ${BtcAmountsInPeriodFragmentDoc}
 ${UsdAmountsInPeriodFragmentDoc}`;
-export const ControlSubAccountFieldsFragmentDoc = gql`
-    fragment ControlSubAccountFields on ChartControlSubAccount {
-  name
-  accountCode
-}
-    `;
-export const ControlAccountFieldsFragmentDoc = gql`
-    fragment ControlAccountFields on ChartControlAccount {
-  name
-  accountCode
-  controlSubAccounts {
-    ...ControlSubAccountFields
-  }
-}
-    ${ControlSubAccountFieldsFragmentDoc}`;
-export const CategoryFieldsFragmentDoc = gql`
-    fragment CategoryFields on ChartCategory {
-  name
-  accountCode
-  controlAccounts {
-    ...ControlAccountFields
-  }
-}
-    ${ControlAccountFieldsFragmentDoc}`;
-export const ChartCategoriesFragmentDoc = gql`
-    fragment ChartCategories on ChartCategories {
-  assets {
-    ...CategoryFields
-  }
-  liabilities {
-    ...CategoryFields
-  }
-  equity {
-    ...CategoryFields
-  }
-  revenues {
-    ...CategoryFields
-  }
-  expenses {
-    ...CategoryFields
-  }
-}
-    ${CategoryFieldsFragmentDoc}`;
 export const CommitteeFieldsFragmentDoc = gql`
     fragment CommitteeFields on Committee {
   id
@@ -3074,13 +3071,36 @@ export type CashFlowStatementQueryResult = Apollo.QueryResult<CashFlowStatementQ
 export const ChartOfAccountsDocument = gql`
     query ChartOfAccounts {
   chartOfAccounts {
+    id
+    chartId
     name
-    categories {
-      ...ChartCategories
+    children {
+      name
+      accountCode
+      children {
+        name
+        accountCode
+        children {
+          name
+          accountCode
+          children {
+            name
+            accountCode
+            children {
+              name
+              accountCode
+              children {
+                name
+                accountCode
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
-    ${ChartCategoriesFragmentDoc}`;
+    `;
 
 /**
  * __useChartOfAccountsQuery__
@@ -3108,43 +3128,39 @@ export function useChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOp
 export type ChartOfAccountsQueryHookResult = ReturnType<typeof useChartOfAccountsQuery>;
 export type ChartOfAccountsLazyQueryHookResult = ReturnType<typeof useChartOfAccountsLazyQuery>;
 export type ChartOfAccountsQueryResult = Apollo.QueryResult<ChartOfAccountsQuery, ChartOfAccountsQueryVariables>;
-export const OffBalanceSheetChartOfAccountsDocument = gql`
-    query OffBalanceSheetChartOfAccounts {
-  offBalanceSheetChartOfAccounts {
-    name
-    categories {
-      ...ChartCategories
-    }
+export const ChartOfAccountsCsvImportDocument = gql`
+    mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
+  chartOfAccountsCsvImport(input: $input) {
+    success
   }
 }
-    ${ChartCategoriesFragmentDoc}`;
+    `;
+export type ChartOfAccountsCsvImportMutationFn = Apollo.MutationFunction<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
 
 /**
- * __useOffBalanceSheetChartOfAccountsQuery__
+ * __useChartOfAccountsCsvImportMutation__
  *
- * To run a query within a React component, call `useOffBalanceSheetChartOfAccountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useOffBalanceSheetChartOfAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
+ * To run a mutation, you first call `useChartOfAccountsCsvImportMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsCsvImportMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
  *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const { data, loading, error } = useOffBalanceSheetChartOfAccountsQuery({
+ * const [chartOfAccountsCsvImportMutation, { data, loading, error }] = useChartOfAccountsCsvImportMutation({
  *   variables: {
+ *      input: // value for 'input'
  *   },
  * });
  */
-export function useOffBalanceSheetChartOfAccountsQuery(baseOptions?: Apollo.QueryHookOptions<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>) {
+export function useChartOfAccountsCsvImportMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>(OffBalanceSheetChartOfAccountsDocument, options);
+        return Apollo.useMutation<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>(ChartOfAccountsCsvImportDocument, options);
       }
-export function useOffBalanceSheetChartOfAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>(OffBalanceSheetChartOfAccountsDocument, options);
-        }
-export type OffBalanceSheetChartOfAccountsQueryHookResult = ReturnType<typeof useOffBalanceSheetChartOfAccountsQuery>;
-export type OffBalanceSheetChartOfAccountsLazyQueryHookResult = ReturnType<typeof useOffBalanceSheetChartOfAccountsLazyQuery>;
-export type OffBalanceSheetChartOfAccountsQueryResult = Apollo.QueryResult<OffBalanceSheetChartOfAccountsQuery, OffBalanceSheetChartOfAccountsQueryVariables>;
+export type ChartOfAccountsCsvImportMutationHookResult = ReturnType<typeof useChartOfAccountsCsvImportMutation>;
+export type ChartOfAccountsCsvImportMutationResult = Apollo.MutationResult<ChartOfAccountsCsvImportMutation>;
+export type ChartOfAccountsCsvImportMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsCsvImportMutation, ChartOfAccountsCsvImportMutationVariables>;
 export const GetCommitteeDetailsDocument = gql`
     query GetCommitteeDetails($id: UUID!) {
   committee(id: $id) {
@@ -4554,6 +4570,162 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const CreditModuleConfigureDocument = gql`
+    mutation CreditModuleConfigure($input: CreditModuleConfigureInput!) {
+  creditModuleConfigure(input: $input) {
+    creditConfig {
+      chartOfAccountsId
+      chartOfAccountFacilityOmnibusParentCode
+      chartOfAccountCollateralOmnibusParentCode
+      chartOfAccountFacilityParentCode
+      chartOfAccountCollateralParentCode
+      chartOfAccountDisbursedReceivableParentCode
+      chartOfAccountInterestReceivableParentCode
+      chartOfAccountInterestIncomeParentCode
+      chartOfAccountFeeIncomeParentCode
+    }
+  }
+}
+    `;
+export type CreditModuleConfigureMutationFn = Apollo.MutationFunction<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+
+/**
+ * __useCreditModuleConfigureMutation__
+ *
+ * To run a mutation, you first call `useCreditModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreditModuleConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [creditModuleConfigureMutation, { data, loading, error }] = useCreditModuleConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreditModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>(CreditModuleConfigureDocument, options);
+      }
+export type CreditModuleConfigureMutationHookResult = ReturnType<typeof useCreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationResult = Apollo.MutationResult<CreditModuleConfigureMutation>;
+export type CreditModuleConfigureMutationOptions = Apollo.BaseMutationOptions<CreditModuleConfigureMutation, CreditModuleConfigureMutationVariables>;
+export const DepositModuleConfigureDocument = gql`
+    mutation DepositModuleConfigure($input: DepositModuleConfigureInput!) {
+  depositModuleConfigure(input: $input) {
+    depositConfig {
+      chartOfAccountsId
+      chartOfAccountsDepositAccountsParentCode
+      chartOfAccountsOmnibusParentCode
+    }
+  }
+}
+    `;
+export type DepositModuleConfigureMutationFn = Apollo.MutationFunction<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+
+/**
+ * __useDepositModuleConfigureMutation__
+ *
+ * To run a mutation, you first call `useDepositModuleConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositModuleConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositModuleConfigureMutation, { data, loading, error }] = useDepositModuleConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositModuleConfigureMutation(baseOptions?: Apollo.MutationHookOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>(DepositModuleConfigureDocument, options);
+      }
+export type DepositModuleConfigureMutationHookResult = ReturnType<typeof useDepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationResult = Apollo.MutationResult<DepositModuleConfigureMutation>;
+export type DepositModuleConfigureMutationOptions = Apollo.BaseMutationOptions<DepositModuleConfigureMutation, DepositModuleConfigureMutationVariables>;
+export const DepositConfigDocument = gql`
+    query depositConfig {
+  depositConfig {
+    chartOfAccountsDepositAccountsParentCode
+    chartOfAccountsOmnibusParentCode
+  }
+}
+    `;
+
+/**
+ * __useDepositConfigQuery__
+ *
+ * To run a query within a React component, call `useDepositConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useDepositConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useDepositConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useDepositConfigQuery(baseOptions?: Apollo.QueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+      }
+export function useDepositConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<DepositConfigQuery, DepositConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<DepositConfigQuery, DepositConfigQueryVariables>(DepositConfigDocument, options);
+        }
+export type DepositConfigQueryHookResult = ReturnType<typeof useDepositConfigQuery>;
+export type DepositConfigLazyQueryHookResult = ReturnType<typeof useDepositConfigLazyQuery>;
+export type DepositConfigQueryResult = Apollo.QueryResult<DepositConfigQuery, DepositConfigQueryVariables>;
+export const CreditConfigDocument = gql`
+    query creditConfig {
+  creditConfig {
+    chartOfAccountFacilityOmnibusParentCode
+    chartOfAccountCollateralOmnibusParentCode
+    chartOfAccountFacilityParentCode
+    chartOfAccountCollateralParentCode
+    chartOfAccountDisbursedReceivableParentCode
+    chartOfAccountInterestReceivableParentCode
+    chartOfAccountInterestIncomeParentCode
+    chartOfAccountFeeIncomeParentCode
+  }
+}
+    `;
+
+/**
+ * __useCreditConfigQuery__
+ *
+ * To run a query within a React component, call `useCreditConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useCreditConfigQuery(baseOptions?: Apollo.QueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+      }
+export function useCreditConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditConfigQuery, CreditConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditConfigQuery, CreditConfigQueryVariables>(CreditConfigDocument, options);
+        }
+export type CreditConfigQueryHookResult = ReturnType<typeof useCreditConfigQuery>;
+export type CreditConfigLazyQueryHookResult = ReturnType<typeof useCreditConfigLazyQuery>;
+export type CreditConfigQueryResult = Apollo.QueryResult<CreditConfigQuery, CreditConfigQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

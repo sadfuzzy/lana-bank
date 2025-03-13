@@ -1,6 +1,7 @@
 pub mod error;
 pub mod ledger;
 
+use chart_of_accounts::Chart;
 use chrono::{DateTime, Utc};
 
 use audit::AuditSvc;
@@ -84,6 +85,34 @@ impl TrialBalances {
         Ok(())
     }
 
+    pub async fn add_chart_to_trial_balance(
+        &self,
+        name: String,
+        chart: Chart,
+    ) -> Result<(), TrialBalanceError> {
+        let trial_balance_id = self
+            .trial_balance_ledger
+            .get_id_from_reference(name)
+            .await?;
+
+        let mut op = es_entity::DbOp::init(&self.pool).await?;
+
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Update)
+            .await?;
+
+        self.trial_balance_ledger
+            .add_members(
+                op,
+                trial_balance_id,
+                chart.all_non_top_level_accounts().map(|(_, id)| *id),
+            )
+            .await?;
+
+        Ok(())
+    }
+
     pub async fn trial_balance(
         &self,
         sub: &Subject,
@@ -103,7 +132,7 @@ impl TrialBalances {
     }
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct TrialBalance {
     pub id: LedgerAccountSetId,
     pub name: String,

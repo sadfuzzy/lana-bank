@@ -26,16 +26,24 @@ pub enum CoreCreditError {
     PriceError(#[from] core_price::error::PriceError),
     #[error("CoreCreditError - GovernanceError: {0}")]
     GovernanceError(#[from] governance::error::GovernanceError),
+    #[error("CoreCreditError - CoreChartOfAccountsError: {0}")]
+    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    #[error("CoreCreditError - CoreChartOfAccountsError: {0}")]
+    AltCoreChartOfAccountsError(#[from] chart_of_accounts::error::ChartError),
     #[error("CoreCreditError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("CoreCreditError - CustomerMismatchForCreditFacility")]
     CustomerMismatchForCreditFacility,
-    #[error("CreditFacilityError - SubjectIsNotCustomer")]
+    #[error("CoreCreditError - SubjectIsNotCustomer")]
     SubjectIsNotCustomer,
-    #[error("CreditFacilityError - CustomerIsNotActive")]
+    #[error("CoreCreditError - CustomerIsNotActive")]
     CustomerNotActive,
-    #[error("CreditFacilityError - CustomerNotFound")]
+    #[error("CoreCreditError - CustomerNotFound")]
     CustomerNotFound,
+    #[error("CoreCreditError ChartIdMismatch")]
+    ChartIdMismatch,
+    #[error("CoreCreditError - CreditConfigAlreadyExists")]
+    CreditConfigAlreadyExists,
 }
 
 es_entity::from_es_entity_error!(CoreCreditError);

@@ -2,6 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod account;
+mod chart_of_accounts_integration;
 mod deposit;
 mod deposit_account_balance;
 pub mod error;
@@ -9,7 +10,6 @@ mod event;
 mod for_subject;
 mod history;
 mod ledger;
-// mod module_config;
 mod primitives;
 mod processes;
 mod withdrawal;
@@ -20,7 +20,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::{new::CoreChartOfAccounts, TransactionAccountFactory};
+use chart_of_accounts::Chart;
 use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
@@ -28,6 +28,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use account::DepositAccount;
 use account::*;
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -36,8 +37,6 @@ pub use event::*;
 pub use for_subject::DepositsForSubject;
 pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
-pub use ledger::{DepositAccountFactories, DepositOmnibusAccountIds};
-// use module_config::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
@@ -59,12 +58,9 @@ where
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
-    chart_of_accounts: CoreChartOfAccounts<Perms>,
-    account_factory: TransactionAccountFactory,
     authz: Perms,
     governance: Governance<Perms, E>,
     customers: Customers<Perms, E>,
-    // config_repo: DepositConfigRepo,
     outbox: Outbox<E>,
 }
 
@@ -82,13 +78,10 @@ where
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
             cala: self.cala.clone(),
-            chart_of_accounts: self.chart_of_accounts.clone(),
-            account_factory: self.account_factory.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
-            // config_repo: self.config_repo.clone(),
             outbox: self.outbox.clone(),
         }
     }
@@ -113,17 +106,13 @@ where
         governance: &Governance<Perms, E>,
         customers: &Customers<Perms, E>,
         jobs: &Jobs,
-        factories: DepositAccountFactories,
-        chart_of_accounts: &CoreChartOfAccounts<Perms>,
-        omnibus_ids: DepositOmnibusAccountIds,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
         let accounts = DepositAccountRepo::new(pool);
         let deposits = DepositRepo::new(pool);
         let withdrawals = WithdrawalRepo::new(pool);
-        // let config_repo = DepositConfigRepo::new(pool);
-        let ledger = DepositLedger::init(cala, journal_id, omnibus_ids.deposits).await?;
+        let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
@@ -145,16 +134,13 @@ where
             accounts,
             deposits,
             withdrawals,
-            // config_repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
             customers: customers.clone(),
             cala: cala.clone(),
-            chart_of_accounts: chart_of_accounts.clone(),
             approve_withdrawal,
             ledger,
-            account_factory: factories.deposits,
         };
         Ok(res)
     }
@@ -212,31 +198,15 @@ where
         let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        self.account_factory
-            .create_transaction_account_in_op(
-                &mut op,
+        self.ledger
+            .create_deposit_account(
+                op,
                 account_id,
-                &account.reference,
-                &account.name,
-                &account.description,
+                account.reference.to_string(),
+                account.name.to_string(),
+                account.description.to_string(),
             )
             .await?;
-        // self.chart_of_accounts.create_leaf_account_in_op(
-        //     &mut op,
-        //     chart_id,
-        //     parent_code,
-        //     account_id,
-        //     account.reference.clone(),
-        //     account.name.clone(),
-        //     account.description.clone(),
-        // )?;
-
-        self.ledger
-            .add_deposit_control_to_account(&mut op, account_id)
-            .await?;
-
-        op.commit().await?;
 
         Ok(account)
     }
@@ -653,5 +623,67 @@ where
             .accounts
             .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
             .await?)
+    }
+
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::chart_of_accounts_integration(),
+                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?)
+    }
+
+    pub async fn set_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: Chart,
+        config: ChartOfAccountsIntegrationConfig,
+    ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
+        if chart.id != config.chart_of_accounts_id {
+            return Err(CoreDepositError::ChartIdMismatch);
+        }
+
+        if self
+            .ledger
+            .get_chart_of_accounts_integration_config()
+            .await?
+            .is_some()
+        {
+            return Err(CoreDepositError::DepositConfigAlreadyExists);
+        }
+
+        let deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
+        let omnibus_parent_account_set_id =
+            chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::chart_of_accounts_integration(),
+                CoreDepositAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
+            )
+            .await?;
+
+        self.ledger
+            .attach_chart_of_accounts_account_sets(
+                audit_info,
+                &config,
+                deposit_accounts_parent_account_set_id,
+                omnibus_parent_account_set_id,
+            )
+            .await?;
+
+        Ok(config)
     }
 }

@@ -4,9 +4,8 @@ use std::io::Read;
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_CHART_REF,
-        OBS_TRIAL_BALANCE_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
-        TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
+        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -15,8 +14,8 @@ use crate::primitives::*;
 
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, document::*, financials::*,
-    loader::*, new_chart_of_accounts::*, policy::*, price::*, report::*, sumsub::*,
+    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, financials::*, loader::*, policy::*, price::*, report::*, sumsub::*,
     terms_template::*, user::*, withdrawal::*,
 };
 
@@ -440,42 +439,8 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
             .chart_of_accounts()
-            .list_charts(sub)
-            .await?
-            .into_iter()
-            .find(|p| p.reference == reference)
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
-        Ok(ChartOfAccounts::from(chart))
-    }
-
-    async fn new_chart_of_accounts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<NewChartOfAccounts> {
-        let reference = CHART_REF.to_string();
-
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
-            .new_chart_of_accounts()
             .find_by_reference(sub, reference.to_string())
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
-        Ok(NewChartOfAccounts::from(chart))
-    }
-
-    async fn off_balance_sheet_chart_of_accounts(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<ChartOfAccounts> {
-        let reference = OBS_CHART_REF.to_string();
-
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
-            .chart_of_accounts()
-            .list_charts(sub)
-            .await?
-            .into_iter()
-            .find(|p| p.reference == reference)
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
         Ok(ChartOfAccounts::from(chart))
     }
@@ -618,6 +583,30 @@ impl Query {
         )
         .await
     }
+
+    async fn deposit_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<DepositModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .deposits()
+            .get_chart_of_accounts_integration_config(sub)
+            .await?;
+        Ok(config.map(DepositModuleConfig::from))
+    }
+
+    async fn credit_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<CreditModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .credit_facilities()
+            .get_chart_of_accounts_integration_config(sub)
+            .await?;
+        Ok(config.map(CreditModuleConfig::from))
+    }
 }
 
 pub struct Mutation;
@@ -729,6 +718,39 @@ impl Mutation {
             app.customers()
                 .update(sub, input.customer_id, input.telegram_id)
         )
+    }
+
+    async fn deposit_module_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositModuleConfigureInput,
+    ) -> async_graphql::Result<DepositModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .chart_of_accounts()
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
+        let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_accounts_deposit_accounts_parent_code(
+                input
+                    .chart_of_accounts_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_accounts_omnibus_parent_code(
+                input.chart_of_accounts_omnibus_parent_code.parse()?,
+            )
+            .build()?;
+        let config = app
+            .deposits()
+            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .await?;
+        Ok(DepositModuleConfigurePayload::from(
+            DepositModuleConfig::from(config),
+        ))
     }
 
     pub async fn deposit_record(
@@ -851,6 +873,63 @@ impl Mutation {
                 term_values
             )
         )
+    }
+
+    async fn credit_module_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditModuleConfigureInput,
+    ) -> async_graphql::Result<CreditModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .chart_of_accounts()
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
+        let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_account_facility_omnibus_parent_code(
+                input
+                    .chart_of_account_facility_omnibus_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_collateral_omnibus_parent_code(
+                input
+                    .chart_of_account_collateral_omnibus_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_facility_parent_code(
+                input.chart_of_account_facility_parent_code.parse()?,
+            )
+            .chart_of_account_collateral_parent_code(
+                input.chart_of_account_collateral_parent_code.parse()?,
+            )
+            .chart_of_account_disbursed_receivable_parent_code(
+                input
+                    .chart_of_account_disbursed_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_interest_receivable_parent_code(
+                input
+                    .chart_of_account_interest_receivable_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_interest_income_parent_code(
+                input.chart_of_account_interest_income_parent_code.parse()?,
+            )
+            .chart_of_account_fee_income_parent_code(
+                input.chart_of_account_fee_income_parent_code.parse()?,
+            )
+            .build()?;
+        let config = app
+            .credit_facilities()
+            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .await?;
+        Ok(CreditModuleConfigurePayload::from(
+            CreditModuleConfig::from(config),
+        ))
     }
 
     pub async fn credit_facility_create(
@@ -1126,8 +1205,13 @@ impl Mutation {
         let mut data = String::new();
         file.read_to_string(&mut data)?;
 
-        app.new_chart_of_accounts()
+        let chart = app
+            .chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
+            .await?;
+
+        app.trial_balances()
+            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), chart)
             .await?;
 
         Ok(ChartOfAccountsCsvImportPayload { success: true })

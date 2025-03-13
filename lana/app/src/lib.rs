@@ -83,9 +83,9 @@ pub mod audit {
 
 pub mod deposit {
     pub use deposit::{
-        error, Deposit, DepositAccount, DepositAccountBalance, DepositAccountFactories,
-        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositOmnibusAccountIds,
-        DepositsByCreatedAtCursor, Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
+        error, ChartOfAccountsIntegrationConfig, Deposit, DepositAccount, DepositAccountBalance,
+        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositsByCreatedAtCursor,
+        Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
     };
 
     pub type Deposits =
@@ -93,29 +93,24 @@ pub mod deposit {
 }
 
 pub mod chart_of_accounts {
-    pub use chart_of_accounts::{error, tree, Chart, ControlAccountDetails};
+    pub use chart_of_accounts::{
+        error, {tree, Chart},
+    };
 
     pub type ChartOfAccounts =
         chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
 }
 
-pub mod new_chart_of_accounts {
-    pub use chart_of_accounts::new::{tree, Chart};
-
-    pub type NewChartOfAccounts =
-        chart_of_accounts::new::CoreChartOfAccounts<crate::authorization::Authorization>;
-}
-
 pub mod credit_facility {
     pub use core_credit::{
-        error, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent,
-        CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityAccountFactories, CreditFacilityBalance, CreditFacilityConfig,
-        CreditFacilityHistoryEntry, CreditFacilityOmnibusAccountIds, CreditFacilityOrigination,
-        CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal, DisbursalExecuted,
-        DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities,
-        FindManyDisbursals, IncrementalPayment, InterestAccrued, ListDirection, Payment,
-        RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
+        CoreCreditEvent, CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
+        CreditFacilityBalance, CreditFacilityConfig, CreditFacilityHistoryEntry,
+        CreditFacilityOrigination, CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal,
+        DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL,
+        FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrued,
+        ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
+        APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type CreditFacilities =

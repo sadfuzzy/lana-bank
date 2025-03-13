@@ -17,7 +17,8 @@
     "download": "Download",
     "upload": "Upload",
     "close": "Close",
-    "submit": "Submit"
+    "submit": "Submit",
+    "set": "Set"
   },
   "Sidebar": {
     "labels": {
@@ -25,7 +26,9 @@
       "customers": "Customers",
       "transactions": "Transactions",
       "administration": "Administration",
-      "financialReports": "Financial Reports"
+      "financialReports": "Financial Reports",
+      "accounting": "Accounting",
+      "governance": "Governance"
     },
     "navItems": {
       "dashboard": "Dashboard",
@@ -45,7 +48,8 @@
       "cashFlow": "Cash Flow",
       "profitAndLoss": "Profit & Loss",
       "regulatoryReporting": "Regulatory Reporting",
-      "trialBalance": "Trial Balance"
+      "trialBalance": "Trial Balance",
+      "modules": "Modules"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -1121,17 +1125,19 @@
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",
     "description": "A structured list of all accounts used to categorize and track financial records.",
-    "tabs": {
-      "regular": "Regular",
-      "offBalanceSheet": "Off Balance Sheet"
+    "upload": {
+      "dragAndDrop": "Drag and drop your CSV file here",
+      "dropHere": "Drop your file here",
+      "csvOnly": "CSV files only (.csv)",
+      "noFileSelected": "No file selected",
+      "genericError": "An error occurred while uploading your file",
+      "successDescription": "Chart of accounts successfully imported",
+      "errorTitle": "Upload Failed",
+      "uploading": "Uploading your chart of accounts...",
+      "reset": "Reset",
+      "upload": "Upload"
     },
-    "table": {
-      "headers": {
-        "accountName": "Account Name",
-        "accountCode": "Account Code"
-      },
-      "error": "An error occurred while fetching the chart of accounts."
-    }
+    "copied": "Copied Account Code: \"{code}\""
   },
   "BalanceSheet": {
     "title": "Balance Sheet",
@@ -1253,5 +1259,30 @@
     "noData": "No data to display",
     "sortBy": "Sort By",
     "all": "All"
+  },
+  "Modules": {
+    "notYetConfigured": "Not yet configured",
+    "deposit": {
+      "title": "Deposit",
+      "description": "Deposit configuration",
+      "setTitle": "Set Deposit Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountsDepositAccountsParentCode": "Deposit Accounts Parent Code",
+      "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code"
+    },
+    "credit": {
+      "title": "Credit",
+      "description": "Credit configuration",
+      "setTitle": "Set Credit Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountFacilityOmnibusParentCode": "Facility Omnibus Parent Code",
+      "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",
+      "chartOfAccountFacilityParentCode": "Facility Parent Code",
+      "chartOfAccountCollateralParentCode": "Collateral Parent Code",
+      "chartOfAccountDisbursedReceivableParentCode": "Disbursed Receivable Parent Code",
+      "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code",
+      "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
+      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code"
+    }
   }
 }
