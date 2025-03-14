@@ -25,14 +25,32 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
 
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
 
+  const getCustomerTypeDisplay = (customerType: CustomerType) => {
+    switch (customerType) {
+      case CustomerType.Individual:
+        return t("customerType.individual")
+      case CustomerType.GovernmentEntity:
+        return t("customerType.governmentEntity")
+      case CustomerType.PrivateCompany:
+        return t("customerType.privateCompany")
+      case CustomerType.Bank:
+        return t("customerType.bank")
+      case CustomerType.FinancialInstitution:
+        return t("customerType.financialInstitution")
+      case CustomerType.ForeignAgencyOrSubsidiary:
+        return t("customerType.foreignAgency")
+      case CustomerType.NonDomiciledCompany:
+        return t("customerType.nonDomiciledCompany")
+      default:
+        return customerType
+    }
+  }
+
   const details: DetailItemProps[] = [
     { label: t("labels.email"), value: customer.email },
     {
       label: t("labels.customerType"),
-      value:
-        customer.customerType === CustomerType.Individual
-          ? t("customerType.individual")
-          : t("customerType.company"),
+      value: getCustomerTypeDisplay(customer.customerType),
     },
     { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {

@@ -692,8 +692,13 @@ export type CustomerEdge = {
 };
 
 export enum CustomerType {
-  Company = 'COMPANY',
-  Individual = 'INDIVIDUAL'
+  Bank = 'BANK',
+  FinancialInstitution = 'FINANCIAL_INSTITUTION',
+  ForeignAgencyOrSubsidiary = 'FOREIGN_AGENCY_OR_SUBSIDIARY',
+  GovernmentEntity = 'GOVERNMENT_ENTITY',
+  Individual = 'INDIVIDUAL',
+  NonDomiciledCompany = 'NON_DOMICILED_COMPANY',
+  PrivateCompany = 'PRIVATE_COMPANY'
 }
 
 export type CustomerUpdateInput = {

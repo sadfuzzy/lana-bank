@@ -120,6 +120,13 @@
       "customerTypeLabel": "Customer Type",
       "individualLabel": "Individual",
       "companyLabel": "Company",
+      "companyTypeLabel": "Company Type",
+      "governmentEntityLabel": "Government Entity",
+      "privateCompanyLabel": "Private Company",
+      "bankLabel": "Bank",
+      "financialInstitutionLabel": "Financial Institution",
+      "foreignAgencyLabel": "Foreign Agency or Subsidiary",
+      "nonDomiciledCompanyLabel": "Non-Domiciled Company",
       "reviewButton": "Review Details",
       "backButton": "Back",
       "confirmButton": "Confirm and Submit",
@@ -142,6 +149,19 @@
       },
       "details": {
         "title": "Customer",
+        "customer": "Customer",
+        "customerDetails": "Customer Details",
+        "updateTelegramId": "Update Telegram ID",
+        "customerType": {
+          "individual": "Individual",
+          "company": "Company",
+          "governmentEntity": "Government Entity",
+          "privateCompany": "Private Company",
+          "bank": "Bank",
+          "financialInstitution": "Financial Institution",
+          "foreignAgency": "Foreign Agency or Subsidiary",
+          "nonDomiciledCompany": "Non-Domiciled Company"
+        },
         "labels": {
           "email": "Email",
           "createdOn": "Created on",
@@ -152,10 +172,6 @@
         "status": {
           "active": "Active",
           "inactive": "Inactive"
-        },
-        "customerType": {
-          "individual": "Individual",
-          "company": "Company"
         },
         "actions": {
           "editTelegram": "Edit Telegram ID"

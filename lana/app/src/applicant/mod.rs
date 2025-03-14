@@ -116,7 +116,19 @@ impl From<&core_customer::CustomerType> for SumsubVerificationLevel {
     fn from(customer_type: &core_customer::CustomerType) -> Self {
         match customer_type {
             core_customer::CustomerType::Individual => SumsubVerificationLevel::BasicKycLevel,
-            core_customer::CustomerType::Company => SumsubVerificationLevel::BasicKybLevel,
+            // All company types use the same SumSub verification level
+            core_customer::CustomerType::GovernmentEntity => SumsubVerificationLevel::BasicKybLevel,
+            core_customer::CustomerType::PrivateCompany => SumsubVerificationLevel::BasicKybLevel,
+            core_customer::CustomerType::Bank => SumsubVerificationLevel::BasicKybLevel,
+            core_customer::CustomerType::FinancialInstitution => {
+                SumsubVerificationLevel::BasicKybLevel
+            }
+            core_customer::CustomerType::ForeignAgencyOrSubsidiary => {
+                SumsubVerificationLevel::BasicKybLevel
+            }
+            core_customer::CustomerType::NonDomiciledCompany => {
+                SumsubVerificationLevel::BasicKybLevel
+            }
         }
     }
 }

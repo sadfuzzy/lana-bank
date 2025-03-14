@@ -42,14 +42,24 @@ pub enum AccountStatus {
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum CustomerType {
     Individual,
-    Company,
+    GovernmentEntity,
+    PrivateCompany,
+    Bank,
+    FinancialInstitution,
+    ForeignAgencyOrSubsidiary,
+    NonDomiciledCompany,
 }
 
 impl Display for CustomerType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CustomerType::Individual => write!(f, "Individual"),
-            CustomerType::Company => write!(f, "Company"),
+            CustomerType::GovernmentEntity => write!(f, "Government Entity"),
+            CustomerType::PrivateCompany => write!(f, "Private Company"),
+            CustomerType::Bank => write!(f, "Bank"),
+            CustomerType::FinancialInstitution => write!(f, "Financial Institution"),
+            CustomerType::ForeignAgencyOrSubsidiary => write!(f, "Foreign Agency or Subsidiary"),
+            CustomerType::NonDomiciledCompany => write!(f, "Non-Domiciled Company"),
         }
     }
 }
@@ -64,7 +74,12 @@ impl From<CustomerType> for String {
     fn from(customer_type: CustomerType) -> Self {
         match customer_type {
             CustomerType::Individual => "Individual".to_string(),
-            CustomerType::Company => "Company".to_string(),
+            CustomerType::GovernmentEntity => "Government Entity".to_string(),
+            CustomerType::PrivateCompany => "Private Company".to_string(),
+            CustomerType::Bank => "Bank".to_string(),
+            CustomerType::FinancialInstitution => "Financial Institution".to_string(),
+            CustomerType::ForeignAgencyOrSubsidiary => "Foreign Agency or Subsidiary".to_string(),
+            CustomerType::NonDomiciledCompany => "Non-Domiciled Company".to_string(),
         }
     }
 }
