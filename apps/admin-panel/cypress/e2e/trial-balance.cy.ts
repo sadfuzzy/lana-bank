@@ -1,8 +1,8 @@
 import { print } from "@apollo/client/utilities"
 
 import {
-  GetOnBalanceSheetTrialBalanceDocument,
-  GetOnBalanceSheetTrialBalanceQuery,
+  GetTrialBalanceDocument,
+  GetTrialBalanceQuery,
 } from "../../lib/graphql/generated"
 
 describe("Trial Balance", () => {
@@ -15,14 +15,11 @@ describe("Trial Balance", () => {
   })
 
   it("should render trial balance with accounts and their balances", () => {
-    cy.graphqlRequest<{ data: GetOnBalanceSheetTrialBalanceQuery }>(
-      print(GetOnBalanceSheetTrialBalanceDocument),
-      {
-        from: lastMonthDate.toISOString(),
-        until: currentDate.toISOString(),
-      },
-    ).then((response) => {
-      response.data.trialBalance?.subAccounts.forEach((account) => {
+    cy.graphqlRequest<{ data: GetTrialBalanceQuery }>(print(GetTrialBalanceDocument), {
+      from: lastMonthDate.toISOString(),
+      until: currentDate.toISOString(),
+    }).then((response) => {
+      response.data.trialBalance?.accounts.forEach((account) => {
         cy.get("main")
           .contains(new RegExp(`^${account.name}$`))
           .should("exist")
@@ -44,11 +41,6 @@ describe("Trial Balance", () => {
     cy.contains("USD").click()
     cy.contains("BTC").click()
     cy.takeScreenshot("trial-balance-btc-currency")
-  })
-
-  it("should show OffBalance Sheet", () => {
-    cy.contains("Off Balance Sheet").click()
-    cy.takeScreenshot("off-balance-sheet")
   })
 
   it("should switch between balance layers", () => {

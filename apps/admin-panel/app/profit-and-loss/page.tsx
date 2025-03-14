@@ -213,7 +213,7 @@ const ProfitAndLossStatement = ({
               return (
                 <CategoryRow
                   key={category.name}
-                  category={category}
+                  category={category as StatementCategory}
                   currency={currency}
                   layer={layer}
                   transactionType={

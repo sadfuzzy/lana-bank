@@ -194,7 +194,7 @@ const BalanceSheet = ({
           {assets && assets.length > 0 && (
             <BalanceSheetColumn
               title={t("columns.assets")}
-              categories={assets}
+              categories={assets as StatementCategory[]}
               currency={currency}
               layer={layer}
               total={

@@ -12,6 +12,27 @@ use crate::statement::*;
 use error::*;
 
 #[derive(Clone)]
+pub struct TrialBalance {
+    pub id: AccountSetId,
+    pub name: String,
+    pub description: Option<String>,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
+    pub accounts: Vec<TrialBalanceAccountSet>,
+    pub from: DateTime<Utc>,
+    pub until: Option<DateTime<Utc>>,
+}
+
+#[derive(Clone)]
+pub struct TrialBalanceAccountSet {
+    pub id: AccountSetId,
+    pub name: String,
+    pub description: Option<String>,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
+}
+
+#[derive(Clone)]
 pub struct TrialBalanceLedger {
     cala: CalaLedger,
     journal_id: JournalId,
@@ -61,7 +82,7 @@ impl TrialBalanceLedger {
         &self,
         account_set_id: AccountSetId,
         balances_by_id: &BalancesByAccount,
-    ) -> Result<StatementAccountSet, TrialBalanceLedgerError> {
+    ) -> Result<TrialBalanceAccountSet, TrialBalanceLedgerError> {
         let values = self
             .cala
             .account_sets()
@@ -69,7 +90,7 @@ impl TrialBalanceLedger {
             .await?
             .into_values();
 
-        Ok(StatementAccountSet {
+        Ok(TrialBalanceAccountSet {
             id: account_set_id,
             name: values.name,
             description: values.description,
@@ -194,7 +215,7 @@ impl TrialBalanceLedger {
         name: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-    ) -> Result<StatementAccountSetWithAccounts, TrialBalanceLedgerError> {
+    ) -> Result<TrialBalance, TrialBalanceLedgerError> {
         let statement_id = self.get_id_from_reference(name).await?;
         let mut all_account_set_ids = vec![statement_id];
 
@@ -215,13 +236,15 @@ impl TrialBalanceLedger {
             );
         }
 
-        Ok(StatementAccountSetWithAccounts {
+        Ok(TrialBalance {
             id: statement_account_set.id,
             name: statement_account_set.name,
             description: statement_account_set.description,
             btc_balance: statement_account_set.btc_balance,
             usd_balance: statement_account_set.usd_balance,
             accounts,
+            from,
+            until,
         })
     }
 }

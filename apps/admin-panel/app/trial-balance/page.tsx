@@ -12,8 +12,6 @@ import {
   TableRow,
 } from "@lana/web/ui/table"
 
-import { Tabs, TabsList, TabsContent, TabsTrigger } from "@lana/web/ui/tab"
-
 import {
   Card,
   CardContent,
@@ -26,12 +24,7 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 
 import { useTranslations } from "next-intl"
 
-import {
-  GetOffBalanceSheetTrialBalanceQuery,
-  GetOnBalanceSheetTrialBalanceQuery,
-  useGetOffBalanceSheetTrialBalanceQuery,
-  useGetOnBalanceSheetTrialBalanceQuery,
-} from "@/lib/graphql/generated"
+import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
@@ -42,47 +35,17 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query GetOnBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
+  query GetTrialBalance($from: Timestamp!, $until: Timestamp) {
     trialBalance(from: $from, until: $until) {
       name
       total {
         ...balancesByCurrency
       }
-      subAccounts {
-        ... on Account {
-          name
-          amounts {
-            ...balancesByCurrency
-          }
-        }
-        ... on AccountSet {
-          name
-          amounts {
-            ...balancesByCurrency
-          }
-        }
-      }
-    }
-  }
-
-  query GetOffBalanceSheetTrialBalance($from: Timestamp!, $until: Timestamp) {
-    offBalanceSheetTrialBalance(from: $from, until: $until) {
-      name
-      total {
-        ...balancesByCurrency
-      }
-      subAccounts {
-        ... on Account {
-          name
-          amounts {
-            ...balancesByCurrency
-          }
-        }
-        ... on AccountSet {
-          name
-          amounts {
-            ...balancesByCurrency
-          }
+      accounts {
+        id
+        name
+        amounts {
+          ...balancesByCurrency
         }
       }
     }
@@ -225,15 +188,13 @@ const LoadingSkeleton = () => {
 
 type Layers = "all" | "settled" | "pending"
 type TrialBalanceValuesProps = {
-  data:
-    | GetOffBalanceSheetTrialBalanceQuery["offBalanceSheetTrialBalance"]
-    | GetOnBalanceSheetTrialBalanceQuery["trialBalance"]
-    | undefined
+  data: GetTrialBalanceQuery["trialBalance"] | undefined
   loading: boolean
   error: ApolloError | undefined
   dateRange: DateRange
   setDateRange: (dateRange: DateRange) => void
 }
+
 const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   data,
   loading,
@@ -246,7 +207,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const [layer, setLayer] = React.useState<Layers>("all")
 
   const total = data?.total
-  const subAccounts = data?.subAccounts
+  const accounts = data?.accounts
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading && !data) {
@@ -274,28 +235,28 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
           <TableHead className="text-right">{t("table.headers.net")}</TableHead>
         </TableHeader>
         <TableBody>
-          {subAccounts?.map((memberBalance, index) => (
+          {accounts?.map((account, index) => (
             <TableRow key={index}>
-              <TableCell>{memberBalance.name}</TableCell>
+              <TableCell>{account.name}</TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.amounts[currency].closingBalance[layer].debit}
+                  amount={account.amounts[currency].closingBalance[layer].debit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.amounts[currency].closingBalance[layer].credit}
+                  amount={account.amounts[currency].closingBalance[layer].credit}
                 />
               </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={memberBalance.amounts[currency].closingBalance[layer].netDebit}
+                  amount={account.amounts[currency].closingBalance[layer].netDebit}
                 />
               </TableCell>
             </TableRow>
@@ -331,6 +292,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
     </>
   )
 }
+
 function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
@@ -338,21 +300,7 @@ function TrialBalancePage() {
     setDateRange(newDateRange)
   }, [])
 
-  const {
-    data: onBalanceSheetData,
-    loading: onBalanceSheetLoading,
-    error: onBalanceSheetError,
-  } = useGetOnBalanceSheetTrialBalanceQuery({
-    variables: {
-      from: dateRange.from,
-      until: dateRange.until,
-    },
-  })
-  const {
-    data: offBalanceSheetData,
-    loading: offBalanceSheetLoading,
-    error: offBalanceSheetError,
-  } = useGetOffBalanceSheetTrialBalanceQuery({
+  const { data, loading, error } = useGetTrialBalanceQuery({
     variables: {
       from: dateRange.from,
       until: dateRange.until,
@@ -366,30 +314,13 @@ function TrialBalancePage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="onBalanceSheet">
-          <TabsList className="mb-4">
-            <TabsTrigger value="onBalanceSheet">{t("tabs.regular")}</TabsTrigger>
-            <TabsTrigger value="offBalanceSheet">{t("tabs.offBalanceSheet")}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="onBalanceSheet">
-            <TrialBalanceValues
-              data={onBalanceSheetData?.trialBalance}
-              loading={onBalanceSheetLoading && !onBalanceSheetData}
-              error={onBalanceSheetError}
-              dateRange={dateRange}
-              setDateRange={handleDateChange}
-            />
-          </TabsContent>
-          <TabsContent value="offBalanceSheet">
-            <TrialBalanceValues
-              data={offBalanceSheetData?.offBalanceSheetTrialBalance}
-              loading={offBalanceSheetLoading && !offBalanceSheetData}
-              error={offBalanceSheetError}
-              dateRange={dateRange}
-              setDateRange={handleDateChange}
-            />
-          </TabsContent>
-        </Tabs>
+        <TrialBalanceValues
+          data={data?.trialBalance}
+          loading={loading && !data}
+          error={error}
+          dateRange={dateRange}
+          setDateRange={handleDateChange}
+        />
       </CardContent>
     </Card>
   )

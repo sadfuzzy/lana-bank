@@ -3,30 +3,17 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import TrialBalance from "./page"
 
-import {
-  GetOnBalanceSheetTrialBalanceDocument,
-  GetOffBalanceSheetTrialBalanceDocument,
-} from "@/lib/graphql/generated"
+import { GetTrialBalanceDocument } from "@/lib/graphql/generated"
 
-import {
-  onBalanceSheetTrialBalanceMockData,
-  offBalanceSheetTrialBalanceMockData,
-} from "@/.storybook/mocks"
+import { trialBalanceMockData } from "@/.storybook/mocks"
 
 const createMocks = () => [
   {
     request: {
-      query: GetOnBalanceSheetTrialBalanceDocument,
+      query: GetTrialBalanceDocument,
     },
     variableMatcher: () => true,
-    result: onBalanceSheetTrialBalanceMockData,
-  },
-  {
-    request: {
-      query: GetOffBalanceSheetTrialBalanceDocument,
-    },
-    variableMatcher: () => true,
-    result: offBalanceSheetTrialBalanceMockData,
+    result: trialBalanceMockData,
   },
 ]
 
@@ -44,14 +31,7 @@ const LoadingStory = () => {
   const mocks = [
     {
       request: {
-        query: GetOnBalanceSheetTrialBalanceDocument,
-      },
-      variableMatcher: () => true,
-      delay: Infinity,
-    },
-    {
-      request: {
-        query: GetOffBalanceSheetTrialBalanceDocument,
+        query: GetTrialBalanceDocument,
       },
       variableMatcher: () => true,
       delay: Infinity,
