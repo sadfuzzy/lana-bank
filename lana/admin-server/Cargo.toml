@@ -19,6 +19,7 @@ tracing-utils = { path = "../../lib/tracing-utils" }
 jwks-utils = { path = "../../lib/jwks-utils" }
 
 es-entity = { workspace = true, features = ["graphql"] }
+cala-ledger = { workspace = true, features = ["graphql"] }
 
 uuid = { workspace = true }
 base64 = { workspace = true }

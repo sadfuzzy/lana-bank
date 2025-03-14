@@ -1293,13 +1293,14 @@
     "description": "Details of ledger account by account code {code}",
     "details": {
       "code": "Account Code",
-      "name": "Account Name"
+      "name": "Account Name",
+      "usdBalance": "USD Balance",
+      "btcBalance": "BTC Balance"
     },
     "table": {
       "columns": {
         "recordedAt": "Recorded At",
         "currency": "Currency",
-        "entryType": "Entry Type",
         "debit": "Debit",
         "credit": "Credit"
       }

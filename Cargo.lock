@@ -38,6 +38,7 @@ dependencies = [
  "axum",
  "axum-extra",
  "base64 0.22.1",
+ "cala-ledger",
  "chrono",
  "core-user",
  "deposit",

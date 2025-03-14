@@ -382,6 +382,14 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
+            Object::LedgerAccount,
+            LedgerAccountAction::ReadBalance,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
             CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::DISBURSAL_LIST,
         )

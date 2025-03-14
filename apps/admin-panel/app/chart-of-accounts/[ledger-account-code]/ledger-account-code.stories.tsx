@@ -8,10 +8,12 @@ import LedgerAccountPage from "./page"
 import faker from "@/.storybook/faker"
 
 import { LedgerAccountByCodeDocument } from "@/lib/graphql/generated"
+import { mockBtcLedgerAccountBalance } from "@/lib/graphql/generated/mocks"
 
 const ledgerAccountCode = String(faker.number.int(10))
 
 const LedgerAccountStory = () => {
+  const balance = mockBtcLedgerAccountBalance()
   const mocks = [
     {
       request: {
@@ -24,6 +26,10 @@ const LedgerAccountStory = () => {
             id: faker.string.uuid(),
             name: faker.company.name(),
             code: ledgerAccountCode,
+            balance: {
+              __typename: "BtcLedgerAccountBalance",
+              btcSettledBalance: balance.settled,
+            },
             history: {
               edges: Array.from({ length: 10 }, () => ({
                 cursor: faker.string.alpha(10),

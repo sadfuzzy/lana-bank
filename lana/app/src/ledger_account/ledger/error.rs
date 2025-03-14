@@ -8,6 +8,8 @@ pub enum LedgerAccountLedgerError {
     CalaLedger(#[from] cala_ledger::error::LedgerError),
     #[error("LedgerAccountLedgerError - CalaEntryError: {0}")]
     CalaEntry(#[from] cala_ledger::entry::error::EntryError),
+    #[error("LedgerAccountLedgerError - CalaBalanceError: {0}")]
+    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
     #[error("LedgerAccountError - ParseCurrencyError: {0}")]
     ParseCurrencyError(#[from] cala_ledger::ParseCurrencyError),
     #[error("LedgerAccountError - ConversionError: {0}")]

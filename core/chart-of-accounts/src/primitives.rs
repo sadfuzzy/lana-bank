@@ -13,15 +13,15 @@ es_entity::entity_id! {
 }
 
 pub struct AccountDetails {
-    pub id: LedgerAccountId,
+    pub id: LedgerAccountSetId,
     pub name: AccountName,
     pub code: AccountCode,
 }
 
 impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
-    fn from((spec, _): &(AccountSpec, LedgerAccountSetId)) -> Self {
+    fn from((spec, id): &(AccountSpec, LedgerAccountSetId)) -> Self {
         AccountDetails {
-            id: LedgerAccountId::new(),
+            id: *id,
             name: spec.name.clone(),
             code: spec.code.clone(),
         }

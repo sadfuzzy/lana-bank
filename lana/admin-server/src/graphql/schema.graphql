@@ -211,6 +211,12 @@ type BtcAccountBalanceAmounts {
 	netCredit: SignedSatoshis!
 }
 
+type BtcLedgerAccountBalance {
+	settled: Satoshis!
+	pending: Satoshis!
+	encumbrance: Satoshis!
+}
+
 type BtcLedgerAccountHistoryEntry {
 	entryId: UUID!
 	txId: UUID!
@@ -972,7 +978,10 @@ type LedgerAccount {
 	name: String!
 	code: AccountCode!
 	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
+	balance: LedgerAccountBalance!
 }
+
+union LedgerAccountBalance = UsdLedgerAccountBalance | BtcLedgerAccountBalance
 
 union LedgerAccountHistoryEntry = UsdLedgerAccountHistoryEntry | BtcLedgerAccountHistoryEntry
 
@@ -1366,6 +1375,12 @@ type UsdAccountBalanceAmounts {
 }
 
 scalar UsdCents
+
+type UsdLedgerAccountBalance {
+	settled: UsdCents!
+	pending: UsdCents!
+	encumbrance: UsdCents!
+}
 
 type UsdLedgerAccountHistoryEntry {
 	entryId: UUID!

@@ -1293,13 +1293,14 @@
     "description": "Detalles de la cuenta contable por código de cuenta {code}",
     "details": {
       "code": "Código de cuenta",
-      "name": "Nombre de la cuenta"
+      "name": "Nombre de la cuenta",
+      "usdBalance": "Saldo en USD",
+      "btcBalance": "Saldo en BTC"
     },
     "table": {
       "columns": {
         "recordedAt": "Registrado el",
         "currency": "Moneda",
-        "entryType": "Tipo de asiento",
         "debit": "Debe",
         "credit": "Haber"
       }

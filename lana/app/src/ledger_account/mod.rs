@@ -29,6 +29,23 @@ impl LedgerAccounts {
         }
     }
 
+    pub async fn balance<T>(
+        &self,
+        sub: &Subject,
+        id: impl Into<LedgerAccountSetId>,
+    ) -> Result<T, LedgerAccountError>
+    where
+        T: From<Option<cala_ledger::balance::AccountBalance>>,
+    {
+        self.authz
+            .enforce_permission(sub, Object::LedgerAccount, LedgerAccountAction::ReadBalance)
+            .await?;
+
+        let res = self.ledger.balance(id.into()).await?;
+
+        Ok(res)
+    }
+
     pub async fn history(
         &self,
         sub: &Subject,

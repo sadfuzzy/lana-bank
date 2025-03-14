@@ -17,7 +17,6 @@ pub struct LedgerAccount {
     id: UUID,
     name: String,
     code: AccountCode,
-    // amounts: AccountAmountsByCurrency,
 }
 
 impl From<AccountDetails> for LedgerAccount {
@@ -26,7 +25,6 @@ impl From<AccountDetails> for LedgerAccount {
             id: account.id.into(),
             name: account.name.to_string(),
             code: AccountCode(account.code.to_string()),
-            // amounts: account.into(),
         }
     }
 }
@@ -68,6 +66,60 @@ impl LedgerAccount {
         )
         .await
     }
+
+    async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<LedgerAccountBalance> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let res: LedgerAccountBalance = app.ledger_accounts().balance(sub, self.id).await?;
+        Ok(res)
+    }
+}
+
+#[derive(Union)]
+pub(super) enum LedgerAccountBalance {
+    Usd(UsdLedgerAccountBalance),
+    Btc(BtcLedgerAccountBalance),
+}
+
+impl From<Option<cala_ledger::balance::AccountBalance>> for LedgerAccountBalance {
+    fn from(balance: Option<cala_ledger::balance::AccountBalance>) -> Self {
+        match balance {
+            None => LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
+                settled: UsdCents::ZERO,
+                pending: UsdCents::ZERO,
+                encumbrance: UsdCents::ZERO,
+            }),
+            Some(balance) if balance.details.currency == "USD".parse().unwrap() => {
+                LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
+                    settled: UsdCents::try_from_usd(balance.settled()).expect("positive"),
+                    pending: UsdCents::try_from_usd(balance.pending()).expect("positive"),
+                    encumbrance: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+                })
+            }
+            Some(balance) if balance.details.currency == "BTC".parse().unwrap() => {
+                LedgerAccountBalance::Btc(BtcLedgerAccountBalance {
+                    settled: Satoshis::try_from_btc(balance.settled()).expect("positive"),
+                    pending: Satoshis::try_from_btc(balance.pending()).expect("positive"),
+                    encumbrance: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+                })
+            }
+            _ => unimplemented!("Unexpected currency"),
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub(super) struct UsdLedgerAccountBalance {
+    settled: UsdCents,
+    pending: UsdCents,
+    encumbrance: UsdCents,
+}
+
+#[derive(SimpleObject)]
+pub(super) struct BtcLedgerAccountBalance {
+    settled: Satoshis,
+    pending: Satoshis,
+    encumbrance: Satoshis,
 }
 
 #[derive(Union)]

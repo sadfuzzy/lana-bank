@@ -24,6 +24,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import { DetailsGroup } from "@/components/details"
+import Balance from "@/components/balance/balance"
 
 gql`
   query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
@@ -31,6 +32,15 @@ gql`
       id
       name
       code
+      balance {
+        __typename
+        ... on UsdLedgerAccountBalance {
+          usdSettledBalance: settled
+        }
+        ... on BtcLedgerAccountBalance {
+          btcSettledBalance: settled
+        }
+      }
       history(first: $first, after: $after) {
         edges {
           cursor
@@ -139,7 +149,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         ) : (
           <>
             {!loading && (
-              <DetailsGroup className="mb-4">
+              <DetailsGroup columns={3} className="mb-4">
                 <DetailItem
                   label={t("details.name")}
                   value={data?.ledgerAccountByCode?.name}
@@ -147,6 +157,31 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                 <DetailItem
                   label={t("details.code")}
                   value={data?.ledgerAccountByCode?.code.replace(/\./g, "")}
+                />
+                <DetailItem
+                  label={
+                    data?.ledgerAccountByCode?.balance.__typename ===
+                    "BtcLedgerAccountBalance"
+                      ? t("details.btcBalance")
+                      : t("details.usdBalance")
+                  }
+                  value={
+                    data?.ledgerAccountByCode?.balance.__typename ===
+                    "UsdLedgerAccountBalance" ? (
+                      <Balance
+                        currency="usd"
+                        amount={data?.ledgerAccountByCode?.balance?.usdSettledBalance}
+                      />
+                    ) : data?.ledgerAccountByCode?.balance.__typename ===
+                      "BtcLedgerAccountBalance" ? (
+                      <Balance
+                        currency="btc"
+                        amount={data?.ledgerAccountByCode?.balance?.btcSettledBalance}
+                      />
+                    ) : (
+                      <>N/A</>
+                    )
+                  }
                 />
               </DetailsGroup>
             )}
