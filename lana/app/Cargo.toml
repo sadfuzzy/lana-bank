@@ -1,6 +1,6 @@
 [package]
 name = "lana-app"
-version = "0.3.158-dev"
+version = "0.3.161-dev"
 edition = "2021"
 
 [features]
