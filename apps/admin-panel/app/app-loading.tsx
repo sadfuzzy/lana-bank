@@ -5,8 +5,11 @@ import React, { createContext, useContext, useState, useEffect } from "react"
 import Logo from "@/public/lana-logo.svg"
 
 const Loading = () => (
-  <div className="flex items-center justify-center w-full h-full">
-    <Logo className="h-10 w-auto text-gray-500 animate-pulse" />
+  <div
+    className="flex items-center justify-center w-full h-full"
+    data-testid="global-loader"
+  >
+    <Logo className="h-10 w-auto animate-pulse" />
   </div>
 )
 
