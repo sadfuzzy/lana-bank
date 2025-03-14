@@ -214,7 +214,7 @@ type BtcAccountBalanceAmounts {
 type BtcLedgerAccountHistoryEntry {
 	txId: UUID!
 	recordedAt: Timestamp!
-	amount: LayeredBtcAccountAmounts!
+	btcAmount: LayeredBtcAccountAmounts!
 }
 
 scalar CVLPct
@@ -1369,7 +1369,7 @@ scalar UsdCents
 type UsdLedgerAccountHistoryEntry {
 	txId: UUID!
 	recordedAt: Timestamp!
-	amount: LayeredUsdAccountAmounts!
+	usdAmount: LayeredUsdAccountAmounts!
 }
 
 type User {
