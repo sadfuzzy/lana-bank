@@ -36,6 +36,8 @@ pub enum CoreDepositError {
     ChartIdMismatch,
     #[error("CoreDepositError - DepositConfigAlreadyExists")]
     DepositConfigAlreadyExists,
+    #[error("CoreDepositError - DepositAccountNotActive")]
+    DepositAccountNotActive,
 }
 
 impl CoreDepositError {

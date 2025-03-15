@@ -18,6 +18,11 @@ pub enum DepositAccountEvent {
         reference: String,
         name: String,
         description: String,
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    },
+    AccountStatusUpdated {
+        status: AccountStatus,
         audit_info: AuditInfo,
     },
 }
@@ -30,6 +35,7 @@ pub struct DepositAccount {
     pub reference: String,
     pub name: String,
     pub description: String,
+    pub status: AccountStatus,
     pub(super) events: EntityEvents<DepositAccountEvent>,
 }
 
@@ -38,6 +44,21 @@ impl DepositAccount {
         self.events
             .entity_first_persisted_at()
             .expect("Deposit Account has never been persisted")
+    }
+
+    pub fn update_account_status(
+        &mut self,
+        status: AccountStatus,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status
+        );
+        self.events
+            .push(DepositAccountEvent::AccountStatusUpdated { status, audit_info });
+        self.status = status;
+        Idempotent::Executed(())
     }
 }
 
@@ -52,6 +73,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     reference,
                     name,
                     description,
+                    status,
                     ..
                 } => {
                     builder = builder
@@ -60,6 +82,10 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .reference(reference.to_string())
                         .name(name.to_string())
                         .description(description.to_string())
+                        .status(*status)
+                }
+                DepositAccountEvent::AccountStatusUpdated { status, .. } => {
+                    builder = builder.status(*status);
                 }
             }
         }
@@ -76,6 +102,7 @@ pub struct NewDepositAccount {
     pub(super) reference: String,
     pub(super) name: String,
     pub(super) description: String,
+    pub(super) active: bool,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -97,6 +124,11 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 reference: self.reference,
                 name: self.name,
                 description: self.description,
+                status: if self.active {
+                    AccountStatus::Active
+                } else {
+                    AccountStatus::Inactive
+                },
                 audit_info: self.audit_info,
             }],
         )

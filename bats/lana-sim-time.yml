@@ -15,6 +15,8 @@ app:
     dev_disable_auto_create: true
   credit_facility:
     customer_active_check_enabled: false
+  customer_onboarding:
+    customer_status_sync_active: false
 time:
   realtime: false
   sim_time:

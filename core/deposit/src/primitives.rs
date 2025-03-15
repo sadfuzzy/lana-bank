@@ -24,6 +24,7 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
+pub use core_customer::AccountStatus;
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
@@ -140,6 +141,8 @@ pub enum CoreDepositAction {
 impl CoreDepositAction {
     pub const DEPOSIT_ACCOUNT_CREATE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Create);
+    pub const DEPOSIT_ACCOUNT_UPDATE_STATUS: Self =
+        CoreDepositAction::DepositAccount(DepositAccountAction::UpdateStatus);
     pub const DEPOSIT_ACCOUNT_READ_BALANCE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::ReadBalance);
     pub const DEPOSIT_ACCOUNT_READ: Self =
@@ -205,6 +208,7 @@ impl FromStr for CoreDepositAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum DepositAccountAction {
     Create,
+    UpdateStatus,
     ReadBalance,
     ReadTxHistory,
     Read,

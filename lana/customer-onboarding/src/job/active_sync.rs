@@ -17,17 +17,17 @@ use job::*;
 use crate::config::*;
 
 #[derive(serde::Serialize)]
-pub struct CreateDepositAccountJobConfig<Perms, E> {
+pub struct CustomerActiveSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CreateDepositAccountJobConfig<Perms, E> {
+impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CreateDepositAccountJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CustomerActiveSyncJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreateDepositAccountJobInitializer<Perms, E>;
+    type Initializer = CustomerActiveSyncJobInitializer<Perms, E>;
 }
 
-pub struct CreateDepositAccountJobInitializer<Perms, E>
+pub struct CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -53,7 +53,7 @@ where
     config: CustomerOnboardingConfig,
 }
 
-impl<Perms, E> CreateDepositAccountJobInitializer<Perms, E>
+impl<Perms, E> CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -73,9 +73,8 @@ where
     }
 }
 
-const CUSTOMER_ONBOARDING_CREATE_DEPOSIT_ACCOUNT: JobType =
-    JobType::new("customer-onboarding-create-deposit-account");
-impl<Perms, E> JobInitializer for CreateDepositAccountJobInitializer<Perms, E>
+const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("customer-active-sync");
+impl<Perms, E> JobInitializer for CustomerActiveSyncJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -90,11 +89,11 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_ONBOARDING_CREATE_DEPOSIT_ACCOUNT
+        CUSTOMER_ACTIVE_SYNC
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateDepositAccountJobRunner {
+        Ok(Box::new(CustomerActiveSyncJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
             config: self.config.clone(),
@@ -110,11 +109,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CreateDepositAccountJobData {
+struct CustomerActiveSyncJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreateDepositAccountJobRunner<Perms, E>
+pub struct CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -126,7 +125,7 @@ where
     config: CustomerOnboardingConfig,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CreateDepositAccountJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -142,13 +141,15 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreateDepositAccountJobData>()?
+            .execution_state::<CustomerActiveSyncJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
-                self.handle_create_deposit_account(message.as_ref()).await?;
+            if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { .. }) =
+                &message.as_ref().as_event()
+            {
+                self.handle_status_updated(message.as_ref()).await?;
                 state.sequence = message.sequence;
                 current_job.update_execution_state(&state).await?;
             }
@@ -159,7 +160,7 @@ where
     }
 }
 
-impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
+impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -170,31 +171,27 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(
-        name = "customer_onboarding.create_deposit_account",
-        skip(self, message)
-    )]
-    async fn handle_create_deposit_account(
+    #[instrument(name = "customer_onboarding.handle_status_update", skip(self, message))]
+    async fn handle_status_updated(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>>
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerCreated { id, .. }) = message.as_event() {
+        if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { id, status }) =
+            message.as_event()
+        {
             message.inject_trace_parent();
 
-            if self.config.auto_create_deposit_account {
-                let description = &format!("Deposit Account for Customer {}", id);
-                let account_ref = &format!("deposit-customer-account:{}", id);
-                match self.deposit
-                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id, account_ref,
-                "customer-deposits", description, !self.config.customer_status_sync_active)
-                .await {
-                Ok(_) => {}
-                Err(e) if e.is_account_already_exists() => {},
-                Err(e) => return Err(e.into()),
-                }
+            if self.config.customer_status_sync_active {
+                self.deposit
+                    .update_account_status_for_holder(
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        *id,
+                        *status,
+                    )
+                    .await?;
             }
         }
         Ok(())

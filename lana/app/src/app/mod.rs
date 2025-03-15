@@ -117,7 +117,6 @@ impl LanaApp {
             &authz,
             &outbox,
             &governance,
-            &customers,
             &jobs,
             &cala,
             journal_init.journal_id,

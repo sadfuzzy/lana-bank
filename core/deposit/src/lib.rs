@@ -21,7 +21,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chart_of_accounts::Chart;
-use core_customer::{CoreCustomerEvent, Customers};
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -48,9 +47,7 @@ pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor}
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     accounts: DepositAccountRepo,
     deposits: DepositRepo,
@@ -60,16 +57,13 @@ where
     cala: CalaLedger,
     authz: Perms,
     governance: Governance<Perms, E>,
-    customers: Customers<Perms, E>,
     outbox: Outbox<E>,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -80,7 +74,6 @@ where
             cala: self.cala.clone(),
             authz: self.authz.clone(),
             governance: self.governance.clone(),
-            customers: self.customers.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
             outbox: self.outbox.clone(),
         }
@@ -94,9 +87,7 @@ where
         From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub async fn init(
@@ -104,7 +95,6 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         governance: &Governance<Perms, E>,
-        customers: &Customers<Perms, E>,
         jobs: &Jobs,
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
@@ -137,7 +127,6 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             governance: governance.clone(),
-            customers: customers.clone(),
             cala: cala.clone(),
             approve_withdrawal,
             ledger,
@@ -174,6 +163,7 @@ where
         reference: &str,
         name: &str,
         description: &str,
+        active: bool,
     ) -> Result<DepositAccount, CoreDepositError> {
         let audit_info = self
             .authz
@@ -191,6 +181,7 @@ where
             .reference(reference.to_string())
             .name(name.to_string())
             .description(description.to_string())
+            .active(active)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new account");
@@ -209,6 +200,39 @@ where
             .await?;
 
         Ok(account)
+    }
+
+    pub async fn update_account_status_for_holder(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        status: AccountStatus,
+    ) -> Result<(), CoreDepositError> {
+        let holder_id = holder_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposit_accounts(),
+                CoreDepositAction::DEPOSIT_ACCOUNT_UPDATE_STATUS,
+            )
+            .await?;
+
+        let accounts = self
+            .accounts
+            .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
+            .await?;
+        let mut op = self.accounts.begin_op().await?;
+        for mut account in accounts.entities.into_iter() {
+            if account
+                .update_account_status(status, audit_info.clone())
+                .did_execute()
+            {
+                self.accounts.update_in_op(&mut op, &mut account).await?;
+            }
+        }
+        op.commit().await?;
+        Ok(())
     }
 
     #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
@@ -256,6 +280,7 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
+        self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
@@ -292,6 +317,7 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
+        self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
@@ -339,6 +365,8 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        self.check_account_active(withdrawal.deposit_account_id)
+            .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
         self.withdrawals
@@ -375,6 +403,8 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
+        self.check_account_active(withdrawal.deposit_account_id)
+            .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
         self.withdrawals
@@ -685,5 +715,16 @@ where
             .await?;
 
         Ok(config)
+    }
+
+    async fn check_account_active(
+        &self,
+        deposit_account_id: DepositAccountId,
+    ) -> Result<(), CoreDepositError> {
+        let account = self.accounts.find_by_id(deposit_account_id).await?;
+        if account.status.is_inactive() {
+            return Err(CoreDepositError::DepositAccountNotActive);
+        }
+        Ok(())
     }
 }

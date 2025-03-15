@@ -16,7 +16,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
-    let customers = core_customer::Customers::new(&pool, &authz, &outbox);
 
     let cala_config = CalaLedgerConfig::builder()
         .pool(pool.clone())
@@ -32,7 +31,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &authz,
         &outbox,
         &governance,
-        &customers,
         &jobs,
         &cala,
         journal_id,

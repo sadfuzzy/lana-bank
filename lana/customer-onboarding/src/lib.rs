@@ -70,8 +70,13 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKratosUserJobInitializer::new(outbox, customers, config),
+            CreateKratosUserJobInitializer::new(outbox, customers, config.clone()),
             CreateKratosUserJobConfig::new(),
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            CustomerActiveSyncJobInitializer::new(outbox, deposit, config),
+            CustomerActiveSyncJobConfig::new(),
         )
         .await?;
         Ok(Self {
