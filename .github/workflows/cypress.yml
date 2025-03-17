@@ -128,7 +128,6 @@ jobs:
                 <h1 class="text-3xl font-bold text-slate-800 mb-2">
                   Manuales para Reguladores
                 </h1>
-                <p class="text-slate-500">Documentación oficial de procedimientos y normativas</p>
               </div>
               <div class="bg-white rounded-lg shadow-md overflow-hidden border border-slate-200">
                 <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
