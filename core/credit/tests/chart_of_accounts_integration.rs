@@ -1,5 +1,7 @@
 mod helpers;
 
+use rand::Rng;
+
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chart_of_accounts::CoreChartOfAccounts;
@@ -8,8 +10,6 @@ use helpers::{action, event, object};
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
-    use rand::Rng;
-
     let pool = helpers::init_pool().await?;
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
@@ -83,22 +83,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 .chart_of_account_interest_receivable_parent_code("6".parse().unwrap())
                 .chart_of_account_interest_income_parent_code("7".parse().unwrap())
                 .chart_of_account_fee_income_parent_code("8".parse().unwrap())
-                .chart_of_account_individual_disbursed_receivable_parent_code("51".parse().unwrap())
+                .chart_of_account_individual_disbursed_receivable_parent_code("1".parse().unwrap())
                 .chart_of_account_government_entity_disbursed_receivable_parent_code(
-                    "52".parse().unwrap(),
+                    "2".parse().unwrap(),
                 )
                 .chart_of_account_private_company_disbursed_receivable_parent_code(
-                    "53".parse().unwrap(),
+                    "3".parse().unwrap(),
                 )
-                .chart_of_account_bank_disbursed_receivable_parent_code("54".parse().unwrap())
+                .chart_of_account_bank_disbursed_receivable_parent_code("4".parse().unwrap())
                 .chart_of_account_financial_institution_disbursed_receivable_parent_code(
-                    "55".parse().unwrap(),
+                    "5".parse().unwrap(),
                 )
                 .chart_of_account_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(
-                    "56".parse().unwrap(),
+                    "6".parse().unwrap(),
                 )
                 .chart_of_account_non_domiciled_company_disbursed_receivable_parent_code(
-                    "57".parse().unwrap(),
+                    "7".parse().unwrap(),
                 )
                 .build()
                 .unwrap(),
@@ -110,7 +110,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .list_members(account_set_id, Default::default())
         .await?;
 
-    assert_eq!(res.entities.len(), 1);
+    assert_eq!(res.entities.len(), 2);
 
     let chart_ref = format!("other-ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = charts
