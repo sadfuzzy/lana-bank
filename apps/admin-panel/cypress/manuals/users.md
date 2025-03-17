@@ -1,96 +1,98 @@
-# Users
+pdf_filename: usuarios
 
-This guide provides a clear and concise overview of how to manage users in the application, including creating new users and managing their roles. Each section includes step-by-step instructions and accompanying screenshots to help you navigate the process seamlessly.
+# Usuarios
 
-## Table of Contents
+Esta guía proporciona una descripción clara y concisa de cómo gestionar usuarios en la aplicación, incluyendo la creación de nuevos usuarios y la administración de sus roles. Cada sección incluye instrucciones paso a paso y capturas de pantalla para ayudarte a navegar por el proceso sin problemas.
 
-1. [Introduction](#introduction)
-2. [Creating New Users](#creating-new-users)
-3. [Managing User Roles](#managing-user-roles)
+## Tabla de Contenidos
 
----
-
-## Introduction {#introduction}
-
-User management is essential for controlling access to the application. Proper user management ensures that team members have appropriate access levels and permissions while maintaining security.
-
-This guide covers the full lifecycle:
-
-- **Creating New Users:** Setting up users with initial roles and permissions
-- **Managing User Roles:** Updating and verifying user access levels
+1. [Introducción](#introduccion)
+2. [Creación de Nuevos Usuarios](#creacion-de-nuevos-usuarios)
+3. [Gestión de Roles de Usuario](#gestion-de-roles-de-usuario)
 
 ---
 
-## Creating New Users {#creating-new-users}
+## Introducción {#introduccion}
 
-Follow these steps to create and set up a new user in the application.
+La gestión de usuarios es esencial para controlar el acceso a la aplicación. Una gestión adecuada de usuarios asegura que los miembros del equipo tengan niveles de acceso y permisos apropiados mientras se mantiene la seguridad.
 
-### Step 1: Visit the Users Page {#visit-users-page}
+Esta guía cubre el ciclo de vida completo:
 
-Navigate to the Users page where you can see the list of all users with their roles and permissions.
-![Step 1: Users List](./screenshots/user.cy.ts/1_users_list.png)
+- **Creación de Nuevos Usuarios:** Configuración de usuarios con roles y permisos iniciales
+- **Gestión de Roles de Usuario:** Actualización y verificación de niveles de acceso de usuario
 
-<!-- new-page -->
+---
 
-### Step 2: Initiate User Creation {#initiate-user-creation}
+## Creación de Nuevos Usuarios {#creacion-de-nuevos-usuarios}
 
-Click on the "Create" button to start creating a new user.
-![Step 2: Click Create Button](./screenshots/user.cy.ts/2_click_create_button.png)
+Sigue estos pasos para crear y configurar un nuevo usuario en la aplicación.
 
-### Step 3: Configure User Email {#configure-user-email}
+### Paso 1: Visitar la Página de Usuarios {#visitar-pagina-de-usuarios}
 
-Input the email address for the new user.
-![Step 3: Enter Email](./screenshots/user.cy.ts/3_enter_email.png)
-
-<!-- new-page -->
-
-### Step 4: Set Initial Role {#set-initial-role}
-
-Select the admin role checkbox to grant administrative privileges.
-![Step 4: Assign Admin Role](./screenshots/user.cy.ts/4_assign_admin_role.png)
-
-### Step 5: Submit User Details {#submit-user-details}
-
-Click the submit button to create the user and send a magic link.
-![Step 5: Submit Creation](./screenshots/user.cy.ts/5_submit_creation.png)
+Navega a la página de Usuarios donde puedes ver la lista de todos los usuarios con sus roles y permisos.
+![Paso 1: Lista de Usuarios](./screenshots/user.cy.ts/1_users_list.png)
 
 <!-- new-page -->
 
-### Step 6: Confirm Creation {#confirm-creation}
+### Paso 2: Iniciar la Creación de Usuario {#iniciar-creacion-de-usuario}
 
-Confirm that the user is created successfully and magic link is sent.
-![Step 6: Verify Creation](./screenshots/user.cy.ts/6_verify_creation.png)
+Haz clic en el botón "Crear" para comenzar a crear un nuevo usuario.
+![Paso 2: Hacer Clic en el Botón Crear](./screenshots/user.cy.ts/2_click_create_button.png)
 
-### Step 7: Verify User List {#verify-user-list}
+### Paso 3: Configurar el Correo Electrónico del Usuario {#configurar-correo-electronico}
 
-Navigate back to the users list to verify the new user appears.
-![Step 7: View in List](./screenshots/user.cy.ts/7_view_in_list.png)
+Ingresa la dirección de correo electrónico para el nuevo usuario.
+![Paso 3: Ingresar Correo Electrónico](./screenshots/user.cy.ts/3_enter_email.png)
+
+<!-- new-page -->
+
+### Paso 4: Establecer Rol Inicial {#establecer-rol-inicial}
+
+Selecciona la casilla de rol de administrador para otorgar privilegios administrativos.
+![Paso 4: Asignar Rol de Administrador](./screenshots/user.cy.ts/4_assign_admin_role.png)
+
+### Paso 5: Enviar Detalles del Usuario {#enviar-detalles-usuario}
+
+Haz clic en el botón enviar para crear el usuario y enviar un enlace mágico.
+![Paso 5: Enviar Creación](./screenshots/user.cy.ts/5_submit_creation.png)
+
+<!-- new-page -->
+
+### Paso 6: Confirmar Creación {#confirmar-creacion}
+
+Confirma que el usuario se ha creado correctamente y se ha enviado el enlace mágico.
+![Paso 6: Verificar Creación](./screenshots/user.cy.ts/6_verify_creation.png)
+
+### Paso 7: Verificar Lista de Usuarios {#verificar-lista-usuarios}
+
+Navega de vuelta a la lista de usuarios para verificar que aparece el nuevo usuario.
+![Paso 7: Ver en Lista](./screenshots/user.cy.ts/7_view_in_list.png)
 
 ---
 
 <!-- new-page -->
 
-## Managing User Roles {#managing-user-roles}
+## Gestión de Roles de Usuario {#gestion-de-roles-de-usuario}
 
-Once a user is created, you can manage their roles and permissions to adjust their access levels.
+Una vez que se crea un usuario, puedes gestionar sus roles y permisos para ajustar sus niveles de acceso.
 
-### Step 1: Access Role Management {#access-role-management}
+### Paso 1: Acceder a la Gestión de Roles {#acceder-gestion-roles}
 
-Click on the user and manage their roles by assigning additional permissions.
-![Step 8: Manage Roles](./screenshots/user.cy.ts/8_manage_roles.png)
+Haz clic en el usuario y gestiona sus roles asignando permisos adicionales.
+![Paso 8: Gestionar Roles](./screenshots/user.cy.ts/8_manage_roles.png)
 
-### Step 2: Update User Permissions {#update-user-permissions}
+### Paso 2: Actualizar Permisos de Usuario {#actualizar-permisos-usuario}
 
-Select additional roles (e.g., Accountant) to update user permissions.
-![Step 9: Update Roles](./screenshots/user.cy.ts/9_update_roles.png)
+Selecciona roles adicionales (por ejemplo, Contador) para actualizar los permisos del usuario.
+![Paso 9: Actualizar Roles](./screenshots/user.cy.ts/9_update_roles.png)
 
 <!-- new-page -->
 
-### Step 3: Verify Role Changes {#verify-role-changes}
+### Paso 3: Verificar Cambios de Rol {#verificar-cambios-rol}
 
-Confirm that the role update is successful.
-![Step 10: Verify Update](./screenshots/user.cy.ts/10_verify_update.png)
+Confirma que la actualización del rol se ha realizado correctamente.
+![Paso 10: Verificar Actualización](./screenshots/user.cy.ts/10_verify_update.png)
 
-By following these steps, you can efficiently manage users and their roles while maintaining proper access control throughout the application.
+Siguiendo estos pasos, puedes gestionar eficientemente los usuarios y sus roles mientras mantienes un control de acceso adecuado en toda la aplicación.
 
 ---

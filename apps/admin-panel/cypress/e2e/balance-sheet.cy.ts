@@ -1,6 +1,11 @@
 import { print } from "@apollo/client/utilities"
 
+import { t } from "../support/translation"
+
 import { BalanceSheetDocument, BalanceSheetQuery } from "../../lib/graphql/generated"
+
+const BalanceSheet = "BalanceSheet"
+const CLS = "CurrencyLayerSelection"
 
 describe("Balance Sheet", () => {
   const currentDate = new Date()
@@ -12,7 +17,7 @@ describe("Balance Sheet", () => {
   })
 
   it("should display page title", () => {
-    cy.contains("Balance Sheet").should("exist")
+    cy.contains(t(BalanceSheet + ".title")).should("exist")
   })
 
   it("should display balance sheet sections and categories", () => {
@@ -20,8 +25,8 @@ describe("Balance Sheet", () => {
       from: lastMonthDate.toISOString(),
       until: currentDate.toISOString(),
     }).then((response) => {
-      cy.contains("Total Assets").should("be.visible")
-      cy.contains("Total Liabilities & Equity").should("be.visible")
+      cy.contains(t(BalanceSheet + ".columns.assets")).should("be.visible")
+      cy.contains(t(BalanceSheet + ".columns.liabilitiesAndEquity")).should("be.visible")
 
       cy.get("[data-testid^='category-name-']").then(($cells) => {
         const categoryTexts = $cells.map((_, el) => Cypress.$(el).text().trim()).get()
@@ -46,19 +51,23 @@ describe("Balance Sheet", () => {
   })
 
   it("should allow currency switching", () => {
-    cy.contains("USD").should("be.visible").click()
-    cy.contains("BTC").should("be.visible").click()
+    cy.contains(t(CLS + ".currency.options.usd"))
+      .should("be.visible")
+      .click()
+    cy.contains(t(CLS + ".currency.options.btc"))
+      .should("be.visible")
+      .click()
     cy.takeScreenshot("balance-sheet-btc-currency")
   })
 
   it("should switch between balance layers", () => {
-    cy.contains("All").should("exist")
-    cy.contains("Settled").should("exist")
-    cy.contains("Pending").should("exist")
+    cy.contains(t(CLS + ".layer.options.all")).should("exist")
+    cy.contains(t(CLS + ".layer.options.settled")).should("exist")
+    cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains("All").click()
-    cy.contains("Settled").click()
-    cy.contains("Pending").click()
+    cy.contains(t(CLS + ".layer.options.all")).click()
+    cy.contains(t(CLS + ".layer.options.settled")).click()
+    cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("balance-sheet-pending")
   })
 })

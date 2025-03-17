@@ -1,199 +1,201 @@
-# Terms Templates
+pdf_filename: plantillas-de-terminos
 
-Follow these steps to successfully create and manage terms templates in the application.
+# Plantillas de Términos
 
----
-
-## Creating a New Terms Template
-
-### Step 1: Visit the Terms Templates Page
-
-Navigate to the Terms Templates page where you can view and manage template records.
-
-![Step 1: Visit the Terms Templates Page](./screenshots/terms-templates.cy.ts/1_visit_terms_templates_page.png)
+Sigue estos pasos para crear y gestionar con éxito las plantillas de términos en la aplicación.
 
 ---
 
-<!-- new-page -->
+## Crear una Nueva Plantilla de Términos
 
-### Step 2: Click the "Create" Button
+### Paso 1: Visitar la Página de Plantillas de Términos
 
-Click on the "Create" button to start creating a new terms template.
+Navega a la página de Plantillas de Términos donde puedes ver y gestionar registros de plantillas.
 
-![Step 2: Click the "Create" Button](./screenshots/terms-templates.cy.ts/2_click_create_button.png)
+![Paso 1: Visitar la Página de Plantillas de Términos](./screenshots/terms-templates.cy.ts/1_visit_terms_templates_page.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 3: Enter Template Name
+### Paso 2: Hacer Clic en el Botón "Crear"
 
-Type in a unique template name. For example, use `Test Template` followed by a timestamp to ensure uniqueness.
+Haz clic en el botón "Crear" para comenzar a crear una nueva plantilla de términos.
 
-![Step 3: Enter Template Name](./screenshots/terms-templates.cy.ts/3_enter_template_name.png)
-
----
-
-<!-- new-page -->
-
-### Step 4: Enter Annual Rate
-
-Input the annual interest rate.
-
-![Step 4: Enter Annual Rate](./screenshots/terms-templates.cy.ts/4_enter_annual_rate.png)
+![Paso 2: Hacer Clic en el Botón "Crear"](./screenshots/terms-templates.cy.ts/2_click_create_button.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 5: Enter Duration Units
+### Paso 3: Ingresar Nombre de la Plantilla
 
-Specify the duration units, e.g., `12`, for a one-year term.
+Escribe un nombre único para la plantilla. Por ejemplo, usa `Plantilla de Prueba` seguido por una marca de tiempo para asegurar la unicidad.
 
-![Step 5: Enter Duration Units](./screenshots/terms-templates.cy.ts/5_enter_duration_units.png)
-
----
-
-<!-- new-page -->
-
-### Step 6: Select Duration Period
-
-Choose the period for the duration from the dropdown menu. For example, select `Months` for monthly duration.
-
-![Step 6: Select Duration Period](./screenshots/terms-templates.cy.ts/6_select_duration_period.png)
+![Paso 3: Ingresar Nombre de la Plantilla](./screenshots/terms-templates.cy.ts/3_enter_template_name.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 7: Select Accrual Interval
+### Paso 4: Ingresar Tasa Anual
 
-Select the accrual interval, choosing an option like `End Of Month` from the dropdown.
+Introduce la tasa de interés anual.
 
-![Step 7: Select Accrual Interval](./screenshots/terms-templates.cy.ts/7_select_accrual_interval.png)
-
----
-
-<!-- new-page -->
-
-### Step 8: Select Incurrence Interval
-
-Set the incurrence interval by selecting an option such as `End Of Month`.
-
-![Step 8: Select Incurrence Interval](./screenshots/terms-templates.cy.ts/8_select_incurrence_interval.png)
+![Paso 4: Ingresar Tasa Anual](./screenshots/terms-templates.cy.ts/4_enter_annual_rate.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 9: Enter Initial CVL (Collateral Value Limit)
+### Paso 5: Ingresar Unidades de Duración
 
-Input the initial CVL, to specify the starting collateral value limit.
+Especifica las unidades de duración, p. ej., `12`, para un término de un año.
 
-![Step 9: Enter Initial CVL](./screenshots/terms-templates.cy.ts/9_enter_initial_cvl.png)
-
----
-
-<!-- new-page -->
-
-### Step 10: Enter Margin Call CVL
-
-Input the margin call CVL, to define the limit for triggering a margin call.
-
-![Step 10: Enter Margin Call CVL](./screenshots/terms-templates.cy.ts/10_enter_margin_call_cvl.png)
+![Paso 5: Ingresar Unidades de Duración](./screenshots/terms-templates.cy.ts/5_enter_duration_units.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 11: Enter Liquidation CVL
+### Paso 6: Seleccionar Período de Duración
 
-Input the liquidation CVL, for the value at which liquidation occurs.
+Elige el período para la duración del menú desplegable. Por ejemplo, selecciona `Meses` para duración mensual.
 
-![Step 11: Enter Liquidation CVL](./screenshots/terms-templates.cy.ts/11_enter_liquidation_cvl.png)
-
----
-
-<!-- new-page -->
-
-### Step 12: Submit the Terms Template
-
-Click the "Submit" button to create the new terms template.
-
-![Step 12: Submit the Terms Template](./screenshots/terms-templates.cy.ts/12_submit_terms_template.png)
+![Paso 6: Seleccionar Período de Duración](./screenshots/terms-templates.cy.ts/6_select_duration_period.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 13: Verify Terms Template Creation
+### Paso 7: Seleccionar Intervalo de Acumulación
 
-Confirm that the URL matches the terms template detail page format and that the template name is visible.
+Selecciona el intervalo de acumulación, eligiendo una opción como `Fin de Mes` del menú desplegable.
 
-![Step 13: Verify Terms Template Creation](./screenshots/terms-templates.cy.ts/13_verify_terms_template_creation.png)
-
----
-
-<!-- new-page -->
-
-### Step 14: View in Template List
-
-Navigate to the terms templates list page to see your newly created template.
-
-![Step 14: Template List](./screenshots/terms-templates.cy.ts/14_terms_template_in_list.png)
+![Paso 7: Seleccionar Intervalo de Acumulación](./screenshots/terms-templates.cy.ts/7_select_accrual_interval.png)
 
 ---
 
 <!-- new-page -->
 
-## Updating a Terms Template
+### Paso 8: Seleccionar Intervalo de Incurrencia
 
-### Step 15: Access Template Details
+Establece el intervalo de incurrencia seleccionando una opción como `Fin de Mes`.
 
-Navigate to the specific terms template you want to update.
-
-![Step 15: Template Details](./screenshots/terms-templates.cy.ts/15_terms_template_details.png)
+![Paso 8: Seleccionar Intervalo de Incurrencia](./screenshots/terms-templates.cy.ts/8_select_incurrence_interval.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 16: Click Update Button
+### Paso 9: Ingresar CVL Inicial (Límite de Valor de Garantía)
 
-Click on the "Update" button to modify the terms template.
+Introduce el CVL inicial, para especificar el límite de valor de garantía inicial.
 
-![Step 16: Click Update](./screenshots/terms-templates.cy.ts/16_click_update_button.png)
-
----
-
-<!-- new-page -->
-
-### Step 17: Modify Template Details
-
-Update the necessary fields. In this example, we're changing the annual rate to `6`.
-
-![Step 17: Update Details](./screenshots/terms-templates.cy.ts/17_update_annual_rate.png)
+![Paso 9: Ingresar CVL Inicial](./screenshots/terms-templates.cy.ts/9_enter_initial_cvl.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 18: Submit Changes
+### Paso 10: Ingresar CVL de Llamada de Margen
 
-Click the "Submit" button to save your changes.
+Introduce el CVL de llamada de margen, para definir el límite para activar una llamada de margen.
 
-![Step 18: Submit Update](./screenshots/terms-templates.cy.ts/18_submit_update.png)
+![Paso 10: Ingresar CVL de Llamada de Margen](./screenshots/terms-templates.cy.ts/10_enter_margin_call_cvl.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 19: Confirm Update
+### Paso 11: Ingresar CVL de Liquidación
 
-You will see a success message confirming that the template has been updated.
+Introduce el CVL de liquidación, para el valor en el que ocurre la liquidación.
 
-![Step 19: Update Success](./screenshots/terms-templates.cy.ts/19_update_success.png)
+![Paso 11: Ingresar CVL de Liquidación](./screenshots/terms-templates.cy.ts/11_enter_liquidation_cvl.png)
 
 ---
 
-By following these steps, you can successfully create and update terms templates in the application.
+<!-- new-page -->
+
+### Paso 12: Enviar la Plantilla de Términos
+
+Haz clic en el botón "Enviar" para crear la nueva plantilla de términos.
+
+![Paso 12: Enviar la Plantilla de Términos](./screenshots/terms-templates.cy.ts/12_submit_terms_template.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 13: Verificar la Creación de la Plantilla de Términos
+
+Confirma que la URL coincide con el formato de la página de detalle de la plantilla de términos y que el nombre de la plantilla es visible.
+
+![Paso 13: Verificar la Creación de la Plantilla de Términos](./screenshots/terms-templates.cy.ts/13_verify_terms_template_creation.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 14: Ver en la Lista de Plantillas
+
+Navega a la página de lista de plantillas de términos para ver tu plantilla recién creada.
+
+![Paso 14: Lista de Plantillas](./screenshots/terms-templates.cy.ts/14_terms_template_in_list.png)
+
+---
+
+<!-- new-page -->
+
+## Actualizar una Plantilla de Términos
+
+### Paso 15: Acceder a los Detalles de la Plantilla
+
+Navega a la plantilla de términos específica que deseas actualizar.
+
+![Paso 15: Detalles de la Plantilla](./screenshots/terms-templates.cy.ts/15_terms_template_details.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 16: Hacer Clic en el Botón Actualizar
+
+Haz clic en el botón "Actualizar" para modificar la plantilla de términos.
+
+![Paso 16: Hacer Clic en Actualizar](./screenshots/terms-templates.cy.ts/16_click_update_button.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 17: Modificar Detalles de la Plantilla
+
+Actualiza los campos necesarios. En este ejemplo, estamos cambiando la tasa anual a `6`.
+
+![Paso 17: Actualizar Detalles](./screenshots/terms-templates.cy.ts/17_update_annual_rate.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 18: Enviar Cambios
+
+Haz clic en el botón "Enviar" para guardar tus cambios.
+
+![Paso 18: Enviar Actualización](./screenshots/terms-templates.cy.ts/18_submit_update.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 19: Confirmar Actualización
+
+Verás un mensaje de éxito confirmando que la plantilla ha sido actualizada.
+
+![Paso 19: Éxito de Actualización](./screenshots/terms-templates.cy.ts/19_update_success.png)
+
+---
+
+Siguiendo estos pasos, puedes crear y actualizar con éxito plantillas de términos en la aplicación.

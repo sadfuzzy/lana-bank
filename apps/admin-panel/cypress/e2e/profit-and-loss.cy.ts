@@ -5,6 +5,11 @@ import {
   ProfitAndLossStatementQuery,
 } from "../../lib/graphql/generated"
 
+import { t } from "../support/translation"
+
+const PL = "ProfitAndLoss"
+const CLS = "CurrencyLayerSelection"
+
 describe("Profit and Loss Statement", () => {
   const currentDate = new Date()
   const lastMonthDate = new Date()
@@ -33,25 +38,29 @@ describe("Profit and Loss Statement", () => {
   })
 
   it("should display basic page elements", () => {
-    cy.contains("Profit and Loss Statement").should("exist")
-    cy.contains("Date Range:").should("exist")
-    cy.contains("NET").should("exist")
+    cy.contains(t(PL + ".title")).should("exist")
+    cy.contains(t(PL + ".dateRange") + ":").should("exist")
+    cy.contains(t(PL + ".net")).should("exist")
   })
 
   it("should allow currency switching", () => {
-    cy.contains("USD").should("be.visible").click()
-    cy.contains("BTC").should("be.visible").click()
+    cy.contains(t(CLS + ".currency.options.usd"))
+      .should("be.visible")
+      .click()
+    cy.contains(t(CLS + ".currency.options.btc"))
+      .should("be.visible")
+      .click()
     cy.takeScreenshot("profit-and-loss-btc-currency")
   })
 
   it("should switch between balance layers", () => {
-    cy.contains("All").should("exist")
-    cy.contains("Settled").should("exist")
-    cy.contains("Pending").should("exist")
+    cy.contains(t(CLS + ".layer.options.all")).should("exist")
+    cy.contains(t(CLS + ".layer.options.settled")).should("exist")
+    cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains("All").click()
-    cy.contains("Settled").click()
-    cy.contains("Pending").click()
+    cy.contains(t(CLS + ".layer.options.all")).click()
+    cy.contains(t(CLS + ".layer.options.settled")).click()
+    cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("profit-and-loss-pending")
   })
 })

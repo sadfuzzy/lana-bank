@@ -1,4 +1,8 @@
-describe("Users", () => {
+import { t } from "../support/translation"
+
+const U = "Users"
+
+describe(t(U + ".title"), () => {
   let userEmail: string
   let userId: string
 
@@ -60,7 +64,9 @@ describe("Users", () => {
     cy.takeScreenshot("9_update_roles")
     cy.get('[data-testid="user-details-manage-role-accountant-checkbox"]').click()
 
-    cy.contains("Role assigned").should("be.visible")
+    cy.contains(t(U + ".userDetails.roleDropdown.success.roleAssigned")).should(
+      "be.visible",
+    )
     cy.takeScreenshot("10_verify_update")
   })
 })

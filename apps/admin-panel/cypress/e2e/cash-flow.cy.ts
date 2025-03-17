@@ -1,9 +1,13 @@
 import { print } from "@apollo/client/utilities"
 
+import { t } from "../support/translation"
 import {
   CashFlowStatementDocument,
   CashFlowStatementQuery,
 } from "../../lib/graphql/generated"
+
+const CFS = "CashFlowStatement"
+const CLS = "CurrencyLayerSelection"
 
 describe("Cash Flow Statement", () => {
   const currentDate = new Date()
@@ -33,9 +37,9 @@ describe("Cash Flow Statement", () => {
   })
 
   it("should display basic page elements", () => {
-    cy.contains("Cash Flow Statement").should("exist")
-    cy.contains("Date Range:").should("exist")
-    cy.contains("Total").should("exist")
+    cy.contains(t(CFS + ".title")).should("exist")
+    cy.contains(t(CFS + ".dateRange") + ":").should("exist")
+    cy.contains(t(CFS + ".total")).should("exist")
 
     cy.contains("Cash Flow From Operations").should("exist")
     cy.contains("Cash Flow From Investing").should("exist")
@@ -43,19 +47,23 @@ describe("Cash Flow Statement", () => {
   })
 
   it("should allow currency switching", () => {
-    cy.contains("USD").should("be.visible").click()
-    cy.contains("BTC").should("be.visible").click()
+    cy.contains(t(CLS + ".currency.options.usd"))
+      .should("be.visible")
+      .click()
+    cy.contains(t(CLS + ".currency.options.btc"))
+      .should("be.visible")
+      .click()
     cy.takeScreenshot("cash-flow-btc-currency")
   })
 
   it("should switch between balance layers", () => {
-    cy.contains("All").should("exist")
-    cy.contains("Settled").should("exist")
-    cy.contains("Pending").should("exist")
+    cy.contains(t(CLS + ".layer.options.all")).should("exist")
+    cy.contains(t(CLS + ".layer.options.settled")).should("exist")
+    cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains("All").click()
-    cy.contains("Settled").click()
-    cy.contains("Pending").click()
+    cy.contains(t(CLS + ".layer.options.all")).click()
+    cy.contains(t(CLS + ".layer.options.settled")).click()
+    cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("cash-flow-pending")
   })
 })

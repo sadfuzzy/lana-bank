@@ -59,6 +59,7 @@ export default defineConfig({
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       COOKIES: process.env.COOKIES,
+      TEST_LANGUAGE: "es",
     },
   },
 })

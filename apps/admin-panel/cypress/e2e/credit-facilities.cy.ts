@@ -4,6 +4,12 @@ import {
   CreateCommitteeMutationResult,
 } from "../../lib/graphql/generated/index"
 
+import { t } from "../support/translation"
+
+const CF = "CreditFacilities"
+const Committee = "Committees.CommitteeDetails"
+const Policy = "Policies.PolicyDetails"
+
 describe("credit facility", () => {
   let customerId: string
 
@@ -63,7 +69,9 @@ describe("credit facility", () => {
         .then((option) => {
           cy.wrap(option).click()
           cy.get('[data-testid="committee-add-user-submit-button"]').click()
-          cy.contains("User added to committee successfully").should("be.visible")
+          cy.contains(t(Committee + ".AddUserCommitteeDialog.success")).should(
+            "be.visible",
+          )
           cy.contains(option.text().split(" ")[0]).should("be.visible")
         })
 
@@ -77,7 +85,9 @@ describe("credit facility", () => {
       cy.get('[role="option"]').contains(committeeName).click()
       cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
+        "be.visible",
+      )
       cy.contains(committeeName).should("be.visible")
 
       cy.visit(`/policies`)
@@ -90,7 +100,9 @@ describe("credit facility", () => {
       cy.get('[role="option"]').contains(committeeName).click()
       cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
+        "be.visible",
+      )
       cy.contains(committeeName).should("be.visible")
     })
   })
@@ -186,7 +198,7 @@ describe("credit facility", () => {
               cy.get("[data-testid=credit-facility-status-badge]")
                 .should("be.visible")
                 .invoke("text")
-                .should("eq", "ACTIVE")
+                .should("eq", t(CF + ".CreditFacilityStatus.active").toUpperCase())
               cy.takeScreenshot("10_verify_active_status")
             })
           })
@@ -234,7 +246,7 @@ describe("credit facility", () => {
         cy.get('[data-testid="disbursal-status-badge"]')
           .should("be.visible")
           .invoke("text")
-          .should("eq", "CONFIRMED")
+          .should("eq", t("Disbursals.DisbursalStatus.confirmed").toUpperCase())
         cy.takeScreenshot("17_verify_disbursal_status_confirmed")
       })
     })

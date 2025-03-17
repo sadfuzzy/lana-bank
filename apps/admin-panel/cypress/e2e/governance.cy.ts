@@ -1,3 +1,5 @@
+import { t } from "../support/translation"
+
 describe("Governance Test", () => {
   let committeeName: string
   let committeeId: string
@@ -72,7 +74,9 @@ describe("Governance Test", () => {
         cy.takeScreenshot("9_step-select-admin-role")
         cy.get('[data-testid="committee-add-user-submit-button"]').click()
         cy.takeScreenshot("10_step-submit-add-member")
-        cy.contains("User added to committee successfully").should("be.visible")
+        cy.contains(
+          t("Committees.CommitteeDetails.AddUserCommitteeDialog.success"),
+        ).should("be.visible")
         cy.takeScreenshot("11_step-verify-member-added")
         cy.contains(option.text().split(" ")[0]).should("be.visible")
       })
@@ -95,7 +99,9 @@ describe("Governance Test", () => {
     cy.takeScreenshot("14_step-assign-committee-to-policy")
 
     cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-    cy.contains("Committee assigned to policy successfully").should("be.visible")
+    cy.contains(
+      t("Policies.PolicyDetails.CommitteeAssignmentDialog.success.assigned"),
+    ).should("be.visible")
     cy.takeScreenshot("15_step-verify-committee-assigned")
     cy.contains(committeeName).should("be.visible")
   })
@@ -113,7 +119,10 @@ describe("Governance Test", () => {
 
         cy.get("[data-testid=withdrawal-status-badge]")
           .should("be.visible")
-          .should("have.text", "PENDING APPROVAL")
+          .should(
+            "have.text",
+            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase(),
+          )
         cy.takeScreenshot("17_step-verify-pending-withdrawal")
       })
     })
@@ -128,19 +137,28 @@ describe("Governance Test", () => {
         cy.takeScreenshot("18_step-visit-withdrawal-details")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === "PENDING APPROVAL") {
+          if (
+            badge.text() ===
+            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase()
+          ) {
             cy.get('[data-testid="approval-process-approve-button"]').click()
             cy.takeScreenshot("19_step-click-approve-button")
 
             cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
-            cy.contains("Approve Process").should("not.exist")
+            cy.contains(t("Actions.ApprovalProcess.Approve.title")).should("not.exist")
             cy.takeScreenshot("20_step-verify-approval-success")
 
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should("eq", "PENDING CONFIRMATION")
-          } else if (badge.text() === "PENDING CONFIRMATION") {
+              .should(
+                "eq",
+                t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase(),
+              )
+          } else if (
+            badge.text() ===
+            t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase()
+          ) {
             throw new Error("State is Pending Confirmation")
           } else {
             throw new Error("Unexpected Withdraw State found")
@@ -159,20 +177,26 @@ describe("Governance Test", () => {
         cy.takeScreenshot("21_step-visit-withdrawal-for-denial")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === "PENDING APPROVAL") {
+          if (
+            badge.text() ===
+            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase()
+          ) {
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.takeScreenshot("22_step-click-deny-button")
 
             cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
             cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
-            cy.contains("Deny Process").should("not.exist")
+            cy.contains(t("Actions.ApprovalProcess.Deny.title")).should("not.exist")
             cy.takeScreenshot("23_step-verify-denial-success")
 
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should("eq", "DENIED")
-          } else if (badge.text() === "PENDING CONFIRMATION") {
+              .should("eq", t("Withdrawals.WithdrawalStatus.denied").toUpperCase())
+          } else if (
+            badge.text() ===
+            t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase()
+          ) {
             throw new Error("State is Pending Confirmation")
           } else {
             throw new Error("Unexpected Withdraw State found")

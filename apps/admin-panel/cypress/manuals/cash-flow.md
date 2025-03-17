@@ -1,38 +1,41 @@
-# Cash Flow Statement
+pdf_filename: estado-de-flujo-de-efectivo
 
-Follow these steps to explore the Cash Flow Statement page and its features.
+# Estado de Flujo de Efectivo
 
----
-
-### Step 1: View Cash Flow Statement Page
-
-Navigate to the Cash Flow Statement page to see all categories and their respective accounts. The statement is organized into three main sections:
-- Cash Flow From Operations
-- Cash Flow From Investing
-- Cash Flow From Financing
-
-![Cash Flow Statement](./screenshots/cash-flow.cy.ts/cash-flow.png)
+Sigue estos pasos para explorar la página del Estado de Flujo de Efectivo y sus características.
 
 ---
 
-<!-- new-page -->
+### Paso 1: Ver la página del Estado de Flujo de Efectivo
 
-### Step 2: Switch Between Currency Types
+Navega a la página del Estado de Flujo de Efectivo para ver todas las categorías y sus respectivas cuentas. El estado está organizado en tres secciones principales:
 
-You can switch between **USD** and **BTC** using the currency options to view the cash flow in different denominations.
+- Flujo de Efectivo de Operaciones
+- Flujo de Efectivo de Inversión
+- Flujo de Efectivo de Financiamiento
 
-![Switch to BTC](./screenshots/cash-flow.cy.ts/cash-flow-btc-currency.png)
+![Estado de Flujo de Efectivo](./screenshots/cash-flow.cy.ts/cash-flow.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 3: Switch Between Balance Layers
+### Paso 2: Cambiar Entre Tipos de Moneda
 
-Use the options to switch between **All**, **Settled**, and **Pending** layers to view different states of cash flow transactions.
+Puedes cambiar entre **USD** y **BTC** utilizando las opciones de moneda para ver el flujo de efectivo en diferentes denominaciones.
 
-![Pending Layer](./screenshots/cash-flow.cy.ts/cash-flow-pending.png)
+![Cambiar a BTC](./screenshots/cash-flow.cy.ts/cash-flow-btc-currency.png)
 
 ---
 
-By following these steps, you can navigate the Cash Flow Statement page, understand the flow of cash through different business activities, switch currencies, and explore balance layers.
+<!-- new-page -->
+
+### Paso 3: Cambiar Entre Capas de Balance
+
+Utiliza las opciones para cambiar entre capas **Todas**, **Liquidadas** y **Pendientes** para ver diferentes estados de las transacciones de flujo de efectivo.
+
+![Capa Pendiente](./screenshots/cash-flow.cy.ts/cash-flow-pending.png)
+
+---
+
+Siguiendo estos pasos, puedes navegar por la página del Estado de Flujo de Efectivo, comprender el flujo de efectivo a través de diferentes actividades comerciales, cambiar monedas y explorar capas de balance.

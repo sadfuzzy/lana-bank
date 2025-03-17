@@ -1,44 +1,46 @@
-# Regulatory Report
+pdf_filename: informes-regulatorios
 
-Follow these steps to create and view regulatory reports in the application.
+# Informes Regulatorios
 
----
-
-## Step 1: Navigate to the Regulatory Reporting Page
-
-Visit the **Regulatory Reporting** page to start managing reports.
+Sigue estos pasos para crear y ver informes regulatorios en la aplicación.
 
 ---
 
-## Step 2: Generate a New Report
+## Paso 1: Navegar a la Página de Informes Regulatorios
 
-Click the **Generate Report** button to initiate report creation, and then click **Create Report** to begin the process.
-
-![Generate Report Button](./screenshots/reporting.cy.ts/1_generate_report_button.png)
+Visita la página de **Informes Regulatorios** para comenzar a gestionar informes.
 
 ---
 
-<!-- new-page -->
+## Paso 2: Generar un Nuevo Informe
 
-## Step 3: Verify Report Creation Success
+Haz clic en el botón **Generar Informe** para iniciar la creación del informe, y luego haz clic en **Crear Informe** para comenzar el proceso.
 
-After clicking **Create Report**, a success message **"Report creation started"** will appear.
-
-![Report Creation Success](./screenshots/reporting.cy.ts/3_report_creation_success.png)
+![Botón Generar Informe](./screenshots/reporting.cy.ts/1_generate_report_button.png)
 
 ---
 
 <!-- new-page -->
 
-## Step 4: View Report Details
+## Paso 3: Verificar el Éxito de Creación del Informe
 
-Once the report is created, verify the following details:
+Después de hacer clic en **Crear Informe**, aparecerá un mensaje de éxito **"Creación de informe iniciada"**.
 
-- Confirm the **Report Status** is displayed.
-- Ensure the **Download Options** for the report are available. You can click the **Generate Link** button to download the report when the report status is "Success."
-
-![Report Details](./screenshots/reporting.cy.ts/4_report_status.png)
+![Éxito de Creación del Informe](./screenshots/reporting.cy.ts/3_report_creation_success.png)
 
 ---
 
-By following these steps, you can successfully create and manage regulatory reports in the application.
+<!-- new-page -->
+
+## Paso 4: Ver Detalles del Informe
+
+Una vez que se crea el informe, verifica los siguientes detalles:
+
+- Confirma que se muestra el **Estado del Informe**.
+- Asegúrate de que estén disponibles las **Opciones de Descarga** para el informe. Puedes hacer clic en el botón **Generar Enlaces** para descargar el informe cuando el estado del informe sea "Operativo".
+
+![Detalles del Informe](./screenshots/reporting.cy.ts/4_report_status.png)
+
+---
+
+Siguiendo estos pasos, puedes crear y gestionar informes regulatorios en la aplicación con éxito.

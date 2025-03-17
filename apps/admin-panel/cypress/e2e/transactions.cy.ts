@@ -1,5 +1,10 @@
 import { faker } from "@faker-js/faker"
 
+import { t } from "../support/translation"
+
+const D = "Deposits"
+const W = "Withdrawals"
+
 describe("Transactions Deposit and Withdraw", () => {
   let customerId: string
   let depositAccountId: string
@@ -44,7 +49,7 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.get('[data-testid="deposit-submit-button"]').click()
     cy.takeScreenshot("4_deposit_submit")
 
-    cy.contains("Deposit created successfully").should("be.visible")
+    cy.contains(t(D + ".CreateDepositDialog.success")).should("be.visible")
     cy.takeScreenshot("5_deposit_success")
   })
 
@@ -106,7 +111,7 @@ describe("Transactions Deposit and Withdraw", () => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.wait(1000)
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === "PENDING APPROVAL") {
+          if (badge.text() === t(W + ".WithdrawalStatus.pendingApproval").toUpperCase()) {
             // case when we have policy attached for withdrawal no ss needed here
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
@@ -127,7 +132,7 @@ describe("Transactions Deposit and Withdraw", () => {
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should("eq", "CANCELLED")
+              .should("eq", t(W + ".WithdrawalStatus.cancelled").toUpperCase())
             cy.takeScreenshot("16_withdrawal_cancelled_status")
           }
         })
@@ -143,7 +148,9 @@ describe("Transactions Deposit and Withdraw", () => {
         cy.get("[data-testid=withdrawal-status-badge]")
           .then((badge) => {
             // case when we have policy attached for withdrawal no ss needed here
-            if (badge.text() === "PENDING APPROVAL") {
+            if (
+              badge.text() === t(W + ".WithdrawalStatus.pendingApproval").toUpperCase()
+            ) {
               cy.get('[data-testid="approval-process-approve-button"]').click()
               cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
             }
@@ -160,7 +167,7 @@ describe("Transactions Deposit and Withdraw", () => {
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should("eq", "CONFIRMED")
+              .should("eq", t(W + ".WithdrawalStatus.confirmed").toUpperCase())
             cy.takeScreenshot("19_withdrawal_approved_status")
           })
       })

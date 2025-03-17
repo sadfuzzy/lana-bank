@@ -1,3 +1,7 @@
+import { t } from "../support/translation"
+
+const TTDetails = "TermsTemplates.TermsTemplateDetails"
+
 describe("Terms Template", () => {
   let templateName: string
   let templateId: string
@@ -73,7 +77,7 @@ describe("Terms Template", () => {
       /\/terms-templates\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(templateName).should("be.visible")
-    cy.contains("Create Terms Template").should("not.exist")
+    cy.contains(t(TTDetails + ".CreateTermsTemplate.title")).should("not.exist")
     cy.takeScreenshot("13_verify_terms_template_creation")
 
     cy.getIdFromUrl("/terms-templates/").then((id) => {
@@ -105,7 +109,9 @@ describe("Terms Template", () => {
     cy.get('[data-testid="terms-template-update-submit-button"]').click()
     cy.takeScreenshot("18_submit_update")
 
-    cy.contains("Terms Template updated successfully").should("be.visible")
+    cy.contains(t(TTDetails + ".UpdateTermsTemplate.success.updated")).should(
+      "be.visible",
+    )
     cy.takeScreenshot("19_update_success")
   })
 })

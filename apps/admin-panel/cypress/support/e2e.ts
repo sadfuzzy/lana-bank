@@ -16,10 +16,9 @@
 // Import commands.js using ES2015 syntax:
 // eslint-disable-next-line import/no-unassigned-import
 import "./commands"
+import { t } from "./translation"
 
-// Alternatively you can use CommonJS syntax:
-// require('./commands')
-
+const testLanguage = Cypress.env("TEST_LANGUAGE")
 beforeEach(() => {
   cy.session(
     "loginSession",
@@ -27,17 +26,15 @@ beforeEach(() => {
       const cookies = JSON.parse(
         Buffer.from(Cypress.env("COOKIES"), "base64").toString("utf-8"),
       )
-
       cy.setCookie(cookies["cookie1_name"], cookies["cookie1_value"])
       cy.setCookie(cookies["cookie2_name"], cookies["cookie2_value"])
-
+      cy.setCookie("NEXT_LOCALE", testLanguage)
       cy.visit("/dashboard")
-      cy.contains("Dashboard", { timeout: 60000 })
+
+      cy.contains(t("Sidebar.navItems.dashboard"), {
+        timeout: 60000,
+      })
     },
     { cacheAcrossSpecs: true },
   )
-})
-
-Cypress.on("uncaught:exception", () => {
-  return false
 })

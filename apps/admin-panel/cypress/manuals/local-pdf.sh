@@ -88,11 +88,19 @@ a {
 }
 EOL
 
-    # First, preprocess the markdown to convert special page break markers to HTML
-    sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
+    CUSTOM_FILENAME=$(grep -m 1 "^pdf_filename:" "$file" | sed 's/pdf_filename: *//' | tr -d '[:space:]')
+    
+    if [ -z "$CUSTOM_FILENAME" ]; then
+        OUTPUT_FILENAME="${file%.md}"
+    else
+        OUTPUT_FILENAME="$CUSTOM_FILENAME"
+    fi
 
-    pandoc --metadata title="${file%.md}" -V title="" "temp.md" \
-        -o "${MANUALS_DIR}/${file%.md}.pdf" \
+    sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
+    sed -i '/^pdf_filename:/d' "temp.md"
+
+    pandoc --metadata title="${OUTPUT_FILENAME}" -V title="" "temp.md" \
+        -o "${MANUALS_DIR}/${OUTPUT_FILENAME}.pdf" \
         --pdf-engine=wkhtmltopdf \
         --pdf-engine-opt=--enable-local-file-access \
         --pdf-engine-opt=--enable-internal-links \
@@ -101,7 +109,7 @@ EOL
         -V papersize=a4 \
         --css temp.css \
         -V margin-top=10mm -V margin-right=5mm -V margin-bottom=5mm -V margin-left=5mm
-    echo "Converted $file to results/${file%.md}.pdf"
+    echo "Converted $file to results/${OUTPUT_FILENAME}.pdf"
     rm temp.md
 done
 rm temp.css
