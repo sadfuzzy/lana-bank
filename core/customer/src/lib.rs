@@ -230,6 +230,7 @@ where
             .await
     }
 
+    #[instrument(name = "customer.start_kyc", skip(self, db), err)]
     pub async fn start_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -255,6 +256,7 @@ where
         Ok(customer)
     }
 
+    #[instrument(name = "customer.approve_kyc", skip(self, db), err)]
     pub async fn approve_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,

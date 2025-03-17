@@ -202,6 +202,7 @@ where
         Ok(account)
     }
 
+    #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
     pub async fn update_account_status_for_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -235,7 +236,7 @@ where
         Ok(())
     }
 
-    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    #[instrument(name = "deposit.account_history", skip(self), err)]
     pub async fn account_history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

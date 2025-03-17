@@ -513,6 +513,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_ACCOUNT_UPDATE_STATUS,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
             CoreDepositAction::DEPOSIT_ACCOUNT_READ,
         )
         .await?;

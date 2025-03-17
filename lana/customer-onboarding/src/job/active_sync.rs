@@ -171,7 +171,11 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "customer_onboarding.handle_status_update", skip(self, message))]
+    #[instrument(
+        name = "customer_onboarding.handle_status_update",
+        skip(self, message),
+        err
+    )]
     async fn handle_status_updated(
         &self,
         message: &PersistentOutboxEvent<E>,
