@@ -1,6 +1,6 @@
 [package]
 name = "outbox"
-version = "0.3.172-dev"
+version = "0.3.174-dev"
 edition = "2021"
 
 [features]
