@@ -1,6 +1,7 @@
 {{ config(materialized='table') }}
 
 with dummy as (
+select
     null as `identificacion_garantia`,
     null as `numero_registro`,
     null as `nit_propietario`,
