@@ -22,7 +22,7 @@ local_resource(
     serve_cmd="cd .. && make setup-db run-server",
     serve_env=serve_env_core,
     readiness_probe=probe(
-        period_secs=5,
+        period_secs=15,
         http_get=http_get_action(
             path="/graphql",
             port=5253,
@@ -46,7 +46,7 @@ local_resource(
     },
     serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
     readiness_probe = probe(
-        period_secs  = 5,
+        period_secs  = 15,
         http_get = http_get_action(
             path = "/admin",
             port = 4455,
@@ -69,7 +69,14 @@ local_resource(
         "NEXT_PUBLIC_BASE_PATH": "/app",
         "NEXT_PUBLIC_CORE_APP_URL": "/app/graphql"
     },
-    serve_cmd="cd ../apps/customer-portal && pnpm install && pnpm run dev",
+    serve_cmd = "cd ../apps/customer-portal && pnpm install && pnpm run dev",
+    readiness_probe = probe(
+        period_secs  = 15,
+        http_get = http_get_action(
+            path = "/app",
+            port = 4455,
+        ),
+    ),
     allow_parallel=True,
     resource_deps=[
         "mailhog",
