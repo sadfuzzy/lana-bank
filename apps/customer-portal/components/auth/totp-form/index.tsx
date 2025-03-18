@@ -40,8 +40,8 @@ const TotpForm = ({ flowId }: { flowId: string }) => {
   }
 
   return (
-    <Card className="md:w-2/5">
-      <CardHeader className="pt-4">
+    <Card className="md:w-2/5 my-2">
+      <CardHeader>
         <CardTitle>Authenticator Code</CardTitle>
         <CardDescription className="text-textColor-secondary">
           Please enter your authenticator code to continue.

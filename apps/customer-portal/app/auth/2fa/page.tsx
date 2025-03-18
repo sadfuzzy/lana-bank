@@ -25,8 +25,8 @@ async function TwoFactorAuthPage({
 
   return (
     <AuthTemplateCard>
-      <Card className="md:w-2/5">
-        <CardHeader className="pt-4">
+      <Card className="md:w-2/5 my-2">
+        <CardHeader>
           <CardTitle>Continue with two-factor authentication.</CardTitle>
           <CardDescription className="text-textColor-secondary">
             Select Method to Continue your two-factor authentication.

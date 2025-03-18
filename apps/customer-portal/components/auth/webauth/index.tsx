@@ -56,8 +56,8 @@ const PasskeySignIn = ({
   }, [])
 
   return (
-    <Card className="md:w-2/5">
-      <CardHeader className="pt-4">
+    <Card className="md:w-2/5 my-2">
+      <CardHeader>
         <CardTitle>Continue With Passkey</CardTitle>
         <CardDescription className="text-textColor-secondary">
           Connect your Passkey to sign in.
