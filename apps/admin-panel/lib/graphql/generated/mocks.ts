@@ -1791,6 +1791,7 @@ export const mockTrialBalanceAccount = (overrides?: Partial<TrialBalanceAccount>
     return {
         __typename: 'TrialBalanceAccount',
         amounts: overrides && overrides.hasOwnProperty('amounts') ? overrides.amounts! : relationshipsToOmit.has('AccountAmountsByCurrency') ? {} as AccountAmountsByCurrency : mockAccountAmountsByCurrency({}, relationshipsToOmit),
+        code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };

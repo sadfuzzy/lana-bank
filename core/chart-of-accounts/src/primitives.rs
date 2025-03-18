@@ -184,7 +184,12 @@ impl FromStr for AccountCode {
         if s.is_empty() {
             return Err(AccountCodeParseError::Empty);
         }
-        let sections = s
+
+        let account_code = match s.split_once('.') {
+            Some((first, rest)) if uuid::Uuid::parse_str(first).is_ok() => rest,
+            _ => s,
+        };
+        let sections = account_code
             .split('.')
             .map(|part| {
                 part.parse::<AccountCodeSection>()

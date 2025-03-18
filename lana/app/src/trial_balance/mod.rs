@@ -9,10 +9,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use rbac_types::{Subject, TrialBalanceAction};
 
-use crate::{
-    authorization::{Authorization, Object},
-    primitives::LedgerAccountSetId,
-};
+use crate::authorization::{Authorization, Object};
 
 use error::*;
 use ledger::*;
@@ -57,32 +54,6 @@ impl TrialBalances {
             Err(e) if e.account_set_exists() => Ok(()),
             Err(e) => Err(e.into()),
         }
-    }
-
-    pub async fn add_to_trial_balance(
-        &self,
-        name: String,
-        member_id: impl Into<LedgerAccountSetId>,
-    ) -> Result<(), TrialBalanceError> {
-        let member_id = member_id.into();
-
-        let trial_balance_id = self
-            .trial_balance_ledger
-            .get_id_from_reference(name)
-            .await?;
-
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Update)
-            .await?;
-
-        self.trial_balance_ledger
-            .add_member(op, trial_balance_id, member_id)
-            .await?;
-
-        Ok(())
     }
 
     pub async fn add_chart_to_trial_balance(

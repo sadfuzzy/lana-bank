@@ -1711,6 +1711,7 @@ export type TrialBalance = {
 export type TrialBalanceAccount = {
   __typename?: 'TrialBalanceAccount';
   amounts: AccountAmountsByCurrency;
+  code: Scalars['AccountCode']['output'];
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
 };

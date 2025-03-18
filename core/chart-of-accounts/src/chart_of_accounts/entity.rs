@@ -35,6 +35,7 @@ pub struct Chart {
     pub reference: String,
     pub name: String,
     all_accounts: HashMap<AccountCode, (AccountSpec, LedgerAccountSetId)>,
+
     pub(super) events: EntityEvents<ChartEvent>,
 }
 

@@ -95,7 +95,7 @@ pub mod deposit {
 
 pub mod chart_of_accounts {
     pub use chart_of_accounts::{
-        error, AccountDetails, {tree, Chart},
+        error, AccountCode, AccountDetails, {tree, Chart},
     };
 
     pub type ChartOfAccounts =

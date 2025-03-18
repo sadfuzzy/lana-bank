@@ -1,6 +1,9 @@
 use async_graphql::*;
 
-use crate::{graphql::account::AccountAmountsByCurrency, primitives::*};
+use crate::{
+    graphql::{account::AccountAmountsByCurrency, ledger_account::AccountCode},
+    primitives::*,
+};
 
 #[derive(SimpleObject)]
 pub struct TrialBalance {
@@ -14,6 +17,7 @@ pub struct TrialBalanceAccount {
     id: UUID,
     name: String,
     amounts: AccountAmountsByCurrency,
+    code: AccountCode,
 }
 
 impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccount {
@@ -21,6 +25,7 @@ impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccou
         TrialBalanceAccount {
             id: line_item.id.into(),
             name: line_item.name.to_string(),
+            code: AccountCode::from(&line_item.code),
             amounts: line_item.into(),
         }
     }

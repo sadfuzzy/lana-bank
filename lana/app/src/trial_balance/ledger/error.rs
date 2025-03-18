@@ -16,6 +16,8 @@ pub enum TrialBalanceLedgerError {
     Statement(#[from] crate::statement::error::StatementError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
+    #[error("TrialBalanceLedgerError - AccountCodeParseError: {0}")]
+    AccountCodeParseError(#[from] chart_of_accounts::AccountCodeParseError),
 }
 
 impl TrialBalanceLedgerError {

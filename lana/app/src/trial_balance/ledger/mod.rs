@@ -7,6 +7,8 @@ use cala_ledger::{
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
+use chart_of_accounts::AccountCode;
+
 use crate::statement::*;
 
 use error::*;
@@ -25,6 +27,16 @@ pub struct TrialBalance {
 
 #[derive(Clone)]
 pub struct TrialBalanceAccountSet {
+    pub id: AccountSetId,
+    pub name: String,
+    pub code: AccountCode,
+    pub description: Option<String>,
+    pub btc_balance: BtcStatementAccountSetBalanceRange,
+    pub usd_balance: UsdStatementAccountSetBalanceRange,
+}
+
+#[derive(Clone)]
+pub struct TrialBalanceRoot {
     pub id: AccountSetId,
     pub name: String,
     pub description: Option<String>,
@@ -78,6 +90,27 @@ impl TrialBalanceLedger {
         Ok(id)
     }
 
+    async fn trial_balance_root(
+        &self,
+        account_set_id: AccountSetId,
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<TrialBalanceRoot, TrialBalanceLedgerError> {
+        let values = self
+            .cala
+            .account_sets()
+            .find(account_set_id)
+            .await?
+            .into_values();
+
+        Ok(TrialBalanceRoot {
+            id: account_set_id,
+            name: values.name,
+            description: values.description,
+            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
+            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
+        })
+    }
+
     async fn get_account_set(
         &self,
         account_set_id: AccountSetId,
@@ -90,12 +123,18 @@ impl TrialBalanceLedger {
             .await?
             .into_values();
 
+        let code = values
+            .external_id
+            .expect("external_id should exist")
+            .parse()?;
+
         Ok(TrialBalanceAccountSet {
             id: account_set_id,
             name: values.name,
             description: values.description,
             btc_balance: balances_by_id.btc_for_account(account_set_id)?,
             usd_balance: balances_by_id.usd_for_account(account_set_id)?,
+            code,
         })
     }
 
@@ -226,7 +265,9 @@ impl TrialBalanceLedger {
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let statement_account_set = self.get_account_set(statement_id, &balances_by_id).await?;
+        let statement_account_set = self
+            .trial_balance_root(statement_id, &balances_by_id)
+            .await?;
 
         let mut accounts = Vec::new();
         for account_set_id in member_account_sets_ids {
