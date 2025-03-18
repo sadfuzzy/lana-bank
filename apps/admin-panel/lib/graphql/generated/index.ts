@@ -262,7 +262,7 @@ export type CashFlowStatement = {
 
 export type ChartNode = {
   __typename?: 'ChartNode';
-  accountCode: Scalars['String']['output'];
+  accountCode: Scalars['AccountCode']['output'];
   children: Array<ChartNode>;
   name: Scalars['String']['output'];
 };
@@ -1959,7 +1959,7 @@ export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCo
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: string }> }> }> }> }> }> } };
+export type ChartOfAccountsQuery = { __typename?: 'Query', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> } };
 
 export type ChartOfAccountsCsvImportMutationVariables = Exact<{
   input: ChartOfAccountsCsvImportInput;

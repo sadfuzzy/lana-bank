@@ -239,7 +239,7 @@ type CashFlowStatement {
 
 type ChartNode {
 	name: String!
-	accountCode: String!
+	accountCode: AccountCode!
 	children: [ChartNode!]!
 }
 
