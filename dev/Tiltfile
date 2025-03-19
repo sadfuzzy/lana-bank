@@ -53,10 +53,6 @@ local_resource(
         ),
     ),
     allow_parallel=True,
-    resource_deps=[
-        "mailhog",
-        "core",
-    ],
     links = [
         link("http://localhost:4455/admin", "admin-panel"),
     ]
@@ -78,10 +74,6 @@ local_resource(
         ),
     ),
     allow_parallel=True,
-    resource_deps=[
-        "mailhog",
-        "core",
-    ],
     links = [
         link("http://localhost:4455/app", "customer-portal"),
     ]
