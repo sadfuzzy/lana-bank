@@ -698,6 +698,7 @@ checksums:
     TrialBalance/tabs/regular: a85e9f646b05a474ec32a9cdbc1ef123
     TrialBalance/tabs/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
     TrialBalance/table/headers/accountName: 5a4c82f1bc517348b64c107345f94f65
+    TrialBalance/table/headers/accountCode: 9218742c297d337fdc0f5f5dd985294d
     TrialBalance/table/headers/debit: 1b35db901aa1aeed8ee79aec6d807731
     TrialBalance/table/headers/credit: 2d447a71ec815a039f175e94fbb12a56
     TrialBalance/table/headers/net: b72de62cf63ab49dc1325f12a7d75014

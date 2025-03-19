@@ -32,7 +32,7 @@ describe(t(TB + ".title"), () => {
           .contains(new RegExp(`^${account.name}$`))
           .parent("tr")
           .within(() => {
-            cy.get("td").should("have.length", 4)
+            cy.get("td").should("have.length", 5)
           })
       })
     })
@@ -62,7 +62,7 @@ describe(t(TB + ".title"), () => {
     cy.contains(t(TB + ".totals"))
       .closest("tr")
       .within(() => {
-        cy.get("td").should("have.length", 4)
+        cy.get("td").should("have.length", 5)
       })
   })
 

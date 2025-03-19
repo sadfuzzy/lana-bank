@@ -21,8 +21,6 @@ import { Badge } from "@lana/web/ui/badge"
 
 import { toast } from "sonner"
 
-import { Button } from "@lana/web/ui/button"
-
 import { useRouter } from "next/navigation"
 
 import ChartOfAccountsUpload from "./upload"
@@ -158,24 +156,17 @@ interface AccountRowProps {
 const AccountRow = React.memo<AccountRowProps>(
   ({ account, hasDots, isExpanded, toggleExpand }) => {
     const t = useTranslations("ChartOfAccounts")
-    const tCommon = useTranslations("Common")
-    const [isHovering, setIsHovering] = useState(false)
 
     const router = useRouter()
 
-    const onClick: MouseEventHandler<HTMLButtonElement> = (e) => {
+    const onClick: MouseEventHandler<HTMLTableRowElement> = (e) => {
       e.preventDefault()
       e.stopPropagation()
-      router.push(`/chart-of-accounts/${account.accountCode}`)
+      router.push(`/ledger-account/${account.accountCode}`)
     }
 
     return (
-      <TableRow
-        className={hasDots ? "cursor-pointer hover:bg-muted/5" : ""}
-        onClick={hasDots ? toggleExpand : undefined}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
+      <TableRow className="cursor-pointer" onClick={onClick}>
         <TableCell
           className={`${getIndentClass(account.accountCode)} flex justify-between`}
         >
@@ -196,7 +187,13 @@ const AccountRow = React.memo<AccountRowProps>(
             </div>
             <div className="flex justify-center">
               {hasDots ? (
-                <span className="text-muted-foreground">
+                <span
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (hasDots) toggleExpand()
+                  }}
+                  className="text-muted-foreground cursor-pointer hover:bg-muted p-1 rounded-full"
+                >
                   {isExpanded ? (
                     <IoCaretDownSharp className="h-4 w-4" />
                   ) : (
@@ -207,23 +204,9 @@ const AccountRow = React.memo<AccountRowProps>(
                 <span className="w-4"></span>
               )}
             </div>
-            <div className="flex space-x-4 items-center">
-              <span className={getTextClass(account.accountCode)}>{account.name}</span>
-              <div className="font-mono text-xs text-gray-500">
-                ({account.accountCode})
-              </div>
-            </div>
+            <span className={getTextClass(account.accountCode)}>{account.name}</span>
           </div>
-          {isHovering && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-[22px] uppercase"
-              onClick={onClick}
-            >
-              {tCommon("view")}
-            </Button>
-          )}
+          <div className="font-mono text-xs text-gray-500">{account.accountCode}</div>
         </TableCell>
       </TableRow>
     )

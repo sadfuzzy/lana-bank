@@ -22,6 +22,7 @@ import {
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
@@ -44,6 +45,7 @@ gql`
       accounts {
         id
         name
+        code
         amounts {
           ...balancesByCurrency
         }
@@ -206,6 +208,8 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
   const [currency, setCurrency] = React.useState<Currency>("usd")
   const [layer, setLayer] = React.useState<Layers>("all")
 
+  const router = useRouter()
+
   const total = data?.total
   const accounts = data?.accounts
 
@@ -230,14 +234,22 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
       <Table className="mt-6">
         <TableHeader>
           <TableHead>{t("table.headers.accountName")}</TableHead>
+          <TableHead>{t("table.headers.accountCode")}</TableHead>
           <TableHead className="text-right">{t("table.headers.debit")}</TableHead>
           <TableHead className="text-right">{t("table.headers.credit")}</TableHead>
           <TableHead className="text-right">{t("table.headers.net")}</TableHead>
         </TableHeader>
         <TableBody>
           {accounts?.map((account, index) => (
-            <TableRow key={index}>
+            <TableRow
+              className="cursor-pointer"
+              onClick={() => router.push(`/ledger-account/${account.code}`)}
+              key={index}
+            >
               <TableCell>{account.name}</TableCell>
+              <TableCell className="w-48">
+                <div className="font-mono text-xs text-gray-500">{account.code}</div>
+              </TableCell>
               <TableCell className="w-48">
                 <Balance
                   align="end"
@@ -265,6 +277,7 @@ const TrialBalanceValues: React.FC<TrialBalanceValuesProps> = ({
         <TableFooter className="border-t-4">
           <TableRow>
             <TableCell className="uppercase font-bold">{t("totals")}</TableCell>
+            <TableCell></TableCell>
             <TableCell className="w-48">
               <Balance
                 align="end"
