@@ -158,7 +158,7 @@ export const CreditConfigUpdateDialog: React.FC<CreditConfigUpdateDialogProps> =
                 <Label htmlFor={key}>{t(`credit.${key}`)}</Label>
                 <Input
                   id={key}
-                  value={value.replace(/\./g, "")}
+                  value={value}
                   onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                   required={true}
                 />

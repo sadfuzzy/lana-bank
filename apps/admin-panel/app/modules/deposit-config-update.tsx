@@ -98,7 +98,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
                 <Label htmlFor={key}>{t(`deposit.${key}`)}</Label>
                 <Input
                   id={key}
-                  value={value.replace(/\./g, "")}
+                  value={value}
                   onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                   required={true}
                 />
