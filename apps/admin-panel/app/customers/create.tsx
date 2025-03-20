@@ -15,6 +15,14 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@lana/web/ui/select"
+import { RadioGroup, RadioGroupItem } from "@lana/web/ui/radio-group"
 
 import { useCustomerCreateMutation, CustomerType } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -102,92 +110,91 @@ const DetailsForm = ({
     </div>
     <div>
       <Label>{t("customerTypeLabel")}</Label>
-      <div className="flex gap-4 mt-2">
+      <RadioGroup
+        className="flex gap-4 mt-2"
+        value={
+          formData.customerType === CustomerType.Individual ? "INDIVIDUAL" : "COMPANY"
+        }
+        onValueChange={(value) => {
+          if (setFormData) {
+            if (value === "INDIVIDUAL") {
+              setFormData((prev) => ({
+                ...prev,
+                customerType: CustomerType.Individual,
+              }))
+            } else {
+              setFormData((prev) => ({
+                ...prev,
+                customerType: CustomerType.NonDomiciledCompany,
+              }))
+            }
+          }
+        }}
+        disabled={isLoading}
+      >
         <div className="flex items-center">
-          <input
+          <RadioGroupItem
             id="individual"
-            name="customerTypeOption"
-            type="radio"
             value="INDIVIDUAL"
-            checked={formData.customerType === CustomerType.Individual}
-            onChange={() => {
-              if (setFormData) {
-                setFormData((prev) => ({
-                  ...prev,
-                  customerType: CustomerType.Individual,
-                }))
-              }
-            }}
-            disabled={isLoading}
-            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
             data-testid="customer-type-individual"
           />
-          <label htmlFor="individual" className="ml-2 block text-sm">
+          <Label htmlFor="individual" className="ml-2 text-sm font-normal">
             {t("individualLabel")}
-          </label>
+          </Label>
         </div>
         <div className="flex items-center">
-          <input
+          <RadioGroupItem
             id="company"
-            name="customerTypeOption"
-            type="radio"
             value="COMPANY"
-            checked={formData.customerType !== CustomerType.Individual}
-            onChange={() => {
-              // Default to NonDomiciledCompany when selecting company
-              if (setFormData) {
-                setFormData((prev) => ({
-                  ...prev,
-                  customerType: CustomerType.NonDomiciledCompany,
-                }))
-              }
-            }}
-            disabled={isLoading}
-            className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
             data-testid="customer-type-company"
           />
-          <label htmlFor="company" className="ml-2 block text-sm">
+          <Label htmlFor="company" className="ml-2 text-sm font-normal">
             {t("companyLabel")}
-          </label>
+          </Label>
         </div>
-      </div>
+      </RadioGroup>
     </div>
 
-    {/* Visual container to maintain consistent layout */}
     <div>
-      {/* Company type dropdown - only shown when a company type is selected */}
       {formData.customerType !== CustomerType.Individual ? (
         <div>
           <Label htmlFor="companyType">{t("companyTypeLabel")}</Label>
-          <select
-            id="companyType"
-            name="customerType"
+          <Select
             value={formData.customerType}
-            onChange={handleInputChange}
+            onValueChange={(value) => {
+              if (setFormData) {
+                setFormData((prev) => ({
+                  ...prev,
+                  customerType: value as CustomerType,
+                }))
+              }
+            }}
             disabled={isLoading}
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            data-testid="company-type-select"
           >
-            <option value={CustomerType.GovernmentEntity}>
-              {t("governmentEntityLabel")}
-            </option>
-            <option value={CustomerType.PrivateCompany}>
-              {t("privateCompanyLabel")}
-            </option>
-            <option value={CustomerType.Bank}>{t("bankLabel")}</option>
-            <option value={CustomerType.FinancialInstitution}>
-              {t("financialInstitutionLabel")}
-            </option>
-            <option value={CustomerType.ForeignAgencyOrSubsidiary}>
-              {t("foreignAgencyLabel")}
-            </option>
-            <option value={CustomerType.NonDomiciledCompany}>
-              {t("nonDomiciledCompanyLabel")}
-            </option>
-          </select>
+            <SelectTrigger id="companyType" data-testid="company-type-select">
+              <SelectValue placeholder={t("selectCompanyType")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CustomerType.GovernmentEntity}>
+                {t("governmentEntityLabel")}
+              </SelectItem>
+              <SelectItem value={CustomerType.PrivateCompany}>
+                {t("privateCompanyLabel")}
+              </SelectItem>
+              <SelectItem value={CustomerType.Bank}>{t("bankLabel")}</SelectItem>
+              <SelectItem value={CustomerType.FinancialInstitution}>
+                {t("financialInstitutionLabel")}
+              </SelectItem>
+              <SelectItem value={CustomerType.ForeignAgencyOrSubsidiary}>
+                {t("foreignAgencyLabel")}
+              </SelectItem>
+              <SelectItem value={CustomerType.NonDomiciledCompany}>
+                {t("nonDomiciledCompanyLabel")}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       ) : (
-        // Invisible placeholder that preserves layout space
         <div aria-hidden="true" className="invisible">
           <Label htmlFor="placeholder">{t("companyTypeLabel")}</Label>
           <div className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
@@ -297,7 +304,6 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   const { navigate, isNavigating } = useModalNavigation({
     closeModal: () => {
       setOpenCreateCustomerDialog(false)
-      resetForm()
     },
   })
 
@@ -371,7 +377,13 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
   }
 
   return (
-    <Dialog open={openCreateCustomerDialog} onOpenChange={setOpenCreateCustomerDialog}>
+    <Dialog
+      open={openCreateCustomerDialog}
+      onOpenChange={(isOpen) => {
+        setOpenCreateCustomerDialog(isOpen)
+        if (!isOpen) resetForm()
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>

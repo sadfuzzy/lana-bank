@@ -25,7 +25,7 @@ describe("credit facility", () => {
       marginCallCvl: "120",
       initialCvl: "140",
       duration: {
-        units: 12 * 99999,
+        units: 12 * 9999999,
         period: Period.Months,
       },
     }).then((id) => {
