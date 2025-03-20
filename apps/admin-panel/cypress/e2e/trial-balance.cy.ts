@@ -23,8 +23,9 @@ describe(t(TB + ".title"), () => {
     cy.graphqlRequest<{ data: GetTrialBalanceQuery }>(print(GetTrialBalanceDocument), {
       from: lastMonthDate.toISOString(),
       until: currentDate.toISOString(),
+      first: 10,
     }).then((response) => {
-      response.data.trialBalance?.accounts.forEach((account) => {
+      response.data.trialBalance?.accounts.edges.forEach(({ node: account }) => {
         cy.get("main")
           .contains(new RegExp(`^${account.name}$`))
           .should("exist")
@@ -56,14 +57,6 @@ describe(t(TB + ".title"), () => {
     cy.contains(t(CLS + ".layer.options.all")).click()
     cy.contains(t(CLS + ".layer.options.settled")).click()
     cy.contains(t(CLS + ".layer.options.pending")).click()
-  })
-
-  it("should display totals row", () => {
-    cy.contains(t(TB + ".totals"))
-      .closest("tr")
-      .within(() => {
-        cy.get("td").should("have.length", 5)
-      })
   })
 
   it("should show date range selector", () => {

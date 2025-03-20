@@ -1152,7 +1152,7 @@
       "genericError": "Ocurrió un error al subir tu archivo",
       "successDescription": "Plan de cuentas importado con éxito",
       "errorTitle": "Carga fallida",
-      "uploading": "Subiendo tu plan de cuentas...",
+      "uploading": "Subiendo y procesando tu plan de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
     },
@@ -1211,9 +1211,9 @@
   "TrialBalance": {
     "title": "Balance de Comprobación",
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
-    "noData": "Sin datos",
+    "noAccountsPresent": "No hay cuentas presentes",
     "dateRange": "Rango de Fechas",
-    "totals": "Totales",
+    "totals": "Totales (de todas las cuentas)",
     "tabs": {
       "regular": "Regular",
       "offBalanceSheet": "Fuera del Balance"
