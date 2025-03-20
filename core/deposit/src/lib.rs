@@ -12,6 +12,7 @@ mod history;
 mod ledger;
 mod primitives;
 mod processes;
+mod publisher;
 mod withdrawal;
 
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
@@ -41,6 +42,7 @@ pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
     ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
 };
+use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
@@ -50,8 +52,8 @@ where
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     accounts: DepositAccountRepo,
-    deposits: DepositRepo,
-    withdrawals: WithdrawalRepo,
+    deposits: DepositRepo<E>,
+    withdrawals: WithdrawalRepo<E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
@@ -99,9 +101,10 @@ where
         cala: &CalaLedger,
         journal_id: LedgerJournalId,
     ) -> Result<Self, CoreDepositError> {
+        let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool);
-        let deposits = DepositRepo::new(pool);
-        let withdrawals = WithdrawalRepo::new(pool);
+        let deposits = DepositRepo::new(pool, &publisher);
+        let withdrawals = WithdrawalRepo::new(pool, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
@@ -137,7 +140,7 @@ where
     pub fn for_subject<'s>(
         &'s self,
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<DepositsForSubject<'s, Perms>, CoreDepositError>
+    ) -> Result<DepositsForSubject<'s, Perms, E>, CoreDepositError>
     where
         DepositAccountHolderId:
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
@@ -200,6 +203,28 @@ where
             .await?;
 
         Ok(account)
+    }
+
+    #[instrument(name = "deposit.find_account_by_id", skip(self), err)]
+    pub async fn find_account_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        match self.accounts.find_by_id(id).await {
+            Ok(accounts) => Ok(Some(accounts)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]

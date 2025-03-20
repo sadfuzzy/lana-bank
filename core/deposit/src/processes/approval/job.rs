@@ -7,7 +7,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{CoreDepositAction, CoreDepositObject};
+use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 
 use super::ApproveWithdrawal;
 
@@ -24,7 +24,7 @@ impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {
 }
 impl<Perms, E> JobConfig for WithdrawApprovalJobConfig<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
@@ -36,7 +36,7 @@ where
 
 pub struct WithdrawApprovalJobInitializer<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
@@ -49,7 +49,7 @@ where
 
 impl<Perms, E> WithdrawApprovalJobInitializer<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
@@ -67,7 +67,7 @@ where
 const WITHDRAW_APPROVE_JOB: JobType = JobType::new("withdraw-approval");
 impl<Perms, E> JobInitializer for WithdrawApprovalJobInitializer<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
@@ -103,7 +103,7 @@ struct WithdrawApprovalJobData {
 
 pub struct WithdrawApprovalJobRunner<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
@@ -116,7 +116,7 @@ where
 #[async_trait]
 impl<Perms, E> JobRunner for WithdrawApprovalJobRunner<Perms, E>
 where
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,

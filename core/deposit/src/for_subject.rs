@@ -1,5 +1,6 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use outbox::OutboxEventMarker;
 use tracing::instrument;
 
 use crate::{
@@ -8,39 +9,42 @@ use crate::{
     deposit_account_balance::*,
     deposit_account_cursor::DepositAccountsByCreatedAtCursor,
     error::*,
+    event::*,
     history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry},
     ledger::*,
     primitives::*,
     withdrawal::*,
 };
 
-pub struct DepositsForSubject<'a, Perms>
+pub struct DepositsForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreDepositEvent>,
 {
     account_holder_id: DepositAccountHolderId,
     sub: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     accounts: &'a DepositAccountRepo,
-    deposits: &'a DepositRepo,
-    withdrawals: &'a WithdrawalRepo,
+    deposits: &'a DepositRepo<E>,
+    withdrawals: &'a WithdrawalRepo<E>,
     ledger: &'a DepositLedger,
     authz: &'a Perms,
 }
 
-impl<'a, Perms> DepositsForSubject<'a, Perms>
+impl<'a, Perms, E> DepositsForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreDepositEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_holder_id: DepositAccountHolderId,
         accounts: &'a DepositAccountRepo,
-        deposits: &'a DepositRepo,
-        withdrawals: &'a WithdrawalRepo,
+        deposits: &'a DepositRepo<E>,
+        withdrawals: &'a WithdrawalRepo<E>,
         ledger: &'a DepositLedger,
         authz: &'a Perms,
     ) -> Self {
