@@ -12,13 +12,14 @@ const Policy = "Policies.PolicyDetails"
 
 describe("credit facility", () => {
   let customerId: string
+  const termsTemplateName: string = `Test Template ${Date.now()}`
 
   before(() => {
     Cypress.env("creditFacilityId", null)
     cy.createTermsTemplate({
-      name: `Test Template ${Date.now()}`,
+      name: termsTemplateName,
       annualRate: "5.5",
-      accrualInterval: InterestInterval.EndOfMonth,
+      accrualInterval: InterestInterval.EndOfDay,
       incurrenceInterval: InterestInterval.EndOfMonth,
       oneTimeFeeRate: "5",
       liquidationCvl: "110",
@@ -121,6 +122,9 @@ describe("credit facility", () => {
       delay: 0,
       waitForAnimations: false,
     })
+    cy.get('[data-testid="credit-facility-terms-template-select"]').click()
+    cy.get('[role="option"]').contains(termsTemplateName).click()
+
     cy.takeScreenshot("3_enter_facility_amount")
 
     cy.get('[data-testid="create-credit-facility-submit"]').click()

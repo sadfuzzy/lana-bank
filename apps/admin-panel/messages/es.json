@@ -1338,6 +1338,7 @@
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Detalles de la cuenta contable",
+    "transactionsTitle": "Transacciones en esta cuenta",
     "description": "Detalles de la cuenta contable por código de cuenta {code}",
     "details": {
       "code": "Código de cuenta",
@@ -1346,6 +1347,7 @@
       "btcBalance": "Saldo en BTC"
     },
     "table": {
+      "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {
         "recordedAt": "Registrado el",
         "currency": "Moneda",

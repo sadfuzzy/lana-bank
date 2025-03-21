@@ -136,69 +136,79 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   ]
 
   return (
-    <Card className="mb-10">
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>
-          {t("description", { code: data?.ledgerAccountByCode?.code })}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {error ? (
-          <p className="text-destructive text-sm">{error?.message}</p>
-        ) : (
-          <>
-            {!loading && (
-              <DetailsGroup columns={3} className="mb-4">
-                <DetailItem
-                  label={t("details.name")}
-                  value={data?.ledgerAccountByCode?.name}
-                />
-                <DetailItem
-                  label={t("details.code")}
-                  value={data?.ledgerAccountByCode?.code.replace(/\./g, "")}
-                />
-                <DetailItem
-                  label={
-                    data?.ledgerAccountByCode?.balance.__typename ===
-                    "BtcLedgerAccountBalance"
-                      ? t("details.btcBalance")
-                      : t("details.usdBalance")
-                  }
-                  value={
-                    data?.ledgerAccountByCode?.balance.__typename ===
-                    "UsdLedgerAccountBalance" ? (
-                      <Balance
-                        currency="usd"
-                        amount={data?.ledgerAccountByCode?.balance?.usdSettledBalance}
-                      />
-                    ) : data?.ledgerAccountByCode?.balance.__typename ===
-                      "BtcLedgerAccountBalance" ? (
-                      <Balance
-                        currency="btc"
-                        amount={data?.ledgerAccountByCode?.balance?.btcSettledBalance}
-                      />
-                    ) : (
-                      <>N/A</>
-                    )
-                  }
-                />
-              </DetailsGroup>
-            )}
-            <PaginatedTable<LedgerAccountHistoryEntry>
-              columns={columns}
-              data={
-                data?.ledgerAccountByCode
-                  ?.history as PaginatedData<LedgerAccountHistoryEntry>
-              }
-              pageSize={DEFAULT_PAGESIZE}
-              fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
-              loading={loading}
-            />
-          </>
-        )}
-      </CardContent>
-    </Card>
+    <>
+      <Card className="mb-10">
+        <CardHeader>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>
+            {t("description", { code: data?.ledgerAccountByCode?.code })}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error ? (
+            <p className="text-destructive text-sm">{error?.message}</p>
+          ) : (
+            <>
+              {!loading && (
+                <DetailsGroup columns={3} className="mb-4">
+                  <DetailItem
+                    label={t("details.name")}
+                    value={data?.ledgerAccountByCode?.name}
+                  />
+                  <DetailItem
+                    label={t("details.code")}
+                    value={data?.ledgerAccountByCode?.code.replace(/\./g, "")}
+                  />
+                  <DetailItem
+                    label={
+                      data?.ledgerAccountByCode?.balance.__typename ===
+                      "BtcLedgerAccountBalance"
+                        ? t("details.btcBalance")
+                        : t("details.usdBalance")
+                    }
+                    value={
+                      data?.ledgerAccountByCode?.balance.__typename ===
+                      "UsdLedgerAccountBalance" ? (
+                        <Balance
+                          currency="usd"
+                          amount={data?.ledgerAccountByCode?.balance?.usdSettledBalance}
+                        />
+                      ) : data?.ledgerAccountByCode?.balance.__typename ===
+                        "BtcLedgerAccountBalance" ? (
+                        <Balance
+                          currency="btc"
+                          amount={data?.ledgerAccountByCode?.balance?.btcSettledBalance}
+                        />
+                      ) : (
+                        <>N/A</>
+                      )
+                    }
+                  />
+                </DetailsGroup>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+      <Card className="-mt-5">
+        <CardHeader>
+          <CardTitle>{t("transactionsTitle")}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PaginatedTable<LedgerAccountHistoryEntry>
+            columns={columns}
+            data={
+              data?.ledgerAccountByCode
+                ?.history as PaginatedData<LedgerAccountHistoryEntry>
+            }
+            pageSize={DEFAULT_PAGESIZE}
+            fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+            loading={loading}
+            noDataText={t("table.noData")}
+          />
+        </CardContent>
+      </Card>
+    </>
   )
 }
 

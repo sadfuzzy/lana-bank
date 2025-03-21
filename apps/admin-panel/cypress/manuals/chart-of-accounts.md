@@ -25,3 +25,12 @@ Después de cargar el archivo CSV (o si los datos ya están cargados), verás la
 ---
 
 Siguiendo estos pasos, puedes cargar datos de cuentas y ver la estructura jerárquica de tu plan de cuentas, incluyendo las categorías de Activos, Pasivos, Patrimonio, Ingresos y Gastos.
+
+<!-- new-page -->
+
+### Paso 3: Ver Detalles de la Cuenta del Libro Mayor
+
+Haz clic en cualquier cuenta en el plan de cuentas (o expándelas haciendo clic en el ícono de caret) para ver los detalles de la cuenta, incluyendo el código de la cuenta, el nombre y el saldo. Aquí verás todas las transacciones dentro de ella.
+
+![Detalles de la Cuenta del Libro Mayor](./screenshots/chart-of-accounts.cy.ts/3_ledger_account_details.png)
+

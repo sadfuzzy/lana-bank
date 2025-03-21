@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-extraneous-dependencies, import/no-unassigned-import
 import "cypress-file-upload"
 
+import { t } from "../support/translation"
 import { CustomerType, TermsTemplateCreateInput } from "../../lib/graphql/generated"
 
 type Customer = {
@@ -22,6 +23,7 @@ declare global {
       getIdFromUrl(pathSegment: string): Chainable<string>
       createDeposit(amount: number, depositAccountId: string): Chainable<string>
       initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string>
+      uploadChartOfAccounts(): Chainable<void>
     }
   }
 }
@@ -229,5 +231,42 @@ Cypress.Commands.add(
       .then((response) => response.data.withdrawalInitiate.withdrawal.withdrawalId)
   },
 )
+
+Cypress.Commands.add("uploadChartOfAccounts", () => {
+  const COA = "ChartOfAccounts"
+
+  cy.visit("/chart-of-accounts")
+  cy.get('[data-testid="loading-skeleton"]').should("not.exist")
+
+  cy.wait(5000)
+    .window()
+    .then((win) => {
+      const table = win.document.querySelector("table")
+
+      if (table) {
+        cy.log("Chart of accounts already uploaded, skipping upload.")
+        return
+      }
+
+      cy.get("body").then(async ($body) => {
+        const hasUploadButton =
+          $body.find(`button:contains("${t(COA + ".upload.upload")}")`).length > 0
+        const hasDropzoneText =
+          $body.find(`:contains("${t(COA + ".upload.dragAndDrop")}")`).length > 0
+
+        cy.takeScreenshot("1_chart_of_account_upload")
+        if (hasUploadButton || hasDropzoneText) {
+          cy.get('input[type="file"]').attachFile("coa.csv", { force: true })
+          cy.contains("button", new RegExp(t(COA + ".upload.upload"), "i"), {
+            timeout: 5000,
+          }).click()
+        }
+      })
+    })
+
+  cy.get("body")
+    .contains(/Assets/i)
+    .should("be.visible")
+})
 
 export {}

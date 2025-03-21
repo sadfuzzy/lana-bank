@@ -346,7 +346,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 onValueChange={handleTemplateChange}
                 disabled={termsTemplatesLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger data-testid="credit-facility-terms-template-select">
                   <SelectValue placeholder={t("form.placeholders.termsTemplate")} />
                 </SelectTrigger>
                 <SelectContent>

@@ -1338,6 +1338,7 @@
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Ledger Account Details",
+    "transactionsTitle": "Transactions in this account",
     "description": "Details of ledger account by account code {code}",
     "details": {
       "code": "Account Code",
@@ -1346,6 +1347,7 @@
       "btcBalance": "BTC Balance"
     },
     "table": {
+      "noData": "No transactions present in this account",
       "columns": {
         "recordedAt": "Recorded At",
         "currency": "Currency",

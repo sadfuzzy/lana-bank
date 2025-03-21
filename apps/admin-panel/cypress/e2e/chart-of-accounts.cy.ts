@@ -1,26 +1,10 @@
 import { t } from "../support/translation"
 
-const COA = "ChartOfAccounts"
+const COALA = "ChartOfAccountsLedgerAccount"
 
 describe("Chart Of Accounts", () => {
   it("should upload CSV and display chart data", () => {
-    cy.visit("/chart-of-accounts")
-    cy.get('[data-testid="loading-skeleton"]').should("not.exist")
-
-    cy.get("body").then(($body) => {
-      const hasUploadButton =
-        $body.find(`button:contains("${t(COA + ".upload.upload")}")`).length > 0
-      const hasDropzoneText =
-        $body.find(`:contains("${t(COA + ".upload.dragAndDrop")}")`).length > 0
-
-      cy.takeScreenshot("1_chart_of_account_upload")
-      if (hasUploadButton || hasDropzoneText) {
-        cy.get('input[type="file"]').attachFile("coa.csv", { force: true })
-        cy.contains("button", new RegExp(t(COA + ".upload.upload"), "i"), {
-          timeout: 5000,
-        }).click()
-      }
-    })
+    cy.uploadChartOfAccounts()
 
     cy.get("body")
       .contains(/Assets/i)
@@ -46,5 +30,17 @@ describe("Chart Of Accounts", () => {
       .should("be.visible")
 
     cy.takeScreenshot("2_chart_of_account_view")
+  })
+
+  it("should open ledger account details", () => {
+    cy.visit("/chart-of-accounts")
+    cy.get("body")
+      .contains(/Assets/i)
+      .should("be.visible")
+      .click()
+
+    cy.contains(t(COALA + ".title")).should("be.visible")
+
+    cy.takeScreenshot("3_ledger_account_details")
   })
 })

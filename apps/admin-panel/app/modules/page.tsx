@@ -70,7 +70,6 @@ gql`
 
 const Modules: React.FC = () => {
   const t = useTranslations("Modules")
-  const tCommon = useTranslations("Common")
 
   const [openDepositConfigUpdateDialog, setOpenDepositConfigUpdateDialog] =
     useState(false)
@@ -137,7 +136,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenDepositConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("deposit.setTitle")}
               </Button>
             </CardFooter>
           </>
@@ -178,7 +177,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenCreditConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("credit.setTitle")}
               </Button>
             </CardFooter>
           </>
@@ -219,7 +218,7 @@ const Modules: React.FC = () => {
                 onClick={() => setOpenBalanceSheetConfigUpdateDialog(true)}
               >
                 <Pencil />
-                {tCommon("set")}
+                {t("balanceSheet.setTitle")}
               </Button>
             </CardFooter>
           </>
