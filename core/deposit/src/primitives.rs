@@ -3,6 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use authz::AllOrOne;
 
 pub use chart_of_accounts::ChartId;
+pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
@@ -262,5 +263,28 @@ pub enum ChartOfAccountsIntegrationConfigAction {
 impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
     fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
         CoreDepositAction::ChartOfAccountsIntegrationConfig(action)
+    }
+}
+
+pub enum DepositAccountType {
+    Individual,
+    GovernmentEntity,
+    PrivateCompany,
+    Bank,
+    FinancialInstitution,
+    NonDomiciledCompany,
+}
+
+impl From<CustomerType> for DepositAccountType {
+    fn from(customer_type: CustomerType) -> Self {
+        match customer_type {
+            CustomerType::Individual => DepositAccountType::Individual,
+            CustomerType::GovernmentEntity => DepositAccountType::GovernmentEntity,
+            CustomerType::PrivateCompany => DepositAccountType::PrivateCompany,
+            CustomerType::Bank => DepositAccountType::Bank,
+            CustomerType::FinancialInstitution => DepositAccountType::FinancialInstitution,
+            CustomerType::NonDomiciledCompany => DepositAccountType::NonDomiciledCompany,
+            _ => panic!("Invalid customer type"),
+        }
     }
 }

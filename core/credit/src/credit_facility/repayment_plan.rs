@@ -225,7 +225,7 @@ mod tests {
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
                 facility: UsdCents::from(1_000_000),
-                terms: terms(),
+                terms: Box::new(terms()),
                 audit_info: dummy_audit_info(),
                 disbursal_credit_account_id: LedgerAccountId::new(),
                 approval_process_id: ApprovalProcessId::new(),

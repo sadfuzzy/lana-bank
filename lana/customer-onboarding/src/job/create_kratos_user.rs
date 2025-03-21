@@ -180,7 +180,7 @@ where
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerCreated { id, email }) = message.as_event() {
+        if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
 
             let authentication_id = self

@@ -32,8 +32,13 @@ import {
 gql`
   query depositConfig {
     depositConfig {
-      chartOfAccountsDepositAccountsParentCode
       chartOfAccountsOmnibusParentCode
+      chartOfAccountsIndividualDepositAccountsParentCode
+      chartOfAccountsGovernmentEntityDepositAccountsParentCode
+      chartOfAccountPrivateCompanyDepositAccountsParentCode
+      chartOfAccountBankDepositAccountsParentCode
+      chartOfAccountFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
     }
   }
 

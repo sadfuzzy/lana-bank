@@ -158,16 +158,18 @@ where
         ))
     }
 
-    #[instrument(name = "deposit.create_account", skip(self), err)]
+    #[instrument(name = "deposit.create_account", skip(self, deposit_account_type), err)]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        reference: &str,
-        name: &str,
-        description: &str,
         active: bool,
+        deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
+        let holder_id = holder_id.into();
+
+        let name = &format!("Deposit Account {}", holder_id);
+        let reference = &format!("deposit-customer-account:{}", holder_id);
         let audit_info = self
             .authz
             .enforce_permission(
@@ -183,7 +185,7 @@ where
             .account_holder_id(holder_id)
             .reference(reference.to_string())
             .name(name.to_string())
-            .description(description.to_string())
+            .description(name.to_string())
             .active(active)
             .audit_info(audit_info.clone())
             .build()
@@ -198,7 +200,7 @@ where
                 account_id,
                 account.reference.to_string(),
                 account.name.to_string(),
-                account.description.to_string(),
+                deposit_account_type,
             )
             .await?;
 
@@ -717,8 +719,28 @@ where
             return Err(CoreDepositError::DepositConfigAlreadyExists);
         }
 
-        let deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
+        let individual_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_accounts_individual_deposit_accounts_parent_code,
+        )?;
+        let government_entity_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_accounts_government_entity_deposit_accounts_parent_code,
+            )?;
+        let private_company_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_private_company_deposit_accounts_parent_code,
+            )?;
+        let bank_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_bank_deposit_accounts_parent_code)?;
+        let financial_institution_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_financial_institution_deposit_accounts_parent_code,
+            )?;
+        let non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
+            )?;
+
         let omnibus_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
 
@@ -731,13 +753,20 @@ where
             )
             .await?;
 
+        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+            audit_info,
+            config: config.clone(),
+            omnibus_parent_account_set_id,
+            individual_deposit_accounts_parent_account_set_id,
+            government_entity_deposit_accounts_parent_account_set_id,
+            private_company_deposit_accounts_parent_account_set_id,
+            bank_deposit_accounts_parent_account_set_id,
+            financial_institution_deposit_accounts_parent_account_set_id,
+            non_domiciled_individual_deposit_accounts_parent_account_set_id,
+        };
+
         self.ledger
-            .attach_chart_of_accounts_account_sets(
-                audit_info,
-                &config,
-                deposit_accounts_parent_account_set_id,
-                omnibus_parent_account_set_id,
-            )
+            .attach_chart_of_accounts_account_sets(charts_integration_meta)
             .await?;
 
         Ok(config)

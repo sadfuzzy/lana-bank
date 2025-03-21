@@ -22,7 +22,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
-        terms: TermValues,
+        terms: Box<TermValues>,
         facility: UsdCents,
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: LedgerAccountId,
@@ -1156,11 +1156,11 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     approval_process_id,
                     ..
                 } => {
-                    terms = Some(*t);
+                    terms = Some(**t);
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
-                        .terms(*t)
+                        .terms(**t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
@@ -1228,7 +1228,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 id: self.id,
                 audit_info: self.audit_info.clone(),
                 customer_id: self.customer_id,
-                terms: self.terms,
+                terms: Box::new(self.terms),
                 facility: self.facility,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
@@ -1299,7 +1299,7 @@ mod test {
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
             facility: default_facility(),
-            terms: default_terms(),
+            terms: Box::new(default_terms()),
             account_ids: CreditFacilityAccountIds::new(),
             disbursal_credit_account_id: LedgerAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),

@@ -26,8 +26,13 @@ gql`
     depositModuleConfigure(input: $input) {
       depositConfig {
         chartOfAccountsId
-        chartOfAccountsDepositAccountsParentCode
         chartOfAccountsOmnibusParentCode
+        chartOfAccountsIndividualDepositAccountsParentCode
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode
+        chartOfAccountPrivateCompanyDepositAccountsParentCode
+        chartOfAccountBankDepositAccountsParentCode
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode
+        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
       }
     }
   }
@@ -40,8 +45,13 @@ type DepositConfigUpdateDialogProps = {
 }
 
 const initialFormData = {
-  chartOfAccountsDepositAccountsParentCode: "",
   chartOfAccountsOmnibusParentCode: "",
+  chartOfAccountsIndividualDepositAccountsParentCode: "",
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode: "",
+  chartOfAccountPrivateCompanyDepositAccountsParentCode: "",
+  chartOfAccountBankDepositAccountsParentCode: "",
+  chartOfAccountFinancialInstitutionDepositAccountsParentCode: "",
+  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "",
 }
 
 export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps> = ({
@@ -67,14 +77,29 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   useEffect(() => {
     if (
       depositModuleConfig &&
-      depositModuleConfig.chartOfAccountsDepositAccountsParentCode &&
-      depositModuleConfig.chartOfAccountsOmnibusParentCode
+      depositModuleConfig.chartOfAccountsOmnibusParentCode &&
+      depositModuleConfig.chartOfAccountsIndividualDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountsGovernmentEntityDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountBankDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
     ) {
       setFormData({
-        chartOfAccountsDepositAccountsParentCode:
-          depositModuleConfig.chartOfAccountsDepositAccountsParentCode,
         chartOfAccountsOmnibusParentCode:
           depositModuleConfig.chartOfAccountsOmnibusParentCode,
+        chartOfAccountsIndividualDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountsIndividualDepositAccountsParentCode,
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountsGovernmentEntityDepositAccountsParentCode,
+        chartOfAccountPrivateCompanyDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode,
+        chartOfAccountBankDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountBankDepositAccountsParentCode,
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode,
+        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode,
       })
     }
   }, [depositModuleConfig])

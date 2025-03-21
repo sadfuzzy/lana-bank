@@ -1095,8 +1095,13 @@ export const mockDepositModuleConfig = (overrides?: Partial<DepositModuleConfig>
     relationshipsToOmit.add('DepositModuleConfig');
     return {
         __typename: 'DepositModuleConfig',
-        chartOfAccountsDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsDepositAccountsParentCode') ? overrides.chartOfAccountsDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountBankDepositAccountsParentCode') ? overrides.chartOfAccountBankDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountNonDomiciledCompanyDepositAccountsParentCode') ? overrides.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
         chartOfAccountsId: overrides && overrides.hasOwnProperty('chartOfAccountsId') ? overrides.chartOfAccountsId! : generateMockValue.uuid(),
+        chartOfAccountsIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsIndividualDepositAccountsParentCode! : faker.lorem.word(),
         chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
     };
 };
@@ -1105,7 +1110,12 @@ export const mockDepositModuleConfigureInput = (overrides?: Partial<DepositModul
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('DepositModuleConfigureInput');
     return {
-        chartOfAccountsDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsDepositAccountsParentCode') ? overrides.chartOfAccountsDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountBankDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountBankDepositAccountsParentCode') ? overrides.chartOfAccountBankDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountFinancialInstitutionDepositAccountsParentCode') ? overrides.chartOfAccountFinancialInstitutionDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountNonDomiciledIndividualDepositAccountsParentCode') ? overrides.chartOfAccountNonDomiciledIndividualDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountPrivateCompanyDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountPrivateCompanyDepositAccountsParentCode') ? overrides.chartOfAccountPrivateCompanyDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsGovernmentEntityDepositAccountsParentCode') ? overrides.chartOfAccountsGovernmentEntityDepositAccountsParentCode! : faker.lorem.word(),
+        chartOfAccountsIndividualDepositAccountsParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsIndividualDepositAccountsParentCode') ? overrides.chartOfAccountsIndividualDepositAccountsParentCode! : faker.lorem.word(),
         chartOfAccountsOmnibusParentCode: overrides && overrides.hasOwnProperty('chartOfAccountsOmnibusParentCode') ? overrides.chartOfAccountsOmnibusParentCode! : faker.lorem.word(),
     };
 };

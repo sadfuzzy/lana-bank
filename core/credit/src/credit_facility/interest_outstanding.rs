@@ -34,7 +34,7 @@ pub(super) fn project<'a>(
     let mut payments: Vec<Payment> = Vec::new();
     for event in events {
         match event {
-            CreditFacilityEvent::Initialized { terms, .. } => facility_terms = Some(*terms),
+            CreditFacilityEvent::Initialized { terms, .. } => facility_terms = Some(**terms),
             CreditFacilityEvent::InterestAccrualConcluded {
                 amount, accrued_at, ..
             } => {
@@ -147,7 +147,7 @@ mod tests {
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
                 facility: UsdCents::from(1_000_000),
-                terms: terms(interest_due_duration, interest_overdue_duration),
+                terms: Box::new(terms(interest_due_duration, interest_overdue_duration)),
                 audit_info: dummy_audit_info(),
                 disbursal_credit_account_id: LedgerAccountId::new(),
                 approval_process_id: ApprovalProcessId::new(),

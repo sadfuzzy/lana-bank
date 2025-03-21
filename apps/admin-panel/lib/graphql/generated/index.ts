@@ -860,13 +860,23 @@ export type DepositEntry = {
 
 export type DepositModuleConfig = {
   __typename?: 'DepositModuleConfig';
-  chartOfAccountsDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountBankDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountFinancialInstitutionDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountPrivateCompanyDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsIndividualDepositAccountsParentCode?: Maybe<Scalars['String']['output']>;
   chartOfAccountsOmnibusParentCode?: Maybe<Scalars['String']['output']>;
 };
 
 export type DepositModuleConfigureInput = {
-  chartOfAccountsDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountBankDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountFinancialInstitutionDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountPrivateCompanyDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode: Scalars['String']['input'];
+  chartOfAccountsIndividualDepositAccountsParentCode: Scalars['String']['input'];
   chartOfAccountsOmnibusParentCode: Scalars['String']['input'];
 };
 
@@ -2306,12 +2316,12 @@ export type DepositModuleConfigureMutationVariables = Exact<{
 }>;
 
 
-export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } } };
+export type DepositModuleConfigureMutation = { __typename?: 'Mutation', depositModuleConfigure: { __typename?: 'DepositModuleConfigurePayload', depositConfig: { __typename?: 'DepositModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: string | null } } };
 
 export type DepositConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsDepositAccountsParentCode?: string | null, chartOfAccountsOmnibusParentCode?: string | null } | null };
+export type DepositConfigQuery = { __typename?: 'Query', depositConfig?: { __typename?: 'DepositModuleConfig', chartOfAccountsOmnibusParentCode?: string | null, chartOfAccountsIndividualDepositAccountsParentCode?: string | null, chartOfAccountsGovernmentEntityDepositAccountsParentCode?: string | null, chartOfAccountPrivateCompanyDepositAccountsParentCode?: string | null, chartOfAccountBankDepositAccountsParentCode?: string | null, chartOfAccountFinancialInstitutionDepositAccountsParentCode?: string | null, chartOfAccountNonDomiciledCompanyDepositAccountsParentCode?: string | null } | null };
 
 export type CreditConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -4968,8 +4978,13 @@ export const DepositModuleConfigureDocument = gql`
   depositModuleConfigure(input: $input) {
     depositConfig {
       chartOfAccountsId
-      chartOfAccountsDepositAccountsParentCode
       chartOfAccountsOmnibusParentCode
+      chartOfAccountsIndividualDepositAccountsParentCode
+      chartOfAccountsGovernmentEntityDepositAccountsParentCode
+      chartOfAccountPrivateCompanyDepositAccountsParentCode
+      chartOfAccountBankDepositAccountsParentCode
+      chartOfAccountFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
     }
   }
 }
@@ -5003,8 +5018,13 @@ export type DepositModuleConfigureMutationOptions = Apollo.BaseMutationOptions<D
 export const DepositConfigDocument = gql`
     query depositConfig {
   depositConfig {
-    chartOfAccountsDepositAccountsParentCode
     chartOfAccountsOmnibusParentCode
+    chartOfAccountsIndividualDepositAccountsParentCode
+    chartOfAccountsGovernmentEntityDepositAccountsParentCode
+    chartOfAccountPrivateCompanyDepositAccountsParentCode
+    chartOfAccountBankDepositAccountsParentCode
+    chartOfAccountFinancialInstitutionDepositAccountsParentCode
+    chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
   }
 }
     `;

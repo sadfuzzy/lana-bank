@@ -14,7 +14,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-
     let governance = governance::Governance::new(&pool, &authz, &outbox);
 
     let cala_config = CalaLedgerConfig::builder()
@@ -43,8 +42,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
         .await?;
     let import = r#"
-        1,Deposit Parent
         2,Omnibus Parent
+        1,Individual Deposit Accounts
+        7,Government Entity Deposit Accounts
+        3,Private Company Deposit Accounts
+        4,Bank Deposit Accounts
+        5,Financial Institution Deposit Accounts
+        6,Non Domiciled Individual Deposit Accounts
         "#
     .to_string();
     let chart_id = chart.id;
@@ -65,8 +69,19 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
-                .chart_of_accounts_deposit_accounts_parent_code("1".parse().unwrap())
                 .chart_of_accounts_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_accounts_individual_deposit_accounts_parent_code("1".parse().unwrap())
+                .chart_of_accounts_government_entity_deposit_accounts_parent_code(
+                    "7".parse().unwrap(),
+                )
+                .chart_of_account_private_company_deposit_accounts_parent_code("3".parse().unwrap())
+                .chart_of_account_bank_deposit_accounts_parent_code("4".parse().unwrap())
+                .chart_of_account_financial_institution_deposit_accounts_parent_code(
+                    "5".parse().unwrap(),
+                )
+                .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
+                    "6".parse().unwrap(),
+                )
                 .build()
                 .unwrap(),
         )
@@ -85,8 +100,13 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?;
 
     let import = r#"
-        1,Other Deposit Parent
         2,Other Omnibus Parent
+        1,Other Individual Deposit Accounts
+        7,Other Government Entity Deposit 
+        3,Other Private Company Deposit Accounts
+        4,Other Bank Deposit Accounts
+        5,Other Financial Institution Deposit Accounts
+        6,Other Non Domiciled Individual Deposit Accounts
         "#
     .to_string();
     let chart_id = chart.id;
@@ -100,8 +120,19 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
             chart,
             ChartOfAccountsIntegrationConfig::builder()
                 .chart_of_accounts_id(chart_id)
-                .chart_of_accounts_deposit_accounts_parent_code("1".parse().unwrap())
                 .chart_of_accounts_omnibus_parent_code("2".parse().unwrap())
+                .chart_of_accounts_individual_deposit_accounts_parent_code("1".parse().unwrap())
+                .chart_of_accounts_government_entity_deposit_accounts_parent_code(
+                    "7".parse().unwrap(),
+                )
+                .chart_of_account_private_company_deposit_accounts_parent_code("3".parse().unwrap())
+                .chart_of_account_bank_deposit_accounts_parent_code("4".parse().unwrap())
+                .chart_of_account_financial_institution_deposit_accounts_parent_code(
+                    "5".parse().unwrap(),
+                )
+                .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
+                    "6".parse().unwrap(),
+                )
                 .build()
                 .unwrap(),
         )

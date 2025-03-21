@@ -852,13 +852,23 @@ type DepositEntry {
 
 type DepositModuleConfig {
 	chartOfAccountsId: UUID
-	chartOfAccountsDepositAccountsParentCode: String
 	chartOfAccountsOmnibusParentCode: String
+	chartOfAccountsIndividualDepositAccountsParentCode: String
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String
+	chartOfAccountBankDepositAccountsParentCode: String
+	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String
+	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String
 }
 
 input DepositModuleConfigureInput {
-	chartOfAccountsDepositAccountsParentCode: String!
 	chartOfAccountsOmnibusParentCode: String!
+	chartOfAccountsIndividualDepositAccountsParentCode: String!
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String!
+	chartOfAccountBankDepositAccountsParentCode: String!
+	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String!
+	chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: String!
 }
 
 type DepositModuleConfigurePayload {

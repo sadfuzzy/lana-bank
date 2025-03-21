@@ -1288,13 +1288,12 @@
       "setTitle": "Set Deposit Configuration",
       "chartOfAccountsId": "Chart of Accounts ID",
       "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code (e.g. 1110.01.0101)",
-      "chartOfAccountsDepositAccountsParentCode": "Deposit Accounts Parent Code (e.g. 2110.01) [TODO: remove]",
       "chartOfAccountsIndividualDepositAccountsParentCode": "Deposit Accounts Individual Parent Code (e.g. 2110.01.0401)",
-      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Deposit Accounts Government Entity Receivable Parent Code (e.g. 2110.01.0201)",
-      "chartOfAccountsPrivateCompanyDepositAccountsParentCode": "Deposit Accounts Private Company Receivable Parent Code (e.g. 2110.01.0301)",
-      "chartOfAccountsBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code (e.g. 2110.01.0501)",
-      "chartOfAccountsFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code (e.g. 2110.01.0601)",
-      "chartOfAccountsNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code (e.g. 2110.01.0901)"
+      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Deposit Accounts Government Entity Parent Code (e.g. 2110.01.0201)",
+      "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Deposit Accounts Private Company Receivable Parent Code (e.g. 2110.01.0301)",
+      "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code (e.g. 2110.01.0501)",
+      "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code (e.g. 2110.01.0601)",
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code (e.g. 2110.01.0901)"
     },
     "credit": {
       "title": "Credit",

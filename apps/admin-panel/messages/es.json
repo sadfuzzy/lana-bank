@@ -1288,13 +1288,12 @@
       "setTitle": "Establecer configuración de depósito",
       "chartOfAccountsId": "ID del plan de cuentas",
       "chartOfAccountsOmnibusParentCode": "Código padre ómnibus (p. ej. 1110.01.0101)",
-      "chartOfAccountsDepositAccountsParentCode": "Código padre de cuentas de depósito (p. ej. 2110.01) [TODO: eliminar]",
       "chartOfAccountsIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito individuales (p. ej. 2110.01.0401)",
-      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas por cobrar de entidades gubernamentales (p. ej. 2110.01.0201)",
-      "chartOfAccountsPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de empresas privadas (p. ej. 2110.01.0301)",
-      "chartOfAccountsBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de bancos (p. ej. 2110.01.0501)",
-      "chartOfAccountsFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de instituciones financieras (p. ej. 2110.01.0601)",
-      "chartOfAccountsNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de personas no domiciliadas (p. ej. 2110.01.0901)"
+      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas de depósito de entidades gubernamentales (ej. 2110.01.0201)",
+      "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de cuentas de depósito de empresa privada (ej. 2110.01.0301)",
+      "chartOfAccountBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de cuentas de depósito bancario (ej. 2110.01.0501)",
+      "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de cuentas de depósito de institución financiera (ej. 2110.01.0601)",
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de cuentas de depósito de personas no domiciliadas (ej. 2110.01.0901)"
     },
     "credit": {
       "title": "Crédito",

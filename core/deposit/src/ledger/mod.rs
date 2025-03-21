@@ -17,14 +17,29 @@ use cala_ledger::{
 
 use crate::{
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    primitives::{LedgerAccountId, LedgerAccountSetId, UsdCents},
+    primitives::{DepositAccountType, LedgerAccountId, LedgerAccountSetId, UsdCents},
     DepositAccountBalance, LedgerOmnibusAccountIds,
 };
 
 use error::*;
 
-pub const DEPOSITS_ACCOUNT_SET_NAME: &str = "Deposits Account Set";
-pub const DEPOSITS_ACCOUNT_SET_REF: &str = "deposits-account-set";
+pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Deposit Individual Account Set";
+pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "deposit-individual-account-set";
+pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
+    "Deposit Government Entity Account Set";
+pub const DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str = "deposit-government-entity-account-set";
+pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str = "Deposit Private Company Account Set";
+pub const DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str = "deposit-private-company-account-set";
+pub const DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Deposit Bank Account Set";
+pub const DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "deposit-bank-account-set";
+pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
+    "Deposit Financial Institution Account Set";
+pub const DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
+    "deposit-financial-institution-account-set";
+pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+    "Deposit Non-Domiciled Company Account Set";
+pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+    "deposit-non-domiciled-company-account-set";
 
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
@@ -39,11 +54,38 @@ pub struct InternalAccountSetDetails {
     normal_balance_type: DebitOrCredit,
 }
 
+#[derive(Clone, Copy)]
+pub struct DepositAccountSets {
+    individual: InternalAccountSetDetails,
+    government_entity: InternalAccountSetDetails,
+    private_company: InternalAccountSetDetails,
+    bank: InternalAccountSetDetails,
+    financial_institution: InternalAccountSetDetails,
+    non_domiciled_individual: InternalAccountSetDetails,
+}
+
+impl DepositAccountSets {
+    fn account_set_ids(&self) -> Vec<LedgerAccountSetId> {
+        vec![
+            self.individual.id,
+            self.government_entity.id,
+            self.private_company.id,
+            self.bank.id,
+            self.financial_institution.id,
+            self.non_domiciled_individual.id,
+        ]
+    }
+
+    fn account_set_id_for_config(&self) -> LedgerAccountSetId {
+        self.individual.id
+    }
+}
+
 #[derive(Clone)]
 pub struct DepositLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    deposits_account_set: InternalAccountSetDetails,
+    deposits_account_set: DepositAccountSets,
     deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
     usd: Currency,
     deposit_control_id: VelocityControlId,
@@ -60,11 +102,57 @@ impl DepositLedger {
         templates::ConfirmWithdraw::init(cala).await?;
 
         let deposits_normal_balance_type = DebitOrCredit::Credit;
-        let deposits_account_set_id = Self::find_or_create_account_set(
+
+        let individual_deposit_account_set_id = Self::find_or_create_account_set(
             cala,
             journal_id,
-            format!("{journal_id}:{DEPOSITS_ACCOUNT_SET_REF}"),
-            DEPOSITS_ACCOUNT_SET_NAME.to_string(),
+            format!("{journal_id}:{DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF}"),
+            DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let government_entity_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF}"),
+            DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let private_company_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF}"),
+            DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let bank_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_BANK_ACCOUNT_SET_REF}"),
+            DEPOSIT_BANK_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF}"),
+            DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF}"),
+            DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
             deposits_normal_balance_type,
         )
         .await?;
@@ -96,9 +184,31 @@ impl DepositLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            deposits_account_set: InternalAccountSetDetails {
-                id: deposits_account_set_id,
-                normal_balance_type: deposits_normal_balance_type,
+            deposits_account_set: DepositAccountSets {
+                individual: InternalAccountSetDetails {
+                    id: individual_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                government_entity: InternalAccountSetDetails {
+                    id: government_entity_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                private_company: InternalAccountSetDetails {
+                    id: private_company_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                bank: InternalAccountSetDetails {
+                    id: bank_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                financial_institution: InternalAccountSetDetails {
+                    id: financial_institution_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                non_domiciled_individual: InternalAccountSetDetails {
+                    id: non_domiciled_company_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
             },
             deposit_omnibus_account_ids,
             deposit_control_id,
@@ -384,35 +494,78 @@ impl DepositLedger {
         &self,
         op: es_entity::DbOp<'_>,
         id: impl Into<LedgerAccountId>,
-        reference: String,
-        name: String,
-        description: String,
+        deposit_account_reference: String,
+        deposit_account_name: String,
+        deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        self.create_account_in_op(
+            &mut op,
+            id,
+            self.deposit_internal_account_set_from_type(deposit_account_type.into()),
+            &deposit_account_reference,
+            &deposit_account_name,
+            &deposit_account_name,
+        )
+        .await?;
+
+        self.add_deposit_control_to_account(&mut op, id).await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+
+    fn deposit_internal_account_set_from_type(
+        &self,
+        deposit_account_type: DepositAccountType,
+    ) -> InternalAccountSetDetails {
+        match deposit_account_type {
+            DepositAccountType::Individual => self.deposits_account_set.individual,
+            DepositAccountType::GovernmentEntity => self.deposits_account_set.government_entity,
+            DepositAccountType::PrivateCompany => self.deposits_account_set.private_company,
+            DepositAccountType::Bank => self.deposits_account_set.bank,
+            DepositAccountType::FinancialInstitution => {
+                self.deposits_account_set.financial_institution
+            }
+            DepositAccountType::NonDomiciledCompany => {
+                self.deposits_account_set.non_domiciled_individual
+            }
+        }
+    }
+
+    async fn create_account_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        id: impl Into<LedgerAccountId>,
+        parent_account_set: InternalAccountSetDetails,
+        reference: &str,
+        name: &str,
+        description: &str,
+    ) -> Result<(), DepositLedgerError> {
+        let id = id.into();
+
         let new_ledger_account = NewAccount::builder()
             .id(id)
             .external_id(reference)
             .name(name)
             .description(description)
             .code(id.to_string())
-            .normal_balance_type(self.deposits_account_set.normal_balance_type)
+            .normal_balance_type(parent_account_set.normal_balance_type)
             .build()
             .expect("Could not build new account");
         let ledger_account = self
             .cala
             .accounts()
-            .create_in_op(&mut op, new_ledger_account)
+            .create_in_op(op, new_ledger_account)
             .await?;
         self.cala
             .account_sets()
-            .add_member_in_op(&mut op, self.deposits_account_set.id, ledger_account.id)
+            .add_member_in_op(op, parent_account_set.id, ledger_account.id)
             .await?;
-
-        self.add_deposit_control_to_account(&mut op, id).await?;
-
-        op.commit().await?;
 
         Ok(())
     }
@@ -460,7 +613,7 @@ impl DepositLedger {
         let account_set = self
             .cala
             .account_sets()
-            .find(self.deposits_account_set.id)
+            .find(self.deposits_account_set.account_set_id_for_config())
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
             let meta: ChartOfAccountsIntegrationMeta =
@@ -518,47 +671,102 @@ impl DepositLedger {
 
     pub async fn attach_chart_of_accounts_account_sets(
         &self,
-        audit_info: AuditInfo,
-        config: &ChartOfAccountsIntegrationConfig,
-        deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-        omnibus_parent_account_set_id: LedgerAccountSetId,
+        charts_integration_meta: ChartOfAccountsIntegrationMeta,
     ) -> Result<(), DepositLedgerError> {
         let mut op = self.cala.begin_operation().await?;
+
+        let mut account_set_ids = vec![self.deposit_omnibus_account_ids.account_set_id];
+        account_set_ids.extend(self.deposits_account_set.account_set_ids());
         let mut account_sets = self
             .cala
             .account_sets()
-            .find_all_in_op::<AccountSet>(
-                &mut op,
-                &[
-                    self.deposits_account_set.id,
-                    self.deposit_omnibus_account_ids.account_set_id,
-                ],
-            )
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids)
             .await?;
 
-        let new_meta = ChartOfAccountsIntegrationMeta {
-            config: config.clone(),
-            deposit_accounts_parent_account_set_id,
+        let ChartOfAccountsIntegrationMeta {
+            config: _,
+            audit_info: _,
             omnibus_parent_account_set_id,
-            audit_info,
-        };
+            individual_deposit_accounts_parent_account_set_id:
+                individual_deposit_parent_account_set_id,
+            government_entity_deposit_accounts_parent_account_set_id:
+                government_entity_deposit_parent_account_set_id,
+            private_company_deposit_accounts_parent_account_set_id:
+                private_company_deposit_parent_account_set_id,
+            bank_deposit_accounts_parent_account_set_id: bank_deposit_parent_account_set_id,
+            financial_institution_deposit_accounts_parent_account_set_id:
+                financial_institution_deposit_parent_account_set_id,
+            non_domiciled_individual_deposit_accounts_parent_account_set_id:
+                non_domiciled_company_deposit_parent_account_set_id,
+        } = &charts_integration_meta;
 
-        self.attach_charts_account_set(
-            &mut op,
-            &mut account_sets,
-            self.deposits_account_set.id,
-            deposit_accounts_parent_account_set_id,
-            &new_meta,
-            |meta| meta.deposit_accounts_parent_account_set_id,
-        )
-        .await?;
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
             self.deposit_omnibus_account_ids.account_set_id,
-            omnibus_parent_account_set_id,
-            &new_meta,
+            *omnibus_parent_account_set_id,
+            &charts_integration_meta,
             |meta| meta.omnibus_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.individual.id,
+            *individual_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.individual_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.government_entity.id,
+            *government_entity_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.government_entity_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.private_company.id,
+            *private_company_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.private_company_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.bank.id,
+            *bank_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.bank_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.financial_institution.id,
+            *financial_institution_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.financial_institution_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.deposits_account_set.non_domiciled_individual.id,
+            *non_domiciled_company_deposit_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.non_domiciled_individual_deposit_accounts_parent_account_set_id,
         )
         .await?;
 
@@ -569,9 +777,16 @@ impl DepositLedger {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-struct ChartOfAccountsIntegrationMeta {
-    config: ChartOfAccountsIntegrationConfig,
-    deposit_accounts_parent_account_set_id: LedgerAccountSetId,
-    omnibus_parent_account_set_id: LedgerAccountSetId,
-    audit_info: AuditInfo,
+pub struct ChartOfAccountsIntegrationMeta {
+    pub config: ChartOfAccountsIntegrationConfig,
+    pub audit_info: AuditInfo,
+
+    pub omnibus_parent_account_set_id: LedgerAccountSetId,
+
+    pub individual_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub government_entity_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub private_company_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub bank_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub financial_institution_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
+    pub non_domiciled_individual_deposit_accounts_parent_account_set_id: LedgerAccountSetId,
 }
