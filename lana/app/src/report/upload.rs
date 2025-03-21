@@ -103,17 +103,36 @@ pub(super) mod bq {
         let sa_key = config.service_account().service_account_key()?;
 
         let client = Client::from_service_account_key(sa_key, false).await?;
-        let tables = client
-            .table()
-            .list(
-                &config.service_account().gcp_project,
-                &config.dbt_output_dataset,
-                ListOptions::default(),
-            )
-            .await?;
-        let res = tables
-            .tables
-            .unwrap_or_default()
+        let mut all_tables = Vec::new();
+        let mut next_page_token: Option<String> = None;
+
+        loop {
+            let mut list_options = ListOptions::default();
+            if let Some(token) = &next_page_token {
+                list_options = list_options.page_token(token.clone());
+            }
+
+            let tables = client
+                .table()
+                .list(
+                    &config.service_account().gcp_project,
+                    &config.dbt_output_dataset,
+                    list_options,
+                )
+                .await?;
+
+            if let Some(tables_list) = tables.tables {
+                all_tables.extend(tables_list);
+            }
+
+            next_page_token = tables.next_page_token;
+
+            if next_page_token.is_none() {
+                break;
+            }
+        }
+
+        let res = all_tables
             .into_iter()
             .filter_map(|t| {
                 if t.table_reference.table_id.starts_with("report") {
