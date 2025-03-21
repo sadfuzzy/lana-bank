@@ -1307,6 +1307,7 @@ export type PaymentEntry = {
 };
 
 export enum Period {
+  Days = 'DAYS',
   Months = 'MONTHS'
 }
 
@@ -1670,6 +1671,7 @@ export type TermsInput = {
   duration: DurationInput;
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
+  interestDueDuration: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
@@ -1691,6 +1693,7 @@ export type TermsTemplateCreateInput = {
   duration: DurationInput;
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
+  interestDueDuration: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   name: Scalars['String']['input'];
@@ -1709,6 +1712,7 @@ export type TermsTemplateUpdateInput = {
   id: Scalars['UUID']['input'];
   incurrenceInterval: InterestInterval;
   initialCvl: Scalars['CVLPct']['input'];
+  interestDueDuration: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
