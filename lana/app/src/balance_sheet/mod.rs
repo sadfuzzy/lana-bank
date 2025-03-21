@@ -40,7 +40,7 @@ pub struct BalanceSheetIds {
 }
 
 impl BalanceSheetIds {
-    fn as_vec(&self) -> Vec<LedgerAccountSetId> {
+    fn internal_ids(&self) -> Vec<LedgerAccountSetId> {
         let Self {
             id: _id,
 
@@ -60,6 +60,10 @@ impl BalanceSheetIds {
             *cost_of_revenue,
             *expenses,
         ]
+    }
+
+    fn account_set_id_for_config(&self) -> LedgerAccountSetId {
+        self.revenue
     }
 }
 

@@ -20,6 +20,7 @@ mod ledger_account;
 mod loader;
 mod price;
 mod primitives;
+mod profit_and_loss_config;
 mod report;
 mod sumsub;
 mod terms;

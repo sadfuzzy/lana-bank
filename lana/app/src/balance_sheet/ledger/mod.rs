@@ -146,6 +146,32 @@ impl BalanceSheetLedger {
         })
     }
 
+    async fn get_all_account_sets(
+        &self,
+        ids: &[AccountSetId],
+        balances_by_id: &BalancesByAccount,
+    ) -> Result<Vec<StatementAccountSet>, BalanceSheetLedgerError> {
+        let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
+
+        let mut statement_account_sets = Vec::new();
+        for id in ids {
+            let values = account_sets
+                .remove(id)
+                .expect("account set should exist")
+                .into_values();
+
+            statement_account_sets.push(StatementAccountSet {
+                id: *id,
+                name: values.name,
+                description: values.description,
+                btc_balance: balances_by_id.btc_for_account(*id)?,
+                usd_balance: balances_by_id.usd_for_account(*id)?,
+            });
+        }
+
+        Ok(statement_account_sets)
+    }
+
     async fn get_member_account_set_ids(
         &self,
         account_set_id: AccountSetId,
@@ -350,7 +376,10 @@ impl BalanceSheetLedger {
         &self,
         reference: String,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, BalanceSheetLedgerError> {
-        let account_set_id = self.get_ids_from_reference(reference).await?.assets;
+        let account_set_id = self
+            .get_ids_from_reference(reference)
+            .await?
+            .account_set_id_for_config();
 
         let account_set = self.cala.account_sets().find(account_set_id).await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
@@ -422,7 +451,7 @@ impl BalanceSheetLedger {
         let mut account_sets = self
             .cala
             .account_sets()
-            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.as_vec())
+            .find_all_in_op::<AccountSet>(&mut op, &account_set_ids.internal_ids())
             .await?;
 
         let ChartOfAccountsIntegrationMeta {
@@ -527,29 +556,16 @@ impl BalanceSheetLedger {
             .await?;
         let equity_account_set = self.get_account_set(ids.equity, &balances_by_id).await?;
 
-        let mut assets_accounts = Vec::new();
-        for account_set_id in assets_member_account_sets_ids {
-            assets_accounts.push(
-                self.get_account_set(account_set_id, &balances_by_id)
-                    .await?,
-            );
-        }
+        let assets_accounts = self
+            .get_all_account_sets(&assets_member_account_sets_ids, &balances_by_id)
+            .await?;
+        let liabilities_accounts = self
+            .get_all_account_sets(&liabilities_member_account_sets_ids, &balances_by_id)
+            .await?;
+        let equity_accounts = self
+            .get_all_account_sets(&equity_member_account_sets_ids, &balances_by_id)
+            .await?;
 
-        let mut liabilities_accounts = Vec::new();
-        for account_set_id in liabilities_member_account_sets_ids {
-            liabilities_accounts.push(
-                self.get_account_set(account_set_id, &balances_by_id)
-                    .await?,
-            );
-        }
-
-        let mut equity_accounts = Vec::new();
-        for account_set_id in equity_member_account_sets_ids {
-            equity_accounts.push(
-                self.get_account_set(account_set_id, &balances_by_id)
-                    .await?,
-            );
-        }
         Ok(BalanceSheet {
             id: statement_account_set.id,
             name: statement_account_set.name,

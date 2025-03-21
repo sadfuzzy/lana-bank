@@ -1102,6 +1102,7 @@ export type Mutation = {
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
+  profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   shareholderEquityAdd: SuccessPayload;
@@ -1228,6 +1229,11 @@ export type MutationPolicyAssignCommitteeArgs = {
 };
 
 
+export type MutationProfitAndLossStatementConfigureArgs = {
+  input: ProfitAndLossModuleConfigureInput;
+};
+
+
 export type MutationReportDownloadLinksGenerateArgs = {
   input: ReportDownloadLinksGenerateInput;
 };
@@ -1349,11 +1355,30 @@ export type PolicyEdge = {
   node: Policy;
 };
 
+export type ProfitAndLossModuleConfigureInput = {
+  chartOfAccountsCostOfRevenueCode: Scalars['String']['input'];
+  chartOfAccountsExpensesCode: Scalars['String']['input'];
+  chartOfAccountsRevenueCode: Scalars['String']['input'];
+};
+
 export type ProfitAndLossStatement = {
   __typename?: 'ProfitAndLossStatement';
   categories: Array<StatementCategory>;
   name: Scalars['String']['output'];
   net: AccountAmountsByCurrency;
+};
+
+export type ProfitAndLossStatementModuleConfig = {
+  __typename?: 'ProfitAndLossStatementModuleConfig';
+  chartOfAccountsCostOfRevenueCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsExpensesCode?: Maybe<Scalars['String']['output']>;
+  chartOfAccountsId?: Maybe<Scalars['UUID']['output']>;
+  chartOfAccountsRevenueCode?: Maybe<Scalars['String']['output']>;
+};
+
+export type ProfitAndLossStatementModuleConfigurePayload = {
+  __typename?: 'ProfitAndLossStatementModuleConfigurePayload';
+  profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
 export type Query = {
@@ -1386,6 +1411,7 @@ export type Query = {
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
+  profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;

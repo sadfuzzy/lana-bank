@@ -16,8 +16,8 @@ use super::{
     approval_process::*, audit::*, authenticated_subject::*, balance_sheet_config::*,
     chart_of_accounts::*, committee::*, credit_config::*, credit_facility::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, financials::*, ledger_account::*,
-    loader::*, policy::*, price::*, report::*, sumsub::*, terms_template::*, user::*,
-    withdrawal::*,
+    loader::*, policy::*, price::*, profit_and_loss_config::*, report::*, sumsub::*,
+    terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -619,6 +619,21 @@ impl Query {
             .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
             .await?;
         Ok(config.map(BalanceSheetModuleConfig::from))
+    }
+
+    async fn profit_and_loss_statement_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .profit_and_loss_statements()
+            .get_chart_of_accounts_integration_config(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+            )
+            .await?;
+        Ok(config.map(ProfitAndLossStatementModuleConfig::from))
     }
 }
 
@@ -1299,6 +1314,41 @@ impl Mutation {
             .await?;
         Ok(BalanceSheetModuleConfigurePayload::from(
             BalanceSheetModuleConfig::from(config),
+        ))
+    }
+
+    async fn profit_and_loss_statement_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: ProfitAndLossModuleConfigureInput,
+    ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let chart = app
+            .chart_of_accounts()
+            .find_by_reference(sub, CHART_REF.to_string())
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+
+        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
+            .chart_of_accounts_cost_of_revenue_code(
+                input.chart_of_accounts_cost_of_revenue_code.parse()?,
+            )
+            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
+            .build()?;
+        let config = app
+            .profit_and_loss_statements()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                chart,
+                config_values,
+            )
+            .await?;
+        Ok(ProfitAndLossStatementModuleConfigurePayload::from(
+            ProfitAndLossStatementModuleConfig::from(config),
         ))
     }
 
