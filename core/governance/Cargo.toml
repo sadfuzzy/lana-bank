@@ -1,6 +1,6 @@
 [package]
 name = "governance"
-version = "0.3.196-dev"
+version = "0.3.197-dev"
 edition = "2021"
 
 [features]
