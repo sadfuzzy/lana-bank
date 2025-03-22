@@ -775,6 +775,13 @@ checksums:
     Modules/balanceSheet/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
     Modules/balanceSheet/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
     Modules/balanceSheet/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
+    Modules/profitAndLoss/title: 3ba19a10374d5fe19675af7a4b2f7832
+    Modules/profitAndLoss/description: 63c2c25c6ef72c8f742cea3d25ea56ad
+    Modules/profitAndLoss/setTitle: c0eb87af3b74b9abbd657af0637cb9fb
+    Modules/profitAndLoss/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
+    Modules/profitAndLoss/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
+    Modules/profitAndLoss/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
+    Modules/profitAndLoss/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
     ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
     ChartOfAccountsLedgerAccount/transactionsTitle: 983505d8b8421f6805e524fec5010020
     ChartOfAccountsLedgerAccount/description: cd8f9f4d52de7097bb3bf5df68df82f8

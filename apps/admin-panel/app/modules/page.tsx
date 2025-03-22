@@ -21,12 +21,14 @@ import { DetailsGroup } from "@lana/web/components/details"
 import { DepositConfigUpdateDialog } from "./deposit-config-update"
 import { CreditConfigUpdateDialog } from "./credit-config-update"
 import { BalanceSheetConfigUpdateDialog } from "./balance-sheet-config-update"
+import { ProfitAndLossConfigUpdateDialog } from "./profit-and-loss-config-update"
 
 import { DetailItem } from "@/components/details"
 import {
   useDepositConfigQuery,
   useCreditConfigQuery,
   useBalanceSheetConfigQuery,
+  useProfitAndLossStatementConfigQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -71,6 +73,14 @@ gql`
       chartOfAccountsExpensesCode
     }
   }
+
+  query ProfitAndLossStatementConfig {
+    profitAndLossStatementConfig {
+      chartOfAccountsRevenueCode
+      chartOfAccountsCostOfRevenueCode
+      chartOfAccountsExpensesCode
+    }
+  }
 `
 
 const Modules: React.FC = () => {
@@ -81,11 +91,15 @@ const Modules: React.FC = () => {
   const [openCreditConfigUpdateDialog, setOpenCreditConfigUpdateDialog] = useState(false)
   const [openBalanceSheetConfigUpdateDialog, setOpenBalanceSheetConfigUpdateDialog] =
     useState(false)
+  const [openProfitAndLossConfigUpdateDialog, setOpenProfitAndLossConfigUpdateDialog] =
+    useState(false)
 
   const { data: depositConfig, loading: depositConfigLoading } = useDepositConfigQuery()
   const { data: creditConfig, loading: creditConfigLoading } = useCreditConfigQuery()
   const { data: balanceSheetConfig, loading: balanceSheetConfigLoading } =
     useBalanceSheetConfigQuery()
+  const { data: profitAndLossConfig, loading: profitAndLossConfigLoading } =
+    useProfitAndLossStatementConfigQuery()
 
   return (
     <>
@@ -103,6 +117,13 @@ const Modules: React.FC = () => {
         open={openBalanceSheetConfigUpdateDialog}
         setOpen={setOpenBalanceSheetConfigUpdateDialog}
         balanceSheetConfig={balanceSheetConfig?.balanceSheetConfig || undefined}
+      />
+      <ProfitAndLossConfigUpdateDialog
+        open={openProfitAndLossConfigUpdateDialog}
+        setOpen={setOpenProfitAndLossConfigUpdateDialog}
+        profitAndLossConfig={
+          profitAndLossConfig?.profitAndLossStatementConfig || undefined
+        }
       />
 
       <Card>
@@ -224,6 +245,49 @@ const Modules: React.FC = () => {
               >
                 <Pencil />
                 {t("balanceSheet.setTitle")}
+              </Button>
+            </CardFooter>
+          </>
+        )}
+      </Card>
+      <Card className="mt-3">
+        <CardHeader>
+          <CardTitle>{t("profitAndLoss.title")}</CardTitle>
+          <CardDescription>{t("profitAndLoss.description")}</CardDescription>
+        </CardHeader>
+
+        <CardContent>
+          {profitAndLossConfigLoading ? (
+            <LoaderCircle className="animate-spin" />
+          ) : profitAndLossConfig?.profitAndLossStatementConfig ? (
+            <DetailsGroup>
+              {Object.entries(
+                profitAndLossConfig?.profitAndLossStatementConfig || {},
+              ).map(
+                ([key, value]) =>
+                  key !== "__typename" && (
+                    <DetailItem
+                      key={key}
+                      label={t(`profitAndLoss.${key}`)}
+                      value={value?.replace(/\./g, "")}
+                    />
+                  ),
+              )}
+            </DetailsGroup>
+          ) : (
+            <div>{t("notYetConfigured")}</div>
+          )}
+        </CardContent>
+        {!profitAndLossConfig?.profitAndLossStatementConfig && (
+          <>
+            <Separator className="mb-4" />
+            <CardFooter className="-mb-3 -mt-1 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setOpenProfitAndLossConfigUpdateDialog(true)}
+              >
+                <Pencil />
+                {t("profitAndLoss.setTitle")}
               </Button>
             </CardFooter>
           </>

@@ -217,7 +217,7 @@ const ProfitAndLossStatement = ({
                   currency={currency}
                   layer={layer}
                   transactionType={
-                    BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
+                    BALANCE_FOR_CATEGORY[category.name]?.TransactionType || "netCredit"
                   }
                 />
               )

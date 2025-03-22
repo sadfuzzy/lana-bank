@@ -1333,6 +1333,15 @@
       "chartOfAccountsRevenueCode": "Código de ingresos",
       "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
       "chartOfAccountsExpensesCode": "Código de gastos"
+    },
+    "profitAndLoss": {
+      "title": "Pérdidas y ganancias",
+      "description": "Configuración del estado de pérdidas y ganancias",
+      "setTitle": "Establecer configuración de pérdidas y ganancias",
+      "chartOfAccountsId": "ID del plan contable",
+      "chartOfAccountsRevenueCode": "Código de ingresos",
+      "chartOfAccountsCostOfRevenueCode": "Código de coste de ingresos",
+      "chartOfAccountsExpensesCode": "Código de gastos"
     }
   },
   "ChartOfAccountsLedgerAccount": {

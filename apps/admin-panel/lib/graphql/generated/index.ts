@@ -2333,6 +2333,18 @@ export type BalanceSheetConfigQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type BalanceSheetConfigQuery = { __typename?: 'Query', balanceSheetConfig?: { __typename?: 'BalanceSheetModuleConfig', chartOfAccountsAssetsCode?: string | null, chartOfAccountsLiabilitiesCode?: string | null, chartOfAccountsEquityCode?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
 
+export type ProfitAndLossStatementConfigQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ProfitAndLossStatementConfigQuery = { __typename?: 'Query', profitAndLossStatementConfig?: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } | null };
+
+export type ProfitAndLossStatementConfigureMutationVariables = Exact<{
+  input: ProfitAndLossModuleConfigureInput;
+}>;
+
+
+export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
 }>;
@@ -5141,6 +5153,80 @@ export function useBalanceSheetConfigLazyQuery(baseOptions?: Apollo.LazyQueryHoo
 export type BalanceSheetConfigQueryHookResult = ReturnType<typeof useBalanceSheetConfigQuery>;
 export type BalanceSheetConfigLazyQueryHookResult = ReturnType<typeof useBalanceSheetConfigLazyQuery>;
 export type BalanceSheetConfigQueryResult = Apollo.QueryResult<BalanceSheetConfigQuery, BalanceSheetConfigQueryVariables>;
+export const ProfitAndLossStatementConfigDocument = gql`
+    query ProfitAndLossStatementConfig {
+  profitAndLossStatementConfig {
+    chartOfAccountsRevenueCode
+    chartOfAccountsCostOfRevenueCode
+    chartOfAccountsExpensesCode
+  }
+}
+    `;
+
+/**
+ * __useProfitAndLossStatementConfigQuery__
+ *
+ * To run a query within a React component, call `useProfitAndLossStatementConfigQuery` and pass it any options that fit your needs.
+ * When your component renders, `useProfitAndLossStatementConfigQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useProfitAndLossStatementConfigQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useProfitAndLossStatementConfigQuery(baseOptions?: Apollo.QueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>(ProfitAndLossStatementConfigDocument, options);
+      }
+export function useProfitAndLossStatementConfigLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>(ProfitAndLossStatementConfigDocument, options);
+        }
+export type ProfitAndLossStatementConfigQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigQuery>;
+export type ProfitAndLossStatementConfigLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementConfigLazyQuery>;
+export type ProfitAndLossStatementConfigQueryResult = Apollo.QueryResult<ProfitAndLossStatementConfigQuery, ProfitAndLossStatementConfigQueryVariables>;
+export const ProfitAndLossStatementConfigureDocument = gql`
+    mutation ProfitAndLossStatementConfigure($input: ProfitAndLossModuleConfigureInput!) {
+  profitAndLossStatementConfigure(input: $input) {
+    profitAndLossConfig {
+      chartOfAccountsId
+      chartOfAccountsRevenueCode
+      chartOfAccountsCostOfRevenueCode
+      chartOfAccountsExpensesCode
+    }
+  }
+}
+    `;
+export type ProfitAndLossStatementConfigureMutationFn = Apollo.MutationFunction<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>;
+
+/**
+ * __useProfitAndLossStatementConfigureMutation__
+ *
+ * To run a mutation, you first call `useProfitAndLossStatementConfigureMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useProfitAndLossStatementConfigureMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [profitAndLossStatementConfigureMutation, { data, loading, error }] = useProfitAndLossStatementConfigureMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useProfitAndLossStatementConfigureMutation(baseOptions?: Apollo.MutationHookOptions<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>(ProfitAndLossStatementConfigureDocument, options);
+      }
+export type ProfitAndLossStatementConfigureMutationHookResult = ReturnType<typeof useProfitAndLossStatementConfigureMutation>;
+export type ProfitAndLossStatementConfigureMutationResult = Apollo.MutationResult<ProfitAndLossStatementConfigureMutation>;
+export type ProfitAndLossStatementConfigureMutationOptions = Apollo.BaseMutationOptions<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

@@ -1333,6 +1333,15 @@
       "chartOfAccountsRevenueCode": "Revenue Code",
       "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
       "chartOfAccountsExpensesCode": "Expenses Code"
+    },
+    "profitAndLoss": {
+      "title": "Profit and Loss",
+      "description": "Profit and loss statement configuration",
+      "setTitle": "Set Profit and Loss Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountsRevenueCode": "Revenue Code",
+      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
+      "chartOfAccountsExpensesCode": "Expenses Code"
     }
   },
   "ChartOfAccountsLedgerAccount": {
