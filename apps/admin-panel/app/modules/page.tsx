@@ -53,13 +53,20 @@ gql`
       chartOfAccountInterestReceivableParentCode
       chartOfAccountInterestIncomeParentCode
       chartOfAccountFeeIncomeParentCode
-      chartOfAccountIndividualDisbursedReceivableParentCode
-      chartOfAccountGovernmentEntityDisbursedReceivableParentCode
-      chartOfAccountPrivateCompanyDisbursedReceivableParentCode
-      chartOfAccountBankDisbursedReceivableParentCode
-      chartOfAccountFinancialInstitutionDisbursedReceivableParentCode
-      chartOfAccountForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
-      chartOfAccountNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermIndividualDisbursedReceivableParentCode
+      chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountShortTermBankDisbursedReceivableParentCode
+      chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermIndividualDisbursedReceivableParentCode
+      chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode
+      chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode
+      chartOfAccountLongTermBankDisbursedReceivableParentCode
+      chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode
+      chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode
+      chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode
     }
   }
 

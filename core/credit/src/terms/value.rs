@@ -9,6 +9,7 @@ use super::error::TermsError;
 use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
 const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
+const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
 
 #[derive(
     Debug,
@@ -273,12 +274,30 @@ pub enum Duration {
     Months(u32),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DurationType {
+    LongTerm,
+    ShortTerm,
+}
+
 impl Duration {
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
         match self {
             Duration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
                 .expect("should return a maturity date"),
+        }
+    }
+
+    pub fn duration_type(&self) -> DurationType {
+        match self {
+            Duration::Months(months) => {
+                if *months > SHORT_TERM_DURATION_MONTHS_THRESHOLD {
+                    DurationType::LongTerm
+                } else {
+                    DurationType::ShortTerm
+                }
+            }
         }
     }
 }
