@@ -110,7 +110,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             Default::default(),
         )
         .await?;
-    assert_eq!(trial_balance.entities.len(), 4);
+    assert_eq!(trial_balance.entities.len(), 2);
 
     Ok(())
 }

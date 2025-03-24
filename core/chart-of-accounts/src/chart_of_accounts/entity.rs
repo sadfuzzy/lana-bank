@@ -64,12 +64,12 @@ impl Chart {
         Idempotent::Executed((parent, ledger_account_set_id))
     }
 
-    pub fn all_non_top_level_accounts(
+    pub fn all_trial_balance_accounts(
         &self,
     ) -> impl Iterator<Item = &(AccountSpec, LedgerAccountSetId)> {
         self.all_accounts
             .values()
-            .filter(|(spec, _)| spec.code.len_sections() != 1)
+            .filter(|(spec, _)| spec.code.len_sections() == 2)
     }
 
     pub fn account_spec(&self, code: &AccountCode) -> Option<&(AccountSpec, LedgerAccountSetId)> {

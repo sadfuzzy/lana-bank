@@ -77,7 +77,7 @@ impl TrialBalances {
             .add_members(
                 op,
                 trial_balance_id,
-                chart.all_non_top_level_accounts().map(|(_, id)| *id),
+                chart.all_trial_balance_accounts().map(|(_, id)| *id),
             )
             .await?;
 
