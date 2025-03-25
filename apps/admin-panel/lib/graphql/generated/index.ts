@@ -257,6 +257,17 @@ export type BtcAccountBalanceAmounts = {
   netDebit: Scalars['SignedSatoshis']['output'];
 };
 
+export type BtcGeneralLedgerEntry = {
+  __typename?: 'BtcGeneralLedgerEntry';
+  btcAmount: Scalars['Satoshis']['output'];
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  direction: DebitOrCredit;
+  entryId: Scalars['UUID']['output'];
+  entryType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+};
+
 export type BtcLedgerAccountBalance = {
   __typename?: 'BtcLedgerAccountBalance';
   encumbrance: Scalars['Satoshis']['output'];
@@ -790,6 +801,11 @@ export type Dashboard = {
   totalDisbursed: Scalars['UsdCents']['output'];
 };
 
+export enum DebitOrCredit {
+  Credit = 'CREDIT',
+  Debit = 'DEBIT'
+}
+
 export type Deposit = {
   __typename?: 'Deposit';
   account: DepositAccount;
@@ -1002,6 +1018,27 @@ export type FacilityCvl = {
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
+};
+
+export type GeneralLedgerEntry = BtcGeneralLedgerEntry | UsdGeneralLedgerEntry;
+
+export type GeneralLedgerEntryConnection = {
+  __typename?: 'GeneralLedgerEntryConnection';
+  /** A list of edges. */
+  edges: Array<GeneralLedgerEntryEdge>;
+  /** A list of nodes. */
+  nodes: Array<GeneralLedgerEntry>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type GeneralLedgerEntryEdge = {
+  __typename?: 'GeneralLedgerEntryEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: GeneralLedgerEntry;
 };
 
 export type GovernanceNavigationItems = {
@@ -1430,6 +1467,7 @@ export type Query = {
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   document?: Maybe<Document>;
+  generalLedgerEntries: GeneralLedgerEntryConnection;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   me: Subject;
   policies: PolicyConnection;
@@ -1551,6 +1589,12 @@ export type QueryDisbursalsArgs = {
 
 export type QueryDocumentArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryGeneralLedgerEntriesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -1845,6 +1889,17 @@ export type UsdAccountBalanceAmounts = {
   debit: Scalars['UsdCents']['output'];
   netCredit: Scalars['SignedUsdCents']['output'];
   netDebit: Scalars['SignedUsdCents']['output'];
+};
+
+export type UsdGeneralLedgerEntry = {
+  __typename?: 'UsdGeneralLedgerEntry';
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  direction: DebitOrCredit;
+  entryId: Scalars['UUID']['output'];
+  entryType: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  usdAmount: Scalars['UsdCents']['output'];
 };
 
 export type UsdLedgerAccountBalance = {
@@ -2301,6 +2356,14 @@ export type DisbursalsQueryVariables = Exact<{
 
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type GeneralLedgerEntriesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GeneralLedgerEntriesQuery = { __typename?: 'Query', generalLedgerEntries: { __typename?: 'GeneralLedgerEntryConnection', edges: Array<{ __typename?: 'GeneralLedgerEntryEdge', cursor: string, node: { __typename: 'BtcGeneralLedgerEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, btcAmount: Satoshis } | { __typename: 'UsdGeneralLedgerEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, usdAmount: UsdCents } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountByCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
@@ -4827,6 +4890,71 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const GeneralLedgerEntriesDocument = gql`
+    query GeneralLedgerEntries($first: Int!, $after: String) {
+  generalLedgerEntries(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        __typename
+        ... on BtcGeneralLedgerEntry {
+          id
+          entryId
+          entryType
+          description
+          direction
+          createdAt
+          btcAmount
+        }
+        ... on UsdGeneralLedgerEntry {
+          id
+          entryId
+          entryType
+          description
+          direction
+          createdAt
+          usdAmount
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useGeneralLedgerEntriesQuery__
+ *
+ * To run a query within a React component, call `useGeneralLedgerEntriesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGeneralLedgerEntriesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGeneralLedgerEntriesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useGeneralLedgerEntriesQuery(baseOptions: Apollo.QueryHookOptions<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>(GeneralLedgerEntriesDocument, options);
+      }
+export function useGeneralLedgerEntriesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>(GeneralLedgerEntriesDocument, options);
+        }
+export type GeneralLedgerEntriesQueryHookResult = ReturnType<typeof useGeneralLedgerEntriesQuery>;
+export type GeneralLedgerEntriesLazyQueryHookResult = ReturnType<typeof useGeneralLedgerEntriesLazyQuery>;
+export type GeneralLedgerEntriesQueryResult = Apollo.QueryResult<GeneralLedgerEntriesQuery, GeneralLedgerEntriesQueryVariables>;
 export const LedgerAccountByCodeDocument = gql`
     query LedgerAccountByCode($code: String!, $first: Int!, $after: String) {
   ledgerAccountByCode(code: $code) {

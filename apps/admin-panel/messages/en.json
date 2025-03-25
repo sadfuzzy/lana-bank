@@ -43,6 +43,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "generalLedger": "General Ledger",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
       "cashFlow": "Cash Flow",
@@ -1362,6 +1363,18 @@
         "debit": "Debit",
         "credit": "Credit"
       }
+    }
+  },
+  "GeneralLedger": {
+    "title": "General Ledger",
+    "description": "A complete record of financial transactions over the general journal",
+    "noTableData": "No entries present in the general ledger",
+    "table": {
+      "createdAt": "Created At",
+      "entryType": "Entry Type",
+      "direction": "Direction",
+      "amount": "Amount",
+      "description": "Description"
     }
   }
 }

@@ -19,6 +19,7 @@ import {
   LayoutTemplate,
   Grid2x2,
   Cog,
+  ScrollIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -70,8 +71,9 @@ export function useNavItems() {
 
   const navAccountingItems: NavItem[] = [
     { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
-    { title: t("modules"), url: "/modules", icon: Cog },
+    { title: t("generalLedger"), url: "/general-ledger", icon: ScrollIcon },
     { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
+    { title: t("modules"), url: "/modules", icon: Cog },
   ]
 
   const allNavItems: NavItem[] = [

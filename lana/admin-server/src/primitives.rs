@@ -91,3 +91,6 @@ impl_to_global_id! {
     ApprovalProcessId,
     DepositAccountId
 }
+
+use cala_ledger::EntryId;
+impl_to_global_id!(EntryId);

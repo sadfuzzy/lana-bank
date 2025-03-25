@@ -72,6 +72,13 @@ export const formatDate = (
   return `${formattedDate}, ${formattedTime}`
 }
 
+export const formatDirection = (direction: string) => {
+  return direction.replace(
+    /\w\S*/g,
+    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
+  )
+}
+
 export const formatRole = (role: string) => {
   return role
     .toLowerCase()

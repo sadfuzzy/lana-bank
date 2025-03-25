@@ -15,9 +15,9 @@ use crate::primitives::*;
 use super::{
     approval_process::*, audit::*, authenticated_subject::*, balance_sheet_config::*,
     chart_of_accounts::*, committee::*, credit_config::*, credit_facility::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, financials::*, ledger_account::*,
-    loader::*, policy::*, price::*, profit_and_loss_config::*, report::*, sumsub::*,
-    terms_template::*, user::*, withdrawal::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, financials::*, general_ledger::*,
+    ledger_account::*, loader::*, policy::*, price::*, profit_and_loss_config::*, report::*,
+    sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -413,6 +413,39 @@ impl Query {
             .account_details_by_code(sub, chart, code)
             .await?;
         Ok(account.map(LedgerAccount::from))
+    }
+
+    async fn general_ledger_entries(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<GeneralLedgerEntryCursor, GeneralLedgerEntry, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let query_args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app.general_ledger().entries(sub, query_args).await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = GeneralLedgerEntryCursor::from(&entry);
+                        Edge::new(cursor, GeneralLedgerEntry::from(entry))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 
     async fn trial_balance(
