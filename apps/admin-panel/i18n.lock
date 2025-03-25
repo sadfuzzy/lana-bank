@@ -703,6 +703,12 @@ checksums:
     TrialBalance/table/headers/debit: 1b35db901aa1aeed8ee79aec6d807731
     TrialBalance/table/headers/credit: 2d447a71ec815a039f175e94fbb12a56
     TrialBalance/table/headers/net: b72de62cf63ab49dc1325f12a7d75014
+    TrialBalance/table/headers/openingDebit: b01f3b0cb1d5c2bc9f46d8bf7e2135b4
+    TrialBalance/table/headers/openingCredit: 4d8eaee751c834dcf742433a3bb17bd8
+    TrialBalance/table/headers/activityDebit: 1b35db901aa1aeed8ee79aec6d807731
+    TrialBalance/table/headers/activityCredit: 2d447a71ec815a039f175e94fbb12a56
+    TrialBalance/table/headers/closingDebit: 9bbfa233d29cdeb272efdbaf2c99de32
+    TrialBalance/table/headers/closingCredit: 90c7c9ff7a7c83e77d97bfed0ef0917f
     CurrencyLayerSelection/currency/label: d2ba9a9cea418ea653e3ca6785617a3f
     CurrencyLayerSelection/currency/options/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
     CurrencyLayerSelection/currency/options/btc: af1432546a2c9130c9163b2269d5b60d

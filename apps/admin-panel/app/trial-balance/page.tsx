@@ -207,8 +207,6 @@ const LoadingSkeleton = () => {
   )
 }
 
-type Layers = "all" | "settled" | "pending"
-
 function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
@@ -235,11 +233,123 @@ function TrialBalancePage() {
   }
   if (!total) return <div>{t("noAccountsPresent")}</div>
 
+  const columns: Column<TrialBalanceAccount>[] = [
+    {
+      key: "code",
+      label: t("table.headers.accountCode"),
+      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>,
+    },
+    {
+      key: "name",
+      label: t("table.headers.accountName"),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.openingDebit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].openingBalance[layer].debit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.openingCredit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].openingBalance[layer].credit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.activityDebit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].amount[layer].debit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.activityCredit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].amount[layer].credit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.closingDebit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].closingBalance[layer].debit}
+        />
+      ),
+    },
+    {
+      key: "amounts",
+      label: t("table.headers.closingCredit"),
+      labelClassName: "!justify-end",
+      render: (amounts) => (
+        <Balance
+          align="end"
+          currency={currency}
+          amount={amounts[currency].closingBalance[layer].credit}
+        />
+      ),
+    },
+  ]
+
   const Footer = (
     <TableFooter className="border-t-4">
       <TableRow>
         <TableCell className="font-bold">{t("totals")}</TableCell>
         <TableCell />
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].openingBalance[layer].debit}
+          />
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].openingBalance[layer].credit}
+          />
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].amount[layer].debit}
+          />
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={total[currency].amount[layer].credit}
+          />
+        </TableCell>
         <TableCell className="w-48">
           <Balance
             align="end"
@@ -254,64 +364,9 @@ function TrialBalancePage() {
             amount={total[currency].closingBalance[layer].credit}
           />
         </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].closingBalance[layer].netDebit}
-          />
-        </TableCell>
       </TableRow>
     </TableFooter>
   )
-
-  const columns: Column<TrialBalanceAccount>[] = [
-    {
-      key: "code",
-      label: t("table.headers.accountCode"),
-      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>,
-    },
-    {
-      key: "name",
-      label: t("table.headers.accountName"),
-    },
-    {
-      key: "amounts",
-      label: t("table.headers.debit"),
-      labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].closingBalance[layer].debit}
-        />
-      ),
-    },
-    {
-      key: "amounts",
-      label: t("table.headers.credit"),
-      labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].closingBalance[layer].credit}
-        />
-      ),
-    },
-    {
-      key: "amounts",
-      labelClassName: "!justify-end",
-      label: t("table.headers.net"),
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].closingBalance[layer].netDebit}
-        />
-      ),
-    },
-  ]
 
   return (
     <Card>
