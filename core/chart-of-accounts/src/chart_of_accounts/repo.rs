@@ -12,7 +12,7 @@ use super::error::ChartError;
     entity = "Chart",
     err = "ChartError",
     columns(reference(ty = "String")),
-    tbl_prefix = "core_alt"
+    tbl_prefix = "core"
 )]
 pub struct ChartRepo {
     pool: PgPool,

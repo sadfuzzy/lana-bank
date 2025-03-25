@@ -61,21 +61,6 @@ CREATE TABLE core_chart_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_alt_charts (
-  id UUID PRIMARY KEY,
-  reference VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE core_alt_chart_events (
-  id UUID NOT NULL REFERENCES core_alt_charts(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_deposit_configs (
   id UUID PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL
@@ -207,25 +192,6 @@ CREATE TABLE core_credit_facility_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE credit_facilities (
-  id UUID PRIMARY KEY,
-  customer_id UUID REFERENCES customers(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
-  collateralization_ratio NUMERIC,
-  collateralization_state VARCHAR NOT NULL,
-  status VARCHAR NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE credit_facility_events (
-  id UUID NOT NULL REFERENCES credit_facilities(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_payments (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
@@ -234,21 +200,6 @@ CREATE TABLE core_payments (
 
 CREATE TABLE core_payment_events (
   id UUID NOT NULL REFERENCES core_payments(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE payments (
-  id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE payment_events (
-  id UUID NOT NULL REFERENCES payments(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -275,25 +226,6 @@ CREATE TABLE core_disbursal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE disbursals (
-  id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
-  concluded_tx_id UUID DEFAULT NULL,
-  idx INT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(credit_facility_id, idx)
-);
-
-CREATE TABLE disbursal_events (
-  id UUID NOT NULL REFERENCES disbursals(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_interest_accruals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
@@ -304,23 +236,6 @@ CREATE TABLE core_interest_accruals (
 
 CREATE TABLE core_interest_accrual_events (
   id UUID NOT NULL REFERENCES core_interest_accruals(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE interest_accruals (
-  id UUID PRIMARY KEY,
-  credit_facility_id UUID NOT NULL REFERENCES credit_facilities(id),
-  idx INT NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(credit_facility_id, idx)
-);
-
-CREATE TABLE interest_accrual_events (
-  id UUID NOT NULL REFERENCES interest_accruals(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -450,30 +365,4 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER persistent_outbox_events AFTER INSERT ON persistent_outbox_events
   FOR EACH ROW EXECUTE FUNCTION notify_persistent_outbox_events();
-
-CREATE TABLE ephemeral_outbox_events (
-  sequence BIGSERIAL UNIQUE,
-  type VARCHAR NOT NULL UNIQUE,
-  payload JSONB,
-  seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE FUNCTION notify_ephemeral_outbox_events() RETURNS TRIGGER AS $$
-DECLARE
-  payload TEXT;
-  payload_size INTEGER;
-BEGIN
-  payload := row_to_json(NEW);
-  payload_size := octet_length(payload);
-  IF payload_size <= 8000 THEN
-    PERFORM pg_notify('ephemeral_outbox_events', payload);
-  ELSE
-    RAISE NOTICE 'Payload too large for notification: % bytes', payload_size;
-  END IF;
-  RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER ephemeral_outbox_events AFTER INSERT OR UPDATE ON ephemeral_outbox_events
-  FOR EACH ROW EXECUTE FUNCTION notify_ephemeral_outbox_events();
 
