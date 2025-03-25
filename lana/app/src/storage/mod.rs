@@ -24,19 +24,14 @@ pub struct LocationInCloud<'a> {
 
 #[derive(Clone)]
 pub struct Storage {
-    client: Client,
     config: StorageConfig,
 }
 
 impl Storage {
-    pub async fn init(config: &StorageConfig) -> Result<Self, StorageError> {
-        let client_config = ClientConfig::default().with_auth().await?;
-        let client = Client::new(client_config);
-
-        Ok(Self {
-            client,
+    pub fn new(config: &StorageConfig) -> Self {
+        Self {
             config: config.clone(),
-        })
+        }
     }
 
     pub fn bucket_name(&self) -> &str {
@@ -45,6 +40,11 @@ impl Storage {
 
     fn path_with_prefix(&self, path: &str) -> String {
         format!("{}/{}", self.config.root_folder, path)
+    }
+
+    async fn client(&self) -> Result<Client, StorageError> {
+        let client_config = ClientConfig::default().with_auth().await?;
+        Ok(Client::new(client_config))
     }
 
     pub async fn upload(
@@ -64,7 +64,10 @@ impl Storage {
             bucket: bucket.to_string(),
             ..Default::default()
         };
-        self.client.upload_object(&req, file, &upload_type).await?;
+        self.client()
+            .await?
+            .upload_object(&req, file, &upload_type)
+            .await?;
 
         Ok(())
     }
@@ -79,7 +82,7 @@ impl Storage {
             ..Default::default()
         };
 
-        self.client.delete_object(&req).await?;
+        self.client().await?.delete_object(&req).await?;
         Ok(())
     }
 
@@ -98,7 +101,8 @@ impl Storage {
         };
 
         let signed_url = self
-            .client
+            .client()
+            .await?
             .signed_url(bucket, &object_name, None, None, opts)
             .await?;
 
@@ -116,7 +120,7 @@ impl Storage {
         };
 
         let result =
-            self.client.list_objects(&req).await.map_err(|e| {
+            self.client().await?.list_objects(&req).await.map_err(|e| {
                 anyhow::anyhow!("Error listing objects from bucket {}: {e}", bucket)
             })?;
 

@@ -25,9 +25,7 @@ async fn upload_doc() -> anyhow::Result<()> {
         }
     };
 
-    let storage = Storage::init(&config)
-        .await
-        .expect("Failed to create storage");
+    let storage = Storage::new(&config);
 
     let content_str = "test";
     let content = content_str.as_bytes().to_vec();
