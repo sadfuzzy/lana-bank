@@ -244,9 +244,16 @@ CREATE TABLE cala_outbox_events (
 CREATE FUNCTION notify_cala_outbox_events() RETURNS TRIGGER AS $$
 DECLARE
   payload TEXT;
+  payload_size INTEGER;
 BEGIN
   payload := row_to_json(NEW);
-  PERFORM pg_notify('cala_outbox_events', payload);
+  payload_size := octet_length(payload);
+  IF payload_size <= 8000 THEN
+    PERFORM pg_notify('cala_outbox_events', payload);
+  ELSE
+    RAISE NOTICE 'Payload too large for notification: % bytes', payload_size;
+  END IF;
+
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
