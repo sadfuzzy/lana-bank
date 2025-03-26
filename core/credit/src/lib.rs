@@ -23,6 +23,7 @@ use cala_ledger::CalaLedger;
 use chart_of_accounts::Chart;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
+use es_entity::Idempotent;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -167,6 +168,13 @@ where
         >::new(
             &ledger, credit_facility_repo.clone(), jobs, authz.audit()
         ));
+        jobs.add_initializer(
+            overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),
@@ -811,8 +819,13 @@ where
             .find_by_id(credit_facility_id)
             .await?;
 
-        let completion =
-            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?;
+        let completion = if let Idempotent::Executed(completion) =
+            credit_facility.complete(audit_info, price, self.config.upgrade_buffer_cvl_pct)?
+        {
+            completion
+        } else {
+            return Ok(credit_facility);
+        };
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.credit_facility_repo
@@ -1060,6 +1073,36 @@ where
                 .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
         )?;
 
+        let overdue_individual_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_overdue_individual_disbursed_receivable_parent_code,
+            )?;
+        let overdue_government_entity_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
+            )?;
+        let overdue_private_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
+            )?;
+        let overdue_bank_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_overdue_bank_disbursed_receivable_parent_code,
+            )?;
+        let overdue_financial_institution_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config.chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
+        )?;
+        let overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id = chart
+        .account_set_id_from_code(
+            &config
+                .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+        )?;
+        let overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id = chart
+            .account_set_id_from_code(
+            &config.chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
+        )?;
+
         let audit_info = self
             .authz
             .enforce_permission(
@@ -1118,6 +1161,16 @@ where
                 long_term_financial_institution_interest_receivable_parent_account_set_id,
                 long_term_foreign_agency_or_subsidiary_interest_receivable_parent_account_set_id,
                 long_term_non_domiciled_company_interest_receivable_parent_account_set_id,
+            },
+
+            overdue_disbursed_integration_meta: OverdueDisbursedIntegrationMeta {
+                overdue_individual_disbursed_receivable_parent_account_set_id,
+                overdue_government_entity_disbursed_receivable_parent_account_set_id,
+                overdue_private_company_disbursed_receivable_parent_account_set_id,
+                overdue_bank_disbursed_receivable_parent_account_set_id,
+                overdue_financial_institution_disbursed_receivable_parent_account_set_id,
+                overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_account_set_id,
+                overdue_non_domiciled_company_disbursed_receivable_parent_account_set_id,
             },
         };
 

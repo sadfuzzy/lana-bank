@@ -90,6 +90,11 @@ pub enum CreditFacilityEvent {
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
+    OverdueDisbursedBalanceRecorded {
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -339,6 +344,10 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn disbursed_overdue_at(&self) -> DateTime<Utc> {
+        self.matures_at.expect("Facility not activated yet")
+    }
+
     pub fn initial_facility(&self) -> UsdCents {
         for event in self.events.iter_all() {
             match event {
@@ -389,7 +398,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_due(&self) -> UsdCents {
-        if self.is_defaulted() || self.is_matured() {
+        if self.is_after_disbursed_default_date() || self.is_after_disbursed_overdue_date() {
             UsdCents::ZERO
         } else {
             self.disbursed_total_outstanding()
@@ -397,9 +406,9 @@ impl CreditFacility {
     }
 
     fn disbursed_outstanding_overdue(&self) -> UsdCents {
-        if self.is_defaulted() {
+        if self.is_after_disbursed_default_date() {
             UsdCents::ZERO
-        } else if self.is_matured() {
+        } else if self.is_after_disbursed_overdue_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -407,7 +416,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
-        if self.is_defaulted() {
+        if self.is_after_disbursed_default_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -496,12 +505,16 @@ impl CreditFacility {
         false
     }
 
-    pub fn is_matured(&self) -> bool {
+    pub fn is_after_maturity_date(&self) -> bool {
         let now = crate::time::now();
         self.matures_at.is_some_and(|matures_at| now > matures_at)
     }
 
-    pub fn is_defaulted(&self) -> bool {
+    pub fn is_after_disbursed_overdue_date(&self) -> bool {
+        self.is_after_maturity_date()
+    }
+
+    pub fn is_after_disbursed_default_date(&self) -> bool {
         let now = crate::time::now();
         self.defaults_at
             .is_some_and(|defaults_at| now > defaults_at)
@@ -510,7 +523,7 @@ impl CreditFacility {
     pub fn status(&self) -> CreditFacilityStatus {
         if self.is_completed() {
             CreditFacilityStatus::Closed
-        } else if self.is_matured() {
+        } else if self.is_after_maturity_date() {
             CreditFacilityStatus::Matured
         } else if self.is_activated() {
             CreditFacilityStatus::Active
@@ -546,7 +559,7 @@ impl CreditFacility {
         audit_info: AuditInfo,
     ) -> Result<Idempotent<(CreditFacilityActivation, InterestPeriod)>, CreditFacilityError> {
         if self.is_activated() {
-            return Ok(Idempotent::AlreadyApplied);
+            return Ok(Idempotent::Ignored);
         }
 
         if !self.is_approval_process_concluded() {
@@ -852,6 +865,22 @@ impl CreditFacility {
             .facility_cvl_data(self.collateral(), self.facility_remaining())
     }
 
+    fn payment_account_ids(&self) -> PaymentAccountIds {
+        if self.has_overdue_disbursed_balance_recorded() {
+            PaymentAccountIds {
+                disbursed_receivable_account_id: self
+                    .account_ids
+                    .disbursed_receivable_overdue_account_id,
+                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
+            }
+        } else {
+            PaymentAccountIds {
+                disbursed_receivable_account_id: self.account_ids.disbursed_receivable_account_id,
+                interest_receivable_account_id: self.account_ids.interest_receivable_account_id,
+            }
+        }
+    }
+
     pub(crate) fn initiate_repayment(
         &mut self,
         amount: UsdCents,
@@ -890,7 +919,7 @@ impl CreditFacility {
             .ledger_tx_ref(tx_ref)
             .credit_facility_id(self.id)
             .amounts(amounts)
-            .account_ids(self.account_ids)
+            .account_ids(self.payment_account_ids())
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
             .audit_info(audit_info)
             .build()
@@ -1049,10 +1078,48 @@ impl CreditFacility {
         self.maybe_update_collateralization(price, upgrade_buffer_cvl_pct, &audit_info);
     }
 
-    fn is_completed(&self) -> bool {
+    pub(crate) fn has_overdue_disbursed_balance_recorded(&self) -> bool {
+        self.events.iter_all().rev().any(|event| {
+            matches!(
+                event,
+                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
+            )
+        })
+    }
+
+    pub(crate) fn is_completed(&self) -> bool {
         self.events
             .iter_all()
+            .rev()
             .any(|event| matches!(event, CreditFacilityEvent::Completed { .. }))
+    }
+
+    pub(crate) fn record_overdue_disbursed_balance(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Idempotent<CreditFacilityOverdueDisbursedBalance> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. }
+        );
+        if self.is_completed() || self.total_outstanding().is_zero() {
+            return Idempotent::Ignored;
+        }
+
+        let res = CreditFacilityOverdueDisbursedBalance {
+            tx_id: LedgerTxId::new(),
+            disbursed_outstanding: self.disbursed_outstanding_overdue(),
+            credit_facility_account_ids: self.account_ids,
+        };
+
+        self.events
+            .push(CreditFacilityEvent::OverdueDisbursedBalanceRecorded {
+                amount: res.disbursed_outstanding,
+                recorded_at: self.disbursed_overdue_at(),
+                audit_info,
+            });
+
+        Idempotent::Executed(res)
     }
 
     pub(crate) fn complete(
@@ -1060,10 +1127,11 @@ impl CreditFacility {
         audit_info: AuditInfo,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Result<CreditFacilityCompletion, CreditFacilityError> {
-        if self.is_completed() {
-            return Err(CreditFacilityError::AlreadyCompleted);
-        }
+    ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityEvent::Completed { .. }
+        );
         if !self.total_outstanding().is_zero() {
             return Err(CreditFacilityError::OutstandingAmount);
         }
@@ -1093,7 +1161,7 @@ impl CreditFacility {
             audit_info,
         });
 
-        Ok(res)
+        Ok(Idempotent::Executed(res))
     }
 
     pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
@@ -1187,6 +1255,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 CreditFacilityEvent::CollateralUpdated { .. } => (),
                 CreditFacilityEvent::CollateralizationChanged { .. } => (),
                 CreditFacilityEvent::PaymentRecorded { .. } => (),
+                CreditFacilityEvent::OverdueDisbursedBalanceRecorded { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
@@ -1941,7 +2010,7 @@ mod test {
 
             assert!(matches!(
                 credit_facility.activate(Utc::now(), default_price(), dummy_audit_info()),
-                Ok(Idempotent::AlreadyApplied)
+                Ok(Idempotent::Ignored)
             ));
         }
 
@@ -2087,7 +2156,7 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
-            assert!(!credit_facility.is_matured())
+            assert!(!credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2114,7 +2183,47 @@ mod test {
                     dummy_audit_info(),
                 )
                 .is_ok());
-            assert!(credit_facility.is_matured())
+            assert!(credit_facility.is_after_maturity_date())
+        }
+
+        #[test]
+        fn initiate_repayment_after_overdue_event_returns_overdue_account() {
+            let activated_at = "2023-01-01T00:00:00Z".parse::<DateTime<Utc>>().unwrap();
+            let mut credit_facility = credit_facility_with_interest_accrual(activated_at);
+
+            let new_payment = credit_facility
+                .initiate_repayment(
+                    UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            assert_eq!(
+                payment.account_ids.disbursed_receivable_account_id,
+                credit_facility.account_ids.disbursed_receivable_account_id,
+            );
+
+            let _ = credit_facility.record_overdue_disbursed_balance(dummy_audit_info());
+
+            let new_payment = credit_facility
+                .initiate_repayment(
+                    UsdCents::ONE,
+                    default_price(),
+                    default_upgrade_buffer_cvl_pct(),
+                    Utc::now(),
+                    dummy_audit_info(),
+                )
+                .unwrap();
+            let payment = Payment::try_from_events(new_payment.into_events()).unwrap();
+            assert_eq!(
+                payment.account_ids.disbursed_receivable_account_id,
+                credit_facility
+                    .account_ids
+                    .disbursed_receivable_overdue_account_id,
+            );
         }
 
         #[test]
@@ -2140,7 +2249,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 repayment_amount
             );
-            assert!(!credit_facility.is_matured())
+            assert!(!credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2168,7 +2277,7 @@ mod test {
                 outstanding_before.total() - outstanding_after.total(),
                 partial_repayment_amount
             );
-            assert!(credit_facility.is_matured())
+            assert!(credit_facility.is_after_maturity_date())
         }
 
         #[test]
@@ -2187,7 +2296,7 @@ mod test {
                 .unwrap();
             assert!(credit_facility.total_outstanding().is_zero());
 
-            credit_facility
+            let _ = credit_facility
                 .complete(
                     dummy_audit_info(),
                     default_price(),

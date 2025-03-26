@@ -117,6 +117,8 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordPayment);
     pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
+    pub const CREDIT_FACILITY_RECORD_OVERDUE_DISBURSED_BALANCE: Self =
+        CoreCreditAction::CreditFacility(CreditFacilityAction::RecordOverdueDisbursedBalance);
     pub const CREDIT_FACILITY_COMPLETE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Complete);
     pub const CREDIT_FACILITY_UPDATE_COLLATERAL: Self =
@@ -182,6 +184,7 @@ pub enum CreditFacilityAction {
     UpdateCollateral,
     RecordPayment,
     RecordInterest,
+    RecordOverdueDisbursedBalance,
     Complete,
     UpdateCollateralizationState,
 }
@@ -292,6 +295,7 @@ pub enum CollateralAction {
     Remove,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 pub enum DisbursedReceivableAccountType {
     Individual,
     GovernmentEntity,
@@ -338,4 +342,10 @@ impl From<CustomerType> for InterestReceivableAccountType {
             CustomerType::NonDomiciledCompany => Self::NonDomiciledCompany,
         }
     }
+}
+
+pub enum DisbursedReceivableAccountCategory {
+    LongTerm,
+    ShortTerm,
+    Overdue,
 }
