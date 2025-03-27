@@ -1,7 +1,7 @@
 services:
   #! Telemetry
   otel-agent:
-    image: otel/opentelemetry-collector-contrib:0.57.2
+    image: otel/opentelemetry-collector-contrib:0.122.1
     ports: [ 4317:4317 ]
     environment:
       - HONEYCOMB_DATASET=${HONEYCOMB_DATASET}
