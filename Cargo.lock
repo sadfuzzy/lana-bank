@@ -823,28 +823,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
-name = "chart-of-accounts"
-version = "0.3.212-dev"
-dependencies = [
- "anyhow",
- "audit",
- "authz",
- "cala-ledger",
- "csv",
- "derive_builder",
- "es-entity",
- "outbox",
- "rand",
- "serde",
- "sqlx",
- "strum",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
- "uuid",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -960,6 +938,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-accounting"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "audit",
+ "authz",
+ "cala-ledger",
+ "csv",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "rand",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.3.212-dev"
 dependencies = [
@@ -970,8 +970,8 @@ dependencies = [
  "authz",
  "base64 0.22.1",
  "cala-ledger",
- "chart-of-accounts",
  "chrono",
+ "core-accounting",
  "core-customer",
  "core-money",
  "core-price",
@@ -1304,8 +1304,8 @@ dependencies = [
  "authz",
  "base64 0.22.1",
  "cala-ledger",
- "chart-of-accounts",
  "chrono",
+ "core-accounting",
  "core-customer",
  "core-money",
  "derive_builder",
@@ -2669,9 +2669,9 @@ dependencies = [
  "base64 0.22.1",
  "cached 0.53.1",
  "cala-ledger",
- "chart-of-accounts",
  "chrono",
  "clap",
+ "core-accounting",
  "core-credit",
  "core-customer",
  "core-money",
@@ -3643,7 +3643,7 @@ dependencies = [
  "async-graphql",
  "audit",
  "authz",
- "chart-of-accounts",
+ "core-accounting",
  "core-credit",
  "core-customer",
  "core-user",
