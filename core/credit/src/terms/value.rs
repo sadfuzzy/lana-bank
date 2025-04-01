@@ -8,7 +8,7 @@ use std::fmt;
 use super::error::TermsError;
 use crate::primitives::{DisbursedReceivableAccountCategory, PriceOfOneBTC, Satoshis, UsdCents};
 
-const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
+const NUMBER_OF_DAYS_IN_YEAR: u64 = 365;
 const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
 
 #[derive(
@@ -684,14 +684,14 @@ mod test {
     fn interest_calculation() {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
-        let days = 366;
+        let days = 365;
         let interest = terms.annual_rate.interest_for_time_period(principal, days);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
         let interest = terms.annual_rate.interest_for_time_period(principal, days);
-        assert_eq!(interest, UsdCents::from(755));
+        assert_eq!(interest, UsdCents::from(757));
     }
 
     #[test]
