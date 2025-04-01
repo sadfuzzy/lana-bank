@@ -5,31 +5,22 @@ use thiserror::Error;
 
 use authz::AllOrOne;
 
-pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, EntryId as LedgerEntryId,
-    JournalId as LedgerJournalId, TransactionId as LedgerTxId,
+pub use cala_ledger::{
+    balance::AccountBalance as CalaAccountBalance,
+    primitives::{
+        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
+        JournalId as CalaJournalId, TransactionId as CalaTxId,
+    },
 };
 
 pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
-}
+    LedgerAccountId;
 
-pub struct AccountDetails {
-    pub id: LedgerAccountSetId,
-    pub name: AccountName,
-    pub code: AccountCode,
-}
-
-impl From<&(AccountSpec, LedgerAccountSetId)> for AccountDetails {
-    fn from((spec, id): &(AccountSpec, LedgerAccountSetId)) -> Self {
-        AccountDetails {
-            id: *id,
-            name: spec.name.clone(),
-            code: spec.code.clone(),
-        }
-    }
+    LedgerAccountId => CalaAccountId,
+    LedgerAccountId => CalaAccountSetId,
 }
 
 #[derive(Error, Debug)]
@@ -119,6 +110,10 @@ pub struct AccountCode {
 impl AccountCode {
     pub fn new(section: Vec<AccountCodeSection>) -> Self {
         AccountCode { sections: section }
+    }
+
+    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
+        format!("{}.{}", chart_id, self)
     }
 
     pub fn len_sections(&self) -> usize {
@@ -243,17 +238,14 @@ impl AccountSpec {
         }
     }
 
-    pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
-        format!("{}.{}", chart_id, self.code)
-    }
-
     pub fn has_parent(&self) -> bool {
         self.parent.is_some()
     }
 }
 
 pub type ChartAllOrOne = AllOrOne<ChartId>;
-pub type JournalAllOrOne = AllOrOne<LedgerJournalId>;
+pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
+pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -270,7 +262,7 @@ pub enum CoreAccountingAction {
 pub enum CoreAccountingObject {
     Chart(ChartAllOrOne),
     Journal(JournalAllOrOne),
-    LedgerAccount,
+    LedgerAccount(LedgerAccountAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -282,8 +274,16 @@ impl CoreAccountingObject {
         CoreAccountingObject::Chart(AllOrOne::All)
     }
 
-    pub fn journal(id: LedgerJournalId) -> Self {
+    pub fn journal(id: CalaJournalId) -> Self {
         CoreAccountingObject::Journal(AllOrOne::ById(id))
+    }
+
+    pub fn all_ledger_accounts() -> Self {
+        CoreAccountingObject::LedgerAccount(AllOrOne::All)
+    }
+
+    pub fn ledger_account(id: LedgerAccountId) -> Self {
+        CoreAccountingObject::LedgerAccount(AllOrOne::ById(id))
     }
 }
 
@@ -294,7 +294,7 @@ impl Display for CoreAccountingObject {
         match self {
             Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            LedgerAccount => write!(f, "{discriminant}"),
+            LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -316,7 +316,10 @@ impl FromStr for CoreAccountingObject {
                     .map_err(|_| "could not parse CoreJournalObject")?;
                 CoreAccountingObject::Journal(obj_ref)
             }
-            LedgerAccount => CoreAccountingObject::LedgerAccount,
+            LedgerAccount => {
+                let obj_ref = id.parse().map_err(|_| "could not parse LedgerAccount")?;
+                CoreAccountingObject::LedgerAccount(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -325,16 +328,16 @@ impl FromStr for CoreAccountingObject {
 impl CoreAccountingAction {
     pub const CHART_CREATE: Self = CoreAccountingAction::ChartAction(ChartAction::Create);
     pub const CHART_LIST: Self = CoreAccountingAction::ChartAction(ChartAction::List);
-    pub const CHART_ACCOUNT_DETAILS_READ: Self =
-        CoreAccountingAction::ChartAction(ChartAction::AccountDetailsRead);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::ChartAction(ChartAction::ImportAccounts);
 
     pub const JOURNAL_READ_ENTRIES: Self =
         CoreAccountingAction::JournalAction(JournalAction::ReadEntries);
 
-    pub const LEDGER_ACCOUNT_READ_BALANCE: Self =
-        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadBalance);
+    pub const LEDGER_ACCOUNT_READ: Self =
+        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::Read);
+    pub const LEDGER_ACCOUNT_LIST: Self =
+        CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::List);
     pub const LEDGER_ACCOUNT_READ_HISTORY: Self =
         CoreAccountingAction::LedgerAccountAction(LedgerAccountAction::ReadHistory);
 }
@@ -376,12 +379,7 @@ impl FromStr for CoreAccountingAction {
 pub enum ChartAction {
     Create,
     List,
-    AccountDetailsRead,
     ImportAccounts,
-    CreateControlAccount,
-    FindControlAccount,
-    CreateControlSubAccount,
-    FindControlSubAccount,
 }
 
 impl From<ChartAction> for CoreAccountingAction {
@@ -393,7 +391,8 @@ impl From<ChartAction> for CoreAccountingAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum LedgerAccountAction {
-    ReadBalance,
+    Read,
+    List,
     ReadHistory,
 }
 

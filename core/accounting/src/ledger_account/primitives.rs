@@ -1,13 +1,13 @@
 use cala_ledger::{DebitOrCredit, Layer};
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{LedgerAccountId, LedgerEntryId, LedgerTxId, Satoshis, UsdCents};
+use crate::primitives::{CalaAccountId, CalaEntryId, CalaTxId, Satoshis, UsdCents};
 
 use super::ledger::error::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LedgerAccountHistoryCursor {
-    pub entry_id: LedgerEntryId,
+    pub entry_id: CalaEntryId,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -68,10 +68,10 @@ impl async_graphql::connection::CursorType for LedgerAccountHistoryCursor {
 }
 
 pub struct LedgerAccountEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: chrono::DateTime<chrono::Utc>,
-    pub account_id: LedgerAccountId,
+    pub account_id: CalaAccountId,
     pub entry_type: String,
     pub amount: LayeredLedgerAccountAmount,
 }

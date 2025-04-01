@@ -1,11 +1,12 @@
-use cala_ledger::{AccountId, DebitOrCredit, EntryId, entry::Entry};
+use cala_ledger::{DebitOrCredit, EntryId, entry::Entry};
 use core_money::{Satoshis, UsdCents};
 use serde::{Deserialize, Serialize};
 
 use super::error::JournalError;
+use crate::primitives::LedgerAccountId;
 
 pub struct JournalEntry {
-    pub ledger_account_id: AccountId,
+    pub ledger_account_id: LedgerAccountId,
     pub entry_id: EntryId,
     pub entry_type: String,
     pub amount: JournalEntryAmount,
@@ -14,6 +15,7 @@ pub struct JournalEntry {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+#[derive(Clone, Copy)]
 pub enum JournalEntryAmount {
     Usd(UsdCents),
     Btc(Satoshis),
@@ -31,7 +33,7 @@ impl TryFrom<Entry> for JournalEntry {
             return Err(JournalError::UnexpectedCurrency);
         };
         Ok(Self {
-            ledger_account_id: entry.values().account_id,
+            ledger_account_id: entry.values().account_id.into(),
             entry_id: entry.id,
             entry_type: entry.values().entry_type.clone(),
             amount,

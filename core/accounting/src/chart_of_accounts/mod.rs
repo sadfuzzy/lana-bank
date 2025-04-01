@@ -15,9 +15,7 @@ use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, account_set::NewAccountSet};
 use tracing::instrument;
 
-use crate::primitives::{
-    AccountDetails, ChartId, CoreAccountingAction, CoreAccountingObject, LedgerJournalId,
-};
+use crate::primitives::{CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject};
 use error::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -27,7 +25,7 @@ where
     repo: ChartRepo,
     cala: CalaLedger,
     authz: Perms,
-    journal_id: LedgerJournalId,
+    journal_id: CalaJournalId,
 }
 
 impl<Perms> Clone for ChartOfAccounts<Perms>
@@ -54,7 +52,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         cala: &CalaLedger,
-        journal_id: LedgerJournalId,
+        journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
         Self {
@@ -111,7 +109,7 @@ where
             .enforce_permission(
                 sub,
                 CoreAccountingObject::chart(id),
-                CoreAccountingAction::CHART_LIST,
+                CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
             )
             .await?;
         let mut chart = self.repo.find_by_id(id).await?;
@@ -129,7 +127,7 @@ where
                     .journal_id(self.journal_id)
                     .name(spec.name.to_string())
                     .description(spec.name.to_string())
-                    .external_id(spec.account_set_external_id(id))
+                    .external_id(spec.code.account_set_external_id(id))
                     .normal_balance_type(spec.normal_balance_type)
                     .build()
                     .expect("Could not build new account set");
@@ -170,7 +168,7 @@ where
     pub async fn find_by_reference(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
+        reference: impl std::borrow::Borrow<String> + std::fmt::Debug,
     ) -> Result<Option<Chart>, ChartOfAccountsError> {
         self.authz
             .enforce_permission(
@@ -187,26 +185,6 @@ where
         };
 
         Ok(chart)
-    }
-
-    #[instrument(name = "chart_of_accounts.account_details_by_code", skip(self, chart))]
-    pub async fn account_details_by_code(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: Chart,
-        code: String,
-    ) -> Result<Option<AccountDetails>, ChartOfAccountsError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::chart(chart.id),
-                CoreAccountingAction::CHART_ACCOUNT_DETAILS_READ,
-            )
-            .await?;
-        let details = chart
-            .account_spec_from_code_str(code)
-            .map(AccountDetails::from);
-        Ok(details)
     }
 
     #[instrument(name = "chart_of_accounts.find_all", skip(self), err)]
