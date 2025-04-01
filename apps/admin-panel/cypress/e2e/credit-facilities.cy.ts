@@ -19,14 +19,14 @@ describe("credit facility", () => {
     cy.createTermsTemplate({
       name: termsTemplateName,
       annualRate: "5.5",
-      accrualCycleInterval: InterestInterval.EndOfDay,
-      accrualInterval: InterestInterval.EndOfMonth,
+      accrualCycleInterval: InterestInterval.EndOfMonth,
+      accrualInterval: InterestInterval.EndOfDay,
       oneTimeFeeRate: "5",
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
       duration: {
-        units: 12 * 9999999,
+        units: 12 * 100,
         period: Period.Months,
       },
       interestDueDuration: {

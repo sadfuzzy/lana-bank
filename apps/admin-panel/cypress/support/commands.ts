@@ -155,6 +155,10 @@ Cypress.Commands.add(
             period: input.duration.period,
             units: input.duration.units,
           },
+          interestDueDuration: {
+            period: input.interestDueDuration.period,
+            units: input.interestDueDuration.units,
+          },
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,

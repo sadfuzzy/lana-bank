@@ -46,30 +46,44 @@ export const formatDate = (
 ): string => {
   if (isoDateString === "-") return "-"
   if (!isoDateString) return "N/A"
-
-  const date = new Date(isoDateString)
-
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+  let dateString = isoDateString
+  if (dateString.startsWith("+1")) {
+    dateString = dateString.substring(2)
   }
 
-  const formattedDate = date.toLocaleDateString("en-US", dateOptions)
+  try {
+    let locale = "en-US"
+    if (typeof document !== "undefined") {
+      locale = document.documentElement.lang || navigator.language || "en-US"
+    }
 
-  if (!options.includeTime) {
-    return formattedDate
+    const date = new Date(dateString)
+    if (isNaN(date.getTime())) {
+      return "Invalid date format"
+    }
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+
+    const formattedDate = date.toLocaleDateString(locale, dateOptions)
+    if (!options.includeTime) {
+      return formattedDate
+    }
+
+    const formattedTime = date
+      .toLocaleTimeString(locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .toUpperCase()
+
+    return `${formattedDate}, ${formattedTime}`
+  } catch (error) {
+    return isoDateString
   }
-
-  const formattedTime = date
-    .toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-    .toUpperCase()
-
-  return `${formattedDate}, ${formattedTime}`
 }
 
 export const formatDirection = (direction: string) => {
