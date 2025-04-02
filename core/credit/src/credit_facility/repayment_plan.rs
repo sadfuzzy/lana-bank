@@ -121,12 +121,19 @@ pub(super) fn project<'a>(
         .collect();
 
     let maturity_date = terms.duration.maturity_date(activated_at);
-    let last_interest_payment = last_interest_accrual_at.unwrap_or(activated_at);
-    let mut next_interest_period = terms
-        .accrual_cycle_interval
-        .period_from(last_interest_payment)
-        .next()
-        .truncate(maturity_date);
+
+    let mut next_interest_period = if let Some(last_interest_payment) = last_interest_accrual_at {
+        terms
+            .accrual_cycle_interval
+            .period_from(last_interest_payment)
+            .next()
+            .truncate(maturity_date)
+    } else {
+        terms
+            .accrual_cycle_interval
+            .period_from(activated_at)
+            .truncate(maturity_date)
+    };
 
     if !due_and_outstanding.is_zero() {
         while let Some(period) = next_interest_period {
@@ -265,6 +272,71 @@ mod tests {
                 recorded_at: first_interest_posted_at,
             },
         ]
+    }
+
+    #[test]
+    fn no_interest_repayment() {
+        let credit_facility_id = CreditFacilityId::new();
+        let activated_at = default_activated_at();
+        let first_disbursal_idx = DisbursalIdx::FIRST;
+
+        let events = vec![
+            CreditFacilityEvent::Initialized {
+                id: credit_facility_id,
+                customer_id: CustomerId::new(),
+                account_ids: CreditFacilityAccountIds::new(),
+                facility: UsdCents::from(1_000_000),
+                terms: Box::new(terms()),
+                audit_info: dummy_audit_info(),
+                disbursal_credit_account_id: CalaAccountId::new(),
+                approval_process_id: ApprovalProcessId::new(),
+            },
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at,
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursalInitiated {
+                approval_process_id: ApprovalProcessId::new(),
+                disbursal_id: DisbursalId::new(),
+                idx: first_disbursal_idx,
+                amount: UsdCents::from(1000),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::DisbursalConcluded {
+                idx: first_disbursal_idx,
+                tx_id: Some(LedgerTxId::new()),
+                recorded_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+                canceled: false,
+            },
+        ];
+
+        let repayment_plan = super::project(events.iter());
+
+        let n_existing_interest_accruals = 0;
+        let n_future_interest_accruals = 3;
+        let n_principal_accruals = 1;
+        assert_eq!(
+            repayment_plan.len(),
+            n_existing_interest_accruals + n_future_interest_accruals + n_principal_accruals
+        );
+
+        for i in 0..3 {
+            match &repayment_plan[i] {
+                CreditFacilityRepaymentInPlan::Interest(interest) => {
+                    assert_eq!(interest.status, RepaymentStatus::Upcoming);
+                }
+                _ => panic!("Expected first 3 elements to be Interest"),
+            }
+        }
+
+        match &repayment_plan[3] {
+            CreditFacilityRepaymentInPlan::Disbursal(principal) => {
+                assert_eq!(principal.status, RepaymentStatus::Upcoming);
+            }
+            _ => panic!("Expected fourth element to be Disbursal"),
+        }
     }
 
     #[test]
