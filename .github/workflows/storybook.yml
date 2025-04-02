@@ -44,6 +44,7 @@ jobs:
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
           netlify deploy \
             --dir=apps/admin-panel/storybook-static \
+            --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --alias="$ALIAS" \
@@ -61,6 +62,7 @@ jobs:
           netlify deploy \
             --prod \
             --dir=apps/admin-panel/storybook-static \
+            --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
             --auth=$NETLIFY_AUTH_TOKEN \
             --message="Storybook Build for Commit ${{ github.sha }}" \
