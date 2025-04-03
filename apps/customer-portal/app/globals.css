@@ -1,8 +1,8 @@
+@import "@lana/web/globals.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import "@lana/web/globals.css";
 
 @layer base {
   * {
