@@ -5,7 +5,7 @@ use crate::{
     primitives::*,
 };
 
-use lana_app::trial_balance::TrialBalanceAccountSetsCursor;
+use lana_app::trial_balance::TrialBalanceAccountCursor;
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -27,7 +27,7 @@ impl TrialBalance {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<TrialBalanceAccountSetsCursor, TrialBalanceAccount, EmptyFields, EmptyFields>,
+        Connection<TrialBalanceAccountCursor, TrialBalanceAccount, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
@@ -54,7 +54,7 @@ impl TrialBalance {
                 connection
                     .edges
                     .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = TrialBalanceAccountSetsCursor::from(&entry);
+                        let cursor = TrialBalanceAccountCursor::from(&entry);
                         Edge::new(cursor, TrialBalanceAccount::from(entry))
                     }));
                 Ok::<_, async_graphql::Error>(connection)
@@ -71,8 +71,8 @@ pub struct TrialBalanceAccount {
     code: AccountCode,
 }
 
-impl From<lana_app::trial_balance::TrialBalanceAccountSet> for TrialBalanceAccount {
-    fn from(line_item: lana_app::trial_balance::TrialBalanceAccountSet) -> Self {
+impl From<lana_app::trial_balance::TrialBalanceAccount> for TrialBalanceAccount {
+    fn from(line_item: lana_app::trial_balance::TrialBalanceAccount) -> Self {
         TrialBalanceAccount {
             id: line_item.id.into(),
             name: line_item.name.to_string(),

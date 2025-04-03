@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 
 use cala_ledger::{
     account_set::{
-        AccountSetMember, AccountSetMemberId, AccountSetMembersByCreatedAtCursor, NewAccountSet,
+        AccountSetMemberByExternalId, AccountSetMemberId, AccountSetMembersByExternalIdCursor,
+        NewAccountSet,
     },
     AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
@@ -17,9 +18,10 @@ use crate::statement::*;
 use error::*;
 
 #[derive(Clone)]
-pub struct TrialBalanceAccountSet {
+pub struct TrialBalanceAccount {
     pub id: AccountSetId,
     pub name: String,
+    pub external_id: String,
     pub code: AccountCode,
     pub description: Option<String>,
     pub btc_balance: BtcStatementAccountSetBalanceRange,
@@ -39,43 +41,43 @@ pub struct TrialBalanceRoot {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct TrialBalanceAccountSetsCursor {
+pub struct TrialBalanceAccountCursor {
     id: AccountSetId,
-    pub member_created_at: DateTime<Utc>,
+    pub external_id: String,
 }
 
-impl From<TrialBalanceAccountSetsCursor> for AccountSetMembersByCreatedAtCursor {
-    fn from(cursor: TrialBalanceAccountSetsCursor) -> Self {
+impl From<TrialBalanceAccountCursor> for AccountSetMembersByExternalIdCursor {
+    fn from(cursor: TrialBalanceAccountCursor) -> Self {
         Self {
             id: AccountSetMemberId::AccountSet(cursor.id),
-            member_created_at: cursor.member_created_at,
+            external_id: Some(cursor.external_id),
         }
     }
 }
 
-impl From<AccountSetMembersByCreatedAtCursor> for TrialBalanceAccountSetsCursor {
-    fn from(cursor: AccountSetMembersByCreatedAtCursor) -> Self {
+impl From<AccountSetMembersByExternalIdCursor> for TrialBalanceAccountCursor {
+    fn from(cursor: AccountSetMembersByExternalIdCursor) -> Self {
         let id = match cursor.id {
             AccountSetMemberId::AccountSet(id) => id,
             _ => panic!("Unexpected non-AccountSet cursor id found"),
         };
         Self {
             id,
-            member_created_at: cursor.member_created_at,
+            external_id: cursor.external_id.expect("external_id should exist"),
         }
     }
 }
 
-impl From<&TrialBalanceAccountSet> for TrialBalanceAccountSetsCursor {
-    fn from(account_set: &TrialBalanceAccountSet) -> Self {
+impl From<&TrialBalanceAccount> for TrialBalanceAccountCursor {
+    fn from(account: &TrialBalanceAccount) -> Self {
         Self {
-            id: account_set.id,
-            member_created_at: account_set.member_created_at,
+            id: account.id,
+            external_id: account.external_id.clone(),
         }
     }
 }
 
-impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceAccountSetsCursor {
+impl es_entity::graphql::async_graphql::connection::CursorType for TrialBalanceAccountCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
@@ -169,11 +171,14 @@ impl TrialBalanceLedger {
         &self,
         account_set_id: AccountSetId,
         cursor: es_entity::PaginatedQueryArgs<U>,
-    ) -> Result<es_entity::PaginatedQueryRet<AccountSetMember, U>, TrialBalanceLedgerError>
+    ) -> Result<
+        es_entity::PaginatedQueryRet<AccountSetMemberByExternalId, U>,
+        TrialBalanceLedgerError,
+    >
     where
         U: std::fmt::Debug
-            + From<AccountSetMembersByCreatedAtCursor>
-            + Into<AccountSetMembersByCreatedAtCursor>,
+            + From<AccountSetMembersByExternalIdCursor>
+            + Into<AccountSetMembersByExternalIdCursor>,
     {
         let cala_cursor = es_entity::PaginatedQueryArgs {
             after: cursor.after.map(|u| u.into()),
@@ -183,7 +188,7 @@ impl TrialBalanceLedger {
         let ret = self
             .cala
             .account_sets()
-            .list_members_by_created_at(account_set_id, cala_cursor)
+            .list_members_by_external_id(account_set_id, cala_cursor)
             .await?;
 
         Ok(es_entity::PaginatedQueryRet {
@@ -319,24 +324,24 @@ impl TrialBalanceLedger {
         name: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-        query: es_entity::PaginatedQueryArgs<TrialBalanceAccountSetsCursor>,
+        query: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccountSet, TrialBalanceAccountSetsCursor>,
+        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
         TrialBalanceLedgerError,
     > {
         let statement_id = self.get_id_from_reference(name).await?;
 
         let member_account_sets = self
-            .get_member_account_sets::<TrialBalanceAccountSetsCursor>(statement_id, query)
+            .get_member_account_sets::<TrialBalanceAccountCursor>(statement_id, query)
             .await?;
         let member_account_sets_tuples = member_account_sets
             .entities
             .into_iter()
             .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok((id, m.created_at)),
+                AccountSetMemberId::AccountSet(id) => Ok((id, m.external_id)),
                 _ => Err(TrialBalanceLedgerError::NonAccountSetMemberTypeFound),
             })
-            .collect::<Result<Vec<(AccountSetId, DateTime<Utc>)>, TrialBalanceLedgerError>>()?;
+            .collect::<Result<Vec<(AccountSetId, Option<String>)>, TrialBalanceLedgerError>>()?;
 
         let member_account_sets_ids = member_account_sets_tuples
             .iter()
@@ -359,9 +364,9 @@ impl TrialBalanceLedger {
 
     async fn get_all_member_account_sets(
         &self,
-        member_account_sets_tuples: Vec<(AccountSetId, DateTime<Utc>)>,
+        member_account_sets_tuples: Vec<(AccountSetId, Option<String>)>,
         balances_by_id: &BalancesByAccount,
-    ) -> Result<Vec<TrialBalanceAccountSet>, TrialBalanceLedgerError> {
+    ) -> Result<Vec<TrialBalanceAccount>, TrialBalanceLedgerError> {
         let mut account_sets = self
             .cala
             .account_sets()
@@ -376,23 +381,25 @@ impl TrialBalanceLedger {
 
         member_account_sets_tuples
             .into_iter()
-            .map(|(account_set_id, member_created_at)| {
-                let values = account_sets
+            .map(|(account_set_id, ..)| {
+                let account_set = account_sets
                     .remove(&account_set_id)
-                    .expect("account set should exist")
-                    .into_values();
+                    .expect("account set should exist");
+                let created_at = account_set.created_at();
+                let values = account_set.into_values();
 
-                Ok(TrialBalanceAccountSet {
+                let external_id = values.external_id.expect("external_id should exist");
+                let code = external_id.parse()?;
+
+                Ok(TrialBalanceAccount {
                     id: account_set_id,
                     name: values.name,
+                    external_id,
                     description: values.description,
                     btc_balance: balances_by_id.btc_for_account(account_set_id)?,
                     usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-                    code: values
-                        .external_id
-                        .expect("external_id should exist")
-                        .parse()?,
-                    member_created_at,
+                    code,
+                    member_created_at: created_at,
                 })
             })
             .collect()

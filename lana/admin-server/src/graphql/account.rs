@@ -135,8 +135,8 @@ pub struct AccountAmountsByCurrency {
     usd: UsdAccountAmountsInPeriod,
 }
 
-impl From<lana_app::trial_balance::TrialBalanceAccountSet> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::trial_balance::TrialBalanceAccountSet) -> Self {
+impl From<lana_app::trial_balance::TrialBalanceAccount> for AccountAmountsByCurrency {
+    fn from(balances: lana_app::trial_balance::TrialBalanceAccount) -> Self {
         AccountAmountsByCurrency {
             btc: balances.btc_balance.into(),
             usd: balances.usd_balance.into(),

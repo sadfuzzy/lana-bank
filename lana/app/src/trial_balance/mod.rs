@@ -13,7 +13,7 @@ use crate::authorization::{Authorization, Object};
 
 use error::*;
 use ledger::*;
-pub use ledger::{TrialBalanceAccountSet, TrialBalanceAccountSetsCursor, TrialBalanceRoot};
+pub use ledger::{TrialBalanceAccount, TrialBalanceAccountCursor, TrialBalanceRoot};
 
 #[derive(Clone)]
 pub struct TrialBalances {
@@ -107,9 +107,9 @@ impl TrialBalances {
         name: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-        args: es_entity::PaginatedQueryArgs<TrialBalanceAccountSetsCursor>,
+        args: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccountSet, TrialBalanceAccountSetsCursor>,
+        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
         TrialBalanceError,
     > {
         self.authz
