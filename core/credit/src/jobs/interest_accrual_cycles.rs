@@ -14,6 +14,8 @@ use crate::{
     Obligation, ObligationRepo,
 };
 
+use super::obligation_due;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
@@ -129,6 +131,7 @@ where
             .obligation_repo
             .create_in_op(db, new_obligation)
             .await?;
+
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
@@ -199,6 +202,17 @@ where
                 return Ok(JobCompletion::CompleteWithOp(db));
             };
 
+        self.jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                obligation.id,
+                obligation_due::CreditFacilityJobConfig::<Perms> {
+                    obligation_id: obligation.id,
+                    _phantom: std::marker::PhantomData,
+                },
+                obligation.due_at(),
+            )
+            .await?;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,

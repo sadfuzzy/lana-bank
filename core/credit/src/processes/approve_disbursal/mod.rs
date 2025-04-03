@@ -2,6 +2,7 @@ mod job;
 
 use tracing::instrument;
 
+use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::Idempotent;
@@ -9,12 +10,13 @@ use governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
     GovernanceEvent, GovernanceObject,
 };
+
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::DisbursalId,
-    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, DisbursalRepo,
-    LedgerTxId, ObligationRepo,
+    credit_facility::CreditFacilityRepo, jobs::obligation_due, ledger::CreditLedger,
+    primitives::DisbursalId, CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject,
+    Disbursal, DisbursalRepo, LedgerTxId, ObligationRepo,
 };
 
 pub use job::*;
@@ -28,6 +30,7 @@ where
     disbursal_repo: DisbursalRepo,
     obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
+    jobs: Jobs,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
     ledger: CreditLedger,
@@ -43,6 +46,7 @@ where
             disbursal_repo: self.disbursal_repo.clone(),
             obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
             ledger: self.ledger.clone(),
@@ -63,6 +67,7 @@ where
         disbursal_repo: &DisbursalRepo,
         obligation_repo: &ObligationRepo,
         credit_facility_repo: &CreditFacilityRepo<E>,
+        jobs: &Jobs,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
         ledger: &CreditLedger,
@@ -71,6 +76,7 @@ where
             disbursal_repo: disbursal_repo.clone(),
             obligation_repo: obligation_repo.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
+            jobs: jobs.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
             ledger: ledger.clone(),
@@ -123,8 +129,7 @@ where
             .audit
             .record_system_entry_in_tx(
                 db.tx(),
-                // NOTE: change to DisbursalObject
-                CoreCreditObject::credit_facility(disbursal.facility_id),
+                CoreCreditObject::disbursal(disbursal.id),
                 CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
             )
             .await?;
@@ -133,7 +138,7 @@ where
             .record_system_entry_in_tx(
                 db.tx(),
                 // NOTE: change to DisbursalObject
-                CoreCreditObject::credit_facility(credit_facility.id),
+                CoreCreditObject::disbursal(disbursal.id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )
             .await?;
@@ -143,11 +148,12 @@ where
         let new_obligation = if let Idempotent::Executed(new_obligation) =
             disbursal.approval_process_concluded(tx_id, approved, audit_info.clone())
         {
+            let obligation_id = new_obligation.as_ref().map(|n| n.id());
             if credit_facility
                 .disbursal_concluded(
                     &disbursal,
                     tx_id,
-                    new_obligation.is_none(),
+                    obligation_id,
                     executed_at,
                     disbursal_audit_info,
                 )
@@ -175,6 +181,19 @@ where
                 .obligation_repo
                 .create_in_op(&mut db, new_obligation)
                 .await?;
+
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    obligation.id,
+                    obligation_due::CreditFacilityJobConfig::<Perms> {
+                        obligation_id: obligation.id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    obligation.due_at(),
+                )
+                .await?;
+
             self.ledger
                 .settle_disbursal(
                     db,

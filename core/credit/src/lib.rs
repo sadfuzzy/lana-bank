@@ -129,6 +129,7 @@ where
             &disbursal_repo,
             &obligation_repo,
             &credit_facility_repo,
+            jobs,
             authz.audit(),
             governance,
             &ledger,
@@ -137,6 +138,7 @@ where
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facility_repo, authz.audit(), governance);
         let activate_credit_facility = ActivateCreditFacility::new(
+            &obligation_repo,
             &credit_facility_repo,
             &disbursal_repo,
             &ledger,
@@ -177,6 +179,18 @@ where
             overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 credit_facility_repo.clone(),
+                authz.audit(),
+            ),
+        );
+        jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
+            Perms,
+        >::new(
+            &ledger, obligation_repo.clone(), jobs, authz.audit()
+        ));
+        jobs.add_initializer(
+            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms>::new(
+                &ledger,
+                obligation_repo.clone(),
                 authz.audit(),
             ),
         );

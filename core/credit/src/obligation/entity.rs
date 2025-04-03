@@ -7,6 +7,16 @@ use es_entity::*;
 
 use crate::primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents};
 
+use super::error::ObligationError;
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum ObligationStatus {
+    NotYetDue,
+    Due,
+    Overdue,
+    _Defaulted,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]
@@ -19,9 +29,15 @@ pub enum ObligationEvent {
         account_to_be_debited_id: CalaAccountId,
         account_to_be_credited_id: CalaAccountId,
         due_date: DateTime<Utc>,
-        overdue_date: Option<DateTime<Utc>>,
+        overdue_date: DateTime<Utc>,
         defaulted_date: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    DueRecorded {
+        audit_info: AuditInfo,
+    },
+    OverdueRecorded {
         audit_info: AuditInfo,
     },
 }
@@ -44,6 +60,80 @@ impl Obligation {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn due_at(&self) -> DateTime<Utc> {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized { due_date, .. } => Some(*due_date),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
+    pub fn overdue_at(&self) -> DateTime<Utc> {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized { overdue_date, .. } => Some(*overdue_date),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
+    pub(super) fn status(&self) -> ObligationStatus {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                ObligationEvent::DueRecorded { .. } => Some(ObligationStatus::Due),
+                ObligationEvent::OverdueRecorded { .. } => Some(ObligationStatus::Overdue),
+                _ => None,
+            })
+            .unwrap_or(ObligationStatus::NotYetDue)
+    }
+
+    pub fn outstanding(&self) -> UsdCents {
+        self.events
+            .iter_all()
+            .fold(UsdCents::from(0), |mut total_sum, event| {
+                if let ObligationEvent::Initialized { amount, .. } = event {
+                    total_sum += *amount;
+                }
+                total_sum
+            })
+    }
+
+    pub(crate) fn record_due(&mut self, audit_info: AuditInfo) -> Idempotent<UsdCents> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::DueRecorded { .. }
+        );
+
+        self.events
+            .push(ObligationEvent::DueRecorded { audit_info });
+
+        Idempotent::Executed(self.outstanding())
+    }
+
+    pub(crate) fn record_overdue(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<Idempotent<UsdCents>, ObligationError> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::OverdueRecorded { .. }
+        );
+
+        if self.status() != ObligationStatus::Due {
+            return Err(ObligationError::InvalidStatusTransitionToOverdue);
+        }
+
+        self.events
+            .push(ObligationEvent::OverdueRecorded { audit_info });
+
+        Ok(Idempotent::Executed(self.outstanding()))
     }
 }
 
@@ -71,6 +161,8 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .account_to_be_credited_id(*account_to_be_credited_id)
                         .recorded_at(*recorded_at)
                 }
+                ObligationEvent::DueRecorded { .. } => (),
+                ObligationEvent::OverdueRecorded { .. } => (),
             }
         }
         builder.events(events).build()
@@ -92,8 +184,7 @@ pub struct NewObligation {
     #[builder(setter(into))]
     account_to_be_credited_id: CalaAccountId,
     due_date: DateTime<Utc>,
-    #[builder(setter(strip_option), default)]
-    overdue_date: Option<DateTime<Utc>>,
+    overdue_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
     recorded_at: DateTime<Utc>,
@@ -104,6 +195,10 @@ pub struct NewObligation {
 impl NewObligation {
     pub fn builder() -> NewObligationBuilder {
         NewObligationBuilder::default()
+    }
+
+    pub(crate) fn id(&self) -> ObligationId {
+        self.id
     }
 
     pub(super) fn reference(&self) -> String {
@@ -133,5 +228,60 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
+        Obligation::try_from_events(EntityEvents::init(ObligationId::new(), events)).unwrap()
+    }
+
+    fn initial_events() -> Vec<ObligationEvent> {
+        vec![ObligationEvent::Initialized {
+            id: ObligationId::new(),
+            amount: UsdCents::ONE,
+            reference: "ref-01".to_string(),
+            tx_id: LedgerTxId::new(),
+            account_to_be_debited_id: CalaAccountId::new(),
+            account_to_be_credited_id: CalaAccountId::new(),
+            due_date: Utc::now(),
+            overdue_date: Utc::now(),
+            defaulted_date: None,
+            recorded_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        }]
+    }
+
+    #[test]
+    fn record_overdue() {
+        let mut obligation = obligation_from(initial_events());
+        obligation.record_due(dummy_audit_info()).did_execute();
+        let res = obligation
+            .record_overdue(dummy_audit_info())
+            .unwrap()
+            .unwrap();
+        assert_eq!(res, obligation.amount);
+    }
+
+    #[test]
+    fn errors_if_overdue_recorded_before_due() {
+        let mut obligation = obligation_from(initial_events());
+        let res = obligation.record_overdue(dummy_audit_info());
+        assert!(matches!(
+            res,
+            Err(ObligationError::InvalidStatusTransitionToOverdue)
+        ));
     }
 }
