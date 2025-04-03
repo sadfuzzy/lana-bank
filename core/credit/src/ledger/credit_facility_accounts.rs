@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
@@ -89,23 +88,4 @@ pub struct CreditFacilityInterestAccrual {
     pub interest: UsdCents,
     pub period: InterestPeriod,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
-}
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityInterestAccrualCycle {
-    pub tx_id: LedgerTxId,
-    pub tx_ref: String,
-    pub interest: UsdCents,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub posted_at: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone)]
-pub struct DisbursalData {
-    pub amount: UsdCents,
-    pub tx_ref: String,
-    pub tx_id: LedgerTxId,
-    pub cancelled: bool,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub debit_account_id: CalaAccountId,
 }

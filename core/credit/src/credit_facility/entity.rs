@@ -7,6 +7,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
+    obligation::NewObligation,
     primitives::*,
     terms::{CVLData, CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -48,7 +49,7 @@ pub enum CreditFacilityEvent {
     },
     DisbursalConcluded {
         idx: DisbursalIdx,
-        tx_id: Option<LedgerTxId>,
+        tx_id: LedgerTxId,
         canceled: bool,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
@@ -294,29 +295,6 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
     }
 }
 
-impl From<(InterestAccrualCycleData, CreditFacilityAccountIds)>
-    for CreditFacilityInterestAccrualCycle
-{
-    fn from(data: (InterestAccrualCycleData, CreditFacilityAccountIds)) -> Self {
-        let (
-            InterestAccrualCycleData {
-                interest,
-                tx_ref,
-                tx_id,
-                posted_at,
-            },
-            credit_facility_account_ids,
-        ) = data;
-        Self {
-            interest,
-            tx_ref,
-            tx_id,
-            posted_at,
-            credit_facility_account_ids,
-        }
-    }
-}
-
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
@@ -380,11 +358,7 @@ impl CreditFacility {
                     CreditFacilityEvent::DisbursalInitiated { idx, amount, .. } => {
                         amounts.insert(*idx, *amount);
                     }
-                    CreditFacilityEvent::DisbursalConcluded {
-                        idx,
-                        tx_id: Some(_),
-                        ..
-                    } => {
+                    CreditFacilityEvent::DisbursalConcluded { idx, .. } => {
                         if let Some(amount) = amounts.remove(idx) {
                             total_sum += amount;
                         }
@@ -400,7 +374,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_due(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() || self.is_after_disbursed_overdue_date() {
+        if self.is_after_disbursed_defaulted_date() || self.is_after_disbursed_overdue_date() {
             UsdCents::ZERO
         } else {
             self.disbursed_total_outstanding()
@@ -408,7 +382,7 @@ impl CreditFacility {
     }
 
     fn disbursed_outstanding_overdue(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() {
+        if self.is_after_disbursed_defaulted_date() {
             UsdCents::ZERO
         } else if self.is_after_disbursed_overdue_date() {
             self.disbursed_total_outstanding()
@@ -418,7 +392,7 @@ impl CreditFacility {
     }
 
     fn _disbursed_outstanding_defaulted(&self) -> UsdCents {
-        if self.is_after_disbursed_default_date() {
+        if self.is_after_disbursed_defaulted_date() {
             self.disbursed_total_outstanding()
         } else {
             UsdCents::ZERO
@@ -516,7 +490,7 @@ impl CreditFacility {
         self.is_after_maturity_date()
     }
 
-    pub fn is_after_disbursed_default_date(&self) -> bool {
+    pub fn is_after_disbursed_defaulted_date(&self) -> bool {
         let now = crate::time::now();
         self.defaults_at
             .is_some_and(|defaults_at| now > defaults_at)
@@ -655,6 +629,7 @@ impl CreditFacility {
             .amount(amount)
             .account_ids(self.account_ids)
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .disbursal_due_date(self.activated_at().expect("Facility is not active"))
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal"))
@@ -663,7 +638,8 @@ impl CreditFacility {
     pub(crate) fn disbursal_concluded(
         &mut self,
         disbursal: &Disbursal,
-        tx_id: Option<LedgerTxId>,
+        tx_id: LedgerTxId,
+        canceled: bool,
         executed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
@@ -679,7 +655,7 @@ impl CreditFacility {
             idx: disbursal.idx,
             recorded_at: executed_at,
             tx_id,
-            canceled: tx_id.is_none(),
+            canceled,
             audit_info,
         });
         Idempotent::Executed(())
@@ -741,6 +717,7 @@ impl CreditFacility {
         let new_accrual = NewInterestAccrualCycle::builder()
             .id(id)
             .credit_facility_id(self.id)
+            .account_ids(self.account_ids.into())
             .idx(idx)
             .started_at(accrual_cycle_period.start)
             .facility_matures_at(self.matures_at.expect("Facility is already approved"))
@@ -760,36 +737,61 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<CreditFacilityInterestAccrualCycle, CreditFacilityError> {
+    ) -> Result<NewObligation, CreditFacilityError> {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
             .expect("accrual not found")
-            .accrual_cycle_data();
-        let interest_accrual = accrual_cycle_data
-            .map(|data| CreditFacilityInterestAccrualCycle::from((data, self.account_ids)))
+            .accrual_cycle_data()
             .ok_or(CreditFacilityError::InterestAccrualNotCompletedYet)?;
 
-        let idx = {
+        let (idx, new_obligation) = {
             let accrual = self
-                .interest_accrual_cycle_in_progress()
+                .interest_accrual_cycle_in_progress_mut()
                 .expect("accrual not found");
-            accrual.record_accrual_cycle(interest_accrual.clone(), audit_info.clone());
-            accrual.idx
+            (
+                accrual.idx,
+                accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()),
+            )
         };
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx,
-                tx_id: interest_accrual.tx_id,
-                tx_ref: interest_accrual.tx_ref.to_string(),
-                amount: interest_accrual.interest,
-                posted_at: interest_accrual.posted_at,
+                tx_id: accrual_cycle_data.tx_id,
+                tx_ref: accrual_cycle_data.tx_ref.to_string(),
+                amount: accrual_cycle_data.interest,
+                posted_at: accrual_cycle_data.posted_at,
                 audit_info,
             });
 
-        Ok(interest_accrual)
+        Ok(new_obligation)
     }
 
-    pub fn interest_accrual_cycle_in_progress(&mut self) -> Option<&mut InterestAccrualCycle> {
+    pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
+        if let Some(id) = self
+            .events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id: id,
+                    ..
+                } => Some(Some(id)),
+                _ => None,
+            })
+            .flatten()
+        {
+            Some(
+                self.interest_accruals
+                    .get_persisted(id)
+                    .expect("Interest accrual not found"),
+            )
+        } else {
+            None
+        }
+    }
+
+    pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
         if let Some(id) = self
             .events
             .iter_all()
@@ -1205,7 +1207,7 @@ impl CreditFacility {
             if self.events.iter_all().any(|event| {
                 matches!(
                     event,
-                    CreditFacilityEvent::DisbursalConcluded { idx: i, tx_id: Some(_), .. } if i == &idx
+                    CreditFacilityEvent::DisbursalConcluded { idx: i,  .. } if i == &idx
                 )
             }) {
                 return *amount;
@@ -1410,6 +1412,7 @@ mod test {
         let mut events = initial_events();
 
         let first_idx = DisbursalIdx::FIRST;
+        let activated_at = Utc::now();
         let disbursal_id = DisbursalId::new();
         events.extend([
             CreditFacilityEvent::CollateralUpdated {
@@ -1418,6 +1421,11 @@ mod test {
                 abs_diff: Satoshis::from(500),
                 action: CollateralAction::Add,
                 recorded_in_ledger_at: Utc::now(),
+                audit_info: dummy_audit_info(),
+            },
+            CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                activated_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::DisbursalInitiated {
@@ -1431,7 +1439,7 @@ mod test {
 
         events.push(CreditFacilityEvent::DisbursalConcluded {
             idx: first_idx,
-            tx_id: Some(LedgerTxId::new()),
+            tx_id: LedgerTxId::new(),
             canceled: false,
             recorded_at: Utc::now(),
             audit_info: dummy_audit_info(),
@@ -1487,7 +1495,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -1524,7 +1532,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1558,7 +1566,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: activated_at,
                 audit_info: dummy_audit_info(),
@@ -1650,7 +1658,7 @@ mod test {
             },
             CreditFacilityEvent::DisbursalConcluded {
                 idx: DisbursalIdx::FIRST,
-                tx_id: Some(LedgerTxId::new()),
+                tx_id: LedgerTxId::new(),
                 canceled: false,
                 recorded_at: Utc::now(),
                 audit_info: dummy_audit_info(),
@@ -1737,6 +1745,7 @@ mod test {
             let new_accrual = NewInterestAccrualCycle::builder()
                 .id(id)
                 .credit_facility_id(credit_facility.id)
+                .account_ids(credit_facility.account_ids.into())
                 .idx(new_idx)
                 .started_at(accrual_starts_at)
                 .facility_matures_at(
@@ -2102,13 +2111,15 @@ mod test {
                 )
                 .unwrap();
             let mut disbursal = Disbursal::try_from_events(new_disbursal.into_events()).unwrap();
-            let data = disbursal
-                .approval_process_concluded(true, dummy_audit_info())
+            let tx_id = LedgerTxId::new();
+            let new_obligation = disbursal
+                .approval_process_concluded(tx_id, true, dummy_audit_info())
                 .unwrap();
             credit_facility
                 .disbursal_concluded(
                     &disbursal,
-                    Some(data.tx_id),
+                    tx_id,
+                    new_obligation.is_none(),
                     facility_activated_at,
                     dummy_audit_info(),
                 )
@@ -2118,7 +2129,7 @@ mod test {
             while accrual_cycle_data.is_none() {
                 let outstanding = credit_facility.total_outstanding();
                 let accrual = credit_facility
-                    .interest_accrual_cycle_in_progress()
+                    .interest_accrual_cycle_in_progress_mut()
                     .unwrap();
                 accrual.record_accrual(outstanding, dummy_audit_info());
                 accrual_cycle_data = accrual.accrual_cycle_data();

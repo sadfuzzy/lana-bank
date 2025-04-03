@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -9,8 +10,8 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     credit_facility::CreditFacilityRepo, interest_accruals, ledger::*, CoreCreditAction,
-    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    CreditFacilityInterestAccrualCycle,
+    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId, InterestAccrualCycleId,
+    Obligation, ObligationRepo,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -34,6 +35,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -48,12 +50,14 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
+        obligation_repo: ObligationRepo,
         credit_facility_repo: CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
+            obligation_repo,
             credit_facility_repo,
             jobs: jobs.clone(),
             audit: audit.clone(),
@@ -80,6 +84,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
+            obligation_repo: self.obligation_repo.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
@@ -94,6 +99,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
+    obligation_repo: ObligationRepo,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -108,22 +114,44 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     #[es_entity::retry_on_concurrent_modification]
-    async fn record_interest_accrual_cycle(
+    async fn complete_interest_cycle_and_maybe_start_new_cycle(
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<CreditFacilityInterestAccrualCycle, CoreCreditError> {
+    ) -> Result<Option<(Obligation, InterestAccrualCycleId, DateTime<Utc>)>, CoreCreditError> {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let interest_accrual = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
+        let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
+        let obligation = self
+            .obligation_repo
+            .create_in_op(db, new_obligation)
+            .await?;
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
 
-        Ok(interest_accrual)
+        let first_accrual_period_in_new_cycle =
+            match credit_facility.start_interest_accrual_cycle(audit_info.clone())? {
+                Some(p) => p.accrual,
+                None => return Ok(None),
+            };
+        self.credit_facility_repo
+            .update_in_op(db, &mut credit_facility)
+            .await?;
+
+        let new_accrual_cycle_id = credit_facility
+            .interest_accrual_cycle_in_progress()
+            .expect("First accrual cycle not found")
+            .id;
+
+        Ok(Some((
+            obligation,
+            new_accrual_cycle_id,
+            first_accrual_period_in_new_cycle.end,
+        )))
     }
 }
 
@@ -157,60 +185,36 @@ where
             )
             .await?;
 
-        let interest_accrual = self
-            .record_interest_accrual_cycle(&mut db, &audit_info)
-            .await?;
-
-        let (now, mut tx) = (db.now(), db.into_tx());
-        let sub_op = {
-            use sqlx::Acquire;
-            es_entity::DbOp::new(tx.begin().await?, now)
-        };
-        self.ledger
-            .record_interest_accrual_cycle(sub_op, interest_accrual)
-            .await?;
-
-        let mut db = es_entity::DbOp::new(tx, now);
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id_in_tx(db.tx(), self.config.credit_facility_id)
-            .await?;
-        let periods = match credit_facility.start_interest_accrual_cycle(audit_info)? {
-            Some(periods) => periods,
-            None => {
+        let (obligation, new_accrual_cycle_id, first_accrual_end_date) =
+            if let Some((obligation, new_accrual_cycle_id, first_accrual_end_date)) = self
+                .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
+                .await?
+            {
+                (obligation, new_accrual_cycle_id, first_accrual_end_date)
+            } else {
                 println!(
                     "Credit Facility interest accrual job completed for credit_facility: {:?}",
                     self.config.credit_facility_id
                 );
-
                 return Ok(JobCompletion::CompleteWithOp(db));
-            }
-        };
+            };
 
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
-            .await?;
-
-        let accrual_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual not found")
-            .id;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
-                accrual_id,
+                new_accrual_cycle_id,
                 interest_accruals::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: credit_facility.id,
+                    credit_facility_id: self.config.credit_facility_id,
                     _phantom: std::marker::PhantomData,
                 },
-                periods.accrual.end,
+                first_accrual_end_date,
             )
             .await?;
 
-        self.credit_facility_repo
-            .update_in_op(&mut db, &mut credit_facility)
+        self.ledger
+            .record_interest_accrual_cycle(db, obligation)
             .await?;
 
-        return Ok(JobCompletion::CompleteWithOp(db));
+        return Ok(JobCompletion::Complete);
     }
 }
