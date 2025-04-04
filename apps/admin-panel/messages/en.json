@@ -1401,6 +1401,7 @@
     "table": {
       "createdAt": "Created At",
       "entryType": "Entry Type",
+      "name": "Account Name",
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description"

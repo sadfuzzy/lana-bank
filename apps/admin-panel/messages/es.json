@@ -1401,6 +1401,7 @@
     "table": {
       "createdAt": "Fecha de creación",
       "entryType": "Tipo de entrada",
+      "name": "Nombre de cuenta",
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción"

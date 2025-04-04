@@ -46,6 +46,7 @@ gql`
           ledgerAccount {
             id
             code
+            name
           }
         }
       }
@@ -78,6 +79,11 @@ const JournalPage: React.FC = () => {
     {
       key: "entryType",
       label: t("table.entryType"),
+    },
+    {
+      key: "ledgerAccount",
+      label: t("table.name"),
+      render: (account) => account.name || "-",
     },
     {
       key: "direction",
