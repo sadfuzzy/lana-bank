@@ -1382,7 +1382,9 @@
       "code": "Código de cuenta",
       "name": "Nombre de la cuenta",
       "usdBalance": "Saldo en USD",
-      "btcBalance": "Saldo en BTC"
+      "btcBalance": "Saldo en BTC",
+      "ancestors": "Antecesores",
+      "noAncestors": "Sin antecesores"
     },
     "table": {
       "noData": "No hay transacciones presentes en esta cuenta",

@@ -31,12 +31,18 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
+import DataTable from "@/components/data-table"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
     id
     name
     code
+    ancestors {
+      id
+      name
+      code
+    }
     balance {
       __typename
       ... on UsdLedgerAccountBalance {
@@ -212,6 +218,26 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                 </DetailsGroup>
               )}
             </>
+          )}
+          {ledgerAccount?.ancestors.length !== 0 && (
+            <div>
+              <DetailItem
+                label={t("details.ancestors")}
+                value={
+                  <DataTable
+                    autoFocus={false}
+                    data={ledgerAccount?.ancestors || []}
+                    columns={[
+                      { key: "name", header: t("details.name") },
+                      { key: "code", header: t("details.code") },
+                    ]}
+                    loading={loading}
+                    emptyMessage={t("details.noAncestors")}
+                    navigateTo={(ancestor) => `/ledger-account/${ancestor.code}`}
+                  />
+                }
+              />
+            </div>
           )}
         </CardContent>
       </Card>

@@ -1382,7 +1382,9 @@
       "code": "Account Code",
       "name": "Account Name",
       "usdBalance": "USD Balance",
-      "btcBalance": "BTC Balance"
+      "btcBalance": "BTC Balance",
+      "ancestors": "Ancestors",
+      "noAncestors": "No ancestors"
     },
     "table": {
       "noData": "No transactions present in this account",
