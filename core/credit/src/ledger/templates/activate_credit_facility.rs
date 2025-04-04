@@ -6,18 +6,18 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const ACTIVATE_CREDIT_FACILITY_CODE: &str = "ACTIVATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
 pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: AccountId,
-    pub credit_facility_account: AccountId,
-    pub facility_disbursed_receivable_account: AccountId,
-    pub facility_fee_income_account: AccountId,
-    pub debit_account_id: AccountId,
+    pub credit_omnibus_account: CalaAccountId,
+    pub credit_facility_account: CalaAccountId,
+    pub facility_disbursed_receivable_account: CalaAccountId,
+    pub facility_fee_income_account: CalaAccountId,
+    pub debit_account_id: CalaAccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
     pub currency: Currency,

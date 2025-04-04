@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const RECORD_OVERDUE_DISBURSED_BALANCE_CODE: &str = "RECORD_OVERDUE_DISBURSED_BALANCE";
 
@@ -15,8 +15,8 @@ pub struct RecordOverdueDisbursedBalanceParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub disbursed_receivable_account_id: AccountId,
-    pub disbursed_receivable_overdue_account_id: AccountId,
+    pub disbursed_receivable_account_id: CalaAccountId,
+    pub disbursed_receivable_overdue_account_id: CalaAccountId,
 }
 
 impl RecordOverdueDisbursedBalanceParams {

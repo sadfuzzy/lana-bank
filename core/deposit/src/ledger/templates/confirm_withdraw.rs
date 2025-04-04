@@ -7,7 +7,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW_CODE";
 
@@ -16,8 +16,8 @@ pub struct ConfirmWithdrawParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub deposit_omnibus_account_id: AccountId,
-    pub credit_account_id: AccountId,
+    pub deposit_omnibus_account_id: CalaAccountId,
+    pub credit_account_id: CalaAccountId,
     pub correlation_id: String,
     pub external_id: String,
 }

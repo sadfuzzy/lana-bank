@@ -5,15 +5,15 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 
 #[derive(Debug)]
 pub struct InitiateDisbursalParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: AccountId,
-    pub credit_facility_account: AccountId,
+    pub credit_omnibus_account: CalaAccountId,
+    pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
 }
 

@@ -6,15 +6,15 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW_CODE";
 
 #[derive(Debug)]
 pub struct InitiateWithdrawParams {
     pub journal_id: JournalId,
-    pub deposit_omnibus_account_id: AccountId,
-    pub credit_account_id: AccountId,
+    pub deposit_omnibus_account_id: CalaAccountId,
+    pub credit_account_id: CalaAccountId,
     pub amount: Decimal,
     pub currency: Currency,
 }

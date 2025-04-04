@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const RECORD_PAYMENT_CODE: &str = "RECORD_PAYMENT";
 
@@ -16,9 +16,9 @@ pub struct RecordPaymentParams {
     pub currency: Currency,
     pub interest_amount: Decimal,
     pub principal_amount: Decimal,
-    pub debit_account_id: AccountId,
-    pub principal_receivable_account_id: AccountId,
-    pub interest_receivable_account_id: AccountId,
+    pub debit_account_id: CalaAccountId,
+    pub principal_receivable_account_id: CalaAccountId,
+    pub interest_receivable_account_id: CalaAccountId,
     pub tx_ref: String,
 }
 

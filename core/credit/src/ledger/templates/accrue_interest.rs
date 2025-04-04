@@ -6,15 +6,15 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const CREDIT_FACILITY_ACCRUE_INTEREST_CODE: &str = "CREDIT_FACILITY_ACCRUE_INTEREST";
 
 #[derive(Debug)]
 pub struct CreditFacilityAccrueInterestParams {
     pub journal_id: JournalId,
-    pub credit_facility_interest_receivable_account: AccountId,
-    pub credit_facility_interest_income_account: AccountId,
+    pub credit_facility_interest_receivable_account: CalaAccountId,
+    pub credit_facility_interest_income_account: CalaAccountId,
     pub interest_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,

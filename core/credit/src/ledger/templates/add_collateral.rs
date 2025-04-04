@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const ADD_COLLATERAL_CODE: &str = "ADD_COLLATERAL";
 
@@ -15,8 +15,8 @@ pub struct AddCollateralParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub collateral_account_id: AccountId,
-    pub bank_collateral_account_id: AccountId,
+    pub collateral_account_id: CalaAccountId,
+    pub bank_collateral_account_id: CalaAccountId,
 }
 
 impl AddCollateralParams {

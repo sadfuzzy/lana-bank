@@ -5,17 +5,17 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const SETTLE_DISBURSAL_CODE: &str = "SETTLE_DISBURSAL_CODE";
 
 #[derive(Debug)]
 pub struct SettleDisbursalParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: AccountId,
-    pub credit_facility_account: AccountId,
-    pub facility_disbursed_receivable_account: AccountId,
-    pub debit_account_id: AccountId,
+    pub credit_omnibus_account: CalaAccountId,
+    pub credit_facility_account: CalaAccountId,
+    pub facility_disbursed_receivable_account: CalaAccountId,
+    pub debit_account_id: CalaAccountId,
     pub disbursed_amount: Decimal,
     pub external_id: String,
 }
