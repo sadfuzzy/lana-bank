@@ -1,17 +1,15 @@
 pub mod error;
 
-use cala_ledger::{
-    AccountSetId, CalaLedger, Currency, JournalId, account::Account, account_set::AccountSet,
-    balance::AccountBalance,
-};
-
 use std::collections::HashMap;
 
-use super::{LedgerAccount, LedgerAccountId};
-
-use error::*;
+use cala_ledger::account_set::{AccountSet, AccountSetMemberId};
+use cala_ledger::balance::AccountBalance;
+use cala_ledger::{AccountSetId, CalaLedger, Currency, JournalId, account::Account};
 
 use crate::journal_error::JournalError;
+use crate::{AccountCode, LedgerAccount, LedgerAccountId};
+
+use error::*;
 
 #[derive(Clone)]
 pub struct LedgerAccountLedger {
@@ -67,10 +65,55 @@ impl LedgerAccountLedger {
         })
     }
 
-    pub async fn load_ledger_account_by_external_id<T: From<LedgerAccount>>(
+    #[allow(clippy::type_complexity)]
+    pub fn find_parent_with_account_code(
+        &self,
+        id: AccountSetMemberId,
+        current_depth: usize,
+    ) -> std::pin::Pin<
+        Box<
+            dyn Future<
+                    Output = Result<Option<(AccountSetId, AccountCode)>, LedgerAccountLedgerError>,
+                > + Send
+                + '_,
+        >,
+    > {
+        Box::pin(async move {
+            if current_depth > 2 {
+                return Ok(None);
+            }
+            let all_parents = self
+                .cala
+                .account_sets()
+                .find_where_member(id, Default::default())
+                .await?
+                .entities;
+
+            for parent in all_parents.iter() {
+                if let Some(Ok(code)) = parent
+                    .values()
+                    .external_id
+                    .as_ref()
+                    .map(|id| id.parse::<AccountCode>())
+                {
+                    return Ok(Some((parent.id, code)));
+                }
+                if let Some(res) = self
+                    .find_parent_with_account_code(parent.id.into(), current_depth + 1)
+                    .await?
+                {
+                    return Ok(Some(res));
+                }
+            }
+
+            Ok(None)
+        })
+    }
+
+    pub async fn load_ledger_account_by_external_id(
         &self,
         external_id: String,
-    ) -> Result<Option<T>, LedgerAccountLedgerError> {
+    ) -> Result<Option<LedgerAccount>, LedgerAccountLedgerError> {
         let account_set = self
             .cala
             .account_sets()
@@ -85,14 +128,14 @@ impl LedgerAccountLedger {
         let usd_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::USD));
         let btc_balance = balances.remove(&(self.journal_id, account_set.id.into(), Currency::BTC));
 
-        let ledger_account = T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
+        let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
         Ok(Some(ledger_account))
     }
 
-    pub async fn load_ledger_accounts<T: From<LedgerAccount>>(
+    pub async fn load_ledger_accounts(
         &self,
         ids: &[LedgerAccountId],
-    ) -> Result<HashMap<LedgerAccountId, T>, LedgerAccountLedgerError> {
+    ) -> Result<HashMap<LedgerAccountId, LedgerAccount>, LedgerAccountLedgerError> {
         let account_set_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
         let account_ids = ids.iter().map(|id| (*id).into()).collect::<Vec<_>>();
         let balance_ids = ids
@@ -105,7 +148,6 @@ impl LedgerAccountLedger {
             })
             .collect::<Vec<_>>();
 
-        // Start all three queries in parallel
         let (account_sets_result, accounts_result, balances_result) = tokio::join!(
             self.cala
                 .account_sets()
@@ -114,7 +156,6 @@ impl LedgerAccountLedger {
             self.cala.balances().find_all(&balance_ids)
         );
 
-        // Extract results, propagating any errors
         let account_sets = account_sets_result?;
         let accounts = accounts_result?;
         let mut balances = balances_result?;
@@ -126,8 +167,7 @@ impl LedgerAccountLedger {
             let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
             let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
-            let ledger_account =
-                T::from(LedgerAccount::from((account_set, usd_balance, btc_balance)));
+            let ledger_account = LedgerAccount::from((account_set, usd_balance, btc_balance));
             result.insert(account_id, ledger_account);
         }
 
@@ -139,7 +179,7 @@ impl LedgerAccountLedger {
             let usd_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::USD));
             let btc_balance = balances.remove(&(self.journal_id, account_id.into(), Currency::BTC));
 
-            let ledger_account = T::from(LedgerAccount::from((account, usd_balance, btc_balance)));
+            let ledger_account = LedgerAccount::from((account, usd_balance, btc_balance));
             result.insert(account_id, ledger_account);
         }
 
@@ -163,6 +203,8 @@ impl From<(AccountSet, Option<AccountBalance>, Option<AccountBalance>)> for Ledg
             code,
             usd_balance,
             btc_balance,
+            ancestor_ids: Vec::new(),
+            is_leaf: false,
         }
     }
 }
@@ -181,6 +223,8 @@ impl From<(Account, Option<AccountBalance>, Option<AccountBalance>)> for LedgerA
             code: None,
             usd_balance,
             btc_balance,
+            ancestor_ids: Vec::new(),
+            is_leaf: true,
         }
     }
 }

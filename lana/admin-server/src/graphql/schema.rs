@@ -4,7 +4,7 @@ use std::io::Read;
 
 use lana_app::{
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, PROFIT_AND_LOSS_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
         TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
@@ -405,7 +405,8 @@ impl Query {
         maybe_fetch_one!(
             LedgerAccount,
             ctx,
-            app.accounting().ledger_accounts().find_by_id(sub, id)
+            app.accounting()
+                .find_ledger_account_by_id(sub, CHART_REF.0, id)
         )
     }
 
@@ -415,11 +416,12 @@ impl Query {
         code: String,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account = app
-            .accounting()
-            .find_ledger_account_by_code(sub, CHART_REF, code)
-            .await?;
-        Ok(account.map(LedgerAccount::from))
+        maybe_fetch_one!(
+            LedgerAccount,
+            ctx,
+            app.accounting()
+                .find_ledger_account_by_code(sub, CHART_REF.0, code)
+        )
     }
 
     async fn journal_entries(
@@ -507,15 +509,13 @@ impl Query {
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
-        let reference = CHART_REF.to_string();
-
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
             .accounting()
             .chart_of_accounts()
-            .find_by_reference(sub, reference.to_string())
+            .find_by_reference_with_sub(sub, CHART_REF.0)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF.0));
         Ok(ChartOfAccounts::from(chart))
     }
 
@@ -828,12 +828,11 @@ impl Mutation {
     ) -> async_graphql::Result<DepositModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .accounting()
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
@@ -873,7 +872,7 @@ impl Mutation {
             .build()?;
         let config = app
             .deposits()
-            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
@@ -1012,12 +1011,11 @@ impl Mutation {
     ) -> async_graphql::Result<CreditModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .accounting()
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
         let CreditModuleConfigureInput {
             chart_of_account_facility_omnibus_parent_code,
@@ -1131,7 +1129,7 @@ impl Mutation {
             .build()?;
         let config = app
             .credit_facilities()
-            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
@@ -1432,12 +1430,11 @@ impl Mutation {
     ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .accounting()
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
         let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
@@ -1455,7 +1452,7 @@ impl Mutation {
             .set_chart_of_accounts_integration_config(
                 sub,
                 BALANCE_SHEET_NAME.to_string(),
-                chart,
+                chart.as_ref(),
                 config_values,
             )
             .await?;
@@ -1471,12 +1468,11 @@ impl Mutation {
     ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .accounting()
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
         let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
@@ -1491,7 +1487,7 @@ impl Mutation {
             .set_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
-                chart,
+                chart.as_ref(),
                 config_values,
             )
             .await?;
