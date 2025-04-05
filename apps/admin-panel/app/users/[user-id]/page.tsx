@@ -35,7 +35,6 @@ function UserPage({
   useEffect(() => {
     if (data?.user) {
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         { title: navTranslations("users"), href: "/users" },
         { title: data.user.email, isCurrentPage: true },
       ])

@@ -53,7 +53,6 @@ function PolicyPage({
   useEffect(() => {
     if (data?.policy) {
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         { title: navTranslations("policies"), href: "/policies" },
         {
           title: formatProcessType(data.policy.approvalProcessType),

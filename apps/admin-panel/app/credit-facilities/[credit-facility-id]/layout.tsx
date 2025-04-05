@@ -176,7 +176,6 @@ export default function CreditFacilityLayout({
     if (data?.creditFacility) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         {
           title: navTranslations("creditFacilities"),
           href: "/credit-facilities",

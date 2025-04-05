@@ -78,7 +78,6 @@ export default function CustomerLayout({
     if (data?.customer) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         { title: navTranslations("customers"), href: "/customers" },
         { title: data.customer.email, href: `/customers/${customerId}` },
         ...(currentTabData?.url === "/"

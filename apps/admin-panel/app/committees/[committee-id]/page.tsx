@@ -41,7 +41,6 @@ function CommitteePage({
   useEffect(() => {
     if (data?.committee) {
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         { title: navTranslations("committees"), href: "/committees" },
         { title: data.committee.name, isCurrentPage: true },
       ])

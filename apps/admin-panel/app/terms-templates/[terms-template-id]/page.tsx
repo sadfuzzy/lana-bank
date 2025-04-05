@@ -36,7 +36,6 @@ function TermsTemplatePage({
   useEffect(() => {
     if (data?.termsTemplate) {
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         { title: navTranslations("termTemplates"), href: "/terms-templates" },
         { title: data.termsTemplate.name, isCurrentPage: true },
       ])
