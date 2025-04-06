@@ -284,6 +284,7 @@ where
             .find_by_id(sub, customer_id)
             .await?
             .ok_or(CoreCreditError::CustomerNotFound)?;
+
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
@@ -408,6 +409,16 @@ where
             .credit_facility_repo
             .find_by_id(credit_facility_id)
             .await?;
+
+        let customer_id = credit_facility.customer_id;
+        let customer = self
+            .customer
+            .find_by_id(sub, customer_id)
+            .await?
+            .ok_or(CoreCreditError::CustomerNotFound)?;
+        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
+            return Err(CoreCreditError::CustomerNotActive);
+        }
 
         let price = self.price.usd_cents_per_btc().await?;
 
