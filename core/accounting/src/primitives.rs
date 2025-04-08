@@ -418,6 +418,12 @@ impl From<JournalAction> for CoreAccountingAction {
     }
 }
 
+pub struct BalanceRange {
+    pub start: Option<CalaAccountBalance>,
+    pub end: Option<CalaAccountBalance>,
+    pub diff: Option<CalaAccountBalance>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

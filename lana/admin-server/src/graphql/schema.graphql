@@ -249,6 +249,12 @@ type BtcLedgerAccountBalance {
 	encumbrance: Satoshis!
 }
 
+type BtcLedgerAccountBalanceRange {
+	start: BtcLedgerAccountBalance!
+	diff: BtcLedgerAccountBalance!
+	end: BtcLedgerAccountBalance!
+}
+
 scalar CVLPct
 
 type CancelledWithdrawalEntry {
@@ -1157,12 +1163,12 @@ type LedgerAccount {
 	id: UUID!
 	code: AccountCode
 	name: String!
-	balance: LedgerAccountBalance!
+	balanceRange: LedgerAccountBalanceRange!
 	ancestors: [LedgerAccount!]!
 	history(first: Int!, after: String): JournalEntryConnection!
 }
 
-union LedgerAccountBalance = UsdLedgerAccountBalance | BtcLedgerAccountBalance
+union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
@@ -1602,6 +1608,12 @@ type UsdLedgerAccountBalance {
 	settled: UsdCents!
 	pending: UsdCents!
 	encumbrance: UsdCents!
+}
+
+type UsdLedgerAccountBalanceRange {
+	start: UsdLedgerAccountBalance!
+	diff: UsdLedgerAccountBalance!
+	end: UsdLedgerAccountBalance!
 }
 
 type User {

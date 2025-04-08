@@ -43,13 +43,17 @@ gql`
       name
       code
     }
-    balance {
+    balanceRange {
       __typename
-      ... on UsdLedgerAccountBalance {
-        usdSettledBalance: settled
+      ... on UsdLedgerAccountBalanceRange {
+        end {
+          usdSettled: settled
+        }
       }
-      ... on BtcLedgerAccountBalance {
-        btcSettledBalance: settled
+      ... on BtcLedgerAccountBalanceRange {
+        end {
+          btcSettled: settled
+        }
       }
     }
     history(first: $first, after: $after) {
@@ -194,24 +198,26 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                   />
                   <DetailItem
                     label={
-                      ledgerAccount?.balance.__typename === "BtcLedgerAccountBalance"
+                      ledgerAccount?.balanceRange.__typename ===
+                      "BtcLedgerAccountBalanceRange"
                         ? t("details.btcBalance")
                         : t("details.usdBalance")
                     }
                     value={
-                      ledgerAccount?.balance.__typename === "UsdLedgerAccountBalance" ? (
+                      ledgerAccount?.balanceRange.__typename ===
+                      "UsdLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="usd"
-                          amount={ledgerAccount?.balance?.usdSettledBalance}
+                          amount={ledgerAccount?.balanceRange?.end?.usdSettled}
                         />
-                      ) : ledgerAccount?.balance.__typename ===
-                        "BtcLedgerAccountBalance" ? (
+                      ) : ledgerAccount?.balanceRange.__typename ===
+                        "BtcLedgerAccountBalanceRange" ? (
                         <Balance
                           currency="btc"
-                          amount={ledgerAccount?.balance?.btcSettledBalance}
+                          amount={ledgerAccount?.balanceRange?.end?.btcSettled}
                         />
                       ) : (
-                        <>N/A</>
+                        "-"
                       )
                     }
                   />

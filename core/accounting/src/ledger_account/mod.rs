@@ -12,7 +12,7 @@ use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
     chart_of_accounts::Chart,
     primitives::{
-        AccountCode, CalaAccountBalance, CalaAccountId, CalaAccountSetId, CalaJournalId,
+        AccountCode, BalanceRange, CalaAccountId, CalaAccountSetId, CalaJournalId,
         CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
     },
 };
@@ -24,8 +24,8 @@ pub struct LedgerAccount {
     pub id: LedgerAccountId,
     pub name: String,
     pub code: Option<AccountCode>,
-    pub usd_balance: Option<CalaAccountBalance>,
-    pub btc_balance: Option<CalaAccountBalance>,
+    pub btc_balance_range: Option<BalanceRange>,
+    pub usd_balance_range: Option<BalanceRange>,
 
     pub ancestor_ids: Vec<LedgerAccountId>,
 

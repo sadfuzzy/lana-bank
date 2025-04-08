@@ -3,9 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use lana_app::accounting::journal::JournalEntryCursor;
-use lana_app::accounting::ledger_account::LedgerAccount as DomainLedgerAccount;
-use lana_app::accounting::AccountCode as DomainAccountCode;
+use lana_app::accounting::{
+    journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
+    AccountCode as DomainAccountCode,
+};
 use lana_app::primitives::Currency;
 
 use crate::{graphql::loader::*, primitives::*};
@@ -38,11 +39,11 @@ impl LedgerAccount {
         &self.entity.name
     }
 
-    async fn balance(&self) -> async_graphql::Result<LedgerAccountBalance> {
-        if let Some(balance) = self.entity.btc_balance.as_ref() {
+    async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {
+        if let Some(balance) = self.entity.btc_balance_range.as_ref() {
             Ok(Some(balance).into())
         } else {
-            Ok(self.entity.usd_balance.as_ref().into())
+            Ok(self.entity.usd_balance_range.as_ref().into())
         }
     }
 
@@ -99,36 +100,69 @@ impl LedgerAccount {
 }
 
 #[derive(Union)]
-pub(super) enum LedgerAccountBalance {
-    Usd(UsdLedgerAccountBalance),
-    Btc(BtcLedgerAccountBalance),
+pub(super) enum LedgerAccountBalanceRange {
+    Usd(UsdLedgerAccountBalanceRange),
+    Btc(BtcLedgerAccountBalanceRange),
 }
 
-impl From<Option<&cala_ledger::balance::AccountBalance>> for LedgerAccountBalance {
-    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
-        match balance {
-            None => LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
-                settled: UsdCents::ZERO,
-                pending: UsdCents::ZERO,
-                encumbrance: UsdCents::ZERO,
+impl From<Option<&lana_app::primitives::BalanceRange>> for LedgerAccountBalanceRange {
+    fn from(balance_range_opt: Option<&lana_app::primitives::BalanceRange>) -> Self {
+        match balance_range_opt {
+            None => LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange {
+                start: UsdLedgerAccountBalance {
+                    settled: UsdCents::ZERO,
+                    pending: UsdCents::ZERO,
+                    encumbrance: UsdCents::ZERO,
+                },
+                diff: UsdLedgerAccountBalance {
+                    settled: UsdCents::ZERO,
+                    pending: UsdCents::ZERO,
+                    encumbrance: UsdCents::ZERO,
+                },
+                end: UsdLedgerAccountBalance {
+                    settled: UsdCents::ZERO,
+                    pending: UsdCents::ZERO,
+                    encumbrance: UsdCents::ZERO,
+                },
             }),
-            Some(balance) if balance.details.currency == Currency::USD => {
-                LedgerAccountBalance::Usd(UsdLedgerAccountBalance {
-                    settled: UsdCents::try_from_usd(balance.settled()).expect("positive"),
-                    pending: UsdCents::try_from_usd(balance.pending()).expect("positive"),
-                    encumbrance: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
-                })
+            Some(balance_range) => {
+                let currency = match &balance_range.end {
+                    None => Currency::USD,
+                    Some(balance) if balance.details.currency == Currency::USD => Currency::USD,
+                    Some(balance) if balance.details.currency == Currency::BTC => Currency::BTC,
+                    _ => unimplemented!("unexpected currency"),
+                };
+
+                if currency == Currency::USD {
+                    LedgerAccountBalanceRange::Usd(UsdLedgerAccountBalanceRange {
+                        start: UsdLedgerAccountBalance::from(balance_range.start.as_ref()),
+                        diff: UsdLedgerAccountBalance::from(balance_range.diff.as_ref()),
+                        end: UsdLedgerAccountBalance::from(balance_range.end.as_ref()),
+                    })
+                } else {
+                    LedgerAccountBalanceRange::Btc(BtcLedgerAccountBalanceRange {
+                        start: BtcLedgerAccountBalance::from(balance_range.start.as_ref()),
+                        diff: BtcLedgerAccountBalance::from(balance_range.diff.as_ref()),
+                        end: BtcLedgerAccountBalance::from(balance_range.end.as_ref()),
+                    })
+                }
             }
-            Some(balance) if balance.details.currency == Currency::BTC => {
-                LedgerAccountBalance::Btc(BtcLedgerAccountBalance {
-                    settled: Satoshis::try_from_btc(balance.settled()).expect("positive"),
-                    pending: Satoshis::try_from_btc(balance.pending()).expect("positive"),
-                    encumbrance: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
-                })
-            }
-            _ => unimplemented!("Unexpected currency"),
         }
     }
+}
+
+#[derive(SimpleObject)]
+pub(super) struct UsdLedgerAccountBalanceRange {
+    start: UsdLedgerAccountBalance,
+    diff: UsdLedgerAccountBalance,
+    end: UsdLedgerAccountBalance,
+}
+
+#[derive(SimpleObject)]
+pub(super) struct BtcLedgerAccountBalanceRange {
+    start: BtcLedgerAccountBalance,
+    diff: BtcLedgerAccountBalance,
+    end: BtcLedgerAccountBalance,
 }
 
 #[derive(SimpleObject)]
@@ -143,6 +177,40 @@ pub(super) struct BtcLedgerAccountBalance {
     settled: Satoshis,
     pending: Satoshis,
     encumbrance: Satoshis,
+}
+
+impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBalance {
+    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
+        match balance {
+            None => UsdLedgerAccountBalance {
+                settled: UsdCents::ZERO,
+                pending: UsdCents::ZERO,
+                encumbrance: UsdCents::ZERO,
+            },
+            Some(balance) => UsdLedgerAccountBalance {
+                settled: UsdCents::try_from_usd(balance.settled()).expect("positive"),
+                pending: UsdCents::try_from_usd(balance.pending()).expect("positive"),
+                encumbrance: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+            },
+        }
+    }
+}
+
+impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBalance {
+    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
+        match balance {
+            None => BtcLedgerAccountBalance {
+                settled: Satoshis::ZERO,
+                pending: Satoshis::ZERO,
+                encumbrance: Satoshis::ZERO,
+            },
+            Some(balance) => BtcLedgerAccountBalance {
+                settled: Satoshis::try_from_btc(balance.settled()).expect("positive"),
+                pending: Satoshis::try_from_btc(balance.pending()).expect("positive"),
+                encumbrance: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+            },
+        }
+    }
 }
 
 scalar!(AccountCode);
