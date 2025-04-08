@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW_CODE";
+pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW";
 
 #[derive(Debug)]
 pub struct InitiateWithdrawParams {

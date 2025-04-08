@@ -8,6 +8,8 @@ pub enum CoreAccountingError {
     ChartOfAccountsError(#[from] super::chart_of_accounts_error::ChartOfAccountsError),
     #[error("CoreAccountingError - LedgerAccount: {0}")]
     LedgerAccountError(#[from] super::ledger_account::error::LedgerAccountError),
+    #[error("CoreAccountingError - ManualTransaction: {0}")]
+    ManualTransactionError(#[from] super::manual_transactions::error::ManualTransactionError),
     #[error("CoreAccountingError - AccountCodeParseError: {0}")]
     AccountCodeParseError(#[from] super::AccountCodeParseError),
 }

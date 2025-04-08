@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL_CODE";
+pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct CancelDisbursalParams {

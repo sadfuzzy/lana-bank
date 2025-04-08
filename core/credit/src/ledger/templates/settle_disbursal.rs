@@ -7,7 +7,7 @@ use tracing::instrument;
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const SETTLE_DISBURSAL_CODE: &str = "SETTLE_DISBURSAL_CODE";
+pub const SETTLE_DISBURSAL_CODE: &str = "SETTLE_DISBURSAL";
 
 #[derive(Debug)]
 pub struct SettleDisbursalParams {

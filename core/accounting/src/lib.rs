@@ -5,6 +5,7 @@ pub mod chart_of_accounts;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
+pub mod manual_transactions;
 mod primitives;
 
 use std::collections::HashMap;
@@ -12,12 +13,14 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use manual_transactions::ManualTransactions;
 use tracing::instrument;
 
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccounts};
+pub use manual_transactions::ManualEntryInput;
 pub use primitives::*;
 
 pub struct CoreAccounting<Perms>
@@ -28,6 +31,7 @@ where
     chart_of_accounts: ChartOfAccounts<Perms>,
     journal: Journal<Perms>,
     ledger_accounts: LedgerAccounts<Perms>,
+    manual_transactions: ManualTransactions<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -40,6 +44,7 @@ where
             chart_of_accounts: self.chart_of_accounts.clone(),
             journal: self.journal.clone(),
             ledger_accounts: self.ledger_accounts.clone(),
+            manual_transactions: self.manual_transactions.clone(),
         }
     }
 }
@@ -59,11 +64,13 @@ where
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
+        let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
             journal,
             ledger_accounts,
+            manual_transactions,
         }
     }
 
@@ -77,6 +84,10 @@ where
 
     pub fn ledger_accounts(&self) -> &LedgerAccounts<Perms> {
         &self.ledger_accounts
+    }
+
+    pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
+        &self.manual_transactions
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
@@ -130,5 +141,26 @@ where
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
+    }
+
+    pub async fn execute_manual_transaction(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        reference: Option<String>,
+        description: String,
+        entries: Vec<ManualEntryInput>,
+    ) -> Result<(), CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+        self.manual_transactions
+            .execute(sub, &chart, reference, description, entries)
+            .await?;
+        Ok(())
     }
 }

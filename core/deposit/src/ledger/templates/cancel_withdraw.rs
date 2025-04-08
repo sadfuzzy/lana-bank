@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::ledger::error::*;
 
-pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW_CODE";
+pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 
 #[derive(Debug)]
 pub struct CancelWithdrawParams {
