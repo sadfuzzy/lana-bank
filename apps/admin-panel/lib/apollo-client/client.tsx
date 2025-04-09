@@ -56,6 +56,7 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
           committees: relayStylePagination(),
           audit: relayStylePagination(),
           generalLedgerEntries: relayStylePagination(),
+          journalEntries: relayStylePagination(),
         },
       },
     },
