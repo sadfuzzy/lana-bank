@@ -28,6 +28,7 @@ members = [
   "lib/outbox",
   "lib/jwks-utils",
   "lib/kratos-admin",
+  "lib/cloud-storage"
 ]
 
 [workspace.dependencies]

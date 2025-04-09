@@ -1,25 +1,20 @@
-use lana_app::{
-    service_account::ServiceAccountConfig,
-    storage::{config::StorageConfig, LocationInCloud, Storage},
-};
+use cloud_storage::{config::StorageConfig, LocationInCloud, Storage};
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
-    let sa_creds_base64 = match std::env::var("SA_CREDS_BASE64") {
-        Ok(value) if !value.trim().is_empty() => value,
-        _ => {
-            println!("Skipping GCS test: SA_CREDS_BASE64 not set or empty");
-            return Ok(());
-        }
-    };
-
-    let sa = ServiceAccountConfig::default().set_sa_creds_base64(Some(sa_creds_base64))?;
+    if std::env::var("SA_CREDS_BASE64")
+        .unwrap_or_default()
+        .trim()
+        .is_empty()
+    {
+        println!("Skipping GCS test: SA_CREDS_BASE64 not set or empty");
+        return Ok(());
+    }
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
-        StorageConfig::new_dev_mode(name_prefix, sa)
+        StorageConfig::new_dev_mode(name_prefix)
     } else {
         StorageConfig {
-            service_account: Some(sa),
             root_folder: "gha".to_string(),
             bucket_name: "gha-lana-documents".to_string(),
         }

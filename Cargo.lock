@@ -878,6 +878,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
+name = "cloud-storage"
+version = "0.3.261-dev"
+dependencies = [
+ "anyhow",
+ "google-cloud-storage",
+ "reqwest 0.12.15",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+]
+
+[[package]]
 name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2678,6 +2691,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "clap",
+ "cloud-storage",
  "core-accounting",
  "core-credit",
  "core-customer",
@@ -2692,7 +2706,6 @@ dependencies = [
  "futures",
  "gcp-bigquery-client",
  "gcp_auth",
- "google-cloud-storage",
  "governance",
  "graphql_client",
  "hex",

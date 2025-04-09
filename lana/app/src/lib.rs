@@ -14,9 +14,12 @@ pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
 pub mod statement;
-pub mod storage;
 pub mod terms_template;
 pub mod trial_balance;
+
+pub mod storage {
+    pub use cloud_storage::*;
+}
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;

@@ -1,0 +1,16 @@
+[package]
+name = "cloud-storage"
+version = "0.3.261-dev"
+edition = "2021"
+
+[features]
+fail-on-warnings = []
+
+[dependencies]
+google-cloud-storage = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true }
