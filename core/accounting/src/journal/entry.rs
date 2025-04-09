@@ -6,10 +6,11 @@ use serde::{Deserialize, Serialize};
 use super::error::JournalError;
 use crate::primitives::{LedgerAccountId, LedgerTransactionId};
 
+#[derive(Clone)]
 pub struct JournalEntry {
     pub ledger_account_id: LedgerAccountId,
     pub entry_id: EntryId,
-    pub tx_id: LedgerTransactionId,
+    pub ledger_transaction_id: LedgerTransactionId,
     pub entry_type: String,
     pub amount: JournalEntryAmount,
     pub description: Option<String>,
@@ -38,7 +39,7 @@ impl TryFrom<Entry> for JournalEntry {
         Ok(Self {
             ledger_account_id: entry.values().account_id.into(),
             entry_id: entry.id,
-            tx_id: entry.values().transaction_id,
+            ledger_transaction_id: entry.values().transaction_id,
             entry_type: entry.values().entry_type.clone(),
             amount,
             description: entry.values().description.clone(),

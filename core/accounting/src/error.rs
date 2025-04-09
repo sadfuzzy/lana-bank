@@ -9,7 +9,9 @@ pub enum CoreAccountingError {
     #[error("CoreAccountingError - LedgerAccount: {0}")]
     LedgerAccountError(#[from] super::ledger_account::error::LedgerAccountError),
     #[error("CoreAccountingError - ManualTransaction: {0}")]
-    ManualTransactionError(#[from] super::manual_transactions::error::ManualTransactionError),
+    ManualTransactionError(#[from] super::manual_transaction::error::ManualTransactionError),
+    #[error("CoreAccountingError - LedgerTransaction: {0}")]
+    LedgerTransactionError(#[from] super::ledger_transaction::error::LedgerTransactionError),
     #[error("CoreAccountingError - AccountCodeParseError: {0}")]
     AccountCodeParseError(#[from] super::AccountCodeParseError),
 }

@@ -6,7 +6,7 @@ use lana_app::accounting::journal::{
     JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,
 };
 
-use super::ledger_account::LedgerAccount;
+use super::{ledger_account::LedgerAccount, ledger_transaction::LedgerTransaction};
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
@@ -30,7 +30,7 @@ impl From<DomainJournalEntry> for JournalEntry {
         Self {
             id: entry.entry_id.into(),
             entry_id: entry.entry_id.into(),
-            tx_id: entry.tx_id.into(),
+            tx_id: entry.ledger_transaction_id.into(),
             amount: entry.amount.into(),
             direction: entry.direction,
             layer: entry.layer,
@@ -55,8 +55,20 @@ impl JournalEntry {
         let account = loader
             .load_one(self.entity.ledger_account_id)
             .await?
-            .expect("committee not found");
+            .expect("account not found");
         Ok(account)
+    }
+
+    pub async fn ledger_transaction(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<LedgerTransaction> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let tx = loader
+            .load_one(self.entity.ledger_transaction_id)
+            .await?
+            .expect("transaction not found");
+        Ok(tx)
     }
 }
 

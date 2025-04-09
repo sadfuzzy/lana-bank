@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
-pub use core_accounting::{BalanceRange, Chart, ChartId};
+pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalIdx,
     DisbursalStatus, PaymentId,

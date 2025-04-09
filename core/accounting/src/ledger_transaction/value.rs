@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 
-use crate::{journal::JournalEntry, primitives::CalaTxId};
+use crate::{journal::JournalEntry, primitives::LedgerTransactionId};
 
 pub struct LedgerTransaction {
-    pub id: CalaTxId,
+    pub id: LedgerTransactionId,
     pub entries: Vec<JournalEntry>,
     pub created_at: DateTime<Utc>,
     pub description: Option<String>,

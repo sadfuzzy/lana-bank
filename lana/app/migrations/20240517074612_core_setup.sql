@@ -278,6 +278,7 @@ CREATE TABLE report_events (
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
+  ledger_transaction_id UUID NOT NULL, -- REFERENCES cala_transactions(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

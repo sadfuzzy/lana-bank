@@ -424,6 +424,19 @@ impl Query {
         )
     }
 
+    async fn ledger_transaction(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<LedgerTransaction>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            LedgerTransaction,
+            ctx,
+            app.accounting().ledger_transactions().find_by_id(sub, id)
+        )
+    }
+
     async fn journal_entries(
         &self,
         ctx: &Context<'_>,
@@ -877,6 +890,32 @@ impl Mutation {
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
+    }
+
+    pub async fn manual_transaction_execute(
+        &self,
+        ctx: &Context<'_>,
+        input: ManualTransactionExecuteInput,
+    ) -> async_graphql::Result<ManualTransactionExecutePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let mut entries = Vec::with_capacity(input.entries.len());
+        for entry in input.entries.into_iter() {
+            entries.push(entry.try_into()?);
+        }
+
+        exec_mutation!(
+            ManualTransactionExecutePayload,
+            LedgerTransaction,
+            ctx,
+            app.accounting().execute_manual_transaction(
+                sub,
+                CHART_REF.0,
+                input.reference,
+                input.description,
+                entries
+            )
+        )
     }
 
     pub async fn deposit_record(

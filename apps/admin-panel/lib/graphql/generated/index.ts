@@ -24,6 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  Decimal: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
@@ -1109,6 +1110,7 @@ export type JournalEntry = {
   id: Scalars['ID']['output'];
   layer: Layer;
   ledgerAccount: LedgerAccount;
+  ledgerTransaction: LedgerTransaction;
   txId: Scalars['UUID']['output'];
 };
 
@@ -1179,9 +1181,37 @@ export type LedgerAccountHistoryArgs = {
 
 export type LedgerAccountBalanceRange = BtcLedgerAccountBalanceRange | UsdLedgerAccountBalanceRange;
 
+export type LedgerTransaction = {
+  __typename?: 'LedgerTransaction';
+  createdAt: Scalars['Timestamp']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  entries: Array<JournalEntry>;
+  id: Scalars['ID']['output'];
+  ledgerTransactionId: Scalars['UUID']['output'];
+};
+
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
+};
+
+export type ManualTransactionEntryInput = {
+  accountRef: Scalars['String']['input'];
+  amount: Scalars['Decimal']['input'];
+  currency: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  direction: DebitOrCredit;
+};
+
+export type ManualTransactionExecuteInput = {
+  description: Scalars['String']['input'];
+  entries: Array<ManualTransactionEntryInput>;
+  reference?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type ManualTransactionExecutePayload = {
+  __typename?: 'ManualTransactionExecutePayload';
+  transaction: LedgerTransaction;
 };
 
 export type Mutation = {
@@ -1207,6 +1237,7 @@ export type Mutation = {
   documentArchive: DocumentArchivePayload;
   documentDelete: DocumentDeletePayload;
   documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
+  manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportCreate: ReportCreatePayload;
@@ -1327,6 +1358,11 @@ export type MutationDocumentDeleteArgs = {
 
 export type MutationDocumentDownloadLinkGenerateArgs = {
   input: DocumentDownloadLinksGenerateInput;
+};
+
+
+export type MutationManualTransactionExecuteArgs = {
+  input: ManualTransactionExecuteInput;
 };
 
 
@@ -1516,6 +1552,7 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
+  ledgerTransaction?: Maybe<LedgerTransaction>;
   me: Subject;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -1658,6 +1695,11 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
+};
+
+
+export type QueryLedgerTransactionArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 

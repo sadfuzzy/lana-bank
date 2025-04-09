@@ -6,9 +6,10 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
-        DepositId, DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole, PaymentId,
-        PolicyId, ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
-        TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        DepositId, DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole,
+        LedgerTransactionId, ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress,
+        Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId,
+        WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -88,8 +89,10 @@ impl_to_global_id! {
     CommitteeId,
     WithdrawalId,
     DepositId,
+    ManualTransactionId,
     ApprovalProcessId,
-    DepositAccountId
+    DepositAccountId,
+    LedgerTransactionId
 }
 
 use cala_ledger::EntryId;

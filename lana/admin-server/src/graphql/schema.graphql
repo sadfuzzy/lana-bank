@@ -825,6 +825,8 @@ enum DebitOrCredit {
 	CREDIT
 }
 
+scalar Decimal
+
 type Deposit {
 	id: ID!
 	depositId: UUID!
@@ -1100,6 +1102,7 @@ type JournalEntry {
 	entryType: String!
 	description: String
 	ledgerAccount: LedgerAccount!
+	ledgerTransaction: LedgerTransaction!
 }
 
 union JournalEntryAmount = UsdAmount | BtcAmount
@@ -1170,6 +1173,32 @@ type LedgerAccount {
 
 union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
+type LedgerTransaction {
+	id: ID!
+	ledgerTransactionId: UUID!
+	createdAt: Timestamp!
+	description: String
+	entries: [JournalEntry!]!
+}
+
+input ManualTransactionEntryInput {
+	accountRef: String!
+	amount: Decimal!
+	currency: String!
+	direction: DebitOrCredit!
+	description: String
+}
+
+input ManualTransactionExecuteInput {
+	description: String!
+	reference: String
+	entries: [ManualTransactionEntryInput!]!
+}
+
+type ManualTransactionExecutePayload {
+	transaction: LedgerTransaction!
+}
+
 type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -1179,6 +1208,7 @@ type Mutation {
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
@@ -1342,6 +1372,7 @@ type Query {
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
 	ledgerAccountByCode(code: String!): LedgerAccount
+	ledgerTransaction(id: UUID!): LedgerTransaction
 	journalEntries(first: Int!, after: String): JournalEntryConnection!
 	generalLedgerEntries(first: Int!, after: String): GeneralLedgerEntryConnection!
 	trialBalance(from: Timestamp!, until: Timestamp!): TrialBalance!
