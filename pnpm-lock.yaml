@@ -223,8 +223,8 @@ importers:
         specifier: 3.4.4
         version: 3.4.4
       tough-cookie:
-        specifier: ^5.0.0
-        version: 5.1.0
+        specifier: ^5.1.1
+        version: 5.1.1
       typescript:
         specifier: '5'
         version: 5.7.3
@@ -8571,8 +8571,8 @@ packages:
     resolution: {integrity: sha512-nlLsUzgm1kfLXSXfRZMc1KLAugd4hqJHDTvc2hDIwS3mZAfMEuMbc03SujMF+GEcpaX/qboeycw6iO8JwVv2+g==}
     engines: {node: '>=0.8'}
 
-  tough-cookie@5.1.0:
-    resolution: {integrity: sha512-rvZUv+7MoBYTiDmFPBrhL7Ujx9Sk+q9wwm22x8c8T5IJaR+Wsyc7TNxbVxo84kZoRJZZMazowFLqpankBEQrGg==}
+  tough-cookie@5.1.1:
+    resolution: {integrity: sha512-Ek7HndSVkp10hmHP9V4qZO1u+pn1RU5sI0Fw+jCU3lyvuMZcgqsNgc6CmJJZyByK4Vm/qotGRJlfgAX8q+4JiA==}
     engines: {node: '>=16'}
 
   tr46@0.0.3:
@@ -10086,7 +10086,7 @@ snapshots:
       performance-now: 2.1.0
       qs: 6.13.1
       safe-buffer: 5.2.1
-      tough-cookie: 5.1.0
+      tough-cookie: 5.1.1
       tunnel-agent: 0.6.0
       uuid: 8.3.2
 
@@ -18901,7 +18901,7 @@ snapshots:
       psl: 1.15.0
       punycode: 2.3.1
 
-  tough-cookie@5.1.0:
+  tough-cookie@5.1.1:
     dependencies:
       tldts: 6.1.85
 
