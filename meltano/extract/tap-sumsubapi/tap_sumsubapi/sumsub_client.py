@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import time
+import base64
 from typing import Any, Dict
 
 import requests
@@ -31,6 +32,22 @@ class SumsubClient:
         resp = self.sign_request(requests.Request("GET", url))
         response = self.session.send(resp, timeout=REQUEST_TIMEOUT)
         return response
+
+    def get_document_metadata(self, applicant_id):
+        """Get information about document images."""
+        url = f"https://api.sumsub.com/resources/applicants/{applicant_id}/metadata/resources"
+        resp = self.sign_request(requests.Request("GET", url))
+        response = self.session.send(resp, timeout=REQUEST_TIMEOUT)
+        return response.json()
+
+    def download_document_image(self, inspection_id, image_id):
+        """Download document image and return as base64 encoded string."""
+        url = f"https://api.sumsub.com/resources/inspections/{inspection_id}/resources/{image_id}"
+        resp = self.sign_request(requests.Request("GET", url))
+        response = self.session.send(resp, timeout=REQUEST_TIMEOUT)
+        if response.status_code == 200:
+            return base64.b64encode(response.content).decode("utf-8")
+        return None
 
     def sign_request(self, request: requests.Request) -> requests.PreparedRequest:
         prepared_request = request.prepare()
