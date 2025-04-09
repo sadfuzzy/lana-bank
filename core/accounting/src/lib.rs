@@ -5,6 +5,7 @@ pub mod chart_of_accounts;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
+pub mod ledger_transaction;
 pub mod manual_transactions;
 mod primitives;
 
