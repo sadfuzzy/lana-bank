@@ -2,7 +2,7 @@
 
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 import {
   Card,
@@ -48,6 +48,11 @@ gql`
             code
             name
           }
+          ledgerTransaction {
+            id
+            ledgerTransactionId
+            description
+          }
         }
       }
       pageInfo {
@@ -62,7 +67,6 @@ gql`
 
 const JournalPage: React.FC = () => {
   const t = useTranslations("Journal")
-  const router = useRouter()
 
   const { data, loading, error, fetchMore } = useJournalEntriesQuery({
     variables: {
@@ -77,13 +81,38 @@ const JournalPage: React.FC = () => {
       render: (date: string) => formatDate(date),
     },
     {
+      key: "ledgerTransaction",
+      label: t("table.transaction"),
+      render: (transaction) => {
+        const transactionName = transaction.description || transaction.id
+        return (
+          <Link
+            href={`/ledger-transaction/${transaction.ledgerTransactionId}`}
+            className="hover:underline"
+          >
+            {transactionName}
+          </Link>
+        )
+      },
+    },
+    {
       key: "entryType",
       label: t("table.entryType"),
     },
     {
       key: "ledgerAccount",
       label: t("table.name"),
-      render: (account) => account.name || "-",
+      render: (account) => {
+        const accountName = account.name || account.code
+        return (
+          <Link
+            href={`/ledger-account/${account.code || account.id}`}
+            className="hover:underline"
+          >
+            {accountName}
+          </Link>
+        )
+      },
     },
     {
       key: "direction",
@@ -128,12 +157,6 @@ const JournalPage: React.FC = () => {
             fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
             loading={loading}
             noDataText={t("noTableData")}
-            onClick={(entry) => {
-              console.log(entry.ledgerAccount)
-              router.push(
-                `/ledger-account/${entry.ledgerAccount.code || entry.ledgerAccount.id}`,
-              )
-            }}
           />
         )}
       </CardContent>

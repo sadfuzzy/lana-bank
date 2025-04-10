@@ -812,7 +812,7 @@ checksums:
     Modules/profitAndLoss/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
     Modules/profitAndLoss/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
     ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
-    ChartOfAccountsLedgerAccount/transactionsTitle: 983505d8b8421f6805e524fec5010020
+    ChartOfAccountsLedgerAccount/entriesTitle: 99c901d20f504e810a773ecc8335d1ec
     ChartOfAccountsLedgerAccount/description: 1cb54558341987f3d67421ea3ea90d39
     ChartOfAccountsLedgerAccount/descriptionWithCode: cd8f9f4d52de7097bb3bf5df68df82f8
     ChartOfAccountsLedgerAccount/details/code: 9218742c297d337fdc0f5f5dd985294d
@@ -832,6 +832,19 @@ checksums:
     Journal/table/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     Journal/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
     Journal/table/name: 5a4c82f1bc517348b64c107345f94f65
+    Journal/table/transaction: 7f5d30475a7934848665e9b3e3dea36d
     Journal/table/direction: 2920314e7f25957f16577b544b4e860b
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
+    LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
+    LedgerTransaction/description: e12ba6feb4c9ded56403b71e5f8bfb36
+    LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
+    LedgerTransaction/details/description: e17686a22ffad04cc7bb70524ed4478b
+    LedgerTransaction/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    LedgerTransaction/entriesTitle: a4ce78dcd06b9cc27fd29d25ec9079be
+    LedgerTransaction/entriesDescription: d2bd608e92a19ca27d17eaadbf8c0cc2
+    LedgerTransaction/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    LedgerTransaction/table/debit: 1b35db901aa1aeed8ee79aec6d807731
+    LedgerTransaction/table/credit: 2d447a71ec815a039f175e94fbb12a56
+    LedgerTransaction/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    LedgerTransaction/table/ledgerAccount: d6afe57367f5001206a03de7a93d20e7

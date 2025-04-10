@@ -1375,7 +1375,7 @@
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Ledger Account Details",
-    "transactionsTitle": "Transactions in this account",
+    "entriesTitle": "Journal entries in this account",
     "description": "Details of ledger account",
     "descriptionWithCode": "Details of ledger account by account code {code}",
     "details": {
@@ -1404,9 +1404,28 @@
       "createdAt": "Created At",
       "entryType": "Entry Type",
       "name": "Account Name",
+      "transaction": "Transaction",
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description"
+    }
+  },
+  "LedgerTransaction": {
+    "title": "Ledger Transaction",
+    "description": "A record of a financial transaction in the ledger",
+    "noEntries": "No entries",
+    "details": {
+      "description": "Description",
+      "createdAt": "Created At"
+    },
+    "entriesTitle": "Journal Entries",
+    "entriesDescription": "Entries associated with this transaction",
+    "table": {
+      "entryType": "Entry Type",
+      "debit": "Debit",
+      "credit": "Credit",
+      "amount": "Amount",
+      "ledgerAccount": "Ledger Account"
     }
   }
 }

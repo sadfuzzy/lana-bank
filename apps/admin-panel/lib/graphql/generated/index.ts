@@ -2461,7 +2461,7 @@ export type JournalEntriesQueryVariables = Exact<{
 }>;
 
 
-export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type JournalEntriesQuery = { __typename?: 'Query', journalEntries: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, description?: string | null, direction: DebitOrCredit, createdAt: any, amount: { __typename?: 'BtcAmount', btc: Satoshis } | { __typename?: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string }, ledgerTransaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, description?: string | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', end: { __typename?: 'BtcLedgerAccountBalance', btcSettled: Satoshis } } | { __typename: 'UsdLedgerAccountBalanceRange', end: { __typename?: 'UsdLedgerAccountBalance', usdSettled: UsdCents } }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
@@ -2482,6 +2482,13 @@ export type LedgerAccountQueryVariables = Exact<{
 
 
 export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', end: { __typename?: 'BtcLedgerAccountBalance', btcSettled: Satoshis } } | { __typename: 'UsdLedgerAccountBalanceRange', end: { __typename?: 'UsdLedgerAccountBalance', usdSettled: UsdCents } }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
+
+export type LedgerTransactionQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string } }> } | null };
 
 export type BalanceSheetConfigureMutationVariables = Exact<{
   input: BalanceSheetModuleConfigureInput;
@@ -5079,6 +5086,11 @@ export const JournalEntriesDocument = gql`
           code
           name
         }
+        ledgerTransaction {
+          id
+          ledgerTransactionId
+          description
+        }
       }
     }
     pageInfo {
@@ -5193,6 +5205,65 @@ export function useLedgerAccountLazyQuery(baseOptions?: Apollo.LazyQueryHookOpti
 export type LedgerAccountQueryHookResult = ReturnType<typeof useLedgerAccountQuery>;
 export type LedgerAccountLazyQueryHookResult = ReturnType<typeof useLedgerAccountLazyQuery>;
 export type LedgerAccountQueryResult = Apollo.QueryResult<LedgerAccountQuery, LedgerAccountQueryVariables>;
+export const LedgerTransactionDocument = gql`
+    query LedgerTransaction($id: UUID!) {
+  ledgerTransaction(id: $id) {
+    id
+    ledgerTransactionId
+    createdAt
+    description
+    entries {
+      id
+      entryId
+      entryType
+      amount {
+        __typename
+        ... on UsdAmount {
+          usd
+        }
+        ... on BtcAmount {
+          btc
+        }
+      }
+      direction
+      layer
+      ledgerAccount {
+        id
+        code
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useLedgerTransactionQuery__
+ *
+ * To run a query within a React component, call `useLedgerTransactionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerTransactionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerTransactionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useLedgerTransactionQuery(baseOptions: Apollo.QueryHookOptions<LedgerTransactionQuery, LedgerTransactionQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerTransactionQuery, LedgerTransactionQueryVariables>(LedgerTransactionDocument, options);
+      }
+export function useLedgerTransactionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerTransactionQuery, LedgerTransactionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerTransactionQuery, LedgerTransactionQueryVariables>(LedgerTransactionDocument, options);
+        }
+export type LedgerTransactionQueryHookResult = ReturnType<typeof useLedgerTransactionQuery>;
+export type LedgerTransactionLazyQueryHookResult = ReturnType<typeof useLedgerTransactionLazyQuery>;
+export type LedgerTransactionQueryResult = Apollo.QueryResult<LedgerTransactionQuery, LedgerTransactionQueryVariables>;
 export const BalanceSheetConfigureDocument = gql`
     mutation BalanceSheetConfigure($input: BalanceSheetModuleConfigureInput!) {
   balanceSheetConfigure(input: $input) {

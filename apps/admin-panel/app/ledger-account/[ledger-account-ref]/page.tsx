@@ -249,7 +249,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       </Card>
       <Card className="mt-2">
         <CardHeader>
-          <CardTitle>{t("transactionsTitle")}</CardTitle>
+          <CardTitle>{t("entriesTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <PaginatedTable<JournalEntry>

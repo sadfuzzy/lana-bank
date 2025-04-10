@@ -1375,7 +1375,7 @@
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Detalles de la cuenta contable",
-    "transactionsTitle": "Transacciones en esta cuenta",
+    "entriesTitle": "Asientos contables en esta cuenta",
     "description": "Detalles de la cuenta contable",
     "descriptionWithCode": "Detalles de la cuenta contable por código de cuenta {code}",
     "details": {
@@ -1404,9 +1404,28 @@
       "createdAt": "Fecha de creación",
       "entryType": "Tipo de entrada",
       "name": "Nombre de cuenta",
+      "transaction": "Transacción",
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción"
+    }
+  },
+  "LedgerTransaction": {
+    "title": "Transacción del libro mayor",
+    "description": "Un registro de una transacción financiera en el libro mayor",
+    "noEntries": "Sin asientos",
+    "details": {
+      "description": "Descripción",
+      "createdAt": "Creado el"
+    },
+    "entriesTitle": "Asientos contables",
+    "entriesDescription": "Asientos asociados con esta transacción",
+    "table": {
+      "entryType": "Tipo de asiento",
+      "debit": "Débito",
+      "credit": "Crédito",
+      "amount": "Monto",
+      "ledgerAccount": "Cuenta del libro mayor"
     }
   }
 }
