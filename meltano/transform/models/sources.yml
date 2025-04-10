@@ -4,7 +4,6 @@ sources:
   - name: lana
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
-
       - name: public_cala_balance_history_view
         freshness:
           warn_after:
@@ -50,7 +49,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_credit_facility_events_view
+      - name: public_core_credit_facility_events_view
         freshness:
           warn_after:
             count: 2
@@ -60,6 +59,42 @@ sources:
             period: day
 
       - name: public_customer_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_deposit_accounts_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_deposit_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_withdrawal_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_withdrawals_view
         freshness:
           warn_after:
             count: 2

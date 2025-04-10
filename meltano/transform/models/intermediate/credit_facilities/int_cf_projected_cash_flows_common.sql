@@ -27,7 +27,7 @@ with terms_and_disbursal as (
     full join {{ ref('int_cf_disbursals') }} using (event_id)
     where
         disbursal_concluded_event_recorded_at_date_key != 19000101
-        and terms_accrual_interval_type = 'end_of_month'
+        and terms_accrual_cycle_interval_type = 'end_of_month'
 ),
 
 projections as (
@@ -95,14 +95,14 @@ projections as (
             )
         ) as breakeven_disbursal_amount_in_cents,
         case
-            when terms_accrual_interval_type = 'end_of_day'
+            when terms_accrual_cycle_interval_type = 'end_of_day'
                 then
                     generate_date_array(
                         date(disbursal_start_date),
                         last_day(date(credit_facility_end_date)),
                         interval 1 day
                     )
-            when terms_accrual_interval_type = 'end_of_month' then
+            when terms_accrual_cycle_interval_type = 'end_of_month' then
                 generate_date_array(
                     date(disbursal_start_date),
                     last_day(date(credit_facility_end_date)),

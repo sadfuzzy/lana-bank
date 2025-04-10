@@ -2,7 +2,7 @@ with loans_and_credit_facilities as (
 
 /* TODO:
     SELECT customer_id, initialized_at, end_date,
-        incurrence_interval, accrual_interval, annual_rate,
+        accrual_interval, accrual_cycle_interval, annual_rate,
     loan_id AS reference_id,
     most_recent_interest_payment_timestamp,
     most_recent_principal_payment_timestamp
@@ -29,8 +29,8 @@ with loans_and_credit_facilities as (
         customer_id,
         initialized_at,
         end_date,
-        incurrence_interval,
         accrual_interval,
+        accrual_cycle_interval,
         annual_rate,
         credit_facility_id as reference_id,
         most_recent_interest_payment_timestamp,
@@ -77,13 +77,13 @@ select
     cast(null as date) as `fecha_inicio_mora_i`,
     case
         when
-            accrual_interval = 'end_of_month'
+            accrual_cycle_interval = 'end_of_month'
             then '{{ npb4_17_08_formas_de_pago('Mensual') }}'
     end
         as `pago_capital`,
     case
         when
-            accrual_interval = 'end_of_month'
+            accrual_cycle_interval = 'end_of_month'
             then '{{ npb4_17_08_formas_de_pago('Mensual') }}'
     end
         as `pago_interes`,
