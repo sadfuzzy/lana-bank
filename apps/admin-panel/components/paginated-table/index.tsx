@@ -261,13 +261,13 @@ const PaginatedTable = <T,>({
     if (totalDataLoaded < maxDataRequired && data && data.pageInfo.hasNextPage) {
       await fetchMore(data.pageInfo.endCursor)
     }
-    setCurrentPage((prevPage) => prevPage + 1)
+    setCurrentPage(currentPage + 1)
     smartFocus()
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1)
+      setCurrentPage(currentPage - 1)
       smartFocus()
     }
   }
@@ -632,7 +632,9 @@ const PaginatedTable = <T,>({
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
+            disabled={
+              !loading && displayData.length < pageSize && !data?.pageInfo.hasNextPage
+            }
           >
             <HiChevronRight className="h-4 w-4" />
           </Button>
