@@ -35,13 +35,13 @@ jobs:
   - tap-sumsubapi target-bigquery
 schedules:
 - name: postgres-to-bigquery-dbt
-  interval: '*/5 * * * *'
+  interval: '*/10 * * * *'
   job: tap-postgres-to-target-bigquery-run-dbt
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
 - name: sync-sumsub-on-minute
-  interval: '*/2 * * * *'
+  interval: '*/10 * * * *'
   job: sync-sumsub
 - name: test-dbt-daily
   interval: '@daily'
