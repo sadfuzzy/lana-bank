@@ -62,6 +62,21 @@ impl LedgerAccount {
         Ok(result)
     }
 
+    async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
+
+        let mut result = Vec::with_capacity(self.entity.children_ids.len());
+
+        for id in self.entity.children_ids.iter() {
+            if let Some(account) = children.remove(id) {
+                result.push(account);
+            }
+        }
+
+        Ok(result)
+    }
+
     async fn history(
         &self,
         ctx: &Context<'_>,

@@ -6,7 +6,9 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::{
-    balance::AccountBalance as CalaAccountBalance,
+    account::Account as CalaAccount,
+    account_set::AccountSet as CalaAccountSet,
+    balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
         JournalId as CalaJournalId, TransactionId as CalaTxId,
@@ -505,6 +507,7 @@ impl From<ManualTransactionAction> for CoreAccountingAction {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct BalanceRange {
     pub start: Option<CalaAccountBalance>,
     pub end: Option<CalaAccountBalance>,

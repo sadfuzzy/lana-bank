@@ -6,14 +6,13 @@ use cala_ledger::{
     CalaLedger, Currency, JournalId,
     account::Account,
     account_set::{AccountSet, AccountSetId, AccountSetMemberId},
-    balance::AccountBalance,
 };
 
-use crate::{
-    AccountCode, BalanceRange, LedgerAccount, LedgerAccountId, journal_error::JournalError,
-};
+use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
 use error::*;
+
+const MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE: usize = 2; // coa_edge -> internal_account -> leaf
 
 #[derive(Clone)]
 pub struct LedgerAccountLedger {
@@ -103,7 +102,7 @@ impl LedgerAccountLedger {
         >,
     > {
         Box::pin(async move {
-            if current_depth > 2 {
+            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
                 return Ok(None);
             }
             let all_parents = self
@@ -131,6 +130,45 @@ impl LedgerAccountLedger {
             }
 
             Ok(None)
+        })
+    }
+
+    #[allow(clippy::type_complexity)]
+    pub fn find_leaf_children(
+        &self,
+        id: LedgerAccountId,
+        current_depth: usize,
+    ) -> std::pin::Pin<
+        Box<
+            dyn Future<Output = Result<Vec<LedgerAccountId>, LedgerAccountLedgerError>> + Send + '_,
+        >,
+    > {
+        Box::pin(async move {
+            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
+                return Ok(Vec::new());
+            }
+
+            let children = self
+                .cala
+                .account_sets()
+                .list_members_by_external_id(id.into(), Default::default())
+                .await?
+                .entities;
+
+            let mut results = Vec::new();
+
+            for child in children {
+                match child.id {
+                    cala_ledger::account_set::AccountSetMemberId::Account(id) => {
+                        results.push(id.into());
+                    }
+                    cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => {
+                        return self.find_leaf_children(id.into(), current_depth + 1).await;
+                    }
+                }
+            }
+
+            Ok(results)
         })
     }
 
@@ -208,72 +246,5 @@ impl LedgerAccountLedger {
         }
 
         Ok(result)
-    }
-}
-
-impl From<(AccountSet, Option<AccountBalance>, Option<AccountBalance>)> for LedgerAccount {
-    fn from(
-        (account_set, usd_balance, btc_balance): (
-            AccountSet,
-            Option<AccountBalance>,
-            Option<AccountBalance>,
-        ),
-    ) -> Self {
-        let values = account_set.into_values();
-        let code = values.external_id.and_then(|id| id.parse().ok());
-
-        let usd_balance_range = usd_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        let btc_balance_range = btc_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        LedgerAccount {
-            id: values.id.into(),
-            name: values.name,
-            code,
-            btc_balance_range,
-            usd_balance_range,
-            ancestor_ids: Vec::new(),
-            is_leaf: false,
-        }
-    }
-}
-
-impl From<(Account, Option<AccountBalance>, Option<AccountBalance>)> for LedgerAccount {
-    fn from(
-        (account, usd_balance, btc_balance): (
-            Account,
-            Option<AccountBalance>,
-            Option<AccountBalance>,
-        ),
-    ) -> Self {
-        let usd_balance_range = usd_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        let btc_balance_range = btc_balance.map(|balance| BalanceRange {
-            start: None,
-            end: Some(balance.clone()),
-            diff: Some(balance),
-        });
-
-        LedgerAccount {
-            id: account.id.into(),
-            name: account.into_values().name,
-            code: None,
-            usd_balance_range,
-            btc_balance_range,
-            ancestor_ids: Vec::new(),
-            is_leaf: true,
-        }
     }
 }

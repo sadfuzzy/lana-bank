@@ -1,5 +1,6 @@
 pub mod error;
 mod ledger;
+mod value;
 
 use std::collections::HashMap;
 use tracing::instrument;
@@ -12,35 +13,13 @@ use crate::journal::{JournalEntry, JournalEntryCursor};
 use crate::{
     chart_of_accounts::Chart,
     primitives::{
-        AccountCode, BalanceRange, CalaAccountId, CalaAccountSetId, CalaJournalId,
-        CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+        AccountCode, CalaJournalId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
     },
 };
 
 use error::*;
 use ledger::*;
-
-pub struct LedgerAccount {
-    pub id: LedgerAccountId,
-    pub name: String,
-    pub code: Option<AccountCode>,
-    pub btc_balance_range: Option<BalanceRange>,
-    pub usd_balance_range: Option<BalanceRange>,
-
-    pub ancestor_ids: Vec<LedgerAccountId>,
-
-    is_leaf: bool,
-}
-
-impl LedgerAccount {
-    fn account_set_member_id(&self) -> cala_ledger::account_set::AccountSetMemberId {
-        if self.is_leaf {
-            CalaAccountId::from(self.id).into()
-        } else {
-            CalaAccountSetId::from(self.id).into()
-        }
-    }
-}
+pub use value::*;
 
 #[derive(Clone)]
 pub struct LedgerAccounts<Perms>
@@ -122,6 +101,7 @@ where
             .await?
         {
             self.populate_ancestors(chart, &mut account).await?;
+            self.populate_children(chart, &mut account).await?;
             Ok(Some(account))
         } else {
             Ok(None)
@@ -137,6 +117,7 @@ where
         let mut res = HashMap::new();
         for (k, mut v) in accounts.into_iter() {
             self.populate_ancestors(chart, &mut v).await?;
+            self.populate_children(chart, &mut v).await?;
             res.insert(k, v.into());
         }
         Ok(res)
@@ -161,6 +142,24 @@ where
             ancestors.insert(0, id.into());
             account.ancestor_ids = ancestors;
         }
+        Ok(())
+    }
+
+    async fn populate_children(
+        &self,
+        chart: &Chart,
+        account: &mut LedgerAccount,
+    ) -> Result<(), LedgerAccountError> {
+        let children = if let Some(code) = &account.code {
+            chart.children::<LedgerAccountId>(code)
+        } else {
+            Vec::new()
+        };
+        account.children_ids = if children.is_empty() {
+            self.ledger.find_leaf_children(account.id, 1).await?
+        } else {
+            children
+        };
         Ok(())
     }
 }

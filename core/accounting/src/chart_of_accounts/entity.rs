@@ -103,6 +103,14 @@ impl Chart {
         result
     }
 
+    pub fn children<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
+        self.all_accounts
+            .values()
+            .filter(|(spec, _)| spec.parent.as_ref() == Some(code))
+            .map(|(_, account_set_id)| T::from(*account_set_id))
+            .collect()
+    }
+
     pub fn account_spec_from_code_str(
         &self,
         code: String,
