@@ -96,13 +96,9 @@ impl LanaApp {
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
-        StatementsInit::statements(
-            &trial_balances,
-            accounting.profit_and_loss(),
-            &balance_sheets,
-            &cash_flow_statements,
-        )
-        .await?;
+
+        StatementsInit::statements(&trial_balances).await?;
+
         ChartsInit::charts_of_accounts(accounting.chart_of_accounts()).await?;
         let general_ledger = GeneralLedger::init(&authz, &cala, journal_init.journal_id);
         let customers = Customers::new(&pool, &authz, &outbox);
