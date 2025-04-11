@@ -1,6 +1,6 @@
 [package]
 name = "core-credit"
-version = "0.3.285-dev"
+version = "0.3.287-dev"
 edition = "2021"
 
 [features]
