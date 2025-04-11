@@ -32,6 +32,7 @@ import { CreateUserDialog } from "./users/create"
 import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
+import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 
 import {
   CreditFacility,
@@ -63,6 +64,8 @@ export const PATH_CONFIGS = {
   WITHDRAWAL_DETAILS: /^\/withdrawals\/[^/]+/,
   POLICY_DETAILS: /^\/policies\/[^/]+/,
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
+
+  JOURNAL: "/journal",
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -111,6 +114,7 @@ const CreateButton = () => {
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
+  const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
@@ -211,6 +215,12 @@ const CreateButton = () => {
       dataTestId: "create-committee-button",
       allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
     },
+    {
+      label: t("menuItems.executeManualTransaction"),
+      onClick: () => setOpenExecuteManualTransaction(true),
+      dataTestId: "execute-manual-transaction-button",
+      allowedPaths: [PATH_CONFIGS.JOURNAL],
+    },
   ]
 
   const getAvailableMenuItems = () => {
@@ -305,6 +315,11 @@ const CreateButton = () => {
       <CreateCommitteeDialog
         openCreateCommitteeDialog={openCreateCommitteeDialog}
         setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
+      />
+
+      <ExecuteManualTransactionDialog
+        openExecuteManualTransaction={openExecuteManualTransaction}
+        setOpenExecuteManualTransaction={setOpenExecuteManualTransaction}
       />
 
       {customer && customer.depositAccount && (

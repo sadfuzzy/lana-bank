@@ -2456,6 +2456,13 @@ export type DisbursalsQueryVariables = Exact<{
 
 export type DisbursalsQuery = { __typename?: 'Query', disbursals: { __typename?: 'CreditFacilityDisbursalConnection', edges: Array<{ __typename?: 'CreditFacilityDisbursalEdge', cursor: string, node: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type ExecuteManualTransactionMutationVariables = Exact<{
+  input: ManualTransactionExecuteInput;
+}>;
+
+
+export type ExecuteManualTransactionMutation = { __typename?: 'Mutation', manualTransactionExecute: { __typename?: 'ManualTransactionExecutePayload', transaction: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null } } };
+
 export type JournalEntriesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
   after?: InputMaybe<Scalars['String']['input']>;
@@ -5062,6 +5069,44 @@ export function useDisbursalsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions
 export type DisbursalsQueryHookResult = ReturnType<typeof useDisbursalsQuery>;
 export type DisbursalsLazyQueryHookResult = ReturnType<typeof useDisbursalsLazyQuery>;
 export type DisbursalsQueryResult = Apollo.QueryResult<DisbursalsQuery, DisbursalsQueryVariables>;
+export const ExecuteManualTransactionDocument = gql`
+    mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
+  manualTransactionExecute(input: $input) {
+    transaction {
+      id
+      ledgerTransactionId
+      createdAt
+      description
+    }
+  }
+}
+    `;
+export type ExecuteManualTransactionMutationFn = Apollo.MutationFunction<ExecuteManualTransactionMutation, ExecuteManualTransactionMutationVariables>;
+
+/**
+ * __useExecuteManualTransactionMutation__
+ *
+ * To run a mutation, you first call `useExecuteManualTransactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useExecuteManualTransactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [executeManualTransactionMutation, { data, loading, error }] = useExecuteManualTransactionMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useExecuteManualTransactionMutation(baseOptions?: Apollo.MutationHookOptions<ExecuteManualTransactionMutation, ExecuteManualTransactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ExecuteManualTransactionMutation, ExecuteManualTransactionMutationVariables>(ExecuteManualTransactionDocument, options);
+      }
+export type ExecuteManualTransactionMutationHookResult = ReturnType<typeof useExecuteManualTransactionMutation>;
+export type ExecuteManualTransactionMutationResult = Apollo.MutationResult<ExecuteManualTransactionMutation>;
+export type ExecuteManualTransactionMutationOptions = Apollo.BaseMutationOptions<ExecuteManualTransactionMutation, ExecuteManualTransactionMutationVariables>;
 export const JournalEntriesDocument = gql`
     query JournalEntries($first: Int!, $after: String) {
   journalEntries(first: $first, after: $after) {

@@ -1427,5 +1427,41 @@
       "amount": "Amount",
       "ledgerAccount": "Ledger Account"
     }
+  },
+  "ManualTransactions": {
+    "title": "Execute Manual Transaction",
+    "description": "Create a manual transaction by providing the required details",
+    "fields": {
+      "description": "Transaction Description",
+      "reference": "Transaction Reference",
+      "entries": "Journal Entries for this transaction",
+      "usd": "USD",
+      "btc": "BTC",
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "placeholders": {
+      "description": "Enter transaction description",
+      "reference": "Enter transaction reference"
+    },
+    "noEntries": "No journal entry for this transaction. Please add one.",
+    "addEntryBtn": "Add",
+    "execute": "Execute",
+    "placeholdersJournalEntry": {
+      "accountRef": "Enter account ref",
+      "currency": "Select currency",
+      "amount": "Enter amount",
+      "direction": "Select direction",
+      "description": "Enter description"
+    },
+    "table": {
+      "accountRef": "Account",
+      "amount": "Amount",
+      "currency": "Currency",
+      "direction": "Direction",
+      "description": "Description"
+    },
+    "errored": "An error occurred while executing the transaction",
+    "success": "Transaction executed successfully"
   }
 }

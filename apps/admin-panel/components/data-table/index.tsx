@@ -28,7 +28,7 @@ export type Column<T> = {
     header: string | React.ReactNode
     width?: string
     align?: "left" | "center" | "right"
-    render?: (value: T[K], record: T) => React.ReactNode
+    render?: (value: T[K], record: T, index: number) => React.ReactNode
   }
 }[keyof T]
 
@@ -306,7 +306,7 @@ const DataTable = <T,>({
                     )}
                   >
                     {column.render
-                      ? column.render(item[column.key], item)
+                      ? column.render(item[column.key], item, index)
                       : String(item[column.key])}
                   </div>
                 </div>
@@ -397,7 +397,7 @@ const DataTable = <T,>({
                   )}
                 >
                   {column.render
-                    ? column.render(item[column.key], item)
+                    ? column.render(item[column.key], item, rowIndex)
                     : String(item[column.key])}
                 </TableCell>
               ))}

@@ -848,3 +848,29 @@ checksums:
     LedgerTransaction/table/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     LedgerTransaction/table/ledgerAccount: d6afe57367f5001206a03de7a93d20e7
+    ManualTransactions/title: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
+    ManualTransactions/description: d61b154d1f4d49c1df3d2fa866c90a44
+    ManualTransactions/fields/description: bbe6ebc0b363d71b3a82e8440822a618
+    ManualTransactions/fields/reference: 1d75a71b5bc3c2e4abf8dd5f080d07a6
+    ManualTransactions/fields/entries: f3c21fcba59800632a9b8e844879ab2e
+    ManualTransactions/fields/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
+    ManualTransactions/fields/btc: af1432546a2c9130c9163b2269d5b60d
+    ManualTransactions/fields/debit: 1b35db901aa1aeed8ee79aec6d807731
+    ManualTransactions/fields/credit: 2d447a71ec815a039f175e94fbb12a56
+    ManualTransactions/placeholders/description: c7a11b94e00ee35afec9b506a955b303
+    ManualTransactions/placeholders/reference: ef1ef43fd3049ac07aa4eb8b3c12ee80
+    ManualTransactions/noEntries: b5cb1e87c57993a1088d73aae3b829ee
+    ManualTransactions/addEntryBtn: 87c4a663507f2bcbbf79934af8164e13
+    ManualTransactions/execute: 3fe1686d6b7aa4a7fd6eced8098c1da5
+    ManualTransactions/placeholdersJournalEntry/accountRef: 325591742b9f337a39e5f58b29383948
+    ManualTransactions/placeholdersJournalEntry/currency: a7604892fc4bfe50ead2ba5d5dd95c9c
+    ManualTransactions/placeholdersJournalEntry/amount: 2bf76cb0b75e87e3e635259f97ae8089
+    ManualTransactions/placeholdersJournalEntry/direction: 67e3f528b0603c8381f6e7249ace3c21
+    ManualTransactions/placeholdersJournalEntry/description: 24e46064cac64ba5b70ad916903c0561
+    ManualTransactions/table/accountRef: 01215c12fb1cdb93bd0c84c1382bef56
+    ManualTransactions/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    ManualTransactions/table/currency: d2ba9a9cea418ea653e3ca6785617a3f
+    ManualTransactions/table/direction: 2920314e7f25957f16577b544b4e860b
+    ManualTransactions/table/description: e17686a22ffad04cc7bb70524ed4478b
+    ManualTransactions/errored: b8fce30a7bd38573774a442782ba574f
+    ManualTransactions/success: 2e3024332d84ce146725f4065bebad31
