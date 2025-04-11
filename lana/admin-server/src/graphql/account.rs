@@ -171,15 +171,6 @@ impl From<lana_app::trial_balance::TrialBalanceRoot> for AccountAmountsByCurrenc
     }
 }
 
-impl From<lana_app::profit_and_loss::ProfitAndLossStatement> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::profit_and_loss::ProfitAndLossStatement) -> Self {
-        AccountAmountsByCurrency {
-            btc: balances.btc_balance.into(),
-            usd: balances.usd_balance.into(),
-        }
-    }
-}
-
 impl From<lana_app::balance_sheet::BalanceSheet> for AccountAmountsByCurrency {
     fn from(balances: lana_app::balance_sheet::BalanceSheet) -> Self {
         AccountAmountsByCurrency {

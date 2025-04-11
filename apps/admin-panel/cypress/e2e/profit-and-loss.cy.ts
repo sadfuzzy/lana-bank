@@ -19,7 +19,7 @@ describe("Profit and Loss Statement", () => {
     cy.visit("/profit-and-loss")
   })
 
-  it("should render all categories and their accounts", () => {
+  it("should render all categories and their children", () => {
     cy.graphqlRequest<{ data: ProfitAndLossStatementQuery }>(
       print(ProfitAndLossStatementDocument),
       {
@@ -29,8 +29,8 @@ describe("Profit and Loss Statement", () => {
     ).then((response) => {
       response.data.profitAndLossStatement?.categories.forEach((category) => {
         cy.get(`[data-testid="category-${category.name.toLowerCase()}"]`).should("exist")
-        category.accounts.forEach((account) => {
-          cy.get(`[data-testid="account-${account.id}"]`).should("exist")
+        category.children.forEach((child) => {
+          cy.get(`[data-testid="account-${child.id}"]`).should("exist")
         })
       })
     })
@@ -54,13 +54,12 @@ describe("Profit and Loss Statement", () => {
   })
 
   it("should switch between balance layers", () => {
-    cy.contains(t(CLS + ".layer.options.all")).should("exist")
     cy.contains(t(CLS + ".layer.options.settled")).should("exist")
     cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains(t(CLS + ".layer.options.all")).click()
-    cy.contains(t(CLS + ".layer.options.settled")).click()
+    cy.contains(t(CLS + ".layer.options.settled")).should("exist")
     cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("profit-and-loss-pending")
+    cy.contains(t(CLS + ".layer.options.settled")).click()
   })
 })

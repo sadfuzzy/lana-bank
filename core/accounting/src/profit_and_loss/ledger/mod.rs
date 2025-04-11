@@ -5,20 +5,20 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use cala_ledger::{
+    AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation,
 };
 
 use audit::AuditInfo;
 
-use crate::statement::*;
-
-use error::*;
+use crate::primitives::CalaBalanceRange;
 
 use super::{
-    ChartOfAccountsIntegrationConfig, ProfitAndLossStatement, ProfitAndLossStatementIds,
-    COST_OF_REVENUE_NAME, EXPENSES_NAME, REVENUE_NAME,
+    COST_OF_REVENUE_NAME, ChartOfAccountsIntegrationConfig, EXPENSES_NAME, LedgerAccount,
+    ProfitAndLossStatement, ProfitAndLossStatementIds, REVENUE_NAME,
 };
+
+use error::*;
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatementLedger {
@@ -128,48 +128,42 @@ impl ProfitAndLossStatementLedger {
     async fn get_account_set(
         &self,
         account_set_id: AccountSetId,
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<StatementAccountSet, ProfitAndLossStatementLedgerError> {
-        let values = self
-            .cala
-            .account_sets()
-            .find(account_set_id)
-            .await?
-            .into_values();
+        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
+    ) -> Result<LedgerAccount, ProfitAndLossStatementLedgerError> {
+        let account_set = self.cala.account_sets().find(account_set_id).await?;
 
-        Ok(StatementAccountSet {
-            id: account_set_id,
-            name: values.name,
-            description: values.description,
-            btc_balance: balances_by_id.btc_for_account(account_set_id)?,
-            usd_balance: balances_by_id.usd_for_account(account_set_id)?,
-        })
+        let btc_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::BTC));
+        let usd_balance =
+            balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
+
+        let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
+
+        Ok(ledger_account)
     }
 
     async fn get_all_account_sets(
         &self,
         ids: &[AccountSetId],
-        balances_by_id: &BalancesByAccount,
-    ) -> Result<Vec<StatementAccountSet>, ProfitAndLossStatementLedgerError> {
+        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
+    ) -> Result<Vec<LedgerAccount>, ProfitAndLossStatementLedgerError> {
         let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
 
-        let mut statement_account_sets = Vec::new();
+        let mut ledger_accounts = Vec::new();
         for id in ids {
-            let values = account_sets
-                .remove(id)
-                .expect("account set should exist")
-                .into_values();
+            let account_set = account_sets.remove(id).expect("account set should exist");
+            let usd_balance =
+                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::USD));
 
-            statement_account_sets.push(StatementAccountSet {
-                id: *id,
-                name: values.name,
-                description: values.description,
-                btc_balance: balances_by_id.btc_for_account(*id)?,
-                usd_balance: balances_by_id.usd_for_account(*id)?,
-            });
+            let btc_balance =
+                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::BTC));
+
+            let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
+
+            ledger_accounts.push(ledger_account);
         }
 
-        Ok(statement_account_sets)
+        Ok(ledger_accounts)
     }
 
     async fn get_member_account_set_ids(
@@ -194,15 +188,23 @@ impl ProfitAndLossStatementLedger {
         all_account_set_ids: Vec<AccountSetId>,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
-    ) -> Result<BalancesByAccount, ProfitAndLossStatementLedgerError> {
-        let balance_ids =
-            BalanceIdsForAccountSets::from((self.journal_id, all_account_set_ids)).balance_ids;
-        Ok(self
+    ) -> Result<HashMap<BalanceId, CalaBalanceRange>, ProfitAndLossStatementLedgerError> {
+        let balance_ids = all_account_set_ids
+            .iter()
+            .flat_map(|id| {
+                [
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
+                ]
+            })
+            .collect::<Vec<_>>();
+        let res = self
             .cala
             .balances()
             .find_all_in_range(&balance_ids, from, until)
-            .await?
-            .into())
+            .await?;
+
+        Ok(res)
     }
 
     pub async fn add_member(
@@ -400,61 +402,90 @@ impl ProfitAndLossStatementLedger {
             self.get_member_account_set_ids(ids.cost_of_revenue).await?;
         all_account_set_ids.extend(&cost_of_revenue_member_account_sets_ids);
 
-        let balances_by_id = self
+        let mut balances_by_id = self
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let statement_account_set = self.get_account_set(ids.id, &balances_by_id).await?;
-        let revenue_account_set = self.get_account_set(ids.revenue, &balances_by_id).await?;
-        let expenses_account_set = self.get_account_set(ids.expenses, &balances_by_id).await?;
-        let cost_of_revenue_account_set = self
-            .get_account_set(ids.cost_of_revenue, &balances_by_id)
+        let mut statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
+
+        let mut revenue_account_set = self
+            .get_account_set(ids.revenue, &mut balances_by_id)
             .await?;
 
-        let revenue_accounts = self
-            .get_all_account_sets(revenue_member_account_sets_ids.as_slice(), &balances_by_id)
+        revenue_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        let mut expenses_account_set = self
+            .get_account_set(ids.expenses, &mut balances_by_id)
             .await?;
-        let expenses_accounts = self
-            .get_all_account_sets(expenses_member_account_sets_ids.as_slice(), &balances_by_id)
+
+        expenses_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        let mut cost_of_revenue_account_set = self
+            .get_account_set(ids.cost_of_revenue, &mut balances_by_id)
             .await?;
-        let cost_of_revenue_accounts = self
+
+        cost_of_revenue_account_set
+            .ancestor_ids
+            .push(statement_account_set.id);
+
+        statement_account_set.children_ids.extend([
+            revenue_account_set.id,
+            expenses_account_set.id,
+            cost_of_revenue_account_set.id,
+        ]);
+
+        let mut revenue_accounts = self
             .get_all_account_sets(
-                cost_of_revenue_member_account_sets_ids.as_slice(),
-                &balances_by_id,
+                revenue_member_account_sets_ids.as_slice(),
+                &mut balances_by_id,
             )
             .await?;
+        for account in revenue_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([revenue_account_set.id, statement_account_set.id]);
+            revenue_account_set.children_ids.push(account.id);
+        }
+
+        let mut expenses_accounts = self
+            .get_all_account_sets(
+                expenses_member_account_sets_ids.as_slice(),
+                &mut balances_by_id,
+            )
+            .await?;
+        for account in expenses_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([expenses_account_set.id, statement_account_set.id]);
+            expenses_account_set.children_ids.push(account.id);
+        }
+
+        let mut cost_of_revenue_accounts = self
+            .get_all_account_sets(
+                cost_of_revenue_member_account_sets_ids.as_slice(),
+                &mut balances_by_id,
+            )
+            .await?;
+        for account in cost_of_revenue_accounts.iter_mut() {
+            account
+                .ancestor_ids
+                .extend([cost_of_revenue_account_set.id, statement_account_set.id]);
+            cost_of_revenue_account_set.children_ids.push(account.id);
+        }
 
         Ok(ProfitAndLossStatement {
             id: statement_account_set.id,
             name: statement_account_set.name,
-            description: statement_account_set.description,
-            btc_balance: statement_account_set.btc_balance,
-            usd_balance: statement_account_set.usd_balance,
+            usd_balance_range: statement_account_set.usd_balance_range,
+            btc_balance_range: statement_account_set.btc_balance_range,
             categories: vec![
-                StatementAccountSetWithAccounts {
-                    id: revenue_account_set.id,
-                    name: revenue_account_set.name,
-                    description: revenue_account_set.description,
-                    btc_balance: revenue_account_set.btc_balance,
-                    usd_balance: revenue_account_set.usd_balance,
-                    accounts: revenue_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: expenses_account_set.id,
-                    name: expenses_account_set.name,
-                    description: expenses_account_set.description,
-                    btc_balance: expenses_account_set.btc_balance,
-                    usd_balance: expenses_account_set.usd_balance,
-                    accounts: expenses_accounts,
-                },
-                StatementAccountSetWithAccounts {
-                    id: cost_of_revenue_account_set.id,
-                    name: cost_of_revenue_account_set.name,
-                    description: cost_of_revenue_account_set.description,
-                    btc_balance: cost_of_revenue_account_set.btc_balance,
-                    usd_balance: cost_of_revenue_account_set.usd_balance,
-                    accounts: cost_of_revenue_accounts,
-                },
+                expenses_account_set,
+                revenue_account_set,
+                cost_of_revenue_account_set,
             ],
         })
     }

@@ -7,15 +7,11 @@ use chrono::{DateTime, Utc};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use rbac_types::{
-    ProfitAndLossStatementAction, ProfitAndLossStatementConfigurationAction, Subject,
-};
 
 use crate::{
-    accounting::Chart,
-    authorization::{Authorization, Object},
-    primitives::CalaAccountSetId,
-    statement::*,
+    LedgerAccount, LedgerAccountId,
+    chart_of_accounts::Chart,
+    primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
@@ -25,7 +21,6 @@ use ledger::*;
 pub(crate) const REVENUE_NAME: &str = "Revenue";
 pub(crate) const EXPENSES_NAME: &str = "Expenses";
 pub(crate) const COST_OF_REVENUE_NAME: &str = "Cost of Revenue";
-
 #[derive(Clone, Copy)]
 pub struct ProfitAndLossStatementIds {
     pub id: CalaAccountSetId,
@@ -52,26 +47,34 @@ impl ProfitAndLossStatementIds {
 }
 
 #[derive(Clone)]
-pub struct ProfitAndLossStatements {
+pub struct ProfitAndLossStatements<Perms>
+where
+    Perms: PermissionCheck,
+{
     pool: sqlx::PgPool,
-    authz: Authorization,
+    authz: Perms,
     pl_statement_ledger: ProfitAndLossStatementLedger,
 }
 
-impl ProfitAndLossStatements {
-    pub async fn init(
+impl<Perms> ProfitAndLossStatements<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+{
+    pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization,
+        authz: &Perms,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
-    ) -> Result<Self, ProfitAndLossStatementError> {
+    ) -> Self {
         let pl_statement_ledger = ProfitAndLossStatementLedger::new(cala, journal_id);
 
-        Ok(Self {
+        Self {
             pool: pool.clone(),
             pl_statement_ledger,
             authz: authz.clone(),
-        })
+        }
     }
 
     pub async fn create_pl_statement(
@@ -84,8 +87,8 @@ impl ProfitAndLossStatements {
             .audit()
             .record_system_entry_in_tx(
                 op.tx(),
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Create,
+                CoreAccountingObject::all_profit_and_loss(),
+                CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
             )
             .await?;
 
@@ -98,14 +101,14 @@ impl ProfitAndLossStatements {
 
     pub async fn get_chart_of_accounts_integration_config(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, ProfitAndLossStatementError> {
         self.authz
             .enforce_permission(
                 sub,
-                Object::ProfitAndLossStatementConfiguration,
-                ProfitAndLossStatementConfigurationAction::Read,
+                CoreAccountingObject::all_profit_and_loss_configuration(),
+                CoreAccountingAction::PROFIT_AND_LOSS_READ,
             )
             .await?;
         Ok(self
@@ -116,7 +119,7 @@ impl ProfitAndLossStatements {
 
     pub async fn set_chart_of_accounts_integration_config(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
@@ -124,6 +127,15 @@ impl ProfitAndLossStatements {
         if chart.id != config.chart_of_accounts_id {
             return Err(ProfitAndLossStatementError::ChartIdMismatch);
         }
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_profit_and_loss_configuration(),
+                CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
+            )
+            .await?;
 
         if self
             .pl_statement_ledger
@@ -140,15 +152,6 @@ impl ProfitAndLossStatements {
             chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
         let expenses_child_account_set_id_from_chart =
             chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
-
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                Object::ProfitAndLossStatementConfiguration,
-                ProfitAndLossStatementConfigurationAction::Update,
-            )
-            .await?;
 
         let charts_integration_meta = ChartOfAccountsIntegrationMeta {
             audit_info,
@@ -179,8 +182,8 @@ impl ProfitAndLossStatements {
             .audit()
             .record_system_entry_in_tx(
                 op.tx(),
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Update,
+                CoreAccountingObject::all_profit_and_loss(),
+                CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
             )
             .await?;
 
@@ -209,8 +212,8 @@ impl ProfitAndLossStatements {
             .audit()
             .record_system_entry_in_tx(
                 op.tx(),
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Update,
+                CoreAccountingObject::all_profit_and_loss(),
+                CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
             )
             .await?;
 
@@ -228,7 +231,7 @@ impl ProfitAndLossStatements {
 
     pub async fn pl_statement(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
@@ -236,8 +239,8 @@ impl ProfitAndLossStatements {
         self.authz
             .enforce_permission(
                 sub,
-                Object::ProfitAndLossStatement,
-                ProfitAndLossStatementAction::Read,
+                CoreAccountingObject::all_profit_and_loss(),
+                CoreAccountingAction::PROFIT_AND_LOSS_READ,
             )
             .await?;
 
@@ -250,10 +253,9 @@ impl ProfitAndLossStatements {
 
 #[derive(Clone)]
 pub struct ProfitAndLossStatement {
-    pub id: CalaAccountSetId,
+    pub id: LedgerAccountId,
     pub name: String,
-    pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalanceRange,
-    pub usd_balance: UsdStatementAccountSetBalanceRange,
-    pub categories: Vec<StatementAccountSetWithAccounts>,
+    pub usd_balance_range: Option<BalanceRange>,
+    pub btc_balance_range: Option<BalanceRange>,
+    pub categories: Vec<LedgerAccount>,
 }

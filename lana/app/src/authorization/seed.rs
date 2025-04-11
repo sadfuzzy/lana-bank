@@ -449,31 +449,40 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Read,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Update,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatementConfiguration,
-            ProfitAndLossStatementConfigurationAction::Read,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::ProfitAndLossStatementConfiguration,
-            ProfitAndLossStatementConfigurationAction::Update,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
         )
         .await?;
+
     authz
         .add_permission_to_role(
             &role,

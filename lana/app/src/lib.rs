@@ -10,7 +10,6 @@ pub mod cash_flow;
 pub mod document;
 pub mod general_ledger;
 pub mod primitives;
-pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
 pub mod statement;
@@ -106,6 +105,12 @@ pub mod accounting {
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
     pub type ChartOfAccounts =
         core_accounting::ChartOfAccounts<crate::authorization::Authorization>;
+}
+
+pub mod profit_and_loss {
+    pub use core_accounting::profit_and_loss::*;
+    pub type ProfitAndLossStatements =
+        core_accounting::ProfitAndLossStatements<crate::authorization::Authorization>;
 }
 
 pub mod credit_facility {

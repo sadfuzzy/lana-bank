@@ -1331,8 +1331,8 @@ input ProfitAndLossModuleConfigureInput {
 
 type ProfitAndLossStatement {
 	name: String!
-	net: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
+	categories: [LedgerAccount!]!
+	net: LedgerAccountBalanceRange!
 }
 
 type ProfitAndLossStatementModuleConfig {

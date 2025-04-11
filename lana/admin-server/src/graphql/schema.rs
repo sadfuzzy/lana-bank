@@ -559,7 +559,8 @@ impl Query {
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .pl_statement(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
@@ -713,7 +714,8 @@ impl Query {
     ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .get_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
@@ -1522,7 +1524,8 @@ impl Mutation {
             .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
             .build()?;
         let config = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .set_chart_of_accounts_integration_config(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),

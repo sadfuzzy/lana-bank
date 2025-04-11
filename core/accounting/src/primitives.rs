@@ -1,4 +1,3 @@
-use cala_ledger::DebitOrCredit;
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
@@ -6,6 +5,7 @@ use thiserror::Error;
 use authz::AllOrOne;
 
 pub use cala_ledger::{
+    Currency as CalaCurrency, DebitOrCredit,
     account::Account as CalaAccount,
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
@@ -24,6 +24,15 @@ es_entity::entity_id! {
 
     LedgerAccountId => CalaAccountId,
     LedgerAccountId => CalaAccountSetId
+}
+
+impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
+    fn from(value: cala_ledger::account_set::AccountSetMemberId) -> Self {
+        match value {
+            cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
+            cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
+        }
+    }
 }
 
 pub type LedgerTransactionId = CalaTxId;
@@ -257,6 +266,8 @@ pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 pub type LedgerTransactionAllOrOne = AllOrOne<CalaTxId>;
 pub type ManualTransactionAllOrOne = AllOrOne<ManualTransactionId>;
+pub type ProfitAndLossAllOrOne = AllOrOne<LedgerAccountId>;
+pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -267,6 +278,8 @@ pub enum CoreAccountingAction {
     LedgerAccountAction(LedgerAccountAction),
     LedgerTransactionAction(LedgerTransactionAction),
     ManualTransactionAction(ManualTransactionAction),
+    ProfitAndLossAction(ProfitAndLossAction),
+    ProfitAndLossConfigurationAction(ProfitAndLossConfigurationAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -278,6 +291,8 @@ pub enum CoreAccountingObject {
     LedgerAccount(LedgerAccountAllOrOne),
     LedgerTransaction(LedgerTransactionAllOrOne),
     ManualTransaction(ManualTransactionAllOrOne),
+    ProfitAndLoss(ProfitAndLossAllOrOne),
+    ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -320,6 +335,18 @@ impl CoreAccountingObject {
     pub fn manual_transaction(id: ManualTransactionId) -> Self {
         CoreAccountingObject::ManualTransaction(AllOrOne::ById(id))
     }
+
+    pub fn all_profit_and_loss() -> Self {
+        CoreAccountingObject::ProfitAndLoss(AllOrOne::All)
+    }
+
+    pub fn profit_and_loss(id: LedgerAccountId) -> Self {
+        CoreAccountingObject::ProfitAndLoss(AllOrOne::ById(id))
+    }
+
+    pub fn all_profit_and_loss_configuration() -> Self {
+        CoreAccountingObject::ProfitAndLossConfiguration(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -332,6 +359,8 @@ impl Display for CoreAccountingObject {
             LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             LedgerTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ManualTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ProfitAndLoss(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -367,6 +396,16 @@ impl FromStr for CoreAccountingObject {
                     .map_err(|_| "could not parse ManualTransaction")?;
                 CoreAccountingObject::ManualTransaction(obj_ref)
             }
+            ProfitAndLoss => {
+                let obj_ref = id.parse().map_err(|_| "could not parse ProfitAndLoss")?;
+                CoreAccountingObject::ProfitAndLoss(obj_ref)
+            }
+            ProfitAndLossConfiguration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse ProfitAndLossConfiguration")?;
+                CoreAccountingObject::ProfitAndLossConfiguration(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -397,6 +436,20 @@ impl CoreAccountingAction {
         CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Create);
     pub const MANUAL_TRANSACTION_LIST: Self =
         CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::List);
+    pub const PROFIT_AND_LOSS_READ: Self =
+        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Read);
+    pub const PROFIT_AND_LOSS_CREATE: Self =
+        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Create);
+    pub const PROFIT_AND_LOSS_UPDATE: Self =
+        CoreAccountingAction::ProfitAndLossAction(ProfitAndLossAction::Update);
+    pub const PROFIT_AND_LOSS_CONFIGURATION_READ: Self =
+        CoreAccountingAction::ProfitAndLossConfigurationAction(
+            ProfitAndLossConfigurationAction::Read,
+        );
+    pub const PROFIT_AND_LOSS_CONFIGURATION_UPDATE: Self =
+        CoreAccountingAction::ProfitAndLossConfigurationAction(
+            ProfitAndLossConfigurationAction::Update,
+        );
 }
 
 impl Display for CoreAccountingAction {
@@ -409,6 +462,8 @@ impl Display for CoreAccountingAction {
             LedgerAccountAction(action) => action.fmt(f),
             LedgerTransactionAction(action) => action.fmt(f),
             ManualTransactionAction(action) => action.fmt(f),
+            ProfitAndLossAction(action) => action.fmt(f),
+            ProfitAndLossConfigurationAction(action) => action.fmt(f),
         }
     }
 }
@@ -433,6 +488,12 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::ManualTransactionAction => {
                 CoreAccountingAction::from(action.parse::<ManualTransactionAction>()?)
+            }
+            CoreAccountingActionDiscriminants::ProfitAndLossAction => {
+                CoreAccountingAction::from(action.parse::<ProfitAndLossAction>()?)
+            }
+            CoreAccountingActionDiscriminants::ProfitAndLossConfigurationAction => {
+                CoreAccountingAction::from(action.parse::<ProfitAndLossConfigurationAction>()?)
             }
         };
         Ok(res)
@@ -512,6 +573,32 @@ pub struct BalanceRange {
     pub start: Option<CalaAccountBalance>,
     pub end: Option<CalaAccountBalance>,
     pub diff: Option<CalaAccountBalance>,
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum ProfitAndLossAction {
+    Read,
+    Create,
+    Update,
+}
+
+impl From<ProfitAndLossAction> for CoreAccountingAction {
+    fn from(action: ProfitAndLossAction) -> Self {
+        CoreAccountingAction::ProfitAndLossAction(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+pub enum ProfitAndLossConfigurationAction {
+    Read,
+    Update,
+}
+
+impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
+    fn from(action: ProfitAndLossConfigurationAction) -> Self {
+        CoreAccountingAction::ProfitAndLossConfigurationAction(action)
+    }
 }
 
 #[cfg(test)]

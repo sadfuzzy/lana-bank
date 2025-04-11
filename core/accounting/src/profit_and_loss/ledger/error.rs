@@ -10,8 +10,6 @@ pub enum ProfitAndLossStatementLedgerError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("ProfitAndLossStatementLedgerError - CalaBalance: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
-    #[error("ProfitAndLossStatementError - ConversionError: {0}")]
-    Statement(#[from] crate::statement::error::StatementError),
     #[error("ProfitAndLossStatementLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
     #[error("ProfitAndLossStatementLedgerError - NotFound: {0}")]

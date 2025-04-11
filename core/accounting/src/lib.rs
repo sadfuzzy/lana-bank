@@ -8,6 +8,7 @@ pub mod ledger_account;
 pub mod ledger_transaction;
 pub mod manual_transaction;
 mod primitives;
+pub mod profit_and_loss;
 
 use std::collections::HashMap;
 
@@ -24,6 +25,7 @@ pub use ledger_account::{LedgerAccount, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
+pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 
 pub struct CoreAccounting<Perms>
 where
@@ -35,6 +37,7 @@ where
     ledger_accounts: LedgerAccounts<Perms>,
     ledger_transactions: LedgerTransactions<Perms>,
     manual_transactions: ManualTransactions<Perms>,
+    profit_and_loss: ProfitAndLossStatements<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -49,6 +52,7 @@ where
             ledger_accounts: self.ledger_accounts.clone(),
             manual_transactions: self.manual_transactions.clone(),
             ledger_transactions: self.ledger_transactions.clone(),
+            profit_and_loss: self.profit_and_loss.clone(),
         }
     }
 }
@@ -70,6 +74,7 @@ where
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
         let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
         let ledger_transactions = LedgerTransactions::new(authz, cala);
+        let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -77,6 +82,7 @@ where
             ledger_accounts,
             ledger_transactions,
             manual_transactions,
+            profit_and_loss,
         }
     }
 
@@ -98,6 +104,10 @@ where
 
     pub fn manual_transactions(&self) -> &ManualTransactions<Perms> {
         &self.manual_transactions
+    }
+
+    pub fn profit_and_loss(&self) -> &ProfitAndLossStatements<Perms> {
+        &self.profit_and_loss
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
