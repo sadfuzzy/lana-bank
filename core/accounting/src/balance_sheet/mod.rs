@@ -6,14 +6,11 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
-use rbac_types::{BalanceSheetAction, BalanceSheetConfigurationAction, Subject};
-
-use core_accounting::Chart;
 
 use crate::{
-    authorization::{Authorization, Object},
-    primitives::CalaAccountSetId,
-    statement::*,
+    LedgerAccount, LedgerAccountId,
+    chart_of_accounts::Chart,
+    primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
@@ -68,26 +65,34 @@ impl BalanceSheetIds {
 }
 
 #[derive(Clone)]
-pub struct BalanceSheets {
+pub struct BalanceSheets<Perms>
+where
+    Perms: PermissionCheck,
+{
     pool: sqlx::PgPool,
-    authz: Authorization,
+    authz: Perms,
     balance_sheet_ledger: BalanceSheetLedger,
 }
 
-impl BalanceSheets {
-    pub async fn init(
+impl<Perms> BalanceSheets<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+{
+    pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization,
+        authz: &Perms,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
-    ) -> Result<Self, BalanceSheetError> {
+    ) -> Self {
         let balance_sheet_ledger = BalanceSheetLedger::new(cala, journal_id);
 
-        Ok(Self {
+        Self {
             pool: pool.clone(),
             balance_sheet_ledger,
             authz: authz.clone(),
-        })
+        }
     }
 
     pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
@@ -95,7 +100,11 @@ impl BalanceSheets {
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::BalanceSheet, BalanceSheetAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreAccountingObject::all_balance_sheet(),
+                CoreAccountingAction::BALANCE_SHEET_CREATE,
+            )
             .await?;
 
         match self.balance_sheet_ledger.create(op, &name).await {
@@ -107,14 +116,14 @@ impl BalanceSheets {
 
     pub async fn get_chart_of_accounts_integration_config(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, BalanceSheetError> {
         self.authz
             .enforce_permission(
                 sub,
-                Object::BalanceSheetConfiguration,
-                BalanceSheetConfigurationAction::Read,
+                CoreAccountingObject::all_balance_sheet_configuration(),
+                CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
             )
             .await?;
         Ok(self
@@ -125,7 +134,7 @@ impl BalanceSheets {
 
     pub async fn set_chart_of_accounts_integration_config(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
@@ -160,8 +169,8 @@ impl BalanceSheets {
             .authz
             .enforce_permission(
                 sub,
-                Object::BalanceSheetConfiguration,
-                BalanceSheetConfigurationAction::Update,
+                CoreAccountingObject::all_balance_sheet_configuration(),
+                CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_UPDATE,
             )
             .await?;
 
@@ -186,13 +195,17 @@ impl BalanceSheets {
 
     pub async fn balance_sheet(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         reference: String,
         from: DateTime<Utc>,
         until: Option<DateTime<Utc>>,
     ) -> Result<BalanceSheet, BalanceSheetError> {
         self.authz
-            .enforce_permission(sub, Object::BalanceSheet, BalanceSheetAction::Read)
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_balance_sheet(),
+                CoreAccountingAction::BALANCE_SHEET_READ,
+            )
             .await?;
 
         Ok(self
@@ -204,10 +217,9 @@ impl BalanceSheets {
 
 #[derive(Clone)]
 pub struct BalanceSheet {
-    pub id: CalaAccountSetId,
+    pub id: LedgerAccountId,
     pub name: String,
-    pub description: Option<String>,
-    pub btc_balance: BtcStatementAccountSetBalanceRange,
-    pub usd_balance: UsdStatementAccountSetBalanceRange,
-    pub categories: Vec<StatementAccountSetWithAccounts>,
+    pub usd_balance_range: Option<BalanceRange>,
+    pub btc_balance_range: Option<BalanceRange>,
+    pub categories: Vec<LedgerAccount>,
 }

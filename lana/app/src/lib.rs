@@ -5,7 +5,6 @@ pub mod accounting_init;
 pub mod app;
 pub mod applicant;
 pub mod authorization;
-pub mod balance_sheet;
 pub mod cash_flow;
 pub mod document;
 pub mod general_ledger;
@@ -112,6 +111,11 @@ pub mod profit_and_loss {
     pub use core_accounting::profit_and_loss::*;
     pub type ProfitAndLossStatements =
         core_accounting::ProfitAndLossStatements<crate::authorization::Authorization>;
+}
+
+pub mod balance_sheet {
+    pub use core_accounting::balance_sheet::*;
+    pub type BalanceSheets = core_accounting::BalanceSheets<crate::authorization::Authorization>;
 }
 
 pub mod credit_facility {

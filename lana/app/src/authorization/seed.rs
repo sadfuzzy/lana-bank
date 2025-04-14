@@ -427,23 +427,31 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
         .await?;
     authz
-        .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Update)
-        .await?;
-    authz
         .add_permission_to_role(
             &role,
-            Object::BalanceSheetConfiguration,
-            BalanceSheetConfigurationAction::Read,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::BalanceSheetConfiguration,
-            BalanceSheetConfigurationAction::Update,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_UPDATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
         )
         .await?;
     authz

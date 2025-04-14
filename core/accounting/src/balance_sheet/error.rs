@@ -11,7 +11,7 @@ pub enum BalanceSheetError {
     #[error("BalanceSheetError - BalanceSheetLedgerError: {0}")]
     BalanceSheetLedgerError(#[from] super::ledger::error::BalanceSheetLedgerError),
     #[error("BalanceSheetError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+    ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("BalanceSheetError - CreditConfigAlreadyExists")]
     CreditConfigAlreadyExists,
     #[error("BalanceSheetError - ChartIdMismatch")]

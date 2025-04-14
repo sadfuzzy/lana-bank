@@ -37,10 +37,10 @@ describe("Balance Sheet", () => {
 
       if (response.data?.balanceSheet?.categories) {
         response.data.balanceSheet.categories.forEach((category) => {
-          if (category?.accounts) {
-            category.accounts.forEach((account) => {
-              if (account?.name) {
-                cy.contains(account.name).should("be.visible")
+          if (category?.children) {
+            category.children.forEach((child) => {
+              if (child?.name) {
+                cy.contains(child.name).should("be.visible")
               }
             })
           }
@@ -61,11 +61,9 @@ describe("Balance Sheet", () => {
   })
 
   it("should switch between balance layers", () => {
-    cy.contains(t(CLS + ".layer.options.all")).should("exist")
     cy.contains(t(CLS + ".layer.options.settled")).should("exist")
     cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains(t(CLS + ".layer.options.all")).click()
     cy.contains(t(CLS + ".layer.options.settled")).click()
     cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("balance-sheet-pending")

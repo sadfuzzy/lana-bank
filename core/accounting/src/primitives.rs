@@ -270,6 +270,8 @@ pub type TransactionTemplateAllOrOne = AllOrOne<TransactionTemplateId>;
 pub type ManualTransactionAllOrOne = AllOrOne<ManualTransactionId>;
 pub type ProfitAndLossAllOrOne = AllOrOne<LedgerAccountId>;
 pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
+pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
+pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -283,6 +285,8 @@ pub enum CoreAccountingAction {
     ManualTransactionAction(ManualTransactionAction),
     ProfitAndLossAction(ProfitAndLossAction),
     ProfitAndLossConfigurationAction(ProfitAndLossConfigurationAction),
+    BalanceSheetAction(BalanceSheetAction),
+    BalanceSheetConfigurationAction(BalanceSheetConfigurationAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -297,6 +301,8 @@ pub enum CoreAccountingObject {
     ManualTransaction(ManualTransactionAllOrOne),
     ProfitAndLoss(ProfitAndLossAllOrOne),
     ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
+    BalanceSheet(BalanceSheetAllOrOne),
+    BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -355,6 +361,18 @@ impl CoreAccountingObject {
     pub fn all_profit_and_loss_configuration() -> Self {
         CoreAccountingObject::ProfitAndLossConfiguration(AllOrOne::All)
     }
+
+    pub fn balance_sheet(id: LedgerAccountId) -> Self {
+        CoreAccountingObject::BalanceSheet(AllOrOne::ById(id))
+    }
+
+    pub fn all_balance_sheet() -> Self {
+        CoreAccountingObject::BalanceSheet(AllOrOne::All)
+    }
+
+    pub fn all_balance_sheet_configuration() -> Self {
+        CoreAccountingObject::BalanceSheetConfiguration(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -370,6 +388,8 @@ impl Display for CoreAccountingObject {
             ManualTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ProfitAndLoss(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            BalanceSheet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            BalanceSheetConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -421,6 +441,16 @@ impl FromStr for CoreAccountingObject {
                     .map_err(|_| "could not parse ProfitAndLossConfiguration")?;
                 CoreAccountingObject::ProfitAndLossConfiguration(obj_ref)
             }
+            BalanceSheet => {
+                let obj_ref = id.parse().map_err(|_| "could not parse BalanceSheet")?;
+                CoreAccountingObject::BalanceSheet(obj_ref)
+            }
+            BalanceSheetConfiguration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse BalanceSheetConfiguration")?;
+                CoreAccountingObject::BalanceSheetConfiguration(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -470,6 +500,19 @@ impl CoreAccountingAction {
         CoreAccountingAction::ProfitAndLossConfigurationAction(
             ProfitAndLossConfigurationAction::Update,
         );
+
+    pub const BALANCE_SHEET_READ: Self =
+        CoreAccountingAction::BalanceSheetAction(BalanceSheetAction::Read);
+    pub const BALANCE_SHEET_CREATE: Self =
+        CoreAccountingAction::BalanceSheetAction(BalanceSheetAction::Create);
+    pub const BALANCE_SHEET_CONFIGURATION_READ: Self =
+        CoreAccountingAction::BalanceSheetConfigurationAction(
+            BalanceSheetConfigurationAction::Read,
+        );
+    pub const BALANCE_SHEET_CONFIGURATION_UPDATE: Self =
+        CoreAccountingAction::BalanceSheetConfigurationAction(
+            BalanceSheetConfigurationAction::Update,
+        );
 }
 
 impl Display for CoreAccountingAction {
@@ -485,6 +528,8 @@ impl Display for CoreAccountingAction {
             ManualTransactionAction(action) => action.fmt(f),
             ProfitAndLossAction(action) => action.fmt(f),
             ProfitAndLossConfigurationAction(action) => action.fmt(f),
+            BalanceSheetAction(action) => action.fmt(f),
+            BalanceSheetConfigurationAction(action) => action.fmt(f),
         }
     }
 }
@@ -518,6 +563,12 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::ProfitAndLossConfigurationAction => {
                 CoreAccountingAction::from(action.parse::<ProfitAndLossConfigurationAction>()?)
+            }
+            CoreAccountingActionDiscriminants::BalanceSheetAction => {
+                CoreAccountingAction::from(action.parse::<BalanceSheetAction>()?)
+            }
+            CoreAccountingActionDiscriminants::BalanceSheetConfigurationAction => {
+                CoreAccountingAction::from(action.parse::<BalanceSheetConfigurationAction>()?)
             }
         };
         Ok(res)
@@ -626,6 +677,7 @@ impl From<ProfitAndLossAction> for CoreAccountingAction {
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
 pub enum ProfitAndLossConfigurationAction {
     Read,
     Update,
@@ -634,6 +686,31 @@ pub enum ProfitAndLossConfigurationAction {
 impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
     fn from(action: ProfitAndLossConfigurationAction) -> Self {
         CoreAccountingAction::ProfitAndLossConfigurationAction(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum BalanceSheetAction {
+    Read,
+    Create,
+}
+
+impl From<BalanceSheetAction> for CoreAccountingAction {
+    fn from(action: BalanceSheetAction) -> Self {
+        CoreAccountingAction::BalanceSheetAction(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum BalanceSheetConfigurationAction {
+    Read,
+    Update,
+}
+impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
+    fn from(action: BalanceSheetConfigurationAction) -> Self {
+        CoreAccountingAction::BalanceSheetConfigurationAction(action)
     }
 }
 

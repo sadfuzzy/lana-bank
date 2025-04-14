@@ -12,7 +12,6 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
-    balance_sheet::BalanceSheets,
     cash_flow::CashFlowStatements,
     credit_facility::CreditFacilities,
     customer::Customers,
@@ -50,7 +49,6 @@ pub struct LanaApp {
     users: Users,
     credit_facilities: CreditFacilities,
     trial_balances: TrialBalances,
-    balance_sheets: BalanceSheets,
     cash_flow_statements: CashFlowStatements,
     general_ledger: GeneralLedger,
     price: Price,
@@ -91,8 +89,6 @@ impl LanaApp {
         let journal_init = JournalInit::journal(&cala).await?;
         let trial_balances =
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let balance_sheets =
-            BalanceSheets::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
@@ -100,7 +96,7 @@ impl LanaApp {
         StatementsInit::statements(
             &trial_balances,
             accounting.profit_and_loss(),
-            &balance_sheets,
+            accounting.balance_sheets(),
             &cash_flow_statements,
         )
         .await?;
@@ -159,7 +155,6 @@ impl LanaApp {
             report,
             credit_facilities,
             trial_balances,
-            balance_sheets,
             cash_flow_statements,
             general_ledger,
             terms_templates,
@@ -233,10 +228,6 @@ impl LanaApp {
 
     pub fn trial_balances(&self) -> &TrialBalances {
         &self.trial_balances
-    }
-
-    pub fn balance_sheets(&self) -> &BalanceSheets {
-        &self.balance_sheets
     }
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {

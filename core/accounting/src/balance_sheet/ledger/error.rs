@@ -10,8 +10,6 @@ pub enum BalanceSheetLedgerError {
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("BalanceSheetLedgerError - CalaBalance: {0}")]
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
-    #[error("BalanceSheetError - ConversionError: {0}")]
-    Statement(#[from] crate::statement::error::StatementError),
     #[error("BalanceSheetLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
     #[error("BalanceSheetLedgerError - NotFound: {0}")]

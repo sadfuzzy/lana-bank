@@ -120,8 +120,6 @@ pub enum AppObject {
     LedgerAccount,
     GeneralLedger,
     TrialBalance,
-    BalanceSheet,
-    BalanceSheetConfiguration,
     CashFlowStatement,
 }
 
@@ -149,8 +147,6 @@ impl FromStr for AppObject {
             LedgerAccount => AppObject::LedgerAccount,
             GeneralLedger => AppObject::GeneralLedger,
             TrialBalance => AppObject::TrialBalance,
-            BalanceSheet => AppObject::BalanceSheet,
-            BalanceSheetConfiguration => AppObject::BalanceSheetConfiguration,
             CashFlowStatement => AppObject::CashFlowStatement,
             Document => AppObject::Document,
         };

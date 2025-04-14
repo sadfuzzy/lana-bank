@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod error;
 pub mod journal;
@@ -19,6 +20,7 @@ use cala_ledger::CalaLedger;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
+pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
@@ -41,6 +43,7 @@ where
     manual_transactions: ManualTransactions<Perms>,
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
+    balance_sheet: BalanceSheets<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -57,6 +60,7 @@ where
             ledger_transactions: self.ledger_transactions.clone(),
             profit_and_loss: self.profit_and_loss.clone(),
             transaction_templates: self.transaction_templates.clone(),
+            balance_sheet: self.balance_sheet.clone(),
         }
     }
 }
@@ -80,6 +84,7 @@ where
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
+        let balance_sheet = BalanceSheets::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -89,6 +94,7 @@ where
             manual_transactions,
             profit_and_loss,
             transaction_templates,
+            balance_sheet,
         }
     }
 
@@ -118,6 +124,10 @@ where
 
     pub fn transaction_templates(&self) -> &TransactionTemplates<Perms> {
         &self.transaction_templates
+    }
+
+    pub fn balance_sheets(&self) -> &BalanceSheets<Perms> {
+        &self.balance_sheet
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
