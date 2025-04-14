@@ -1,6 +1,6 @@
 [package]
 name = "jwks-utils"
-version = "0.3.288-dev"
+version = "0.3.291-dev"
 edition = "2021"
 
 [features]
