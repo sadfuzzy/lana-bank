@@ -424,6 +424,25 @@ impl Query {
         )
     }
 
+    async fn transaction_templates(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<TransactionTemplateCursor, TransactionTemplate, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            TransactionTemplateCursor,
+            TransactionTemplate,
+            ctx,
+            after,
+            first,
+            |query| app.accounting().transaction_templates().list(sub, query)
+        )
+    }
+
     async fn ledger_transaction(
         &self,
         ctx: &Context<'_>,

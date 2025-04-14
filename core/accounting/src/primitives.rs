@@ -11,7 +11,7 @@ pub use cala_ledger::{
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
         AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-        JournalId as CalaJournalId, TransactionId as CalaTxId,
+        JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
     },
 };
 
@@ -36,6 +36,7 @@ impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
 }
 
 pub type LedgerTransactionId = CalaTxId;
+pub type TransactionTemplateId = CalaTxTemplateId;
 
 #[derive(Error, Debug)]
 pub enum AccountNameParseError {
@@ -265,6 +266,7 @@ pub type ChartAllOrOne = AllOrOne<ChartId>;
 pub type JournalAllOrOne = AllOrOne<CalaJournalId>;
 pub type LedgerAccountAllOrOne = AllOrOne<LedgerAccountId>;
 pub type LedgerTransactionAllOrOne = AllOrOne<CalaTxId>;
+pub type TransactionTemplateAllOrOne = AllOrOne<TransactionTemplateId>;
 pub type ManualTransactionAllOrOne = AllOrOne<ManualTransactionId>;
 pub type ProfitAndLossAllOrOne = AllOrOne<LedgerAccountId>;
 pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
@@ -277,6 +279,7 @@ pub enum CoreAccountingAction {
     JournalAction(JournalAction),
     LedgerAccountAction(LedgerAccountAction),
     LedgerTransactionAction(LedgerTransactionAction),
+    TransactionTemplateAction(TransactionTemplateAction),
     ManualTransactionAction(ManualTransactionAction),
     ProfitAndLossAction(ProfitAndLossAction),
     ProfitAndLossConfigurationAction(ProfitAndLossConfigurationAction),
@@ -290,6 +293,7 @@ pub enum CoreAccountingObject {
     Journal(JournalAllOrOne),
     LedgerAccount(LedgerAccountAllOrOne),
     LedgerTransaction(LedgerTransactionAllOrOne),
+    TransactionTemplate(TransactionTemplateAllOrOne),
     ManualTransaction(ManualTransactionAllOrOne),
     ProfitAndLoss(ProfitAndLossAllOrOne),
     ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
@@ -322,6 +326,10 @@ impl CoreAccountingObject {
 
     pub fn all_ledger_transactions() -> Self {
         CoreAccountingObject::LedgerTransaction(AllOrOne::All)
+    }
+
+    pub fn all_transaction_templates() -> Self {
+        CoreAccountingObject::TransactionTemplate(AllOrOne::All)
     }
 
     pub fn ledger_transaction(id: LedgerTransactionId) -> Self {
@@ -358,6 +366,7 @@ impl Display for CoreAccountingObject {
             Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             LedgerTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            TransactionTemplate(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ManualTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ProfitAndLoss(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
@@ -389,6 +398,12 @@ impl FromStr for CoreAccountingObject {
             LedgerTransaction => {
                 let obj_ref = id.parse().map_err(|_| "could not parse LedgerAccount")?;
                 CoreAccountingObject::LedgerTransaction(obj_ref)
+            }
+            TransactionTemplate => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse TransactionTemplate")?;
+                CoreAccountingObject::TransactionTemplate(obj_ref)
             }
             ManualTransaction => {
                 let obj_ref = id
@@ -430,6 +445,9 @@ impl CoreAccountingAction {
     pub const LEDGER_TRANSACTION_READ: Self =
         CoreAccountingAction::LedgerTransactionAction(LedgerTransactionAction::Read);
 
+    pub const TRANSACTION_TEMPLATE_LIST: Self =
+        CoreAccountingAction::TransactionTemplateAction(TransactionTemplateAction::List);
+
     pub const MANUAL_TRANSACTION_READ: Self =
         CoreAccountingAction::ManualTransactionAction(ManualTransactionAction::Read);
     pub const MANUAL_TRANSACTION_CREATE: Self =
@@ -461,6 +479,7 @@ impl Display for CoreAccountingAction {
             JournalAction(action) => action.fmt(f),
             LedgerAccountAction(action) => action.fmt(f),
             LedgerTransactionAction(action) => action.fmt(f),
+            TransactionTemplateAction(action) => action.fmt(f),
             ManualTransactionAction(action) => action.fmt(f),
             ProfitAndLossAction(action) => action.fmt(f),
             ProfitAndLossConfigurationAction(action) => action.fmt(f),
@@ -485,6 +504,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::LedgerTransactionAction => {
                 CoreAccountingAction::from(action.parse::<LedgerTransactionAction>()?)
+            }
+            CoreAccountingActionDiscriminants::TransactionTemplateAction => {
+                CoreAccountingAction::from(action.parse::<TransactionTemplateAction>()?)
             }
             CoreAccountingActionDiscriminants::ManualTransactionAction => {
                 CoreAccountingAction::from(action.parse::<ManualTransactionAction>()?)
@@ -551,6 +573,18 @@ pub enum JournalAction {
 impl From<JournalAction> for CoreAccountingAction {
     fn from(action: JournalAction) -> Self {
         CoreAccountingAction::JournalAction(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum TransactionTemplateAction {
+    List,
+}
+
+impl From<TransactionTemplateAction> for CoreAccountingAction {
+    fn from(action: TransactionTemplateAction) -> Self {
+        CoreAccountingAction::TransactionTemplateAction(action)
     }
 }
 
