@@ -915,6 +915,7 @@ impl Mutation {
                 CHART_REF.0,
                 input.reference,
                 input.description,
+                input.effective.map(|ts| ts.into_inner()),
                 entries
             )
         )

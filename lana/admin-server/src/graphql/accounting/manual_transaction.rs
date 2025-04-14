@@ -3,6 +3,7 @@ use async_graphql::*;
 pub use lana_app::accounting::manual_transaction::ManualEntryInput;
 
 use crate::graphql::primitives::*;
+use crate::primitives::Date;
 
 use cala_ledger::DebitOrCredit;
 
@@ -12,6 +13,7 @@ use super::ledger_transaction::LedgerTransaction;
 pub struct ManualTransactionExecuteInput {
     pub description: String,
     pub reference: Option<String>,
+    pub effective: Option<Date>,
     pub entries: Vec<ManualTransactionEntryInput>,
 }
 crate::mutation_payload! { ManualTransactionExecutePayload, transaction: LedgerTransaction }

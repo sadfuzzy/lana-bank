@@ -24,6 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
   DisbursalIdx: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
@@ -1206,6 +1207,7 @@ export type ManualTransactionEntryInput = {
 
 export type ManualTransactionExecuteInput = {
   description: Scalars['String']['input'];
+  effective?: InputMaybe<Scalars['Date']['input']>;
   entries: Array<ManualTransactionEntryInput>;
   reference?: InputMaybe<Scalars['String']['input']>;
 };

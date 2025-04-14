@@ -33,7 +33,7 @@ async fn manual_transaction() -> anyhow::Result<()> {
         ManualEntryInput::builder().account_id_or_code(to.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Debit).description("test 1 debit").build().unwrap(),
         ManualEntryInput::builder().account_id_or_code(from.clone()).amount(dec!(100)).currency(Currency::USD).direction(DebitOrCredit::Credit).description("test 1 credit").build().unwrap(),
     ];
-    accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), entries).await?;
+    accounting.execute_manual_transaction(&DummySubject, &chart_ref, None, "Test transaction 1".to_string(), None, entries).await?;
 
     let account = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "2".to_string()).await?.unwrap();
     assert_eq!(account.usd_balance_range.expect("should have balance").end.expect("balance missing").settled(), dec!(100));

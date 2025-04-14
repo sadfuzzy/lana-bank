@@ -110,6 +110,7 @@ where
         chart: &Chart,
         reference: Option<String>,
         description: String,
+        effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<ManualTransaction, ManualTransactionError> {
         let audit_info = self
@@ -159,6 +160,7 @@ where
                     journal_id: self.journal_id,
                     description,
                     entry_params,
+                    effective,
                 },
             )
             .await?;

@@ -47,6 +47,22 @@ impl Timestamp {
     }
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Date(chrono::NaiveDate);
+scalar!(Date);
+impl From<chrono::NaiveDate> for Date {
+    fn from(value: chrono::NaiveDate) -> Self {
+        Self(value)
+    }
+}
+impl Date {
+    #[allow(dead_code)]
+    pub fn into_inner(self) -> chrono::NaiveDate {
+        self.0
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct SuccessPayload {
     pub success: bool,

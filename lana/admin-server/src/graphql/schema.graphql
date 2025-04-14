@@ -820,6 +820,8 @@ type Dashboard {
 	totalCollateral: Satoshis!
 }
 
+scalar Date
+
 enum DebitOrCredit {
 	DEBIT
 	CREDIT
@@ -1193,6 +1195,7 @@ input ManualTransactionEntryInput {
 input ManualTransactionExecuteInput {
 	description: String!
 	reference: String
+	effective: Date
 	entries: [ManualTransactionEntryInput!]!
 }
 

@@ -169,6 +169,7 @@ where
         chart_ref: &str,
         reference: Option<String>,
         description: String,
+        effective: Option<chrono::NaiveDate>,
         entries: Vec<ManualEntryInput>,
     ) -> Result<LedgerTransaction, CoreAccountingError> {
         let chart = self
@@ -181,7 +182,14 @@ where
 
         let tx = self
             .manual_transactions
-            .execute(sub, &chart, reference, description, entries)
+            .execute(
+                sub,
+                &chart,
+                reference,
+                description,
+                effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),
+                entries,
+            )
             .await?;
 
         let ledger_tx_id = tx.ledger_transaction_id;
