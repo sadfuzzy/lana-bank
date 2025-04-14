@@ -456,6 +456,29 @@ impl Query {
         )
     }
 
+    async fn ledger_transactions_for_template_code(
+        &self,
+        ctx: &Context<'_>,
+        template_code: String,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LedgerTransactionCursor, LedgerTransaction, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LedgerTransactionCursor,
+            LedgerTransaction,
+            ctx,
+            after,
+            first,
+            |query| app
+                .accounting()
+                .ledger_transactions()
+                .list_for_template_code(sub, &template_code, query)
+        )
+    }
+
     async fn journal_entries(
         &self,
         ctx: &Context<'_>,
