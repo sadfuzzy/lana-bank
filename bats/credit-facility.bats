@@ -178,8 +178,8 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
-  disbursal_index=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.index')
-  [[ "$disbursal_index" != "null" ]] || exit 1
+  disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
+  [[ "$disbursal_id" != "null" ]] || exit 1
 
   retry 10 1 wait_for_disbursal "$credit_facility_id"
 }
@@ -188,7 +188,7 @@ ymd() {
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 
-  cat_logs | grep "interest accrual job completed.*$credit_facility_id" || exit 1
+  cat_logs | grep "interest accrual cycles completed for.*$credit_facility_id" || exit 1
 
   variables=$(
     jq -n \
@@ -196,6 +196,7 @@ ymd() {
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
+  graphql_output
   last_accrual=$(
     graphql_output '[
       .data.creditFacility.transactions[]

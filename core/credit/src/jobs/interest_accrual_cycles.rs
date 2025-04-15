@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Duration, Utc};
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
@@ -9,12 +9,13 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, interest_accruals, ledger::*, CoreCreditAction,
-    CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId, InterestAccrualCycleId,
-    Obligation, ObligationRepo,
+    credit_facility::CreditFacilityRepo,
+    interest_accruals,
+    ledger::*,
+    obligation::{Obligation, Obligations},
+    CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
+    InterestAccrualCycleId,
 };
-
-use super::obligation_due;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -37,7 +38,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     ledger: CreditLedger,
-    obligation_repo: ObligationRepo,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     jobs: Jobs,
     audit: Perms::Audit,
@@ -52,15 +53,15 @@ where
 {
     pub fn new(
         ledger: &CreditLedger,
-        obligation_repo: ObligationRepo,
-        credit_facility_repo: CreditFacilityRepo<E>,
+        obligations: &Obligations<Perms, E>,
+        credit_facility_repo: &CreditFacilityRepo<E>,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligation_repo,
-            credit_facility_repo,
+            obligations: obligations.clone(),
+            credit_facility_repo: credit_facility_repo.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
         }
@@ -86,7 +87,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligation_repo: self.obligation_repo.clone(),
+            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
@@ -101,7 +102,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligation_repo: ObligationRepo,
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -120,7 +121,8 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         audit_info: &AuditInfo,
-    ) -> Result<Option<(Obligation, InterestAccrualCycleId, DateTime<Utc>)>, CoreCreditError> {
+    ) -> Result<(Obligation, Option<(InterestAccrualCycleId, DateTime<Utc>)>), CoreCreditError>
+    {
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(self.config.credit_facility_id)
@@ -128,33 +130,26 @@ where
 
         let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
         let obligation = self
-            .obligation_repo
-            .create_in_op(db, new_obligation)
+            .obligations
+            .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
+        let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
         self.credit_facility_repo
             .update_in_op(db, &mut credit_facility)
             .await?;
+        let credit_facility = credit_facility;
 
-        let first_accrual_period_in_new_cycle =
-            match credit_facility.start_interest_accrual_cycle(audit_info.clone())? {
-                Some(p) => p.accrual,
-                None => return Ok(None),
-            };
-        self.credit_facility_repo
-            .update_in_op(db, &mut credit_facility)
-            .await?;
+        let new_cycle_data = res.map(|periods| {
+            let new_accrual_cycle_id = credit_facility
+                .interest_accrual_cycle_in_progress()
+                .expect("First accrual cycle not found")
+                .id;
 
-        let new_accrual_cycle_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual cycle not found")
-            .id;
+            (new_accrual_cycle_id, periods.accrual.end)
+        });
 
-        Ok(Some((
-            obligation,
-            new_accrual_cycle_id,
-            first_accrual_period_in_new_cycle.end,
-        )))
+        Ok((obligation, new_cycle_data))
     }
 }
 
@@ -178,6 +173,15 @@ where
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
 
+        if !self
+            .obligations
+            .check_facility_obligations_status_updated(self.config.credit_facility_id)
+            .await?
+        {
+            let now = crate::time::now();
+            return Ok(JobCompletion::RescheduleAt(now + Duration::minutes(5)));
+        }
+
         let mut db = self.credit_facility_repo.begin_op().await?;
         let audit_info = self
             .audit
@@ -188,42 +192,28 @@ where
             )
             .await?;
 
-        let (obligation, new_accrual_cycle_id, first_accrual_end_date) =
-            if let Some((obligation, new_accrual_cycle_id, first_accrual_end_date)) = self
-                .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
-                .await?
-            {
-                (obligation, new_accrual_cycle_id, first_accrual_end_date)
-            } else {
-                println!(
-                    "Credit Facility interest accrual job completed for credit_facility: {:?}",
-                    self.config.credit_facility_id
-                );
-                return Ok(JobCompletion::CompleteWithOp(db));
-            };
+        let (obligation, new_cycle_data) = self
+            .complete_interest_cycle_and_maybe_start_new_cycle(&mut db, &audit_info)
+            .await?;
 
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                obligation.id,
-                obligation_due::CreditFacilityJobConfig::<Perms> {
-                    obligation_id: obligation.id,
-                    _phantom: std::marker::PhantomData,
-                },
-                obligation.due_at(),
-            )
-            .await?;
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut db,
-                new_accrual_cycle_id,
-                interest_accruals::CreditFacilityJobConfig::<Perms, E> {
-                    credit_facility_id: self.config.credit_facility_id,
-                    _phantom: std::marker::PhantomData,
-                },
-                first_accrual_end_date,
-            )
-            .await?;
+        if let Some((new_accrual_cycle_id, first_accrual_end_date)) = new_cycle_data {
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    new_accrual_cycle_id,
+                    interest_accruals::CreditFacilityJobConfig::<Perms, E> {
+                        credit_facility_id: self.config.credit_facility_id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    first_accrual_end_date,
+                )
+                .await?;
+        } else {
+            println!(
+                "All Credit Facility interest accrual cycles completed for credit_facility: {:?}",
+                self.config.credit_facility_id
+            );
+        };
 
         self.ledger
             .record_interest_accrual_cycle(db, obligation)

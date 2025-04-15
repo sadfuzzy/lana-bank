@@ -100,6 +100,7 @@ impl CreditFacilityPostAccruedInterest {
             .expect("Couldn't build TxInput");
 
         let entries = vec![
+            // Reverse pending interest accrual entries
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
@@ -118,11 +119,12 @@ impl CreditFacilityPostAccruedInterest {
                 .layer("PENDING")
                 .build()
                 .expect("Couldn't build entry"),
+            // SETTLED LAYER interest entries (not yet due)
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'POST_ACCRUED_INTEREST_DR'")
+                .entry_type("'POST_ACCRUED_INTEREST_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .build()
@@ -131,7 +133,7 @@ impl CreditFacilityPostAccruedInterest {
                 .account_id("params.credit_facility_interest_income_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
-                .entry_type("'POST_ACCRUED_INTEREST_CR'")
+                .entry_type("'POST_ACCRUED_INTEREST_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()

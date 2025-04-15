@@ -18,12 +18,15 @@ use cala_ledger::{
 };
 
 use crate::{
+    credit_facility::CreditFacilityBalanceSummary,
+    obligation::NewPaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
         DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation, PaymentAccountIds,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
 };
 
 use constants::*;
@@ -112,7 +115,9 @@ pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
     pub disbursed_receivable: DisbursedReceivable,
+    pub disbursed_defaulted: InternalAccountSetDetails,
     pub interest_receivable: InterestReceivable,
+    pub interest_defaulted: InternalAccountSetDetails,
     pub interest_income: InternalAccountSetDetails,
     pub fee_income: InternalAccountSetDetails,
 }
@@ -131,11 +136,13 @@ impl CreditFacilityInternalAccountSets {
                     long_term: disbursed_long_term,
                     overdue: disbursed_overdue,
                 },
+            disbursed_defaulted,
             interest_receivable:
                 InterestReceivable {
                     short_term: interest_short_term,
                     long_term: interest_long_term,
                 },
+            interest_defaulted,
         } = self;
 
         let mut ids = vec![
@@ -143,6 +150,8 @@ impl CreditFacilityInternalAccountSets {
             collateral.id,
             interest_income.id,
             fee_income.id,
+            disbursed_defaulted.id,
+            interest_defaulted.id,
         ];
         ids.extend(
             disbursed_short_term
@@ -175,13 +184,14 @@ impl CreditLedger {
         templates::AddCollateral::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
-        templates::RecordPayment::init(cala).await?;
-        templates::RecordOverdueDisbursedBalance::init(cala).await?;
+        templates::RecordPaymentAllocation::init(cala).await?;
+        templates::RecordObligationDueBalance::init(cala).await?;
+        templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
-        templates::SettleDisbursal::init(cala).await?;
+        templates::ConfirmDisbursal::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -419,6 +429,15 @@ impl CreditLedger {
             )
             .await?;
 
+        let disbursed_defaulted_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_REF}"),
+            CREDIT_DISBURSED_DEFAULTED_ACCOUNT_SET_NAME.to_string(),
+            disbursed_receivable_normal_balance_type,
+        )
+        .await?;
+
         let interest_receivable_normal_balance_type = DebitOrCredit::Debit;
 
         let short_term_individual_interest_receivable_account_set_id = Self::find_or_create_account_set(
@@ -534,6 +553,15 @@ impl CreditLedger {
             LONG_TERM_CREDIT_NON_DOMICILED_COMPANY_INTEREST_RECEIVABLE_ACCOUNT_SET_NAME.to_string(),
             interest_receivable_normal_balance_type,
         ).await?;
+
+        let interest_defaulted_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_REF}"),
+            CREDIT_INTEREST_DEFAULTED_ACCOUNT_SET_NAME.to_string(),
+            interest_receivable_normal_balance_type,
+        )
+        .await?;
 
         let interest_income_normal_balance_type = DebitOrCredit::Credit;
         let interest_income_account_set_id = Self::find_or_create_account_set(
@@ -721,7 +749,15 @@ impl CreditLedger {
                 normal_balance_type: collateral_normal_balance_type,
             },
             disbursed_receivable,
+            disbursed_defaulted: InternalAccountSetDetails {
+                id: disbursed_defaulted_account_set_id,
+                normal_balance_type: disbursed_receivable_normal_balance_type,
+            },
             interest_receivable,
+            interest_defaulted: InternalAccountSetDetails {
+                id: interest_defaulted_account_set_id,
+                normal_balance_type: disbursed_receivable_normal_balance_type,
+            },
             interest_income: InternalAccountSetDetails {
                 id: interest_income_account_set_id,
                 normal_balance_type: interest_income_normal_balance_type,
@@ -878,31 +914,68 @@ impl CreditLedger {
         &self,
         CreditFacilityAccountIds {
             facility_account_id,
-            disbursed_receivable_account_id,
-            disbursed_receivable_overdue_account_id,
             collateral_account_id,
-            interest_receivable_account_id,
-            ..
+            disbursed_receivable_not_yet_due_account_id,
+            disbursed_receivable_due_account_id,
+            disbursed_receivable_overdue_account_id,
+            disbursed_defaulted_account_id,
+            interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id,
+            interest_defaulted_account_id,
+
+            fee_income_account_id: _,
+            interest_income_account_id: _,
         }: CreditFacilityAccountIds,
-    ) -> Result<CreditFacilityLedgerBalance, CreditLedgerError> {
+    ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
-        let disbursed_receivable_id = (self.journal_id, disbursed_receivable_account_id, self.usd);
+        let disbursed_receivable_not_yet_due_id = (
+            self.journal_id,
+            disbursed_receivable_not_yet_due_account_id,
+            self.usd,
+        );
+        let disbursed_receivable_due_id = (
+            self.journal_id,
+            disbursed_receivable_due_account_id,
+            self.usd,
+        );
         let disbursed_receivable_overdue_id = (
             self.journal_id,
             disbursed_receivable_overdue_account_id,
             self.usd,
         );
-        let interest_receivable_id = (self.journal_id, interest_receivable_account_id, self.usd);
+        let disbursed_defaulted_id = (self.journal_id, disbursed_defaulted_account_id, self.usd);
+        let interest_receivable_not_yet_due_id = (
+            self.journal_id,
+            interest_receivable_not_yet_due_account_id,
+            self.usd,
+        );
+        let interest_receivable_due_id = (
+            self.journal_id,
+            interest_receivable_due_account_id,
+            self.usd,
+        );
+        let interest_receivable_overdue_id = (
+            self.journal_id,
+            interest_receivable_overdue_account_id,
+            self.usd,
+        );
+        let interest_defaulted_id = (self.journal_id, interest_defaulted_account_id, self.usd);
         let balances = self
             .cala
             .balances()
             .find_all(&[
                 facility_id,
                 collateral_id,
-                disbursed_receivable_id,
+                disbursed_receivable_not_yet_due_id,
+                disbursed_receivable_due_id,
                 disbursed_receivable_overdue_id,
-                interest_receivable_id,
+                disbursed_defaulted_id,
+                interest_receivable_not_yet_due_id,
+                interest_receivable_due_id,
+                interest_receivable_overdue_id,
+                interest_defaulted_id,
             ])
             .await?;
         let facility = if let Some(b) = balances.get(&facility_id) {
@@ -910,44 +983,84 @@ impl CreditLedger {
         } else {
             UsdCents::ZERO
         };
-        let disbursed = if let Some(b) = balances.get(&disbursed_receivable_id) {
-            UsdCents::try_from_usd(b.details.settled.dr_balance)?
+        let disbursed = if let Some(b) = balances.get(&disbursed_receivable_due_id) {
+            UsdCents::try_from_usd(b.details.pending.dr_balance)?
         } else {
             UsdCents::ZERO
         };
-        let disbursed_receivable = if let Some(b) = balances.get(&disbursed_receivable_id) {
+        let not_yet_due_disbursed_outstanding =
+            if let Some(b) = balances.get(&disbursed_receivable_not_yet_due_id) {
+                UsdCents::try_from_usd(b.settled())?
+            } else {
+                UsdCents::ZERO
+            };
+        let due_disbursed_outstanding = if let Some(b) = balances.get(&disbursed_receivable_due_id)
+        {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
-        let disbursed_receivable_overdue =
+        let overdue_disbursed_outstanding =
             if let Some(b) = balances.get(&disbursed_receivable_overdue_id) {
                 UsdCents::try_from_usd(b.settled())?
             } else {
                 UsdCents::ZERO
             };
-        let interest = if let Some(b) = balances.get(&interest_receivable_id) {
-            UsdCents::try_from_usd(b.details.settled.dr_balance)?
-        } else {
-            UsdCents::ZERO
-        };
-        let interest_receivable = if let Some(b) = balances.get(&interest_receivable_id) {
+        let disbursed_defaulted = if let Some(b) = balances.get(&disbursed_defaulted_id) {
             UsdCents::try_from_usd(b.settled())?
         } else {
             UsdCents::ZERO
         };
+
+        let interest_posted = if let Some(b) = balances.get(&interest_receivable_due_id) {
+            UsdCents::try_from_usd(b.details.pending.dr_balance)?
+        } else {
+            UsdCents::ZERO
+        };
+        let not_yet_due_interest_outstanding =
+            if let Some(b) = balances.get(&interest_receivable_not_yet_due_id) {
+                UsdCents::try_from_usd(b.settled())?
+            } else {
+                UsdCents::ZERO
+            };
+        let due_interest_outstanding = if let Some(b) = balances.get(&interest_receivable_due_id) {
+            UsdCents::try_from_usd(b.settled())?
+        } else {
+            UsdCents::ZERO
+        };
+        let overdue_interest_outstanding =
+            if let Some(b) = balances.get(&interest_receivable_overdue_id) {
+                UsdCents::try_from_usd(b.settled())?
+            } else {
+                UsdCents::ZERO
+            };
+        let interest_defaulted = if let Some(b) = balances.get(&interest_defaulted_id) {
+            UsdCents::try_from_usd(b.settled())?
+        } else {
+            UsdCents::ZERO
+        };
+
         let collateral = if let Some(b) = balances.get(&collateral_id) {
             Satoshis::try_from_btc(b.settled())?
         } else {
             Satoshis::ZERO
         };
-        Ok(CreditFacilityLedgerBalance {
-            facility,
+        Ok(CreditFacilityBalanceSummary {
+            facility_remaining: facility,
             collateral,
+
             disbursed,
-            disbursed_receivable: disbursed_receivable + disbursed_receivable_overdue,
-            interest,
-            interest_receivable,
+            interest_posted,
+
+            not_yet_due_disbursed_outstanding,
+            due_disbursed_outstanding,
+            overdue_disbursed_outstanding,
+            disbursed_defaulted,
+
+            not_yet_due_interest_outstanding,
+            due_interest_outstanding,
+            overdue_interest_outstanding,
+            interest_defaulted,
         })
     }
 
@@ -1006,58 +1119,100 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_credit_facility_repayment(
+    async fn record_obligation_repayment_in_op(
+        &self,
+        op: &mut LedgerOperation<'_>,
+        NewPaymentAllocation {
+            tx_id,
+            obligation_id: tx_ref,
+            amount,
+            account_to_be_debited_id,
+            receivable_account_id,
+            ..
+        }: NewPaymentAllocation,
+    ) -> Result<(), CreditLedgerError> {
+        let params = templates::RecordPaymentAllocationParams {
+            journal_id: self.journal_id,
+            currency: self.usd,
+            amount: amount.to_usd(),
+            receivable_account_id,
+            account_to_be_debited_id,
+            tx_ref: tx_ref.to_string(),
+        };
+        self.cala
+            .post_transaction_in_op(op, tx_id, templates::RECORD_PAYMENT_ALLOCATION_CODE, params)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn record_obligation_repayments(
         &self,
         op: es_entity::DbOp<'_>,
-        tx_id: TransactionId,
-        tx_ref: String,
-        amounts: CreditFacilityPaymentAmounts,
-        payment_account_ids: PaymentAccountIds,
-        debit_account_id: CalaAccountId,
+        payments: Vec<NewPaymentAllocation>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
-        let params = templates::RecordPaymentParams {
-            journal_id: self.journal_id,
-            currency: self.usd,
-            interest_amount: amounts.interest.to_usd(),
-            principal_amount: amounts.disbursal.to_usd(),
-            debit_account_id,
-            principal_receivable_account_id: payment_account_ids.disbursed_receivable_account_id,
-            interest_receivable_account_id: payment_account_ids.interest_receivable_account_id,
-            tx_ref,
-        };
-        self.cala
-            .post_transaction_in_op(&mut op, tx_id, templates::RECORD_PAYMENT_CODE, params)
-            .await?;
+        for payment in payments {
+            self.record_obligation_repayment_in_op(&mut op, payment)
+                .await?;
+        }
 
         op.commit().await?;
         Ok(())
     }
 
-    pub async fn record_credit_facility_overdue_disbursed(
+    pub async fn record_obligation_due(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityOverdueDisbursedBalance {
+        ObligationDueReallocationData {
             tx_id,
-            disbursed_outstanding,
-            credit_facility_account_ids,
-        }: CreditFacilityOverdueDisbursedBalance,
+            amount,
+            not_yet_due_account_id,
+            due_account_id,
+            ..
+        }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::RECORD_OVERDUE_DISBURSED_BALANCE_CODE,
-                templates::RecordOverdueDisbursedBalanceParams {
+                templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
+                templates::RecordObligationDueBalanceParams {
                     journal_id: self.journal_id,
-                    currency: self.btc,
-                    amount: disbursed_outstanding.to_usd(),
-                    disbursed_receivable_account_id: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
-                    disbursed_receivable_overdue_account_id: credit_facility_account_ids
-                        .disbursed_receivable_overdue_account_id,
+                    amount: amount.to_usd(),
+                    receivable_not_yet_due_account_id: not_yet_due_account_id,
+                    receivable_due_account_id: due_account_id,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn record_obligation_overdue(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ObligationOverdueReallocationData {
+            tx_id,
+            outstanding_amount,
+            due_account_id,
+            overdue_account_id,
+            ..
+        }: ObligationOverdueReallocationData,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
+                templates::RecordObligationOverdueBalanceParams {
+                    journal_id: self.journal_id,
+                    amount: outstanding_amount.to_usd(),
+                    receivable_due_account_id: due_account_id,
+                    receivable_overdue_account_id: overdue_account_id,
                 },
             )
             .await?;
@@ -1116,7 +1271,7 @@ impl CreditLedger {
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
                     facility_disbursed_receivable_account: credit_facility_account_ids
-                        .disbursed_receivable_account_id,
+                        .disbursed_receivable_not_yet_due_account_id,
                     facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
@@ -1151,9 +1306,9 @@ impl CreditLedger {
                     journal_id: self.journal_id,
 
                     credit_facility_interest_receivable_account: credit_facility_account_ids
-                        .interest_receivable_account_id,
+                        .interest_receivable_not_yet_due_account_id,
                     credit_facility_interest_income_account: credit_facility_account_ids
-                        .interest_account_id,
+                        .interest_income_account_id,
                     interest_amount: interest.to_usd(),
                     external_id: tx_ref,
                     effective: period.end.date_naive(),
@@ -1167,16 +1322,20 @@ impl CreditLedger {
     pub async fn record_interest_accrual_cycle(
         &self,
         op: es_entity::DbOp<'_>,
-        Obligation {
+        obligation: Obligation,
+    ) -> Result<(), CreditLedgerError> {
+        let interest_receivable_account_id =
+            obligation.not_yet_due_accounts().account_to_be_debited_id;
+        let interest_income_account_id =
+            obligation.not_yet_due_accounts().account_to_be_credited_id;
+        let Obligation {
             tx_id,
             reference: tx_ref,
-            amount: interest,
-            account_to_be_debited_id: interest_receivable_account_id,
-            account_to_be_credited_id: interest_income_account_id,
+            initial_amount: interest,
             recorded_at: posted_at,
             ..
-        }: Obligation,
-    ) -> Result<(), CreditLedgerError> {
+        } = obligation;
+
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
@@ -1251,28 +1410,31 @@ impl CreditLedger {
     pub async fn settle_disbursal(
         &self,
         op: es_entity::DbOp<'_>,
-        Obligation {
-            tx_id,
-            reference: external_id,
-            amount,
-            account_to_be_debited_id: facility_disbursed_receivable_account,
-            account_to_be_credited_id: debit_account_id,
-            ..
-        }: Obligation,
+        obligation: Obligation,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
+        let facility_disbursed_receivable_account =
+            obligation.not_yet_due_accounts().account_to_be_debited_id;
+        let account_to_be_credited_id = obligation.not_yet_due_accounts().account_to_be_credited_id;
+        let Obligation {
+            tx_id,
+            reference: external_id,
+            initial_amount: amount,
+            ..
+        } = obligation;
+
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
                 &mut op,
                 tx_id,
-                templates::SETTLE_DISBURSAL_CODE,
-                templates::SettleDisbursalParams {
+                templates::CONFIRM_DISBURSAL_CODE,
+                templates::ConfirmDisbursalParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: facility_account_id,
                     facility_disbursed_receivable_account,
-                    debit_account_id,
+                    account_to_be_credited_id,
                     disbursed_amount: amount.to_usd(),
                     external_id,
                 },
@@ -1384,6 +1546,7 @@ impl CreditLedger {
         }
     }
 
+    // TODO: Consider adding separate 'overdue' account like in disbursed
     fn interest_internal_account_set_from_type(
         &self,
         interest_receivable_account_type: impl Into<InterestReceivableAccountType>,
@@ -1418,6 +1581,21 @@ impl CreditLedger {
         customer_type: CustomerType,
         duration_type: DurationType,
     ) -> Result<(), CreditLedgerError> {
+        let CreditFacilityAccountIds {
+            facility_account_id,
+            disbursed_receivable_not_yet_due_account_id,
+            disbursed_receivable_due_account_id,
+            disbursed_receivable_overdue_account_id,
+            disbursed_defaulted_account_id,
+            collateral_account_id,
+            interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id,
+            interest_defaulted_account_id,
+            interest_income_account_id,
+            fee_income_account_id,
+        } = account_ids;
+
         let collateral_reference = &format!("credit-facility-collateral:{}", credit_facility_id);
         let collateral_name = &format!(
             "Credit Facility Collateral Account for {}",
@@ -1425,7 +1603,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.collateral_account_id,
+            collateral_account_id,
             self.internal_account_sets.collateral,
             collateral_reference,
             collateral_name,
@@ -1440,7 +1618,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.facility_account_id,
+            facility_account_id,
             self.internal_account_sets.facility,
             facility_reference,
             facility_name,
@@ -1448,21 +1626,39 @@ impl CreditLedger {
         )
         .await?;
 
-        let disbursed_receivable_reference = &format!(
-            "credit-facility-disbursed-receivable:{}",
+        let disbursed_receivable_not_yet_due_reference = &format!(
+            "credit-facility-disbursed-not-yet-due-receivable:{}",
             credit_facility_id
         );
-        let disbursed_receivable_name = &format!(
-            "Disbursed Receivable Account for Credit Facility {}",
+        let disbursed_receivable_not_yet_due_name = &format!(
+            "Disbursed Receivable Not Yet Due Account for Credit Facility {}",
             credit_facility_id
         );
         self.create_account_in_op(
             op,
-            account_ids.disbursed_receivable_account_id,
+            disbursed_receivable_not_yet_due_account_id,
             self.disbursed_internal_account_set_from_type(customer_type, duration_type),
-            disbursed_receivable_reference,
-            disbursed_receivable_name,
-            disbursed_receivable_name,
+            disbursed_receivable_not_yet_due_reference,
+            disbursed_receivable_not_yet_due_name,
+            disbursed_receivable_not_yet_due_name,
+        )
+        .await?;
+
+        let disbursed_receivable_due_reference = &format!(
+            "credit-facility-disbursed-due-receivable:{}",
+            credit_facility_id
+        );
+        let disbursed_receivable_due_name = &format!(
+            "Disbursed Receivable Due Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            disbursed_receivable_due_account_id,
+            self.disbursed_internal_account_set_from_type(customer_type, duration_type),
+            disbursed_receivable_due_reference,
+            disbursed_receivable_due_name,
+            disbursed_receivable_due_name,
         )
         .await?;
 
@@ -1476,7 +1672,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.disbursed_receivable_overdue_account_id,
+            disbursed_receivable_overdue_account_id,
             self.disbursed_internal_account_set_from_type(
                 customer_type,
                 DisbursedReceivableAccountCategory::Overdue,
@@ -1487,19 +1683,89 @@ impl CreditLedger {
         )
         .await?;
 
-        let interest_receivable_reference =
-            &format!("credit-facility-interest-receivable:{}", credit_facility_id);
-        let interest_receivable_name = &format!(
-            "Interest Receivable Account for Credit Facility {}",
+        let disbursed_defaulted_reference =
+            &format!("credit-facility-disbursed-defaulted:{}", credit_facility_id);
+        let disbursed_defaulted_name = &format!(
+            "Disbursed Defaulted Account for Credit Facility {}",
             credit_facility_id
         );
         self.create_account_in_op(
             op,
-            account_ids.interest_receivable_account_id,
+            disbursed_defaulted_account_id,
+            self.internal_account_sets.disbursed_defaulted,
+            disbursed_defaulted_reference,
+            disbursed_defaulted_name,
+            disbursed_defaulted_name,
+        )
+        .await?;
+
+        let interest_receivable_not_yet_due_reference = &format!(
+            "credit-facility-interest-not-yet-due-receivable:{}",
+            credit_facility_id
+        );
+        let interest_receivable_not_yet_due_name = &format!(
+            "Interest Receivable Not Yet Due Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            interest_receivable_not_yet_due_account_id,
             self.interest_internal_account_set_from_type(customer_type, duration_type),
-            interest_receivable_reference,
-            interest_receivable_name,
-            interest_receivable_name,
+            interest_receivable_not_yet_due_reference,
+            interest_receivable_not_yet_due_name,
+            interest_receivable_not_yet_due_name,
+        )
+        .await?;
+
+        let interest_receivable_due_reference = &format!(
+            "credit-facility-interest-due-receivable:{}",
+            credit_facility_id
+        );
+        let interest_receivable_due_name = &format!(
+            "Interest Receivable Due Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            interest_receivable_due_account_id,
+            self.interest_internal_account_set_from_type(customer_type, duration_type),
+            interest_receivable_due_reference,
+            interest_receivable_due_name,
+            interest_receivable_due_name,
+        )
+        .await?;
+
+        let interest_receivable_overdue_reference = &format!(
+            "credit-facility-interest-overdue-receivable:{}",
+            credit_facility_id
+        );
+        let interest_receivable_overdue_name = &format!(
+            "Interest Receivable Overdue Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            interest_receivable_overdue_account_id,
+            self.interest_internal_account_set_from_type(customer_type, duration_type),
+            interest_receivable_overdue_reference,
+            interest_receivable_overdue_name,
+            interest_receivable_overdue_name,
+        )
+        .await?;
+
+        let interest_defaulted_reference =
+            &format!("credit-facility-interest-defaulted:{}", credit_facility_id);
+        let interest_defaulted_name = &format!(
+            "Interest Defaulted Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            interest_defaulted_account_id,
+            self.internal_account_sets.interest_defaulted,
+            interest_defaulted_reference,
+            interest_defaulted_name,
+            interest_defaulted_name,
         )
         .await?;
 
@@ -1511,7 +1777,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.interest_account_id,
+            interest_income_account_id,
             self.internal_account_sets.interest_income,
             interest_income_reference,
             interest_income_name,
@@ -1526,7 +1792,7 @@ impl CreditLedger {
         );
         self.create_account_in_op(
             op,
-            account_ids.fee_income_account_id,
+            fee_income_account_id,
             self.internal_account_sets.fee_income,
             fee_income_reference,
             fee_income_name,

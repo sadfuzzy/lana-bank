@@ -8,9 +8,8 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::*, CoreCreditAction, CoreCreditError,
-    CoreCreditEvent, CoreCreditObject, CreditFacilityId, CreditFacilityInterestAccrual,
-    InterestAccrualCycleIdx, InterestPeriod,
+    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
+    primitives::*, terms::InterestPeriod,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -94,6 +93,7 @@ struct ConfirmedAccrual {
     accrual: CreditFacilityInterestAccrual,
     next_period: Option<InterestPeriod>,
     accrual_idx: InterestAccrualCycleIdx,
+    accrued_count: usize,
 }
 
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
@@ -127,19 +127,25 @@ where
             .await?;
 
         let confirmed_accrual = {
-            let outstanding = credit_facility.total_outstanding();
+            let balances = self
+                .ledger
+                .get_credit_facility_balance(credit_facility.account_ids)
+                .await?;
+
             let account_ids = credit_facility.account_ids;
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual = accrual.record_accrual(outstanding, audit_info.clone());
+            let interest_accrual =
+                accrual.record_accrual(balances.total_overdue(), audit_info.clone());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),
                 next_period: accrual.next_accrual_period(),
                 accrual_idx: accrual.idx,
+                accrued_count: accrual.count_accrued(),
             }
         };
 
@@ -185,6 +191,7 @@ where
             accrual: interest_accrual,
             next_period: next_accrual_period,
             accrual_idx,
+            accrued_count,
         } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
 
         let (now, mut tx) = (db.now(), db.into_tx());
@@ -211,9 +218,9 @@ where
                 )
                 .await?;
             println!(
-            "Credit Facility interest accruals job completed for accrual index {:?} for credit_facility: {:?}",
-            accrual_idx, self.config.credit_facility_id
-        );
+                "All ({:?}) accruals completed for {:?} of {:?}",
+                accrued_count, accrual_idx, self.config.credit_facility_id
+            );
             Ok(JobCompletion::CompleteWithOp(db))
         }
     }

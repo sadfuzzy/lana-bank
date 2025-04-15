@@ -6,25 +6,33 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    credit_facility::CreditFacilityReceivable,
-    obligation::NewObligation,
+    ledger::CreditFacilityAccountIds,
+    obligation::{NewObligation, ObligationAccounts, ObligationType},
     primitives::*,
     terms::{InterestPeriod, TermValues},
-    CreditFacilityAccountIds,
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct InterestAccrualCycleAccountIds {
-    pub interest_receivable_account_id: CalaAccountId,
+    pub interest_receivable_not_yet_due_account_id: CalaAccountId,
+    pub interest_receivable_due_account_id: CalaAccountId,
+    pub interest_receivable_overdue_account_id: CalaAccountId,
+    pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityAccountIds) -> Self {
         Self {
-            interest_income_account_id: credit_facility_account_ids.interest_account_id,
-            interest_receivable_account_id: credit_facility_account_ids
-                .interest_receivable_account_id,
+            interest_receivable_not_yet_due_account_id: credit_facility_account_ids
+                .interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id: credit_facility_account_ids
+                .interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id: credit_facility_account_ids
+                .interest_receivable_overdue_account_id,
+            interest_defaulted_account_id: credit_facility_account_ids
+                .interest_defaulted_account_id,
+            interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
         }
     }
 }
@@ -143,13 +151,6 @@ impl InterestAccrualCycle {
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
     }
 
-    fn count_accrued(&self) -> usize {
-        self.events
-            .iter_all()
-            .filter(|event| matches!(event, InterestAccrualCycleEvent::InterestAccrued { .. }))
-            .count()
-    }
-
     fn last_accrual_period(&self) -> Option<InterestPeriod> {
         let mut last_accrued_at = None;
         let mut second_to_last_accrued_at = None;
@@ -167,6 +168,13 @@ impl InterestAccrualCycle {
             None => interval.period_from(self.started_at),
         }
         .truncate(self.accrual_cycle_ends_at())
+    }
+
+    pub fn count_accrued(&self) -> usize {
+        self.events
+            .iter_all()
+            .filter(|event| matches!(event, InterestAccrualCycleEvent::InterestAccrued { .. }))
+            .count()
     }
 
     pub(crate) fn next_accrual_period(&self) -> Option<InterestPeriod> {
@@ -187,7 +195,7 @@ impl InterestAccrualCycle {
 
     pub(crate) fn record_accrual(
         &mut self,
-        outstanding: CreditFacilityReceivable,
+        amount: UsdCents,
         audit_info: AuditInfo,
     ) -> InterestAccrualData {
         let accrual_period = self
@@ -198,7 +206,7 @@ impl InterestAccrualCycle {
         let interest_for_period = self
             .terms
             .annual_rate
-            .interest_for_time_period(outstanding.total(), days_in_interest_period);
+            .interest_for_time_period(amount, days_in_interest_period);
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
@@ -269,11 +277,25 @@ impl InterestAccrualCycle {
 
         NewObligation::builder()
             .id(obligation_id)
+            .credit_facility_id(self.credit_facility_id)
+            .obligation_type(ObligationType::Interest)
             .reference(tx_ref.to_string())
             .amount(interest)
             .tx_id(tx_id)
-            .account_to_be_debited_id(self.account_ids.interest_receivable_account_id)
-            .account_to_be_credited_id(self.account_ids.interest_income_account_id)
+            .not_yet_due_accounts(ObligationAccounts {
+                account_to_be_debited_id: self
+                    .account_ids
+                    .interest_receivable_not_yet_due_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            .due_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.interest_receivable_due_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
+            .overdue_accounts(ObligationAccounts {
+                account_to_be_debited_id: self.account_ids.interest_receivable_overdue_account_id,
+                account_to_be_credited_id: self.account_ids.interest_income_account_id,
+            })
             .due_date(self.accrual_cycle_ends_at())
             .overdue_date(self.accrual_cycle_ends_at())
             .recorded_at(posted_at)
@@ -489,13 +511,7 @@ mod test {
         let mut accrual = accrual_from(initial_events());
         let InterestAccrualData {
             interest, period, ..
-        } = accrual.record_accrual(
-            CreditFacilityReceivable {
-                disbursed: UsdCents::ZERO,
-                interest: UsdCents::ZERO,
-            },
-            dummy_audit_info(),
-        );
+        } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
         assert_eq!(interest, UsdCents::ZERO);
         let start = default_started_at();
         assert_eq!(period.start, start);
@@ -541,13 +557,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(
-                CreditFacilityReceivable {
-                    disbursed: UsdCents::ZERO,
-                    interest: UsdCents::ZERO,
-                },
-                dummy_audit_info(),
-            );
+            } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
             assert_eq!(interest, UsdCents::ZERO);
             assert_eq!(period.end, expected_end_of_day);
 
@@ -586,13 +596,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(
-                CreditFacilityReceivable {
-                    disbursed: disbursed_outstanding,
-                    interest: UsdCents::ZERO,
-                },
-                dummy_audit_info(),
-            );
+            } = accrual.record_accrual(disbursed_outstanding, dummy_audit_info());
             assert_eq!(interest, expected_daily_interest);
             assert_eq!(period.end, expected_end_of_day);
 
