@@ -169,66 +169,6 @@ where
         Ok(config)
     }
 
-    pub async fn add_to_revenue(
-        &self,
-        reference: String,
-        member_id: impl Into<CalaAccountSetId>,
-    ) -> Result<(), ProfitAndLossStatementError> {
-        let member_id = member_id.into();
-
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreAccountingObject::all_profit_and_loss(),
-                CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
-            )
-            .await?;
-
-        let statement_ids = self
-            .pl_statement_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.pl_statement_ledger
-            .add_member(op, statement_ids.revenue, member_id)
-            .await?;
-
-        Ok(())
-    }
-
-    pub async fn add_to_expenses(
-        &self,
-        reference: String,
-        member_id: impl Into<CalaAccountSetId>,
-    ) -> Result<(), ProfitAndLossStatementError> {
-        let member_id = member_id.into();
-
-        let mut op = es_entity::DbOp::init(&self.pool).await?;
-
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                op.tx(),
-                CoreAccountingObject::all_profit_and_loss(),
-                CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
-            )
-            .await?;
-
-        let statement_ids = self
-            .pl_statement_ledger
-            .get_ids_from_reference(reference)
-            .await?;
-
-        self.pl_statement_ledger
-            .add_member(op, statement_ids.expenses, member_id)
-            .await?;
-
-        Ok(())
-    }
-
     pub async fn pl_statement(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -257,5 +197,5 @@ pub struct ProfitAndLossStatement {
     pub name: String,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
-    pub categories: Vec<LedgerAccount>,
+    pub category_ids: Vec<LedgerAccountId>,
 }

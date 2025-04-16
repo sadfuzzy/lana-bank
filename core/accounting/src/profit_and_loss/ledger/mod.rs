@@ -142,47 +142,6 @@ impl ProfitAndLossStatementLedger {
         Ok(ledger_account)
     }
 
-    async fn get_all_account_sets(
-        &self,
-        ids: &[AccountSetId],
-        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    ) -> Result<Vec<LedgerAccount>, ProfitAndLossStatementLedgerError> {
-        let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
-
-        let mut ledger_accounts = Vec::new();
-        for id in ids {
-            let account_set = account_sets.remove(id).expect("account set should exist");
-            let usd_balance =
-                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::USD));
-
-            let btc_balance =
-                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::BTC));
-
-            let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
-
-            ledger_accounts.push(ledger_account);
-        }
-
-        Ok(ledger_accounts)
-    }
-
-    async fn get_member_account_set_ids(
-        &self,
-        account_set_id: AccountSetId,
-    ) -> Result<Vec<AccountSetId>, ProfitAndLossStatementLedgerError> {
-        self.cala
-            .account_sets()
-            .list_members_by_created_at(account_set_id, Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok(id),
-                _ => Err(ProfitAndLossStatementLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<AccountSetId>, ProfitAndLossStatementLedgerError>>()
-    }
-
     async fn get_balances_by_id(
         &self,
         all_account_set_ids: Vec<AccountSetId>,
@@ -389,103 +348,23 @@ impl ProfitAndLossStatementLedger {
         until: Option<DateTime<Utc>>,
     ) -> Result<ProfitAndLossStatement, ProfitAndLossStatementLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
-        let mut all_account_set_ids = vec![ids.id, ids.revenue, ids.expenses];
-
-        let revenue_member_account_sets_ids = self.get_member_account_set_ids(ids.revenue).await?;
-        all_account_set_ids.extend(&revenue_member_account_sets_ids);
-
-        let expenses_member_account_sets_ids =
-            self.get_member_account_set_ids(ids.expenses).await?;
-        all_account_set_ids.extend(&expenses_member_account_sets_ids);
-
-        let cost_of_revenue_member_account_sets_ids =
-            self.get_member_account_set_ids(ids.cost_of_revenue).await?;
-        all_account_set_ids.extend(&cost_of_revenue_member_account_sets_ids);
+        let all_account_set_ids = vec![ids.id, ids.revenue, ids.expenses];
 
         let mut balances_by_id = self
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let mut statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
-
-        let mut revenue_account_set = self
-            .get_account_set(ids.revenue, &mut balances_by_id)
-            .await?;
-
-        revenue_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-
-        let mut expenses_account_set = self
-            .get_account_set(ids.expenses, &mut balances_by_id)
-            .await?;
-
-        expenses_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-
-        let mut cost_of_revenue_account_set = self
-            .get_account_set(ids.cost_of_revenue, &mut balances_by_id)
-            .await?;
-
-        cost_of_revenue_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-
-        statement_account_set.children_ids.extend([
-            revenue_account_set.id,
-            expenses_account_set.id,
-            cost_of_revenue_account_set.id,
-        ]);
-
-        let mut revenue_accounts = self
-            .get_all_account_sets(
-                revenue_member_account_sets_ids.as_slice(),
-                &mut balances_by_id,
-            )
-            .await?;
-        for account in revenue_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend([revenue_account_set.id, statement_account_set.id]);
-            revenue_account_set.children_ids.push(account.id);
-        }
-
-        let mut expenses_accounts = self
-            .get_all_account_sets(
-                expenses_member_account_sets_ids.as_slice(),
-                &mut balances_by_id,
-            )
-            .await?;
-        for account in expenses_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend([expenses_account_set.id, statement_account_set.id]);
-            expenses_account_set.children_ids.push(account.id);
-        }
-
-        let mut cost_of_revenue_accounts = self
-            .get_all_account_sets(
-                cost_of_revenue_member_account_sets_ids.as_slice(),
-                &mut balances_by_id,
-            )
-            .await?;
-        for account in cost_of_revenue_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend([cost_of_revenue_account_set.id, statement_account_set.id]);
-            cost_of_revenue_account_set.children_ids.push(account.id);
-        }
+        let statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
 
         Ok(ProfitAndLossStatement {
             id: statement_account_set.id,
             name: statement_account_set.name,
             usd_balance_range: statement_account_set.usd_balance_range,
             btc_balance_range: statement_account_set.btc_balance_range,
-            categories: vec![
-                expenses_account_set,
-                revenue_account_set,
-                cost_of_revenue_account_set,
+            category_ids: vec![
+                ids.revenue.into(),
+                ids.cost_of_revenue.into(),
+                ids.expenses.into(),
             ],
         })
     }

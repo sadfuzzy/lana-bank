@@ -11,11 +11,11 @@ use cala_ledger::{
 
 use audit::AuditInfo;
 
-use crate::primitives::CalaBalanceRange;
+use crate::{LedgerAccount, primitives::CalaBalanceRange};
 
 use super::{
     ASSETS_NAME, BalanceSheet, BalanceSheetIds, COST_OF_REVENUE_NAME,
-    ChartOfAccountsIntegrationConfig, EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME, LedgerAccount,
+    ChartOfAccountsIntegrationConfig, EQUITY_NAME, EXPENSES_NAME, LIABILITIES_NAME,
     NET_INCOME_NAME, REVENUE_NAME,
 };
 
@@ -141,47 +141,6 @@ impl BalanceSheetLedger {
         let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
 
         Ok(ledger_account)
-    }
-
-    async fn get_all_account_sets(
-        &self,
-        ids: &[AccountSetId],
-        balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    ) -> Result<Vec<LedgerAccount>, BalanceSheetLedgerError> {
-        let mut account_sets = self.cala.account_sets().find_all::<AccountSet>(ids).await?;
-
-        let mut ledger_accounts = Vec::new();
-        for id in ids {
-            let account_set = account_sets.remove(id).expect("account set should exist");
-            let usd_balance =
-                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::USD));
-
-            let btc_balance =
-                balances_by_id.remove(&(self.journal_id, (*id).into(), Currency::BTC));
-
-            let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
-
-            ledger_accounts.push(ledger_account);
-        }
-
-        Ok(ledger_accounts)
-    }
-
-    async fn get_member_account_set_ids(
-        &self,
-        account_set_id: AccountSetId,
-    ) -> Result<Vec<AccountSetId>, BalanceSheetLedgerError> {
-        self.cala
-            .account_sets()
-            .list_members_by_created_at(account_set_id, Default::default())
-            .await?
-            .entities
-            .into_iter()
-            .map(|m| match m.id {
-                AccountSetMemberId::AccountSet(id) => Ok(id),
-                _ => Err(BalanceSheetLedgerError::NonAccountSetMemberTypeFound),
-            })
-            .collect::<Result<Vec<AccountSetId>, BalanceSheetLedgerError>>()
     }
 
     async fn get_balances_by_id(
@@ -536,90 +495,20 @@ impl BalanceSheetLedger {
         until: Option<DateTime<Utc>>,
     ) -> Result<BalanceSheet, BalanceSheetLedgerError> {
         let ids = self.get_ids_from_reference(reference).await?;
-        let mut all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
-
-        let assets_member_account_sets_ids = self.get_member_account_set_ids(ids.assets).await?;
-        all_account_set_ids.extend(&assets_member_account_sets_ids);
-
-        let liabilities_member_account_sets_ids =
-            self.get_member_account_set_ids(ids.liabilities).await?;
-        all_account_set_ids.extend(&liabilities_member_account_sets_ids);
-
-        let equity_member_account_sets_ids = self.get_member_account_set_ids(ids.equity).await?;
-        all_account_set_ids.extend(&equity_member_account_sets_ids);
+        let all_account_set_ids = vec![ids.id, ids.assets, ids.liabilities, ids.equity];
 
         let mut balances_by_id = self
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let mut statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
-
-        let mut assets_account_set = self
-            .get_account_set(ids.assets, &mut balances_by_id)
-            .await?;
-        assets_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-
-        let mut liabilities_account_set = self
-            .get_account_set(ids.liabilities, &mut balances_by_id)
-            .await?;
-        liabilities_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-
-        let mut equity_account_set = self
-            .get_account_set(ids.equity, &mut balances_by_id)
-            .await?;
-        equity_account_set
-            .ancestor_ids
-            .push(statement_account_set.id);
-        statement_account_set.children_ids.extend(vec![
-            equity_account_set.id,
-            liabilities_account_set.id,
-            assets_account_set.id,
-        ]);
-
-        let mut assets_accounts = self
-            .get_all_account_sets(&assets_member_account_sets_ids, &mut balances_by_id)
-            .await?;
-        for account in assets_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend(vec![assets_account_set.id, statement_account_set.id]);
-            assets_account_set.children_ids.push(account.id);
-        }
-
-        let mut liabilities_accounts = self
-            .get_all_account_sets(&liabilities_member_account_sets_ids, &mut balances_by_id)
-            .await?;
-        for account in liabilities_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend(vec![liabilities_account_set.id, statement_account_set.id]);
-            liabilities_account_set.children_ids.push(account.id);
-        }
-
-        let mut equity_accounts = self
-            .get_all_account_sets(&equity_member_account_sets_ids, &mut balances_by_id)
-            .await?;
-        for account in equity_accounts.iter_mut() {
-            account
-                .ancestor_ids
-                .extend(vec![equity_account_set.id, statement_account_set.id]);
-            equity_account_set.children_ids.push(account.id);
-        }
+        let statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
 
         Ok(BalanceSheet {
             id: statement_account_set.id,
             name: statement_account_set.name,
             usd_balance_range: statement_account_set.usd_balance_range,
             btc_balance_range: statement_account_set.btc_balance_range,
-            categories: vec![
-                equity_account_set,
-                liabilities_account_set,
-                assets_account_set,
-            ],
+            category_ids: vec![ids.equity.into(), ids.assets.into(), ids.liabilities.into()],
         })
     }
 }

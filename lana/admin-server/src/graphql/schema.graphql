@@ -188,8 +188,8 @@ union AuditSubject = User | System
 
 type BalanceSheet {
 	name: String!
-	categories: [LedgerAccount!]!
 	balance: LedgerAccountBalanceRange!
+	categories: [LedgerAccount!]!
 }
 
 type BalanceSheetModuleConfig {
@@ -1360,8 +1360,8 @@ input ProfitAndLossModuleConfigureInput {
 
 type ProfitAndLossStatement {
 	name: String!
-	categories: [LedgerAccount!]!
 	net: LedgerAccountBalanceRange!
+	categories: [LedgerAccount!]!
 }
 
 type ProfitAndLossStatementModuleConfig {

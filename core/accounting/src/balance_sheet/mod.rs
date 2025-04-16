@@ -8,7 +8,7 @@ use cala_ledger::CalaLedger;
 use chrono::{DateTime, Utc};
 
 use crate::{
-    LedgerAccount, LedgerAccountId,
+    LedgerAccountId,
     chart_of_accounts::Chart,
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
@@ -221,5 +221,5 @@ pub struct BalanceSheet {
     pub name: String,
     pub usd_balance_range: Option<BalanceRange>,
     pub btc_balance_range: Option<BalanceRange>,
-    pub categories: Vec<LedgerAccount>,
+    pub category_ids: Vec<LedgerAccountId>,
 }
