@@ -146,6 +146,10 @@ impl Satoshis {
     pub fn into_inner(self) -> u64 {
         self.0
     }
+
+    pub fn formatted_btc(self) -> String {
+        format!("{:.8}", self.to_btc())
+    }
 }
 
 impl TryFrom<SignedSatoshis> for Satoshis {
@@ -242,6 +246,10 @@ impl UsdCents {
 
     pub fn is_zero(self) -> bool {
         self.0 == 0
+    }
+
+    pub fn formatted_usd(self) -> String {
+        format!("{:.2}", self.to_usd())
     }
 }
 

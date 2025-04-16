@@ -20,6 +20,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }

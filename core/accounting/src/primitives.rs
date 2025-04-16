@@ -20,10 +20,12 @@ pub use core_money::{Satoshis, UsdCents};
 es_entity::entity_id! {
     ChartId,
     ManualTransactionId,
-    LedgerAccountId;
+    LedgerAccountId,
+    AccountingCsvId;
 
     LedgerAccountId => CalaAccountId,
-    LedgerAccountId => CalaAccountSetId
+    LedgerAccountId => CalaAccountSetId,
+    AccountingCsvId => job::JobId,
 }
 
 impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
@@ -272,6 +274,23 @@ pub type ProfitAndLossAllOrOne = AllOrOne<LedgerAccountId>;
 pub type ProfitAndLossConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
+pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AccountingCsvAction {
+    Create,
+    Generate,
+    Read,
+    List,
+    Download,
+}
+
+impl From<AccountingCsvAction> for CoreAccountingAction {
+    fn from(action: AccountingCsvAction) -> Self {
+        CoreAccountingAction::AccountingCsv(action)
+    }
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -287,6 +306,7 @@ pub enum CoreAccountingAction {
     ProfitAndLossConfigurationAction(ProfitAndLossConfigurationAction),
     BalanceSheetAction(BalanceSheetAction),
     BalanceSheetConfigurationAction(BalanceSheetConfigurationAction),
+    AccountingCsv(AccountingCsvAction),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -303,6 +323,7 @@ pub enum CoreAccountingObject {
     ProfitAndLossConfiguration(ProfitAndLossConfigurationAllOrOne),
     BalanceSheet(BalanceSheetAllOrOne),
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
+    AccountingCsv(AccountingCsvAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -373,6 +394,13 @@ impl CoreAccountingObject {
     pub fn all_balance_sheet_configuration() -> Self {
         CoreAccountingObject::BalanceSheetConfiguration(AllOrOne::All)
     }
+    pub fn accounting_csv(id: AccountingCsvId) -> Self {
+        CoreAccountingObject::AccountingCsv(AllOrOne::ById(id))
+    }
+
+    pub fn all_accounting_csvs() -> Self {
+        CoreAccountingObject::AccountingCsv(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -390,6 +418,7 @@ impl Display for CoreAccountingObject {
             ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             BalanceSheet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             BalanceSheetConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            AccountingCsv(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -450,6 +479,10 @@ impl FromStr for CoreAccountingObject {
                     .parse()
                     .map_err(|_| "could not parse BalanceSheetConfiguration")?;
                 CoreAccountingObject::BalanceSheetConfiguration(obj_ref)
+            }
+            AccountingCsv => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AccountingCsv")?;
+                CoreAccountingObject::AccountingCsv(obj_ref)
             }
         };
         Ok(res)
@@ -513,6 +546,16 @@ impl CoreAccountingAction {
         CoreAccountingAction::BalanceSheetConfigurationAction(
             BalanceSheetConfigurationAction::Update,
         );
+    pub const ACCOUNTING_CSV_CREATE: Self =
+        CoreAccountingAction::AccountingCsv(AccountingCsvAction::Create);
+    pub const ACCOUNTING_CSV_GENERATE: Self =
+        CoreAccountingAction::AccountingCsv(AccountingCsvAction::Generate);
+    pub const ACCOUNTING_CSV_READ: Self =
+        CoreAccountingAction::AccountingCsv(AccountingCsvAction::Read);
+    pub const ACCOUNTING_CSV_LIST: Self =
+        CoreAccountingAction::AccountingCsv(AccountingCsvAction::List);
+    pub const ACCOUNTING_CSV_GENERATE_DOWNLOAD_LINK: Self =
+        CoreAccountingAction::AccountingCsv(AccountingCsvAction::Download);
 }
 
 impl Display for CoreAccountingAction {
@@ -530,6 +573,7 @@ impl Display for CoreAccountingAction {
             ProfitAndLossConfigurationAction(action) => action.fmt(f),
             BalanceSheetAction(action) => action.fmt(f),
             BalanceSheetConfigurationAction(action) => action.fmt(f),
+            AccountingCsv(action) => action.fmt(f),
         }
     }
 }
@@ -569,6 +613,9 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::BalanceSheetConfigurationAction => {
                 CoreAccountingAction::from(action.parse::<BalanceSheetConfigurationAction>()?)
+            }
+            CoreAccountingActionDiscriminants::AccountingCsv => {
+                CoreAccountingAction::from(action.parse::<AccountingCsvAction>()?)
             }
         };
         Ok(res)

@@ -12,6 +12,8 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 core-money = { path = "../money" }
 outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
@@ -29,6 +31,7 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 async-graphql = { workspace = true, optional = true}
+async-trait = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

@@ -3,6 +3,8 @@ mod helpers;
 use chrono::Utc;
 use rand::Rng;
 
+use cloud_storage::{config::StorageConfig, Storage};
+use job::{JobExecutorConfig, Jobs};
 use lana_app::{authorization::Authorization, trial_balance::TrialBalances};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
@@ -37,7 +39,10 @@ pub async fn init_chart(
     journal_id: CalaJournalId,
     subject: &Subject,
 ) -> anyhow::Result<Chart> {
-    let accounting = CoreAccounting::new(pool, authz, cala, journal_id);
+    let storage = Storage::new(&StorageConfig::default());
+    let jobs = Jobs::new(pool, JobExecutorConfig::default());
+
+    let accounting = CoreAccounting::new(pool, authz, cala, journal_id, &storage, &jobs);
 
     let rand_ref = format!("{:05}", rand::thread_rng().gen_range(0..100000));
     let chart_id = accounting

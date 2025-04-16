@@ -2,6 +2,7 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
+use cloud_storage::{config::StorageConfig, Storage};
 use core_accounting::CoreAccounting;
 use deposit::*;
 use helpers::{action, event, object};
@@ -36,7 +37,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
+    let storage = Storage::new(&StorageConfig::default());
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = accounting
         .chart_of_accounts()

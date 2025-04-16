@@ -275,10 +275,26 @@ CREATE TABLE report_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE accounting_csvs (
+  id UUID PRIMARY KEY,
+  csv_type VARCHAR NOT NULL,
+  ledger_account_id UUID,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE accounting_csv_events (
+  id UUID NOT NULL REFERENCES accounting_csvs(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
-  ledger_transaction_id UUID NOT NULL, -- REFERENCES cala_transactions(id),
+  ledger_transaction_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -349,7 +365,7 @@ CREATE TABLE dashboards (
 
 CREATE TABLE sumsub_callbacks (
   id BIGSERIAL PRIMARY KEY,
-  customer_id UUID NOT NULL, -- REFERENCES customers(id) -- not enforced to get all callbacks
+  customer_id UUID NOT NULL, -- not enforced to get all callbacks
   content JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

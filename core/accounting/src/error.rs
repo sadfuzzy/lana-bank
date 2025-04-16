@@ -14,4 +14,6 @@ pub enum CoreAccountingError {
     LedgerTransactionError(#[from] super::ledger_transaction::error::LedgerTransactionError),
     #[error("CoreAccountingError - AccountCodeParseError: {0}")]
     AccountCodeParseError(#[from] super::AccountCodeParseError),
+    #[error("CoreAccountingError - AccountingCsvError: {0}")]
+    AccountingCsvError(#[from] super::csv::error::AccountingCsvError),
 }

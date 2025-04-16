@@ -91,7 +91,14 @@ impl LanaApp {
             TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
-        let accounting = Accounting::new(&pool, &authz, &cala, journal_init.journal_id);
+        let accounting = Accounting::new(
+            &pool,
+            &authz,
+            &cala,
+            journal_init.journal_id,
+            &storage,
+            &jobs,
+        );
 
         StatementsInit::statements(
             &trial_balances,

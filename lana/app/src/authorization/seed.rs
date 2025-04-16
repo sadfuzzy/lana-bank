@@ -562,7 +562,20 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             CoreAccountingAction::LEDGER_TRANSACTION_READ,
         )
         .await?;
-
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_GENERATE_DOWNLOAD_LINK,
+        )
+        .await?;
     authz
         .add_permission_to_role(
             &role,

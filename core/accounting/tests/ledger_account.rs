@@ -6,8 +6,10 @@ use cala_ledger::{
     account::NewAccount,
     account_set::{AccountSetMemberId, NewAccountSet},
 };
+use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use helpers::{action, object};
+use job::{JobExecutorConfig, Jobs};
 
 #[tokio::test]
 #[rustfmt::skip]
@@ -19,7 +21,10 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
+    let storage = Storage::new(&StorageConfig::default());
+    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
+
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
     let import = r#"
@@ -79,8 +84,11 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
+    
+    let storage = Storage::new(&StorageConfig::default());
+    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
     let import = r#"
@@ -130,8 +138,13 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
+    let storage = Storage::new(&StorageConfig::default());
+    let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id ,
+        &storage,
+        &jobs,
+    );
     let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
     let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
     let import = r#"
