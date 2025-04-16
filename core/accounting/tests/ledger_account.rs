@@ -1,9 +1,11 @@
 mod helpers;
 
 use authz::dummy::DummySubject;
-use cala_ledger::account::NewAccount;
-use cala_ledger::account_set::NewAccountSet;
-use cala_ledger::{AccountId, AccountSetId, CalaLedger, CalaLedgerConfig};
+use cala_ledger::{
+    AccountId, AccountSetId, CalaLedger, CalaLedgerConfig,
+    account::NewAccount,
+    account_set::{AccountSetMemberId, NewAccountSet},
+};
 use core_accounting::CoreAccounting;
 use helpers::{action, object};
 
@@ -115,6 +117,49 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 
     let grandchild = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "11.1".to_string()).await?.unwrap();
     assert_eq!(grandchild.children_ids, vec![leaf_id.into()]);
+
+    Ok(())
+}
+
+#[tokio::test]
+#[rustfmt::skip]
+async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
+    use rand::Rng;
+    let pool = helpers::init_pool().await?;
+    let cala_config = CalaLedgerConfig::builder().pool(pool.clone()).exec_migrations(false).build()?;
+    let cala = CalaLedger::init(cala_config).await?;
+    let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
+    let journal_id = helpers::init_journal(&cala).await?;
+
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id);
+    let chart_ref = format!("ref-{:08}", rand::thread_rng().gen_range(0..10000));
+    let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
+    let import = r#"
+        1,,Root
+        11,,Child
+        11,1,Grandchild
+        "#;
+    let chart_id = chart.id;
+    accounting.chart_of_accounts().import_from_csv(&DummySubject, chart_id, import).await?;
+
+    let root = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "1".to_string()).await?.unwrap();
+    let child = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "11".to_string()).await?.unwrap();
+    let grandchild = accounting.find_ledger_account_by_code(&DummySubject, &chart_ref, "11.1".to_string()).await?.unwrap();
+
+    // chart of account
+    assert_eq!(root.children_ids, vec![child.id]);
+    assert_eq!(child.children_ids, vec![grandchild.id]);
+    assert_eq!(grandchild.children_ids, vec![]);
+
+    let module_specific_account_set_id = AccountSetId::new();
+    cala.account_sets()
+        .create(NewAccountSet::builder().id(module_specific_account_set_id).name("Internal").journal_id(journal_id).build().unwrap())
+        .await?;
+    
+    cala.account_sets().add_member( module_specific_account_set_id, AccountSetMemberId::AccountSet(child.id.into())).await?;
+
+    let module_specific_account = accounting.find_ledger_account_by_id(&DummySubject, &chart_ref, module_specific_account_set_id).await?.unwrap();
+    assert_eq!(module_specific_account.children_ids, vec![child.id]);
 
     Ok(())
 }

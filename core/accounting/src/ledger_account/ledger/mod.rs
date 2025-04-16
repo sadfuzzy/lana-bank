@@ -158,11 +158,17 @@ impl LedgerAccountLedger {
             let mut results = Vec::new();
 
             for child in children {
-                match child.id {
-                    cala_ledger::account_set::AccountSetMemberId::Account(id) => {
+                match (child.external_id, child.id) {
+                    (
+                        Some(external_id),
+                        cala_ledger::account_set::AccountSetMemberId::AccountSet(id),
+                    ) if external_id.parse::<AccountCode>().is_ok() => {
                         results.push(id.into());
                     }
-                    cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => {
+                    (_, cala_ledger::account_set::AccountSetMemberId::Account(id)) => {
+                        results.push(id.into());
+                    }
+                    (_, cala_ledger::account_set::AccountSetMemberId::AccountSet(id)) => {
                         let nested_children = self
                             .find_leaf_children(id.into(), current_depth + 1)
                             .await?;
