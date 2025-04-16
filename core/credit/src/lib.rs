@@ -431,7 +431,7 @@ where
             return Err(CreditFacilityError::NotActivatedYet.into());
         }
         let now = crate::time::now();
-        if !facility.can_initiate_disbursal(now) {
+        if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
         }
         let balance = self
@@ -442,11 +442,14 @@ where
         let outstanding = CreditFacilityReceivable::from(balance);
 
         let price = self.price.usd_cents_per_btc().await?;
-        outstanding
+        if !outstanding
             .with_added_disbursal_amount(amount)
             .facility_cvl_data(facility.collateral(), balance.facility_remaining)
             .cvl(price)
-            .check_disbursal_allowed(facility.terms)?;
+            .is_disbursal_allowed(facility.terms)
+        {
+            return Err(CreditFacilityError::BelowMarginLimit.into());
+        }
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
