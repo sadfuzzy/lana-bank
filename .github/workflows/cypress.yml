@@ -1,4 +1,4 @@
-name: cypress
+name: Cypress
 
 on:
   pull_request:
@@ -11,13 +11,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cypress-test-run-in-browserstack:
-    name: browserstack / local tunnel into tilt up
-    runs-on: ubuntu-latest
+  run-cypress-tests:
+    name: Run Tests
+    runs-on: Lana-Big-Runner
     steps:
+      - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v4
       - uses: DeterminateSystems/magic-nix-cache-action@v8
-      - uses: actions/checkout@v4
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - uses: "google-github-actions/auth@v2"
         with:
@@ -42,10 +52,7 @@ jobs:
           df -h
 
       - name: run cypress tests
-        run: nix develop -c make test-cypress-in-ci-through-browserstack
-        env:
-          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
-          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+        run: nix develop -c make test-cypress-in-ci-locally
 
       - name: upload cypress screenshots
         uses: actions/upload-artifact@v4
@@ -54,8 +61,8 @@ jobs:
           path: apps/admin-panel/cypress/manuals/screenshots/*
 
   manual-generation:
-    name: manual pdfs / upload to lana-manuals
-    needs: cypress-test-run-in-browserstack
+    name: Generate and Upload Lana Manuals
+    needs: run-cypress-tests
     runs-on: ubuntu-latest
     steps:
       - uses: DeterminateSystems/nix-installer-action@v4
