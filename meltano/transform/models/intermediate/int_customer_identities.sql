@@ -17,6 +17,9 @@ select
     questionnaires[safe_offset(0)].el_salvador_municipality as el_salvador_municipality,
     questionnaires[safe_offset(0)].marital_status as marital_status,
     questionnaires[safe_offset(0)].married_name as married_name,
+    questionnaires[safe_offset(0)].nit as nit,
+    questionnaires[safe_offset(0)].source_of_funds as source_of_funds,
+    questionnaires[safe_offset(0)].second_nationality as second_nationality,
     id_documents[safe_offset(0)].number as passport_number
 
 from {{ ref('int_sumsub_applicants') }}

@@ -1,3 +1,6 @@
+
+ --TODO: business onboarding
+
 select
 
     -- use NIU type (`tipo_identificador` = 'N')
@@ -69,7 +72,7 @@ select
     cast(null as string) as `nit_anterior`,
     cast(null as string) as `tipo_ident_anterior`,
 
-    el_salvador_municipality as `municipio_residencia`
+    el_salvador_municipality as `distrito_residencia`
 
 from {{ ref('int_customers') }}
-left join {{ ref('int_customer_identities') }} using (customer_id)
+join {{ ref('int_customer_identities') }} using (customer_id)
