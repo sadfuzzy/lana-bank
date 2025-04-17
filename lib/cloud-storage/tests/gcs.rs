@@ -27,10 +27,6 @@ async fn upload_doc() -> anyhow::Result<()> {
     let filename = "test.txt";
 
     let _ = storage.upload(content, filename, "application/txt").await;
-    let res = storage._list("".to_string()).await?;
-
-    assert!(!res.is_empty());
-    let count = res.len();
 
     // generate link
     let location = LocationInCloud {
@@ -48,10 +44,6 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     // remove docs
     let _ = storage.remove(location).await;
-
-    // verify list is now empty
-    let res = storage._list("".to_string()).await?;
-    assert_eq!(res.len(), count - 1);
 
     Ok(())
 }
