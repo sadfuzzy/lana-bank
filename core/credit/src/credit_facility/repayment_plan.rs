@@ -1,8 +1,8 @@
 use chrono::{DateTime, Utc};
 
-use crate::{CreditFacilityReceivable, UsdCents};
+use crate::primitives::{BalanceUpdatedType, UsdCents};
 
-use super::{BalanceUpdatedSource, BalanceUpdatedType, CreditFacilityEvent};
+use super::{BalanceUpdatedSource, CreditFacilityEvent, CreditFacilityReceivable};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum RepaymentStatus {
@@ -268,7 +268,7 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
                 updated_at: first_interest_posted_at,
@@ -464,7 +464,7 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(2),
                 updated_at: second_interest_posted_at,
@@ -546,7 +546,7 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -566,14 +566,14 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(100),
                 updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,
@@ -625,7 +625,7 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(12),
                 updated_at: second_interest_posted_at,
@@ -645,14 +645,14 @@ mod tests {
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount: UsdCents::from(1000),
                 updated_at: third_interest_posted_at,
                 audit_info: dummy_audit_info(),
             },
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::PaymentAllocation(LedgerTxId::new()),
+                source: BalanceUpdatedSource::PaymentAllocation(PaymentAllocationId::new()),
                 balance_type: BalanceUpdatedType::InterestAccrual,
                 amount: UsdCents::from(6),
                 updated_at: third_interest_posted_at,

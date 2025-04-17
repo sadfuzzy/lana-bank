@@ -2,12 +2,12 @@ use chrono::{DateTime, Utc};
 
 use crate::{primitives::*, terms::CollateralizationState};
 
-use super::{BalanceUpdatedSource, BalanceUpdatedType, CreditFacilityEvent};
+use super::{BalanceUpdatedSource, CreditFacilityEvent};
 
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub payment_id: LedgerTxId, // TODO: change to PaymentAllocationId
+    pub payment_id: PaymentAllocationId,
 }
 
 pub struct CollateralUpdated {

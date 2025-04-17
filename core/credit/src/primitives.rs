@@ -18,6 +18,7 @@ es_entity::entity_id! {
     CreditFacilityId,
     DisbursalId,
     PaymentId,
+    PaymentAllocationId,
     ChartOfAccountsIntegrationConfigId,
     ObligationId,
     InterestAccrualCycleId;
@@ -30,7 +31,28 @@ es_entity::entity_id! {
     ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,
-    PaymentId => LedgerTxId,
+    PaymentAllocationId => LedgerTxId,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+pub enum ObligationType {
+    Disbursal,
+    Interest,
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+pub enum BalanceUpdatedType {
+    Disbursal,
+    InterestAccrual,
+}
+
+impl From<ObligationType> for BalanceUpdatedType {
+    fn from(obligation_type: ObligationType) -> Self {
+        match obligation_type {
+            ObligationType::Disbursal => Self::Disbursal,
+            ObligationType::Interest => Self::InterestAccrual,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

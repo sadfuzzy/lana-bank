@@ -4,7 +4,8 @@ use outbox::{Outbox, OutboxEventMarker};
 use crate::{
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
     event::*,
-    obligation::{error::ObligationError, Obligation, ObligationEvent, ObligationType},
+    obligation::{error::ObligationError, Obligation, ObligationEvent},
+    primitives::ObligationType,
     BalanceUpdatedType,
 };
 

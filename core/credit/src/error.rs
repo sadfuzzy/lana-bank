@@ -18,6 +18,8 @@ pub enum CoreCreditError {
     CoreCreditError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - PaymentError: {0}")]
     PaymentError(#[from] super::payment::error::PaymentError),
+    #[error("CoreCreditError - PaymentAllocationError: {0}")]
+    PaymentAllocationError(#[from] super::payment_allocation::error::PaymentAllocationError),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),
     #[error("CoreCreditError - ObligationError: {0}")]

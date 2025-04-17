@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     ledger::CreditFacilityAccountIds,
-    obligation::{NewObligation, ObligationAccounts, ObligationType},
+    obligation::{NewObligation, ObligationAccounts},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
@@ -263,7 +263,11 @@ impl InterestAccrualCycle {
             ..
         }: InterestAccrualCycleData,
         audit_info: AuditInfo,
-    ) -> NewObligation {
+    ) -> Idempotent<NewObligation> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            InterestAccrualCycleEvent::InterestAccrualsPosted { .. }
+        );
         let obligation_id = ObligationId::new();
         self.events
             .push(InterestAccrualCycleEvent::InterestAccrualsPosted {
@@ -275,33 +279,37 @@ impl InterestAccrualCycle {
                 audit_info: audit_info.clone(),
             });
 
-        NewObligation::builder()
-            .id(obligation_id)
-            .credit_facility_id(self.credit_facility_id)
-            .obligation_type(ObligationType::Interest)
-            .reference(tx_ref.to_string())
-            .amount(interest)
-            .tx_id(tx_id)
-            .not_yet_due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self
-                    .account_ids
-                    .interest_receivable_not_yet_due_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
-            })
-            .due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.interest_receivable_due_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
-            })
-            .overdue_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.interest_receivable_overdue_account_id,
-                account_to_be_credited_id: self.account_ids.interest_income_account_id,
-            })
-            .due_date(self.accrual_cycle_ends_at())
-            .overdue_date(self.accrual_cycle_ends_at())
-            .recorded_at(posted_at)
-            .audit_info(audit_info)
-            .build()
-            .expect("could not build new interest accrual cycle obligation")
+        Idempotent::Executed(
+            NewObligation::builder()
+                .id(obligation_id)
+                .credit_facility_id(self.credit_facility_id)
+                .obligation_type(ObligationType::Interest)
+                .reference(tx_ref.to_string())
+                .amount(interest)
+                .tx_id(tx_id)
+                .not_yet_due_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self
+                        .account_ids
+                        .interest_receivable_not_yet_due_account_id,
+                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                })
+                .due_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self.account_ids.interest_receivable_due_account_id,
+                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                })
+                .overdue_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self
+                        .account_ids
+                        .interest_receivable_overdue_account_id,
+                    account_to_be_credited_id: self.account_ids.interest_income_account_id,
+                })
+                .due_date(self.accrual_cycle_ends_at())
+                .overdue_date(self.accrual_cycle_ends_at())
+                .recorded_at(posted_at)
+                .audit_info(audit_info)
+                .build()
+                .expect("could not build new interest accrual cycle obligation"),
+        )
     }
 }
 

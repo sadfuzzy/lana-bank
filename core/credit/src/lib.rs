@@ -10,6 +10,7 @@ mod jobs;
 pub mod ledger;
 mod obligation;
 mod payment;
+mod payment_allocation;
 mod primitives;
 mod processes;
 mod publisher;
@@ -43,6 +44,7 @@ use jobs::*;
 pub use ledger::*;
 pub use obligation::{obligation_cursor::*, *};
 pub use payment::*;
+pub use payment_allocation::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
@@ -61,6 +63,7 @@ where
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo,
     payment_repo: PaymentRepo,
+    payment_allocation_repo: PaymentAllocationRepo,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
     ledger: CreditLedger,
@@ -86,6 +89,7 @@ where
             obligations: self.obligations.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
+            payment_allocation_repo: self.payment_allocation_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
             ledger: self.ledger.clone(),
@@ -127,6 +131,7 @@ where
         let disbursal_repo = DisbursalRepo::new(pool);
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let payment_repo = PaymentRepo::new(pool);
+        let payment_allocation_repo = PaymentAllocationRepo::new(pool);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
             &disbursal_repo,
@@ -217,6 +222,7 @@ where
             obligations,
             disbursal_repo,
             payment_repo,
+            payment_allocation_repo,
             governance: governance.clone(),
             ledger,
             price: price.clone(),
@@ -687,9 +693,13 @@ where
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
+        let allocations = self
+            .payment_allocation_repo
+            .create_all_in_op(&mut db, res.allocations)
+            .await?;
 
         self.ledger
-            .record_obligation_repayments(db, res.allocations)
+            .record_obligation_repayments(db, allocations)
             .await?;
 
         Ok(credit_facility)

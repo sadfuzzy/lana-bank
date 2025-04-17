@@ -9,11 +9,15 @@ use cala_ledger::CalaLedger;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
+use std::collections::HashMap;
+
 use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
+    payment_allocation::NewPaymentAllocation,
     primitives::{
-        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
+        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
+        PaymentId, UsdCents,
     },
     publisher::CreditFacilityPublisher,
 };
@@ -117,38 +121,24 @@ where
         amount: UsdCents,
         audit_info: AuditInfo,
     ) -> Result<PaymentAllocationResult, ObligationError> {
-        let obligations = self.facility_obligations(credit_facility_id).await?;
+        let mut obligations = self.facility_obligations(credit_facility_id).await?;
 
-        let new_allocations =
-            PaymentAllocator::new(payment_id, amount).allocate(obligations.iter())?;
+        let new_allocations = PaymentAllocator::new(credit_facility_id, payment_id, amount)
+            .allocate(obligations.values(), &audit_info)?;
 
         let now = crate::time::now();
-        let mut updated_obligations = vec![];
-        let mut new_allocations_applied = vec![];
-        for mut obligation in obligations {
-            if let Some(new_allocation) = new_allocations
-                .iter()
-                .find(|new_allocation| new_allocation.obligation_id == obligation.id)
-            {
-                obligation
-                    .record_payment(
-                        new_allocation.id,
-                        new_allocation.amount,
-                        now,
-                        audit_info.clone(),
-                    )
-                    .did_execute();
-                new_allocations_applied.push(*new_allocation);
-                updated_obligations.push(obligation);
-            }
+        for allocation in new_allocations.iter() {
+            let obligation = obligations
+                .get_mut(&allocation.obligation_id)
+                .expect("obligation not found");
+            obligation
+                .record_payment(allocation.id, allocation.amount, now, audit_info.clone())
+                .did_execute();
+
+            self.repo.update_in_op(db, obligation).await?;
         }
 
-        // TODO: remove n+1
-        for mut obligation in updated_obligations {
-            self.repo.update_in_op(db, &mut obligation).await?;
-        }
-
-        Ok(PaymentAllocationResult::new(new_allocations_applied))
+        Ok(PaymentAllocationResult::new(new_allocations))
     }
 
     pub async fn check_facility_obligations_status_updated(
@@ -156,7 +146,7 @@ where
         credit_facility_id: CreditFacilityId,
     ) -> Result<bool, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
-        for obligation in obligations {
+        for obligation in obligations.values() {
             let expected_status = obligation.expected_status();
             let actual_status = obligation.status();
             if expected_status != actual_status {
@@ -170,8 +160,8 @@ where
     async fn facility_obligations(
         &self,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<Vec<Obligation>, ObligationError> {
-        let mut obligations = vec![];
+    ) -> Result<HashMap<ObligationId, Obligation>, ObligationError> {
+        let mut obligations = HashMap::new();
         let mut query = Default::default();
         loop {
             let mut res = self
@@ -183,7 +173,7 @@ where
                 )
                 .await?;
 
-            obligations.append(&mut res.entities);
+            obligations.extend(res.entities.drain(..).map(|o| (o.id, o)));
 
             if let Some(q) = res.into_next_query() {
                 query = q;

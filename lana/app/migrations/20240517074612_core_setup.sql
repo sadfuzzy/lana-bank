@@ -244,6 +244,23 @@ CREATE TABLE core_payment_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_payment_allocations (
+  id UUID PRIMARY KEY,
+  payment_id UUID NOT NULL REFERENCES core_payments(id),
+  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
+  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_payment_allocation_events (
+  id UUID NOT NULL REFERENCES core_payment_allocations(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,

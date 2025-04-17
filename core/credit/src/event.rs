@@ -23,11 +23,6 @@ pub enum CoreCreditEvent {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    DisbursalExecuted {
-        id: CreditFacilityId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-    },
     FacilityRepaymentRecorded {
         id: CreditFacilityId,
         disbursal_amount: UsdCents,
@@ -39,6 +34,11 @@ pub enum CoreCreditEvent {
         new_amount: Satoshis,
         abs_diff: Satoshis,
         action: FacilityCollateralUpdateAction,
+        recorded_at: DateTime<Utc>,
+    },
+    DisbursalExecuted {
+        id: CreditFacilityId,
+        amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     AccrualExecuted {

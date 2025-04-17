@@ -128,7 +128,14 @@ where
             .find_by_id(self.config.credit_facility_id)
             .await?;
 
-        let new_obligation = credit_facility.record_interest_accrual_cycle(audit_info.clone())?;
+        let new_obligation = if let es_entity::Idempotent::Executed(new_obligation) =
+            credit_facility.record_interest_accrual_cycle(audit_info.clone())?
+        {
+            new_obligation
+        } else {
+            unreachable!("Should not be possible");
+        };
+
         let obligation = self
             .obligations
             .create_with_jobs_in_op(db, new_obligation)

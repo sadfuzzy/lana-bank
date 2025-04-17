@@ -6,7 +6,9 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    primitives::{CalaAccountId, LedgerTxId, ObligationId, UsdCents},
+    primitives::{
+        CalaAccountId, LedgerTxId, ObligationId, ObligationType, PaymentAllocationId, UsdCents,
+    },
     CreditFacilityId,
 };
 
@@ -19,12 +21,6 @@ pub enum ObligationStatus {
     Overdue,
     Defaulted,
     Paid,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum ObligationType {
-    Disbursal,
-    Interest,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -109,7 +105,7 @@ pub enum ObligationEvent {
     },
     // TODO: Remove and find from PaymentAllocation entities
     PaymentRecorded {
-        payment_allocation_id: LedgerTxId,
+        payment_allocation_id: PaymentAllocationId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -376,7 +372,7 @@ impl Obligation {
 
     pub(crate) fn record_payment(
         &mut self,
-        payment_allocation_id: LedgerTxId,
+        payment_allocation_id: PaymentAllocationId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -439,7 +435,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
 #[derive(Debug, Builder)]
 pub struct NewObligation {
     #[builder(setter(into))]
-    pub(super) id: ObligationId,
+    pub(crate) id: ObligationId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) obligation_type: ObligationType,
@@ -464,10 +460,6 @@ pub struct NewObligation {
 impl NewObligation {
     pub fn builder() -> NewObligationBuilder {
         NewObligationBuilder::default()
-    }
-
-    pub(crate) fn id(&self) -> ObligationId {
-        self.id
     }
 
     pub(super) fn reference(&self) -> String {

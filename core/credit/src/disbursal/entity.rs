@@ -7,7 +7,7 @@ use es_entity::*;
 
 use crate::{
     ledger::CreditFacilityAccountIds,
-    obligation::{NewObligation, ObligationAccounts, ObligationType},
+    obligation::{NewObligation, ObligationAccounts},
     primitives::*,
 };
 
@@ -142,7 +142,13 @@ impl Disbursal {
         });
         let tx_ref: &str = &format!("disbursal-{}", self.id);
         let new_obligation = if approved {
-            Some(self.settle_disbursal(tx_id, tx_ref, audit_info))
+            if let Idempotent::Executed(new_obligation) =
+                self.settle_disbursal(tx_id, tx_ref, audit_info.clone())
+            {
+                Some(new_obligation)
+            } else {
+                return Idempotent::Ignored;
+            }
         } else {
             self.events.push(DisbursalEvent::Cancelled {
                 ledger_tx_id: tx_id,
@@ -169,7 +175,8 @@ impl Disbursal {
         tx_id: LedgerTxId,
         tx_ref: &str,
         audit_info: AuditInfo,
-    ) -> NewObligation {
+    ) -> Idempotent<NewObligation> {
+        idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
         let obligation_id = ObligationId::new();
         self.events.push(DisbursalEvent::Settled {
             ledger_tx_id: tx_id,
@@ -177,33 +184,37 @@ impl Disbursal {
             audit_info: audit_info.clone(),
         });
 
-        NewObligation::builder()
-            .id(obligation_id)
-            .credit_facility_id(self.facility_id)
-            .obligation_type(ObligationType::Disbursal)
-            .reference(tx_ref.to_string())
-            .amount(self.amount)
-            .tx_id(tx_id)
-            .not_yet_due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self
-                    .account_ids
-                    .disbursed_receivable_not_yet_due_account_id,
-                account_to_be_credited_id: self.disbursal_credit_account_id,
-            })
-            .due_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.disbursed_receivable_due_account_id,
-                account_to_be_credited_id: self.disbursal_credit_account_id,
-            })
-            .overdue_accounts(ObligationAccounts {
-                account_to_be_debited_id: self.account_ids.disbursed_receivable_overdue_account_id,
-                account_to_be_credited_id: self.disbursal_credit_account_id,
-            })
-            .due_date(self.disbursal_due_date)
-            .overdue_date(self.disbursal_due_date)
-            .recorded_at(crate::time::now())
-            .audit_info(audit_info)
-            .build()
-            .expect("could not build new disbursal obligation")
+        Idempotent::Executed(
+            NewObligation::builder()
+                .id(obligation_id)
+                .credit_facility_id(self.facility_id)
+                .obligation_type(ObligationType::Disbursal)
+                .reference(tx_ref.to_string())
+                .amount(self.amount)
+                .tx_id(tx_id)
+                .not_yet_due_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self
+                        .account_ids
+                        .disbursed_receivable_not_yet_due_account_id,
+                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                })
+                .due_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self.account_ids.disbursed_receivable_due_account_id,
+                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                })
+                .overdue_accounts(ObligationAccounts {
+                    account_to_be_debited_id: self
+                        .account_ids
+                        .disbursed_receivable_overdue_account_id,
+                    account_to_be_credited_id: self.disbursal_credit_account_id,
+                })
+                .due_date(self.disbursal_due_date)
+                .overdue_date(self.disbursal_due_date)
+                .recorded_at(crate::time::now())
+                .audit_info(audit_info)
+                .build()
+                .expect("could not build new disbursal obligation"),
+        )
     }
 
     pub(super) fn is_confirmed(&self) -> bool {

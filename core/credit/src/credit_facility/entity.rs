@@ -7,7 +7,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    obligation::{NewObligation, ObligationType, ObligationsAmounts},
+    obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
     terms::{CVLPct, CollateralizationState, InterestPeriod, TermValues},
 };
@@ -22,22 +22,7 @@ use super::{
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
-    PaymentAllocation(LedgerTxId), // TODO: change to PaymentAllocationId
-}
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
-pub enum BalanceUpdatedType {
-    Disbursal,
-    InterestAccrual,
-}
-
-impl From<ObligationType> for BalanceUpdatedType {
-    fn from(obligation_type: ObligationType) -> Self {
-        match obligation_type {
-            ObligationType::Disbursal => Self::Disbursal,
-            ObligationType::Interest => Self::InterestAccrual,
-        }
-    }
+    PaymentAllocation(PaymentAllocationId),
 }
 
 #[allow(clippy::large_enum_variant)]
@@ -455,7 +440,7 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<NewObligation, CreditFacilityError> {
+    ) -> Result<Idempotent<NewObligation>, CreditFacilityError> {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
             .expect("accrual not found")
@@ -468,25 +453,30 @@ impl CreditFacility {
                 .expect("accrual not found");
             (
                 accrual.idx,
-                accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()),
+                match accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()) {
+                    Idempotent::Executed(new_obligation) => new_obligation,
+                    Idempotent::Ignored => {
+                        return Ok(Idempotent::Ignored);
+                    }
+                },
             )
         };
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 idx,
-                obligation_id: new_obligation.id(),
+                obligation_id: new_obligation.id,
                 tx_id: accrual_cycle_data.tx_id,
                 audit_info: audit_info.clone(),
             });
         self.events.push(CreditFacilityEvent::BalanceUpdated {
-            source: BalanceUpdatedSource::Obligation(new_obligation.id()),
+            source: BalanceUpdatedSource::Obligation(new_obligation.id),
             balance_type: BalanceUpdatedType::InterestAccrual,
             amount: accrual_cycle_data.interest,
             updated_at: accrual_cycle_data.posted_at,
             audit_info,
         });
 
-        Ok(new_obligation)
+        Ok(Idempotent::Executed(new_obligation))
     }
 
     pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
@@ -541,7 +531,7 @@ impl CreditFacility {
 
     pub(crate) fn update_balance_from_payment(
         &mut self,
-        payment_allocation_id: LedgerTxId,
+        payment_allocation_id: PaymentAllocationId,
         balance_type: impl Into<BalanceUpdatedType>,
         amount: UsdCents,
         updated_at: DateTime<Utc>,
