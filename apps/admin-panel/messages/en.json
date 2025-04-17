@@ -50,7 +50,8 @@
       "profitAndLoss": "Profit & Loss",
       "regulatoryReporting": "Regulatory Reporting",
       "trialBalance": "Trial Balance",
-      "modules": "Modules"
+      "modules": "Modules",
+      "transactionTemplates": "Transaction Templates"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -1463,5 +1464,22 @@
     },
     "errored": "An error occurred while executing the transaction",
     "success": "Transaction executed successfully"
+  },
+  "TransactionTemplates": {
+    "title": "Transaction Templates",
+    "description": "Templates for transactions",
+    "code": "Code",
+    "noData": "No transaction templates found"
+  },
+  "LedgerTransactionsForTemplateCode": {
+    "title": "Ledger Transactions for {code}",
+    "description": "Ledger transactions associated with this template code",
+    "table": {
+      "noData": "No ledger transactions found for this template code",
+      "headers": {
+        "createdAt": "Created At",
+        "description": "Description"
+      }
+    }
   }
 }

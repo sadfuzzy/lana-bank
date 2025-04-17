@@ -1,0 +1,116 @@
+"use client"
+
+import { useTranslations } from "next-intl"
+
+import { gql } from "@apollo/client"
+
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@lana/web/ui/card"
+
+import {
+  LedgerTransaction,
+  useLedgerTransactionsForTemplateCodeQuery,
+} from "@/lib/graphql/generated"
+
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/paginated-table"
+import { formatDate } from "@/lib/utils"
+
+gql`
+  query LedgerTransactionsForTemplateCode(
+    $templateCode: String!
+    $first: Int!
+    $after: String
+  ) {
+    ledgerTransactionsForTemplateCode(
+      templateCode: $templateCode
+      first: $first
+      after: $after
+    ) {
+      edges {
+        cursor
+        node {
+          id
+          ledgerTransactionId
+          createdAt
+          description
+        }
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
+  }
+`
+
+type LedgerTransactionsForTemplateCodeProps = {
+  params: {
+    "transaction-template-code": string
+  }
+}
+
+const LedgerTransactionsForTemplateCode: React.FC<
+  LedgerTransactionsForTemplateCodeProps
+> = ({ params: { "transaction-template-code": transactionTemplateCode } }) => {
+  const t = useTranslations("LedgerTransactionsForTemplateCode")
+
+  const { data, loading, error, fetchMore } = useLedgerTransactionsForTemplateCodeQuery({
+    variables: {
+      templateCode: transactionTemplateCode,
+      first: DEFAULT_PAGESIZE,
+    },
+  })
+
+  const columns: Column<LedgerTransaction>[] = [
+    {
+      key: "createdAt",
+      label: t("table.headers.createdAt"),
+      render: (date) => formatDate(date),
+    },
+    {
+      key: "description",
+      label: t("table.headers.description"),
+    },
+  ]
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("title", { code: `"${transactionTemplateCode}"` })}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error ? (
+          <p className="text-destructive text-sm">{t("errors.general")}</p>
+        ) : (
+          <PaginatedTable<LedgerTransaction>
+            columns={columns}
+            pageSize={DEFAULT_PAGESIZE}
+            data={
+              data?.ledgerTransactionsForTemplateCode as PaginatedData<LedgerTransaction>
+            }
+            loading={loading}
+            fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+            navigateTo={({ ledgerTransactionId }) =>
+              `/ledger-transaction/${ledgerTransactionId}`
+            }
+            noDataText={t("table.noData")}
+          />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+export default LedgerTransactionsForTemplateCode

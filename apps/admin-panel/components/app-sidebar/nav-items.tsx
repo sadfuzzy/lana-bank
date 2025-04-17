@@ -20,6 +20,7 @@ import {
   Grid2x2,
   Cog,
   ScrollIcon,
+  SquareAsterisk,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -74,6 +75,11 @@ export function useNavItems() {
     { title: t("journal"), url: "/journal", icon: ScrollIcon },
     { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
     { title: t("modules"), url: "/modules", icon: Cog },
+    {
+      title: t("transactionTemplates"),
+      url: "/transaction-templates",
+      icon: SquareAsterisk,
+    },
   ]
 
   const allNavItems: NavItem[] = [

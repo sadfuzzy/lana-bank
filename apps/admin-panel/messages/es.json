@@ -50,7 +50,8 @@
       "profitAndLoss": "Pérdidas y Ganancias",
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
-      "modules": "Módulos"
+      "modules": "Módulos",
+      "transactionTemplates": "Plantillas de transacciones"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -1463,5 +1464,22 @@
     },
     "errored": "Ocurrió un error al ejecutar la transacción",
     "success": "Transacción ejecutada con éxito"
+  },
+  "TransactionTemplates": {
+    "title": "Plantillas de transacciones",
+    "description": "Plantillas para transacciones",
+    "code": "Código",
+    "noData": "No se encontraron plantillas de transacciones"
+  },
+  "LedgerTransactionsForTemplateCode": {
+    "title": "Transacciones contables para {code}",
+    "description": "Transacciones contables asociadas a este código de plantilla",
+    "table": {
+      "noData": "No se encontraron transacciones contables para este código de plantilla",
+      "headers": {
+        "createdAt": "Creado el",
+        "description": "Descripción"
+      }
+    }
   }
 }

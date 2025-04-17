@@ -47,6 +47,7 @@ checksums:
     Sidebar/navItems/regulatoryReporting: 72afee90c9a04f9a28c85b6d8c3b9c28
     Sidebar/navItems/trialBalance: 2d6598d15bc81b1e8d626782922e6ab7
     Sidebar/navItems/modules: 9472210741c31f0ecba26e8590af62ea
+    Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -874,3 +875,12 @@ checksums:
     ManualTransactions/table/description: e17686a22ffad04cc7bb70524ed4478b
     ManualTransactions/errored: b8fce30a7bd38573774a442782ba574f
     ManualTransactions/success: 2e3024332d84ce146725f4065bebad31
+    TransactionTemplates/title: cdfe1e063b21076f6b5dc06d5c6cce33
+    TransactionTemplates/description: 358dbd4472fd63bc311612eaf175ab57
+    TransactionTemplates/code: 343bc5386149b97cece2b093c39034b2
+    TransactionTemplates/noData: cf33d780cb48c9296bbdc2ffc4549092
+    LedgerTransactionsForTemplateCode/title: 6ab59e155e4bb73fd7b1aa8df0bc632e
+    LedgerTransactionsForTemplateCode/description: d27d874f3cb4d41fc9fa4392ba6fcbec
+    LedgerTransactionsForTemplateCode/table/noData: 6af4775f34d95b6313e2adeb8f9974a8
+    LedgerTransactionsForTemplateCode/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    LedgerTransactionsForTemplateCode/table/headers/description: e17686a22ffad04cc7bb70524ed4478b
