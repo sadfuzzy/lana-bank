@@ -4,12 +4,14 @@ use crate::{primitives::*, terms::CollateralizationState};
 
 use super::{BalanceUpdatedSource, CreditFacilityEvent};
 
+#[derive(Debug)]
 pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub payment_id: PaymentAllocationId,
 }
 
+#[derive(Debug)]
 pub struct CollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: DateTime<Utc>,
@@ -17,12 +19,14 @@ pub struct CollateralUpdated {
     pub tx_id: LedgerTxId,
 }
 
+#[derive(Debug)]
 pub struct CreditFacilityOrigination {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
 }
 
+#[derive(Debug)]
 pub struct CollateralizationUpdated {
     pub state: CollateralizationState,
     pub collateral: Satoshis,
@@ -32,12 +36,14 @@ pub struct CollateralizationUpdated {
     pub price: PriceOfOneBTC,
 }
 
+#[derive(Debug)]
 pub struct DisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
 }
 
+#[derive(Debug)]
 pub struct InterestAccrualsPosted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
@@ -45,6 +51,7 @@ pub struct InterestAccrualsPosted {
     pub tx_id: LedgerTxId,
 }
 
+#[derive(Debug)]
 pub enum CreditFacilityHistoryEntry {
     Payment(IncrementalPayment),
     Collateral(CollateralUpdated),
@@ -58,7 +65,6 @@ pub(super) fn project<'a>(
     events: impl DoubleEndedIterator<Item = &'a CreditFacilityEvent>,
 ) -> Vec<CreditFacilityHistoryEntry> {
     let mut history = vec![];
-    let mut disbursals = std::collections::HashMap::<ObligationId, LedgerTxId>::new();
     let mut interest_accruals_started_at = std::collections::HashMap::new();
     let mut interest_accruals = std::collections::HashMap::new();
 
@@ -138,15 +144,9 @@ pub(super) fn project<'a>(
                     },
                 ));
             }
-            // CreditFacilityEvent::DisbursalConcluded {
-            //     tx_id,
-            //     obligation_id: Some(obligation_id),
-            //     ..
-            // } => {
-            //     disbursals.insert(*obligation_id, *tx_id);
-            // }
             CreditFacilityEvent::BalanceUpdated {
-                source: BalanceUpdatedSource::Obligation(obligation_id),
+                ledger_tx_id,
+                source: BalanceUpdatedSource::Obligation(_),
                 balance_type: BalanceUpdatedType::Disbursal,
                 amount,
                 updated_at,
@@ -155,9 +155,7 @@ pub(super) fn project<'a>(
                 history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
                     cents: *amount,
                     recorded_at: *updated_at,
-                    tx_id: disbursals
-                        .remove(obligation_id)
-                        .expect("ObligationId was not found"),
+                    tx_id: *ledger_tx_id,
                 }));
             }
             CreditFacilityEvent::InterestAccrualCycleStarted {
@@ -202,4 +200,33 @@ pub(super) fn project<'a>(
     }
     history.reverse();
     history
+}
+
+#[cfg(test)]
+mod test {
+    use audit::{AuditEntryId, AuditInfo};
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    #[test]
+    fn can_project_disbursal_balance_update() {
+        let disbursal_amount = UsdCents::from(10_000_00);
+        let events = vec![CreditFacilityEvent::BalanceUpdated {
+            ledger_tx_id: LedgerTxId::new(),
+            source: BalanceUpdatedSource::Obligation(ObligationId::new()),
+            balance_type: BalanceUpdatedType::Disbursal,
+            amount: disbursal_amount,
+            updated_at: crate::time::now(),
+            audit_info: dummy_audit_info(),
+        }];
+        let res = project(events.iter());
+        assert_eq!(res.len(), 1)
+    }
 }
