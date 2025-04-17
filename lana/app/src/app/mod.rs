@@ -28,7 +28,6 @@ use crate::{
     report::Reports,
     storage::Storage,
     terms_template::TermsTemplates,
-    trial_balance::TrialBalances,
     user::Users,
     user_onboarding::UserOnboarding,
 };
@@ -48,7 +47,6 @@ pub struct LanaApp {
     applicants: Applicants,
     users: Users,
     credit: Credit,
-    trial_balances: TrialBalances,
     cash_flow_statements: CashFlowStatements,
     general_ledger: GeneralLedger,
     price: Price,
@@ -87,8 +85,6 @@ impl LanaApp {
             .expect("cala config");
         let cala = cala_ledger::CalaLedger::init(cala_config).await?;
         let journal_init = JournalInit::journal(&cala).await?;
-        let trial_balances =
-            TrialBalances::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let cash_flow_statements =
             CashFlowStatements::init(&pool, &authz, &cala, journal_init.journal_id).await?;
         let accounting = Accounting::new(
@@ -101,7 +97,7 @@ impl LanaApp {
         );
 
         StatementsInit::statements(
-            &trial_balances,
+            accounting.trial_balances(),
             accounting.profit_and_loss(),
             accounting.balance_sheets(),
             &cash_flow_statements,
@@ -161,7 +157,6 @@ impl LanaApp {
             price,
             report,
             credit,
-            trial_balances,
             cash_flow_statements,
             general_ledger,
             terms_templates,
@@ -231,10 +226,6 @@ impl LanaApp {
 
     pub fn credit(&self) -> &Credit {
         &self.credit
-    }
-
-    pub fn trial_balances(&self) -> &TrialBalances {
-        &self.trial_balances
     }
 
     pub fn cash_flow_statements(&self) -> &CashFlowStatements {

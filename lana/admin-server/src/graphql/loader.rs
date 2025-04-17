@@ -38,7 +38,6 @@ impl LanaLoader {
             .delay(std::time::Duration::from_secs(0))
     }
 }
-
 impl Loader<UserId> for LanaLoader {
     type Value = User;
     type Error = Arc<UserError>;

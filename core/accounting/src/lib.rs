@@ -12,6 +12,7 @@ pub mod manual_transaction;
 mod primitives;
 pub mod profit_and_loss;
 pub mod transaction_templates;
+pub mod trial_balance;
 
 use std::collections::HashMap;
 
@@ -28,12 +29,13 @@ pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_e
 pub use csv::AccountingCsvs;
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
-pub use ledger_account::{LedgerAccount, LedgerAccounts};
+pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;
+pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
 pub struct CoreAccounting<Perms>
 where
@@ -47,8 +49,9 @@ where
     manual_transactions: ManualTransactions<Perms>,
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
-    balance_sheet: BalanceSheets<Perms>,
+    balance_sheets: BalanceSheets<Perms>,
     csvs: AccountingCsvs<Perms>,
+    trial_balances: TrialBalances<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -65,8 +68,9 @@ where
             ledger_transactions: self.ledger_transactions.clone(),
             profit_and_loss: self.profit_and_loss.clone(),
             transaction_templates: self.transaction_templates.clone(),
-            balance_sheet: self.balance_sheet.clone(),
+            balance_sheets: self.balance_sheets.clone(),
             csvs: self.csvs.clone(),
+            trial_balances: self.trial_balances.clone(),
         }
     }
 }
@@ -92,8 +96,9 @@ where
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
-        let balance_sheet = BalanceSheets::new(pool, authz, cala, journal_id);
+        let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvs::new(pool, authz, jobs, storage, &ledger_accounts);
+        let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -103,8 +108,9 @@ where
             manual_transactions,
             profit_and_loss,
             transaction_templates,
-            balance_sheet,
+            balance_sheets,
             csvs,
+            trial_balances,
         }
     }
 
@@ -141,7 +147,11 @@ where
     }
 
     pub fn balance_sheets(&self) -> &BalanceSheets<Perms> {
-        &self.balance_sheet
+        &self.balance_sheets
+    }
+
+    pub fn trial_balances(&self) -> &TrialBalances<Perms> {
+        &self.trial_balances
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
@@ -196,6 +206,32 @@ where
                 CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
             })?;
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
+    }
+
+    pub async fn list_account_children(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        id: cala_ledger::AccountSetId,
+        args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
+        from: chrono::DateTime<chrono::Utc>,
+        until: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
+        CoreAccountingError,
+    > {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+
+        Ok(self
+            .ledger_accounts()
+            .list_account_children(sub, &chart, id, args, from, until, true)
+            .await?)
     }
 
     pub async fn execute_manual_transaction(

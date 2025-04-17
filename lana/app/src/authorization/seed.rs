@@ -417,7 +417,11 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         )
         .await?;
     authz
-        .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_trial_balance(),
+            CoreAccountingAction::TRIAL_BALANCE_READ,
+        )
         .await?;
     authz
         .add_permission_to_role(

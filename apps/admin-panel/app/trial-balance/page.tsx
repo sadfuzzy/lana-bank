@@ -25,10 +25,14 @@ import { Skeleton } from "@lana/web/ui/skeleton"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { TrialBalanceAccount, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
+import {
+  TrialBalanceCurrencySelection,
+  TrialBalanceLayerSelection,
+  TrialBalanceLayers,
+} from "./trial-balance-currency-selector"
 
+import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
   DateRange,
   DateRangeSelector,
@@ -48,7 +52,9 @@ gql`
     trialBalance(from: $from, until: $until) {
       name
       total {
-        ...balancesByCurrency
+        __typename
+        ...UsdLedgerBalanceRangeFragment
+        ...BtcLedgerBalanceRangeFragment
       }
       accounts(first: $first, after: $after) {
         edges {
@@ -57,8 +63,10 @@ gql`
             id
             code
             name
-            amounts {
-              ...balancesByCurrency
+            balanceRange {
+              __typename
+              ...UsdLedgerBalanceRangeFragment
+              ...BtcLedgerBalanceRangeFragment
             }
           }
         }
@@ -72,90 +80,39 @@ gql`
     }
   }
 
-  fragment balancesByCurrency on AccountAmountsByCurrency {
-    btc: btc {
-      ...rangedBtcBalances
+  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
+    settled
+    pending
+    encumbrance
+  }
+
+  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
+    settled
+    pending
+    encumbrance
+  }
+
+  fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
+    usdStart: start {
+      ...UsdBalanceFragment
     }
-    usd: usd {
-      ...rangedUsdBalances
+    usdDiff: diff {
+      ...UsdBalanceFragment
+    }
+    usdEnd: end {
+      ...UsdBalanceFragment
     }
   }
 
-  fragment rangedBtcBalances on BtcAccountAmountsInPeriod {
-    openingBalance {
-      ...btcBalances
+  fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
+    btcStart: start {
+      ...BtcBalanceFragment
     }
-    closingBalance {
-      ...btcBalances
+    btcDiff: diff {
+      ...BtcBalanceFragment
     }
-    amount {
-      ...btcBalances
-    }
-  }
-
-  fragment rangedUsdBalances on UsdAccountAmountsInPeriod {
-    openingBalance {
-      ...usdBalances
-    }
-    closingBalance {
-      ...usdBalances
-    }
-    amount {
-      ...usdBalances
-    }
-  }
-
-  fragment btcBalances on LayeredBtcAccountBalanceAmounts {
-    all {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    settled {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    pending {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    encumbrance {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-  }
-
-  fragment usdBalances on LayeredUsdAccountBalanceAmounts {
-    all {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    settled {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    pending {
-      debit
-      credit
-      netDebit
-      netCredit
-    }
-    encumbrance {
-      debit
-      credit
-      netDebit
-      netCredit
+    btcEnd: end {
+      ...BtcBalanceFragment
     }
   }
 `
@@ -207,9 +164,23 @@ const LoadingSkeleton = () => {
   )
 }
 
+type TrialBalanceAccountNode = NonNullable<
+  NonNullable<GetTrialBalanceQuery["trialBalance"]>["accounts"]
+>["edges"][0]["node"]
+
+type BalanceRange = NonNullable<TrialBalanceAccountNode["balanceRange"]>
+
+function isUsdLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) {
+  return !!balanceRange && balanceRange.__typename === "UsdLedgerAccountBalanceRange"
+}
+
+function isBtcLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) {
+  return !!balanceRange && balanceRange.__typename === "BtcLedgerAccountBalanceRange"
+}
+
 function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
 
   const { data, loading, error, fetchMore } = useGetTrialBalanceQuery({
     variables: {
@@ -220,7 +191,7 @@ function TrialBalancePage() {
   })
 
   const [currency, setCurrency] = React.useState<Currency>("usd")
-  const [layer, setLayer] = React.useState<Layers>("all")
+  const [layer, setLayer] = React.useState<TrialBalanceLayers>("settled")
 
   const router = useRouter()
 
@@ -233,87 +204,92 @@ function TrialBalancePage() {
   }
   if (!total) return <div>{t("noAccountsPresent")}</div>
 
-  const columns: Column<TrialBalanceAccount>[] = [
+  const columns: Column<TrialBalanceAccountNode>[] = [
     {
       key: "code",
       label: t("table.headers.accountCode"),
-      render: (code) => <div className="font-mono text-xs text-gray-500">{code}</div>,
+      render: (code: string) => (
+        <div className="font-mono text-xs text-gray-500">{code}</div>
+      ),
     },
     {
       key: "name",
       label: t("table.headers.accountName"),
     },
     {
-      key: "amounts",
-      label: t("table.headers.openingDebit"),
+      key: "balanceRange",
+      label: t("table.headers.openingBalance"),
       labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].openingBalance[layer].debit}
-        />
-      ),
+      render: (_, node) => {
+        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.usdStart[layer]}
+            />
+          )
+        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.btcStart[layer]}
+            />
+          )
+        }
+        return null
+      },
     },
     {
-      key: "amounts",
-      label: t("table.headers.openingCredit"),
+      key: "balanceRange",
+      label: t("table.headers.periodActivity"),
       labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].openingBalance[layer].credit}
-        />
-      ),
+      render: (_, node) => {
+        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.usdDiff[layer]}
+            />
+          )
+        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.btcDiff[layer]}
+            />
+          )
+        }
+        return null
+      },
     },
     {
-      key: "amounts",
-      label: t("table.headers.activityDebit"),
+      key: "balanceRange",
+      label: t("table.headers.closingBalance"),
       labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].amount[layer].debit}
-        />
-      ),
-    },
-    {
-      key: "amounts",
-      label: t("table.headers.activityCredit"),
-      labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].amount[layer].credit}
-        />
-      ),
-    },
-    {
-      key: "amounts",
-      label: t("table.headers.closingDebit"),
-      labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].closingBalance[layer].debit}
-        />
-      ),
-    },
-    {
-      key: "amounts",
-      label: t("table.headers.closingCredit"),
-      labelClassName: "!justify-end",
-      render: (amounts) => (
-        <Balance
-          align="end"
-          currency={currency}
-          amount={amounts[currency].closingBalance[layer].credit}
-        />
-      ),
+      render: (_, node) => {
+        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.usdEnd[layer]}
+            />
+          )
+        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
+          return (
+            <Balance
+              align="end"
+              currency={currency}
+              amount={node.balanceRange.btcEnd[layer]}
+            />
+          )
+        }
+        return null
+      },
     },
   ]
 
@@ -323,46 +299,25 @@ function TrialBalancePage() {
         <TableCell className="font-bold">{t("totals")}</TableCell>
         <TableCell />
         <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].openingBalance[layer].debit}
-          />
+          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.usdStart[layer]} />
+          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.btcStart[layer]} />
+          ) : null}
         </TableCell>
         <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].openingBalance[layer].credit}
-          />
+          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.usdDiff[layer]} />
+          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.btcDiff[layer]} />
+          ) : null}
         </TableCell>
         <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].amount[layer].debit}
-          />
-        </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].amount[layer].credit}
-          />
-        </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].closingBalance[layer].debit}
-          />
-        </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={total[currency].closingBalance[layer].credit}
-          />
+          {currency === "usd" && isUsdLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.usdEnd[layer]} />
+          ) : currency === "btc" && isBtcLedgerBalanceRange(total) ? (
+            <Balance align="end" currency={currency} amount={total.btcEnd[layer]} />
+          ) : null}
         </TableCell>
       </TableRow>
     </TableFooter>
@@ -379,15 +334,13 @@ function TrialBalancePage() {
           <div>{t("dateRange")}:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
-        <CurrencyLayerSelection
-          currency={currency}
-          setCurrency={setCurrency}
-          layer={layer}
-          setLayer={setLayer}
-        />
-        <PaginatedTable<TrialBalanceAccount>
+        <div>
+          <TrialBalanceCurrencySelection currency={currency} setCurrency={setCurrency} />
+          <TrialBalanceLayerSelection layer={layer} setLayer={setLayer} />
+        </div>
+        <PaginatedTable<TrialBalanceAccountNode>
           columns={columns}
-          data={accounts as PaginatedData<TrialBalanceAccount>}
+          data={accounts as PaginatedData<TrialBalanceAccountNode>}
           loading={loading}
           pageSize={DEFAULT_PAGESIZE}
           fetchMore={async (cursor) =>

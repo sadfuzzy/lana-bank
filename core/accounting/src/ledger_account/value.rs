@@ -14,6 +14,7 @@ pub struct LedgerAccount {
     pub ancestor_ids: Vec<LedgerAccountId>,
     pub children_ids: Vec<LedgerAccountId>,
 
+    pub(super) cala_external_id: Option<String>,
     is_leaf: bool,
 }
 
@@ -23,6 +24,16 @@ impl LedgerAccount {
             CalaAccountId::from(self.id).into()
         } else {
             CalaAccountSetId::from(self.id).into()
+        }
+    }
+
+    pub(super) fn has_non_zero_balance(&self) -> bool {
+        if let Some(usd) = self.usd_balance_range.as_ref() {
+            usd.has_non_zero_balance()
+        } else if let Some(btc) = self.btc_balance_range.as_ref() {
+            btc.has_non_zero_balance()
+        } else {
+            false
         }
     }
 }
@@ -42,6 +53,7 @@ impl
         ),
     ) -> Self {
         let values = account_set.into_values();
+        let external_id = values.external_id.clone();
         let code = values.external_id.and_then(|id| id.parse().ok());
 
         let usd_balance_range = usd_balance.map(|balance| BalanceRange {
@@ -65,6 +77,7 @@ impl
             ancestor_ids: Vec::new(),
             children_ids: Vec::new(),
             is_leaf: false,
+            cala_external_id: external_id,
         }
     }
 }
@@ -84,6 +97,7 @@ impl
         ),
     ) -> Self {
         let values = account_set.into_values();
+        let external_id = values.external_id.clone();
         let code = values.external_id.and_then(|id| id.parse().ok());
 
         let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
@@ -106,6 +120,7 @@ impl
             ancestor_ids: Vec::new(),
             children_ids: Vec::new(),
             is_leaf: false,
+            cala_external_id: external_id,
         }
     }
 }
@@ -136,6 +151,8 @@ impl
             diff: Some(balance),
         });
 
+        let external_id = account.values().external_id.clone();
+
         LedgerAccount {
             id: account.id.into(),
             name: account.into_values().name,
@@ -145,6 +162,48 @@ impl
             ancestor_ids: Vec::new(),
             children_ids: Vec::new(),
             is_leaf: true,
+            cala_external_id: external_id,
+        }
+    }
+}
+
+impl
+    From<(
+        CalaAccount,
+        Option<CalaBalanceRange>,
+        Option<CalaBalanceRange>,
+    )> for LedgerAccount
+{
+    fn from(
+        (account, usd_balance_range, btc_balance_range): (
+            CalaAccount,
+            Option<CalaBalanceRange>,
+            Option<CalaBalanceRange>,
+        ),
+    ) -> Self {
+        let usd_balance_range = usd_balance_range.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+        let btc_balance_range = btc_balance_range.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+
+        let external_id = account.values().external_id.clone();
+
+        LedgerAccount {
+            id: account.id.into(),
+            name: account.into_values().name,
+            code: None,
+            usd_balance_range,
+            btc_balance_range,
+            ancestor_ids: Vec::new(),
+            children_ids: Vec::new(),
+            is_leaf: true,
+            cala_external_id: external_id,
         }
     }
 }

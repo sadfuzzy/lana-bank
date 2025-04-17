@@ -9,7 +9,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
 use crate::{
-    LedgerAccount, LedgerAccountId,
+    LedgerAccountId,
     chart_of_accounts::Chart,
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };

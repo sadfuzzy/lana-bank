@@ -1224,15 +1224,9 @@
       "headers": {
         "accountName": "Nombre de Cuenta",
         "accountCode": "Código de cuenta",
-        "debit": "Débito",
-        "credit": "Crédito",
-        "net": "Neto",
-        "openingDebit": "Débito inicial",
-        "openingCredit": "Crédito inicial",
-        "activityDebit": "Débito",
-        "activityCredit": "Crédito",
-        "closingDebit": "Débito final",
-        "closingCredit": "Crédito final"
+        "openingBalance": "Saldo inicial",
+        "periodActivity": "Actividad del período",
+        "closingBalance": "Saldo final"
       }
     }
   },

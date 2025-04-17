@@ -13,7 +13,6 @@ pub mod report;
 pub mod service_account;
 pub mod statement;
 pub mod terms_template;
-pub mod trial_balance;
 
 pub mod storage {
     pub use cloud_storage::*;
@@ -116,6 +115,11 @@ pub mod profit_and_loss {
 pub mod balance_sheet {
     pub use core_accounting::balance_sheet::*;
     pub type BalanceSheets = core_accounting::BalanceSheets<crate::authorization::Authorization>;
+}
+
+pub mod trial_balance {
+    pub use core_accounting::trial_balance::*;
+    pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
 }
 
 pub mod credit {

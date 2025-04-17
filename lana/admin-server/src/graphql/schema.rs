@@ -545,6 +545,7 @@ impl Query {
     ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
+            .accounting()
             .trial_balances()
             .trial_balance(
                 sub,
@@ -1489,7 +1490,8 @@ impl Mutation {
             .import_from_csv(sub, chart_id, data)
             .await?;
 
-        app.trial_balances()
+        app.accounting()
+            .trial_balances()
             .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), chart)
             .await?;
 

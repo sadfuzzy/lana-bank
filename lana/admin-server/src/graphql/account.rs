@@ -9,16 +9,6 @@ pub struct Account {
     pub amounts: AccountAmountsByCurrency,
 }
 
-// impl From<lana_app::ledger::account::LedgerAccountWithBalance> for Account {
-//     fn from(account_balance: lana_app::ledger::account::LedgerAccountWithBalance) -> Self {
-//         Account {
-//             id: account_balance.id.into(),
-//             name: account_balance.name,
-//             amounts: account_balance.balance.into(),
-//         }
-//     }
-// }
-
 #[derive(SimpleObject)]
 struct BtcAccountBalanceAmounts {
     debit: Satoshis,
@@ -135,15 +125,6 @@ pub struct AccountAmountsByCurrency {
     usd: UsdAccountAmountsInPeriod,
 }
 
-impl From<lana_app::trial_balance::TrialBalanceAccount> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::trial_balance::TrialBalanceAccount) -> Self {
-        AccountAmountsByCurrency {
-            btc: balances.btc_balance.into(),
-            usd: balances.usd_balance.into(),
-        }
-    }
-}
-
 impl From<lana_app::statement::StatementAccountSet> for AccountAmountsByCurrency {
     fn from(balances: lana_app::statement::StatementAccountSet) -> Self {
         AccountAmountsByCurrency {
@@ -155,15 +136,6 @@ impl From<lana_app::statement::StatementAccountSet> for AccountAmountsByCurrency
 
 impl From<lana_app::statement::StatementAccountSetWithAccounts> for AccountAmountsByCurrency {
     fn from(balances: lana_app::statement::StatementAccountSetWithAccounts) -> Self {
-        AccountAmountsByCurrency {
-            btc: balances.btc_balance.into(),
-            usd: balances.usd_balance.into(),
-        }
-    }
-}
-
-impl From<lana_app::trial_balance::TrialBalanceRoot> for AccountAmountsByCurrency {
-    fn from(balances: lana_app::trial_balance::TrialBalanceRoot) -> Self {
         AccountAmountsByCurrency {
             btc: balances.btc_balance.into(),
             usd: balances.usd_balance.into(),

@@ -12,12 +12,10 @@ pub enum TrialBalanceLedgerError {
     CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
     #[error("TrialBalanceLedgerError - CalaEntry: {0}")]
     CalaEntry(#[from] cala_ledger::entry::error::EntryError),
-    #[error("TrialBalanceLedgerError - Statement: {0}")]
-    Statement(#[from] crate::statement::error::StatementError),
     #[error("TrialBalanceLedgerError - NonAccountSetMemberTypeFound")]
     NonAccountSetMemberTypeFound,
     #[error("TrialBalanceLedgerError - AccountCodeParseError: {0}")]
-    AccountCodeParseError(#[from] core_accounting::AccountCodeParseError),
+    AccountCodeParseError(#[from] crate::primitives::AccountCodeParseError),
 }
 
 impl TrialBalanceLedgerError {

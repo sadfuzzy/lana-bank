@@ -11,11 +11,11 @@ use cala_ledger::{
 
 use audit::AuditInfo;
 
-use crate::primitives::CalaBalanceRange;
+use crate::primitives::{BalanceRange, CalaBalanceRange};
 
 use super::{
-    COST_OF_REVENUE_NAME, ChartOfAccountsIntegrationConfig, EXPENSES_NAME, LedgerAccount,
-    ProfitAndLossStatement, ProfitAndLossStatementIds, REVENUE_NAME,
+    COST_OF_REVENUE_NAME, ChartOfAccountsIntegrationConfig, EXPENSES_NAME, ProfitAndLossStatement,
+    ProfitAndLossStatementIds, REVENUE_NAME,
 };
 
 use error::*;
@@ -125,11 +125,17 @@ impl ProfitAndLossStatementLedger {
         Ok(accounts)
     }
 
-    async fn get_account_set(
+    async fn get_account_set_with_balances(
         &self,
         account_set_id: AccountSetId,
         balances_by_id: &mut HashMap<BalanceId, CalaBalanceRange>,
-    ) -> Result<LedgerAccount, ProfitAndLossStatementLedgerError> {
+    ) -> Result<
+        (
+            AccountSet,
+            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+        ),
+        ProfitAndLossStatementLedgerError,
+    > {
         let account_set = self.cala.account_sets().find(account_set_id).await?;
 
         let btc_balance =
@@ -137,9 +143,7 @@ impl ProfitAndLossStatementLedger {
         let usd_balance =
             balances_by_id.remove(&(self.journal_id, account_set_id.into(), Currency::USD));
 
-        let ledger_account = LedgerAccount::from((account_set, btc_balance, usd_balance));
-
-        Ok(ledger_account)
+        Ok((account_set, (usd_balance, btc_balance)))
     }
 
     async fn get_balances_by_id(
@@ -354,19 +358,11 @@ impl ProfitAndLossStatementLedger {
             .get_balances_by_id(all_account_set_ids, from, until)
             .await?;
 
-        let statement_account_set = self.get_account_set(ids.id, &mut balances_by_id).await?;
+        let (account, balances) = self
+            .get_account_set_with_balances(ids.id, &mut balances_by_id)
+            .await?;
 
-        Ok(ProfitAndLossStatement {
-            id: statement_account_set.id,
-            name: statement_account_set.name,
-            usd_balance_range: statement_account_set.usd_balance_range,
-            btc_balance_range: statement_account_set.btc_balance_range,
-            category_ids: vec![
-                ids.revenue.into(),
-                ids.cost_of_revenue.into(),
-                ids.expenses.into(),
-            ],
-        })
+        Ok(ProfitAndLossStatement::from((account, balances, ids)))
     }
 
     pub async fn get_chart_of_accounts_integration_config(
@@ -432,4 +428,46 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub revenue_child_account_set_id_from_chart: AccountSetId,
     pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
     pub expenses_child_account_set_id_from_chart: AccountSetId,
+}
+
+impl
+    From<(
+        AccountSet,
+        (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+        ProfitAndLossStatementIds,
+    )> for ProfitAndLossStatement
+{
+    fn from(
+        (account_set, (usd_balance, btc_balance), ids): (
+            AccountSet,
+            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
+            ProfitAndLossStatementIds,
+        ),
+    ) -> Self {
+        let values = account_set.into_values();
+
+        let usd_balance_range = usd_balance.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+
+        let btc_balance_range = btc_balance.map(|range| BalanceRange {
+            start: Some(range.start),
+            end: Some(range.end),
+            diff: Some(range.diff),
+        });
+
+        ProfitAndLossStatement {
+            id: values.id.into(),
+            name: values.name,
+            usd_balance_range,
+            btc_balance_range,
+            category_ids: vec![
+                ids.revenue.into(),
+                ids.cost_of_revenue.into(),
+                ids.expenses.into(),
+            ],
+        }
+    }
 }

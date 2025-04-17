@@ -2,40 +2,49 @@ pub mod error;
 pub mod ledger;
 
 use chrono::{DateTime, Utc};
-use core_accounting::Chart;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use rbac_types::{Subject, TrialBalanceAction};
 
-use crate::authorization::{Authorization, Object};
+use crate::{
+    Chart,
+    primitives::{CoreAccountingAction, CoreAccountingObject},
+};
 
 use error::*;
+pub use ledger::TrialBalanceRoot;
 use ledger::*;
-pub use ledger::{TrialBalanceAccount, TrialBalanceAccountCursor, TrialBalanceRoot};
 
 #[derive(Clone)]
-pub struct TrialBalances {
+pub struct TrialBalances<Perms>
+where
+    Perms: PermissionCheck,
+{
     pool: sqlx::PgPool,
-    authz: Authorization,
+    authz: Perms,
     trial_balance_ledger: TrialBalanceLedger,
 }
 
-impl TrialBalances {
-    pub async fn init(
+impl<Perms> TrialBalances<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
+{
+    pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Authorization,
+        authz: &Perms,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
-    ) -> Result<Self, TrialBalanceError> {
+    ) -> Self {
         let trial_balance_ledger = TrialBalanceLedger::new(cala, journal_id);
 
-        Ok(Self {
+        Self {
             pool: pool.clone(),
             trial_balance_ledger,
             authz: authz.clone(),
-        })
+        }
     }
 
     pub async fn create_trial_balance_statement(
@@ -46,7 +55,11 @@ impl TrialBalances {
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Create)
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_CREATE,
+            )
             .await?;
 
         match self.trial_balance_ledger.create(op, &reference).await {
@@ -70,7 +83,11 @@ impl TrialBalances {
 
         self.authz
             .audit()
-            .record_system_entry_in_tx(op.tx(), Object::TrialBalance, TrialBalanceAction::Update)
+            .record_system_entry_in_tx(
+                op.tx(),
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_UPDATE,
+            )
             .await?;
 
         self.trial_balance_ledger
@@ -86,39 +103,22 @@ impl TrialBalances {
 
     pub async fn trial_balance(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         from: DateTime<Utc>,
         until: DateTime<Utc>,
     ) -> Result<TrialBalanceRoot, TrialBalanceError> {
         self.authz
-            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_READ,
+            )
             .await?;
 
         Ok(self
             .trial_balance_ledger
             .get_trial_balance(name, from, Some(until))
-            .await?)
-    }
-
-    pub async fn trial_balance_accounts(
-        &self,
-        sub: &Subject,
-        name: String,
-        from: DateTime<Utc>,
-        until: Option<DateTime<Utc>>,
-        args: es_entity::PaginatedQueryArgs<TrialBalanceAccountCursor>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<TrialBalanceAccount, TrialBalanceAccountCursor>,
-        TrialBalanceError,
-    > {
-        self.authz
-            .enforce_permission(sub, Object::TrialBalance, TrialBalanceAction::Read)
-            .await?;
-
-        Ok(self
-            .trial_balance_ledger
-            .accounts(name, from, until, args)
             .await?)
     }
 }

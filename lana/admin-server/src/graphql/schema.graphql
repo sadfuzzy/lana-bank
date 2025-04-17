@@ -1173,6 +1173,35 @@ type LedgerAccount {
 
 union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
 
+type LedgerAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerAccount!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type LedgerTransaction {
 	id: ID!
 	ledgerTransactionId: UUID!
@@ -1623,44 +1652,8 @@ type TransactionTemplateEdge {
 
 type TrialBalance {
 	name: String!
-	total: AccountAmountsByCurrency!
-	accounts(first: Int!, after: String): TrialBalanceAccountConnection!
-}
-
-type TrialBalanceAccount {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-	code: AccountCode!
-}
-
-type TrialBalanceAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [TrialBalanceAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [TrialBalanceAccount!]!
-}
-
-"""
-An edge in a connection.
-"""
-type TrialBalanceAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: TrialBalanceAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
+	total: LedgerAccountBalanceRange!
+	accounts(first: Int!, after: String): LedgerAccountConnection!
 }
 
 scalar UUID
