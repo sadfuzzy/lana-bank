@@ -11,6 +11,9 @@ jobs:
     name: Integration Test
     runs-on: ubuntu-latest
     steps:
+      - name: Clean Up Space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
       - name: Install Nix
         uses: DeterminateSystems/nix-installer-action@v4
       - name: Run the Magic Nix Cache
