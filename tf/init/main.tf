@@ -8,34 +8,28 @@ variable "gcp_region" {
   default = "europe-west6"
 }
 
+variable "lana_dev_users" {
+  type        = map(string)
+  description = "Map of user names to their email addresses for Lana dev team"
+}
+
+variable "owner_email" {}
+
 locals {
   project                = "lana-dev-440721"
   tf_state_bucket_name   = "lana-dev-tf-state"
   objects_list_role_name = "lana_objects_list"
-
-  justin = "justin@galoy.io"
-
-  lana_dev = {
-    jireva     = "jir@galoy.io",
-    jcarter    = "justin@galoy.io"
-    sv         = "sv@galoy.io"
-    sandipndev = "sandipan@galoy.io"
-    vaibhav    = "vaibhav@galoy.io"
-    siddharth  = "siddharth@galoy.io"
-    vindard    = "arvin@galoy.io"
-    n          = "nb@galoy.io"
-    krtk6160   = "krtk6160@galoy.io"
-  }
+  owner                  = var.owner_email
 }
 
 module "setup" {
   source = "../bq-setup"
 
-  for_each = local.lana_dev
+  for_each = var.lana_dev_users
 
   name_prefix = each.key
 
-  additional_owners = [each.value, local.justin]
+  additional_owners = [each.value, local.owner]
   gcp_project       = local.project
   gcp_region        = var.gcp_region
   git_token         = var.git_token
@@ -46,7 +40,7 @@ module "gha_setup" {
 
   name_prefix = "gha"
 
-  additional_owners = [local.justin]
+  additional_owners = [local.owner]
   gcp_project       = local.project
   gcp_region        = var.gcp_region
   git_token         = var.git_token
@@ -57,7 +51,7 @@ module "concourse_setup" {
 
   name_prefix = "concourse"
 
-  additional_owners = [local.justin]
+  additional_owners = [local.owner]
   gcp_project       = local.project
   gcp_region        = var.gcp_region
   git_token         = var.git_token
