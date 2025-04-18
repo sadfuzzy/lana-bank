@@ -269,4 +269,23 @@ where
             .remove(&ledger_tx_id)
             .expect("Could not find LedgerTransaction"))
     }
+
+    pub async fn import_csv(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        data: String,
+        trial_balance_ref: &str,
+    ) -> Result<bool, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts()
+            .import_from_csv(sub, chart_id, data)
+            .await?;
+
+        self.trial_balances()
+            .add_chart_to_trial_balance(trial_balance_ref, &chart)
+            .await?;
+
+        Ok(true)
+    }
 }

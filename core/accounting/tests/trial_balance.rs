@@ -81,17 +81,19 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     accounting
         .trial_balances()
-        .add_chart_to_trial_balance(trial_balance_name.to_string(), chart)
+        .add_chart_to_trial_balance(&trial_balance_name, &chart)
         .await?;
 
     let accounts = accounting
+        .ledger_accounts()
         .list_account_children(
             &DummySubject,
-            &chart_ref,
+            &chart,
             trial_balance.id,
             Default::default(),
             Utc::now(),
             Some(Utc::now()),
+            false,
         )
         .await?;
     assert_eq!(accounts.entities.len(), 2);

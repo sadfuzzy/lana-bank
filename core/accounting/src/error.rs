@@ -16,4 +16,6 @@ pub enum CoreAccountingError {
     AccountCodeParseError(#[from] super::AccountCodeParseError),
     #[error("CoreAccountingError - AccountingCsvError: {0}")]
     AccountingCsvError(#[from] super::csv::error::AccountingCsvError),
+    #[error("CoreAccountingError - TrialBalanceError: {0}")]
+    TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
 }

@@ -71,12 +71,12 @@ where
 
     pub async fn add_chart_to_trial_balance(
         &self,
-        name: String,
-        chart: Chart,
+        name: &str,
+        chart: &Chart,
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = self
             .trial_balance_ledger
-            .get_id_from_reference(name)
+            .get_id_from_reference(name.to_string())
             .await?;
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
