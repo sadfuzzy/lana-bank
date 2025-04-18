@@ -4,10 +4,10 @@ use std::collections::HashMap;
 
 use lana_app::{
     accounting::{
-        chart_of_accounts::error::ChartOfAccountsError,
+        chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
         ledger_transaction::error::LedgerTransactionError,
-        transaction_templates::error::TransactionTemplateError, Chart, LedgerAccountId,
-        TransactionTemplateId,
+        transaction_templates::error::TransactionTemplateError, AccountingCsvId, Chart,
+        LedgerAccountId, TransactionTemplateId,
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
@@ -289,6 +289,23 @@ impl Loader<LedgerAccountId> for LanaLoader {
         self.app
             .accounting()
             .find_all_ledger_accounts(CHART_REF.0, keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<AccountingCsvId> for LanaLoader {
+    type Value = AccountingCsv;
+    type Error = Arc<AccountingCsvError>;
+
+    async fn load(
+        &self,
+        keys: &[AccountingCsvId],
+    ) -> Result<HashMap<AccountingCsvId, AccountingCsv>, Self::Error> {
+        self.app
+            .accounting()
+            .csvs()
+            .find_all(keys)
             .await
             .map_err(Arc::new)
     }

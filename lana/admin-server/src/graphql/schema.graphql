@@ -60,6 +60,61 @@ enum AccountStatus {
 	ACTIVE
 }
 
+type AccountingCsv {
+	id: ID!
+	csvId: UUID!
+	status: AccountingCsvStatus!
+	createdAt: Timestamp!
+}
+
+type AccountingCsvConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [AccountingCsvEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [AccountingCsv!]!
+}
+
+type AccountingCsvDownloadLink {
+	url: String!
+	csvId: UUID!
+}
+
+input AccountingCsvDownloadLinkGenerateInput {
+	accountingCsvId: UUID!
+}
+
+type AccountingCsvDownloadLinkGeneratePayload {
+	link: AccountingCsvDownloadLink!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountingCsvEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountingCsv!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum AccountingCsvStatus {
+	PENDING
+	COMPLETED
+	FAILED
+}
+
 scalar AnnualRatePct
 
 type ApprovalProcess {
@@ -1188,6 +1243,14 @@ type LedgerAccountConnection {
 	nodes: [LedgerAccount!]!
 }
 
+input LedgerAccountCsvCreateInput {
+	ledgerAccountId: UUID!
+}
+
+type LedgerAccountCsvCreatePayload {
+	accountingCsv: AccountingCsv!
+}
+
 """
 An edge in a connection.
 """
@@ -1295,6 +1358,8 @@ type Mutation {
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1430,6 +1495,7 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
 	ledgerAccount(id: UUID!): LedgerAccount
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction
@@ -1450,6 +1516,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
+	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvConnection!
 }
 
 type RealtimePrice {

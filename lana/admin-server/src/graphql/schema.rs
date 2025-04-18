@@ -3,6 +3,7 @@ use async_graphql::{types::connection::*, Context, Object};
 use std::io::Read;
 
 use lana_app::{
+    accounting::csv::AccountingCsvsByCreatedAtCursor,
     accounting_init::constants::{
         BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, PROFIT_AND_LOSS_STATEMENT_NAME,
         TRIAL_BALANCE_STATEMENT_NAME,
@@ -403,6 +404,22 @@ impl Query {
         )
     }
 
+    async fn ledger_account_csv_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LedgerAccountCsvCreateInput,
+    ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let csv = app
+            .accounting()
+            .csvs()
+            .create_ledger_account_csv(sub, input.ledger_account_id)
+            .await?;
+
+        let csv = AccountingCsv::from(csv);
+        Ok(LedgerAccountCsvCreatePayload::from(csv))
+    }
+
     async fn ledger_account_by_code(
         &self,
         ctx: &Context<'_>,
@@ -760,6 +777,30 @@ impl Query {
             )
             .await?;
         Ok(config.map(ProfitAndLossStatementModuleConfig::from))
+    }
+
+    async fn accounting_csvs_for_ledger_account_id(
+        &self,
+        ctx: &Context<'_>,
+        ledger_account_id: UUID,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<AccountingCsvsByCreatedAtCursor, AccountingCsv, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            AccountingCsvsByCreatedAtCursor,
+            AccountingCsv,
+            ctx,
+            after,
+            first,
+            |query| app.accounting().csvs().list_for_ledger_account_id(
+                sub,
+                query,
+                ledger_account_id
+            )
+        )
     }
 }
 
@@ -1580,5 +1621,38 @@ impl Mutation {
         //         .add_equity(input.amount, input.reference)
         //         .await?,
         // ))
+    }
+
+    pub async fn ledger_account_csv_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LedgerAccountCsvCreateInput,
+    ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let csv = app
+            .accounting()
+            .csvs()
+            .create_ledger_account_csv(sub, input.ledger_account_id)
+            .await?;
+
+        let csv = AccountingCsv::from(csv);
+        Ok(LedgerAccountCsvCreatePayload::from(csv))
+    }
+
+    pub async fn accounting_csv_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingCsvDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<AccountingCsvDownloadLinkGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let result = app
+            .accounting()
+            .csvs()
+            .generate_download_link(sub, input.accounting_csv_id.into())
+            .await?;
+
+        let link = AccountingCsvDownloadLink::from(result);
+
+        Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
 }

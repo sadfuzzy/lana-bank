@@ -13,9 +13,13 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import { useRouter } from "next/navigation"
+import { Button } from "@lana/web/ui/button"
+import { FileDown } from "lucide-react"
+
+import { ExportCsvDialog } from "./export"
 
 import { formatDate, isUUID } from "@/lib/utils"
 import {
@@ -110,6 +114,7 @@ type LedgerAccountPageProps = {
 const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const router = useRouter()
   const t = useTranslations("ChartOfAccountsLedgerAccount")
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const { "ledger-account-ref": ref } = params
   const isRefUUID = isUUID(ref)
 
@@ -172,6 +177,10 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       },
     },
   ]
+
+  const handleOpenExportDialog = () => {
+    setIsExportDialogOpen(true)
+  }
 
   return (
     <>
@@ -249,7 +258,20 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       </Card>
       <Card className="mt-2">
         <CardHeader>
-          <CardTitle>{t("entriesTitle")}</CardTitle>
+          <CardTitle>
+            <div className="flex items-center justify-between">
+              {t("entriesTitle")}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenExportDialog}
+                disabled={!ledgerAccount}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                {t("exportCsv.buttons.export")}
+              </Button>
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <PaginatedTable<JournalEntry>
@@ -262,6 +284,14 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           />
         </CardContent>
       </Card>
+
+      {ledgerAccount && (
+        <ExportCsvDialog
+          isOpen={isExportDialogOpen}
+          onClose={() => setIsExportDialogOpen(false)}
+          ledgerAccountId={ledgerAccount.id}
+        />
+      )}
     </>
   )
 }

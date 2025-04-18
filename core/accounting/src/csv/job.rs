@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use authz::PermissionCheck;
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use cloud_storage::Storage;
 use job::*;
 use serde::{Deserialize, Serialize};
@@ -131,10 +131,7 @@ where
                 })?;
 
                 self.generator
-                    .generate_ledger_account_csv(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        ledger_account_id,
-                    )
+                    .generate_ledger_account_csv(ledger_account_id)
                     .await
             }
             AccountingCsvType::ProfitAndLoss => Err(AccountingCsvError::UnsupportedCsvType),

@@ -16,7 +16,7 @@ job = { path = "../../lib/job" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
-es-entity = { workspace = true }
+es-entity = { workspace = true, features = ["graphql"] }
 sqlx = { workspace = true }
 
 rust_decimal = { workspace = true }

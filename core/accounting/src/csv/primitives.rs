@@ -13,6 +13,7 @@ pub enum AccountingCsvType {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum AccountingCsvStatus {
     Pending,
     Completed,

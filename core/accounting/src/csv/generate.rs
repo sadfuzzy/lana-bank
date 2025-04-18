@@ -35,12 +35,11 @@ where
 
     pub async fn generate_ledger_account_csv(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         ledger_account_id: LedgerAccountId,
     ) -> Result<Vec<u8>, AccountingCsvError> {
         let history_result = self
             .ledger_accounts
-            .history(sub, ledger_account_id, Default::default())
+            .complete_history(ledger_account_id)
             .await
             .map_err(AccountingCsvError::LedgerAccountError)?;
 
@@ -55,7 +54,7 @@ where
         ])
         .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
 
-        for entry in history_result.entities {
+        for entry in history_result {
             let formatted_amount = entry.amount.to_display_amount();
             let currency = entry.amount.currency_code();
 

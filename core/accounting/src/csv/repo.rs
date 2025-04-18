@@ -12,7 +12,7 @@ use super::{entity::*, error::*, primitives::*};
     err = "AccountingCsvError",
     columns(
         csv_type(ty = "AccountingCsvType"),
-        ledger_account_id(ty = "Option<LedgerAccountId>")
+        ledger_account_id(ty = "Option<LedgerAccountId>", list_for),
     )
 )]
 pub struct AccountingCsvRepo {

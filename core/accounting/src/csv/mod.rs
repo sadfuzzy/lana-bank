@@ -10,6 +10,9 @@ use crate::Storage;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+use es_entity::ListDirection;
+pub use repo::accounting_csv_cursor::AccountingCsvsByCreatedAtCursor;
+
 use super::{
     CoreAccountingAction, CoreAccountingObject,
     ledger_account::LedgerAccounts,
@@ -19,7 +22,7 @@ use super::{
 pub use entity::*;
 use error::*;
 use job::*;
-use primitives::*;
+pub use primitives::*;
 use repo::*;
 
 #[derive(Clone)]
@@ -132,5 +135,44 @@ where
                 url,
             },
         })
+    }
+
+    pub async fn list_for_ledger_account_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<AccountingCsvsByCreatedAtCursor>,
+        ledger_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<AccountingCsv, AccountingCsvsByCreatedAtCursor>,
+        AccountingCsvError,
+    > {
+        let ledger_account_id = ledger_account_id.into();
+
+        let _audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_accounting_csvs(),
+                CoreAccountingAction::ACCOUNTING_CSV_LIST,
+            )
+            .await?;
+
+        let csvs = self
+            .repo
+            .list_for_ledger_account_id_by_created_at(
+                Some(ledger_account_id),
+                query,
+                ListDirection::Descending,
+            )
+            .await?;
+
+        Ok(csvs)
+    }
+
+    pub async fn find_all<T: From<AccountingCsv>>(
+        &self,
+        ids: &[AccountingCsvId],
+    ) -> Result<std::collections::HashMap<AccountingCsvId, T>, AccountingCsvError> {
+        self.repo.find_all(ids).await
     }
 }

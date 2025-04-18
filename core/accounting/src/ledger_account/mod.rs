@@ -64,6 +64,35 @@ where
         Ok(self.ledger.ledger_account_history(id, args).await?)
     }
 
+    pub(crate) async fn complete_history(
+        &self,
+        id: impl Into<LedgerAccountId> + Copy,
+    ) -> Result<Vec<JournalEntry>, LedgerAccountError> {
+        let id = id.into();
+
+        let mut all_entries = Vec::new();
+        let mut cursor: Option<JournalEntryCursor> = None;
+        let page_size = 100;
+
+        loop {
+            let query_args = es_entity::PaginatedQueryArgs {
+                first: page_size,
+                after: cursor,
+            };
+
+            let result = self.ledger.ledger_account_history(id, query_args).await?;
+            all_entries.extend(result.entities);
+
+            if !result.has_next_page {
+                break;
+            }
+
+            cursor = result.end_cursor;
+        }
+
+        Ok(all_entries)
+    }
+
     #[instrument(name = "accounting.ledger_account.find_by_id", skip(self, chart), err)]
     pub async fn find_by_id(
         &self,
