@@ -46,7 +46,6 @@
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
-      "cashFlow": "Cash Flow",
       "profitAndLoss": "Profit & Loss",
       "regulatoryReporting": "Regulatory Reporting",
       "trialBalance": "Trial Balance",
@@ -1170,13 +1169,6 @@
       "assets": "Total Assets",
       "liabilitiesAndEquity": "Total Liabilities & Equity"
     }
-  },
-  "CashFlowStatement": {
-    "title": "Cash Flow Statement",
-    "description": "A financial statement showing how changes in balance sheet accounts and income affect cash and cash equivalents.",
-    "noData": "No data",
-    "dateRange": "Date Range",
-    "total": "Total"
   },
   "ProfitAndLoss": {
     "title": "Profit and Loss Statement",

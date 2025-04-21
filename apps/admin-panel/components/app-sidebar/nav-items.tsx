@@ -56,7 +56,6 @@ export function useNavItems() {
 
   const navFinanceItems: NavItem[] = [
     { title: t("balanceSheet"), url: "/balance-sheet", icon: PieChart },
-    { title: t("cashFlow"), url: "/cash-flow", icon: ArrowUpCircle },
     { title: t("profitAndLoss"), url: "/profit-and-loss", icon: DollarSign },
     {
       title: t("regulatoryReporting"),

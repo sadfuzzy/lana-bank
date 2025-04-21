@@ -46,7 +46,6 @@
       "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
-      "cashFlow": "Flujo de Caja",
       "profitAndLoss": "Pérdidas y Ganancias",
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
@@ -1170,13 +1169,6 @@
       "assets": "Total de Activos",
       "liabilitiesAndEquity": "Total de Pasivos y Patrimonio"
     }
-  },
-  "CashFlowStatement": {
-    "title": "Estado de Flujo de Efectivo",
-    "description": "Un estado financiero que muestra cómo los cambios en las cuentas del balance y los ingresos afectan el efectivo y equivalentes de efectivo.",
-    "noData": "Sin datos",
-    "dateRange": "Rango de Fechas",
-    "total": "Total"
   },
   "ProfitAndLoss": {
     "title": "Estado de Resultados",

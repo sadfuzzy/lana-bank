@@ -126,7 +126,6 @@ pub enum AppAction {
     Ledger(LedgerAction),
     LedgerAccount(LedgerAccountAction),
     GeneralLedger(GeneralLedgerAction),
-    CashFlowStatement(CashFlowStatementAction),
     Document(DocumentAction),
 }
 
@@ -141,7 +140,6 @@ impl Display for AppAction {
             Ledger(action) => action.fmt(f),
             LedgerAccount(action) => action.fmt(f),
             GeneralLedger(action) => action.fmt(f),
-            CashFlowStatement(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
     }
@@ -162,22 +160,11 @@ impl FromStr for AppAction {
             Ledger => AppAction::from(action.parse::<LedgerAction>()?),
             LedgerAccount => AppAction::from(action.parse::<LedgerAccountAction>()?),
             GeneralLedger => AppAction::from(action.parse::<GeneralLedgerAction>()?),
-            CashFlowStatement => AppAction::from(action.parse::<CashFlowStatementAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
     }
 }
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum CashFlowStatementAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(CashFlowStatementAction, CashFlowStatement);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
