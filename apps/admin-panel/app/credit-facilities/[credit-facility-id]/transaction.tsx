@@ -119,7 +119,6 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       <DataTable
         data={creditFacility.transactions}
         columns={columns}
-        autoFocus={false}
         emptyMessage={t("messages.emptyTable")}
       />
     </CardWrapper>

@@ -240,7 +240,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                 label={t("details.ancestors")}
                 value={
                   <DataTable
-                    autoFocus={false}
                     data={ledgerAccount?.ancestors || []}
                     columns={[
                       { key: "name", header: t("details.name") },

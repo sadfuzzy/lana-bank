@@ -91,7 +91,6 @@ const PaginatedTable = <T,>({
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
   const tableRef = useRef<HTMLDivElement>(null)
-  const focusTimeoutRef = useRef<NodeJS.Timeout>()
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
   const router = useRouter()
@@ -110,44 +109,6 @@ const PaginatedTable = <T,>({
     const endIdx = startIdx + pageSize
     data && setDisplayData(data.edges.slice(startIdx, endIdx))
   }, [data, currentPage, pageSize])
-
-  const isNoFocusActive = () => {
-    const activeElement = document.activeElement
-    const isBaseElement =
-      !activeElement ||
-      activeElement === document.body ||
-      activeElement === document.documentElement
-    const isOutsideTable = !tableRef.current?.contains(activeElement)
-    const isInteractiveElement = activeElement?.matches(
-      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
-    )
-    return (isBaseElement || isOutsideTable) && !isInteractiveElement
-  }
-
-  const smartFocus = () => {
-    if (isNoFocusActive()) {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-
-      focusTimeoutRef.current = setTimeout(() => {
-        if (tableRef.current) {
-          tableRef.current.focus()
-          setIsTableFocused(true)
-
-          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
-          const targetRow = document.querySelector(
-            `[data-testid="table-row-${targetIndex}"]`,
-          ) as HTMLElement
-
-          if (targetRow) {
-            targetRow.focus()
-            setFocusedRowIndex(targetIndex)
-          }
-        }
-      }, 0)
-    }
-  }
 
   const focusRow = (index: number) => {
     if (index < 0 || !displayData.length || !isTableFocused) return
@@ -208,36 +169,6 @@ const PaginatedTable = <T,>({
     setFocusedRowIndex(-1)
   }, [currentPage])
 
-  useEffect(() => {
-    const shouldAutoFocus = data?.edges && data.edges.length > 0 && !loading
-    if (shouldAutoFocus) {
-      smartFocus()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.edges.length, loading])
-
-  useEffect(() => {
-    const handleFocusOut = (e: FocusEvent) => {
-      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-        if (isNoFocusActive()) {
-          smartFocus()
-        }
-      }
-    }
-
-    document.addEventListener("focusout", handleFocusOut)
-    return () => document.removeEventListener("focusout", handleFocusOut)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-    }
-  }, [])
-
   const handleSort = (columnKey: keyof T) => {
     let newDirection: "ASC" | "DESC" = "ASC"
     if (sortState.column === columnKey && sortState.direction === "ASC") {
@@ -245,13 +176,11 @@ const PaginatedTable = <T,>({
     }
     setSortState({ column: columnKey, direction: newDirection })
     onSort && onSort(columnKey, newDirection)
-    smartFocus()
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
     setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
     onFilter && onFilter(columnKey, value)
-    smartFocus()
   }
 
   const handleNextPage = async () => {
@@ -262,13 +191,11 @@ const PaginatedTable = <T,>({
       await fetchMore(data.pageInfo.endCursor)
     }
     setCurrentPage(currentPage + 1)
-    smartFocus()
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1)
-      smartFocus()
     }
   }
 

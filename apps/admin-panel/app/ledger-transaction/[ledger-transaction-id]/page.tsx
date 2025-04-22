@@ -101,7 +101,6 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
         </CardHeader>
         <CardContent>
           <DataTable
-            autoFocus={false}
             data={data?.ledgerTransaction?.entries || []}
             columns={[
               {

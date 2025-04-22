@@ -208,7 +208,6 @@ export const ExecuteManualTransactionDialog: React.FC<ExecuteManualTransactionPr
                 </Button>
               </div>
               <DataTable
-                autoFocus={false}
                 data={formValues.entries}
                 emptyMessage={t("noEntries")}
                 columns={[

@@ -78,7 +78,6 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
         data={repaymentPlanData}
         columns={columns}
         emptyMessage={t("messages.emptyTable")}
-        autoFocus={false}
       />
     </CardWrapper>
   )
