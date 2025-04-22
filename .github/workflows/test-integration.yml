@@ -30,6 +30,7 @@ jobs:
             ${{ runner.os }}-cargo-gha-
       - id: "gcp-auth"
         uses: "google-github-actions/auth@v2"
+        if: secrets.GOOGLE_CREDENTIALS != ''
         with:
           credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
 
