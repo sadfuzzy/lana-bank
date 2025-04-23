@@ -196,6 +196,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) id: WithdrawalId,
@@ -224,6 +225,15 @@ impl NewWithdrawal {
     }
 }
 
+impl NewWithdrawalBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Withdrawal amount cannot be zero".to_string()),
+            _ => Ok(()),
+        }
+    }
+}
+
 impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
     fn into_events(self) -> EntityEvents<WithdrawalEvent> {
         EntityEvents::init(
@@ -237,5 +247,66 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use audit::AuditEntryId;
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    #[test]
+    fn errors_when_zero_amount_withdrawal_amount_is_passed() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ZERO)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            withdrawal,
+            Err(NewWithdrawalBuilderError::ValidationError(_))
+        ));
+    }
+
+    #[test]
+    fn errors_when_amount_is_not_provided() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            withdrawal,
+            Err(NewWithdrawalBuilderError::UninitializedField(_))
+        ));
+    }
+
+    #[test]
+    fn passes_when_all_inputs_provided() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(withdrawal.is_ok());
     }
 }
