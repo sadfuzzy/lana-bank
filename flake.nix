@@ -59,6 +59,7 @@
           google-cloud-sdk
           ytt
           pnpm
+          netlify-cli
           tilt
           pandoc
         ]

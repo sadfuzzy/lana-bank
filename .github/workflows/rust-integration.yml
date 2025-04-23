@@ -1,4 +1,4 @@
-name: "Bats tests"
+name: "Rust integration"
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   integration:
-    name: End to End Bats Tests
+    name: Integration Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,23 +17,8 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - uses: ./.github/actions/cache-rust 
-      - name: Run e2e tests
-        run: nix develop -c make e2e
+      - run: nix develop -c make test-in-ci
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
-          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-      - name: Rename Tilt log
-        if: always()
-        run: mv .e2e-logs e2e-logs
-      - name: Upload Tilt log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Tilt log
-          path: |
-            e2e-logs
-            *.e2e-logs

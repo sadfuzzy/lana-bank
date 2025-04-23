@@ -17,23 +17,14 @@ jobs:
     name: Storybook Preview
     runs-on: ubuntu-latest
     steps:
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v8
-
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build Storybook
-        run: nix develop -c make build-storybook-admin-panel
-
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-
-      - name: Deploy to Netlify (Pull Request)
-        id: netlify_deploy
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: ./.github/actions/cache-pnpm
+      - run: nix develop -c make build-storybook-admin-panel
+      - id: netlify_deploy
         if: github.event_name == 'pull_request'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
@@ -42,7 +33,7 @@ jobs:
           GITHUB_SHA="${{ github.sha }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
-          netlify deploy \
+          nix develop -c netlify deploy \
             --dir=apps/admin-panel/storybook-static \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
@@ -52,14 +43,12 @@ jobs:
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-
-      - name: Deploy to Netlify (Push to Main)
-        if: github.event_name == 'push'
+      - if: github.event_name == 'push'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 8f3d8282-da53-4b6d-8d3c-708c7d7030c9
         run: |
-          netlify deploy \
+          nix develop -c netlify deploy \
             --prod \
             --dir=apps/admin-panel/storybook-static \
             --filter=admin-panel \
@@ -69,9 +58,7 @@ jobs:
             --json > deploy-info.json
           DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-
-      - name: Create or Update Preview Comment
-        if: github.event_name == 'pull_request'
+      - if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
         with:
           script: |

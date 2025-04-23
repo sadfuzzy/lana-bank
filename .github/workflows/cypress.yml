@@ -16,24 +16,14 @@ jobs:
     runs-on: Lana-Big-Runner
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v8
-
-      - uses: actions/cache@v4
+      - uses: ./.github/actions/setup-nix
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: build backend
-        run: nix develop -c make build-for-tests
-
-      - name: keep tilt running
-        run: nix develop -c make tilt-in-ci
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: ./.github/actions/cache-rust 
+      - uses: ./.github/actions/cache-pnpm 
+      - run: nix develop -c make build-for-tests
+      - run: nix develop -c make tilt-in-ci
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -41,36 +31,17 @@ jobs:
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-
-      - name: system info
-        run: |
-          free -h
-          df -h
-
-      - name: run cypress tests
-        run: nix develop -c make test-cypress-in-ci-locally
-
-      - name: upload cypress screenshots
-        uses: actions/upload-artifact@v4
+      - run: nix develop -c make test-cypress-in-ci-locally
+      - uses: actions/upload-artifact@v4
         with:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots/*
-
-      - name: upload cypress run videos
-        if: always()
+      - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
 
-  manual-generation:
-    name: Generate and Upload Lana Manuals
-    needs: run-cypress-tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: DeterminateSystems/nix-installer-action@v4
-      - uses: DeterminateSystems/magic-nix-cache-action@v8
-      - uses: actions/checkout@v4
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:
@@ -171,9 +142,6 @@ jobs:
           </html>
           EOF
 
-      - name: Install Netlify CLI
-        run: npm install -g netlify-cli
-
       - name: Deploy to Netlify (Pull Request)
         id: netlify_deploy
         if: github.event_name == 'pull_request'
@@ -184,7 +152,7 @@ jobs:
           GITHUB_SHA="${{ github.sha }}"
           SHORT_SHA="${GITHUB_SHA::7}"
           ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
-          netlify deploy \
+          nix develop -c netlify deploy \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \
             --site=$NETLIFY_SITE_ID \
@@ -201,7 +169,7 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
         run: |
-          netlify deploy \
+          nix develop -c netlify deploy \
             --prod \
             --dir=apps/admin-panel/cypress/manuals/results \
             --filter=admin-panel \

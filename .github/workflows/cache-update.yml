@@ -1,0 +1,52 @@
+name: Update Dependency Caches
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Allow workflow to write cache
+permissions:
+  actions: write
+  contents: read
+
+jobs:
+  update-caches:
+    name: Update Rust & PNPM Caches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Nix Environment
+        uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          # google_credentials not needed for caching/building
+
+      - name: Install PNPM dependencies
+        run: nix develop -c pnpm install
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(nix develop -c pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Build Rust dependencies (Populate Cache)
+        run: nix develop -c make build
+
+      - uses: actions/cache/save@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}

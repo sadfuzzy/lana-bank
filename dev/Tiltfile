@@ -1,4 +1,4 @@
-docker_compose("../docker-compose.yml", project_name="lana-bank")
+docker_compose("../docker-compose.yml", project_name = "lana-bank")
 docker_groups = {
     "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "oathkeeper", "mailhog"],
     "otel": ["otel-agent"],
@@ -8,7 +8,7 @@ docker_groups = {
 
 for service, deps in docker_groups.items():
     for dep in deps:
-        dc_resource(dep, labels=[service])
+        dc_resource(dep, labels = [service])
 
 bfx_local_price = os.getenv("BFX_LOCAL_PRICE", "1")
 serve_env_core = {
@@ -18,18 +18,19 @@ serve_env_core = {
 }
 local_resource(
     "core",
-    labels=["core"],
-    serve_cmd="cd .. && make setup-db run-server",
-    serve_env=serve_env_core,
-    readiness_probe=probe(
-        period_secs=15,
-        http_get=http_get_action(
-            path="/graphql",
-            port=5253,
+    labels = ["core"],
+    serve_cmd = "cd .. && make setup-db run-server",
+    serve_env = serve_env_core,
+    readiness_probe = probe(
+        initial_delay_secs = 3,
+        period_secs = 1,
+        http_get = http_get_action(
+            path = "/graphql",
+            port = 5253,
         ),
     ),
-    allow_parallel=True,
-    resource_deps=[
+    allow_parallel = True,
+    resource_deps = [
         "core-pg",
     ],
     links = [
@@ -39,20 +40,21 @@ local_resource(
 
 local_resource(
     "admin-panel",
-    labels=["apps"],
-    serve_env={
+    labels = ["apps"],
+    serve_env = {
         "NEXT_PUBLIC_BASE_PATH": "/admin",
         "NEXT_PUBLIC_CORE_ADMIN_URL": "/admin/graphql"
     },
-    serve_cmd="cd ../apps/admin-panel && pnpm install && pnpm run dev",
+    serve_cmd = "cd .. && make start-admin",
     readiness_probe = probe(
-        period_secs  = 15,
+        initial_delay_secs = 3,
+        period_secs = 1,
         http_get = http_get_action(
             path = "/admin",
             port = 4455,
         ),
     ),
-    allow_parallel=True,
+    allow_parallel = True,
     links = [
         link("http://localhost:4455/admin", "admin-panel"),
     ]
@@ -60,20 +62,21 @@ local_resource(
 
 local_resource(
     "customer-portal",
-    labels=["apps"],
-    serve_env={
+    labels = ["apps"],
+    serve_env = {
         "NEXT_PUBLIC_BASE_PATH": "/app",
         "NEXT_PUBLIC_CORE_APP_URL": "/app/graphql"
     },
-    serve_cmd = "cd ../apps/customer-portal && pnpm install && pnpm run dev",
+    serve_cmd = "cd .. && make start-customer-portal",
     readiness_probe = probe(
-        period_secs  = 15,
+        initial_delay_secs = 3,
+        period_secs = 1,
         http_get = http_get_action(
             path = "/app",
             port = 4455,
         ),
     ),
-    allow_parallel=True,
+    allow_parallel = True,
     links = [
         link("http://localhost:4455/app", "customer-portal"),
     ]
