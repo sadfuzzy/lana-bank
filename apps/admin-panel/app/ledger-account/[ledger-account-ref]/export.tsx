@@ -20,15 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@lana/web/ui/select"
-import {
-  Loader2,
-  FileDown,
-  FileUp,
-  CheckCircle,
-  AlertCircle,
-  Clock,
-  InfoIcon,
-} from "lucide-react"
+import { Loader2, FileDown, FileUp, CheckCircle, AlertCircle, Clock } from "lucide-react"
 
 import {
   useAccountingCsvsForLedgerAccountIdQuery,
@@ -121,6 +113,8 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       first: 5,
     },
     skip: !isOpen,
+    fetchPolicy: "network-only",
+    notifyOnNetworkStatusChange: false,
   })
 
   const [createCsv, { loading: createLoading }] = useLedgerAccountCsvCreateMutation()
@@ -261,12 +255,6 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
         <div className="space-y-6">
           <div>
             <h3 className="text-sm font-medium mb-3">{t("existingExports")}</h3>
-
-            <div className="flex p-4 mb-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-950 dark:border-blue-800 rounded">
-              <InfoIcon className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-2 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-blue-700 dark:text-blue-300">{t("important")}</p>
-            </div>
-
             {loading ? (
               <div className="flex justify-center py-4">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />

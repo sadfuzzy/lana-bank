@@ -260,15 +260,18 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           <CardTitle>
             <div className="flex items-center justify-between">
               {t("entriesTitle")}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleOpenExportDialog}
-                disabled={!ledgerAccount}
-              >
-                <FileDown className="h-4 w-4 mr-2" />
-                {t("exportCsv.buttons.export")}
-              </Button>
+              {ledgerAccount?.history?.edges &&
+                ledgerAccount.history.edges.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleOpenExportDialog}
+                    disabled={!ledgerAccount}
+                  >
+                    <FileDown className="h-4 w-4 mr-2" />
+                    {t("exportCsv.buttons.export")}
+                  </Button>
+                )}
             </div>
           </CardTitle>
         </CardHeader>

@@ -1394,7 +1394,6 @@
       "csvCreating": "La exportación CSV se está generando",
       "csvReady": "La exportación CSV está lista para descargar",
       "csvFailed": "La generación de la exportación CSV ha fallado",
-      "important": "Cada exportación contiene una instantánea completa de todos los datos hasta la marca de tiempo exacta mostrada. Las transacciones más recientes no se incluirán.",
       "createNewDescription": "Genera una nueva exportación CSV que contiene todos los datos desde la creación de la cuenta hasta el momento actual. Cuando creas esta exportación, capturará una instantánea de tus datos tal como existen ahora mismo.",
       "status": {
         "pending": "Procesando",

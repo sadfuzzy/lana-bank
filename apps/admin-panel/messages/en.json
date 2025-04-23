@@ -1394,7 +1394,6 @@
       "csvCreating": "CSV export is being generated",
       "csvReady": "CSV export is ready for download",
       "csvFailed": "CSV export generation failed",
-      "important": "Each export contains a complete snapshot of all data up until the exact timestamp shown. Newer transactions will not be included.",
       "createNewDescription": "Generate a new CSV export containing all data from account creation up to the current time. When you create this export, it will capture a snapshot of your data as it exists right now.",
       "status": {
         "pending": "Processing",
