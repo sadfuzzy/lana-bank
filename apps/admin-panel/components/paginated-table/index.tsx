@@ -71,6 +71,7 @@ interface PaginatedTableProps<T> {
   customFooter?: React.ReactNode
   style?: "compact" | "comfortable"
   noDataText?: string
+  subRows?: (record: T) => T[]
 }
 
 const PaginatedTable = <T,>({
@@ -87,6 +88,7 @@ const PaginatedTable = <T,>({
   customFooter,
   style = "comfortable",
   noDataText,
+  subRows,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
@@ -359,34 +361,74 @@ const PaginatedTable = <T,>({
         </div>
 
         {displayData.map(({ node }, idx) => (
-          <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
-            {columns.map((col) => (
-              <div
-                key={col.key as string}
-                className="flex justify-between items-start gap-4"
-              >
-                <div className="text-sm font-medium text-muted-foreground">
-                  {col.label}
+          <>
+            <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+              {columns.map((col) => (
+                <div
+                  key={col.key as string}
+                  className="flex justify-between items-start gap-4"
+                >
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {col.label}
+                  </div>
+                  <div className="text-sm">
+                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+                  </div>
                 </div>
-                <div className="text-sm">
-                  {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+              ))}
+              {navigateTo && (
+                <div className="pt-2">
+                  <Link href={navigateTo(node)}>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center"
+                    >
+                      {t("view", { defaultMessage: "View" })}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-            ))}
-            {navigateTo && (
-              <div className="pt-2">
-                <Link href={navigateTo(node)}>
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-center"
-                  >
-                    {t("view", { defaultMessage: "View" })}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </Card>
+              )}
+            </Card>
+            {subRows &&
+              subRows(node).length > 0 &&
+              subRows(node).map((subRow, subIdx) => (
+                <Card
+                  key={`sub-row-${idx}-${subIdx}`}
+                  className="p-4 space-y-3"
+                  onClick={() => onClick?.(subRow)}
+                >
+                  {columns.map((col) => (
+                    <div
+                      key={col.key as string}
+                      className="flex justify-between items-start gap-4"
+                    >
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {col.label}
+                      </div>
+                      <div className="text-sm">
+                        {col.render
+                          ? col.render(subRow[col.key], subRow)
+                          : String(subRow[col.key])}
+                      </div>
+                    </div>
+                  ))}
+                  {navigateTo && (
+                    <div className="pt-2">
+                      <Link href={navigateTo(subRow)}>
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-center"
+                        >
+                          {t("view", { defaultMessage: "View" })}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </Card>
+              ))}
+          </>
         ))}
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">
           <Button
@@ -500,44 +542,89 @@ const PaginatedTable = <T,>({
           )}
           <TableBody>
             {displayData.map(({ node }, idx) => (
-              <TableRow
-                key={idx}
-                data-testid={`table-row-${idx}`}
-                onClick={() => onClick?.(node)}
-                tabIndex={0}
-                className={`${onClick ? "cursor-pointer" : ""} ${
-                  focusedRowIndex === idx ? "bg-muted" : ""
-                } hover:bg-muted/50 transition-colors outline-none`}
-                onFocus={() => setFocusedRowIndex(idx)}
-                role="row"
-                aria-selected={focusedRowIndex === idx}
-              >
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.key as string}
-                    className={
-                      style === "comfortable"
-                        ? "whitespace-normal break-words h-[3.8rem]"
-                        : ""
-                    }
-                  >
-                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                  </TableCell>
-                ))}
-                {navigateTo && (
-                  <TableCell>
-                    <Link href={navigateTo(node)}>
-                      <Button
-                        variant="outline"
-                        className="w-full flex items-center justify-between"
-                      >
-                        {t("view", { defaultMessage: "View" })}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
-                )}
-              </TableRow>
+              <>
+                <TableRow
+                  key={idx}
+                  data-testid={`table-row-${idx}`}
+                  onClick={() => onClick?.(node)}
+                  tabIndex={0}
+                  className={`${onClick ? "cursor-pointer" : ""} ${
+                    focusedRowIndex === idx ? "bg-muted" : ""
+                  } hover:bg-muted/50 transition-colors outline-none`}
+                  onFocus={() => setFocusedRowIndex(idx)}
+                  role="row"
+                  aria-selected={focusedRowIndex === idx}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.key as string}
+                      className={
+                        style === "comfortable"
+                          ? "whitespace-normal break-words h-[3.8rem]"
+                          : ""
+                      }
+                    >
+                      {col.render
+                        ? col.render(node[col.key], node)
+                        : String(node[col.key])}
+                    </TableCell>
+                  ))}
+                  {navigateTo && (
+                    <TableCell>
+                      <Link href={navigateTo(node)}>
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-between"
+                        >
+                          {t("view", { defaultMessage: "View" })}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  )}
+                </TableRow>
+                {subRows &&
+                  subRows(node).length > 0 &&
+                  subRows(node).map((subRow, subIdx) => (
+                    <TableRow
+                      role="row"
+                      key={`sub-row-${idx}-${subIdx}`}
+                      onClick={() => onClick?.(subRow)}
+                      tabIndex={0}
+                      className={`${onClick ? "cursor-pointer" : ""} ${
+                        focusedRowIndex === idx ? "bg-muted" : ""
+                      } hover:bg-muted/50 transition-colors outline-none`}
+                    >
+                      {columns.map((col) => (
+                        <TableCell
+                          key={col.key as string}
+                          className={
+                            style === "comfortable"
+                              ? "whitespace-normal break-words h-[3.8rem]"
+                              : ""
+                          }
+                        >
+                          {col.render
+                            ? col.render(subRow[col.key], subRow)
+                            : String(subRow[col.key])}
+                        </TableCell>
+                      ))}
+                      {navigateTo && (
+                        <TableCell>
+                          <Link href={navigateTo(subRow)}>
+                            <Button
+                              variant="outline"
+                              className="w-full flex items-center justify-between"
+                            >
+                              {t("view", { defaultMessage: "View" })}
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+              </>
             ))}
           </TableBody>
           {customFooter}

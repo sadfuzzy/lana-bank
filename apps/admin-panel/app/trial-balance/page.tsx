@@ -68,6 +68,16 @@ gql`
               ...UsdLedgerBalanceRangeFragment
               ...BtcLedgerBalanceRangeFragment
             }
+            children {
+              id
+              code
+              name
+              balanceRange {
+                __typename
+                ...UsdLedgerBalanceRangeFragment
+                ...BtcLedgerBalanceRangeFragment
+              }
+            }
           }
         }
         pageInfo {
@@ -176,6 +186,36 @@ function isUsdLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) 
 
 function isBtcLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) {
   return !!balanceRange && balanceRange.__typename === "BtcLedgerAccountBalanceRange"
+}
+
+const hasNonZeroBalanceRangeData = (balanceRange: BalanceRange) => {
+  if (
+    balanceRange.__typename === "UsdLedgerAccountBalanceRange" &&
+    (balanceRange.usdStart.pending ||
+      balanceRange.usdStart.settled ||
+      balanceRange.usdStart.encumbrance ||
+      balanceRange.usdDiff.pending ||
+      balanceRange.usdDiff.settled ||
+      balanceRange.usdDiff.encumbrance ||
+      balanceRange.usdEnd.pending ||
+      balanceRange.usdEnd.settled ||
+      balanceRange.usdEnd.encumbrance)
+  )
+    return true
+  if (
+    balanceRange.__typename === "BtcLedgerAccountBalanceRange" &&
+    (balanceRange.btcStart.pending ||
+      balanceRange.btcStart.settled ||
+      balanceRange.btcStart.encumbrance ||
+      balanceRange.btcDiff.pending ||
+      balanceRange.btcDiff.settled ||
+      balanceRange.btcDiff.encumbrance ||
+      balanceRange.btcEnd.pending ||
+      balanceRange.btcEnd.settled ||
+      balanceRange.btcEnd.encumbrance)
+  )
+    return true
+  return false
 }
 
 function TrialBalancePage() {
@@ -357,6 +397,11 @@ function TrialBalancePage() {
           style="compact"
           onClick={(account) => router.push(`/ledger-account/${account.code}`)}
           noDataText={t("noAccountsPresent")}
+          subRows={(account) =>
+            account.children.filter((child) =>
+              hasNonZeroBalanceRangeData(child.balanceRange),
+            ) as TrialBalanceAccountNode[]
+          }
         />
         <div className="mt-4" />
       </CardContent>
