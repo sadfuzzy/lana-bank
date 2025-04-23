@@ -14,6 +14,8 @@ jobs:
   run-cypress-tests:
     name: Run Tests
     runs-on: Lana-Big-Runner
+    env:
+      NETLIFY_TOKEN_PRESENT: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
@@ -48,33 +50,24 @@ jobs:
           name: screenshots
           path: apps/admin-panel/cypress/manuals/screenshots
 
-      - name: Check for Netlify secret
-        id: check_netlify
-        run: |
-          if [ -z "${{ secrets.NETLIFY_AUTH_TOKEN }}" ]; then
-            echo "has_netlify=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_netlify=true" >> $GITHUB_OUTPUT
-          fi
-
       - name: generate pdfs
-        if: steps.check_netlify.outputs.has_netlify == 'true'
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
         run: |
           cd apps/admin-panel && nix develop -c pnpm run local:pdf
 
       - name: list manuals
-        if: steps.check_netlify.outputs.has_netlify == 'true'
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
         run: |
           ls -R apps/admin-panel/cypress/manuals
 
       - uses: actions/upload-artifact@v4
-        if: steps.check_netlify.outputs.has_netlify == 'true'
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
         with:
           name: pdfs
           path: apps/admin-panel/cypress/manuals/results/*
 
       - name: generate manual page
-        if: steps.check_netlify.outputs.has_netlify == 'true'
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
         run: |
           cd apps/admin-panel/cypress/manuals/results
           cat <<EOF > index.html
@@ -166,7 +159,7 @@ jobs:
         id: netlify_deploy
         if: >
           github.event_name == 'pull_request'
-          && steps.check_netlify.outputs.has_netlify == 'true'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -188,7 +181,7 @@ jobs:
       - name: Deploy to Netlify (Push to Main)
         if: >
           github.event_name == 'push'
-          && steps.check_netlify.outputs.has_netlify == 'true'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
@@ -207,7 +200,7 @@ jobs:
       - name: Create or Update Preview Comment
         if: >
           github.event_name == 'pull_request'
-          && steps.check_netlify.outputs.has_netlify == 'true'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
         uses: actions/github-script@v6
         with:
           script: |
