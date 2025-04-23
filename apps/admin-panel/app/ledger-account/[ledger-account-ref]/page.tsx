@@ -17,7 +17,13 @@ import { useEffect, useState } from "react"
 
 import { useRouter } from "next/navigation"
 import { Button } from "@lana/web/ui/button"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@lana/web/ui/collapsible"
 import { FileDown } from "lucide-react"
+import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import { ExportCsvDialog } from "./export"
 
@@ -43,6 +49,11 @@ gql`
     name
     code
     ancestors {
+      id
+      name
+      code
+    }
+    children {
       id
       name
       code
@@ -117,6 +128,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const { "ledger-account-ref": ref } = params
   const isRefUUID = isUUID(ref)
+
+  const [isAncestorsOpen, setIsAncestorsOpen] = useState(false)
+  const [isChildrenOpen, setIsChildrenOpen] = useState(false)
 
   const ledgerAccountByCodeData = useLedgerAccountByCodeQuery({
     variables: { code: ref, first: DEFAULT_PAGESIZE },
@@ -199,59 +213,123 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           ) : (
             <>
               {!loading && (
-                <DetailsGroup columns={3} className="mb-4">
-                  <DetailItem label={t("details.name")} value={ledgerAccount?.name} />
-                  <DetailItem
-                    label={t("details.code")}
-                    value={ledgerAccount?.code || "-"}
-                  />
-                  <DetailItem
-                    label={
-                      ledgerAccount?.balanceRange.__typename ===
-                      "BtcLedgerAccountBalanceRange"
-                        ? t("details.btcBalance")
-                        : t("details.usdBalance")
-                    }
-                    value={
-                      ledgerAccount?.balanceRange.__typename ===
-                      "UsdLedgerAccountBalanceRange" ? (
-                        <Balance
-                          currency="usd"
-                          amount={ledgerAccount?.balanceRange?.end?.usdSettled}
-                        />
-                      ) : ledgerAccount?.balanceRange.__typename ===
-                        "BtcLedgerAccountBalanceRange" ? (
-                        <Balance
-                          currency="btc"
-                          amount={ledgerAccount?.balanceRange?.end?.btcSettled}
-                        />
-                      ) : (
-                        "-"
-                      )
-                    }
-                  />
-                </DetailsGroup>
+                <>
+                  <DetailsGroup columns={3} className="mb-4">
+                    <DetailItem label={t("details.name")} value={ledgerAccount?.name} />
+                    <DetailItem
+                      label={t("details.code")}
+                      value={ledgerAccount?.code || "-"}
+                    />
+                    <DetailItem
+                      label={
+                        ledgerAccount?.balanceRange.__typename ===
+                        "BtcLedgerAccountBalanceRange"
+                          ? t("details.btcBalance")
+                          : t("details.usdBalance")
+                      }
+                      value={
+                        ledgerAccount?.balanceRange.__typename ===
+                        "UsdLedgerAccountBalanceRange" ? (
+                          <Balance
+                            currency="usd"
+                            amount={ledgerAccount?.balanceRange?.end?.usdSettled}
+                          />
+                        ) : ledgerAccount?.balanceRange.__typename ===
+                          "BtcLedgerAccountBalanceRange" ? (
+                          <Balance
+                            currency="btc"
+                            amount={ledgerAccount?.balanceRange?.end?.btcSettled}
+                          />
+                        ) : (
+                          "-"
+                        )
+                      }
+                    />
+                  </DetailsGroup>
+
+                  <div className="flex flex-col space-y-2">
+                    {ledgerAccount?.ancestors && ledgerAccount?.ancestors.length > 0 && (
+                      <Collapsible
+                        open={isAncestorsOpen}
+                        onOpenChange={setIsAncestorsOpen}
+                      >
+                        <CollapsibleTrigger className="flex items-center space-x-1 font-semibold">
+                          {isAncestorsOpen ? (
+                            <IoCaretDownSharp />
+                          ) : (
+                            <IoCaretForwardSharp />
+                          )}
+                          <span>
+                            {t("details.ancestors", {
+                              n: ledgerAccount?.ancestors.length,
+                            })}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="max-w-[864px] pt-2">
+                          <DataTable
+                            onRowClick={(ancestor) =>
+                              router.push(`/ledger-account/${ancestor.code}`)
+                            }
+                            cellClassName="!py-0 !h-10"
+                            data={ledgerAccount?.ancestors || []}
+                            columns={[
+                              {
+                                key: "code",
+                                header: t("details.code"),
+                                render: (code) => (
+                                  <span className="font-mono text-xs font-bold">
+                                    {code}
+                                  </span>
+                                ),
+                              },
+                              { key: "name", header: t("details.name") },
+                            ]}
+                            loading={loading}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+
+                    {ledgerAccount?.children && ledgerAccount?.children.length > 0 && (
+                      <Collapsible open={isChildrenOpen} onOpenChange={setIsChildrenOpen}>
+                        <CollapsibleTrigger className="flex items-center space-x-1 font-semibold">
+                          {isChildrenOpen ? (
+                            <IoCaretDownSharp />
+                          ) : (
+                            <IoCaretForwardSharp />
+                          )}
+                          <span>
+                            {t("details.children", { n: ledgerAccount?.children.length })}
+                          </span>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="max-w-[864px] pt-2">
+                          <DataTable
+                            onRowClick={(child) =>
+                              router.push(`/ledger-account/${child.code}`)
+                            }
+                            cellClassName="!py-0 !h-10"
+                            data={ledgerAccount?.children || []}
+                            columns={[
+                              {
+                                key: "code",
+                                header: t("details.code"),
+                                render: (code) => (
+                                  <span className="font-mono text-xs font-bold">
+                                    {code}
+                                  </span>
+                                ),
+                              },
+                              { key: "name", header: t("details.name") },
+                            ]}
+                            loading={loading}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
+                    )}
+                  </div>
+                </>
               )}
             </>
-          )}
-          {ledgerAccount?.ancestors.length !== 0 && (
-            <div>
-              <DetailItem
-                label={t("details.ancestors")}
-                value={
-                  <DataTable
-                    data={ledgerAccount?.ancestors || []}
-                    columns={[
-                      { key: "name", header: t("details.name") },
-                      { key: "code", header: t("details.code") },
-                    ]}
-                    loading={loading}
-                    emptyMessage={t("details.noAncestors")}
-                    navigateTo={(ancestor) => `/ledger-account/${ancestor.code}`}
-                  />
-                }
-              />
-            </div>
           )}
         </CardContent>
       </Card>

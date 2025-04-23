@@ -1370,8 +1370,8 @@
       "name": "Account Name",
       "usdBalance": "USD Balance",
       "btcBalance": "BTC Balance",
-      "ancestors": "Ancestors",
-      "noAncestors": "No ancestors"
+      "ancestors": "{n, plural, =0 {No ancestors} =1 {# Ancestor} other {# Ancestors}}",
+      "children": "{n, plural, =0 {No children} =1 {# Child} other {# Children}}"
     },
     "table": {
       "noData": "No transactions present in this account",
