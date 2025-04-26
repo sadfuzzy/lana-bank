@@ -7,9 +7,7 @@ ENV GH_TOKEN ${GH_TOKEN}
 ARG VERSION
 ENV VERSION ${VERSION}
 RUN mkdir lana-home && mkdir lana && cd lana \
-  && gh release download --repo GaloyMoney/lana-bank ${VERSION}\
-  && mv lana-cli-x86_64-unknown-linux-musl-${VERSION}.tar.gz lana-cli.tar.gz \
-  && tar --strip-components=1 -xf lana-cli.tar.gz \
+  && gh release download --repo GaloyMoney/lana-bank ${VERSION} \
   && mv lana-cli /usr/local/bin && cd ../ && rm -rf ./lana
 
 FROM gcr.io/distroless/static
