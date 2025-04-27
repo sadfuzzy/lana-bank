@@ -1,4 +1,4 @@
-flow to access in dev mode the public API
+Flow to access in dev mode the public API
 
 ```mermaid
 flowchart TD
