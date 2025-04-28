@@ -289,10 +289,6 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
-    pub fn is_paid(&self) -> bool {
-        self.status() == ObligationStatus::Paid
-    }
-
     pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
         BalanceUpdateData {
             source_id: self.id.into(),
