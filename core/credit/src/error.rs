@@ -14,7 +14,7 @@ pub enum CoreCreditError {
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
     #[error("CoreCreditError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
-    #[error("CoreCreditError - PaymentError: {0}")]
+    #[error("CoreCreditError - CreditFacilityError: {0}")]
     CoreCreditError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - PaymentError: {0}")]
     PaymentError(#[from] super::payment::error::PaymentError),

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
 
+mod balance;
 mod constants;
 mod credit_facility_accounts;
 pub mod error;
@@ -18,7 +19,6 @@ use cala_ledger::{
 };
 
 use crate::{
-    credit_facility::CreditFacilityBalanceSummary,
     payment_allocation::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
@@ -29,6 +29,7 @@ use crate::{
     ObligationOverdueReallocationData,
 };
 
+pub use balance::*;
 use constants::*;
 pub use credit_facility_accounts::*;
 use error::*;

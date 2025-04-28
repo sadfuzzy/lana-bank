@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::terms::CVLPct;
+use crate::primitives::CVLPct;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct CreditConfig {

@@ -16,7 +16,7 @@ pub use lana_app::{
     credit::{
         CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
         CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-        FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
+        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
     },
     primitives::CreditFacilityStatus,
 };
@@ -88,9 +88,7 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
-        Ok(FacilityCVL::from(
-            app.credit().facility_cvl(&self.entity).await?,
-        ))
+        Ok(app.credit().facility_cvl(&self.entity).await?)
     }
 
     async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
@@ -195,21 +193,6 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app.credit().balance(sub, self.entity.id).await?;
         Ok(CreditFacilityBalance::from(balance))
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct FacilityCVL {
-    total: CVLPct,
-    disbursed: CVLPct,
-}
-
-impl From<lana_app::credit::FacilityCVL> for FacilityCVL {
-    fn from(value: lana_app::credit::FacilityCVL) -> Self {
-        Self {
-            total: value.total,
-            disbursed: value.disbursed,
-        }
     }
 }
 

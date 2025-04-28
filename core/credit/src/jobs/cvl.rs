@@ -10,9 +10,8 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::*, terms::CVLPct,
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacilitiesByCollateralizationRatioCursor,
+    credit_facility::CreditFacilityRepo, ledger::CreditLedger, primitives::*, CoreCreditAction,
+    CoreCreditEvent, CoreCreditObject, CreditFacilitiesByCollateralizationRatioCursor,
 };
 
 #[serde_with::serde_as]

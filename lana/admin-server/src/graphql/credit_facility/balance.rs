@@ -16,28 +16,28 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
     fn from(balance: lana_app::credit::CreditFacilityBalanceSummary) -> Self {
         Self {
             facility_remaining: FacilityRemaining {
-                usd_balance: balance.facility_remaining,
+                usd_balance: balance.facility_remaining(),
             },
             disbursed: Disbursed {
                 total: Total {
-                    usd_balance: balance.disbursed,
+                    usd_balance: balance.total_disbursed(),
                 },
                 outstanding: Outstanding {
                     usd_balance: balance.disbursed_outstanding_payable(),
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.overdue_disbursed_outstanding,
+                    usd_balance: balance.overdue_disbursed_outstanding(),
                 },
             },
             interest: Interest {
                 total: Total {
-                    usd_balance: balance.interest_posted,
+                    usd_balance: balance.interest_posted(),
                 },
                 outstanding: Outstanding {
                     usd_balance: balance.interest_outstanding_payable(),
                 },
                 due_outstanding: Outstanding {
-                    usd_balance: balance.overdue_interest_outstanding,
+                    usd_balance: balance.overdue_interest_outstanding(),
                 },
             },
             outstanding: Outstanding {
@@ -47,7 +47,7 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                 usd_balance: balance.total_overdue(),
             },
             collateral: Collateral {
-                btc_balance: balance.collateral,
+                btc_balance: balance.collateral(),
             },
         }
     }
