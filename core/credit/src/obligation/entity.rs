@@ -289,6 +289,10 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
+    pub fn is_paid(&self) -> bool {
+        self.status() == ObligationStatus::Paid
+    }
+
     pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
         BalanceUpdateData {
             source_id: self.id.into(),
@@ -319,6 +323,10 @@ impl Obligation {
             ObligationEvent::DueRecorded { .. }
         );
 
+        if self.is_paid() {
+            return Idempotent::Ignored;
+        }
+
         let res = ObligationDueReallocationData {
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
@@ -342,6 +350,10 @@ impl Obligation {
             self.events.iter_all().rev(),
             ObligationEvent::OverdueRecorded { .. }
         );
+
+        if self.is_paid() {
+            return Ok(Idempotent::Ignored);
+        }
 
         if self.status() != ObligationStatus::Due {
             return Err(ObligationError::InvalidStatusTransitionToOverdue);
@@ -549,5 +561,31 @@ mod test {
             res,
             Err(ObligationError::InvalidStatusTransitionToOverdue)
         ));
+    }
+
+    #[test]
+    fn ignores_due_recorded_if_paid() {
+        let mut events = initial_events();
+        events.push(ObligationEvent::Completed {
+            completed_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        let mut obligation = obligation_from(events);
+
+        let res = obligation.record_due(dummy_audit_info());
+        assert!(matches!(res, Idempotent::Ignored));
+    }
+
+    #[test]
+    fn ignores_overdue_recorded_if_paid() {
+        let mut events = initial_events();
+        events.push(ObligationEvent::Completed {
+            completed_at: Utc::now(),
+            audit_info: dummy_audit_info(),
+        });
+        let mut obligation = obligation_from(events);
+
+        let res = obligation.record_overdue(dummy_audit_info()).unwrap();
+        assert!(matches!(res, Idempotent::Ignored));
     }
 }
