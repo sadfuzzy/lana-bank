@@ -36,7 +36,7 @@ pub struct Chart {
     pub name: String,
     all_accounts: HashMap<AccountCode, (AccountSpec, CalaAccountSetId)>,
 
-    pub(super) events: EntityEvents<ChartEvent>,
+    events: EntityEvents<ChartEvent>,
 }
 
 impl Chart {

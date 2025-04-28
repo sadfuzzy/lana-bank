@@ -45,7 +45,7 @@ pub struct Payment {
     pub credit_facility_id: CreditFacilityId,
     pub amount: UsdCents,
 
-    pub(super) events: EntityEvents<PaymentEvent>,
+    events: EntityEvents<PaymentEvent>,
 }
 
 impl TryFromEvents<PaymentEvent> for Payment {

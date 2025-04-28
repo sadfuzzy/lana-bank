@@ -78,7 +78,7 @@ pub struct InterestAccrualCycle {
     pub started_at: DateTime<Utc>,
     pub facility_matures_at: DateTime<Utc>,
     pub terms: TermValues,
-    pub(super) events: EntityEvents<InterestAccrualCycleEvent>,
+    events: EntityEvents<InterestAccrualCycleEvent>,
 }
 
 #[derive(Debug, Clone)]

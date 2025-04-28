@@ -48,7 +48,7 @@ pub struct AccountingCsv {
     pub csv_type: AccountingCsvType,
     #[builder(setter(strip_option), default)]
     pub ledger_account_id: Option<LedgerAccountId>,
-    pub(super) events: EntityEvents<AccountingCsvEvent>,
+    events: EntityEvents<AccountingCsvEvent>,
 }
 
 impl AccountingCsv {

@@ -27,7 +27,7 @@ pub struct TermsTemplate {
     pub id: TermsTemplateId,
     pub name: String,
     pub values: TermValues,
-    pub(super) events: EntityEvents<TermsTemplateEvent>,
+    events: EntityEvents<TermsTemplateEvent>,
 }
 
 impl TermsTemplate {

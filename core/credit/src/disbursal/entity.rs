@@ -56,7 +56,7 @@ pub struct Disbursal {
     pub disbursal_due_date: DateTime<Utc>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
-    pub(super) events: EntityEvents<DisbursalEvent>,
+    events: EntityEvents<DisbursalEvent>,
 }
 
 impl TryFromEvents<DisbursalEvent> for Disbursal {

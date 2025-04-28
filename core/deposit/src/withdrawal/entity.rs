@@ -58,7 +58,7 @@ pub struct Withdrawal {
     #[builder(setter(strip_option), default)]
     pub cancelled_tx_id: Option<CalaTransactionId>,
 
-    pub(super) events: EntityEvents<WithdrawalEvent>,
+    events: EntityEvents<WithdrawalEvent>,
 }
 
 impl Withdrawal {

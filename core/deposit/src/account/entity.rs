@@ -36,7 +36,8 @@ pub struct DepositAccount {
     pub name: String,
     pub description: String,
     pub status: AccountStatus,
-    pub(super) events: EntityEvents<DepositAccountEvent>,
+
+    events: EntityEvents<DepositAccountEvent>,
 }
 
 impl DepositAccount {

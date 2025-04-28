@@ -28,7 +28,7 @@ pub struct Deposit {
     pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
     pub reference: String,
-    pub(super) events: EntityEvents<DepositEvent>,
+    events: EntityEvents<DepositEvent>,
 }
 
 impl Deposit {

@@ -114,7 +114,7 @@ pub struct Obligation {
     pub reference: String,
     pub initial_amount: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub(super) events: EntityEvents<ObligationEvent>,
+    events: EntityEvents<ObligationEvent>,
 }
 
 impl Obligation {

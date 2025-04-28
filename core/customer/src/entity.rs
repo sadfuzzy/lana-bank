@@ -58,7 +58,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    pub(super) events: EntityEvents<CustomerEvent>,
+    events: EntityEvents<CustomerEvent>,
 }
 
 impl core::fmt::Display for Customer {

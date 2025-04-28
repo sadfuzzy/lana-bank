@@ -39,7 +39,7 @@ pub struct PaymentAllocation {
     pub receivable_account_id: CalaAccountId,
     pub recorded_at: DateTime<Utc>,
 
-    pub(super) events: EntityEvents<PaymentAllocationEvent>,
+    events: EntityEvents<PaymentAllocationEvent>,
 }
 
 impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {

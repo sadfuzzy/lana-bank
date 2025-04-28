@@ -35,7 +35,7 @@ pub enum CommitteeEvent {
 pub struct Committee {
     pub id: CommitteeId,
     pub name: String,
-    pub(super) events: EntityEvents<CommitteeEvent>,
+    events: EntityEvents<CommitteeEvent>,
 }
 
 impl Committee {

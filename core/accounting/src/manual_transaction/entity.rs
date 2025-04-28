@@ -26,7 +26,7 @@ pub struct ManualTransaction {
     pub reference: String,
     pub description: String,
     pub ledger_transaction_id: CalaTxId,
-    pub(super) events: EntityEvents<ManualTransactionEvent>,
+    events: EntityEvents<ManualTransactionEvent>,
 }
 
 impl ManualTransaction {

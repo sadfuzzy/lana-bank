@@ -42,7 +42,7 @@ pub struct ApprovalProcess {
     pub process_type: ApprovalProcessType,
     pub policy_id: PolicyId,
     pub rules: ApprovalRules,
-    pub(super) events: EntityEvents<ApprovalProcessEvent>,
+    events: EntityEvents<ApprovalProcessEvent>,
 }
 
 impl ApprovalProcess {
