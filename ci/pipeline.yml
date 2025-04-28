@@ -1,6 +1,7 @@
 #@ load("@ytt:data", "data")
 
 #@ load("vendor/pipeline-fragments.lib.yml",
+#@   "build_edge_image",
 #@   "public_docker_registry",
 #@   "nodejs_task_image_config",
 #@   "docker_host_pool",
@@ -72,6 +73,7 @@ groups:
       - integration-tests
       - bats-tests
       - release
+      - build-edge-image
       - release-docker
       - set-dev-version
       - bump-image-in-chart
@@ -83,6 +85,7 @@ groups:
 jobs:
   -  #@ on_nix_host("integration-tests", "make test-in-ci")
   -  #@ on_nix_host("bats-tests", "make e2e")
+  -  #@ build_edge_image()
 
   - name: rust-check-code
     serial: true
@@ -525,7 +528,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: ci--discrepency-between-local-cargo-and-deployed-cargo
+      branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
@@ -578,6 +581,7 @@ resources:
       password: #@ data.values.docker_registry_password
 
   -  #@ pipeline_tasks_resource()
+  -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()

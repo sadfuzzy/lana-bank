@@ -25,4 +25,4 @@ ENV VERSION="$VERSION" \
     COMMITHASH="$COMMITHASH" \
     LANA_HOME=/lana
   
-ENTRYPOINT ["/bin/lana-cli"]
+CMD ["lana-cli"]
