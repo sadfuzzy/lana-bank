@@ -112,6 +112,10 @@ where
             .find_by_id(self.config.obligation_id)
             .await?;
 
+        if obligation.is_paid() {
+            return Ok(JobCompletion::Complete);
+        }
+
         let mut db = self.obligations.begin_op().await?;
         let audit_info = self
             .audit
