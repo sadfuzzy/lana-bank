@@ -60,7 +60,7 @@ sdl-js:
 full-sdl: sdl-rust sdl-js
 
 # Frontend Apps
-check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
+check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
