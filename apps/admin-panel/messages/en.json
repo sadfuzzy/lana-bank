@@ -1216,9 +1216,10 @@
       "headers": {
         "accountName": "Account Name",
         "accountCode": "Account Code",
-        "openingBalance": "Opening Balance",
-        "periodActivity": "Period Activity",
-        "closingBalance": "Closing Balance"
+        "beginningBalance": "Beginning Balance",
+        "debits": "Debits",
+        "credits": "Credits",
+        "endingBalance": "Ending Balance"
       }
     }
   },

@@ -1216,9 +1216,10 @@
       "headers": {
         "accountName": "Nombre de Cuenta",
         "accountCode": "Código de cuenta",
-        "openingBalance": "Saldo inicial",
-        "periodActivity": "Actividad del período",
-        "closingBalance": "Saldo final"
+        "beginningBalance": "Saldo inicial",
+        "debits": "Débitos",
+        "credits": "Créditos",
+        "endingBalance": "Saldo final"
       }
     }
   },

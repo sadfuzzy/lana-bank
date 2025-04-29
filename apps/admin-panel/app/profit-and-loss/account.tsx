@@ -21,9 +21,9 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
   let accountEnd: number | undefined
 
   if (account.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-    accountEnd = account.balanceRange.usdEnd[layer]
+    accountEnd = account.balanceRange.usdEnd[layer].net
   } else if (account.balanceRange.__typename === "BtcLedgerAccountBalanceRange") {
-    accountEnd = account.balanceRange.btcEnd[layer]
+    accountEnd = account.balanceRange.btcEnd[layer].net
   }
 
   return (

@@ -188,50 +188,100 @@ impl From<&lana_app::primitives::BalanceRange> for BtcLedgerAccountBalanceRange 
 
 #[derive(SimpleObject, Default)]
 pub(super) struct UsdLedgerAccountBalance {
-    settled: UsdCents,
-    pending: UsdCents,
-    encumbrance: UsdCents,
-}
-
-#[derive(SimpleObject, Default)]
-pub(super) struct BtcLedgerAccountBalance {
-    settled: Satoshis,
-    pending: Satoshis,
-    encumbrance: Satoshis,
+    settled: UsdBalanceDetails,
+    pending: UsdBalanceDetails,
+    encumbrance: UsdBalanceDetails,
 }
 
 impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBalance {
     fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
         match balance {
             None => UsdLedgerAccountBalance {
-                settled: UsdCents::ZERO,
-                pending: UsdCents::ZERO,
-                encumbrance: UsdCents::ZERO,
+                settled: UsdBalanceDetails::default(),
+                pending: UsdBalanceDetails::default(),
+                encumbrance: UsdBalanceDetails::default(),
             },
             Some(balance) => UsdLedgerAccountBalance {
-                settled: UsdCents::try_from_usd(balance.settled()).expect("positive"),
-                pending: UsdCents::try_from_usd(balance.pending()).expect("positive"),
-                encumbrance: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+                settled: UsdBalanceDetails {
+                    debit: UsdCents::try_from_usd(balance.details.settled.dr_balance)
+                        .expect("positive"),
+                    credit: UsdCents::try_from_usd(balance.details.settled.cr_balance)
+                        .expect("positive"),
+                    net: UsdCents::try_from_usd(balance.settled()).expect("positive"),
+                },
+                pending: UsdBalanceDetails {
+                    debit: UsdCents::try_from_usd(balance.details.pending.dr_balance)
+                        .expect("positive"),
+                    credit: UsdCents::try_from_usd(balance.details.pending.cr_balance)
+                        .expect("positive"),
+                    net: UsdCents::try_from_usd(balance.pending()).expect("positive"),
+                },
+                encumbrance: UsdBalanceDetails {
+                    debit: UsdCents::try_from_usd(balance.details.encumbrance.dr_balance)
+                        .expect("positive"),
+                    credit: UsdCents::try_from_usd(balance.details.encumbrance.cr_balance)
+                        .expect("positive"),
+                    net: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+                },
             },
         }
     }
+}
+
+#[derive(SimpleObject, Default)]
+struct UsdBalanceDetails {
+    debit: UsdCents,
+    credit: UsdCents,
+    net: UsdCents,
+}
+
+#[derive(SimpleObject, Default)]
+pub(super) struct BtcLedgerAccountBalance {
+    settled: BtcBalanceDetails,
+    pending: BtcBalanceDetails,
+    encumbrance: BtcBalanceDetails,
 }
 
 impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBalance {
     fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
         match balance {
             None => BtcLedgerAccountBalance {
-                settled: Satoshis::ZERO,
-                pending: Satoshis::ZERO,
-                encumbrance: Satoshis::ZERO,
+                settled: BtcBalanceDetails::default(),
+                pending: BtcBalanceDetails::default(),
+                encumbrance: BtcBalanceDetails::default(),
             },
             Some(balance) => BtcLedgerAccountBalance {
-                settled: Satoshis::try_from_btc(balance.settled()).expect("positive"),
-                pending: Satoshis::try_from_btc(balance.pending()).expect("positive"),
-                encumbrance: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+                settled: BtcBalanceDetails {
+                    debit: Satoshis::try_from_btc(balance.details.settled.dr_balance)
+                        .expect("positive"),
+                    credit: Satoshis::try_from_btc(balance.details.settled.cr_balance)
+                        .expect("positive"),
+                    net: Satoshis::try_from_btc(balance.settled()).expect("positive"),
+                },
+                pending: BtcBalanceDetails {
+                    debit: Satoshis::try_from_btc(balance.details.pending.dr_balance)
+                        .expect("positive"),
+                    credit: Satoshis::try_from_btc(balance.details.pending.cr_balance)
+                        .expect("positive"),
+                    net: Satoshis::try_from_btc(balance.pending()).expect("positive"),
+                },
+                encumbrance: BtcBalanceDetails {
+                    debit: Satoshis::try_from_btc(balance.details.encumbrance.dr_balance)
+                        .expect("positive"),
+                    credit: Satoshis::try_from_btc(balance.details.encumbrance.cr_balance)
+                        .expect("positive"),
+                    net: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+                },
             },
         }
     }
+}
+
+#[derive(SimpleObject, Default)]
+struct BtcBalanceDetails {
+    debit: Satoshis,
+    credit: Satoshis,
+    net: Satoshis,
 }
 
 scalar!(AccountCode);

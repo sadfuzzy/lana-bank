@@ -64,15 +64,39 @@ gql`
   }
 
   fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-    settled
-    pending
-    encumbrance
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
   }
 
   fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-    settled
-    pending
-    encumbrance
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
   }
 
   fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
@@ -363,12 +387,12 @@ function getBalance(
     currency === "usd" &&
     item.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
   ) {
-    return item.balanceRange.usdEnd[layer]
+    return item.balanceRange.usdEnd[layer].net
   } else if (
     currency === "btc" &&
     item.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
   ) {
-    return item.balanceRange.btcEnd[layer]
+    return item.balanceRange.btcEnd[layer].net
   }
 
   return 0

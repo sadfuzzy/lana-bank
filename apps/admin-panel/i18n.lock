@@ -695,9 +695,10 @@ checksums:
     TrialBalance/tabs/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
     TrialBalance/table/headers/accountName: 5a4c82f1bc517348b64c107345f94f65
     TrialBalance/table/headers/accountCode: 9218742c297d337fdc0f5f5dd985294d
-    TrialBalance/table/headers/openingBalance: 0a307665e821077adea86151df085e18
-    TrialBalance/table/headers/periodActivity: 5d0134ecc3557b685d123a17e85ba19d
-    TrialBalance/table/headers/closingBalance: d260d23abf93bd07c3b349a3397593e2
+    TrialBalance/table/headers/beginningBalance: 8b41caafe7c964ab182bfea8d9c7d5ca
+    TrialBalance/table/headers/debits: 456d7d7a795a9bb041632092f8a1a711
+    TrialBalance/table/headers/credits: b21b88917ea0c8e2a71888756f71d0be
+    TrialBalance/table/headers/endingBalance: 92090bf03904242942c8387f1e0e7f66
     CurrencyLayerSelection/currency/label: d2ba9a9cea418ea653e3ca6785617a3f
     CurrencyLayerSelection/currency/options/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
     CurrencyLayerSelection/currency/options/btc: af1432546a2c9130c9163b2269d5b60d

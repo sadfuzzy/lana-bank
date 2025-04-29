@@ -220,6 +220,12 @@ type BtcAmount {
 	btc: Satoshis!
 }
 
+type BtcBalanceDetails {
+	debit: Satoshis!
+	credit: Satoshis!
+	net: Satoshis!
+}
+
 type BtcGeneralLedgerEntry {
 	id: ID!
 	entryId: UUID!
@@ -231,9 +237,9 @@ type BtcGeneralLedgerEntry {
 }
 
 type BtcLedgerAccountBalance {
-	settled: Satoshis!
-	pending: Satoshis!
-	encumbrance: Satoshis!
+	settled: BtcBalanceDetails!
+	pending: BtcBalanceDetails!
+	encumbrance: BtcBalanceDetails!
 }
 
 type BtcLedgerAccountBalanceRange {
@@ -1631,6 +1637,12 @@ type UsdAmount {
 	usd: UsdCents!
 }
 
+type UsdBalanceDetails {
+	debit: UsdCents!
+	credit: UsdCents!
+	net: UsdCents!
+}
+
 scalar UsdCents
 
 type UsdGeneralLedgerEntry {
@@ -1644,9 +1656,9 @@ type UsdGeneralLedgerEntry {
 }
 
 type UsdLedgerAccountBalance {
-	settled: UsdCents!
-	pending: UsdCents!
-	encumbrance: UsdCents!
+	settled: UsdBalanceDetails!
+	pending: UsdBalanceDetails!
+	encumbrance: UsdBalanceDetails!
 }
 
 type UsdLedgerAccountBalanceRange {

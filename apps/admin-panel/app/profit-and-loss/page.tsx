@@ -66,15 +66,39 @@ gql`
   }
 
   fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-    settled
-    pending
-    encumbrance
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
   }
 
   fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-    settled
-    pending
-    encumbrance
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
   }
 
   fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
@@ -218,9 +242,9 @@ const ProfitAndLossStatement = ({
   let netEnd: number | undefined
 
   if (currency === "usd" && total?.usd) {
-    netEnd = total.usd.usdEnd[layer]
+    netEnd = total.usd.usdEnd[layer].net
   } else if (currency === "btc" && total?.btc) {
-    netEnd = total.btc.btcEnd[layer]
+    netEnd = total.btc.btcEnd[layer].net
   }
 
   return (
@@ -241,11 +265,11 @@ const ProfitAndLossStatement = ({
             {data.categories.map((category) => {
               let categoryEnd: number | undefined
               if (category.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-                categoryEnd = category.balanceRange.usdEnd[layer]
+                categoryEnd = category.balanceRange.usdEnd[layer].net
               } else if (
                 category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
               ) {
-                categoryEnd = category.balanceRange.btcEnd[layer]
+                categoryEnd = category.balanceRange.btcEnd[layer].net
               }
               return (
                 <CategoryRow
