@@ -95,9 +95,11 @@ async fn create_and_process_facility(
                     .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
             }
-            Some(LanaEvent::Credit(CoreCreditEvent::AccrualExecuted { id, amount, .. }))
-                if { cf.id == *id && amount > &UsdCents::ZERO } =>
-            {
+            Some(LanaEvent::Credit(CoreCreditEvent::AccrualPosted {
+                credit_facility_id: id,
+                amount,
+                ..
+            })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
                 let _ = app.credit().record_payment(&sub, *id, *amount).await;
                 let facility = app
                     .credit()

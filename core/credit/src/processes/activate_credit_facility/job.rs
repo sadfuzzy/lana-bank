@@ -120,7 +120,10 @@ where
 
         while let Some(message) = stream.next().await {
             match message.as_ref().as_event() {
-                Some(CoreCreditEvent::FacilityCollateralUpdated { id, .. })
+                Some(CoreCreditEvent::FacilityCollateralUpdated {
+                    credit_facility_id: id,
+                    ..
+                })
                 | Some(CoreCreditEvent::FacilityApproved { id, .. }) => {
                     self.process.execute(*id).await?;
                     state.sequence = message.sequence;

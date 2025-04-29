@@ -8,6 +8,7 @@ use crate::{
     interest_accrual_cycle::{
         error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
     },
+    obligation::{error::ObligationError, Obligation, ObligationEvent},
     payment_allocation::{
         error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
     },
@@ -83,7 +84,7 @@ where
                     };
 
                     Some(CoreCreditEvent::FacilityCollateralUpdated {
-                        id: entity.id,
+                        credit_facility_id: entity.id,
                         new_amount: *total_collateral,
                         abs_diff: *abs_diff,
                         action,
@@ -113,8 +114,8 @@ where
                     amount,
                     recorded_at,
                     ..
-                } => Some(CoreCreditEvent::DisbursalExecuted {
-                    id: entity.facility_id,
+                } => Some(CoreCreditEvent::DisbursalSettled {
+                    credit_facility_id: entity.facility_id,
                     amount: *amount,
                     recorded_at: *recorded_at,
                 }),
@@ -139,8 +140,8 @@ where
             .filter_map(|event| match &event.event {
                 InterestAccrualsPosted {
                     total, posted_at, ..
-                } => Some(CoreCreditEvent::AccrualExecuted {
-                    id: entity.credit_facility_id,
+                } => Some(CoreCreditEvent::AccrualPosted {
+                    credit_facility_id: entity.credit_facility_id,
                     amount: *total,
                     posted_at: *posted_at,
                 }),
@@ -169,18 +170,46 @@ where
                     ..
                 } => match obligation_type {
                     ObligationType::Disbursal => CoreCreditEvent::FacilityRepaymentRecorded {
-                        id: entity.credit_facility_id,
+                        credit_facility_id: entity.credit_facility_id,
                         disbursal_amount: *amount,
                         interest_amount: UsdCents::ZERO,
                         recorded_at: event.recorded_at,
                     },
                     ObligationType::Interest => CoreCreditEvent::FacilityRepaymentRecorded {
-                        id: entity.credit_facility_id,
+                        credit_facility_id: entity.credit_facility_id,
                         disbursal_amount: UsdCents::ZERO,
                         interest_amount: *amount,
                         recorded_at: event.recorded_at,
                     },
                 },
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Obligation,
+        new_events: es_entity::LastPersisted<'_, ObligationEvent>,
+    ) -> Result<(), ObligationError> {
+        use ObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { amount, .. } => Some(CoreCreditEvent::ObligationCreated {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    amount: *amount,
+                }),
+                DueRecorded { .. } => Some(CoreCreditEvent::ObligationDue {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                    amount: entity.initial_amount,
+                }),
+                _ => None,
             })
             .collect::<Vec<_>>();
         self.outbox

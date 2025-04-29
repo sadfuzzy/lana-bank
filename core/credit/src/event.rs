@@ -24,27 +24,37 @@ pub enum CoreCreditEvent {
         completed_at: DateTime<Utc>,
     },
     FacilityRepaymentRecorded {
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
         disbursal_amount: UsdCents,
         interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
         action: FacilityCollateralUpdateAction,
         recorded_at: DateTime<Utc>,
     },
-    DisbursalExecuted {
-        id: CreditFacilityId,
+    DisbursalSettled {
+        credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
-    AccrualExecuted {
-        id: CreditFacilityId,
+    AccrualPosted {
+        credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         posted_at: DateTime<Utc>,
+    },
+    ObligationCreated {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
+    ObligationDue {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
     },
 }
 
