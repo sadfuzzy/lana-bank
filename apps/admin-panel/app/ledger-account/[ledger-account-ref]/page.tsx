@@ -276,7 +276,9 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                         <CollapsibleContent className="max-w-[864px] pt-2">
                           <DataTable
                             onRowClick={(ancestor) =>
-                              router.push(`/ledger-account/${ancestor.code}`)
+                              router.push(
+                                `/ledger-account/${ancestor.code || ancestor.id}`,
+                              )
                             }
                             cellClassName="!py-0 !h-10"
                             data={ledgerAccount?.ancestors || []}
@@ -312,8 +314,8 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                         </CollapsibleTrigger>
                         <CollapsibleContent className="max-w-[864px] pt-2">
                           <DataTable
-                            onRowClick={(child) =>
-                              router.push(`/ledger-account/${child.code}`)
+                            onRowClick={({ code, id }) =>
+                              router.push(`/ledger-account/${code || id}`)
                             }
                             cellClassName="!py-0 !h-10"
                             data={ledgerAccount?.children || []}
