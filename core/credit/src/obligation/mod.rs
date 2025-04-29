@@ -1,6 +1,7 @@
 mod entity;
 pub mod error;
-mod payment_allocator;
+// mod payment_allocator;
+mod primitives;
 mod repo;
 
 use audit::{AuditInfo, AuditSvc};
@@ -8,8 +9,6 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
-
-use std::collections::HashMap;
 
 use crate::{
     event::CoreCreditEvent,
@@ -25,7 +24,7 @@ use crate::{
 pub use entity::Obligation;
 pub(crate) use entity::*;
 use error::ObligationError;
-pub use payment_allocator::*;
+pub use primitives::*;
 pub use repo::obligation_cursor;
 use repo::*;
 
@@ -113,17 +112,32 @@ where
         self.repo.find_by_id(id).await
     }
 
-    pub async fn allocate_payment(
+    pub async fn allocate_payment_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
         audit_info: AuditInfo,
     ) -> Result<PaymentAllocationResult, ObligationError> {
-        let obligations = self.facility_obligations(credit_facility_id).await?;
+        let mut obligations = self.facility_obligations(credit_facility_id).await?;
 
-        let new_allocations = PaymentAllocator::new(credit_facility_id, payment_id, amount)
-            .allocate(obligations.values(), &audit_info)?;
+        obligations.sort();
+
+        let mut remaining = amount;
+        let mut new_allocations = Vec::new();
+        for obligation in obligations.iter_mut() {
+            if let es_entity::Idempotent::Executed(Some(new_allocation)) =
+                obligation.allocate_payment(remaining, payment_id, &audit_info)
+            {
+                self.repo.update_in_op(db, obligation).await?;
+                remaining -= new_allocation.amount;
+                new_allocations.push(new_allocation);
+                if remaining == UsdCents::ZERO {
+                    break;
+                }
+            }
+        }
 
         Ok(PaymentAllocationResult::new(new_allocations))
     }
@@ -133,7 +147,7 @@ where
         credit_facility_id: CreditFacilityId,
     ) -> Result<bool, ObligationError> {
         let obligations = self.facility_obligations(credit_facility_id).await?;
-        for obligation in obligations.values() {
+        for obligation in obligations.iter() {
             let expected_status = obligation.expected_status();
             let actual_status = obligation.status();
             if expected_status != actual_status {
@@ -147,8 +161,8 @@ where
     async fn facility_obligations(
         &self,
         credit_facility_id: CreditFacilityId,
-    ) -> Result<HashMap<ObligationId, Obligation>, ObligationError> {
-        let mut obligations = HashMap::new();
+    ) -> Result<Vec<Obligation>, ObligationError> {
+        let mut obligations = Vec::new();
         let mut query = Default::default();
         loop {
             let mut res = self
@@ -160,7 +174,7 @@ where
                 )
                 .await?;
 
-            obligations.extend(res.entities.drain(..).map(|o| (o.id, o)));
+            obligations.append(&mut res.entities);
 
             if let Some(q) = res.into_next_query() {
                 query = q;

@@ -1,74 +1,14 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{primitives::*, CreditFacilityId};
+use crate::{payment_allocation::NewPaymentAllocation, primitives::*, CreditFacilityId};
 
-use super::error::ObligationError;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ObligationStatus {
-    NotYetDue,
-    Due,
-    Overdue,
-    Defaulted,
-    Paid,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct ObligationAccounts {
-    pub receivable_account_id: CalaAccountId,
-    pub account_to_be_credited_id: CalaAccountId,
-}
-
-pub struct ObligationDueReallocationData {
-    pub tx_id: LedgerTxId,
-    pub amount: UsdCents,
-    pub not_yet_due_account_id: CalaAccountId,
-    pub due_account_id: CalaAccountId,
-}
-
-pub struct ObligationOverdueReallocationData {
-    pub tx_id: LedgerTxId,
-    pub outstanding_amount: UsdCents,
-    pub due_account_id: CalaAccountId,
-    pub overdue_account_id: CalaAccountId,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
-pub struct ObligationsAmounts {
-    pub disbursed: UsdCents,
-    pub interest: UsdCents,
-}
-
-impl std::ops::Add<ObligationsAmounts> for ObligationsAmounts {
-    type Output = Self;
-
-    fn add(self, other: ObligationsAmounts) -> Self {
-        Self {
-            disbursed: self.disbursed + other.disbursed,
-            interest: self.interest + other.interest,
-        }
-    }
-}
-
-impl ObligationsAmounts {
-    pub const ZERO: Self = Self {
-        disbursed: UsdCents::ZERO,
-        interest: UsdCents::ZERO,
-    };
-
-    pub fn total(&self) -> UsdCents {
-        self.interest + self.disbursed
-    }
-
-    pub fn is_zero(&self) -> bool {
-        self.disbursed.is_zero() && self.interest.is_zero()
-    }
-}
+use super::{error::ObligationError, primitives::*};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -99,6 +39,12 @@ pub enum ObligationEvent {
         tx_id: LedgerTxId,
         audit_info: AuditInfo,
     },
+    PaymentAllocated {
+        tx_id: LedgerTxId,
+        payment_id: PaymentId,
+        payment_allocation_id: PaymentAllocationId,
+        amount: UsdCents,
+    },
     Completed {
         completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
@@ -113,6 +59,7 @@ pub struct Obligation {
     pub credit_facility_id: CreditFacilityId,
     pub reference: String,
     pub initial_amount: UsdCents,
+    pub obligation_type: ObligationType,
     pub recorded_at: DateTime<Utc>,
     events: EntityEvents<ObligationEvent>,
 }
@@ -122,18 +69,6 @@ impl Obligation {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
-    }
-
-    pub fn obligation_type(&self) -> ObligationType {
-        self.events
-            .iter_all()
-            .find_map(|e| match e {
-                ObligationEvent::Initialized {
-                    obligation_type, ..
-                } => Some(*obligation_type),
-                _ => None,
-            })
-            .expect("Entity was not Initialized")
     }
 
     pub fn due_at(&self) -> DateTime<Utc> {
@@ -297,7 +232,7 @@ impl Obligation {
         BalanceUpdateData {
             source_id: self.id.into(),
             ledger_tx_id: self.tx_id,
-            balance_type: self.obligation_type(),
+            balance_type: self.obligation_type,
             amount: self.initial_amount,
             updated_at: self.recorded_at,
         }
@@ -307,8 +242,14 @@ impl Obligation {
         self.events
             .iter_all()
             .fold(UsdCents::from(0), |mut total_sum, event| {
-                if let ObligationEvent::Initialized { amount, .. } = event {
-                    total_sum += *amount;
+                match event {
+                    ObligationEvent::Initialized { amount, .. } => {
+                        total_sum += *amount;
+                    }
+                    ObligationEvent::PaymentAllocated { amount, .. } => {
+                        total_sum -= *amount;
+                    }
+                    _ => (),
                 }
                 total_sum
             })
@@ -373,6 +314,51 @@ impl Obligation {
 
         Ok(Idempotent::Executed(res))
     }
+
+    pub(crate) fn allocate_payment(
+        &mut self,
+        amount: UsdCents,
+        payment_id: PaymentId,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<Option<NewPaymentAllocation>> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
+        );
+        let outstanding = self.outstanding();
+        if outstanding.is_zero() {
+            return Idempotent::Executed(None);
+        }
+
+        let payment_amount = std::cmp::min(outstanding, amount);
+        let allocation_id = PaymentAllocationId::new();
+        self.events.push(ObligationEvent::PaymentAllocated {
+            tx_id: allocation_id.into(),
+            payment_id,
+            payment_allocation_id: allocation_id,
+            amount: payment_amount,
+        });
+        let allocation = NewPaymentAllocation::builder()
+            .id(allocation_id)
+            .payment_id(payment_id)
+            .credit_facility_id(self.credit_facility_id)
+            .obligation_id(self.id)
+            .obligation_type(self.obligation_type)
+            .receivable_account_id(
+                self.receivable_account_id()
+                    .expect("Obligation was already paid"),
+            )
+            .account_to_be_debited_id(
+                self.account_to_be_credited_id()
+                    .expect("Obligation was already paid"),
+            )
+            .amount(payment_amount)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment allocation");
+
+        Idempotent::Executed(Some(allocation))
+    }
 }
 
 impl TryFromEvents<ObligationEvent> for Obligation {
@@ -386,6 +372,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                     credit_facility_id,
                     reference,
                     amount,
+                    obligation_type,
                     recorded_at,
                     ..
                 } => {
@@ -395,10 +382,12 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                         .credit_facility_id(*credit_facility_id)
                         .reference(reference.clone())
                         .initial_amount(*amount)
+                        .obligation_type(*obligation_type)
                         .recorded_at(*recorded_at)
                 }
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
+                ObligationEvent::PaymentAllocated { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
@@ -446,33 +435,6 @@ impl NewObligation {
     }
 }
 
-#[derive(Clone)]
-pub(super) struct ObligationDataForAllocation {
-    pub(super) id: ObligationId,
-    pub(super) obligation_type: ObligationType,
-    pub(super) recorded_at: DateTime<Utc>,
-    pub(super) outstanding: UsdCents,
-    pub(super) receivable_account_id: CalaAccountId,
-    pub(super) account_to_be_credited_id: CalaAccountId,
-}
-
-impl From<&Obligation> for ObligationDataForAllocation {
-    fn from(obligation: &Obligation) -> Self {
-        Self {
-            id: obligation.id,
-            obligation_type: obligation.obligation_type(),
-            recorded_at: obligation.recorded_at,
-            outstanding: obligation.outstanding(),
-            receivable_account_id: obligation
-                .receivable_account_id()
-                .expect("Obligation was already paid"),
-            account_to_be_credited_id: obligation
-                .account_to_be_credited_id()
-                .expect("Obligation was already paid"),
-        }
-    }
-}
-
 impl IntoEvents<ObligationEvent> for NewObligation {
     fn into_events(self) -> EntityEvents<ObligationEvent> {
         EntityEvents::init(
@@ -494,6 +456,27 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+impl Ord for Obligation {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (&self.obligation_type, &other.obligation_type) {
+            (ObligationType::Interest, ObligationType::Disbursal) => Ordering::Less,
+            (ObligationType::Disbursal, ObligationType::Interest) => Ordering::Greater,
+            _ => self.recorded_at.cmp(&other.recorded_at),
+        }
+    }
+}
+impl PartialOrd for Obligation {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+impl Eq for Obligation {}
+impl PartialEq for Obligation {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
     }
 }
 

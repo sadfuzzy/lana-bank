@@ -21,7 +21,6 @@ pub enum PaymentAllocationEvent {
         amount: UsdCents,
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
-        recorded_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -37,7 +36,6 @@ pub struct PaymentAllocation {
     pub amount: UsdCents,
     pub account_to_be_debited_id: CalaAccountId,
     pub receivable_account_id: CalaAccountId,
-    pub recorded_at: DateTime<Utc>,
 
     events: EntityEvents<PaymentAllocationEvent>,
 }
@@ -58,7 +56,6 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                     amount,
                     account_to_be_debited_id,
                     receivable_account_id,
-                    recorded_at,
                     ..
                 } => {
                     builder = builder
@@ -70,7 +67,6 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
                         .amount(*amount)
                         .account_to_be_debited_id(*account_to_be_debited_id)
                         .receivable_account_id(*receivable_account_id)
-                        .recorded_at(*recorded_at);
                 }
             }
         }
@@ -79,7 +75,7 @@ impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
 }
 
 impl PaymentAllocation {
-    pub fn _created_at(&self) -> DateTime<Utc> {
+    pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
@@ -91,7 +87,7 @@ impl PaymentAllocation {
             ledger_tx_id: self.ledger_tx_id,
             balance_type: self.obligation_type,
             amount: self.amount,
-            updated_at: self.recorded_at,
+            updated_at: self.created_at(),
         }
     }
 }
@@ -106,7 +102,6 @@ pub struct NewPaymentAllocation {
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
     pub(crate) account_to_be_debited_id: CalaAccountId,
-    pub(crate) recorded_at: DateTime<Utc>,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
     #[builder(setter(into))]
@@ -132,7 +127,6 @@ impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
                 amount: self.amount,
                 account_to_be_debited_id: self.account_to_be_debited_id,
                 receivable_account_id: self.receivable_account_id,
-                recorded_at: self.recorded_at,
                 audit_info: self.audit_info,
             }],
         )
