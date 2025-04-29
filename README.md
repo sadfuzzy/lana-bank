@@ -116,13 +116,13 @@ cd apps/admin-panel && pnpm run cypress:run browserstack
 
 We use BigQuery for analytics and reporting. To set up the BigQuery tables, you need to have the `TF_VAR_sa_creds` environment variable set to the service account credentials.
 
-1. Authenticate with Google Cloud SDK
+Authenticate with Google Cloud SDK
 
 ```
 gcloud auth application-default login
 ```
 
-1. Verify access
+Verify access
 
 ```
 gcloud auth application-default print-access-token
