@@ -234,6 +234,7 @@ mod tests {
         vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
+                ledger_tx_id: LedgerTxId::new(),
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
                 amount: UsdCents::from(1_000_000),
@@ -289,6 +290,7 @@ mod tests {
         let events = vec![
             CreditFacilityEvent::Initialized {
                 id: credit_facility_id,
+                ledger_tx_id: LedgerTxId::new(),
                 customer_id: CustomerId::new(),
                 account_ids: CreditFacilityAccountIds::new(),
                 amount: UsdCents::from(1_000_000),

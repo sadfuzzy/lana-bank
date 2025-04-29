@@ -24,6 +24,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
+        ledger_tx_id: LedgerTxId,
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
@@ -112,23 +113,8 @@ impl CreditFacilityReceivable {
         self.interest + self.disbursed
     }
 
-    pub fn disbursed_cvl(&self, collateral: Satoshis) -> CVLData {
-        CVLData::new(collateral, self.total())
-    }
-
-    pub fn total_cvl(&self, collateral: Satoshis, facility_remaining: UsdCents) -> CVLData {
-        CVLData::new(collateral, self.total() + facility_remaining)
-    }
-
     pub fn is_zero(&self) -> bool {
         self.total().is_zero()
-    }
-
-    pub fn with_added_disbursal_amount(&self, amount: UsdCents) -> Self {
-        Self {
-            disbursed: self.disbursed + amount,
-            interest: self.interest,
-        }
     }
 }
 
@@ -183,6 +169,26 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
+    pub fn creation_data(&self) -> CreditFacilityCreation {
+        self.events
+            .iter_all()
+            .find_map(|event| match event {
+                CreditFacilityEvent::Initialized {
+                    ledger_tx_id,
+                    account_ids,
+                    amount,
+                    ..
+                } => Some(CreditFacilityCreation {
+                    tx_id: *ledger_tx_id,
+                    tx_ref: format!("{}-create", self.id),
+                    credit_facility_account_ids: *account_ids,
+                    facility_amount: *amount,
+                }),
+                _ => None,
+            })
+            .expect("Facility was not Initialized")
+    }
+
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
@@ -296,10 +302,7 @@ impl CreditFacility {
             return Err(CreditFacilityError::Denied);
         }
 
-        if !self
-            .terms
-            .is_approval_allowed(balances.with_amount(self.amount), price)
-        {
+        if !self.terms.is_approval_allowed(balances, price) {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
 
@@ -577,14 +580,14 @@ impl CreditFacility {
         let collateralization_update = match self.status() {
             CreditFacilityStatus::PendingCollateralization
             | CreditFacilityStatus::PendingApproval => self.terms.collateralization_update(
-                balances.total_cvl_data().cvl(price),
+                balances.facility_amount_cvl(price),
                 last_collateralization_state,
                 None,
                 true,
             ),
             CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
                 self.terms.collateralization_update(
-                    balances.current_cvl_data().cvl(price),
+                    balances.current_cvl(price),
                     last_collateralization_state,
                     Some(upgrade_buffer_cvl_pct),
                     false,
@@ -833,6 +836,8 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
+    pub(super) ledger_tx_id: LedgerTxId,
+    #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
@@ -860,6 +865,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
             self.id,
             [CreditFacilityEvent::Initialized {
                 id: self.id,
+                ledger_tx_id: self.ledger_tx_id,
                 audit_info: self.audit_info.clone(),
                 customer_id: self.customer_id,
                 terms: self.terms,
@@ -922,9 +928,10 @@ mod test {
         CVLPct::new(5)
     }
 
-    fn default_balances(facility_remaining: UsdCents) -> CreditFacilityBalanceSummary {
+    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
         CreditFacilityBalanceSummary {
-            facility_remaining,
+            facility,
+            facility_remaining: facility,
             collateral: Satoshis::ZERO,
             disbursed: UsdCents::ZERO,
             not_yet_due_disbursed_outstanding: UsdCents::ZERO,
@@ -947,6 +954,7 @@ mod test {
     fn initial_events() -> Vec<CreditFacilityEvent> {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
+            ledger_tx_id: LedgerTxId::new(),
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
             amount: default_facility(),
@@ -1526,6 +1534,7 @@ mod test {
                         overdue_interest_outstanding: UsdCents::ZERO,
                         interest_defaulted: UsdCents::ZERO,
 
+                        facility: UsdCents::from(2),
                         facility_remaining: UsdCents::from(1),
                         disbursed: UsdCents::from(1),
                         interest_posted: UsdCents::from(1),
@@ -1556,6 +1565,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1582,6 +1592,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1613,6 +1624,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1639,6 +1651,7 @@ mod test {
                     overdue_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1670,6 +1683,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1696,6 +1710,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     interest_defaulted: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1727,6 +1742,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     overdue_interest_outstanding: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),
@@ -1753,6 +1769,7 @@ mod test {
                     due_interest_outstanding: UsdCents::ZERO,
                     overdue_interest_outstanding: UsdCents::ZERO,
 
+                    facility: UsdCents::from(2),
                     facility_remaining: UsdCents::from(1),
                     disbursed: UsdCents::from(1),
                     interest_posted: UsdCents::from(1),

@@ -51,6 +51,14 @@ pub struct CreditFacilityCompletion {
 }
 
 #[derive(Debug, Clone)]
+pub struct CreditFacilityCreation {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub facility_amount: UsdCents,
+}
+
+#[derive(Debug, Clone)]
 pub struct CreditFacilityActivation {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,

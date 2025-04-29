@@ -1,12 +1,14 @@
+use core_price::PriceOfOneBTC;
 use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::primitives::CVLData;
+use crate::CVLPct;
 
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityBalanceSummary {
+    pub(super) facility: UsdCents,
     pub(super) facility_remaining: UsdCents,
     pub(super) collateral: Satoshis,
     pub(super) disbursed: UsdCents,
@@ -25,6 +27,7 @@ pub struct CreditFacilityBalanceSummary {
 #[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 pub struct CreditFacilityBalanceSummary {
+    pub facility: UsdCents,
     pub facility_remaining: UsdCents,
     pub collateral: Satoshis,
     pub disbursed: UsdCents,
@@ -42,6 +45,10 @@ pub struct CreditFacilityBalanceSummary {
 impl CreditFacilityBalanceSummary {
     pub fn any_disbursed(&self) -> bool {
         !self.disbursed.is_zero()
+    }
+
+    pub fn facility(&self) -> UsdCents {
+        self.facility
     }
 
     pub fn facility_remaining(&self) -> UsdCents {
@@ -101,30 +108,114 @@ impl CreditFacilityBalanceSummary {
             && self.total_defaulted().is_zero())
     }
 
-    pub fn current_cvl_data(&self) -> CVLData {
+    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let facility_amount = self.facility;
+        CVLData::new(self.collateral, facility_amount).cvl(price)
+    }
+
+    pub fn disbursed_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        CVLData::new(self.collateral, self.disbursed).cvl(price)
+    }
+
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
         if self.disbursed > UsdCents::ZERO {
-            CVLData::new(self.collateral, self.disbursed)
+            self.disbursed_cvl(price)
         } else {
-            CVLData::new(self.collateral, self.facility_remaining)
+            self.facility_amount_cvl(price)
         }
-    }
-
-    pub fn cvl_data_with_hypothetical_disbursal(&self, disbursal: UsdCents) -> CVLData {
-        CVLData::new(self.collateral, self.disbursed + disbursal)
-    }
-
-    pub fn total_cvl_data(&self) -> CVLData {
-        CVLData::new(self.collateral, self.facility_remaining)
     }
 
     pub fn with_collateral(self, collateral: Satoshis) -> Self {
         Self { collateral, ..self }
     }
 
-    pub fn with_amount(self, facility_remaining: UsdCents) -> Self {
+    pub fn with_added_disbursal(self, disbursal: UsdCents) -> Self {
         Self {
-            facility_remaining,
+            disbursed: self.disbursed + disbursal,
             ..self
         }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct CVLData {
+    amount: UsdCents,
+    collateral: Satoshis,
+}
+
+impl CVLData {
+    fn new(collateral: Satoshis, amount: UsdCents) -> Self {
+        Self { collateral, amount }
+    }
+
+    fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let collateral_value = price.sats_to_cents_round_down(self.collateral);
+        if collateral_value == UsdCents::ZERO {
+            CVLPct::ZERO
+        } else {
+            CVLPct::from_loan_amounts(collateral_value, self.amount)
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::*;
+
+    #[test]
+    fn current_cvl_returns_facility_amount_when_no_disbursals() {
+        let balances = CreditFacilityBalanceSummary {
+            collateral: Satoshis::from(100),
+            facility: UsdCents::from(2),
+            disbursed: UsdCents::ZERO,
+
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+
+            facility_remaining: UsdCents::from(1),
+            interest_posted: UsdCents::from(1),
+        };
+
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+        assert_eq!(
+            balances.current_cvl(price),
+            balances.facility_amount_cvl(price)
+        );
+        assert_ne!(balances.current_cvl(price), balances.disbursed_cvl(price));
+    }
+
+    #[test]
+    fn current_cvl_returns_disbursed_amount_when_disbursals() {
+        let balances = CreditFacilityBalanceSummary {
+            collateral: Satoshis::from(100),
+            facility: UsdCents::from(2),
+            disbursed: UsdCents::from(1),
+
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+
+            facility_remaining: UsdCents::from(1),
+            interest_posted: UsdCents::from(1),
+        };
+
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+        assert_eq!(balances.current_cvl(price), balances.disbursed_cvl(price));
+        assert_ne!(
+            balances.current_cvl(price),
+            balances.facility_amount_cvl(price)
+        );
     }
 }
