@@ -104,7 +104,7 @@ make e2e
 #### Cypress Tests
 
 ```bash
-make dev-up # keep the stack running
+make dev-up # launch the full stack
 
 # In a different terminal with tilt running:
 cd apps/admin-panel && pnpm run cypress:run ui # or headless
