@@ -1,6 +1,6 @@
 [package]
 name = "core-price"
-version = "0.3.395-dev"
+version = "0.3.397-dev"
 edition = "2021"
 
 [features]
