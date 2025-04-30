@@ -760,6 +760,24 @@ type CustomerEdge {
 	cursor: String!
 }
 
+input CustomerEmailUpdateInput {
+	customerId: UUID!
+	email: String!
+}
+
+type CustomerEmailUpdatePayload {
+	customer: Customer!
+}
+
+input CustomerTelegramIdUpdateInput {
+	customerId: UUID!
+	telegramId: String!
+}
+
+type CustomerTelegramIdUpdatePayload {
+	customer: Customer!
+}
+
 enum CustomerType {
 	INDIVIDUAL
 	GOVERNMENT_ENTITY
@@ -768,15 +786,6 @@ enum CustomerType {
 	FINANCIAL_INSTITUTION
 	FOREIGN_AGENCY_OR_SUBSIDIARY
 	NON_DOMICILED_COMPANY
-}
-
-input CustomerUpdateInput {
-	customerId: UUID!
-	telegramId: String!
-}
-
-type CustomerUpdatePayload {
-	customer: Customer!
 }
 
 input CustomersFilter {
@@ -1251,7 +1260,8 @@ type Mutation {
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
-	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
+	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
 	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!

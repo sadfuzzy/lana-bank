@@ -42,6 +42,10 @@ pub enum CustomerEvent {
         telegram_id: String,
         audit_info: AuditInfo,
     },
+    EmailUpdated {
+        email: String,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -172,6 +176,20 @@ impl Customer {
         self.telegram_id = new_telegram_id;
         Idempotent::Executed(())
     }
+
+    pub fn update_email(&mut self, new_email: String, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
+            => CustomerEvent::EmailUpdated { .. }
+        );
+        self.events.push(CustomerEvent::EmailUpdated {
+            email: new_email.clone(),
+            audit_info,
+        });
+        self.email = new_email;
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<CustomerEvent> for Customer {
@@ -213,6 +231,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
                     builder = builder.telegram_id(telegram_id.clone());
+                }
+                CustomerEvent::EmailUpdated { email, .. } => {
+                    builder = builder.email(email.clone());
                 }
             }
         }

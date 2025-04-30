@@ -50,6 +50,10 @@ where
                         status: *status,
                     })
                 }
+                EmailUpdated { email, .. } => Some(CoreCustomerEvent::CustomerEmailUpdated {
+                    id: entity.id,
+                    email: email.clone(),
+                }),
                 _ => None,
             })
             .collect::<Vec<_>>();

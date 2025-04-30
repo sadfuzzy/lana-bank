@@ -765,6 +765,26 @@ export type CustomerEdge = {
   node: Customer;
 };
 
+export type CustomerEmailUpdateInput = {
+  customerId: Scalars['UUID']['input'];
+  email: Scalars['String']['input'];
+};
+
+export type CustomerEmailUpdatePayload = {
+  __typename?: 'CustomerEmailUpdatePayload';
+  customer: Customer;
+};
+
+export type CustomerTelegramIdUpdateInput = {
+  customerId: Scalars['UUID']['input'];
+  telegramId: Scalars['String']['input'];
+};
+
+export type CustomerTelegramIdUpdatePayload = {
+  __typename?: 'CustomerTelegramIdUpdatePayload';
+  customer: Customer;
+};
+
 export enum CustomerType {
   Bank = 'BANK',
   FinancialInstitution = 'FINANCIAL_INSTITUTION',
@@ -774,16 +794,6 @@ export enum CustomerType {
   NonDomiciledCompany = 'NON_DOMICILED_COMPANY',
   PrivateCompany = 'PRIVATE_COMPANY'
 }
-
-export type CustomerUpdateInput = {
-  customerId: Scalars['UUID']['input'];
-  telegramId: Scalars['String']['input'];
-};
-
-export type CustomerUpdatePayload = {
-  __typename?: 'CustomerUpdatePayload';
-  customer: Customer;
-};
 
 export type CustomersFilter = {
   field: CustomersFilterBy;
@@ -1244,7 +1254,8 @@ export type Mutation = {
   creditModuleConfigure: CreditModuleConfigurePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
-  customerUpdate: CustomerUpdatePayload;
+  customerEmailUpdate: CustomerEmailUpdatePayload;
+  customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   documentArchive: DocumentArchivePayload;
@@ -1349,8 +1360,13 @@ export type MutationCustomerDocumentAttachArgs = {
 };
 
 
-export type MutationCustomerUpdateArgs = {
-  input: CustomerUpdateInput;
+export type MutationCustomerEmailUpdateArgs = {
+  input: CustomerEmailUpdateInput;
+};
+
+
+export type MutationCustomerTelegramIdUpdateArgs = {
+  input: CustomerTelegramIdUpdateInput;
 };
 
 
@@ -2378,12 +2394,19 @@ export type GetCustomerTransactionHistoryQueryVariables = Exact<{
 
 export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node: { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string } } | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus } } | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPayment', id: string, paymentId: string, interestAmount: UsdCents, disbursalAmount: UsdCents, createdAt: any } } | { __typename?: 'UnknownEntry' } | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } } }> } } | null } | null };
 
-export type CustomerUpdateMutationVariables = Exact<{
-  input: CustomerUpdateInput;
+export type CustomerEmailUpdateMutationVariables = Exact<{
+  input: CustomerEmailUpdateInput;
 }>;
 
 
-export type CustomerUpdateMutation = { __typename?: 'Mutation', customerUpdate: { __typename?: 'CustomerUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramId: string } } };
+export type CustomerEmailUpdateMutation = { __typename?: 'Mutation', customerEmailUpdate: { __typename?: 'CustomerEmailUpdatePayload', customer: { __typename?: 'Customer', id: string, email: string } } };
+
+export type CustomerTelegramIdUpdateMutationVariables = Exact<{
+  input: CustomerTelegramIdUpdateInput;
+}>;
+
+
+export type CustomerTelegramIdUpdateMutation = { __typename?: 'Mutation', customerTelegramIdUpdate: { __typename?: 'CustomerTelegramIdUpdatePayload', customer: { __typename?: 'Customer', id: string, telegramId: string } } };
 
 export type CustomerCreateMutationVariables = Exact<{
   input: CustomerCreateInput;
@@ -4560,9 +4583,45 @@ export type GetCustomerTransactionHistoryQueryHookResult = ReturnType<typeof use
 export type GetCustomerTransactionHistoryLazyQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistoryLazyQuery>;
 export type GetCustomerTransactionHistorySuspenseQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistorySuspenseQuery>;
 export type GetCustomerTransactionHistoryQueryResult = Apollo.QueryResult<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>;
-export const CustomerUpdateDocument = gql`
-    mutation CustomerUpdate($input: CustomerUpdateInput!) {
-  customerUpdate(input: $input) {
+export const CustomerEmailUpdateDocument = gql`
+    mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
+  customerEmailUpdate(input: $input) {
+    customer {
+      id
+      email
+    }
+  }
+}
+    `;
+export type CustomerEmailUpdateMutationFn = Apollo.MutationFunction<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>;
+
+/**
+ * __useCustomerEmailUpdateMutation__
+ *
+ * To run a mutation, you first call `useCustomerEmailUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerEmailUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [customerEmailUpdateMutation, { data, loading, error }] = useCustomerEmailUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustomerEmailUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>(CustomerEmailUpdateDocument, options);
+      }
+export type CustomerEmailUpdateMutationHookResult = ReturnType<typeof useCustomerEmailUpdateMutation>;
+export type CustomerEmailUpdateMutationResult = Apollo.MutationResult<CustomerEmailUpdateMutation>;
+export type CustomerEmailUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerEmailUpdateMutation, CustomerEmailUpdateMutationVariables>;
+export const CustomerTelegramIdUpdateDocument = gql`
+    mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
+  customerTelegramIdUpdate(input: $input) {
     customer {
       id
       telegramId
@@ -4570,32 +4629,32 @@ export const CustomerUpdateDocument = gql`
   }
 }
     `;
-export type CustomerUpdateMutationFn = Apollo.MutationFunction<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
+export type CustomerTelegramIdUpdateMutationFn = Apollo.MutationFunction<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
 
 /**
- * __useCustomerUpdateMutation__
+ * __useCustomerTelegramIdUpdateMutation__
  *
- * To run a mutation, you first call `useCustomerUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCustomerUpdateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerTelegramIdUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerTelegramIdUpdateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [customerUpdateMutation, { data, loading, error }] = useCustomerUpdateMutation({
+ * const [customerTelegramIdUpdateMutation, { data, loading, error }] = useCustomerTelegramIdUpdateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useCustomerUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>) {
+export function useCustomerTelegramIdUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CustomerUpdateMutation, CustomerUpdateMutationVariables>(CustomerUpdateDocument, options);
+        return Apollo.useMutation<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>(CustomerTelegramIdUpdateDocument, options);
       }
-export type CustomerUpdateMutationHookResult = ReturnType<typeof useCustomerUpdateMutation>;
-export type CustomerUpdateMutationResult = Apollo.MutationResult<CustomerUpdateMutation>;
-export type CustomerUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerUpdateMutation, CustomerUpdateMutationVariables>;
+export type CustomerTelegramIdUpdateMutationHookResult = ReturnType<typeof useCustomerTelegramIdUpdateMutation>;
+export type CustomerTelegramIdUpdateMutationResult = Apollo.MutationResult<CustomerTelegramIdUpdateMutation>;
+export type CustomerTelegramIdUpdateMutationOptions = Apollo.BaseMutationOptions<CustomerTelegramIdUpdateMutation, CustomerTelegramIdUpdateMutationVariables>;
 export const CustomerCreateDocument = gql`
     mutation CustomerCreate($input: CustomerCreateInput!) {
   customerCreate(input: $input) {

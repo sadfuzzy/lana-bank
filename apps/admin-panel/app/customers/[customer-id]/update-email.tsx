@@ -17,58 +17,64 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerTelegramIdUpdateMutation } from "@/lib/graphql/generated"
+import { useCustomerEmailUpdateMutation } from "@/lib/graphql/generated"
 
 gql`
-  mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
-    customerTelegramIdUpdate(input: $input) {
+  mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
+    customerEmailUpdate(input: $input) {
       customer {
         id
-        telegramId
+        email
       }
     }
   }
 `
 
-type UpdateTelegramIdDialogProps = {
-  setOpenUpdateTelegramIdDialog: (isOpen: boolean) => void
-  openUpdateTelegramIdDialog: boolean
+type UpdateEmailDialogProps = {
+  setOpenUpdateEmailDialog: (isOpen: boolean) => void
+  openUpdateEmailDialog: boolean
   customerId: string
 }
 
-export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
-  setOpenUpdateTelegramIdDialog,
-  openUpdateTelegramIdDialog,
+export const UpdateEmailDialog: React.FC<UpdateEmailDialogProps> = ({
+  setOpenUpdateEmailDialog,
+  openUpdateEmailDialog,
   customerId,
 }) => {
-  const t = useTranslations("Customers.CustomerDetails.updateTelegram")
+  const t = useTranslations("Customers.CustomerDetails.updateEmail")
 
-  const [updateTelegramId, { loading, error: mutationError, reset }] =
-    useCustomerTelegramIdUpdateMutation()
-  const [newTelegramId, setNewTelegramId] = useState<string>("")
+  const [updateEmail, { loading, error: mutationError, reset }] =
+    useCustomerEmailUpdateMutation()
+  const [newEmail, setNewEmail] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setValidationError(null)
 
-    if (!newTelegramId.trim()) {
-      setValidationError(t("errors.emptyTelegramId"))
+    if (!newEmail.trim()) {
+      setValidationError(t("errors.emptyEmail"))
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(newEmail.trim())) {
+      setValidationError(t("errors.invalidEmail"))
       return
     }
 
     try {
-      await updateTelegramId({
+      await updateEmail({
         variables: {
           input: {
             customerId,
-            telegramId: newTelegramId.trim(),
+            email: newEmail.trim(),
           },
         },
       })
       toast.success(t("messages.updateSuccess"))
       resetStates()
-      setOpenUpdateTelegramIdDialog(false)
+      setOpenUpdateEmailDialog(false)
     } catch (error) {
       console.error(error)
       if (error instanceof Error) {
@@ -80,16 +86,16 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   }
 
   const resetStates = () => {
-    setNewTelegramId("")
+    setNewEmail("")
     setValidationError(null)
     reset()
   }
 
   return (
     <Dialog
-      open={openUpdateTelegramIdDialog}
+      open={openUpdateEmailDialog}
       onOpenChange={(isOpen) => {
-        setOpenUpdateTelegramIdDialog(isOpen)
+        setOpenUpdateEmailDialog(isOpen)
         if (!isOpen) {
           resetStates()
         }
@@ -102,19 +108,19 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>
-            <Label htmlFor="newTelegramId">{t("labels.newTelegramId")}</Label>
+            <Label htmlFor="newEmail">{t("labels.newEmail")}</Label>
             <Input
-              id="newTelegramId"
-              type="text"
+              id="newEmail"
+              type="email"
               required
-              placeholder={t("placeholders.newTelegramId")}
-              value={newTelegramId}
-              onChange={(e) => setNewTelegramId(e.target.value)}
+              placeholder={t("placeholders.newEmail")}
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
             />
           </div>
           {(validationError || mutationError) && (
             <p className="text-destructive">
-              {validationError || mutationError?.message || t("errors.unexpected")}
+              {validationError || mutationError?.message}
             </p>
           )}
           <DialogFooter>
@@ -128,4 +134,4 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   )
 }
 
-export default UpdateTelegramIdDialog
+export default UpdateEmailDialog

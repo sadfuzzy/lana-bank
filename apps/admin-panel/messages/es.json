@@ -221,6 +221,29 @@
           "updating": "Actualizando..."
         }
       },
+      "updateEmail": {
+        "title": "Actualizar correo electrónico",
+        "description": "Actualizar la dirección de correo electrónico para este cliente",
+        "labels": {
+          "newEmail": "Nueva dirección de correo electrónico"
+        },
+        "placeholders": {
+          "newEmail": "Por favor, introduce la nueva dirección de correo electrónico"
+        },
+        "errors": {
+          "emptyEmail": "La dirección de correo electrónico no puede estar vacía",
+          "invalidEmail": "Por favor, introduce una dirección de correo electrónico válida",
+          "updateFailed": "Error al actualizar el correo electrónico: {error}",
+          "unexpected": "Ocurrió un error inesperado"
+        },
+        "messages": {
+          "updateSuccess": "Correo electrónico actualizado correctamente"
+        },
+        "actions": {
+          "update": "Actualizar",
+          "updating": "Actualizando..."
+        }
+      },
       "transactions": {
         "title": "Transacciones",
         "description": "Transacciones para este Cliente",

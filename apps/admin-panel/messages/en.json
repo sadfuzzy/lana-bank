@@ -221,6 +221,29 @@
           "updating": "Updating..."
         }
       },
+      "updateEmail": {
+        "title": "Update Email",
+        "description": "Update the email address for this customer",
+        "labels": {
+          "newEmail": "New Email Address"
+        },
+        "placeholders": {
+          "newEmail": "Please enter the new email address"
+        },
+        "errors": {
+          "emptyEmail": "Email address cannot be empty",
+          "invalidEmail": "Please enter a valid email address",
+          "updateFailed": "Failed to update email: {error}",
+          "unexpected": "An unexpected error occurred"
+        },
+        "messages": {
+          "updateSuccess": "Email updated successfully"
+        },
+        "actions": {
+          "update": "Update",
+          "updating": "Updating..."
+        }
+      },
       "transactions": {
         "title": "Transactions",
         "description": "Transactions for this Customer",

@@ -153,6 +153,17 @@ checksums:
     Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
+    Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
+    Customers/CustomerDetails/updateEmail/description: afefc7aceff0486658ac9abdab2576ce
+    Customers/CustomerDetails/updateEmail/labels/newEmail: 65396d478ca7d7356d913be84b3157b7
+    Customers/CustomerDetails/updateEmail/placeholders/newEmail: a19c74ed1e5496b9adffc3874fa3bf8b
+    Customers/CustomerDetails/updateEmail/errors/emptyEmail: f9d3c109b92852210ccd9ab436554103
+    Customers/CustomerDetails/updateEmail/errors/invalidEmail: 8de4bc8832b11b380bc4cbcedc16e48b
+    Customers/CustomerDetails/updateEmail/errors/updateFailed: 850a684dcab72929e4ccf42880430980
+    Customers/CustomerDetails/updateEmail/errors/unexpected: fe07b9cdb1fc3f7397f6d89c102c60af
+    Customers/CustomerDetails/updateEmail/messages/updateSuccess: 4a89cd072477839bf0ed5a05046e1254
+    Customers/CustomerDetails/updateEmail/actions/update: 079fc039262fd31b10532929685c2d1b
+    Customers/CustomerDetails/updateEmail/actions/updating: 0d59644e851a6a76f1fb45de9353c447
     Customers/CustomerDetails/transactions/title: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/transactions/description: 0a559b46d23f952b3d469234a67841de
     Customers/CustomerDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3

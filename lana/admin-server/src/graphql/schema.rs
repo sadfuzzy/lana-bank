@@ -854,18 +854,33 @@ impl Mutation {
         )
     }
 
-    async fn customer_update(
+    async fn customer_telegram_id_update(
         &self,
         ctx: &Context<'_>,
-        input: CustomerUpdateInput,
-    ) -> async_graphql::Result<CustomerUpdatePayload> {
+        input: CustomerTelegramIdUpdateInput,
+    ) -> async_graphql::Result<CustomerTelegramIdUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustomerUpdatePayload,
+            CustomerTelegramIdUpdatePayload,
             Customer,
             ctx,
             app.customers()
-                .update(sub, input.customer_id, input.telegram_id)
+                .update_telegram_id(sub, input.customer_id, input.telegram_id)
+        )
+    }
+
+    async fn customer_email_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerEmailUpdateInput,
+    ) -> async_graphql::Result<CustomerEmailUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerEmailUpdatePayload,
+            Customer,
+            ctx,
+            app.customers()
+                .update_email(sub, input.customer_id, input.email)
         )
     }
 

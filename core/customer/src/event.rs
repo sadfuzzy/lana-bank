@@ -14,4 +14,8 @@ pub enum CoreCustomerEvent {
         id: CustomerId,
         status: AccountStatus,
     },
+    CustomerEmailUpdated {
+        id: CustomerId,
+        email: String,
+    },
 }

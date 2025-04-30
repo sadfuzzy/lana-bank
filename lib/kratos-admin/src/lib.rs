@@ -43,4 +43,27 @@ impl KratosAdmin {
         let identity = identity_api::create_identity(&self.config, Some(&identity)).await?;
         Ok(identity.id.parse::<Uuid>()?.into())
     }
+
+    #[tracing::instrument(name = "kratos_admin.update_user_email", skip(self))]
+    pub async fn update_user_email(
+        &self,
+        authentication_id: Uuid,
+        email: String,
+    ) -> Result<(), KratosAdminError> {
+        let json_patch = vec![ory_kratos_client::models::JsonPatch {
+            op: "replace".to_string(),
+            path: "/traits/email".to_string(),
+            value: Some(serde_json::Value::String(email)),
+            from: None,
+        }];
+
+        identity_api::patch_identity(
+            &self.config,
+            &authentication_id.to_string(),
+            Some(json_patch),
+        )
+        .await?;
+
+        Ok(())
+    }
 }
