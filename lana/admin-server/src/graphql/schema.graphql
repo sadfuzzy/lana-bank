@@ -391,7 +391,6 @@ type CreditFacility {
 	createdAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
-	collateral: Satoshis!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!

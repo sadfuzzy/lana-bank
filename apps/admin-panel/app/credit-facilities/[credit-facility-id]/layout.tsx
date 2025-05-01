@@ -33,7 +33,6 @@ gql`
     status
     facilityAmount
     maturesAt
-    collateral
     collateralizationState
     createdAt
     currentCvl {

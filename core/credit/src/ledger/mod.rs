@@ -21,8 +21,8 @@ use cala_ledger::{
 use crate::{
     payment_allocation::PaymentAllocation,
     primitives::{
-        CalaAccountId, CalaAccountSetId, CollateralAction, CreditFacilityId, CustomerType,
-        DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
+        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
+        CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
     ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationDueReallocationData,
@@ -33,14 +33,6 @@ pub use balance::*;
 use constants::*;
 pub use credit_facility_accounts::*;
 use error::*;
-
-#[derive(Debug, Clone)]
-pub struct CreditFacilityCollateralUpdate {
-    pub tx_id: TransactionId,
-    pub abs_diff: Satoshis,
-    pub action: CollateralAction,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-}
 
 #[derive(Clone, Copy)]
 pub struct InternalAccountSetDetails {
@@ -1075,12 +1067,12 @@ impl CreditLedger {
     pub async fn update_credit_facility_collateral(
         &self,
         op: es_entity::DbOp<'_>,
-        CreditFacilityCollateralUpdate {
+        CollateralUpdate {
             tx_id,
-            credit_facility_account_ids,
             abs_diff,
             action,
-        }: CreditFacilityCollateralUpdate,
+        }: CollateralUpdate,
+        credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         match action {

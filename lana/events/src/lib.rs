@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-pub use core_credit::{CoreCreditEvent, FacilityCollateralUpdateAction};
+pub use core_credit::{CollateralAction, CoreCreditEvent};
 pub use core_customer::CoreCustomerEvent;
 pub use core_user::CoreUserEvent;
 pub use deposit::CoreDepositEvent;

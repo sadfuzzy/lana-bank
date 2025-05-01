@@ -24,6 +24,7 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
+        collateral_id: CollateralId,
         ledger_tx_id: LedgerTxId,
         terms: TermValues,
         amount: UsdCents,
@@ -42,14 +43,6 @@ pub enum CreditFacilityEvent {
         activated_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
-    BalanceUpdated {
-        ledger_tx_id: LedgerTxId,
-        source: BalanceUpdatedSource,
-        balance_type: BalanceUpdatedType,
-        amount: UsdCents,
-        updated_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
         idx: InterestAccrualCycleIdx,
@@ -62,29 +55,23 @@ pub enum CreditFacilityEvent {
         obligation_id: ObligationId,
         audit_info: AuditInfo,
     },
-    CollateralUpdated {
-        tx_id: LedgerTxId,
-        total_collateral: Satoshis,
-        abs_diff: Satoshis,
-        action: CollateralAction,
-        recorded_in_ledger_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-    },
-    CollateralizationChanged {
+    CollateralizationStateChanged {
         state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
-        recorded_at: DateTime<Utc>,
+        audit_info: AuditInfo,
+    },
+    CollateralizationRatioChanged {
+        ratio: Decimal,
         audit_info: AuditInfo,
     },
     Completed {
-        completed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct CreditFacilityReceivable {
     pub disbursed: UsdCents,
     pub interest: UsdCents,
@@ -151,6 +138,7 @@ pub struct CreditFacility {
     pub id: CreditFacilityId,
     pub approval_process_id: ApprovalProcessId,
     pub customer_id: CustomerId,
+    pub collateral_id: CollateralId,
     pub amount: UsdCents,
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
@@ -443,14 +431,6 @@ impl CreditFacility {
                 tx_id: accrual_cycle_data.tx_id,
                 audit_info: audit_info.clone(),
             });
-        self.events.push(CreditFacilityEvent::BalanceUpdated {
-            ledger_tx_id: new_obligation.tx_id,
-            source: BalanceUpdatedSource::Obligation(new_obligation.id),
-            balance_type: BalanceUpdatedType::InterestAccrual,
-            amount: accrual_cycle_data.interest,
-            updated_at: accrual_cycle_data.posted_at,
-            audit_info,
-        });
 
         Ok(Idempotent::Executed(new_obligation))
     }
@@ -505,50 +485,6 @@ impl CreditFacility {
         }
     }
 
-    pub(crate) fn update_balance(
-        &mut self,
-        BalanceUpdateData {
-            source_id,
-            ledger_tx_id,
-            balance_type,
-            amount,
-            updated_at,
-        }: BalanceUpdateData,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            CreditFacilityEvent::BalanceUpdated {
-                source,
-                ..
-            } if *source == source_id
-        );
-
-        self.events.push(CreditFacilityEvent::BalanceUpdated {
-            source: source_id,
-            ledger_tx_id,
-            balance_type: balance_type.into(),
-            amount,
-            updated_at,
-            audit_info,
-        });
-
-        Idempotent::Executed(())
-    }
-
-    pub fn collateral(&self) -> Satoshis {
-        self.events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::CollateralUpdated {
-                    total_collateral, ..
-                } => Some(*total_collateral),
-                _ => None,
-            })
-            .unwrap_or(Satoshis::ZERO)
-    }
-
     pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
@@ -558,23 +494,34 @@ impl CreditFacility {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::CollateralizationChanged { state, .. } => Some(*state),
+                CreditFacilityEvent::CollateralizationStateChanged { state, .. } => Some(*state),
                 _ => None,
             })
             .unwrap_or(CollateralizationState::NoCollateral)
+    }
+
+    pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CreditFacilityEvent::CollateralizationRatioChanged { ratio, .. } => Some(*ratio),
+            _ => None,
+        })
     }
 
     fn is_fully_collateralized(&self) -> bool {
         self.last_collateralization_state() == CollateralizationState::FullyCollateralized
     }
 
-    pub(crate) fn maybe_update_collateralization(
+    pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
         upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
         audit_info: &AuditInfo,
-    ) -> Option<CollateralizationState> {
+    ) -> Idempotent<Option<CollateralizationState>> {
+        let ratio_changed = self
+            .update_collateralization_ratio(&balances, audit_info.clone())
+            .did_execute();
+
         let last_collateralization_state = self.last_collateralization_state();
 
         let collateralization_update = match self.status() {
@@ -596,101 +543,22 @@ impl CreditFacility {
             CreditFacilityStatus::Closed => Some(CollateralizationState::NoCollateral),
         };
 
-        let now = crate::time::now();
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
-                .push(CreditFacilityEvent::CollateralizationChanged {
+                .push(CreditFacilityEvent::CollateralizationStateChanged {
                     state: calculated_collateralization,
-                    collateral: self.collateral(),
+                    collateral: balances.collateral(),
                     outstanding: balances.into(),
                     price,
-                    recorded_at: now,
                     audit_info: audit_info.clone(),
                 });
 
-            return Some(calculated_collateralization);
-        }
-
-        None
-    }
-
-    pub(crate) fn record_collateral_update(
-        &mut self,
-        updated_collateral: Satoshis,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-        balances: CreditFacilityBalanceSummary,
-    ) -> Result<CreditFacilityCollateralUpdate, CreditFacilityError> {
-        let current_collateral = balances.collateral();
-        let diff =
-            SignedSatoshis::from(updated_collateral) - SignedSatoshis::from(current_collateral);
-
-        if diff == SignedSatoshis::ZERO {
-            return Err(CreditFacilityError::CollateralNotUpdated(
-                current_collateral,
-                updated_collateral,
-            ));
-        }
-
-        let (collateral, action) = if diff > SignedSatoshis::ZERO {
-            (Satoshis::try_from(diff)?, CollateralAction::Add)
+            Idempotent::Executed(Some(calculated_collateralization))
+        } else if ratio_changed {
+            Idempotent::Executed(None)
         } else {
-            (Satoshis::try_from(diff.abs())?, CollateralAction::Remove)
-        };
-
-        let collateral_update = CreditFacilityCollateralUpdate {
-            abs_diff: collateral,
-            credit_facility_account_ids: self.account_ids,
-            tx_id: LedgerTxId::new(),
-            action,
-        };
-        self.confirm_collateral_update(
-            collateral_update.clone(),
-            crate::time::now(),
-            audit_info,
-            price,
-            upgrade_buffer_cvl_pct,
-            balances,
-        );
-
-        Ok(collateral_update)
-    }
-
-    fn confirm_collateral_update(
-        &mut self,
-        CreditFacilityCollateralUpdate {
-            tx_id,
-            abs_diff,
-            action,
-            ..
-        }: CreditFacilityCollateralUpdate,
-        executed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
-        balances: CreditFacilityBalanceSummary,
-    ) {
-        let mut total_collateral = balances.collateral();
-        total_collateral = match action {
-            CollateralAction::Add => total_collateral + abs_diff,
-            CollateralAction::Remove => total_collateral - abs_diff,
-        };
-        self.events.push(CreditFacilityEvent::CollateralUpdated {
-            tx_id,
-            total_collateral,
-            abs_diff,
-            action,
-            recorded_in_ledger_at: executed_at,
-            audit_info: audit_info.clone(),
-        });
-
-        self.maybe_update_collateralization(
-            price,
-            upgrade_buffer_cvl_pct,
-            balances.with_collateral(total_collateral),
-            &audit_info,
-        );
+            Idempotent::Ignored
+        }
     }
 
     pub(crate) fn is_completed(&self) -> bool {
@@ -703,8 +571,8 @@ impl CreditFacility {
     pub(crate) fn complete(
         &mut self,
         audit_info: AuditInfo,
-        price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
+        _price: PriceOfOneBTC,
+        _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
     ) -> Result<Idempotent<CreditFacilityCompletion>, CreditFacilityError> {
         idempotency_guard!(
@@ -717,64 +585,36 @@ impl CreditFacility {
 
         let res = CreditFacilityCompletion {
             tx_id: LedgerTxId::new(),
-            collateral: self.collateral(),
+            collateral: balances.collateral(),
             credit_facility_account_ids: self.account_ids,
         };
 
-        let completed_at = crate::time::now();
-        self.confirm_collateral_update(
-            CreditFacilityCollateralUpdate {
-                credit_facility_account_ids: self.account_ids,
-                tx_id: res.tx_id,
-                abs_diff: res.collateral,
-                action: CollateralAction::Remove,
-            },
-            completed_at,
-            audit_info.clone(),
-            price,
-            upgrade_buffer_cvl_pct,
-            balances,
-        );
-
-        self.events.push(CreditFacilityEvent::Completed {
-            completed_at,
-            audit_info,
-        });
+        self.events
+            .push(CreditFacilityEvent::Completed { audit_info });
 
         Ok(Idempotent::Executed(res))
     }
 
-    fn balance_outstanding(&self) -> UsdCents {
-        self.events
-            .iter_all()
-            .fold(UsdCents::from(0), |mut total, event| {
-                if let CreditFacilityEvent::BalanceUpdated { source, amount, .. } = event {
-                    match source {
-                        BalanceUpdatedSource::Obligation(_) => total += *amount,
-                        BalanceUpdatedSource::PaymentAllocation(_) => total -= *amount,
-                    }
-                }
-                total
-            })
-    }
+    fn update_collateralization_ratio(
+        &mut self,
+        balance: &CreditFacilityBalanceSummary,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        let ratio = balance.current_collateralization_ratio();
 
-    pub(super) fn collateralization_ratio(&self) -> Option<Decimal> {
-        let amount = if self.status() == CreditFacilityStatus::PendingCollateralization
-            || self.status() == CreditFacilityStatus::PendingApproval
-        {
-            self.amount
+        if let Some(last_ratio) = self.last_collateralization_ratio() {
+            if ratio != last_ratio {
+                self.events
+                    .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
+            } else {
+                return Idempotent::Ignored;
+            }
         } else {
-            self.balance_outstanding()
-        };
-
-        if amount > UsdCents::ZERO {
-            Some(
-                rust_decimal::Decimal::from(self.collateral().into_inner())
-                    / Decimal::from(amount.into_inner()),
-            )
-        } else {
-            None
+            self.events
+                .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
         }
+
+        Idempotent::Executed(())
     }
 }
 
@@ -788,6 +628,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     id,
                     amount,
                     customer_id,
+                    collateral_id,
                     account_ids,
                     disbursal_credit_account_id,
                     terms: t,
@@ -799,6 +640,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .id(*id)
                         .amount(*amount)
                         .customer_id(*customer_id)
+                        .collateral_id(*collateral_id)
                         .terms(*t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
@@ -819,11 +661,10 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .defaults_at(defaults_at)
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
-                CreditFacilityEvent::BalanceUpdated { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
-                CreditFacilityEvent::CollateralUpdated { .. } => (),
-                CreditFacilityEvent::CollateralizationChanged { .. } => (),
+                CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
+                CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
@@ -841,6 +682,8 @@ pub struct NewCreditFacility {
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
+    #[builder(setter(into))]
+    pub(super) collateral_id: CollateralId,
     terms: TermValues,
     amount: UsdCents,
     #[builder(setter(skip), default)]
@@ -868,6 +711,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 ledger_tx_id: self.ledger_tx_id,
                 audit_info: self.audit_info.clone(),
                 customer_id: self.customer_id,
+                collateral_id: self.collateral_id,
                 terms: self.terms,
                 amount: self.amount,
                 account_ids: self.account_ids,
@@ -957,6 +801,7 @@ mod test {
             ledger_tx_id: LedgerTxId::new(),
             audit_info: dummy_audit_info(),
             customer_id: CustomerId::new(),
+            collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityAccountIds::new(),
@@ -977,189 +822,6 @@ mod test {
         credit_facility
             .interest_accruals
             .extend_entities(new_entities);
-    }
-
-    #[test]
-    fn collateral_update_before_activation() {
-        let mut credit_facility = facility_from(initial_events());
-        assert_eq!(credit_facility.collateral(), Satoshis::ZERO);
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(0)));
-
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(10000),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                default_balances(credit_facility.amount),
-            )
-            .unwrap();
-        assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(10)));
-    }
-
-    #[test]
-    fn collateral_update_after_activation_before_disbursal() {
-        let mut events = initial_events();
-        let starting_collateral = Satoshis::from(500);
-        events.extend([
-            CreditFacilityEvent::CollateralUpdated {
-                tx_id: LedgerTxId::new(),
-                total_collateral: starting_collateral,
-                abs_diff: Satoshis::from(500),
-                action: CollateralAction::Add,
-                recorded_in_ledger_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-        let mut credit_facility = facility_from(events);
-        assert_eq!(credit_facility.collateralization_ratio(), None);
-
-        let mut balances = default_balances(credit_facility.amount);
-        balances.collateral = starting_collateral;
-
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(10000),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                balances,
-            )
-            .unwrap();
-        assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
-        assert_eq!(credit_facility.collateralization_ratio(), None);
-    }
-
-    #[test]
-    fn collateral_update_after_activation_after_disbursal() {
-        let mut events = initial_events();
-        let starting_collateral = Satoshis::from(500);
-        events.extend([
-            CreditFacilityEvent::CollateralUpdated {
-                tx_id: LedgerTxId::new(),
-                total_collateral: starting_collateral,
-                abs_diff: Satoshis::from(500),
-                action: CollateralAction::Add,
-                recorded_in_ledger_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::BalanceUpdated {
-                ledger_tx_id: LedgerTxId::new(),
-                source: BalanceUpdatedSource::Obligation(ObligationId::new()),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount: UsdCents::from(10),
-                updated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-        let mut credit_facility = facility_from(events);
-
-        let mut balances = default_balances(credit_facility.amount);
-        balances.collateral = starting_collateral;
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(10000),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                balances,
-            )
-            .unwrap();
-        assert_eq!(credit_facility.collateral(), Satoshis::from(10000));
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(1000)));
-        balances.collateral = Satoshis::from(10000);
-
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(5000),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                balances,
-            )
-            .unwrap();
-        assert_eq!(credit_facility.collateral(), Satoshis::from(5000));
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(500)));
-    }
-
-    #[test]
-    fn collateralization_ratio() {
-        let events = initial_events();
-        let mut credit_facility = facility_from(events);
-        assert_eq!(
-            credit_facility.collateralization_ratio(),
-            Some(Decimal::ZERO)
-        );
-
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(5000),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                default_balances(credit_facility.amount),
-            )
-            .unwrap();
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(5)));
-    }
-
-    #[test]
-    fn collateralization_ratio_when_active_disbursal() {
-        let mut events = initial_events();
-        let disbursal_amount = UsdCents::from(10);
-        let disbursal_obligation_id = ObligationId::new();
-        events.extend([
-            CreditFacilityEvent::CollateralUpdated {
-                tx_id: LedgerTxId::new(),
-                total_collateral: Satoshis::from(500),
-                abs_diff: Satoshis::from(500),
-                action: CollateralAction::Add,
-                recorded_in_ledger_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-            CreditFacilityEvent::BalanceUpdated {
-                ledger_tx_id: LedgerTxId::new(),
-                source: BalanceUpdatedSource::Obligation(disbursal_obligation_id),
-                balance_type: BalanceUpdatedType::Disbursal,
-                amount: disbursal_amount,
-                updated_at: Utc::now(),
-                audit_info: dummy_audit_info(),
-            },
-        ]);
-
-        let credit_facility = facility_from(events);
-        assert_eq!(credit_facility.collateralization_ratio(), Some(dec!(50)));
     }
 
     #[test]
@@ -1291,33 +953,6 @@ mod test {
     }
 
     #[test]
-    fn reject_credit_facility_activate_below_margin_limit() {
-        let mut credit_facility = facility_from(initial_events());
-
-        credit_facility
-            .record_collateral_update(
-                Satoshis::from(100),
-                dummy_audit_info(),
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                default_balances(credit_facility.amount),
-            )
-            .unwrap();
-
-        credit_facility
-            .approval_process_concluded(true, dummy_audit_info())
-            .unwrap();
-        let approval_time = Utc::now();
-        let res = credit_facility.activate(
-            approval_time,
-            default_price(),
-            default_balances(credit_facility.amount),
-            dummy_audit_info(),
-        );
-        assert!(matches!(res, Err(CreditFacilityError::BelowMarginLimit)));
-    }
-
-    #[test]
     fn status() {
         let mut credit_facility = facility_from(initial_events());
         assert_eq!(
@@ -1326,14 +961,14 @@ mod test {
         );
 
         credit_facility
-            .record_collateral_update(
-                default_full_collateral(),
-                dummy_audit_info(),
+            .update_collateralization(
                 default_price(),
                 default_upgrade_buffer_cvl_pct(),
-                default_balances(credit_facility.amount),
+                default_balances(credit_facility.amount).with_collateral(default_full_collateral()),
+                &dummy_audit_info(),
             )
             .unwrap();
+
         assert_eq!(
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval
@@ -1419,21 +1054,11 @@ mod test {
         #[test]
         fn errors_if_collateral_below_margin() {
             let mut events = initial_events();
-            events.extend([
-                CreditFacilityEvent::ApprovalProcessConcluded {
-                    approval_process_id: ApprovalProcessId::new(),
-                    approved: true,
-                    audit_info: dummy_audit_info(),
-                },
-                CreditFacilityEvent::CollateralUpdated {
-                    tx_id: LedgerTxId::new(),
-                    total_collateral: Satoshis::ONE,
-                    abs_diff: Satoshis::ONE,
-                    action: CollateralAction::Add,
-                    recorded_in_ledger_at: Utc::now(),
-                    audit_info: dummy_audit_info(),
-                },
-            ]);
+            events.extend([CreditFacilityEvent::ApprovalProcessConcluded {
+                approval_process_id: ApprovalProcessId::new(),
+                approved: true,
+                audit_info: dummy_audit_info(),
+            }]);
             let mut credit_facility = facility_from(events);
 
             assert!(matches!(
@@ -1454,14 +1079,6 @@ mod test {
                 CreditFacilityEvent::ApprovalProcessConcluded {
                     approval_process_id: ApprovalProcessId::new(),
                     approved: true,
-                    audit_info: dummy_audit_info(),
-                },
-                CreditFacilityEvent::CollateralUpdated {
-                    tx_id: LedgerTxId::new(),
-                    total_collateral: Satoshis::ONE,
-                    abs_diff: Satoshis::ONE,
-                    action: CollateralAction::Add,
-                    recorded_in_ledger_at: Utc::now(),
                     audit_info: dummy_audit_info(),
                 },
                 CreditFacilityEvent::Activated {

@@ -2,6 +2,7 @@ use core_money::UsdCents;
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
+    collateral::{error::CollateralError, Collateral, CollateralEvent},
     credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
     disbursal::{error::DisbursalError, Disbursal, DisbursalEvent},
     event::*,
@@ -52,45 +53,42 @@ where
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CoreCreditEvent::FacilityCreated {
+                Initialized { amount, terms, .. } => Some(CoreCreditEvent::FacilityCreated {
                     id: entity.id,
+                    terms: *terms,
+                    amount: *amount,
                     created_at: entity.created_at(),
                 }),
                 ApprovalProcessConcluded { approved, .. } if *approved => {
                     Some(CoreCreditEvent::FacilityApproved { id: entity.id })
                 }
-                Activated { activated_at, .. } => Some(CoreCreditEvent::FacilityActivated {
+                Activated {
+                    activated_at,
+                    ledger_tx_id,
+                    ..
+                } => Some(CoreCreditEvent::FacilityActivated {
                     id: entity.id,
+                    activation_tx_id: *ledger_tx_id,
                     activated_at: *activated_at,
                 }),
-                Completed { completed_at, .. } => Some(CoreCreditEvent::FacilityCompleted {
+                Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
-                    completed_at: *completed_at,
+                    completed_at: event.recorded_at,
                 }),
-                CollateralUpdated {
-                    total_collateral,
-                    abs_diff,
-                    action,
-                    recorded_in_ledger_at,
+                CollateralizationStateChanged {
+                    state,
+                    collateral,
+                    outstanding,
+                    price,
                     ..
-                } => {
-                    let action = match action {
-                        crate::primitives::CollateralAction::Add => {
-                            FacilityCollateralUpdateAction::Add
-                        }
-                        crate::primitives::CollateralAction::Remove => {
-                            FacilityCollateralUpdateAction::Remove
-                        }
-                    };
-
-                    Some(CoreCreditEvent::FacilityCollateralUpdated {
-                        credit_facility_id: entity.id,
-                        new_amount: *total_collateral,
-                        abs_diff: *abs_diff,
-                        action,
-                        recorded_at: *recorded_in_ledger_at,
-                    })
-                }
+                } => Some(CoreCreditEvent::FacilityCollateralizationChanged {
+                    id: entity.id,
+                    state: *state,
+                    recorded_at: event.recorded_at,
+                    collateral: *collateral,
+                    outstanding: *outstanding,
+                    price: *price,
+                }),
 
                 _ => None,
             })
@@ -98,6 +96,37 @@ where
         self.outbox
             .publish_all_persisted(db.tx(), publish_events)
             .await?;
+        Ok(())
+    }
+
+    pub async fn publish_collateral(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Collateral,
+        new_events: es_entity::LastPersisted<'_, CollateralEvent>,
+    ) -> Result<(), CollateralError> {
+        use CollateralEvent::*;
+        let events = new_events
+            .filter_map(|event| match &event.event {
+                Updated {
+                    abs_diff,
+                    action,
+                    ledger_tx_id,
+                    ..
+                } => Some(CoreCreditEvent::FacilityCollateralUpdated {
+                    ledger_tx_id: *ledger_tx_id,
+                    abs_diff: *abs_diff,
+                    action: *action,
+                    recorded_at: entity.created_at(),
+                    new_amount: entity.amount,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        self.outbox.publish_all_persisted(db.tx(), events).await?;
+
         Ok(())
     }
 
@@ -113,11 +142,13 @@ where
                 Settled {
                     amount,
                     recorded_at,
+                    ledger_tx_id,
                     ..
                 } => Some(CoreCreditEvent::DisbursalSettled {
                     credit_facility_id: entity.facility_id,
                     amount: *amount,
                     recorded_at: *recorded_at,
+                    ledger_tx_id: *ledger_tx_id,
                 }),
 
                 _ => None,
@@ -139,9 +170,13 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 InterestAccrualsPosted {
-                    total, posted_at, ..
+                    total,
+                    posted_at,
+                    tx_id,
+                    ..
                 } => Some(CoreCreditEvent::AccrualPosted {
                     credit_facility_id: entity.credit_facility_id,
+                    ledger_tx_id: *tx_id,
                     amount: *total,
                     posted_at: *posted_at,
                 }),
@@ -165,18 +200,21 @@ where
         let publish_events = new_events
             .map(|event| match &event.event {
                 Initialized {
+                    id,
                     obligation_type,
                     amount,
                     ..
                 } => match obligation_type {
                     ObligationType::Disbursal => CoreCreditEvent::FacilityRepaymentRecorded {
                         credit_facility_id: entity.credit_facility_id,
+                        payment_id: *id,
                         disbursal_amount: *amount,
                         interest_amount: UsdCents::ZERO,
                         recorded_at: event.recorded_at,
                     },
                     ObligationType::Interest => CoreCreditEvent::FacilityRepaymentRecorded {
                         credit_facility_id: entity.credit_facility_id,
+                        payment_id: *id,
                         disbursal_amount: UsdCents::ZERO,
                         interest_amount: *amount,
                         recorded_at: event.recorded_at,

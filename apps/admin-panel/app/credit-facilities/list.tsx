@@ -45,7 +45,6 @@ gql`
           createdAt
           status
           facilityAmount
-          collateral
           currentCvl {
             disbursed
             total

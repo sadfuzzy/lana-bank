@@ -159,6 +159,20 @@ CREATE TABLE user_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_collaterals (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_collateral_events (
+  id UUID NOT NULL REFERENCES core_collaterals(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES customers(id),
@@ -371,6 +385,20 @@ CREATE TABLE audit_entries (
   action VARCHAR NOT NULL,
   authorized BOOLEAN NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE credit_facility_histories (
+  id UUID PRIMARY KEY REFERENCES core_credit_facilities(id),
+  history JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE credit_facility_repayment_plans (
+  id UUID PRIMARY KEY REFERENCES core_credit_facilities(id),
+  repayment_plans JSONB NOT NULL DEFAULT '[]',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE dashboards (

@@ -266,7 +266,9 @@ impl TermValues {
         amount: UsdCents,
         price: PriceOfOneBTC,
     ) -> bool {
-        let cvl = balance.with_added_disbursal(amount).disbursed_cvl(price);
+        let cvl = balance
+            .with_added_disbursal(amount)
+            .outstanding_amount_cvl(price);
         cvl >= self.margin_call_cvl
     }
 

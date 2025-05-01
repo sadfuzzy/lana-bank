@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
+use crate::{CollateralizationState, CreditFacilityReceivable, TermValues};
+
 use super::primitives::*;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -10,6 +12,8 @@ use super::primitives::*;
 pub enum CoreCreditEvent {
     FacilityCreated {
         id: CreditFacilityId,
+        terms: TermValues,
+        amount: UsdCents,
         created_at: DateTime<Utc>,
     },
     FacilityApproved {
@@ -17,6 +21,7 @@ pub enum CoreCreditEvent {
     },
     FacilityActivated {
         id: CreditFacilityId,
+        activation_tx_id: LedgerTxId,
         activated_at: DateTime<Utc>,
     },
     FacilityCompleted {
@@ -25,24 +30,36 @@ pub enum CoreCreditEvent {
     },
     FacilityRepaymentRecorded {
         credit_facility_id: CreditFacilityId,
+        payment_id: PaymentAllocationId,
         disbursal_amount: UsdCents,
         interest_amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
-        action: FacilityCollateralUpdateAction,
+        action: CollateralAction,
         recorded_at: DateTime<Utc>,
+    },
+    FacilityCollateralizationChanged {
+        id: CreditFacilityId,
+        state: CollateralizationState,
+        recorded_at: DateTime<Utc>,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
     },
     DisbursalSettled {
         credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     AccrualPosted {
         credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         posted_at: DateTime<Utc>,
     },
@@ -56,10 +73,4 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     },
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum FacilityCollateralUpdateAction {
-    Add,
-    Remove,
 }

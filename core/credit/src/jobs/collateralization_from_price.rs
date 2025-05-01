@@ -16,22 +16,22 @@ use crate::{
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct CreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
+    type Initializer = CreditFacilityCollateralizationFromPriceJobInitializer<Perms, E>;
 }
-pub struct CreditFacilityProcessingJobInitializer<Perms, E>
+pub struct CreditFacilityCollateralizationFromPriceJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -42,7 +42,7 @@ where
     price: Price,
 }
 
-impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
+impl<Perms, E> CreditFacilityCollateralizationFromPriceJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -64,8 +64,9 @@ where
     }
 }
 
-const CREDIT_FACILITY_CVL_PROCESSING_JOB: JobType = JobType::new("credit-facility-cvl-processing");
-impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
+const CREDIT_FACILITY_COLLATERALZIATION_FROM_PRICE_JOB: JobType =
+    JobType::new("credit-facility-collateralization-from-price");
+impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromPriceJobInitializer<Perms, E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
     Perms: PermissionCheck,
@@ -76,26 +77,28 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_CVL_PROCESSING_JOB
+        CREDIT_FACILITY_COLLATERALZIATION_FROM_PRICE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
-            config: job.config()?,
-            credit_facility_repo: self.credit_facility_repo.clone(),
-            ledger: self.ledger.clone(),
-            price: self.price.clone(),
-            audit: self.audit.clone(),
-        }))
+        Ok(Box::new(
+            CreditFacilityCollateralizationFromPriceJobRunner::<Perms, E> {
+                config: job.config()?,
+                credit_facility_repo: self.credit_facility_repo.clone(),
+                ledger: self.ledger.clone(),
+                price: self.price.clone(),
+                audit: self.audit.clone(),
+            },
+        ))
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct CreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>,
     ledger: CreditLedger,
     credit_facility_repo: CreditFacilityRepo<E>,
     price: Price,
@@ -103,7 +106,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -155,13 +158,13 @@ where
                     .get_credit_facility_balance(facility.account_ids)
                     .await?;
                 if facility
-                    .maybe_update_collateralization(
+                    .update_collateralization(
                         price,
                         self.config.upgrade_buffer_cvl_pct,
                         balances,
                         &audit_info,
                     )
-                    .is_some()
+                    .did_execute()
                 {
                     self.credit_facility_repo
                         .update_in_op(&mut db, facility)

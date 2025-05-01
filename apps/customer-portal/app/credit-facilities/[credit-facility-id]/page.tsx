@@ -32,7 +32,6 @@ gql`
       id
       creditFacilityId
       facilityAmount
-      collateral
       collateralizationState
       status
       createdAt

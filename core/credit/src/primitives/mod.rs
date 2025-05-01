@@ -25,6 +25,7 @@ es_entity::entity_id! {
     PaymentId,
     PaymentAllocationId,
     ChartOfAccountsIntegrationConfigId,
+    CollateralId,
     ObligationId,
     InterestAccrualCycleId;
 
@@ -372,6 +373,12 @@ impl InterestAccrualCycleIdx {
 pub enum CollateralAction {
     Add,
     Remove,
+}
+
+pub struct CollateralUpdate {
+    pub tx_id: LedgerTxId,
+    pub abs_diff: Satoshis,
+    pub action: CollateralAction,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]

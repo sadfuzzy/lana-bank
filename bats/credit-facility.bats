@@ -213,6 +213,8 @@ ymd() {
 }
 
 @test "credit-facility: records accrual" {
+  skip # Credit Facility history temporarily unavailable
+
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 

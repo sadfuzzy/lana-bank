@@ -33,7 +33,6 @@ type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
 	facilityAmount: UsdCents!
-	collateral: Satoshis!
 	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
 	createdAt: Timestamp!

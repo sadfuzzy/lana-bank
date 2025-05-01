@@ -26,7 +26,7 @@ use super::{entity::*, error::CreditFacilityError};
             ty = "Option<Decimal>",
             list_by,
             create(persist = false),
-            update(accessor = "collateralization_ratio()")
+            update(accessor = "last_collateralization_ratio()")
         ),
         collateralization_state(
             ty = "CollateralizationState",
