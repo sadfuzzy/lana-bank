@@ -8,8 +8,6 @@ use outbox::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
-use super::{obligation_defaulted, obligation_overdue};
-
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
@@ -31,7 +29,6 @@ where
 {
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -45,19 +42,18 @@ where
     pub fn new(
         ledger: &CreditLedger,
         obligations: &Obligations<Perms, E>,
-        jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             obligations: obligations.clone(),
-            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
 }
 
-const CREDIT_FACILITY_DUE_PROCESSING_JOB: JobType = JobType::new("credit-facility-due-processing");
+const CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB: JobType =
+    JobType::new("credit-facility-defaulted-processing");
 impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -69,7 +65,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_DUE_PROCESSING_JOB
+        CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -77,7 +73,6 @@ where
             config: job.config()?,
             obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
-            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -91,7 +86,6 @@ where
     config: CreditFacilityJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
-    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -122,8 +116,10 @@ where
             )
             .await?;
 
-        let due = if let es_entity::Idempotent::Executed(due) = obligation.record_due(audit_info) {
-            due
+        let defaulted = if let es_entity::Idempotent::Executed(defaulted) =
+            obligation.record_defaulted(audit_info)?
+        {
+            defaulted
         } else {
             return Ok(JobCompletion::Complete);
         };
@@ -132,33 +128,9 @@ where
             .update_in_op(&mut db, &mut obligation)
             .await?;
 
-        if let Some(overdue_at) = obligation.overdue_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    overdue_at,
-                )
-                .await?;
-        } else if let Some(defaulted_at) = obligation.defaulted_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        _phantom: std::marker::PhantomData,
-                    },
-                    defaulted_at,
-                )
-                .await?;
-        }
-
-        self.ledger.record_obligation_due(db, due).await?;
+        self.ledger
+            .record_obligation_defaulted(db, defaulted)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }

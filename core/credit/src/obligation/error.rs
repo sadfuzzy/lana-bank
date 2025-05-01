@@ -14,6 +14,8 @@ pub enum ObligationError {
     JobError(#[from] job::error::JobError),
     #[error("ObligationError - InvalidStatusTransitionToOverdue")]
     InvalidStatusTransitionToOverdue,
+    #[error("ObligationError - InvalidStatusTransitionToDefaulted")]
+    InvalidStatusTransitionToDefaulted,
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
 }

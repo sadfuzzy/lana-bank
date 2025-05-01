@@ -8,6 +8,8 @@ use outbox::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
+use super::obligation_defaulted;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
@@ -29,6 +31,7 @@ where
 {
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
+    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -42,11 +45,13 @@ where
     pub fn new(
         ledger: &CreditLedger,
         obligations: &Obligations<Perms, E>,
+        jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
             obligations: obligations.clone(),
+            jobs: jobs.clone(),
             audit: audit.clone(),
         }
     }
@@ -73,6 +78,7 @@ where
             config: job.config()?,
             obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
+            jobs: self.jobs.clone(),
             audit: self.audit.clone(),
         }))
     }
@@ -86,6 +92,7 @@ where
     config: CreditFacilityJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
+    jobs: Jobs,
     audit: Perms::Audit,
 }
 
@@ -127,6 +134,20 @@ where
         self.obligations
             .update_in_op(&mut db, &mut obligation)
             .await?;
+
+        if let Some(defaulted_at) = obligation.defaulted_at() {
+            self.jobs
+                .create_and_spawn_at_in_op(
+                    &mut db,
+                    JobId::new(),
+                    obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
+                        obligation_id: obligation.id,
+                        _phantom: std::marker::PhantomData,
+                    },
+                    defaulted_at,
+                )
+                .await?;
+        }
 
         self.ledger.record_obligation_overdue(db, overdue).await?;
 

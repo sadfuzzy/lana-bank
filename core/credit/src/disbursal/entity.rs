@@ -211,6 +211,7 @@ impl Disbursal {
                     receivable_account_id: self.account_ids.disbursed_receivable_overdue_account_id,
                     account_to_be_credited_id: self.disbursal_credit_account_id,
                 })
+                .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_due_date)
                 .recorded_at(now)

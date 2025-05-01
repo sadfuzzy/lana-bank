@@ -30,6 +30,13 @@ pub struct ObligationOverdueReallocationData {
     pub overdue_account_id: CalaAccountId,
 }
 
+pub struct ObligationDefaultedReallocationData {
+    pub tx_id: LedgerTxId,
+    pub outstanding_amount: UsdCents,
+    pub receivable_account_id: CalaAccountId,
+    pub defaulted_account_id: CalaAccountId,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct ObligationsAmounts {
     pub disbursed: UsdCents,

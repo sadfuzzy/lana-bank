@@ -206,6 +206,14 @@ where
             obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
+                jobs,
+                authz.audit(),
+            ),
+        );
+        jobs.add_initializer(
+            obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                &obligations,
                 authz.audit(),
             ),
         );

@@ -25,7 +25,8 @@ use crate::{
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation, ObligationDueReallocationData,
+    ChartOfAccountsIntegrationConfig, DurationType, Obligation,
+    ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
 };
 
@@ -181,6 +182,7 @@ impl CreditLedger {
         templates::RecordPaymentAllocation::init(cala).await?;
         templates::RecordObligationDueBalance::init(cala).await?;
         templates::RecordObligationOverdueBalance::init(cala).await?;
+        templates::RecordObligationDefaultedBalance::init(cala).await?;
         templates::CreditFacilityAccrueInterest::init(cala).await?;
         templates::CreditFacilityPostAccruedInterest::init(cala).await?;
         templates::InitiateDisbursal::init(cala).await?;
@@ -1218,6 +1220,35 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn record_obligation_defaulted(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ObligationDefaultedReallocationData {
+            tx_id,
+            outstanding_amount,
+            receivable_account_id,
+            defaulted_account_id,
+            ..
+        }: ObligationDefaultedReallocationData,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
+                templates::RecordObligationDefaultedBalanceParams {
+                    journal_id: self.journal_id,
+                    amount: outstanding_amount.to_usd(),
+                    receivable_account_id,
+                    defaulted_account_id,
                 },
             )
             .await?;
