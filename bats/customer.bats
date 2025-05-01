@@ -78,7 +78,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  sleep 0.1 # wait for customer-onboarding steps
+  sleep 0.1 # wait for customer-sync steps
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'

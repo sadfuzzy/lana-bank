@@ -2,7 +2,7 @@ use kratos_admin::KratosAdminConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CustomerOnboardingConfig {
+pub struct CustomerSyncConfig {
     #[serde(default = "default_auto_create_deposit_account")]
     pub auto_create_deposit_account: bool,
     #[serde(default = "default_customer_status_sync_active")]
@@ -11,7 +11,7 @@ pub struct CustomerOnboardingConfig {
     pub kratos_admin: KratosAdminConfig,
 }
 
-impl Default for CustomerOnboardingConfig {
+impl Default for CustomerSyncConfig {
     fn default() -> Self {
         Self {
             auto_create_deposit_account: default_auto_create_deposit_account(),

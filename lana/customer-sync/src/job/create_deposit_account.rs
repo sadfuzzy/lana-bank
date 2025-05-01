@@ -17,17 +17,17 @@ use job::*;
 use crate::config::*;
 
 #[derive(serde::Serialize)]
-pub struct CustomerActiveSyncJobConfig<Perms, E> {
+pub struct CreateDepositAccountJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
+impl<Perms, E> CreateDepositAccountJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CustomerActiveSyncJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreateDepositAccountJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CustomerActiveSyncJobInitializer<Perms, E>;
+    type Initializer = CreateDepositAccountJobInitializer<Perms, E>;
 }
 
-pub struct CustomerActiveSyncJobInitializer<Perms, E>
+pub struct CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -50,10 +50,10 @@ where
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
-    config: CustomerOnboardingConfig,
+    config: CustomerSyncConfig,
 }
 
-impl<Perms, E> CustomerActiveSyncJobInitializer<Perms, E>
+impl<Perms, E> CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -63,7 +63,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         deposit: &CoreDeposit<Perms, E>,
-        config: CustomerOnboardingConfig,
+        config: CustomerSyncConfig,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
@@ -73,8 +73,9 @@ where
     }
 }
 
-const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("customer-active-sync");
-impl<Perms, E> JobInitializer for CustomerActiveSyncJobInitializer<Perms, E>
+const CUSTOMER_SYNC_CREATE_DEPOSIT_ACCOUNT: JobType =
+    JobType::new("customer-sync-create-deposit-account");
+impl<Perms, E> JobInitializer for CreateDepositAccountJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -89,11 +90,11 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_ACTIVE_SYNC
+        CUSTOMER_SYNC_CREATE_DEPOSIT_ACCOUNT
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActiveSyncJobRunner {
+        Ok(Box::new(CreateDepositAccountJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
             config: self.config.clone(),
@@ -109,11 +110,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CustomerActiveSyncJobData {
+struct CreateDepositAccountJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CustomerActiveSyncJobRunner<Perms, E>
+pub struct CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -122,10 +123,10 @@ where
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
-    config: CustomerOnboardingConfig,
+    config: CustomerSyncConfig,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -141,25 +142,24 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CustomerActiveSyncJobData>()?
+            .execution_state::<CreateDepositAccountJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { .. }) =
-                &message.as_ref().as_event()
-            {
-                self.handle_status_updated(message.as_ref()).await?;
+            if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
+                self.handle_create_deposit_account(message.as_ref()).await?;
                 state.sequence = message.sequence;
                 current_job.update_execution_state(&state).await?;
             }
         }
 
-        Ok(JobCompletion::RescheduleNow)
+        let now = crate::time::now();
+        Ok(JobCompletion::RescheduleAt(now))
     }
 }
 
-impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
+impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -170,31 +170,29 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(
-        name = "customer_onboarding.handle_status_update",
-        skip(self, message),
-        err
-    )]
-    async fn handle_status_updated(
+    #[instrument(name = "customer_sync.create_deposit_account", skip(self, message))]
+    async fn handle_create_deposit_account(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>>
     where
         E: OutboxEventMarker<CoreCustomerEvent>,
     {
-        if let Some(CoreCustomerEvent::CustomerAccountStatusUpdated { id, status }) =
-            message.as_event()
+        if let Some(CoreCustomerEvent::CustomerCreated {
+            id, customer_type, ..
+        }) = message.as_event()
         {
             message.inject_trace_parent();
 
-            if self.config.customer_status_sync_active {
-                self.deposit
-                    .update_account_status_for_holder(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        *id,
-                        *status,
-                    )
-                    .await?;
+            if self.config.auto_create_deposit_account {
+                match self.deposit
+                .create_account(&<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(), *id,
+                 !self.config.customer_status_sync_active, *customer_type)
+                .await {
+                Ok(_) => {}
+                Err(e) if e.is_account_already_exists() => {},
+                Err(e) => return Err(e.into()),
+                }
             }
         }
         Ok(())

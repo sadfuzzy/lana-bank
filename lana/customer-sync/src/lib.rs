@@ -20,7 +20,7 @@ use deposit::{
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub struct CustomerOnboarding<Perms, E>
+pub struct CustomerSync<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -31,7 +31,7 @@ where
     _outbox: Outbox<E>,
 }
 
-impl<Perms, E> Clone for CustomerOnboarding<Perms, E>
+impl<Perms, E> Clone for CustomerSync<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -46,7 +46,7 @@ where
     }
 }
 
-impl<Perms, E> CustomerOnboarding<Perms, E>
+impl<Perms, E> CustomerSync<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -62,8 +62,8 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
-        config: CustomerOnboardingConfig,
-    ) -> Result<Self, CustomerOnboardingError> {
+        config: CustomerSyncConfig,
+    ) -> Result<Self, CustomerSyncError> {
         jobs.add_initializer_and_spawn_unique(
             CreateDepositAccountJobInitializer::new(outbox, deposit, config.clone()),
             CreateDepositAccountJobConfig::new(),

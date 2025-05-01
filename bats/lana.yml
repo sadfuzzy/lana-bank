@@ -12,5 +12,5 @@ app:
     dbt_output_dataset: "dbt_gha"
   credit:
     customer_active_check_enabled: false
-  customer_onboarding:
+  customer_sync:
     customer_status_sync_active: false

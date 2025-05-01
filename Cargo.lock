@@ -1188,7 +1188,31 @@ dependencies = [
 ]
 
 [[package]]
-name = "customer-onboarding"
+name = "customer-server"
+version = "0.3.403-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "async-graphql-axum",
+ "axum",
+ "axum-extra",
+ "chrono",
+ "core-customer",
+ "es-entity",
+ "jwks-utils",
+ "lana-app",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-utils",
+ "uuid",
+]
+
+[[package]]
+name = "customer-sync"
 version = "0.3.403-dev"
 dependencies = [
  "anyhow",
@@ -1213,30 +1237,6 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tracing",
- "uuid",
-]
-
-[[package]]
-name = "customer-server"
-version = "0.3.403-dev"
-dependencies = [
- "anyhow",
- "async-graphql",
- "async-graphql-axum",
- "axum",
- "axum-extra",
- "chrono",
- "core-customer",
- "es-entity",
- "jwks-utils",
- "lana-app",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-utils",
  "uuid",
 ]
 
@@ -2683,7 +2683,7 @@ dependencies = [
  "core-money",
  "core-price",
  "core-user",
- "customer-onboarding",
+ "customer-sync",
  "dashboard",
  "deposit",
  "derive_builder",

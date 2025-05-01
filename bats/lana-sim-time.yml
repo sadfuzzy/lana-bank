@@ -15,7 +15,7 @@ app:
     dev_disable_auto_create: true
   credit:
     customer_active_check_enabled: false
-  customer_onboarding:
+  customer_sync:
     customer_status_sync_active: false
 time:
   realtime: false

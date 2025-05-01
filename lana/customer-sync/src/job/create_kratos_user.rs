@@ -58,7 +58,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        config: CustomerOnboardingConfig,
+        config: CustomerSyncConfig,
     ) -> Self {
         let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
 
@@ -70,8 +70,7 @@ where
     }
 }
 
-const CUSTOMER_ONBOARDING_CREATE_KRATOS_USER: JobType =
-    JobType::new("customer-onboarding-create-kratos-user");
+const CUSTOMER_SYNC_CREATE_KRATOS_USER: JobType = JobType::new("customer-sync-create-kratos-user");
 impl<Perms, E> JobInitializer for CreateKratosUserJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -85,7 +84,7 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_ONBOARDING_CREATE_KRATOS_USER
+        CUSTOMER_SYNC_CREATE_KRATOS_USER
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -157,7 +156,7 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    #[instrument(name = "customer_onboarding.create_kratos_user", skip(self, message))]
+    #[instrument(name = "customer_sync.create_kratos_user", skip(self, message))]
     async fn handle_create_kratos_user(
         &self,
         message: &PersistentOutboxEvent<E>,

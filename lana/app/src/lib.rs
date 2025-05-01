@@ -44,12 +44,10 @@ pub mod customer {
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod customer_onboarding {
-    pub use customer_onboarding::config::CustomerOnboardingConfig;
-    pub type CustomerOnboarding = customer_onboarding::CustomerOnboarding<
-        crate::authorization::Authorization,
-        lana_events::LanaEvent,
-    >;
+pub mod customer_sync {
+    pub use customer_sync::config::CustomerSyncConfig;
+    pub type CustomerSync =
+        customer_sync::CustomerSync<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod price {

@@ -53,7 +53,7 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        config: CustomerOnboardingConfig,
+        config: CustomerSyncConfig,
     ) -> Self {
         let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
 
@@ -149,7 +149,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[instrument(name = "customer_onboarding.sync_email", skip(self, message))]
+    #[instrument(name = "customer_sync.sync_email", skip(self, message))]
     async fn handle_email_update(
         &self,
         message: &PersistentOutboxEvent<E>,

@@ -14,7 +14,7 @@ use crate::{
     authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
     customer::Customers,
-    customer_onboarding::CustomerOnboarding,
+    customer_sync::CustomerSync,
     dashboard::Dashboard,
     deposit::Deposits,
     document::Documents,
@@ -55,7 +55,7 @@ pub struct LanaApp {
     governance: Governance,
     dashboard: Dashboard,
     _user_onboarding: UserOnboarding,
-    _customer_onboarding: CustomerOnboarding,
+    _customer_sync: CustomerSync,
 }
 
 impl LanaApp {
@@ -112,14 +112,8 @@ impl LanaApp {
             journal_init.journal_id,
         )
         .await?;
-        let customer_onboarding = CustomerOnboarding::init(
-            &jobs,
-            &outbox,
-            &customers,
-            &deposits,
-            config.customer_onboarding,
-        )
-        .await?;
+        let customer_sync =
+            CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
@@ -159,7 +153,7 @@ impl LanaApp {
             governance,
             dashboard,
             _user_onboarding: user_onboarding,
-            _customer_onboarding: customer_onboarding,
+            _customer_sync: customer_sync,
         })
     }
 
