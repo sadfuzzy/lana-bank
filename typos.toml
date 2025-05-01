@@ -10,4 +10,5 @@ extend-exclude = [
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
 	"/apps/admin-panel/messages/es.json",
 	"/apps/admin-panel/cypress/manuals/*",
+	"scripts/reg-report-xml-validation/samples/*",
 ]
