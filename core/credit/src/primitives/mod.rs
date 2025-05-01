@@ -375,6 +375,27 @@ pub enum CollateralAction {
     Remove,
 }
 
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+pub enum CollateralizationState {
+    FullyCollateralized,
+    UnderMarginCallThreshold,
+    UnderLiquidationThreshold,
+    #[default]
+    NoCollateral,
+}
+
 pub struct CollateralUpdate {
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,

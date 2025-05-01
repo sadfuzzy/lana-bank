@@ -35,7 +35,7 @@ gql`
           disbursals {
             ...DisbursalOnFacilityPage
           }
-          ...CreditFacilityTransactionsFragment
+          ...CreditFacilityHistoryFragment
           ...CreditFacilityLayoutFragment
         }
       }

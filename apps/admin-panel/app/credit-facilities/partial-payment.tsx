@@ -24,7 +24,7 @@ gql`
       creditFacility {
         id
         creditFacilityId
-        ...CreditFacilityTransactionsFragment
+        ...CreditFacilityHistoryFragment
 
         ...CreditFacilityLayoutFragment
       }

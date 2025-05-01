@@ -117,7 +117,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
   return (
     <CardWrapper title={t("title")} description={t("description")}>
       <DataTable
-        data={creditFacility.transactions}
+        data={creditFacility.history}
         columns={columns}
         emptyMessage={t("messages.emptyTable")}
       />

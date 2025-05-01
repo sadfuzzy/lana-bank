@@ -6,34 +6,16 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     ledger::CreditFacilityBalanceSummary,
-    primitives::{CVLPct, DisbursedReceivableAccountCategory, PriceOfOneBTC, Satoshis, UsdCents},
+    primitives::{
+        CVLPct, CollateralizationState, DisbursedReceivableAccountCategory, PriceOfOneBTC,
+        Satoshis, UsdCents,
+    },
 };
 
 use super::error::TermsError;
 
 const NUMBER_OF_DAYS_IN_YEAR: u64 = 365;
 const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
-
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-pub enum CollateralizationState {
-    FullyCollateralized,
-    UnderMarginCallThreshold,
-    UnderLiquidationThreshold,
-    #[default]
-    NoCollateral,
-}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]

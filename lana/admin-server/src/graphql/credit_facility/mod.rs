@@ -85,16 +85,16 @@ impl CreditFacility {
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
-        let app = ctx.data_unchecked::<LanaApp>();
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().facility_cvl(&self.entity).await?)
     }
 
-    async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
-        self.entity
-            .history()
-            .into_iter()
-            .map(CreditFacilityHistoryEntry::from)
-            .collect()
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app.credit().history(sub, self.entity.id).await?)
     }
 
     async fn repayment_plan(&self) -> Vec<CreditFacilityRepaymentInPlan> {

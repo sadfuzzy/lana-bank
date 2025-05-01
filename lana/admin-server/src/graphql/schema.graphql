@@ -395,7 +395,7 @@ type CreditFacility {
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	currentCvl: FacilityCVL!
-	transactions: [CreditFacilityHistoryEntry!]!
+	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!

@@ -77,7 +77,7 @@ wait_for_accruals() {
   echo "accrual | $i. $(graphql_output)" >> $RUN_LOG_FILE
   num_accruals=$(
     graphql_output '[
-      .data.creditFacility.transactions[]
+      .data.creditFacility.history[]
       | select(.__typename == "CreditFacilityInterestAccrued")
       ] | length'
   )
@@ -213,7 +213,6 @@ ymd() {
 }
 
 @test "credit-facility: records accrual" {
-  skip # Credit Facility history temporarily unavailable
 
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 4 "$credit_facility_id"
@@ -229,7 +228,7 @@ ymd() {
   graphql_output
   last_accrual=$(
     graphql_output '[
-      .data.creditFacility.transactions[]
+      .data.creditFacility.history[]
       | select(.__typename == "CreditFacilityInterestAccrued")
       ][0]'
   )

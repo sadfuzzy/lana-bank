@@ -11,10 +11,10 @@ use crate::{
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
-    terms::{CollateralizationState, InterestPeriod, TermValues},
+    terms::{InterestPeriod, TermValues},
 };
 
-use super::{error::CreditFacilityError, history, repayment_plan};
+use super::{error::CreditFacilityError, repayment_plan};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -192,10 +192,6 @@ impl CreditFacility {
 
     pub fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
-    }
-
-    pub fn history(&self) -> Vec<history::CreditFacilityHistoryEntry> {
-        history::project(self.events.iter_all())
     }
 
     pub fn repayment_plan(&self) -> Vec<repayment_plan::CreditFacilityRepaymentInPlan> {
@@ -414,9 +410,16 @@ impl CreditFacility {
             let accrual = self
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("accrual not found");
+
+            let started_at = accrual.started_at;
+
             (
                 accrual.idx,
-                match accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()) {
+                match accrual.record_accrual_cycle(
+                    accrual_cycle_data.clone(),
+                    started_at,
+                    audit_info.clone(),
+                ) {
                     Idempotent::Executed(new_obligation) => new_obligation,
                     Idempotent::Ignored => {
                         return Ok(Idempotent::Ignored);

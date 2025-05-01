@@ -8,10 +8,10 @@ import { CreditFacilityTransactions } from "./transaction"
 import { useGetCreditFacilityTransactionsQuery } from "@/lib/graphql/generated"
 
 gql`
-  fragment CreditFacilityTransactionsFragment on CreditFacility {
+  fragment CreditFacilityHistoryFragment on CreditFacility {
     id
     creditFacilityId
-    transactions {
+    history {
       ... on CreditFacilityIncrementalPayment {
         cents
         recordedAt
@@ -52,7 +52,7 @@ gql`
 
   query GetCreditFacilityTransactions($id: UUID!) {
     creditFacility(id: $id) {
-      ...CreditFacilityTransactionsFragment
+      ...CreditFacilityHistoryFragment
     }
   }
 `

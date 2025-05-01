@@ -41,7 +41,7 @@ type CreditFacility {
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
 	currentCvl: FacilityCVL!
-	transactions: [CreditFacilityHistoryEntry!]!
+	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
 }

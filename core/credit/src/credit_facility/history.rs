@@ -142,20 +142,20 @@ pub(super) fn project<'a>(
     //                 },
     //             ));
     //         }
-    //         // CreditFacilityEvent::BalanceUpdated {
-    //         //     ledger_tx_id,
-    //         //     source: BalanceUpdatedSource::Obligation(_),
-    //         //     balance_type: BalanceUpdatedType::Disbursal,
-    //         //     amount,
-    //         //     updated_at,
-    //         //     ..
-    //         // } => {
-    //         //     history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
-    //         //         cents: *amount,
-    //         //         recorded_at: *updated_at,
-    //         //         tx_id: *ledger_tx_id,
-    //         //     }));
-    //         // }
+    //         CreditFacilityEvent::BalanceUpdated {
+    //             ledger_tx_id,
+    //             source: BalanceUpdatedSource::Obligation(_),
+    //             balance_type: BalanceUpdatedType::Disbursal,
+    //             amount,
+    //             updated_at,
+    //             ..
+    //         } => {
+    //             history.push(CreditFacilityHistoryEntry::Disbursal(DisbursalExecuted {
+    //                 cents: *amount,
+    //                 recorded_at: *updated_at,
+    //                 tx_id: *ledger_tx_id,
+    //             }));
+    //         }
     //         CreditFacilityEvent::InterestAccrualCycleStarted {
     //             idx, started_at, ..
     //         } => {

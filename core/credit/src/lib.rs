@@ -6,6 +6,7 @@ mod disbursal;
 pub mod error;
 mod event;
 mod for_subject;
+mod history;
 mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
@@ -41,6 +42,7 @@ pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
+pub use history::*;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
@@ -65,6 +67,7 @@ where
     credit_facility_repo: CreditFacilityRepo<E>,
     disbursal_repo: DisbursalRepo<E>,
     payment_repo: PaymentRepo,
+    history_repo: HistoryRepo,
     payment_allocation_repo: PaymentAllocationRepo<E>,
     governance: Governance<Perms, E>,
     customer: Customers<Perms, E>,
@@ -93,6 +96,7 @@ where
             collaterals: self.collaterals.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             payment_repo: self.payment_repo.clone(),
+            history_repo: self.history_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
             governance: self.governance.clone(),
             customer: self.customer.clone(),
@@ -136,6 +140,7 @@ where
         let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
         let collaterals = Collaterals::new(pool, authz, &publisher);
         let payment_repo = PaymentRepo::new(pool);
+        let history_repo = HistoryRepo::new(pool);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, &publisher);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let approve_disbursal = ApproveDisbursal::new(
@@ -179,6 +184,13 @@ where
             >::new(outbox, &credit_facility_repo, &ledger, price, authz.audit()),
             collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
                 upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                _phantom: std::marker::PhantomData,
+            },
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            credit_facility_history::HistoryProjectionInitializer::<E>::new(outbox, &history_repo),
+            credit_facility_history::HistoryProjectionConfig {
                 _phantom: std::marker::PhantomData,
             },
         )
@@ -245,6 +257,7 @@ where
             collaterals,
             disbursal_repo,
             payment_repo,
+            history_repo,
             payment_allocation_repo,
             governance: governance.clone(),
             ledger,
@@ -296,6 +309,7 @@ where
             &self.credit_facility_repo,
             &self.disbursal_repo,
             &self.payment_repo,
+            &self.history_repo,
             &self.ledger,
         ))
     }
@@ -407,6 +421,24 @@ where
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
         }
+    }
+
+    #[instrument(name = "credit_facility.history", skip(self), err)]
+    pub async fn history<T: From<CreditFacilityHistoryEntry>>(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        let history = self.history_repo.load(id).await?;
+        Ok(history.entries.into_iter().rev().map(T::from).collect())
     }
 
     #[instrument(name = "credit_facility.balance", skip(self), err)]

@@ -387,14 +387,14 @@ CREATE TABLE audit_entries (
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE credit_facility_histories (
+CREATE TABLE core_credit_facility_histories (
   id UUID PRIMARY KEY REFERENCES core_credit_facilities(id),
   history JSONB NOT NULL DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE credit_facility_repayment_plans (
+CREATE TABLE core_credit_facility_repayment_plans (
   id UUID PRIMARY KEY REFERENCES core_credit_facilities(id),
   repayment_plans JSONB NOT NULL DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

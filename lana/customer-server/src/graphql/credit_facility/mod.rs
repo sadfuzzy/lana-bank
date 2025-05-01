@@ -78,12 +78,16 @@ impl CreditFacility {
         Ok(app.credit().facility_cvl(&self.entity).await?)
     }
 
-    async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
-        self.entity
-            .history()
-            .into_iter()
-            .map(CreditFacilityHistoryEntry::from)
-            .collect()
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit()
+            .for_subject(sub)?
+            .history(self.entity.id)
+            .await?)
     }
 
     async fn disbursals(

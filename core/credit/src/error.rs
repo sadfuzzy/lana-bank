@@ -15,7 +15,9 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - EsEntityError: {0}")]
     EsEntityError(es_entity::EsEntityError),
     #[error("CoreCreditError - CreditFacilityError: {0}")]
-    CoreCreditError(#[from] super::credit_facility::error::CreditFacilityError),
+    CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
+    #[error("CoreCreditError - HistoryError: {0}")]
+    HistoryError(#[from] super::history::error::CreditFacilityHistoryError),
     #[error("CoreCreditError - CollateralError: {0}")]
     CollateralError(#[from] super::collateral::error::CollateralError),
     #[error("CoreCreditError - PaymentError: {0}")]

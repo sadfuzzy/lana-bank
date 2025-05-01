@@ -105,7 +105,7 @@ gql`
         accrualAt
         dueAt
       }
-      transactions {
+      history {
         ... on CreditFacilityIncrementalPayment {
           cents
           recordedAt

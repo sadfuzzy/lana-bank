@@ -36,7 +36,7 @@ gql`
             btcBalance
           }
         }
-        ...CreditFacilityTransactionsFragment
+        ...CreditFacilityHistoryFragment
 
         ...CreditFacilityLayoutFragment
       }

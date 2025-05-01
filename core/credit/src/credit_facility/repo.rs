@@ -9,7 +9,6 @@ use crate::{
     interest_accrual_cycle::{error::InterestAccrualCycleError, *},
     primitives::*,
     publisher::*,
-    terms::CollateralizationState,
     CoreCreditEvent,
 };
 
@@ -182,7 +181,7 @@ mod facility_status_sqlx {
 mod facility_collateralization_state_sqlx {
     use sqlx::{postgres::*, Type};
 
-    use crate::terms::CollateralizationState;
+    use crate::primitives::CollateralizationState;
 
     impl Type<Postgres> for CollateralizationState {
         fn type_info() -> PgTypeInfo {

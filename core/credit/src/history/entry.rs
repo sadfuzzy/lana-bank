@@ -1,14 +1,10 @@
 use chrono::{DateTime, Utc};
 
-use crate::{primitives::*, terms::CollateralizationState};
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreditFacilityCreated {
-    pub cents: UsdCents,
-}
+use crate::primitives::*;
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CreditFacilityOrigination {
+    pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub tx_id: LedgerTxId,
 }
@@ -31,6 +27,7 @@ pub struct CollateralUpdated {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CollateralizationUpdated {
     pub state: CollateralizationState,
+    pub collateral: Satoshis,
     pub outstanding_interest: UsdCents,
     pub outstanding_disbursal: UsdCents,
     pub recorded_at: DateTime<Utc>,
@@ -48,13 +45,8 @@ pub struct DisbursalExecuted {
 pub struct InterestAccrualsPosted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub days: i64,
+    pub days: u16,
     pub tx_id: LedgerTxId,
-}
-
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-pub struct CreditFacilityCompleted {
-    pub completed_at: DateTime<Utc>,
 }
 
 /// Represents an entry in Credit Facility history as it is stored in a database.
@@ -63,12 +55,10 @@ pub struct CreditFacilityCompleted {
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityHistoryEntry {
-    Creation(CreditFacilityCreated),
     Origination(CreditFacilityOrigination),
     Collateral(CollateralUpdated),
     Collateralization(CollateralizationUpdated),
     Payment(IncrementalPayment),
     Disbursal(DisbursalExecuted),
     Interest(InterestAccrualsPosted),
-    Completion(CreditFacilityCompleted),
 }

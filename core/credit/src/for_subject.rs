@@ -3,6 +3,7 @@ use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 
 use super::*;
+use crate::history::CreditFacilityHistoryEntry;
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
@@ -15,6 +16,7 @@ where
     credit_facilities: &'a CreditFacilityRepo<E>,
     disbursals: &'a DisbursalRepo<E>,
     payments: &'a PaymentRepo,
+    histories: &'a HistoryRepo,
     ledger: &'a CreditLedger,
 }
 
@@ -33,6 +35,7 @@ where
         credit_facilities: &'a CreditFacilityRepo<E>,
         disbursals: &'a DisbursalRepo<E>,
         payments: &'a PaymentRepo,
+        history: &'a HistoryRepo,
         ledger: &'a CreditLedger,
     ) -> Self {
         Self {
@@ -42,6 +45,7 @@ where
             credit_facilities,
             disbursals,
             payments,
+            histories: history,
             ledger,
         }
     }
@@ -66,6 +70,23 @@ where
             .credit_facilities
             .list_for_customer_id_by_created_at(self.customer_id, query, direction)
             .await?)
+    }
+
+    pub async fn history<T: From<CreditFacilityHistoryEntry>>(
+        &self,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            CoreCreditObject::credit_facility(id),
+            CoreCreditAction::CREDIT_FACILITY_READ,
+        )
+        .await?;
+        let history = self.histories.load(id).await?;
+        Ok(history.entries.into_iter().rev().map(T::from).collect())
     }
 
     pub async fn balance(

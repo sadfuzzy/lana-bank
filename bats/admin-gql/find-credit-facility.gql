@@ -9,7 +9,7 @@ query creditFacility($id: UUID!) {
       id
       status
     }
-    transactions {
+    history {
       ... on CreditFacilityInterestAccrued {
         __typename
         cents

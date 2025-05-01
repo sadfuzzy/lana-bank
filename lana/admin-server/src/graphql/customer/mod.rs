@@ -8,12 +8,9 @@ use super::{
     credit_facility::*, deposit_account::*, document::Document, primitives::SortDirection,
 };
 
-pub use lana_app::{
-    app::LanaApp,
-    customer::{
-        AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
-        CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
-    },
+pub use lana_app::customer::{
+    AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
+    CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
 };
 
 pub use error::*;

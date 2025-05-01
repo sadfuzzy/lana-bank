@@ -23,6 +23,7 @@ pub enum CoreCreditEvent {
         id: CreditFacilityId,
         activation_tx_id: LedgerTxId,
         activated_at: DateTime<Utc>,
+        amount: UsdCents,
     },
     FacilityCompleted {
         id: CreditFacilityId,
@@ -61,6 +62,7 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         ledger_tx_id: LedgerTxId,
         amount: UsdCents,
+        days_in_cycle: u16,
         posted_at: DateTime<Utc>,
     },
     ObligationCreated {
