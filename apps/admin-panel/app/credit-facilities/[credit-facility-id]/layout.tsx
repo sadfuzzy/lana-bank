@@ -19,7 +19,7 @@ import {
   CreditFacilityStatus,
   GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityRepaymentPlanDocument,
-  GetCreditFacilityTransactionsDocument,
+  GetCreditFacilityHistoryDocument,
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
@@ -126,7 +126,7 @@ export default function CreditFacilityLayout({
   const { setFacility } = useCreateContext()
 
   const TABS = [
-    { id: "1", url: "/", tabLabel: t("tabs.transactions") },
+    { id: "1", url: "/", tabLabel: t("tabs.history") },
     { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
   ]
@@ -155,7 +155,7 @@ export default function CreditFacilityLayout({
           fetchPolicy: "network-only",
         })
         client.query({
-          query: GetCreditFacilityTransactionsDocument,
+          query: GetCreditFacilityHistoryDocument,
           variables: { id: creditFacilityId },
           fetchPolicy: "network-only",
         })

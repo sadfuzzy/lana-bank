@@ -379,15 +379,15 @@
           "emptyTable": "No disbursals found"
         }
       },
-      "Transactions": {
-        "title": "Transactions",
-        "description": "Credit Facility Transactions",
+      "History": {
+        "title": "History",
+        "description": "Credit Facility History",
         "columns": {
-          "transactionType": "Transaction Type",
+          "entryType": "Entry Type",
           "recordedAt": "Recorded At",
           "amount": "Amount"
         },
-        "transactionTypes": {
+        "entryTypes": {
           "collateralUpdated": "Collateral Updated",
           "collateralizationUpdated": "Collateralization Updated",
           "origination": "Origination",
@@ -396,8 +396,8 @@
           "interestAccrued": "Interest Accrued"
         },
         "messages": {
-          "unknownType": "Unknown Transaction Type",
-          "emptyTable": "No transactions found"
+          "unknownType": "Unknown Entry Type",
+          "emptyTable": "No history found"
         }
       },
       "TermsDialog": {
@@ -461,7 +461,7 @@
       },
       "Layout": {
         "tabs": {
-          "transactions": "Transactions",
+          "history": "History",
           "disbursals": "Disbursals",
           "repaymentPlan": "Repayment Plan"
         },

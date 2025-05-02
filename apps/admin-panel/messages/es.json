@@ -379,15 +379,15 @@
           "emptyTable": "No se encontraron desembolsos"
         }
       },
-      "Transactions": {
-        "title": "Transacciones",
-        "description": "Transacciones de Línea de Crédito",
+      "History": {
+        "title": "Historial",
+        "description": "Historial de facilidad de crédito",
         "columns": {
-          "transactionType": "Tipo de Transacción",
+          "entryType": "Tipo de entrada",
           "recordedAt": "Registrado El",
           "amount": "Monto"
         },
-        "transactionTypes": {
+        "entryTypes": {
           "collateralUpdated": "Garantía actualizada",
           "collateralizationUpdated": "Colateralización actualizada",
           "origination": "Originación",
@@ -396,8 +396,8 @@
           "interestAccrued": "Interés acumulado"
         },
         "messages": {
-          "unknownType": "Tipo de Transacción Desconocido",
-          "emptyTable": "No se encontraron transacciones"
+          "unknownType": "Tipo de entrada desconocido",
+          "emptyTable": "No se encontró historial"
         }
       },
       "TermsDialog": {
@@ -461,7 +461,7 @@
       },
       "Layout": {
         "tabs": {
-          "transactions": "Transacciones",
+          "history": "Historial",
           "disbursals": "Desembolsos",
           "repaymentPlan": "Plan de Pago"
         },

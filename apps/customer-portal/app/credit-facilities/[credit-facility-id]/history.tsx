@@ -15,7 +15,7 @@ import { formatDate, cn } from "@/lib/utils"
 
 import Balance from "@/components/balance"
 
-export const formatTransactionType = (typename: string) => {
+export const formatEntryType = (typename: string) => {
   return typename
     .replace(/([a-z])([A-Z])/g, "$1 $2")
     .replace(/^\w/, (c) => c.toUpperCase())
@@ -25,8 +25,8 @@ export const formatCollateralAction = (collateralAction: CollateralAction) => {
   return collateralAction === CollateralAction.Add ? "(Added)" : "(Removed)"
 }
 
-const formatTransactionTypeWithoutPrefix = (type: string) => {
-  const formattedType = formatTransactionType(type)
+const formatEntryTypeWithoutPrefix = (type: string) => {
+  const formattedType = formatEntryType(type)
   return formattedType.replace("Credit Facility", "").trim()
 }
 
@@ -40,44 +40,44 @@ export const formatCollateralizationState = (
     .join(" ")
 }
 
-type CreditFacilityTransactionsProps = {
+type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityQuery["creditFacility"]>
 }
 
-export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProps> = ({
+export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
   creditFacility,
 }) => {
   const columns: Column<CreditFacilityHistoryEntry>[] = [
     {
       key: "__typename",
-      header: "Transaction Type",
+      header: "Entry Type",
       render: (
         _: CreditFacilityHistoryEntry["__typename"],
-        transaction: CreditFacilityHistoryEntry,
+        entry: CreditFacilityHistoryEntry,
       ) => {
-        if (!transaction.__typename) return "Unknown Transaction Type"
+        if (!entry.__typename) return "Unknown Entry Type"
 
-        switch (transaction.__typename) {
+        switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
             return (
               <div className="flex flex-row gap-1">
-                <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
+                <div>{formatEntryTypeWithoutPrefix(entry.__typename)}</div>
                 <div className="text-textColor-secondary text-sm">
-                  {formatCollateralAction(transaction.action)}
+                  {formatCollateralAction(entry.action)}
                 </div>
               </div>
             )
           case "CreditFacilityCollateralizationUpdated":
             return (
               <div className="flex flex-row gap-1">
-                <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
+                <div>{formatEntryTypeWithoutPrefix(entry.__typename)}</div>
                 <div className="text-textColor-secondary text-sm">
-                  ({formatCollateralizationState(transaction.state)})
+                  ({formatCollateralizationState(entry.state)})
                 </div>
               </div>
             )
           default:
-            return formatTransactionTypeWithoutPrefix(transaction.__typename)
+            return formatEntryTypeWithoutPrefix(entry.__typename)
         }
       },
     },
@@ -93,34 +93,34 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       align: "right",
       render: (
         _: CreditFacilityHistoryEntry["__typename"],
-        transaction: CreditFacilityHistoryEntry,
+        entry: CreditFacilityHistoryEntry,
       ) => {
-        switch (transaction.__typename) {
+        switch (entry.__typename) {
           case "CreditFacilityCollateralUpdated":
             return (
               <div
                 className={cn(
                   "flex justify-end gap-1",
-                  transaction.action === CollateralAction.Add
+                  entry.action === CollateralAction.Add
                     ? "text-success"
                     : "text-destructive",
                 )}
               >
-                <div>{transaction.action === CollateralAction.Add ? "+" : "-"}</div>
-                <Balance amount={transaction.satoshis} currency="btc" align="end" />
+                <div>{entry.action === CollateralAction.Add ? "+" : "-"}</div>
+                <Balance amount={entry.satoshis} currency="btc" align="end" />
               </div>
             )
           case "CreditFacilityCollateralizationUpdated":
             return (
               <div className="flex flex-col gap-1 justify-end">
-                <Balance amount={transaction.collateral} currency="btc" align="end" />
+                <Balance amount={entry.collateral} currency="btc" align="end" />
               </div>
             )
           case "CreditFacilityOrigination":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":
-            return <Balance amount={transaction.cents} currency="usd" align="end" />
+            return <Balance amount={entry.cents} currency="usd" align="end" />
           default:
             return <span>-</span>
         }
@@ -134,7 +134,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
       columns={columns}
       emptyMessage={
         <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
-          No transactions found
+          No history found
         </div>
       }
     />

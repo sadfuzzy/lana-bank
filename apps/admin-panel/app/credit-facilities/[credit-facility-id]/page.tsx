@@ -3,9 +3,9 @@
 import { gql } from "@apollo/client"
 import { use } from "react"
 
-import { CreditFacilityTransactions } from "./transaction"
+import { CreditFacilityHistory } from "./history"
 
-import { useGetCreditFacilityTransactionsQuery } from "@/lib/graphql/generated"
+import { useGetCreditFacilityHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
   fragment CreditFacilityHistoryFragment on CreditFacility {
@@ -50,29 +50,29 @@ gql`
     }
   }
 
-  query GetCreditFacilityTransactions($id: UUID!) {
+  query GetCreditFacilityHistory($id: UUID!) {
     creditFacility(id: $id) {
       ...CreditFacilityHistoryFragment
     }
   }
 `
 
-interface CreditFacilityTransactionsPageProps {
+interface CreditFacilityHistoryPageProps {
   params: Promise<{
     "credit-facility-id": string
   }>
 }
 
-export default function CreditFacilityTransactionsPage({
+export default function CreditFacilityHistoryPage({
   params,
-}: CreditFacilityTransactionsPageProps) {
+}: CreditFacilityHistoryPageProps) {
   const { "credit-facility-id": creditFacilityId } = use(params)
-  const { data } = useGetCreditFacilityTransactionsQuery({
+  const { data } = useGetCreditFacilityHistoryQuery({
     variables: { id: creditFacilityId },
     fetchPolicy: "cache-and-network",
   })
 
   if (!data?.creditFacility) return null
 
-  return <CreditFacilityTransactions creditFacility={data.creditFacility} />
+  return <CreditFacilityHistory creditFacility={data.creditFacility} />
 }

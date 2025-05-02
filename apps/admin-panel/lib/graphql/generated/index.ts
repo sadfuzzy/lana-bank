@@ -2284,12 +2284,12 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
 
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> };
 
-export type GetCreditFacilityTransactionsQueryVariables = Exact<{
+export type GetCreditFacilityHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityTransactionsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> } | null };
 
 export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
 
@@ -3840,8 +3840,8 @@ export type GetCreditFacilityLayoutDetailsQueryHookResult = ReturnType<typeof us
 export type GetCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsLazyQuery>;
 export type GetCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityLayoutDetailsQuery, GetCreditFacilityLayoutDetailsQueryVariables>;
-export const GetCreditFacilityTransactionsDocument = gql`
-    query GetCreditFacilityTransactions($id: UUID!) {
+export const GetCreditFacilityHistoryDocument = gql`
+    query GetCreditFacilityHistory($id: UUID!) {
   creditFacility(id: $id) {
     ...CreditFacilityHistoryFragment
   }
@@ -3849,37 +3849,37 @@ export const GetCreditFacilityTransactionsDocument = gql`
     ${CreditFacilityHistoryFragmentFragmentDoc}`;
 
 /**
- * __useGetCreditFacilityTransactionsQuery__
+ * __useGetCreditFacilityHistoryQuery__
  *
- * To run a query within a React component, call `useGetCreditFacilityTransactionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetCreditFacilityTransactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetCreditFacilityHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetCreditFacilityTransactionsQuery({
+ * const { data, loading, error } = useGetCreditFacilityHistoryQuery({
  *   variables: {
  *      id: // value for 'id'
  *   },
  * });
  */
-export function useGetCreditFacilityTransactionsQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables> & ({ variables: GetCreditFacilityTransactionsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useGetCreditFacilityHistoryQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables> & ({ variables: GetCreditFacilityHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>(GetCreditFacilityTransactionsDocument, options);
+        return Apollo.useQuery<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>(GetCreditFacilityHistoryDocument, options);
       }
-export function useGetCreditFacilityTransactionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>) {
+export function useGetCreditFacilityHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>(GetCreditFacilityTransactionsDocument, options);
+          return Apollo.useLazyQuery<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>(GetCreditFacilityHistoryDocument, options);
         }
-export function useGetCreditFacilityTransactionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>) {
+export function useGetCreditFacilityHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>(GetCreditFacilityTransactionsDocument, options);
+          return Apollo.useSuspenseQuery<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>(GetCreditFacilityHistoryDocument, options);
         }
-export type GetCreditFacilityTransactionsQueryHookResult = ReturnType<typeof useGetCreditFacilityTransactionsQuery>;
-export type GetCreditFacilityTransactionsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityTransactionsLazyQuery>;
-export type GetCreditFacilityTransactionsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityTransactionsSuspenseQuery>;
-export type GetCreditFacilityTransactionsQueryResult = Apollo.QueryResult<GetCreditFacilityTransactionsQuery, GetCreditFacilityTransactionsQueryVariables>;
+export type GetCreditFacilityHistoryQueryHookResult = ReturnType<typeof useGetCreditFacilityHistoryQuery>;
+export type GetCreditFacilityHistoryLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityHistoryLazyQuery>;
+export type GetCreditFacilityHistorySuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityHistorySuspenseQuery>;
+export type GetCreditFacilityHistoryQueryResult = Apollo.QueryResult<GetCreditFacilityHistoryQuery, GetCreditFacilityHistoryQueryVariables>;
 export const GetCreditFacilityRepaymentPlanDocument = gql`
     query GetCreditFacilityRepaymentPlan($id: UUID!) {
   creditFacility(id: $id) {
