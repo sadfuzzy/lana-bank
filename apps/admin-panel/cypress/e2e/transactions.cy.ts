@@ -40,10 +40,7 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.takeScreenshot("2_deposit_select")
 
     // Create dialog
-    cy.get('[data-testid="deposit-amount-input"]').type(depositAmount.toString(), {
-      delay: 0,
-      waitForAnimations: false,
-    })
+    cy.get('[data-testid="deposit-amount-input"]').type(depositAmount.toString())
     cy.takeScreenshot("3_deposit_enter_amount")
 
     cy.get('[data-testid="deposit-submit-button"]').click()
@@ -75,10 +72,7 @@ describe("Transactions Deposit and Withdraw", () => {
     cy.get('[data-testid="create-withdrawal-button"]').should("be.visible").click()
     cy.takeScreenshot("9_withdrawal_select")
 
-    cy.get('[data-testid="withdraw-amount-input"]').type(withdrawAmount.toString(), {
-      delay: 0,
-      waitForAnimations: false,
-    })
+    cy.get('[data-testid="withdraw-amount-input"]').type(withdrawAmount.toString())
     cy.takeScreenshot("10_withdrawal_enter_amount")
 
     cy.get('[data-testid="withdraw-submit-button"]').click()
@@ -114,10 +108,7 @@ describe("Transactions Deposit and Withdraw", () => {
           if (badge.text() === t(W + ".WithdrawalStatus.pendingApproval").toUpperCase()) {
             // case when we have policy attached for withdrawal no ss needed here
             cy.get('[data-testid="approval-process-deny-button"]').click()
-            cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
-              "testing",
-              { delay: 0, waitForAnimations: false },
-            )
+            cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
             cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
           } else {
             // expected flow

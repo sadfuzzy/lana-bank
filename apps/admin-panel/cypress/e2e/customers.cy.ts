@@ -22,7 +22,7 @@ describe("Customers", () => {
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testEmail, { delay: 0, waitForAnimations: false })
+      .type(testEmail)
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
@@ -30,7 +30,7 @@ describe("Customers", () => {
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testTelegramId, { delay: 0, waitForAnimations: false })
+      .type(testTelegramId)
       .should("have.value", testTelegramId)
     cy.takeScreenshot("6_enter_telegram_id")
 

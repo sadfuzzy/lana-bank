@@ -110,7 +110,7 @@ describe("Terms Template", () => {
     cy.takeScreenshot("16_click_update_button")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
-      .type("6", { delay: 0, waitForAnimations: false, force: true })
+      .type("6")
       .should("have.value", "6")
     cy.takeScreenshot("17_update_annual_rate")
 

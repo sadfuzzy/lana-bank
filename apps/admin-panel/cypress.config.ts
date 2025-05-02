@@ -61,7 +61,8 @@ export default defineConfig({
       COOKIES: process.env.COOKIES,
       TEST_LANGUAGE: "es",
       GOOGLE_CLOUD_AVAILABLE:
-        process.env.SA_CREDS_BASE64 && process.env.SA_CREDS_BASE64.trim() !== ""
+        process.env.GOOGLE_APPLICATION_CREDENTIALS &&
+        process.env.GOOGLE_APPLICATION_CREDENTIALS.trim() !== ""
           ? true
           : false,
     },

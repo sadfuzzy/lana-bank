@@ -122,10 +122,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
     cy.takeScreenshot("2_open_credit_facility_form")
 
-    cy.get('[data-testid="facility-amount-input"]').type("5000", {
-      delay: 0,
-      waitForAnimations: false,
-    })
+    cy.get('[data-testid="facility-amount-input"]').type("5000")
     cy.get('[data-testid="credit-facility-terms-template-select"]').click()
     cy.get('[role="option"]').contains(termsTemplateName).click()
 
@@ -177,7 +174,7 @@ describe("credit facility", () => {
         cy.get('[data-testid="new-collateral-input"]')
           .should("be.visible")
           .clear()
-          .type(numericValue.toString(), { delay: 0, waitForAnimations: false })
+          .type(numericValue.toString())
         cy.takeScreenshot("8_enter_new_collateral_value")
 
         cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
@@ -227,7 +224,7 @@ describe("credit facility", () => {
     cy.takeScreenshot("12_click_initiate_disbursal_button")
 
     cy.get('[data-testid="disbursal-amount-input"]')
-      .type("1000", { delay: 0, waitForAnimations: false })
+      .type("1000")
       .should("have.value", "1,000")
     cy.takeScreenshot("13_enter_disbursal_amount")
 

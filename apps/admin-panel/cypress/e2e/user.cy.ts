@@ -25,7 +25,7 @@ describe(t(U + ".title"), () => {
     cy.takeScreenshot("2_click_create_button")
 
     cy.get('[data-testid="create-user-email-input"]')
-      .type(userEmail, { delay: 0, waitForAnimations: false })
+      .type(userEmail)
       .should("have.value", userEmail)
     cy.takeScreenshot("3_enter_email")
 
