@@ -2,16 +2,15 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod config;
+mod helpers;
+mod scenarios;
+
+use std::collections::HashSet;
 
 use futures::StreamExt;
 use rust_decimal_macros::dec;
 
-use lana_app::{
-    app::LanaApp,
-    customer::CustomerType,
-    primitives::*,
-    terms::{Duration, InterestDuration, InterestInterval, TermValues},
-};
+use lana_app::{app::LanaApp, primitives::*};
 use lana_events::*;
 
 pub use config::*;
@@ -23,18 +22,28 @@ pub async fn run(
 ) -> anyhow::Result<()> {
     let sub = superuser_subject(&superuser_email, app).await?;
 
-    let customer_ids = create_customers(&sub, app, &config).await?;
+    let _ = scenarios::run(&sub, app).await?;
 
-    make_deposit(&sub, app, &customer_ids, &config).await?;
+    // Bootstrapped test users
+    let customers = create_customers(&sub, app, &config).await?;
+    make_deposits(
+        &sub,
+        app,
+        &customers
+            .iter()
+            .map(|(customer_id, _)| *customer_id)
+            .collect(),
+        &config,
+    )
+    .await?;
 
     let mut handles = Vec::new();
-
-    for customer_id in customer_ids {
+    for (customer_id, deposit_account_id) in customers {
         for _ in 0..config.num_facilities {
             let spawned_app = app.clone();
 
             let handle = tokio::spawn(async move {
-                create_and_process_facility(sub, customer_id, spawned_app).await
+                create_and_process_facility(sub, spawned_app, customer_id, deposit_account_id).await
             });
             handles.push(handle);
         }
@@ -49,33 +58,20 @@ pub async fn run(
 
 async fn create_and_process_facility(
     sub: Subject,
-    customer_id: CustomerId,
     app: LanaApp,
+    customer_id: CustomerId,
+    deposit_account_id: DepositAccountId,
 ) -> anyhow::Result<()> {
-    let terms = std_terms();
+    let terms = helpers::std_terms();
 
     let mut stream = app.outbox().listen_persisted(None).await?;
-
-    let deposit_account = app
-        .deposits()
-        .list_accounts_by_created_at_for_account_holder(
-            &sub,
-            customer_id,
-            Default::default(),
-            es_entity::ListDirection::Descending,
-        )
-        .await?
-        .entities
-        .into_iter()
-        .next()
-        .expect("Deposit account not found");
 
     let cf = app
         .credit()
         .initiate(
             &sub,
             customer_id,
-            deposit_account.id,
+            deposit_account_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
         )
@@ -95,7 +91,7 @@ async fn create_and_process_facility(
                     .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
             }
-            Some(LanaEvent::Credit(CoreCreditEvent::AccrualPosted {
+            Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
                 credit_facility_id: id,
                 amount,
                 ..
@@ -130,66 +126,30 @@ async fn create_customers(
     sub: &Subject,
     app: &LanaApp,
     config: &BootstrapConfig,
-) -> anyhow::Result<Vec<CustomerId>> {
-    let mut customer_ids = Vec::new();
+) -> anyhow::Result<HashSet<(CustomerId, DepositAccountId)>> {
+    let mut customers = HashSet::new();
 
     for i in 1..=config.num_customers {
-        let customer_email = format!("customer{}@example.com", i);
-        let telegram = format!("customer{}", i);
-        let customer_type = CustomerType::Individual;
-
-        let customer = match app
-            .customers()
-            .find_by_email(sub, customer_email.clone())
-            .await?
-        {
-            Some(existing_customer) => existing_customer,
-            None => {
-                app.customers()
-                    .create(sub, customer_email.clone(), telegram, customer_type)
-                    .await?
-            }
-        };
-
-        customer_ids.push(customer.id);
+        let (customer_id, deposit_account_id) =
+            helpers::create_customer(sub, app, &format!("-sim{i}")).await?;
+        customers.insert((customer_id, deposit_account_id));
     }
 
-    Ok(customer_ids)
+    Ok(customers)
 }
 
-async fn make_deposit(
+async fn make_deposits(
     sub: &Subject,
     app: &LanaApp,
     customer_ids: &Vec<CustomerId>,
     config: &BootstrapConfig,
 ) -> anyhow::Result<()> {
-    for customer_id in customer_ids {
-        let deposit_account_id = app
-            .deposits()
-            .list_accounts_by_created_at_for_account_holder(
-                sub,
-                *customer_id,
-                Default::default(),
-                es_entity::ListDirection::Descending,
-            )
-            .await?
-            .entities
-            .into_iter()
-            .next()
-            .expect("Deposit account not found")
-            .id;
+    let usd_cents = UsdCents::try_from_usd(
+        rust_decimal::Decimal::from(config.num_facilities) * dec!(10_000_000),
+    )?;
 
-        let _ = app
-            .deposits()
-            .record_deposit(
-                sub,
-                deposit_account_id,
-                UsdCents::try_from_usd(
-                    rust_decimal::Decimal::from(config.num_facilities) * dec!(10_000_000),
-                )?,
-                None,
-            )
-            .await?;
+    for customer_id in customer_ids {
+        helpers::make_deposit(sub, app, customer_id, usd_cents).await?;
     }
 
     Ok(())
@@ -202,19 +162,4 @@ async fn superuser_subject(superuser_email: &String, app: &LanaApp) -> anyhow::R
         .await?
         .expect("Superuser not found");
     Ok(Subject::from(superuser.id))
-}
-
-fn std_terms() -> TermValues {
-    TermValues::builder()
-        .annual_rate(dec!(12))
-        .initial_cvl(dec!(140))
-        .margin_call_cvl(dec!(125))
-        .liquidation_cvl(dec!(105))
-        .duration(Duration::Months(3))
-        .interest_due_duration(InterestDuration::Days(0))
-        .accrual_interval(InterestInterval::EndOfDay)
-        .accrual_cycle_interval(InterestInterval::EndOfMonth)
-        .one_time_fee_rate(dec!(0.01))
-        .build()
-        .unwrap()
 }

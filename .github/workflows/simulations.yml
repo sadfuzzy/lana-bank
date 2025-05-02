@@ -1,0 +1,42 @@
+name: Facility Scenarios
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  simulations:
+    name: Simulations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: ./.github/actions/cache-rust
+
+      - name: Start server with logs
+        run: |
+          nohup nix develop -c make reset-deps setup-db run-server-with-bootstrap \
+            2>&1 | tee server.log &
+          echo "PID=$!" > .server.pid
+
+      # Wait for it to become healthy (or time out), and on timeout show logs
+      - name: Wait for healthy server
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:5253/health; then
+              echo "✅ Server is up!"
+              exit 0
+            fi
+            echo "…waiting for server (${i}/10)"
+            sleep 10
+          done
+
+          echo "❌ Server never came up; dumping last 200 lines of logs:"
+          tail -n 200 server.log
+          cat .server.pid | xargs kill || true
+          exit 1
