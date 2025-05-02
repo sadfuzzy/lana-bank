@@ -63,7 +63,7 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
     },
     CollateralizationRatioChanged {
-        ratio: Decimal,
+        ratio: Option<Decimal>,
         audit_info: AuditInfo,
     },
     Completed {
@@ -505,7 +505,7 @@ impl CreditFacility {
 
     pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
         self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::CollateralizationRatioChanged { ratio, .. } => Some(*ratio),
+            CreditFacilityEvent::CollateralizationRatioChanged { ratio, .. } => *ratio,
             _ => None,
         })
     }
@@ -605,16 +605,11 @@ impl CreditFacility {
     ) -> Idempotent<()> {
         let ratio = balance.current_collateralization_ratio();
 
-        if let Some(last_ratio) = self.last_collateralization_ratio() {
-            if ratio != last_ratio {
-                self.events
-                    .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
-            } else {
-                return Idempotent::Ignored;
-            }
-        } else {
+        if self.last_collateralization_ratio() != ratio {
             self.events
                 .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
+        } else {
+            return Idempotent::Ignored;
         }
 
         Idempotent::Executed(())

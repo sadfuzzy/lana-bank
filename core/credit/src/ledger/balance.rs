@@ -146,7 +146,7 @@ impl CreditFacilityBalanceSummary {
         }
     }
 
-    pub fn current_collateralization_ratio(&self) -> Decimal {
+    pub fn current_collateralization_ratio(&self) -> Option<Decimal> {
         let amount = if self.disbursed > UsdCents::ZERO {
             self.total_outstanding()
         } else {
@@ -155,7 +155,11 @@ impl CreditFacilityBalanceSummary {
         let amount = Decimal::from(amount.into_inner());
         let collateral = Decimal::from(self.collateral().into_inner());
 
-        collateral / amount
+        if amount == Decimal::ZERO {
+            None
+        } else {
+            Some(collateral / amount)
+        }
     }
 }
 
@@ -269,7 +273,10 @@ mod test {
 
         let collateral = Decimal::from(balances.collateral().into_inner());
         let expected = collateral / Decimal::from(balances.facility().into_inner());
-        assert_eq!(balances.current_collateralization_ratio(), expected);
+        assert_eq!(
+            balances.current_collateralization_ratio().unwrap(),
+            expected
+        );
     }
 
     #[test]
@@ -295,6 +302,9 @@ mod test {
         let collateral = Decimal::from(balances.collateral().into_inner());
         let expected =
             collateral / Decimal::from(balances.total_outstanding_payable().into_inner());
-        assert_eq!(balances.current_collateralization_ratio(), expected);
+        assert_eq!(
+            balances.current_collateralization_ratio().unwrap(),
+            expected
+        );
     }
 }
