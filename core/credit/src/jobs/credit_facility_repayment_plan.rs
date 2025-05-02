@@ -4,20 +4,20 @@ use serde::{Deserialize, Serialize};
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
-use crate::{event::CoreCreditEvent, history::*};
+use crate::{event::CoreCreditEvent, repayment_plan::*};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
-struct HistoryProjectionJobData {
+struct RepaymentPlanProjectionJobData {
     sequence: EventSequence,
 }
 
-pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct RepaymentPlanProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
-    repo: HistoryRepo,
+    repo: RepaymentPlanRepo,
 }
 
 #[async_trait::async_trait]
-impl<E> JobRunner for HistoryProjectionJobRunner<E>
+impl<E> JobRunner for RepaymentPlanProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -28,7 +28,7 @@ where
         use CoreCreditEvent::*;
 
         let mut state = current_job
-            .execution_state::<HistoryProjectionJobData>()?
+            .execution_state::<RepaymentPlanProjectionJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -83,9 +83,9 @@ where
 
                 let mut db = self.repo.begin().await?;
 
-                let mut history = self.repo.load(id).await?;
-                history.process_event(event);
-                self.repo.persist_in_tx(&mut db, id, history).await?;
+                let mut repayment_plan = self.repo.load(id).await?;
+                repayment_plan.process_event(state.sequence, event);
+                self.repo.persist_in_tx(&mut db, id, repayment_plan).await?;
 
                 state.sequence = message.sequence;
                 current_job
@@ -100,16 +100,16 @@ where
     }
 }
 
-pub struct HistoryProjectionInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct RepaymentPlanProjectionInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
-    repo: HistoryRepo,
+    repo: RepaymentPlanRepo,
 }
 
-impl<E> HistoryProjectionInitializer<E>
+impl<E> RepaymentPlanProjectionInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, repo: &HistoryRepo) -> Self {
+    pub fn new(outbox: &Outbox<E>, repo: &RepaymentPlanRepo) -> Self {
         Self {
             outbox: outbox.clone(),
             repo: repo.clone(),
@@ -117,8 +117,9 @@ where
     }
 }
 
-const HISTORY_PROJECTION: JobType = JobType::new("credit-facility-history-projection");
-impl<E> JobInitializer for HistoryProjectionInitializer<E>
+const REPAYMENT_PLAN_PROJECTION: JobType =
+    JobType::new("credit-facility-repayment-plan-projection");
+impl<E> JobInitializer for RepaymentPlanProjectionInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -126,11 +127,11 @@ where
     where
         Self: Sized,
     {
-        HISTORY_PROJECTION
+        REPAYMENT_PLAN_PROJECTION
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(HistoryProjectionJobRunner {
+        Ok(Box::new(RepaymentPlanProjectionJobRunner {
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }))
@@ -138,12 +139,12 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct HistoryProjectionConfig<E> {
+pub struct RepaymentPlanProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
-impl<E> JobConfig for HistoryProjectionConfig<E>
+impl<E> JobConfig for RepaymentPlanProjectionConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = HistoryProjectionInitializer<E>;
+    type Initializer = RepaymentPlanProjectionInitializer<E>;
 }

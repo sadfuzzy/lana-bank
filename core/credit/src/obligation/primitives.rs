@@ -1,15 +1,6 @@
 use crate::primitives::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum ObligationStatus {
-    NotYetDue,
-    Due,
-    Overdue,
-    Defaulted,
-    Paid,
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ObligationAccounts {
     pub receivable_account_id: CalaAccountId,
@@ -25,14 +16,14 @@ pub struct ObligationDueReallocationData {
 
 pub struct ObligationOverdueReallocationData {
     pub tx_id: LedgerTxId,
-    pub outstanding_amount: UsdCents,
+    pub amount: UsdCents,
     pub due_account_id: CalaAccountId,
     pub overdue_account_id: CalaAccountId,
 }
 
 pub struct ObligationDefaultedReallocationData {
     pub tx_id: LedgerTxId,
-    pub outstanding_amount: UsdCents,
+    pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,
     pub defaulted_account_id: CalaAccountId,
 }
