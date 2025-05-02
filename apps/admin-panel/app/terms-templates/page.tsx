@@ -15,7 +15,7 @@ import {
 import DataTable, { Column } from "../../components/data-table"
 
 import { TermsTemplate, useTermsTemplatesQuery } from "@/lib/graphql/generated"
-import { formatPeriod } from "@/lib/utils"
+import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 gql`
@@ -55,8 +55,11 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<TermsTemplate>[]
   {
     key: "values",
     header: t("table.headers.duration"),
-    render: (values) =>
-      `${String(values.duration.units)} ${formatPeriod(values.duration.period)}`,
+    render: (values) => (
+      <>
+        {String(values.duration.units)} <PeriodLabel period={values.duration.period} />
+      </>
+    ),
   },
   {
     key: "values",

@@ -20,6 +20,14 @@
     "submit": "Submit",
     "set": "Set"
   },
+  "interestInterval": {
+    "endOfDay": "End of Day",
+    "endOfMonth": "End of Month"
+  },
+  "period": {
+    "days": "Day",
+    "months": "Month"
+  },
   "Sidebar": {
     "labels": {
       "loans": "Loans",
@@ -324,6 +332,12 @@
       "closed": "Closed",
       "matured": "Matured"
     },
+    "collateralizationState": {
+      "fullyCollateralized": "Fully Collateralized",
+      "noCollateral": "No Collateral",
+      "underLiquidationThreshold": "Under Liquidation Threshold",
+      "underMarginCallThreshold": "Under Margin Call Threshold"
+    },
     "errors": {
       "fetchError": "An error occurred while fetching data.",
       "general": "An error occurred"
@@ -372,6 +386,14 @@
           "transactionType": "Transaction Type",
           "recordedAt": "Recorded At",
           "amount": "Amount"
+        },
+        "transactionTypes": {
+          "collateralUpdated": "Collateral Updated",
+          "collateralizationUpdated": "Collateralization Updated",
+          "origination": "Origination",
+          "incrementalPayment": "Payment",
+          "disbursalExecuted": "Disbursal",
+          "interestAccrued": "Interest Accrued"
         },
         "messages": {
           "unknownType": "Unknown Transaction Type",
@@ -1452,6 +1474,10 @@
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description"
+    },
+    "debitOrCredit": {
+      "debit": "Debit",
+      "credit": "Credit"
     }
   },
   "LedgerTransaction": {

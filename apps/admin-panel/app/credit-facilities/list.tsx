@@ -6,6 +6,8 @@ import { useTranslations } from "next-intl"
 
 import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
+import { CollateralizationStateLabel } from "./label"
+
 import {
   CreditFacilitiesSort,
   CreditFacility,
@@ -22,11 +24,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import {
-  camelToScreamingSnake,
-  formatCollateralizationState,
-  formatDate,
-} from "@/lib/utils"
+import { camelToScreamingSnake, formatDate } from "@/lib/utils"
 
 gql`
   query CreditFacilities(
@@ -144,7 +142,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
-    render: (state) => formatCollateralizationState(state),
+    render: (state) => <CollateralizationStateLabel state={state} />,
     filterValues: Object.values(CollateralizationState),
   },
   {

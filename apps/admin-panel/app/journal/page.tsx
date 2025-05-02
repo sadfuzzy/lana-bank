@@ -12,9 +12,13 @@ import {
   CardTitle,
 } from "@lana/web/ui/card"
 
-import { JournalEntry, useJournalEntriesQuery } from "@/lib/graphql/generated"
+import {
+  DebitOrCredit,
+  JournalEntry,
+  useJournalEntriesQuery,
+} from "@/lib/graphql/generated"
 
-import { formatDate, formatDirection } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 
 import PaginatedTable, {
   Column,
@@ -117,7 +121,10 @@ const JournalPage: React.FC = () => {
     {
       key: "direction",
       label: t("table.direction"),
-      render: (direction: string) => formatDirection(direction),
+      render: (direction: DebitOrCredit) =>
+        direction === DebitOrCredit.Debit
+          ? t("debitOrCredit.debit")
+          : t("debitOrCredit.credit"),
     },
     {
       key: "amount",

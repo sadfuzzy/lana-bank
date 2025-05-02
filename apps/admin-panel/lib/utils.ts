@@ -5,10 +5,7 @@ import {
   ApprovalProcessType,
   ApprovalRules,
   CollateralAction,
-  CollateralizationState,
   GetRealtimePriceUpdatesQuery,
-  InterestInterval,
-  Period,
 } from "./graphql/generated"
 
 import { Satoshis, UsdCents } from "@/types"
@@ -86,37 +83,8 @@ export const formatDate = (
   }
 }
 
-export const formatDirection = (direction: string) => {
-  return direction.replace(
-    /\w\S*/g,
-    (text) => text.charAt(0).toUpperCase() + text.substring(1).toLowerCase(),
-  )
-}
-
 export const formatRole = (role: string) => {
   return role
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-}
-
-export const formatPeriod = (period: Period) => {
-  return period.charAt(0).toUpperCase() + period.slice(1).toLowerCase()
-}
-
-export const formatInterval = (interval: InterestInterval) => {
-  return interval
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ")
-}
-
-export const formatCollateralizationState = (
-  collateralizationState: CollateralizationState,
-) => {
-  return collateralizationState
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

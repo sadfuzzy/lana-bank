@@ -31,7 +31,7 @@ import {
   Period,
   TermsTemplate,
 } from "@/lib/graphql/generated"
-import { formatInterval, formatPeriod } from "@/lib/utils"
+import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
 
 gql`
   mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
@@ -221,7 +221,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                         .filter((period) => period !== Period.Days)
                         .map((period) => (
                           <SelectItem key={period} value={period}>
-                            {formatPeriod(period)}
+                            <PeriodLabel period={period} />
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -246,7 +246,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
                       <SelectItem key={int} value={int}>
-                        {formatInterval(int)}
+                        <InterestIntervalLabel interval={int} />
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -268,7 +268,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
                       <SelectItem key={int} value={int}>
-                        {formatInterval(int)}
+                        <InterestIntervalLabel interval={int} />
                       </SelectItem>
                     ))}
                   </SelectContent>

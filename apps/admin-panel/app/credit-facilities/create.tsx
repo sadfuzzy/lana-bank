@@ -26,6 +26,8 @@ import {
 
 import { useCreateContext } from "../create"
 
+import { PeriodLabel, InterestIntervalLabel } from "./label"
+
 import {
   InterestInterval,
   Period,
@@ -33,12 +35,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
-import {
-  formatInterval,
-  formatPeriod,
-  currencyConverter,
-  calculateInitialCollateralRequired,
-} from "@/lib/utils"
+import { currencyConverter, calculateInitialCollateralRequired } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -390,9 +387,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <DetailItem
                   label={t("form.labels.duration")}
                   value={
-                    String(formValues.durationUnits) +
-                    " " +
-                    formatPeriod(formValues.durationPeriod as Period)
+                    <>
+                      {formValues.durationUnits}{" "}
+                      <PeriodLabel period={formValues.durationPeriod as Period} />
+                    </>
                   }
                 />
                 <DetailItem
@@ -401,9 +399,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 />
                 <DetailItem
                   label={t("form.labels.accrualCycleInterval")}
-                  value={formatInterval(
-                    formValues.accrualCycleInterval as InterestInterval,
-                  )}
+                  value={
+                    <InterestIntervalLabel
+                      interval={formValues.accrualCycleInterval as InterestInterval}
+                    />
+                  }
                 />
                 <DetailItem
                   label={t("form.labels.liquidationCvl")}
@@ -411,7 +411,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 />
                 <DetailItem
                   label={t("form.labels.accrualInterval")}
-                  value={formatInterval(formValues.accrualInterval as InterestInterval)}
+                  value={
+                    <InterestIntervalLabel
+                      interval={formValues.accrualInterval as InterestInterval}
+                    />
+                  }
                 />
                 <DetailItem
                   label={t("form.labels.structuringFeeRate")}
@@ -473,7 +477,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                           .filter((period) => period !== Period.Days)
                           .map((period) => (
                             <SelectItem key={period} value={period}>
-                              {formatPeriod(period)}
+                              <PeriodLabel period={period} />
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -509,7 +513,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     <SelectContent>
                       {Object.values(InterestInterval).map((interval) => (
                         <SelectItem key={interval} value={interval}>
-                          {formatInterval(interval)}
+                          <InterestIntervalLabel interval={interval} />
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -543,7 +547,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     <SelectContent>
                       {Object.values(InterestInterval).map((interval) => (
                         <SelectItem key={interval} value={interval}>
-                          {formatInterval(interval)}
+                          <InterestIntervalLabel interval={interval} />
                         </SelectItem>
                       ))}
                     </SelectContent>

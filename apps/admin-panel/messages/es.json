@@ -20,6 +20,14 @@
     "submit": "Enviar",
     "set": "Establecer"
   },
+  "interestInterval": {
+    "endOfDay": "Fin de día",
+    "endOfMonth": "Fin de mes"
+  },
+  "period": {
+    "days": "Día",
+    "months": "Mes"
+  },
   "Sidebar": {
     "labels": {
       "loans": "Préstamos",
@@ -324,6 +332,12 @@
       "closed": "Cerrado",
       "matured": "Vencido"
     },
+    "collateralizationState": {
+      "fullyCollateralized": "Totalmente garantizado",
+      "noCollateral": "Sin garantía",
+      "underLiquidationThreshold": "Por debajo del umbral de liquidación",
+      "underMarginCallThreshold": "Por debajo del umbral de llamada de margen"
+    },
     "errors": {
       "fetchError": "Ocurrió un error al obtener los datos.",
       "general": "Ocurrió un error"
@@ -372,6 +386,14 @@
           "transactionType": "Tipo de Transacción",
           "recordedAt": "Registrado El",
           "amount": "Monto"
+        },
+        "transactionTypes": {
+          "collateralUpdated": "Garantía actualizada",
+          "collateralizationUpdated": "Colateralización actualizada",
+          "origination": "Originación",
+          "incrementalPayment": "Pago",
+          "disbursalExecuted": "Desembolso",
+          "interestAccrued": "Interés acumulado"
         },
         "messages": {
           "unknownType": "Tipo de Transacción Desconocido",
@@ -1452,6 +1474,10 @@
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción"
+    },
+    "debitOrCredit": {
+      "debit": "Debe",
+      "credit": "Haber"
     }
   },
   "LedgerTransaction": {

@@ -20,6 +20,10 @@ checksums:
     Common/close: 2c2e22f8424a1031de89063bd0022e16
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
+    interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
+    interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
+    period/days: 47648cd60fc313bc3f05b70357a1d675
+    period/months: ae7bef950efc406ff0980affabc1a64c
     Sidebar/labels/loans: 799b76634ee27191b9e0072482c2a6b9
     Sidebar/labels/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/labels/transactions: 59973447457c6bd57c161d594f551651
@@ -211,6 +215,10 @@ checksums:
     CreditFacilities/CreditFacilityStatus/pendingCollateralization: a3861e1934c1764f40801494dbfe5637
     CreditFacilities/CreditFacilityStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     CreditFacilities/CreditFacilityStatus/matured: efaa50b3c35aca3fc276b8eb1dd04e4b
+    CreditFacilities/collateralizationState/fullyCollateralized: ac0dd4d27277fd887b8a195d815af373
+    CreditFacilities/collateralizationState/noCollateral: 498c3e9228e7a29cc8571a0fb53d4be9
+    CreditFacilities/collateralizationState/underLiquidationThreshold: 9df678e2f798a4c7a056e783c686bce5
+    CreditFacilities/collateralizationState/underMarginCallThreshold: 56f8da43160ce599d62c6530ed97c233
     CreditFacilities/errors/fetchError: 97f7c28b3288c6bbf454f0a28198730a
     CreditFacilities/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/title: 416716dbfa4883b589c792610e827d74
@@ -238,6 +246,12 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Transactions/columns/transactionType: b8ac99c5ffc691a9b4d747cee62d0c10
     CreditFacilities/CreditFacilityDetails/Transactions/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     CreditFacilities/CreditFacilityDetails/Transactions/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/collateralUpdated: 44dc6a58c0b697896e5e5f7546d8a657
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/collateralizationUpdated: 6390b9176524aeaa7c647cfd45a28baa
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/origination: 10e18fd520c9bd3046f3ca26989e87f5
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/incrementalPayment: 95142d3fd8b6a6f551aba771842e9c11
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
+    CreditFacilities/CreditFacilityDetails/Transactions/transactionTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
     CreditFacilities/CreditFacilityDetails/Transactions/messages/unknownType: 4b34f55bff9f0ebe684d57dce81a9c1f
     CreditFacilities/CreditFacilityDetails/Transactions/messages/emptyTable: 15f5fee32cbd24775ccda66e8ca83132
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f
@@ -862,6 +876,8 @@ checksums:
     Journal/table/direction: 2920314e7f25957f16577b544b4e860b
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
+    Journal/debitOrCredit/debit: 1b35db901aa1aeed8ee79aec6d807731
+    Journal/debitOrCredit/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
     LedgerTransaction/description: e12ba6feb4c9ded56403b71e5f8bfb36
     LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300

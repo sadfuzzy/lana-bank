@@ -30,7 +30,7 @@ import {
   InterestInterval,
   Period,
 } from "@/lib/graphql/generated"
-import { formatInterval, formatPeriod } from "@/lib/utils"
+import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
@@ -234,7 +234,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                         .filter((period) => period !== Period.Days)
                         .map((period) => (
                           <SelectItem key={period} value={period}>
-                            {formatPeriod(period)}
+                            <PeriodLabel period={period} />
                           </SelectItem>
                         ))}
                     </SelectContent>
@@ -259,7 +259,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
                       <SelectItem key={int} value={int}>
-                        {formatInterval(int)}
+                        <InterestIntervalLabel interval={int} />
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -281,7 +281,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   <SelectContent>
                     {Object.values(InterestInterval).map((int) => (
                       <SelectItem key={int} value={int}>
-                        {formatInterval(int)}
+                        <InterestIntervalLabel interval={int} />
                       </SelectItem>
                     ))}
                   </SelectContent>

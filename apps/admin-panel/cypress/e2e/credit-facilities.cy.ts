@@ -144,7 +144,7 @@ describe("credit facility", () => {
         Cypress.env("creditFacilityId", facilityId)
       })
 
-    cy.contains("No Collateral").should("be.visible")
+    cy.contains(t(CF + ".collateralizationState.noCollateral")).should("be.visible")
     cy.takeScreenshot("5_credit_facility_created_success")
   })
 

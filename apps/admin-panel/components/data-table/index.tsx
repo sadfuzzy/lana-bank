@@ -53,7 +53,7 @@ const DataTable = <T,>({
   rowClassName,
   cellClassName,
   onRowClick,
-  emptyMessage = "No data to display",
+  emptyMessage,
   loading = false,
   navigateTo,
 }: DataTableProps<T>) => {
@@ -187,7 +187,7 @@ const DataTable = <T,>({
   }
 
   if (!data.length) {
-    return <div className="text-sm">{emptyMessage}</div>
+    return <div className="text-sm">{emptyMessage || t("noData")}</div>
   }
 
   if (isMobile) {

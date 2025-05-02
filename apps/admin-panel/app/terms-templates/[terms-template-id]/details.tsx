@@ -6,7 +6,8 @@ import { Button } from "@lana/web/ui/button"
 
 import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
-import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
+import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
 
 type TermsTemplateDetailsProps = {
@@ -26,17 +27,22 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
     { label: t("fields.createdAt"), value: formatDate(termsTemplate.createdAt) },
     {
       label: t("fields.duration"),
-      value: `${termsTemplate.values.duration.units} ${formatPeriod(
-        termsTemplate.values.duration.period,
-      )}`,
+      value: (
+        <>
+          {termsTemplate.values.duration.units}{" "}
+          <PeriodLabel period={termsTemplate.values.duration.period} />
+        </>
+      ),
     },
     {
       label: t("fields.accrualCycleInterval"),
-      value: formatInterval(termsTemplate.values.accrualCycleInterval),
+      value: (
+        <InterestIntervalLabel interval={termsTemplate.values.accrualCycleInterval} />
+      ),
     },
     {
       label: t("fields.accrualInterval"),
-      value: formatInterval(termsTemplate.values.accrualInterval),
+      value: <InterestIntervalLabel interval={termsTemplate.values.accrualInterval} />,
     },
     {
       label: t("fields.annualRate"),

@@ -3,6 +3,7 @@
 import React from "react"
 import { useTranslations } from "next-intl"
 
+import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import {
@@ -10,19 +11,8 @@ import {
   CreditFacilityHistoryEntry,
   CollateralAction,
 } from "@/lib/graphql/generated"
-import {
-  formatCollateralAction,
-  formatCollateralizationState,
-  formatDate,
-  formatTransactionType,
-  cn,
-} from "@/lib/utils"
+import { formatCollateralAction, formatDate, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-
-const formatTransactionTypeWithoutPrefix = (type: string) => {
-  const formattedType = formatTransactionType(type)
-  return formattedType.replace("Credit Facility", "").trim()
-}
 
 type CreditFacilityTransactionsProps = {
   creditFacility: NonNullable<GetCreditFacilityTransactionsQuery["creditFacility"]>
@@ -47,7 +37,7 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
           case "CreditFacilityCollateralUpdated":
             return (
               <div className="flex flex-row gap-1">
-                <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
+                <div>{t("transactionTypes.collateralUpdated")}</div>
                 <div className="text-textColor-secondary text-sm">
                   {formatCollateralAction(transaction.action)}
                 </div>
@@ -56,15 +46,23 @@ export const CreditFacilityTransactions: React.FC<CreditFacilityTransactionsProp
           case "CreditFacilityCollateralizationUpdated":
             return (
               <div className="flex flex-row gap-1">
-                <div>{formatTransactionTypeWithoutPrefix(transaction.__typename)}</div>
+                <div>{t("transactionTypes.collateralizationUpdated")}</div>
                 <div className="text-textColor-secondary text-sm">
-                  ({formatCollateralizationState(transaction.state)})
+                  (<CollateralizationStateLabel state={transaction.state} />)
                 </div>
               </div>
             )
-          default:
-            return formatTransactionTypeWithoutPrefix(transaction.__typename)
+          case "CreditFacilityOrigination":
+            return t("transactionTypes.origination")
+          case "CreditFacilityIncrementalPayment":
+            return t("transactionTypes.incrementalPayment")
+          case "CreditFacilityDisbursalExecuted":
+            return t("transactionTypes.disbursalExecuted")
+          case "CreditFacilityInterestAccrued":
+            return t("transactionTypes.interestAccrued")
         }
+        const exhaustiveCheck: never = transaction.__typename
+        return exhaustiveCheck
       },
     },
     {

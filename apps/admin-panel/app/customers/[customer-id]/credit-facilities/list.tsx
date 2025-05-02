@@ -5,9 +5,11 @@ import { useTranslations } from "next-intl"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
-import { formatCollateralizationState, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
+
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import DataTable, { Column } from "@/components/data-table"
+import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
 
 type CreditFacility = NonNullable<
   GetCustomerCreditFacilitiesQuery["customer"]
@@ -47,7 +49,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
     {
       key: "collateralizationState",
       header: t("table.headers.collateralizationState"),
-      render: (state) => formatCollateralizationState(state),
+      render: (state) => <CollateralizationStateLabel state={state} />,
     },
     {
       key: "createdAt",
