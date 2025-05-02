@@ -342,7 +342,6 @@ interface CategoryRowProps {
 
 function CategoryRow({ category, currency, layer }: CategoryRowProps) {
   const t = useTranslations("BalanceSheet")
-
   const categoryBalance = getBalance(category, currency, layer)
 
   return (
@@ -352,7 +351,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
           className="flex items-center gap-2 text-primary font-semibold uppercase"
           data-testid={`category-name-${category.name.toLowerCase()}`}
         >
-          {category.name}
+          {t(`categories.${category.name.replace(/\s+/g, "")}`)}
         </TableCell>
         <TableCell className="w-48"></TableCell>
       </TableRow>

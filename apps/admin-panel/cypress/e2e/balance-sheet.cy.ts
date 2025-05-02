@@ -30,9 +30,9 @@ describe("Balance Sheet", () => {
 
       cy.get("[data-testid^='category-name-']").then(($cells) => {
         const categoryTexts = $cells.map((_, el) => Cypress.$(el).text().trim()).get()
-        expect(categoryTexts).to.include("Assets")
-        expect(categoryTexts).to.include("Liabilities")
-        expect(categoryTexts).to.include("Equity")
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Assets"))
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Liabilities"))
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Equity"))
       })
 
       if (response.data?.balanceSheet?.categories) {

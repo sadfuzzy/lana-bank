@@ -309,33 +309,41 @@ interface CategoryRowProps {
   endingBalance?: number
 }
 
-const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowProps) => (
-  <>
-    <TableRow>
-      <TableCell
-        data-testid={`category-${category.name.toLowerCase()}`}
-        className="flex items-center gap-2 text-primary font-semibold uppercase"
-      >
-        {category.name}
-      </TableCell>
-      <TableCell className="w-48">
-        <Balance align="end" currency={currency} amount={endingBalance as CurrencyType} />
-      </TableCell>
-    </TableRow>
-    {category.children.map(
-      (
-        child: NonNullable<
-          ProfitAndLossStatementQuery["profitAndLossStatement"]
-        >["categories"][0]["children"][number],
-      ) => (
-        <Account
-          key={child.id}
-          account={child}
-          currency={currency}
-          depth={1}
-          layer={layer}
-        />
-      ),
-    )}
-  </>
-)
+const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowProps) => {
+  const t = useTranslations("ProfitAndLoss")
+
+  return (
+    <>
+      <TableRow>
+        <TableCell
+          data-testid={`category-${category.name.toLowerCase()}`}
+          className="flex items-center gap-2 text-primary font-semibold uppercase"
+        >
+          {t(`categories.${category.name.replace(/\s+/g, "")}`)}
+        </TableCell>
+        <TableCell className="w-48">
+          <Balance
+            align="end"
+            currency={currency}
+            amount={endingBalance as CurrencyType}
+          />
+        </TableCell>
+      </TableRow>
+      {category.children.map(
+        (
+          child: NonNullable<
+            ProfitAndLossStatementQuery["profitAndLossStatement"]
+          >["categories"][0]["children"][number],
+        ) => (
+          <Account
+            key={child.id}
+            account={child}
+            currency={currency}
+            depth={1}
+            layer={layer}
+          />
+        ),
+      )}
+    </>
+  )
+}

@@ -1214,6 +1214,11 @@
     "columns": {
       "assets": "Total de Activos",
       "liabilitiesAndEquity": "Total de Pasivos y Patrimonio"
+    },
+    "categories": {
+      "Assets": "Activos",
+      "Liabilities": "Pasivos",
+      "Equity": "Patrimonio"
     }
   },
   "ProfitAndLoss": {
@@ -1221,7 +1226,12 @@
     "description": "Un informe financiero que muestra ingresos, gastos y las ganancias o pérdidas resultantes durante un período específico.",
     "noData": "Sin datos",
     "dateRange": "Rango de Fechas",
-    "net": "NETO"
+    "net": "NETO",
+    "categories": {
+      "Revenue": "Ingresos",
+      "CostofRevenue": "Costo de ingresos",
+      "Expenses": "Gastos"
+    }
   },
   "Reports": {
     "title": "Gestión de Informes",

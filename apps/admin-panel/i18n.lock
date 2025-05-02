@@ -688,11 +688,17 @@ checksums:
     BalanceSheet/total: f60dc0a14e9b1bace656c644de25de5b
     BalanceSheet/columns/assets: 63b7f2a516d939c1bbecaa26843da7e8
     BalanceSheet/columns/liabilitiesAndEquity: 3c539b763602d4adf850240e8809ea6f
+    BalanceSheet/categories/Assets: 97163b0aa35e30b36bb724428f7f8724
+    BalanceSheet/categories/Liabilities: 15e755dad4a2e491dcb4a0e49747bba0
+    BalanceSheet/categories/Equity: 36c0426cc91295817b8e032ddd7741e6
     ProfitAndLoss/title: 5a4b40ff5c66e810a068aac0bd659173
     ProfitAndLoss/description: 8a369af374cdc06501a168a6b8bd93c7
     ProfitAndLoss/noData: 81e91b979968615c55f9c0701fa9bbe3
     ProfitAndLoss/dateRange: 9b3aa5954144de586931f60ef9594e99
     ProfitAndLoss/net: b7e51f0a41e8719bf5ce3ddf1897cf7b
+    ProfitAndLoss/categories/Revenue: ff03ab827646d3027cc63ed72943c03d
+    ProfitAndLoss/categories/CostofRevenue: 961c71d8f4f8ca818f2de8ecfdab0d76
+    ProfitAndLoss/categories/Expenses: 1746536359bb638c45a12980ab3aac3a
     Reports/title: 60990919a45b80f1f1fc1bf292bee36a
     Reports/description: 523613154e094441d7026ee5727c1d9d
     Reports/generateReport: 8f20da23bb7692f803a254cb5f99040e

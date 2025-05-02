@@ -1214,6 +1214,11 @@
     "columns": {
       "assets": "Total Assets",
       "liabilitiesAndEquity": "Total Liabilities & Equity"
+    },
+    "categories": {
+      "Assets": "Assets",
+      "Liabilities": "Liabilities",
+      "Equity": "Equity"
     }
   },
   "ProfitAndLoss": {
@@ -1221,7 +1226,12 @@
     "description": "A financial report showing revenue, expenses, and resulting profit or loss over a specific time period.",
     "noData": "No data",
     "dateRange": "Date Range",
-    "net": "NET"
+    "net": "NET",
+    "categories": {
+      "Revenue": "Revenue",
+      "CostofRevenue": "Cost of Revenue",
+      "Expenses": "Expenses"
+    }
   },
   "Reports": {
     "title": "Report Management",
