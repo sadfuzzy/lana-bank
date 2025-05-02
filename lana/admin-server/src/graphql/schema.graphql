@@ -148,6 +148,7 @@ union ApprovalRules = SystemApproval | CommitteeThreshold
 
 type AuditEntry {
 	id: ID!
+	auditEntryId: AuditEntryId!
 	object: String!
 	action: String!
 	authorized: Boolean!
@@ -183,6 +184,8 @@ type AuditEntryEdge {
 	"""
 	cursor: String!
 }
+
+scalar AuditEntryId
 
 union AuditSubject = User | System
 

@@ -214,6 +214,7 @@ export const mockAuditEntry = (overrides?: Partial<AuditEntry>, _relationshipsTo
     return {
         __typename: 'AuditEntry',
         action: overrides && overrides.hasOwnProperty('action') ? overrides.action! : faker.lorem.word(),
+        auditEntryId: overrides && overrides.hasOwnProperty('auditEntryId') ? overrides.auditEntryId! : faker.lorem.word(),
         authorized: overrides && overrides.hasOwnProperty('authorized') ? overrides.authorized! : generateMockValue.boolean(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         object: overrides && overrides.hasOwnProperty('object') ? overrides.object! : faker.lorem.word(),

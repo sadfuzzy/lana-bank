@@ -21,6 +21,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
+  AuditEntryId: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
@@ -166,6 +167,7 @@ export type ApprovalRules = CommitteeThreshold | SystemApproval;
 export type AuditEntry = {
   __typename?: 'AuditEntry';
   action: Scalars['String']['output'];
+  auditEntryId: Scalars['AuditEntryId']['output'];
   authorized: Scalars['Boolean']['output'];
   id: Scalars['ID']['output'];
   object: Scalars['String']['output'];
@@ -2192,7 +2194,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Timestamp']['input'];
@@ -3330,6 +3332,7 @@ export const AuditLogsDocument = gql`
       cursor
       node {
         id
+        auditEntryId
         subject {
           ... on User {
             userId

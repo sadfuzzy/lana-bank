@@ -17,6 +17,7 @@ gql`
         cursor
         node {
           id
+          auditEntryId
           subject {
             ... on User {
               userId
@@ -54,6 +55,7 @@ const AuditLogsList = () => {
   })
 
   const columns: Column<AuditEntry>[] = [
+    { key: "auditEntryId", label: t("headers.auditEntryId") },
     {
       key: "subject",
       label: t("headers.subject"),

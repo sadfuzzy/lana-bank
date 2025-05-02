@@ -62,6 +62,16 @@ impl Date {
     }
 }
 
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct AuditEntryId(audit::AuditEntryId);
+scalar!(AuditEntryId);
+impl From<audit::AuditEntryId> for AuditEntryId {
+    fn from(value: audit::AuditEntryId) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(SimpleObject)]
 pub struct SuccessPayload {
     pub success: bool,
