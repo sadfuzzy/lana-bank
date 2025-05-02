@@ -45,7 +45,7 @@ pub struct DisbursalExecuted {
 pub struct InterestAccrualsPosted {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
-    pub days: u16,
+    pub days: u32,
     pub tx_id: LedgerTxId,
 }
 

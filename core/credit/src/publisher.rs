@@ -168,19 +168,15 @@ where
         use InterestAccrualCycleEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                InterestAccrualsPosted {
-                    total,
-                    posted_at,
-                    cycle_started_at,
-                    tx_id,
-                    ..
-                } => Some(CoreCreditEvent::AccrualPosted {
-                    credit_facility_id: entity.credit_facility_id,
-                    ledger_tx_id: *tx_id,
-                    amount: *total,
-                    days_in_cycle: (*posted_at - cycle_started_at).num_days() as u16,
-                    posted_at: *posted_at,
-                }),
+                InterestAccrualsPosted { total, tx_id, .. } => {
+                    Some(CoreCreditEvent::AccrualPosted {
+                        credit_facility_id: entity.credit_facility_id,
+                        ledger_tx_id: *tx_id,
+                        amount: *total,
+                        period: entity.period,
+                        recorded_at: event.recorded_at,
+                    })
+                }
 
                 _ => None,
             })
