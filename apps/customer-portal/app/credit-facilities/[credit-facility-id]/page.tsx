@@ -25,6 +25,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/kratos/utils"
 import { formatDate } from "@/lib/utils"
+import { meQuery } from "@/lib/graphql/query/me"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -37,6 +38,9 @@ gql`
       createdAt
       activatedAt
       maturesAt
+      customer {
+        customer_type
+      }
       disbursals {
         id
         disbursalId
@@ -148,33 +152,39 @@ gql`
 
 async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
   const { "credit-facility-id": id } = await params
-  const data = await getCreditFacility({
-    id,
-  })
+  const [cfData, meData] = await Promise.all([getCreditFacility({ id }), meQuery()])
 
-  if (!data || data instanceof Error || !data.creditFacility) {
+  if (!cfData || cfData instanceof Error || !cfData.creditFacility) {
     return <div>Not found</div>
+  }
+
+  if (!meData || meData instanceof Error) {
+    return <div>Error loading customer data</div>
   }
 
   const details: DetailItemProps[] = [
     {
-      label: "Created At",
-      value: formatDate(data.creditFacility.createdAt),
+      label: "Customer Type",
+      value: removeUnderscore(meData.me.customer.customerType),
+    },
+    {
+      label: "Issue Date",
+      value: formatDate(cfData.creditFacility.createdAt),
+    },
+    {
+      label: "Maturity Date",
+      value: formatDate(cfData.creditFacility.maturesAt) || "N/A",
     },
     {
       label: "Collateralization State",
-      value: removeUnderscore(data.creditFacility.collateralizationState),
-    },
-    {
-      label: "Matures At",
-      value: formatDate(data.creditFacility.maturesAt) || "N/A",
+      value: removeUnderscore(cfData.creditFacility.collateralizationState),
     },
     {
       label: "Status",
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
-          status={data.creditFacility.status}
+          status={cfData.creditFacility.status}
         />
       ),
     },
@@ -194,10 +204,10 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
         details={details}
       />
       <div className="flex flex-col gap-2 md:flex-row">
-        <FacilityCard data={data.creditFacility} />
-        <CollateralCard data={data.creditFacility} />
+        <FacilityCard data={cfData.creditFacility} />
+        <CollateralCard data={cfData.creditFacility} />
       </div>
-      <TermsCard data={data.creditFacility} />
+      <TermsCard data={cfData.creditFacility} />
       <Tabs defaultValue="history" className="w-full">
         <TabsList className="flex h-12 w-full items-center rounded-lg bg-muted p-1">
           <TabsTrigger
@@ -224,13 +234,13 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
         </TabsList>
 
         <TabsContent value="history" className="mt-2">
-          <CreditFacilityHistory creditFacility={data.creditFacility} />
+          <CreditFacilityHistory creditFacility={cfData.creditFacility} />
         </TabsContent>
         <TabsContent value="repayments" className="mt-2">
-          <CreditFacilityRepaymentPlan creditFacility={data.creditFacility} />
+          <CreditFacilityRepaymentPlan creditFacility={cfData.creditFacility} />
         </TabsContent>
         <TabsContent value="disbursals" className="mt-2">
-          <CreditFacilityDisbursals creditFacility={data.creditFacility} />
+          <CreditFacilityDisbursals creditFacility={cfData.creditFacility} />
         </TabsContent>
       </Tabs>
     </main>
