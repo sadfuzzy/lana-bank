@@ -18,7 +18,6 @@ services:
     command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/admin/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
       DSN: postgres://dbuser:secret@kratos-admin-pg:5432/default?sslmode=disable
-    links: [ kratos-admin-pg:kratos-admin-pg, mailhog:mailhog ]
     volumes: [ "./dev/ory:/home/ory" ]
 
   kratos-customer:
@@ -29,7 +28,6 @@ services:
     command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/customer/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
-    links: [ kratos-customer-pg:kratos-customer-pg, mailhog:mailhog ]
     volumes: [ "./dev/ory:/home/ory" ]
 
   oathkeeper:
