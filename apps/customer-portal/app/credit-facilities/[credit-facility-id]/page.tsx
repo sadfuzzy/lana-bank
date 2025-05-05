@@ -196,8 +196,14 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
     },
     {
       label: "Interest Calculation Days",
-      value: "365",
-      description: "Fixed at 365 days for all interest calculations, including leap years",
+      value: (
+        <div className="flex items-center">
+          <span>365</span>
+          <span className="text-sm text-muted-foreground ml-2">
+            Fixed number used for all interest calculations
+          </span>
+        </div>
+      ),
     },
     {
       label: "Collateralization State",
