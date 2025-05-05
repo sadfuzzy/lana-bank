@@ -195,6 +195,11 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
       ),
     },
     {
+      label: "Interest Calculation Days",
+      value: "365",
+      description: "Fixed at 365 days for all interest calculations, including leap years",
+    },
+    {
       label: "Collateralization State",
       value: removeUnderscore(cfData.creditFacility.collateralizationState),
     },
