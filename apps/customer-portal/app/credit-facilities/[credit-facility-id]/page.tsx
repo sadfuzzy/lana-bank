@@ -176,6 +176,25 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
       value: formatDate(cfData.creditFacility.maturesAt) || "N/A",
     },
     {
+      label: "Current Monthly Payment",
+      value: cfData.creditFacility.repaymentPlan?.length ? (
+        <div className="flex items-center">
+          $
+          {(
+            Number(cfData.creditFacility.repaymentPlan[0].outstanding) / 100
+          ).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+          <span className="text-sm text-muted-foreground ml-2">
+            Due {formatDate(cfData.creditFacility.repaymentPlan[0].dueAt)}
+          </span>
+        </div>
+      ) : (
+        "–"
+      ),
+    },
+    {
       label: "Collateralization State",
       value: removeUnderscore(cfData.creditFacility.collateralizationState),
     },
