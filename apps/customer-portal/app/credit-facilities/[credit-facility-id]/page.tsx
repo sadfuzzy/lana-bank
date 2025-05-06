@@ -38,9 +38,6 @@ gql`
       createdAt
       activatedAt
       maturesAt
-      customer {
-        customer_type
-      }
       disbursals {
         id
         disbursalId
