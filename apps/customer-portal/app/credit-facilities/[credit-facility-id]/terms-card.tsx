@@ -18,6 +18,10 @@ function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
       value: `${data.creditFacilityTerms.annualRate}%`,
     },
     {
+      label: "Effective Interest Rate",
+      value: `${(Number(data.creditFacilityTerms.annualRate) + Number(data.creditFacilityTerms.oneTimeFeeRate)).toFixed(2)}%`,
+    },
+    {
       label: "Accrual Cycle Interval",
       value: removeUnderscore(data.creditFacilityTerms.accrualCycleInterval),
     },
