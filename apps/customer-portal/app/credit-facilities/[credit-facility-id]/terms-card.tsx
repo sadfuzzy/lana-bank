@@ -14,7 +14,7 @@ function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
       )}`,
     },
     {
-      label: "Interest (APR)",
+      label: "Nominal Interest Rate",
       value: `${data.creditFacilityTerms.annualRate}%`,
     },
     {
