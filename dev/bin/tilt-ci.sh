@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-make reset-tf-state || true
-
 cd dev
 nohup tilt up > tilt-up.log 2>&1 < /dev/null &
 sleep 5

@@ -737,6 +737,7 @@ where
     }
 
     #[instrument(name = "credit_facility.record_payment", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -765,13 +766,7 @@ where
 
         let res = self
             .obligations
-            .allocate_payment_in_op(
-                &mut db,
-                credit_facility_id,
-                payment.id,
-                amount,
-                audit_info.clone(),
-            )
+            .allocate_payment_in_op(&mut db, credit_facility_id, payment.id, amount, &audit_info)
             .await?;
 
         let _ = payment.record_allocated(

@@ -3,10 +3,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-use super::values::*;
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 pub struct ObligationDataForEntry {
+    pub id: Option<ObligationId>,
     pub status: RepaymentStatus,
 
     pub initial: UsdCents,
@@ -18,40 +17,11 @@ pub struct ObligationDataForEntry {
     pub recorded_at: DateTime<Utc>,
 }
 
-impl From<ObligationInPlan> for ObligationDataForEntry {
-    fn from(repayment: ObligationInPlan) -> Self {
-        Self {
-            status: repayment.status,
-            initial: repayment.initial,
-            outstanding: repayment.outstanding,
-            due_at: repayment.due_at,
-            overdue_at: repayment.overdue_at,
-            defaulted_at: repayment.defaulted_at,
-            recorded_at: repayment.recorded_at,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum CreditFacilityRepaymentPlanEntry {
     Disbursal(ObligationDataForEntry),
     Interest(ObligationDataForEntry),
-}
-
-impl From<ObligationInPlan> for CreditFacilityRepaymentPlanEntry {
-    fn from(obligation: ObligationInPlan) -> Self {
-        match obligation.obligation_type {
-            ObligationType::Disbursal => Self::Disbursal(obligation.into()),
-            ObligationType::Interest => Self::Interest(obligation.into()),
-        }
-    }
-}
-
-impl From<&RecordedObligationInPlan> for CreditFacilityRepaymentPlanEntry {
-    fn from(obligation: &RecordedObligationInPlan) -> Self {
-        obligation.values.into()
-    }
 }
 
 impl PartialOrd for CreditFacilityRepaymentPlanEntry {
@@ -73,5 +43,27 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
         };
 
         self_due_at.cmp(&other_due_at)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RepaymentStatus {
+    Upcoming,
+    NotYetDue,
+    Due,
+    Overdue,
+    Defaulted,
+    Paid,
+}
+
+impl From<ObligationStatus> for RepaymentStatus {
+    fn from(status: ObligationStatus) -> Self {
+        match status {
+            ObligationStatus::NotYetDue => RepaymentStatus::NotYetDue,
+            ObligationStatus::Due => RepaymentStatus::Due,
+            ObligationStatus::Overdue => RepaymentStatus::Overdue,
+            ObligationStatus::Defaulted => RepaymentStatus::Defaulted,
+            ObligationStatus::Paid => RepaymentStatus::Paid,
+        }
     }
 }

@@ -18,8 +18,13 @@ services:
     command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/admin/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
       DSN: postgres://dbuser:secret@kratos-admin-pg:5432/default?sslmode=disable
-    links: [ kratos-admin-pg:kratos-admin-pg, mailhog:mailhog ]
     volumes: [ "./dev/ory:/home/ory" ]
+    depends_on: [ kratos-admin-pg ]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
 
   kratos-customer:
     image: oryd/kratos:v1.3.1
@@ -29,9 +34,14 @@ services:
     command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/customer/kratos.yml --watch-courier --sqa-opt-out"'
     environment:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
-    links: [ kratos-customer-pg:kratos-customer-pg, mailhog:mailhog ]
     volumes: [ "./dev/ory:/home/ory" ]
-
+    depends_on: [ kratos-customer-pg ]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:4434/health/ready"]
+      interval: 2s
+      timeout: 1s
+      retries: 20
+  
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
     extra_hosts: [ "dockerhost-alias:host-gateway" ]
@@ -55,11 +65,13 @@ services:
     image: postgres:16.4
     ports: [ 5434:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   kratos-customer-pg:
     image: postgres:16.4
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready"], interval: 1s, timeout: 1s, retries: 20 }
 
   #! Reporting
   meltano:

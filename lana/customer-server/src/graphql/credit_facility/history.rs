@@ -57,7 +57,7 @@ pub struct CreditFacilityInterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub tx_id: UUID,
-    pub days: u16,
+    pub days: u32,
 }
 
 impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistoryEntry {

@@ -1,7 +1,6 @@
 mod entry;
 pub mod error;
 mod repo;
-mod values;
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -12,44 +11,44 @@ use crate::{event::CoreCreditEvent, primitives::*, terms::TermValues};
 
 pub use entry::*;
 pub use repo::RepaymentPlanRepo;
-pub use values::*;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CreditFacilityRepaymentPlan {
     terms: Option<TermValues>,
     activated_at: DateTime<Utc>,
-
-    existing_obligations: Vec<RecordedObligationInPlan>,
     last_updated_on_sequence: EventSequence,
 
     pub entries: Vec<CreditFacilityRepaymentPlanEntry>,
 }
 
 impl CreditFacilityRepaymentPlan {
-    fn disbursed_outstanding(&self) -> UsdCents {
-        self.existing_obligations
+    fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
+        self.entries
             .iter()
-            .filter_map(|obligation| {
-                let ObligationInPlan {
-                    obligation_type,
-                    outstanding,
-                    ..
-                } = obligation.values;
-                if obligation_type == ObligationType::Disbursal {
-                    Some(outstanding)
-                } else {
-                    None
+            .filter_map(|entry| match entry {
+                CreditFacilityRepaymentPlanEntry::Disbursal(data)
+                | CreditFacilityRepaymentPlanEntry::Interest(data)
+                    if data.id.is_some() =>
+                {
+                    Some(*entry)
                 }
+                _ => None,
+            })
+            .collect()
+    }
+
+    fn disbursed_outstanding(&self) -> UsdCents {
+        self.existing_obligations()
+            .iter()
+            .filter_map(|entry| match entry {
+                CreditFacilityRepaymentPlanEntry::Disbursal(data) => Some(data.outstanding),
+                _ => None,
             })
             .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding)
     }
 
-    fn update_upcoming(&mut self) {
-        self.entries = self
-            .existing_obligations
-            .iter()
-            .map(CreditFacilityRepaymentPlanEntry::from)
-            .collect::<Vec<_>>();
+    fn update_upcoming(&mut self, existing: Vec<CreditFacilityRepaymentPlanEntry>) {
+        self.entries = existing;
         let outstanding = self.disbursed_outstanding();
         if outstanding.is_zero() {
             return;
@@ -57,12 +56,9 @@ impl CreditFacilityRepaymentPlan {
 
         let terms = self.terms.expect("Missing FacilityCreated event");
         let maturity_date = terms.duration.maturity_date(self.activated_at);
-        let last_interest_accrual_at = self.existing_obligations.iter().rev().find_map(|o| {
-            if o.values.obligation_type == ObligationType::Interest {
-                Some(o.values.recorded_at)
-            } else {
-                None
-            }
+        let last_interest_accrual_at = self.entries.iter().rev().find_map(|entry| match entry {
+            CreditFacilityRepaymentPlanEntry::Interest(data) => Some(data.recorded_at),
+            _ => None,
         });
         let mut next_interest_period = if let Some(last_interest_payment) = last_interest_accrual_at
         {
@@ -86,6 +82,7 @@ impl CreditFacilityRepaymentPlan {
             self.entries
                 .push(CreditFacilityRepaymentPlanEntry::Interest(
                     ObligationDataForEntry {
+                        id: None,
                         status: RepaymentStatus::Upcoming,
                         initial: interest,
                         outstanding: interest,
@@ -109,6 +106,7 @@ impl CreditFacilityRepaymentPlan {
         event: &CoreCreditEvent,
     ) -> bool {
         self.last_updated_on_sequence = sequence;
+        let mut existing_obligations = self.existing_obligations();
         let plan_updated = match event {
             CoreCreditEvent::FacilityCreated { terms, .. } => {
                 self.terms = Some(*terms);
@@ -130,21 +128,24 @@ impl CreditFacilityRepaymentPlan {
                 created_at,
                 ..
             } => {
-                self.existing_obligations.push(RecordedObligationInPlan {
-                    obligation_id: *id,
-                    values: ObligationInPlan {
-                        obligation_type: *obligation_type,
-                        status: RepaymentStatus::NotYetDue,
+                let data = ObligationDataForEntry {
+                    id: Some(*id),
+                    status: RepaymentStatus::NotYetDue,
 
-                        initial: *amount,
-                        outstanding: *amount,
+                    initial: *amount,
+                    outstanding: *amount,
 
-                        due_at: *due_at,
-                        overdue_at: *overdue_at,
-                        defaulted_at: *defaulted_at,
-                        recorded_at: *created_at,
-                    },
-                });
+                    due_at: *due_at,
+                    overdue_at: *overdue_at,
+                    defaulted_at: *defaulted_at,
+                    recorded_at: *created_at,
+                };
+                let entry = match obligation_type {
+                    ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
+                    ObligationType::Interest => CreditFacilityRepaymentPlanEntry::Interest(data),
+                };
+
+                existing_obligations.push(entry);
                 true
             }
             CoreCreditEvent::FacilityRepaymentRecorded {
@@ -152,12 +153,15 @@ impl CreditFacilityRepaymentPlan {
                 amount,
                 ..
             } => {
-                if let Some(r) = self
-                    .existing_obligations
-                    .iter_mut()
-                    .find(|r| r.obligation_id == *obligation_id)
-                {
-                    r.values.outstanding -= *amount;
+                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
+                    let data = match entry {
+                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
+                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
+                    };
+
+                    (data.id == Some(*obligation_id)).then_some(data)
+                }) {
+                    data.outstanding -= *amount;
                     true
                 } else {
                     false
@@ -166,12 +170,15 @@ impl CreditFacilityRepaymentPlan {
             CoreCreditEvent::ObligationDue {
                 id: obligation_id, ..
             } => {
-                if let Some(r) = self
-                    .existing_obligations
-                    .iter_mut()
-                    .find(|r| r.obligation_id == *obligation_id)
-                {
-                    r.values.status = RepaymentStatus::Due;
+                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
+                    let data = match entry {
+                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
+                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
+                    };
+
+                    (data.id == Some(*obligation_id)).then_some(data)
+                }) {
+                    data.status = RepaymentStatus::Due;
                     true
                 } else {
                     false
@@ -180,12 +187,15 @@ impl CreditFacilityRepaymentPlan {
             CoreCreditEvent::ObligationOverdue {
                 id: obligation_id, ..
             } => {
-                if let Some(r) = self
-                    .existing_obligations
-                    .iter_mut()
-                    .find(|r| r.obligation_id == *obligation_id)
-                {
-                    r.values.status = RepaymentStatus::Overdue;
+                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
+                    let data = match entry {
+                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
+                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
+                    };
+
+                    (data.id == Some(*obligation_id)).then_some(data)
+                }) {
+                    data.status = RepaymentStatus::Overdue;
                     true
                 } else {
                     false
@@ -194,12 +204,15 @@ impl CreditFacilityRepaymentPlan {
             CoreCreditEvent::ObligationDefaulted {
                 id: obligation_id, ..
             } => {
-                if let Some(r) = self
-                    .existing_obligations
-                    .iter_mut()
-                    .find(|r| r.obligation_id == *obligation_id)
-                {
-                    r.values.status = RepaymentStatus::Defaulted;
+                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
+                    let data = match entry {
+                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
+                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
+                    };
+
+                    (data.id == Some(*obligation_id)).then_some(data)
+                }) {
+                    data.status = RepaymentStatus::Defaulted;
                     true
                 } else {
                     false
@@ -211,10 +224,10 @@ impl CreditFacilityRepaymentPlan {
 
         if !plan_updated {
             false
-        } else if self.existing_obligations.is_empty() {
+        } else if existing_obligations.is_empty() {
             true
         } else {
-            self.update_upcoming();
+            self.update_upcoming(existing_obligations);
             true
         }
     }

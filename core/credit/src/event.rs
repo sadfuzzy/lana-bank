@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::{CollateralizationState, CreditFacilityReceivable, TermValues};
+use crate::{terms::InterestPeriod, CollateralizationState, CreditFacilityReceivable, TermValues};
 
 use super::primitives::*;
 
@@ -63,8 +63,8 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         ledger_tx_id: LedgerTxId,
         amount: UsdCents,
-        days_in_cycle: u16,
-        posted_at: DateTime<Utc>,
+        period: InterestPeriod,
+        recorded_at: DateTime<Utc>,
     },
     ObligationCreated {
         id: ObligationId,

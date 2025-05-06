@@ -40,12 +40,13 @@ impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "InterestAccrualCycleId")]
+#[allow(clippy::large_enum_variant)]
 pub enum InterestAccrualCycleEvent {
     Initialized {
         id: InterestAccrualCycleId,
         facility_id: CreditFacilityId,
         idx: InterestAccrualCycleIdx,
-        started_at: DateTime<Utc>,
+        period: InterestPeriod,
         facility_matures_at: DateTime<Utc>,
         account_ids: InterestAccrualCycleAccountIds,
         terms: TermValues,
@@ -63,8 +64,6 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         obligation_id: ObligationId,
         total: UsdCents,
-        cycle_started_at: DateTime<Utc>,
-        posted_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -76,9 +75,9 @@ pub struct InterestAccrualCycle {
     pub credit_facility_id: CreditFacilityId,
     pub account_ids: InterestAccrualCycleAccountIds,
     pub idx: InterestAccrualCycleIdx,
-    pub started_at: DateTime<Utc>,
     pub facility_matures_at: DateTime<Utc>,
     pub terms: TermValues,
+    pub period: InterestPeriod,
     events: EntityEvents<InterestAccrualCycleEvent>,
 }
 
@@ -110,7 +109,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                     facility_id,
                     account_ids,
                     idx,
-                    started_at,
+                    period,
                     facility_matures_at,
                     terms,
                     ..
@@ -120,7 +119,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                         .credit_facility_id(*facility_id)
                         .account_ids(*account_ids)
                         .idx(*idx)
-                        .started_at(*started_at)
+                        .period(*period)
                         .facility_matures_at(*facility_matures_at)
                         .terms(*terms)
                 }
@@ -136,9 +135,9 @@ impl InterestAccrualCycle {
     fn accrual_cycle_ends_at(&self) -> DateTime<Utc> {
         self.terms
             .accrual_cycle_interval
-            .period_from(self.started_at)
+            .period_from(self.period.start)
             .truncate(self.facility_matures_at)
-            .expect("'started_at' should be before 'facility_matures_at'")
+            .expect("'period.start' should be before 'facility_matures_at'")
             .end
     }
 
@@ -166,7 +165,7 @@ impl InterestAccrualCycle {
         let interval = self.terms.accrual_interval;
         match second_to_last_accrued_at {
             Some(accrued_at) => interval.period_from(accrued_at).next(),
-            None => interval.period_from(self.started_at),
+            None => interval.period_from(self.period.start),
         }
         .truncate(self.accrual_cycle_ends_at())
     }
@@ -188,7 +187,7 @@ impl InterestAccrualCycle {
 
         let untruncated_period = match last_accrual {
             Some(last_end_date) => accrual_interval.period_from(last_end_date).next(),
-            None => accrual_interval.period_from(self.started_at),
+            None => accrual_interval.period_from(self.period.start),
         };
 
         untruncated_period.truncate(self.accrual_cycle_ends_at())
@@ -263,7 +262,6 @@ impl InterestAccrualCycle {
             posted_at,
             ..
         }: InterestAccrualCycleData,
-        cycle_started_at: DateTime<Utc>,
         audit_info: AuditInfo,
     ) -> Idempotent<NewObligation> {
         idempotency_guard!(
@@ -277,8 +275,6 @@ impl InterestAccrualCycle {
                 tx_ref: tx_ref.to_string(),
                 obligation_id,
                 total: interest,
-                cycle_started_at,
-                posted_at,
                 audit_info: audit_info.clone(),
             });
 
@@ -322,7 +318,7 @@ pub struct NewInterestAccrualCycle {
     pub credit_facility_id: CreditFacilityId,
     pub account_ids: InterestAccrualCycleAccountIds,
     pub idx: InterestAccrualCycleIdx,
-    pub started_at: DateTime<Utc>,
+    pub period: InterestPeriod,
     pub facility_matures_at: DateTime<Utc>,
     terms: TermValues,
     #[builder(setter(into))]
@@ -335,7 +331,7 @@ impl NewInterestAccrualCycle {
     }
 
     pub fn first_accrual_cycle_period(&self) -> InterestPeriod {
-        self.terms.accrual_interval.period_from(self.started_at)
+        self.terms.accrual_interval.period_from(self.period.start)
     }
 }
 
@@ -348,7 +344,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
                 facility_id: self.credit_facility_id,
                 account_ids: self.account_ids,
                 idx: self.idx,
-                started_at: self.started_at,
+                period: self.period,
                 facility_matures_at: self.facility_matures_at,
                 terms: self.terms,
                 audit_info: self.audit_info,
@@ -386,6 +382,10 @@ mod test {
         "2024-01-15T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
     }
 
+    fn default_period() -> InterestPeriod {
+        InterestInterval::EndOfDay.period_from(default_started_at())
+    }
+
     fn dummy_audit_info() -> AuditInfo {
         AuditInfo {
             audit_entry_id: AuditEntryId::from(1),
@@ -409,7 +409,7 @@ mod test {
             facility_id: CreditFacilityId::new(),
             account_ids: CreditFacilityAccountIds::new().into(),
             idx: InterestAccrualCycleIdx::FIRST,
-            started_at,
+            period: default_period(),
             facility_matures_at: terms.duration.maturity_date(started_at),
             terms,
             audit_info: dummy_audit_info(),
@@ -440,7 +440,7 @@ mod test {
         let accrual = accrual_from(events.clone());
         assert_eq!(
             accrual.last_accrual_period().unwrap().start,
-            accrual.started_at
+            accrual.period.start
         );
 
         let second_accrual_period = first_accrual_cycle_period.next();
@@ -464,7 +464,7 @@ mod test {
         let accrual = accrual_from(initial_events());
         assert_eq!(
             accrual.next_accrual_period().unwrap().start,
-            accrual.started_at
+            accrual.period.start
         );
     }
 

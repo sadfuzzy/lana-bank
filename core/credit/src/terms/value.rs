@@ -132,7 +132,7 @@ impl InterestDuration {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
     pub start: DateTime<Utc>,
