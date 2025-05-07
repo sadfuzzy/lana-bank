@@ -15,48 +15,6 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-@test "accounting: can traverse chart of accounts" {
-  skip # until new structure is fully integrated
-
-  exec_admin_graphql 'chart-of-accounts'
-  graphql_output
-  echo "chart-of-accounts | $(graphql_output)" >> $RUN_LOG_FILE
-
-  category_account_code=$(echo "$output" | jq -r \
-    '.data.chartOfAccounts.categories.assets.accountCode'
-  )
-  [[ "$category_account_code" == "10000" ]] || exit 1
-
-
-  control_name="Deposits"
-  control_account_code=$(echo "$output" | jq -r \
-    --arg account_name "$control_name" \
-    '
-      .data.chartOfAccounts.categories.liabilities |
-      .controlAccounts[] |
-      select(.name == $account_name)
-      .accountCode
-    '
-  )
-  [[ "$control_account_code" == "20100" ]] || exit 1
-
-  control_name="Credit Facilities Interest Income"
-  control_sub_name="Fixed Term Credit Facilities Interest Income"
-  control_account_code=$(echo "$output" | jq -r \
-    --arg account_name "$control_name" \
-    --arg account_sub_name "$control_sub_name" \
-    '
-      .data.chartOfAccounts.categories.revenues |
-      .controlAccounts[] |
-      select(.name == $account_name)
-      .controlSubAccounts[] |
-      select(.name == $account_sub_name)
-      .accountCode
-    '
-  )
-  [[ "$control_account_code" == "40101" ]] || exit 1
-}
-
 @test "accounting: can import CSV file into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
@@ -87,6 +45,17 @@ teardown_file() {
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
   success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
   [[ "$success" == "true" ]] || exit 1
+}
+
+@test "accounting: can traverse chart of accounts" {
+  exec_admin_graphql 'chart-of-accounts'
+  echo $(graphql_output)
+  control_name="Manuals 1"
+  control_account_code=$(echo "$(graphql_output)" | jq -r \
+    --arg account_name "$control_name" \
+    '.data.chartOfAccounts.children[] | select(.name == $account_name) | .accountCode'
+  )
+  [[ "$control_account_code" == "201" ]] || exit 1
 }
 
 @test "accounting: can execute manual transaction" {
