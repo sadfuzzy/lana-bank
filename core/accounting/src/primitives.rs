@@ -11,8 +11,9 @@ pub use cala_ledger::{
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
-        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-        JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
+        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, BalanceId as CalaBalanceId,
+        EntryId as CalaEntryId, JournalId as CalaJournalId, TransactionId as CalaTxId,
+        TxTemplateId as CalaTxTemplateId,
     },
 };
 
@@ -803,11 +804,14 @@ pub struct BalanceRange {
 }
 
 impl BalanceRange {
-    pub(crate) fn has_non_zero_balance(&self) -> bool {
+    pub(crate) fn has_non_zero_activity(&self) -> bool {
         if let Some(end) = self.end.as_ref() {
-            end.settled() != Decimal::ZERO
-                || end.pending() != Decimal::ZERO
-                || end.encumbrance() != Decimal::ZERO
+            end.details.settled.dr_balance != Decimal::ZERO
+                || end.details.settled.cr_balance != Decimal::ZERO
+                || end.details.pending.dr_balance != Decimal::ZERO
+                || end.details.pending.cr_balance != Decimal::ZERO
+                || end.details.encumbrance.dr_balance != Decimal::ZERO
+                || end.details.encumbrance.cr_balance != Decimal::ZERO
         } else {
             false
         }
