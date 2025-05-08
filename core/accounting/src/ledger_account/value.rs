@@ -249,7 +249,7 @@ mod tests {
             );
 
             let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id);
 
             assert_eq!(account_balances.usd.unwrap().0, "USD".to_string());
             assert_eq!(account_balances.btc.unwrap().0, "BTC".to_string());
@@ -269,7 +269,7 @@ mod tests {
             );
 
             let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id);
 
             assert_eq!(account_balances.usd.unwrap().0, "USD".to_string());
             assert!(account_balances.btc.is_none());
@@ -289,7 +289,7 @@ mod tests {
             );
 
             let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id);
 
             assert!(account_balances.usd.is_none());
             assert_eq!(account_balances.btc.unwrap().0, "BTC".to_string());
@@ -304,7 +304,7 @@ mod tests {
             let mut balances: HashMap<_, DummyBalance> = HashMap::new();
 
             let account_balances =
-                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id.clone());
+                DummyBalances::extract_from_balances(&mut balances, journal_id, account_id);
 
             assert!(account_balances.usd.is_none());
             assert!(account_balances.btc.is_none());
