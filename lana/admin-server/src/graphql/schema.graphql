@@ -412,6 +412,7 @@ type CreditFacilityBalance {
 input CreditFacilityCollateralUpdateInput {
 	creditFacilityId: UUID!
 	collateral: Satoshis!
+	effective: Date!
 }
 
 type CreditFacilityCollateralUpdatePayload {
@@ -560,6 +561,7 @@ type CreditFacilityOrigination {
 input CreditFacilityPartialPaymentInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
+	effective: Date!
 }
 
 type CreditFacilityPartialPaymentPayload {

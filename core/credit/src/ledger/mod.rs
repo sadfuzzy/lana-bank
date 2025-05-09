@@ -1073,6 +1073,7 @@ impl CreditLedger {
             tx_id,
             abs_diff,
             action,
+            effective,
         }: CollateralUpdate,
         credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
@@ -1093,6 +1094,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1112,6 +1114,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1130,6 +1133,7 @@ impl CreditLedger {
             amount,
             account_to_be_debited_id,
             receivable_account_id,
+            effective,
             ..
         }: PaymentAllocation,
     ) -> Result<(), CreditLedgerError> {
@@ -1140,6 +1144,7 @@ impl CreditLedger {
             receivable_account_id,
             account_to_be_debited_id,
             tx_ref: tx_ref.to_string(),
+            effective,
         };
         self.cala
             .post_transaction_in_op(
@@ -1177,6 +1182,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             not_yet_due_account_id,
             due_account_id,
+            effective,
             ..
         }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1191,6 +1197,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1206,6 +1213,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             due_account_id,
             overdue_account_id,
+            effective,
             ..
         }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1220,6 +1228,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1235,6 +1244,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             receivable_account_id,
             defaulted_account_id,
+            effective,
             ..
         }: ObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1249,6 +1259,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1277,6 +1288,7 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
+                    effective: crate::time::now().date_naive(),
                 },
             )
             .await?;

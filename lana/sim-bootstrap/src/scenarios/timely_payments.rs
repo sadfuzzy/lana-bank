@@ -27,7 +27,12 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
         match &msg.payload {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
                 app.credit()
-                    .update_collateral(&sub, cf.id, Satoshis::try_from_btc(dec!(230))?)
+                    .update_collateral(
+                        &sub,
+                        cf.id,
+                        Satoshis::try_from_btc(dec!(230))?,
+                        sim_time::now().date_naive(),
+                    )
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
@@ -42,7 +47,9 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
                 amount,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                app.credit().record_payment(&sub, *id, *amount).await?;
+                app.credit()
+                    .record_payment(&sub, *id, *amount, sim_time::now().date_naive())
+                    .await?;
                 let facility = app
                     .credit()
                     .find_by_id(&sub, *id)
@@ -54,7 +61,12 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
                     let total_outstanding_amount = app.credit().outstanding(&facility).await?;
                     if !total_outstanding_amount.is_zero() {
                         app.credit()
-                            .record_payment(&sub, facility.id, total_outstanding_amount)
+                            .record_payment(
+                                &sub,
+                                facility.id,
+                                total_outstanding_amount,
+                                sim_time::now().date_naive(),
+                            )
                             .await?;
                     }
                     app.credit().complete_facility(&sub, facility.id).await?;
