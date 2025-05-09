@@ -12,8 +12,6 @@ pub enum CoreCreditError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCreditError - CreditError: {0}")]
     CreditLedgerError(#[from] super::ledger::error::CreditLedgerError),
-    #[error("CoreCreditError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
     #[error("CoreCreditError - CreditFacilityError: {0}")]
     CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - HistoryError: {0}")]
@@ -55,5 +53,3 @@ pub enum CoreCreditError {
     #[error("CoreCreditError - CreditConfigAlreadyExists")]
     CreditConfigAlreadyExists,
 }
-
-es_entity::from_es_entity_error!(CoreCreditError);

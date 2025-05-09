@@ -115,7 +115,6 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[es_entity::retry_on_concurrent_modification]
     async fn confirm_interest_accrual(
         &self,
         db: &mut es_entity::DbOp<'_>,

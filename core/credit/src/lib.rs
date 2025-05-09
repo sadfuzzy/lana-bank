@@ -518,7 +518,6 @@ where
     }
 
     #[instrument(name = "credit_facility.initiate_disbursal", skip(self), err)]
-    #[es_entity::retry_on_concurrent_modification]
     pub async fn initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -676,7 +675,6 @@ where
             .await?)
     }
 
-    #[es_entity::retry_on_concurrent_modification]
     #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
