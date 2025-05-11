@@ -84,7 +84,9 @@
           # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
           # pname = lanaCliPname; # Or keep explicitly if preferred
           # version = lanaCliVersion; # Or keep explicitly if preferred
-          cargoExtraArgs = "-p ${lanaCliPname}"; # Build only the specific package
+
+          # FIXME: aiming at parity with older script for now
+          cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;

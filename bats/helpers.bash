@@ -105,9 +105,8 @@ start_server_nix() {
     else
       sleep 1
       echo "--- Server not running ---"
+      cat "$LOG_FILE"
     fi
-    # showing log file
-    cat "$LOG_FILE"
   done
 }
 

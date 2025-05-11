@@ -35,6 +35,7 @@ groups:
     jobs:
       - nodejs-check-code
       - rust-check-code
+      - build-debug
       - bats-integrations-test
       - release
       #!- build-edge-image
@@ -48,6 +49,26 @@ groups:
 
 jobs:
   #! -  #@ build_edge_image()
+  - name: build-debug
+    plan:
+    - get: repo
+      trigger: true
+    - task: nix-debug
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
+        inputs:
+          - name: repo
+        run:
+          path: sh
+          args:
+          - -ec
+          - |
+            cd repo
+            nix build . -L
   - name: bats-integrations-test
     #! serial: true
     plan:
