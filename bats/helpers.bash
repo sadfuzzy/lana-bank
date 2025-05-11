@@ -19,8 +19,6 @@ LOG_FILE=".e2e-logs"
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
 }
 
 server_cmd() {
@@ -97,19 +95,19 @@ start_server_nix() {
   background nix run . > "$LOG_FILE" 2>&1
   echo "--- Server started ---"
   for i in {1..20}; do
-    echo "--- Checking if server is running ---"
-    if head "$LOG_FILE" | grep -q 'Starting'; then
+    echo "--- Checking if server is running ${i} ---"
+    if grep -q 'Starting' "$LOG_FILE"; then
       break
-    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
+    elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
       sleep 1
       background nix run . > "$LOG_FILE" 2>&1
     else
       sleep 1
       echo "--- Server not running ---"
-      # showing log file
-      cat "$LOG_FILE"
     fi
+    # showing log file
+    cat "$LOG_FILE"
   done
 }
 
