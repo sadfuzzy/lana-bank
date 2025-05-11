@@ -112,7 +112,7 @@
           bacon
           typos
           postgresql
-          # docker-compose
+          docker-compose
           bats
           jq
           nodejs
