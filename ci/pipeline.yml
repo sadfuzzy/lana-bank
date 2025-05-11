@@ -37,6 +37,7 @@ groups:
       - rust-check-code
       - build-debug
       - integration-tests
+      - bats-tests
       - bats-integrations-test
       - release
       #!- build-edge-image
@@ -50,6 +51,7 @@ groups:
 
 jobs:
   #! -  #@ build_edge_image()
+
   - name: integration-tests
     serial: true
     plan:
@@ -74,6 +76,7 @@ jobs:
               - |
                 set -euo pipefail
                 pushd repo
+
                 echo "--- Manually configuring Nix for Cachix ---"
                 mkdir -p /etc/nix
                 # Append to nix.conf, creating if it doesn't exist
@@ -84,11 +87,12 @@ jobs:
                 # Ensure the auth token is available for nix commands
                 export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
                 echo "--- Nix configuration done ---"
+
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-  
+
   - name: build-debug
     plan:
     - get: repo
@@ -109,6 +113,7 @@ jobs:
           - |
             cd repo
             nix build . -L
+
   - name: bats-integrations-test
     #! serial: true
     plan:
@@ -164,6 +169,63 @@ jobs:
                 
                 #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
+
+  - name: bats-tests
+    serial: true
+    plan:
+      - in_parallel:
+          - get: repo
+            trigger: true
+          - { get: pipeline-tasks }
+      - task: bats-tests
+        timeout: 50m
+        attempts: 1
+        privileged: true
+        config:
+          platform: linux
+          image_resource: #@ nix_task_image_config()
+          inputs:
+            - name: pipeline-tasks
+            - name: repo
+              path: repo
+          params:
+            DOCKERHUB_USERNAME: #@ data.values.docker_registry_user
+            DOCKERHUB_PASSWORD: #@ data.values.docker_registry_password
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                pushd repo
+
+                echo "--- Manually configuring Nix for Cachix ---"
+                mkdir -p /etc/nix
+                # Append to nix.conf, creating if it doesn't exist
+                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
+                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
+                echo "Configured /etc/nix/nix.conf:"
+                cat /etc/nix/nix.conf
+                # Ensure the auth token is available for nix commands
+                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
+                echo "--- Nix configuration done ---"
+
+                echo "--- Building and pushing devShell dependencies to Cachix ---"
+                if [[ -n "${CACHIX_AUTH_TOKEN}" ]]; then
+                  # Use nix shell to make cachix and nix available for the push command
+                  nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
+                    "nix build .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
+                  || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
+                else
+                  echo "Warning: CACHIX_AUTH_TOKEN not set. Skipping pre-emptive push of devShell dependencies."
+                fi
+                echo "--- devShell push attempt finished ---"
+
+                echo "--- Entering Nix Develop Environment and running script ---"
+                # The script path is relative to the pipeline-tasks input root
+                # Assumes pipeline-tasks is mounted at the task root, alongside repo
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
 
   - name: rust-check-code
@@ -270,8 +332,9 @@ jobs:
             passed: 
               - nodejs-check-code
               - rust-check-code
+              - integration-tests
               - build-static-binary
-              - bats-integrations-test
+              - bats-tests
             trigger: true
           - get: pipeline-tasks
           - get: version

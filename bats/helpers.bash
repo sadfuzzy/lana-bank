@@ -55,14 +55,17 @@ start_server() {
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    if head "$LOG_FILE" | grep -q 'Starting'; then
+    echo "--- Checking if server is running ${i} ---"
+    if grep -q 'Starting' "$LOG_FILE"; then
       break
-    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
+    elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
       sleep 1
       background server_cmd > "$LOG_FILE" 2>&1
     else
       sleep 1
+      echo "--- Server not running ---"
+      cat "$LOG_FILE"
     fi
   done
 }
