@@ -100,18 +100,16 @@ start_server_nix() {
     echo "--- Checking if server is running ---"
     if head "$LOG_FILE" | grep -q 'Starting'; then
       break
-      exit 0
     elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
       sleep 1
       background nix run . > "$LOG_FILE" 2>&1
     else
       sleep 1
+      echo "--- Server not running ---"
+      # showing log file
+      cat "$LOG_FILE"
     fi
-    echo "--- Server not running ---"
-    # showing log file
-    cat "$LOG_FILE"
-    exit 1
   done
 }
 
