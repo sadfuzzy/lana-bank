@@ -26,7 +26,7 @@ export DOCKER_HOST=unix:///run/podman/podman.sock
 podman system service --time=0 & # Start service in background
 podman_service_pid=$! # Capture PID (optional, mainly for clarity)
 echo "--- Podman service background PID: $podman_service_pid ---"
-sleep 5 # Wait a bit for the socket to become active
+sleep 1 # Wait a bit for the socket to become active
 echo "--- Podman service started (attempted) ---"
 
 # --- Start Dependencies ---

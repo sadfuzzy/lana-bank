@@ -56,57 +56,16 @@ jobs:
           - get: repo
             trigger: true
           - { get: pipeline-tasks }
-      - task: integration-tests
-        attempts: 2
-        privileged: true
-        config:
-          platform: linux
-          image_resource: #@ nix_task_image_config()
-          inputs:
-            - name: pipeline-tasks
-            - name: repo
-              path: repo
-          caches:
-          #! - path: /var/lib/containers/storage
-            - path: /opt/nix-cache
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                pushd repo
 
-                echo "--- Manually configuring Nix for Cachix and alternative store ---"
-                mkdir -p /etc/nix
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
-                echo "store = /opt/nix-cache" >> /etc/nix/nix.conf
-
-                echo "--- Ensuring alternative Nix store directory structure ---"
-                mkdir -p "/opt/nix-cache/var/nix/db"
-                mkdir -p "/opt/nix-cache/var/nix/gcroots"
-                mkdir -p "/opt/nix-cache/var/nix/temproots"
-                mkdir -p "/opt/nix-cache/var/nix/userpool"
-                mkdir -p "/opt/nix-cache/var/log/nix/drvs"
-
-                echo "Configured /etc/nix/nix.conf:"
-                cat /etc/nix/nix.conf
-                echo "--- Nix configuration done ---"
-
-                echo "--- Entering Nix Develop Environment and running script (with alternative store) ---"
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-
-  - name: bats-tests
+  - name: bats-integrations-test
     serial: true
     plan:
       - in_parallel:
           - get: repo
             trigger: true
           - { get: pipeline-tasks }
-      - task: bats-tests
+      - task: bats-integrations-tests
         timeout: 90m
-        attempts: 1
         privileged: true
         config:
           platform: linux
@@ -143,6 +102,9 @@ jobs:
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root
                 # Assumes pipeline-tasks is mounted at the task root, alongside repo
+                
+                #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
+
                 nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
 
   - name: rust-check-code
@@ -324,7 +286,7 @@ jobs:
               image_resource:
                 type: registry-image
                 source:
-                  repository: vito/oci-build-task
+                  repository: concourse/oci-build-task
               inputs:
                 - name: admin-panel-src
               outputs:
@@ -348,7 +310,7 @@ jobs:
               image_resource:
                 type: registry-image
                 source:
-                  repository: vito/oci-build-task
+                  repository: concourse/oci-build-task
               inputs:
                 - name: customer-portal-src
               outputs:
@@ -432,7 +394,7 @@ jobs:
           image_resource:
             type: registry-image
             source:
-              repository: vito/oci-build-task
+              repository: concourse/oci-build-task
           inputs:
             - name: repo
           outputs:

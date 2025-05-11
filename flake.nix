@@ -66,22 +66,23 @@
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
         // {
-          doCheck = false;
           cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
         });
+
+      lanaCliPname = "lana-cli";
 
       # Build the Lana CLI crate using the cached deps
       lana-cli = craneLib.buildPackage (commonArgs
         // {
           cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
           cargoArtifacts = cargoArtifacts;
-          doCheck = false; # Disable tests during the Nix build of this package
+          doCheck = false; # Disable tests for lana-cli
           # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
           # pname = lanaCliPname; # Or keep explicitly if preferred
           # version = lanaCliVersion; # Or keep explicitly if preferred
-          # cargoExtraArgs = "-p ${lanaCliPname}"; # Build only the specific package
+          cargoExtraArgs = "-p ${lanaCliPname}"; # Build only the specific package
         });
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
