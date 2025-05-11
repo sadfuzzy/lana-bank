@@ -67,7 +67,7 @@ jobs:
             - name: repo
               path: repo
           caches:
-            - path: /var/lib/containers/storage
+          #! - path: /var/lib/containers/storage
             - path: /opt/nix-cache
           run:
             path: sh
@@ -117,8 +117,6 @@ jobs:
               path: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          caches:
-            - path: /var/lib/containers/storage
           run:
             path: sh
             args:
