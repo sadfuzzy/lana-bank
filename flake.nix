@@ -98,14 +98,14 @@
       ];
       nativeBuildInputs = with pkgs;
         [
-          # rustToolchain
+          rustToolchain
           opentofu
           alejandra
           ytt
           sqlx-cli
-          # cargo-nextest
-          # cargo-audit
-          # cargo-watch
+          cargo-nextest
+          cargo-audit
+          cargo-watch
           bacon
           typos
           postgresql
