@@ -59,6 +59,7 @@
             # pkgs.libiconv
           ];
 
+        CARGO_PROFILE = "dev";
         SQLX_OFFLINE = true;
         # No specific package name for commonArgs, it's for general settings
         # version = lanaCliVersion; # Version will be set per-package
@@ -97,18 +98,18 @@
       ];
       nativeBuildInputs = with pkgs;
         [
-          rustToolchain
+          # rustToolchain
           opentofu
           alejandra
           ytt
           sqlx-cli
-          cargo-nextest
-          cargo-audit
-          cargo-watch
+          # cargo-nextest
+          # cargo-audit
+          # cargo-watch
           bacon
           typos
           postgresql
-          docker-compose
+          # docker-compose
           bats
           jq
           nodejs
