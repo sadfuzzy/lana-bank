@@ -40,7 +40,8 @@
         filter = path: type:
           craneLib.filterCargoSources path type
           || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
-          || pkgs.lib.hasInfix "/.sqlx/" path;
+          || pkgs.lib.hasInfix "/.sqlx/" path
+          || pkgs.lib.hasInfix "/lana/app/migrations/" path;
       };
 
       commonArgs = {
