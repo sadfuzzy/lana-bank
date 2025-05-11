@@ -41,18 +41,18 @@ make setup-db
 echo "--- Building test artifacts---"
 # make build-for-tests
 
-nix build . | cachix push lana-ci
-BUILD_EXIT_CODE=$?
+# nix build . | cachix push lana-ci
+# BUILD_EXIT_CODE=$?
 
-echo "--- Build/Push finished with code: $BUILD_EXIT_CODE ---"
-if [ $BUILD_EXIT_CODE -ne 0 ]; then
-    echo "Error: make build-for-tests (wrapped by cachix) failed."
-    exit $BUILD_EXIT_CODE
-fi
+# echo "--- Build/Push finished with code: $BUILD_EXIT_CODE ---"
+# if [ $BUILD_EXIT_CODE -ne 0 ]; then
+#     echo "Error: make build-for-tests (wrapped by cachix) failed."
+#     exit $BUILD_EXIT_CODE
+# fi
 
 # --- Start Lana Server (Moved outside Bats) ---
 echo "--- Starting Lana server for tests ---"
-start_server # Function from helpers.bash
+start_server_nix # Function from helpers.bash
 # Optional: Add a more robust check here to ensure the server is fully ready
 # Check the return status of start_server
 if [[ $? -ne 0 ]]; then
