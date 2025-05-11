@@ -84,8 +84,7 @@ jobs:
                 # Append to nix.conf, creating if it doesn't exist
                 echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
                 echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
-                echo "download-buffer-size = 67108864" >> /etc/nix/nix.conf
-                echo "max-jobs = 8" >> /etc/nix/nix.conf
+                echo "download-buffer-size = 1024000000" >> /etc/nix/nix.conf
 
                 echo "--- Nix configuration done ---"
                 echo "Configured /etc/nix/nix.conf:"
@@ -93,13 +92,10 @@ jobs:
                 # Ensure the auth token is available for nix commands
                 echo "--- Nix configuration done ---"
 
-                echo "--- Building and pushing devShell dependencies to Cachix ---"
+                echo "--- Building and pushing lana-cli and devShell dependencies to Cachix ---"
                   nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
-                    "nix build .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
+                    "nix build . .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
                   || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
-
-                nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
-                  "nix build . --print-out-paths --no-link | cachix push lana-ci"
 
                 echo "--- Entering Nix Develop Environment and running script ---"
                 # The script path is relative to the pipeline-tasks input root

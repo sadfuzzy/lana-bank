@@ -70,6 +70,8 @@ start_server() {
 }
 
 start_server_nix() {
+  echo "--- Starting server nix ---"
+
   # Check for running server
   if [ -n "$BASH_VERSION" ]; then
     server_process_and_status=$(
@@ -93,8 +95,10 @@ start_server_nix() {
 
   # Start server if not already running
   background nix run . > "$LOG_FILE" 2>&1
+  echo "--- Server started ---"
   for i in {1..20}; do
-    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
+    echo "--- Checking if server is running ---"
+    if head "$LOG_FILE" | grep -q 'Starting'; then
       break
     elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
       stop_server
