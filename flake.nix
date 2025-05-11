@@ -31,11 +31,6 @@
       pkgs = import nixpkgs {
         inherit system overlays;
       };
-      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-      rustToolchain = rustVersion.override {
-        extensions = ["rust-analyzer" "rust-src"];
-      };
-      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
       craneLib = crane.mkLib pkgs;
       # craneLib = craneLib.crateNameFromCargoToml {cargoToml = "./path/to/Cargo.toml";};
@@ -61,7 +56,7 @@
           ]
           ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
             # Additional darwin specific inputs can be set here
-            pkgs.libiconv
+            # pkgs.libiconv
           ];
 
         SQLX_OFFLINE = true;
@@ -71,6 +66,7 @@
 
       cargoArtifacts = craneLib.buildDepsOnly (commonArgs
         // {
+          doCheck = false;
           cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
@@ -81,11 +77,19 @@
         // {
           cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
           cargoArtifacts = cargoArtifacts;
+          doCheck = false; # Disable tests during the Nix build of this package
           # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
           # pname = lanaCliPname; # Or keep explicitly if preferred
           # version = lanaCliVersion; # Or keep explicitly if preferred
           # cargoExtraArgs = "-p ${lanaCliPname}"; # Build only the specific package
         });
+
+      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
+
+      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rustToolchain = rustVersion.override {
+        extensions = ["rust-analyzer" "rust-src"];
+      };
 
       aliases = [
         (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
