@@ -1,23 +1,25 @@
 [package]
 name = "deposit"
-version = "0.3.168-dev"
+version = "0.3.466-dev"
 edition = "2021"
 
 [features]
 
 fail-on-warnings = []
-graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
+graphql = ["dep:async-graphql", "cala-ledger/graphql"]
+sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 [dependencies]
 core-money = { path = "../money" }
 governance = { path = "../governance" }
 core-customer = { path = "../customer" }
-chart-of-accounts = { path = "../chart-of-accounts" }
+core-accounting = { path = "../accounting" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
@@ -35,6 +37,7 @@ rust_decimal = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
+sim-time = { workspace = true, optional = true }
 base64 = { workspace = true }
 
 [dev-dependencies]

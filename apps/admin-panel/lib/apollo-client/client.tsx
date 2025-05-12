@@ -33,6 +33,11 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
           history: relayStylePagination(),
         },
       },
+      TrialBalance: {
+        fields: {
+          accounts: relayStylePagination(),
+        },
+      },
       Query: {
         fields: {
           customers: { ...relayStylePagination(), keyArgs: ["sort", "filter"] },
@@ -50,6 +55,10 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
           loans: relayStylePagination(),
           committees: relayStylePagination(),
           audit: relayStylePagination(),
+          generalLedgerEntries: relayStylePagination(),
+          journalEntries: relayStylePagination(),
+          transactionTemplates: relayStylePagination(),
+          ledgerTransactionsForTemplateCode: relayStylePagination(),
         },
       },
     },

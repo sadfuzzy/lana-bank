@@ -6,18 +6,18 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const ACTIVATE_CREDIT_FACILITY_CODE: &str = "ACTIVATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
 pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: AccountId,
-    pub credit_facility_account: AccountId,
-    pub facility_disbursed_receivable_account: AccountId,
-    pub facility_fee_income_account: AccountId,
-    pub debit_account_id: AccountId,
+    pub credit_omnibus_account: CalaAccountId,
+    pub credit_facility_account: CalaAccountId,
+    pub facility_disbursed_receivable_account: CalaAccountId,
+    pub facility_fee_income_account: CalaAccountId,
+    pub debit_account_id: CalaAccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
     pub currency: Currency,
@@ -115,7 +115,7 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("structuring_fee_amount", structuring_fee_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
         params
     }
 }
@@ -135,10 +135,28 @@ impl ActivateCreditFacility {
 
         let entries = vec![
             NewTxTemplateEntry::builder()
+                .account_id("params.credit_facility_account")
+                .units("params.facility_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_PENDING_DR'")
+                .direction("DEBIT")
+                .layer("PENDING")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
                 .account_id("params.credit_omnibus_account")
                 .units("params.facility_amount")
                 .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_DR'")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_PENDING_CR'")
+                .direction("CREDIT")
+                .layer("PENDING")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.credit_omnibus_account")
+                .units("params.facility_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_SETTLED_DR'")
                 .direction("DEBIT")
                 .layer("SETTLED")
                 .build()
@@ -147,7 +165,7 @@ impl ActivateCreditFacility {
                 .account_id("params.credit_facility_account")
                 .units("params.facility_amount")
                 .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_CR'")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_SETTLED_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()

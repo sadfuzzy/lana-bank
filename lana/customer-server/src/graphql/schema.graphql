@@ -33,7 +33,6 @@ type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
 	facilityAmount: UsdCents!
-	collateral: Satoshis!
 	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
 	createdAt: Timestamp!
@@ -42,9 +41,9 @@ type CreditFacility {
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
 	currentCvl: FacilityCVL!
-	transactions: [CreditFacilityHistoryEntry!]!
+	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
-	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 }
 
 type CreditFacilityBalance {
@@ -75,7 +74,6 @@ type CreditFacilityCollateralizationUpdated {
 type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
-	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	status: DisbursalStatus!
@@ -117,7 +115,7 @@ type CreditFacilityPayment {
 	creditFacility: CreditFacility!
 }
 
-type CreditFacilityRepaymentInPlan {
+type CreditFacilityRepaymentPlanEntry {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
 	initial: UsdCents!
@@ -128,8 +126,10 @@ type CreditFacilityRepaymentInPlan {
 
 enum CreditFacilityRepaymentStatus {
 	UPCOMING
+	NOT_YET_DUE
 	DUE
 	OVERDUE
+	DEFAULTED
 	PAID
 }
 
@@ -234,8 +234,6 @@ type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
 }
-
-scalar DisbursalIdx
 
 enum DisbursalStatus {
 	NEW
@@ -345,7 +343,7 @@ type Subject {
 type TermValues {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
 	liquidationCvl: CVLPct!

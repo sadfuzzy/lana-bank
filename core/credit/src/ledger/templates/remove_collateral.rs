@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 
@@ -15,8 +15,9 @@ pub struct RemoveCollateralParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub collateral_account_id: AccountId,
-    pub bank_collateral_account_id: AccountId,
+    pub collateral_account_id: CalaAccountId,
+    pub bank_collateral_account_id: CalaAccountId,
+    pub effective: chrono::NaiveDate,
 }
 
 impl RemoveCollateralParams {
@@ -64,6 +65,7 @@ impl From<RemoveCollateralParams> for Params {
             amount,
             collateral_account_id,
             bank_collateral_account_id,
+            effective,
         }: RemoveCollateralParams,
     ) -> Self {
         let mut params = Self::default();
@@ -72,7 +74,7 @@ impl From<RemoveCollateralParams> for Params {
         params.insert("amount", amount);
         params.insert("collateral_account_id", collateral_account_id);
         params.insert("bank_collateral_account_id", bank_collateral_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", effective);
 
         params
     }

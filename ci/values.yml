@@ -9,32 +9,20 @@ github_app_private_key: ((github.github_app_private_key))
 
 git_charts_uri: git@github.com:GaloyMoney/galoy-private-charts.git
 git_charts_branch: main
-git_galoy_charts_uri: git@github.com:GaloyMoney/galoy-charts.git
-git_galoy_charts_branch: main
 git_charts_bot_branch: bot-bump-lana-bank-image
-docker_registry: us.gcr.io/galoyorg
+
+gar_registry: us.gcr.io/galoyorg
+gar_registry_user: ((gar-creds.username))
+gar_registry_password: ((gar-creds.password))
+
 docker_registry_user: ((docker-creds.username))
 docker_registry_password: ((docker-creds.password))
-osxcross_docker_username: ((osxcross-image.username))
-osxcross_docker_password: ((osxcross-image.password))
-osxcross_repository: ((osxcross-image.repository))
 
-deployments_git_uri: git@github.com:GaloyMoney/galoy-deployments.git
-deployments_git_branch: main
+cachix_auth_token: ((cachix-token.token))
 
-docker_host_ip: ((staging-ssh.docker_host_ip))
-artifacts_bucket_name: ((staging-gcp-creds.bucket_name))
-staging_inception_creds: ((staging-gcp-creds.creds_json))
-staging_ssh_private_key: ((staging-ssh.ssh_private_key))
-staging_ssh_pub_key: ((staging-ssh.ssh_public_key))
-staging_worker_tag: galoy-staging
-staging_smoketest_kubeconfig: ((staging-smoketest.kubeconfig))
-staging_state_bucket: "galoystaging-tf-state"
-staging_creds: ((staging-gcp-creds.creds_json))
 git_version_branch: version
 gh_org: GaloyMoney
 gh_repository: lana-bank
 
-slack_channel: lana-bank-github
-slack_username: concourse
-slack_webhook_url: ((addons-slack.api_url))
+folder_registry_image: lana-bank
+folder_registry_image_static: lana-bank-static

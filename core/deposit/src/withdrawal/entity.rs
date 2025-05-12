@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::primitives::{
-    ApprovalProcessId, DepositAccountId, LedgerTransactionId, UsdCents, WithdrawalId,
+    ApprovalProcessId, CalaTransactionId, DepositAccountId, UsdCents, WithdrawalId,
 };
 use audit::AuditInfo;
 
@@ -38,11 +38,11 @@ pub enum WithdrawalEvent {
         audit_info: AuditInfo,
     },
     Confirmed {
-        ledger_tx_id: LedgerTransactionId,
+        ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
     Cancelled {
-        ledger_tx_id: LedgerTransactionId,
+        ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
 }
@@ -56,9 +56,9 @@ pub struct Withdrawal {
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
     #[builder(setter(strip_option), default)]
-    pub cancelled_tx_id: Option<LedgerTransactionId>,
+    pub cancelled_tx_id: Option<CalaTransactionId>,
 
-    pub(super) events: EntityEvents<WithdrawalEvent>,
+    events: EntityEvents<WithdrawalEvent>,
 }
 
 impl Withdrawal {
@@ -68,10 +68,7 @@ impl Withdrawal {
             .expect("No events for deposit")
     }
 
-    pub fn confirm(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Result<LedgerTransactionId, WithdrawalError> {
+    pub fn confirm(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
         match self.is_approved_or_denied() {
             Some(false) => return Err(WithdrawalError::NotApproved(self.id)),
             None => return Err(WithdrawalError::NotApproved(self.id)),
@@ -86,7 +83,7 @@ impl Withdrawal {
             return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
-        let ledger_tx_id = LedgerTransactionId::new();
+        let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Confirmed {
             ledger_tx_id,
             audit_info,
@@ -95,10 +92,7 @@ impl Withdrawal {
         Ok(ledger_tx_id)
     }
 
-    pub fn cancel(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Result<LedgerTransactionId, WithdrawalError> {
+    pub fn cancel(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
         }
@@ -107,7 +101,7 @@ impl Withdrawal {
             return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
-        let ledger_tx_id = LedgerTransactionId::new();
+        let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Cancelled {
             ledger_tx_id,
             audit_info,
@@ -202,6 +196,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewWithdrawal {
     #[builder(setter(into))]
     pub(super) id: WithdrawalId,
@@ -230,6 +225,15 @@ impl NewWithdrawal {
     }
 }
 
+impl NewWithdrawalBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Withdrawal amount cannot be zero".to_string()),
+            _ => Ok(()),
+        }
+    }
+}
+
 impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
     fn into_events(self) -> EntityEvents<WithdrawalEvent> {
         EntityEvents::init(
@@ -243,5 +247,66 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                 audit_info: self.audit_info,
             }],
         )
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use audit::AuditEntryId;
+
+    use super::*;
+
+    fn dummy_audit_info() -> AuditInfo {
+        AuditInfo {
+            audit_entry_id: AuditEntryId::from(1),
+            sub: "sub".to_string(),
+        }
+    }
+
+    #[test]
+    fn errors_when_zero_amount_withdrawal_amount_is_passed() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ZERO)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            withdrawal,
+            Err(NewWithdrawalBuilderError::ValidationError(_))
+        ));
+    }
+
+    #[test]
+    fn errors_when_amount_is_not_provided() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(matches!(
+            withdrawal,
+            Err(NewWithdrawalBuilderError::UninitializedField(_))
+        ));
+    }
+
+    #[test]
+    fn passes_when_all_inputs_provided() {
+        let withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build();
+
+        assert!(withdrawal.is_ok());
     }
 }

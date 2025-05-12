@@ -1,166 +1,168 @@
-# Governance
+pdf_filename: gobernanza
 
-This guide provides the steps for creating a committee, adding members, attaching it to policies, and managing processes like approvals and denials. Screenshots accompany each step for clarity.
+# Gobernanza
 
----
-
-## Table of Contents
-
-1. [Create a Committee](#1-create-a-committee)
-2. [Verify Committee in List](#2-verify-committee-in-list)
-3. [Add a Member to the Committee](#3-add-a-member-to-the-committee)
-4. [Attach Committee to a Policy](#4-attach-committee-to-a-policy)
-5. [View Pending Actions](#5-view-pending-actions)
-6. [Approve a Process](#6-approve-a-process)
-7. [Deny a Process](#7-deny-a-process)
+Esta guía proporciona los pasos para crear un comité, añadir miembros, asociarlo a políticas y gestionar procesos como aprobaciones y rechazos. Cada paso se acompaña de capturas de pantalla para mayor claridad.
 
 ---
 
-### 1. Create a Committee {#1-create-a-committee}
+## Tabla de Contenidos
 
-**Flow:** Visit the Committees page, create a new committee, and verify it is created successfully.
-
-#### Steps
-
-1. Visit the Committees page.  
-   ![Step 1: Visit Committees Page](./screenshots/governance.cy.ts/1_step-visit-committees.png)
-
-<!-- new-page -->
-
-2. Click the "Create Committee" button.  
-   ![Step 2: Click Create Committee Button](./screenshots/governance.cy.ts/2_step-click-create-committee-button.png)
-
-3. Fill in the committee name and verify the input.  
-   ![Step 3: Fill Committee Name](./screenshots/governance.cy.ts/3_step-fill-committee-name.png)
-
-<!-- new-page -->
-
-4. Submit the form to create the committee.  
-   ![Step 4: Submit Committee Creation](./screenshots/governance.cy.ts/4_step-submit-committee-creation.png)
-
-5. Verify the success message after creation.  
-   ![Step 5: Committee Created Successfully](./screenshots/governance.cy.ts/5_step-committee-created-successfully.png)
+1. [Crear un Comité](#1-crear-un-comité)
+2. [Verificar Comité en Lista](#2-verificar-comité-en-lista)
+3. [Añadir un Miembro al Comité](#3-añadir-un-miembro-al-comité)
+4. [Asociar Comité a una Política](#4-asociar-comité-a-una-política)
+5. [Ver Acciones Pendientes](#5-ver-acciones-pendientes)
+6. [Aprobar un Proceso](#6-aprobar-un-proceso)
+7. [Rechazar un Proceso](#7-rechazar-un-proceso)
 
 ---
 
+### 1. Crear un Comité {#1-crear-un-comité}
+
+**Flujo:** Visitar la página de Comités, crear un nuevo comité y verificar que se haya creado correctamente.
+
+#### Pasos
+
+1. Visitar la página de Comités.  
+   ![Paso 1: Visitar Página de Comités](./screenshots/governance.cy.ts/1_step-visit-committees.png)
+
 <!-- new-page -->
 
-### 2. Verify Committee in List {#2-verify-committee-in-list}
+2. Hacer clic en el botón "Crear Comité".  
+   ![Paso 2: Hacer Clic en el Botón Crear Comité](./screenshots/governance.cy.ts/2_step-click-create-committee-button.png)
 
-**Flow:** Return to the committees list and verify the newly created committee is visible.
+3. Completar el nombre del comité y verificar la entrada.  
+   ![Paso 3: Completar Nombre del Comité](./screenshots/governance.cy.ts/3_step-fill-committee-name.png)
 
-#### Steps
+<!-- new-page -->
 
-1. Visit the Committees list page.  
-   ![Step 6: Committees List](./screenshots/governance.cy.ts/6_step-view-committees-list.png)
+4. Enviar el formulario para crear el comité.  
+   ![Paso 4: Enviar Creación del Comité](./screenshots/governance.cy.ts/4_step-submit-committee-creation.png)
+
+5. Verificar el mensaje de éxito después de la creación.  
+   ![Paso 5: Comité Creado Exitosamente](./screenshots/governance.cy.ts/5_step-committee-created-successfully.png)
 
 ---
 
 <!-- new-page -->
 
-### 3. Add a Member to the Committee {#3-add-a-member-to-the-committee}
+### 2. Verificar Comité en Lista {#2-verificar-comité-en-lista}
 
-**Flow:** Open the committee details page, add a new member (admin) to the committee, and verify the action was successful.
+**Flujo:** Volver a la lista de comités y verificar que el comité recién creado sea visible.
 
-#### Steps
+#### Pasos
 
-1. Visit the committee details page.  
-   ![Step 7: Visit Committee Details](./screenshots/governance.cy.ts/7_step-visit-committee-details.png)
-
-2. Click the "Add Member" button.  
-   ![Step 8: Click Add Member Button](./screenshots/governance.cy.ts/8_step-click-add-member-button.png)
-
-<!-- new-page -->
-
-3. Select the "admin" role from the dropdown.  
-   ![Step 9: Select Admin Role](./screenshots/governance.cy.ts/9_step-select-admin-role.png)
-
-4. Submit the form to add the member.  
-   ![Step 10: Submit Add Member](./screenshots/governance.cy.ts/10_step-submit-add-member.png)
-
-<!-- new-page -->
-
-5. Verify the success message and member addition.  
-   ![Step 11: Member Added Successfully](./screenshots/governance.cy.ts/11_step-verify-member-added.png)
+1. Visitar la página de lista de Comités.  
+   ![Paso 6: Lista de Comités](./screenshots/governance.cy.ts/6_step-view-committees-list.png)
 
 ---
 
 <!-- new-page -->
 
-### 4. Attach Committee to a Policy {#4-attach-committee-to-a-policy}
+### 3. Añadir un Miembro al Comité {#3-añadir-un-miembro-al-comité}
 
-**Flow:** Visit the policies page, assign the previously created committee to a policy, and verify the assignment.
+**Flujo:** Abrir la página de detalles del comité, añadir un nuevo miembro (admin) al comité y verificar que la acción haya sido exitosa.
 
-#### Steps
+#### Pasos
 
-1. Visit the Policies page.  
-   ![Step 12: Visit Policies Page](./screenshots/governance.cy.ts/12_step-visit-policies-page.png)
+1. Visitar la página de detalles del comité.  
+   ![Paso 7: Visitar Detalles del Comité](./screenshots/governance.cy.ts/7_step-visit-committee-details.png)
 
-2. Select a policy from the list.  
-   ![Step 13: Select Policy](./screenshots/governance.cy.ts/13_step-select-policy.png)
+2. Hacer clic en el botón "Añadir Miembro".  
+   ![Paso 8: Hacer Clic en el Botón Añadir Miembro](./screenshots/governance.cy.ts/8_step-click-add-member-button.png)
 
 <!-- new-page -->
 
-3. Assign the committee to the policy with a threshold.  
-   ![Step 14: Assign Committee to Policy](./screenshots/governance.cy.ts/14_step-assign-committee-to-policy.png)
+3. Seleccionar el rol "admin" del menú desplegable.  
+   ![Paso 9: Seleccionar Rol Admin](./screenshots/governance.cy.ts/9_step-select-admin-role.png)
 
-4. Verify the success message and committee assignment.  
-   ![Step 15: Verify Committee Assigned](./screenshots/governance.cy.ts/15_step-verify-committee-assigned.png)
+4. Enviar el formulario para añadir el miembro.  
+   ![Paso 10: Enviar Añadir Miembro](./screenshots/governance.cy.ts/10_step-submit-add-member.png)
+
+<!-- new-page -->
+
+5. Verificar el mensaje de éxito y la adición del miembro.  
+   ![Paso 11: Miembro Añadido Exitosamente](./screenshots/governance.cy.ts/11_step-verify-member-added.png)
 
 ---
 
 <!-- new-page -->
 
-### 5. View Pending Actions {#5-view-pending-actions}
+### 4. Asociar Comité a una Política {#4-asociar-comité-a-una-política}
 
-**Flow:** Initiate a deposit and withdrawal for a customer, then visit the actions page to verify pending approvals.
+**Flujo:** Visitar la página de políticas, asignar el comité previamente creado a una política y verificar la asignación.
 
-#### Steps
+#### Pasos
 
-1. Visit the Actions page.  
-   ![Step 16: View Actions Page](./screenshots/governance.cy.ts/16_step-view-actions-page.png)
+1. Visitar la página de Políticas.  
+   ![Paso 12: Visitar Página de Políticas](./screenshots/governance.cy.ts/12_step-visit-policies-page.png)
 
-2. Verify the pending withdrawal is visible.  
-   ![Step 17: Verify Pending Withdrawal](./screenshots/governance.cy.ts/17_step-verify-pending-withdrawal.png)
+2. Seleccionar una política de la lista.  
+   ![Paso 13: Seleccionar Política](./screenshots/governance.cy.ts/13_step-select-policy.png)
+
+<!-- new-page -->
+
+3. Asignar el comité a la política con un umbral.  
+   ![Paso 14: Asignar Comité a Política](./screenshots/governance.cy.ts/14_step-assign-committee-to-policy.png)
+
+4. Verificar el mensaje de éxito y la asignación del comité.  
+   ![Paso 15: Verificar Comité Asignado](./screenshots/governance.cy.ts/15_step-verify-committee-assigned.png)
 
 ---
 
 <!-- new-page -->
 
-### 6. Approve a Process {#6-approve-a-process}
+### 5. Ver Acciones Pendientes {#5-ver-acciones-pendientes}
 
-**Flow:** As a committee member, approve a process (e.g., approving a withdrawal assigned to the committee).
+**Flujo:** Iniciar un depósito y un retiro para un cliente, luego visitar la página de acciones para verificar las aprobaciones pendientes.
 
-#### Steps
+#### Pasos
 
-1. Create and visit the withdrawal details page.  
-   ![Step 18: Visit Withdrawal Details](./screenshots/governance.cy.ts/18_step-visit-withdrawal-details.png)
+1. Visitar la página de Acciones.  
+   ![Paso 16: Ver Página de Acciones](./screenshots/governance.cy.ts/16_step-view-actions-page.png)
 
-2. Click the "Approve" button.  
-   ![Step 19: Click Approve Button](./screenshots/governance.cy.ts/19_step-click-approve-button.png)
-
-<!-- new-page -->
-
-3. Verify the approval success and status change.  
-   ![Step 20: Verify Approval Success](./screenshots/governance.cy.ts/20_step-verify-approval-success.png)
+2. Verificar que el retiro pendiente sea visible.  
+   ![Paso 17: Verificar Retiro Pendiente](./screenshots/governance.cy.ts/17_step-verify-pending-withdrawal.png)
 
 ---
 
 <!-- new-page -->
 
-### 7. Deny a Process {#7-deny-a-process}
+### 6. Aprobar un Proceso {#6-aprobar-un-proceso}
 
-**Flow:** As a committee member, deny a process (e.g., denying a withdrawal assigned to the committee).
+**Flujo:** Como miembro del comité, aprobar un proceso (por ejemplo, aprobar un retiro asignado al comité).
 
-#### Steps
+#### Pasos
 
-1. Create and visit the withdrawal details page.  
-   ![Step 21: Visit Withdrawal for Denial](./screenshots/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+1. Crear y visitar la página de detalles del retiro.  
+   ![Paso 18: Visitar Detalles del Retiro](./screenshots/governance.cy.ts/18_step-visit-withdrawal-details.png)
 
-2. Click the "Deny" button and provide a reason.  
-   ![Step 22: Click Deny Button](./screenshots/governance.cy.ts/22_step-click-deny-button.png)
+2. Hacer clic en el botón "Aprobar".  
+   ![Paso 19: Hacer Clic en el Botón Aprobar](./screenshots/governance.cy.ts/19_step-click-approve-button.png)
 
 <!-- new-page -->
 
-3. Verify the denial success and status change.  
-   ![Step 23: Verify Denial Success](./screenshots/governance.cy.ts/23_step-verify-denial-success.png)
+3. Verificar el éxito de la aprobación y el cambio de estado.  
+   ![Paso 20: Verificar Éxito de Aprobación](./screenshots/governance.cy.ts/20_step-verify-approval-success.png)
+
+---
+
+<!-- new-page -->
+
+### 7. Rechazar un Proceso {#7-rechazar-un-proceso}
+
+**Flujo:** Como miembro del comité, rechazar un proceso (por ejemplo, rechazar un retiro asignado al comité).
+
+#### Pasos
+
+1. Crear y visitar la página de detalles del retiro.  
+   ![Paso 21: Visitar Retiro para Rechazo](./screenshots/governance.cy.ts/21_step-visit-withdrawal-for-denial.png)
+
+2. Hacer clic en el botón "Rechazar" y proporcionar un motivo.  
+   ![Paso 22: Hacer Clic en el Botón Rechazar](./screenshots/governance.cy.ts/22_step-click-deny-button.png)
+
+<!-- new-page -->
+
+3. Verificar el éxito del rechazo y el cambio de estado.  
+   ![Paso 23: Verificar Éxito del Rechazo](./screenshots/governance.cy.ts/23_step-verify-denial-success.png)

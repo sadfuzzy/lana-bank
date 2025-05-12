@@ -1,8 +1,9 @@
+@import "@lana/web/globals.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "@lana/web/globals.css";
 
 .center {
   @apply flex justify-center items-center h-full w-full;

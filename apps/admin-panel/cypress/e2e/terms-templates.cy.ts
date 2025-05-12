@@ -1,3 +1,9 @@
+import { t } from "../support/translation"
+
+const TTDetails = "TermsTemplates.TermsTemplateDetails"
+const period = "period"
+const interestInterval = "interestInterval"
+
 describe("Terms Template", () => {
   let templateName: string
   let templateId: string
@@ -20,49 +26,55 @@ describe("Terms Template", () => {
     cy.takeScreenshot("2_click_create_button")
 
     cy.get('[data-testid="terms-template-name-input"]')
-      .type(templateName, { delay: 0, waitForAnimations: false })
+      .type(templateName)
       .should("have.value", templateName)
     cy.takeScreenshot("3_enter_template_name")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
-      .type("5.5", { delay: 0, waitForAnimations: false })
+      .type("5.5")
       .should("have.value", "5.5")
     cy.takeScreenshot("4_enter_annual_rate")
 
     cy.get('[data-testid="terms-template-duration-units-input"]')
-      .type("12", { delay: 0, waitForAnimations: false })
+      .type("12")
       .should("have.value", "12")
     cy.takeScreenshot("5_enter_duration_units")
 
     cy.get('[data-testid="terms-template-duration-period-select"]').click()
-    cy.get('[role="option"]').contains("Months").click()
+    cy.get('[role="option"]')
+      .contains(t(period + ".months"))
+      .click()
     cy.takeScreenshot("6_select_duration_period")
 
-    cy.get('[data-testid="terms-template-accrual-interval-select"]').click()
-    cy.get('[role="option"]').contains("End Of Month").click()
-    cy.takeScreenshot("7_select_accrual_interval")
+    cy.get('[data-testid="terms-template-accrual-cycle-interval-select"]').click()
+    cy.get('[role="option"]')
+      .contains(t(interestInterval + ".endOfMonth"))
+      .click()
+    cy.takeScreenshot("7_select_accrual_cycle_interval")
 
-    cy.get('[data-testid="terms-template-incurrence-interval-select"]').click()
-    cy.get('[role="option"]').contains("End Of Month").click()
-    cy.takeScreenshot("8_select_incurrence_interval")
+    cy.get('[data-testid="terms-template-accrual-interval-select"]').click()
+    cy.get('[role="option"]')
+      .contains(t(interestInterval + ".endOfMonth"))
+      .click()
+    cy.takeScreenshot("8_select_accrual_interval")
 
     cy.get('[data-testid="terms-template-initial-cvl-input"]')
-      .type("140", { delay: 0, waitForAnimations: false })
+      .type("140")
       .should("have.value", "140")
     cy.takeScreenshot("9_enter_initial_cvl")
 
     cy.get('[data-testid="terms-template-margin-call-cvl-input"]')
-      .type("120", { delay: 0, waitForAnimations: false })
+      .type("120")
       .should("have.value", "120")
     cy.takeScreenshot("10_enter_margin_call_cvl")
 
     cy.get('[data-testid="terms-template-liquidation-cvl-input"]')
-      .type("110", { delay: 0, waitForAnimations: false })
+      .type("110")
       .should("have.value", "110")
     cy.takeScreenshot("11_enter_liquidation_cvl")
 
     cy.get('[data-testid="terms-template-one-time-fee-rate-input"]')
-      .type("5", { delay: 0, waitForAnimations: false })
+      .type("5")
       .should("have.value", "5")
 
     cy.get('[data-testid="terms-template-submit-button"]').click()
@@ -73,7 +85,7 @@ describe("Terms Template", () => {
       /\/terms-templates\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(templateName).should("be.visible")
-    cy.contains("Create Terms Template").should("not.exist")
+    cy.contains(t(TTDetails + ".CreateTermsTemplate.title")).should("not.exist")
     cy.takeScreenshot("13_verify_terms_template_creation")
 
     cy.getIdFromUrl("/terms-templates/").then((id) => {
@@ -98,14 +110,16 @@ describe("Terms Template", () => {
     cy.takeScreenshot("16_click_update_button")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
-      .type("6", { delay: 0, waitForAnimations: false })
+      .type("6")
       .should("have.value", "6")
     cy.takeScreenshot("17_update_annual_rate")
 
     cy.get('[data-testid="terms-template-update-submit-button"]').click()
     cy.takeScreenshot("18_submit_update")
 
-    cy.contains("Terms Template updated successfully").should("be.visible")
+    cy.contains(t(TTDetails + ".UpdateTermsTemplate.success.updated")).should(
+      "be.visible",
+    )
     cy.takeScreenshot("19_update_success")
   })
 })

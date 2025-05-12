@@ -27,7 +27,6 @@ gql`
       disbursal {
         id
         disbursalId
-        index
         amount
         status
         createdAt
@@ -36,7 +35,7 @@ gql`
           disbursals {
             ...DisbursalOnFacilityPage
           }
-          ...CreditFacilityTransactionsFragment
+          ...CreditFacilityHistoryFragment
           ...CreditFacilityLayoutFragment
         }
       }

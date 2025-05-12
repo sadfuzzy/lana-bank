@@ -49,7 +49,7 @@ pub struct Job {
     pub id: JobId,
     pub job_type: JobType,
     config: serde_json::Value,
-    pub(super) events: EntityEvents<JobEvent>,
+    events: EntityEvents<JobEvent>,
 }
 
 impl Job {

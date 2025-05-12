@@ -41,6 +41,7 @@ export type Column<T> = {
     sortable?: boolean
     filterValues?: Array<T[K]>
     render?: (value: T[K], record: T) => React.ReactNode
+    labelClassName?: string
   }
 }[keyof T]
 
@@ -67,6 +68,10 @@ interface PaginatedTableProps<T> {
   onClick?: (record: T) => void
   showHeader?: boolean
   navigateTo?: (record: T) => string
+  customFooter?: React.ReactNode
+  style?: "compact" | "comfortable"
+  noDataText?: string
+  subRows?: (record: T) => T[]
 }
 
 const PaginatedTable = <T,>({
@@ -80,11 +85,14 @@ const PaginatedTable = <T,>({
   onClick,
   showHeader = true,
   navigateTo,
+  customFooter,
+  style = "comfortable",
+  noDataText,
+  subRows,
 }: PaginatedTableProps<T>): React.ReactElement => {
   const isMobile = useBreakpointDown("md")
   const t = useTranslations("PaginatedTable")
   const tableRef = useRef<HTMLDivElement>(null)
-  const focusTimeoutRef = useRef<NodeJS.Timeout>()
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
   const router = useRouter()
@@ -103,44 +111,6 @@ const PaginatedTable = <T,>({
     const endIdx = startIdx + pageSize
     data && setDisplayData(data.edges.slice(startIdx, endIdx))
   }, [data, currentPage, pageSize])
-
-  const isNoFocusActive = () => {
-    const activeElement = document.activeElement
-    const isBaseElement =
-      !activeElement ||
-      activeElement === document.body ||
-      activeElement === document.documentElement
-    const isOutsideTable = !tableRef.current?.contains(activeElement)
-    const isInteractiveElement = activeElement?.matches(
-      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
-    )
-    return (isBaseElement || isOutsideTable) && !isInteractiveElement
-  }
-
-  const smartFocus = () => {
-    if (isNoFocusActive()) {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-
-      focusTimeoutRef.current = setTimeout(() => {
-        if (tableRef.current) {
-          tableRef.current.focus()
-          setIsTableFocused(true)
-
-          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
-          const targetRow = document.querySelector(
-            `[data-testid="table-row-${targetIndex}"]`,
-          ) as HTMLElement
-
-          if (targetRow) {
-            targetRow.focus()
-            setFocusedRowIndex(targetIndex)
-          }
-        }
-      }, 0)
-    }
-  }
 
   const focusRow = (index: number) => {
     if (index < 0 || !displayData.length || !isTableFocused) return
@@ -201,36 +171,6 @@ const PaginatedTable = <T,>({
     setFocusedRowIndex(-1)
   }, [currentPage])
 
-  useEffect(() => {
-    const shouldAutoFocus = data?.edges && data.edges.length > 0 && !loading
-    if (shouldAutoFocus) {
-      smartFocus()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.edges.length, loading])
-
-  useEffect(() => {
-    const handleFocusOut = (e: FocusEvent) => {
-      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-        if (isNoFocusActive()) {
-          smartFocus()
-        }
-      }
-    }
-
-    document.addEventListener("focusout", handleFocusOut)
-    return () => document.removeEventListener("focusout", handleFocusOut)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-    }
-  }, [])
-
   const handleSort = (columnKey: keyof T) => {
     let newDirection: "ASC" | "DESC" = "ASC"
     if (sortState.column === columnKey && sortState.direction === "ASC") {
@@ -238,13 +178,11 @@ const PaginatedTable = <T,>({
     }
     setSortState({ column: columnKey, direction: newDirection })
     onSort && onSort(columnKey, newDirection)
-    smartFocus()
   }
 
   const handleFilter = (columnKey: keyof T, value: T[keyof T] | undefined) => {
     setFilterState({ [columnKey]: value } as Partial<Record<keyof T, T[keyof T]>>)
     onFilter && onFilter(columnKey, value)
-    smartFocus()
   }
 
   const handleNextPage = async () => {
@@ -254,14 +192,12 @@ const PaginatedTable = <T,>({
     if (totalDataLoaded < maxDataRequired && data && data.pageInfo.hasNextPage) {
       await fetchMore(data.pageInfo.endCursor)
     }
-    setCurrentPage((prevPage) => prevPage + 1)
-    smartFocus()
+    setCurrentPage(currentPage + 1)
   }
 
   const handlePreviousPage = () => {
     if (currentPage > 1) {
-      setCurrentPage((prevPage) => prevPage - 1)
-      smartFocus()
+      setCurrentPage(currentPage - 1)
     }
   }
 
@@ -277,12 +213,18 @@ const PaginatedTable = <T,>({
         ))}
       </div>
     ) : (
-      <div className="overflow-x-auto border rounded-md">
+      <div
+        className={`overflow-x-auto rounded-md ${style === "comfortable" ? "border" : ""}`}
+      >
         <Table className="table-fixed w-full">
-          <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+          <TableHeader
+            className={
+              style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+            }
+          >
             <TableRow>
               {columns.map((col) => (
-                <TableHead key={col.key as string}>
+                <TableHead className={col.labelClassName} key={col.key as string}>
                   <div className="flex items-center space-x-2 justify-between">
                     <span>{col.label}</span>
                     <div className="flex items-center">
@@ -347,7 +289,11 @@ const PaginatedTable = <T,>({
   }
 
   if (data?.edges.length === 0 && Object.keys(filterState).length === 0) {
-    return <div className="text-sm">No data to display</div>
+    return (
+      <div className={`text-sm ${style === "compact" && "mt-2"}`}>
+        {noDataText || t("noData")}
+      </div>
+    )
   }
 
   if (isMobile) {
@@ -415,34 +361,74 @@ const PaginatedTable = <T,>({
         </div>
 
         {displayData.map(({ node }, idx) => (
-          <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
-            {columns.map((col) => (
-              <div
-                key={col.key as string}
-                className="flex justify-between items-start gap-4"
-              >
-                <div className="text-sm font-medium text-muted-foreground">
-                  {col.label}
+          <>
+            <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
+              {columns.map((col) => (
+                <div
+                  key={col.key as string}
+                  className="flex justify-between items-start gap-4"
+                >
+                  <div className="text-sm font-medium text-muted-foreground">
+                    {col.label}
+                  </div>
+                  <div className="text-sm">
+                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+                  </div>
                 </div>
-                <div className="text-sm">
-                  {col.render ? col.render(node[col.key], node) : String(node[col.key])}
+              ))}
+              {navigateTo && (
+                <div className="pt-2">
+                  <Link href={navigateTo(node)}>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center"
+                    >
+                      {t("view", { defaultMessage: "View" })}
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  </Link>
                 </div>
-              </div>
-            ))}
-            {navigateTo && (
-              <div className="pt-2">
-                <Link href={navigateTo(node)}>
-                  <Button
-                    variant="outline"
-                    className="w-full flex items-center justify-center"
-                  >
-                    {t("view", { defaultMessage: "View" })}
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </Card>
+              )}
+            </Card>
+            {subRows &&
+              subRows(node).length > 0 &&
+              subRows(node).map((subRow, subIdx) => (
+                <Card
+                  key={`sub-row-${idx}-${subIdx}`}
+                  className="p-4 space-y-3"
+                  onClick={() => onClick?.(subRow)}
+                >
+                  {columns.map((col) => (
+                    <div
+                      key={col.key as string}
+                      className="flex justify-between items-start gap-4"
+                    >
+                      <div className="text-sm font-medium text-muted-foreground">
+                        {col.label}
+                      </div>
+                      <div className="text-sm">
+                        {col.render
+                          ? col.render(subRow[col.key], subRow)
+                          : String(subRow[col.key])}
+                      </div>
+                    </div>
+                  ))}
+                  {navigateTo && (
+                    <div className="pt-2">
+                      <Link href={navigateTo(subRow)}>
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-center"
+                        >
+                          {t("view", { defaultMessage: "View" })}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </Card>
+              ))}
+          </>
         ))}
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">
           <Button
@@ -473,7 +459,7 @@ const PaginatedTable = <T,>({
     <>
       <div
         ref={tableRef}
-        className="overflow-x-auto border rounded-md focus:outline-none"
+        className={`overflow-x-auto rounded-md focus:outline-none ${style === "comfortable" ? "border" : ""}`}
         tabIndex={0}
         role="grid"
         onFocus={() => setIsTableFocused(true)}
@@ -486,11 +472,17 @@ const PaginatedTable = <T,>({
       >
         <Table className="table-fixed w-full">
           {showHeader && (
-            <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+            <TableHeader
+              className={
+                style === "comfortable" ? "bg-secondary [&_tr:hover]:!bg-secondary" : ""
+              }
+            >
               <TableRow>
                 {columns.map((col) => (
                   <TableHead key={col.key as string}>
-                    <div className="flex items-center space-x-2 justify-between">
+                    <div
+                      className={`flex items-center space-x-2 justify-between ${col.labelClassName}`}
+                    >
                       <span>{col.label}</span>
                       {col.sortable && (
                         <Button
@@ -550,42 +542,92 @@ const PaginatedTable = <T,>({
           )}
           <TableBody>
             {displayData.map(({ node }, idx) => (
-              <TableRow
-                key={idx}
-                data-testid={`table-row-${idx}`}
-                onClick={() => onClick?.(node)}
-                tabIndex={0}
-                className={`${onClick ? "cursor-pointer" : ""} ${
-                  focusedRowIndex === idx ? "bg-muted" : ""
-                } hover:bg-muted/50 transition-colors outline-none`}
-                onFocus={() => setFocusedRowIndex(idx)}
-                role="row"
-                aria-selected={focusedRowIndex === idx}
-              >
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.key as string}
-                    className="whitespace-normal break-words h-[3.8rem]"
-                  >
-                    {col.render ? col.render(node[col.key], node) : String(node[col.key])}
-                  </TableCell>
-                ))}
-                {navigateTo && (
-                  <TableCell>
-                    <Link href={navigateTo(node)}>
-                      <Button
-                        variant="outline"
-                        className="w-full flex items-center justify-between"
-                      >
-                        {t("view", { defaultMessage: "View" })}
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </TableCell>
-                )}
-              </TableRow>
+              <>
+                <TableRow
+                  key={idx}
+                  data-testid={`table-row-${idx}`}
+                  onClick={() => onClick?.(node)}
+                  tabIndex={0}
+                  className={`${onClick ? "cursor-pointer" : ""} ${
+                    focusedRowIndex === idx ? "bg-muted" : ""
+                  } hover:bg-muted/50 transition-colors outline-none`}
+                  onFocus={() => setFocusedRowIndex(idx)}
+                  role="row"
+                  aria-selected={focusedRowIndex === idx}
+                >
+                  {columns.map((col) => (
+                    <TableCell
+                      key={col.key as string}
+                      className={
+                        style === "comfortable"
+                          ? "whitespace-normal break-words h-[3.8rem]"
+                          : ""
+                      }
+                    >
+                      {col.render
+                        ? col.render(node[col.key], node)
+                        : String(node[col.key])}
+                    </TableCell>
+                  ))}
+                  {navigateTo && (
+                    <TableCell>
+                      <Link href={navigateTo(node)}>
+                        <Button
+                          variant="outline"
+                          className="w-full flex items-center justify-between"
+                        >
+                          {t("view", { defaultMessage: "View" })}
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  )}
+                </TableRow>
+                {subRows &&
+                  subRows(node).length > 0 &&
+                  subRows(node).map((subRow, subIdx) => (
+                    <TableRow
+                      role="row"
+                      key={`sub-row-${idx}-${subIdx}`}
+                      onClick={() => onClick?.(subRow)}
+                      tabIndex={0}
+                      className={`${onClick ? "cursor-pointer" : ""} ${
+                        focusedRowIndex === idx ? "bg-muted" : ""
+                      } hover:bg-muted/50 transition-colors outline-none`}
+                    >
+                      {columns.map((col) => (
+                        <TableCell
+                          key={col.key as string}
+                          className={
+                            style === "comfortable"
+                              ? "whitespace-normal break-words h-[3.8rem]"
+                              : ""
+                          }
+                        >
+                          {col.render
+                            ? col.render(subRow[col.key], subRow)
+                            : String(subRow[col.key])}
+                        </TableCell>
+                      ))}
+                      {navigateTo && (
+                        <TableCell>
+                          <Link href={navigateTo(subRow)}>
+                            <Button
+                              variant="outline"
+                              className="w-full flex items-center justify-between"
+                            >
+                              {t("view", { defaultMessage: "View" })}
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+              </>
             ))}
           </TableBody>
+          {customFooter}
         </Table>
         <Separator />
         <div className="flex items-center justify-end space-x-4 py-2 mr-2">
@@ -604,7 +646,9 @@ const PaginatedTable = <T,>({
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={displayData.length < pageSize && !data?.pageInfo.hasNextPage}
+            disabled={
+              !loading && displayData.length < pageSize && !data?.pageInfo.hasNextPage
+            }
           >
             <HiChevronRight className="h-4 w-4" />
           </Button>

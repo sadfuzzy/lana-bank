@@ -35,6 +35,7 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     specPattern: [
+      "cypress/e2e/modules.cy.ts",
       "cypress/e2e/user.cy.ts",
       "cypress/e2e/credit-facilities.cy.ts",
       "cypress/e2e/customers.cy.ts",
@@ -47,7 +48,6 @@ export default defineConfig({
       "cypress/e2e/balance-sheet.cy.ts",
       "cypress/e2e/dashboard.cy.ts",
       "cypress/e2e/profit-and-loss.cy.ts",
-      "cypress/e2e/cash-flow.cy.ts",
     ],
     baseUrl: "http://localhost:4455/admin",
     defaultCommandTimeout: 4000 * multiplier,
@@ -59,6 +59,12 @@ export default defineConfig({
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       COOKIES: process.env.COOKIES,
+      TEST_LANGUAGE: "es",
+      GOOGLE_CLOUD_AVAILABLE:
+        process.env.GOOGLE_APPLICATION_CREDENTIALS &&
+        process.env.GOOGLE_APPLICATION_CREDENTIALS.trim() !== ""
+          ? true
+          : false,
     },
   },
 })

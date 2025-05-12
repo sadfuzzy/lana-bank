@@ -2,6 +2,9 @@
 
 load "helpers"
 
+PERSISTED_LOG_FILE="customer.e2e-logs"
+RUN_LOG_FILE="customer.run.e2e-logs"
+
 setup_file() {
   start_server
   login_superadmin
@@ -18,6 +21,7 @@ wait_for_approval() {
     '{ id: $withdrawId }'
   )
   exec_admin_graphql 'find-withdraw' "$variables"
+  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
   status=$(graphql_output '.data.withdrawal.status')
   [[ "$status" == "PENDING_CONFIRMATION" ]] || return 1
 }
@@ -56,6 +60,8 @@ wait_for_approval() {
 }
 
 @test "customer: can login" {
+  skip # does not work on concourse
+
   customer_email=$(generate_email)
   telegramId=$(generate_email)
   customer_type="INDIVIDUAL"
@@ -78,7 +84,7 @@ wait_for_approval() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
 
-  sleep 0.1 # wait for customer-onboarding steps
+  retry 20 1 wait_for_checking_account "$customer_id"
 
   login_customer $customer_email
   exec_customer_graphql $customer_email 'me'
@@ -93,6 +99,8 @@ wait_for_approval() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
+  retry 20 1 wait_for_checking_account "$customer_id"
+
   variables=$(
     jq -n \
       --arg id "$customer_id" \
@@ -100,7 +108,7 @@ wait_for_approval() {
   )
 
   exec_admin_graphql 'customer' "$variables"
-  echo $(graphql_output) | jq .
+  echo "deposit | $i. $(graphql_output)" >> $RUN_LOG_FILE
   deposit_account_id=$(graphql_output .data.customer.depositAccount.depositAccountId)
   cache_value "deposit_account_id" $deposit_account_id
 

@@ -8,9 +8,15 @@ use core_price::Price;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    error::CoreCreditError, interest_incurrences, ledger::CreditLedger,
-    primitives::CreditFacilityId, CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    CreditFacility, CreditFacilityRepo, DisbursalRepo, Jobs,
+    credit_facility::{CreditFacility, CreditFacilityRepo},
+    disbursal::{DisbursalRepo, NewDisbursal},
+    error::CoreCreditError,
+    event::CoreCreditEvent,
+    jobs::interest_accruals,
+    ledger::CreditLedger,
+    obligation::Obligations,
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, LedgerTxId},
+    Jobs,
 };
 
 pub use job::*;
@@ -20,8 +26,9 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    obligations: Obligations<Perms, E>,
     credit_facility_repo: CreditFacilityRepo<E>,
-    disbursal_repo: DisbursalRepo,
+    disbursal_repo: DisbursalRepo<E>,
     ledger: CreditLedger,
     price: Price,
     jobs: Jobs,
@@ -35,6 +42,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            obligations: self.obligations.clone(),
             credit_facility_repo: self.credit_facility_repo.clone(),
             disbursal_repo: self.disbursal_repo.clone(),
             ledger: self.ledger.clone(),
@@ -52,14 +60,16 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
+        obligations: &Obligations<Perms, E>,
         credit_facility_repo: &CreditFacilityRepo<E>,
-        disbursal_repo: &DisbursalRepo,
+        disbursal_repo: &DisbursalRepo<E>,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
+            obligations: obligations.clone(),
             credit_facility_repo: credit_facility_repo.clone(),
             disbursal_repo: disbursal_repo.clone(),
             ledger: ledger.clone(),
@@ -92,53 +102,63 @@ where
         let price = self.price.usd_cents_per_btc().await?;
         let now = db.now();
 
-        let Ok(es_entity::Idempotent::Executed((
-            credit_facility_activation,
-            next_incurrence_period,
-        ))) = credit_facility.activate(now, price, audit_info.clone())
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
+            credit_facility.activate(now, price, balances, audit_info.clone())
         else {
             return Ok(credit_facility);
         };
 
-        let new_disbursal = credit_facility.initiate_disbursal(
-            credit_facility.structuring_fee(),
-            now,
-            price,
-            Some(credit_facility.approval_process_id),
-            audit_info.clone(),
-        )?;
+        let new_disbursal = NewDisbursal::builder()
+            .id(DisbursalId::new())
+            .credit_facility_id(credit_facility.id)
+            .approval_process_id(credit_facility.approval_process_id)
+            .amount(credit_facility.structuring_fee())
+            .account_ids(credit_facility.account_ids)
+            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+            .disbursal_due_date(credit_facility.matures_at.expect("Facility is not active"))
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new disbursal");
         let mut disbursal = self
             .disbursal_repo
             .create_in_op(&mut db, new_disbursal)
             .await?;
 
-        let data = disbursal
-            .approval_process_concluded(true, audit_info.clone())
-            .unwrap();
-        credit_facility
-            .disbursal_concluded(&disbursal, Some(data.tx_id), now, audit_info.clone())
-            .unwrap();
+        let tx_id = LedgerTxId::new();
+        let new_obligation = disbursal
+            .approval_process_concluded(tx_id, true, audit_info.clone())
+            .expect("First instance of idempotent action ignored")
+            .expect("First disbursal obligation was already created");
 
-        self.disbursal_repo
-            .update_in_op(&mut db, &mut disbursal)
-            .await?;
         self.credit_facility_repo
             .update_in_op(&mut db, &mut credit_facility)
             .await?;
 
+        self.obligations
+            .create_with_jobs_in_op(&mut db, new_obligation)
+            .await?;
+
+        self.disbursal_repo
+            .update_in_op(&mut db, &mut disbursal)
+            .await?;
+
         let accrual_id = credit_facility
-            .interest_accrual_in_progress()
+            .interest_accrual_cycle_in_progress()
             .expect("First accrual not found")
             .id;
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut db,
                 accrual_id,
-                interest_incurrences::CreditFacilityJobConfig::<Perms, E> {
+                interest_accruals::CreditFacilityJobConfig::<Perms, E> {
                     credit_facility_id: id,
                     _phantom: std::marker::PhantomData,
                 },
-                next_incurrence_period.end,
+                next_accrual_period.end,
             )
             .await?;
 

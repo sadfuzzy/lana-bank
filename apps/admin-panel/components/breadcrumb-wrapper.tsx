@@ -1,5 +1,4 @@
 import React from "react"
-import { Home } from "lucide-react"
 
 import {
   Breadcrumb,
@@ -43,7 +42,6 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
                   tabIndex={-1}
                   aria-hidden="true"
                 >
-                  {index === 0 && <Home className="h-4 w-4" />}
                   {link.title}
                 </BreadcrumbPage>
               ) : (
@@ -53,7 +51,6 @@ const BreadCrumbWrapper = ({ links }: FlexibleBreadcrumbProps) => {
                   tabIndex={-1}
                   aria-hidden="true"
                 >
-                  {index === 0 && <Home className="h-4 w-4" />}
                   {link.title}
                 </BreadcrumbLink>
               )}

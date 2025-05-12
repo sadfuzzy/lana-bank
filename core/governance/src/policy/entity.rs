@@ -29,7 +29,7 @@ pub struct Policy {
     pub id: PolicyId,
     pub process_type: ApprovalProcessType,
     pub rules: ApprovalRules,
-    pub(super) events: EntityEvents<PolicyEvent>,
+    events: EntityEvents<PolicyEvent>,
 }
 
 impl Policy {

@@ -54,7 +54,7 @@ pub struct Document {
     pub status: DocumentStatus,
     pub(super) path_in_bucket: String,
     pub(super) bucket: String,
-    pub(super) events: EntityEvents<DocumentEvent>,
+    events: EntityEvents<DocumentEvent>,
 }
 
 impl std::fmt::Display for Document {

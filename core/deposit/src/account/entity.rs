@@ -14,7 +14,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
-        ledger_account_id: LedgerAccountId,
+        ledger_account_id: CalaAccountId,
         reference: String,
         name: String,
         description: String,
@@ -36,7 +36,8 @@ pub struct DepositAccount {
     pub name: String,
     pub description: String,
     pub status: AccountStatus,
-    pub(super) events: EntityEvents<DepositAccountEvent>,
+
+    events: EntityEvents<DepositAccountEvent>,
 }
 
 impl DepositAccount {

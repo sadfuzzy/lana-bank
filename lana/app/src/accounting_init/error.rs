@@ -4,8 +4,8 @@ use thiserror::Error;
 pub enum AccountingInitError {
     #[error("AccountingInitError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("AccountingInitError - CoreChartOfAccountsError: {0}")]
-    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    #[error("AccountingInitError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("AccountingInitError - LedgerError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("AccountingInitError - JournalError: {0}")]
@@ -18,6 +18,4 @@ pub enum AccountingInitError {
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("AccountingInitError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
-    #[error("AccountingInitError - CashFlowStatementError: {0}")]
-    CashFlowStatementError(#[from] crate::cash_flow::error::CashFlowStatementError),
 }

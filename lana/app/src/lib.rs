@@ -5,18 +5,15 @@ pub mod accounting_init;
 pub mod app;
 pub mod applicant;
 pub mod authorization;
-pub mod balance_sheet;
-pub mod cash_flow;
 pub mod document;
-pub mod ledger_account;
 pub mod primitives;
-pub mod profit_and_loss;
 pub mod report;
 pub mod service_account;
-pub mod statement;
-pub mod storage;
 pub mod terms_template;
-pub mod trial_balance;
+
+pub mod storage {
+    pub use cloud_storage::*;
+}
 
 pub mod outbox {
     pub type Outbox = outbox::Outbox<lana_events::LanaEvent>;
@@ -46,12 +43,10 @@ pub mod customer {
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod customer_onboarding {
-    pub use customer_onboarding::config::CustomerOnboardingConfig;
-    pub type CustomerOnboarding = customer_onboarding::CustomerOnboarding<
-        crate::authorization::Authorization,
-        lana_events::LanaEvent,
-    >;
+pub mod customer_sync {
+    pub use customer_sync::config::CustomerSyncConfig;
+    pub type CustomerSync =
+        customer_sync::CustomerSync<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod price {
@@ -66,8 +61,8 @@ pub mod governance {
     use crate::authorization::Authorization;
     use lana_events::LanaEvent;
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
-    pub use crate::credit_facility::APPROVE_CREDIT_FACILITY_PROCESS;
-    pub use crate::credit_facility::APPROVE_DISBURSAL_PROCESS;
+    pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
+    pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use deposit::APPROVE_WITHDRAWAL_PROCESS;
 }
 
@@ -84,43 +79,63 @@ pub mod audit {
 
 pub mod deposit {
     pub use deposit::{
-        error, ChartOfAccountsIntegrationConfig, Deposit, DepositAccount, DepositAccountBalance,
-        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositsByCreatedAtCursor,
-        Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
+        error, ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
+        DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositId,
+        DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
+        WithdrawalsByCreatedAtCursor,
     };
 
     pub type Deposits =
         deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod chart_of_accounts {
-    pub use chart_of_accounts::{
-        error, AccountDetails, {tree, Chart},
+pub mod accounting {
+    pub use core_accounting::{
+        chart_of_accounts, csv, error, journal, ledger_account, ledger_transaction,
+        manual_transaction, transaction_templates, AccountCode, AccountingCsvId, CalaAccountId,
+        LedgerAccountId, TransactionTemplateId, {tree, Chart},
     };
 
+    pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
     pub type ChartOfAccounts =
-        chart_of_accounts::CoreChartOfAccounts<crate::authorization::Authorization>;
+        core_accounting::ChartOfAccounts<crate::authorization::Authorization>;
 }
 
-pub mod credit_facility {
+pub mod profit_and_loss {
+    pub use core_accounting::profit_and_loss::*;
+    pub type ProfitAndLossStatements =
+        core_accounting::ProfitAndLossStatements<crate::authorization::Authorization>;
+}
+
+pub mod balance_sheet {
+    pub use core_accounting::balance_sheet::*;
+    pub type BalanceSheets = core_accounting::BalanceSheets<crate::authorization::Authorization>;
+}
+
+pub mod trial_balance {
+    pub use core_accounting::trial_balance::*;
+    pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
+}
+
+pub mod credit {
     pub use core_credit::{
         error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityBalance, CreditFacilityConfig, CreditFacilityHistoryEntry,
-        CreditFacilityOrigination, CreditFacilityRepaymentInPlan, CreditFacilityStatus, Disbursal,
-        DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy, FacilityCVL,
-        FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment, InterestAccrued,
-        ListDirection, Payment, RepaymentStatus, Sort, APPROVE_CREDIT_FACILITY_PROCESS,
-        APPROVE_DISBURSAL_PROCESS,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
+        CreditFacility, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
+        CreditFacilityOrigination, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
+        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
+        InterestAccrualsPosted, ListDirection, Payment, RepaymentStatus, Sort,
+        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
 
-    pub type CreditFacilities =
-        core_credit::CreditFacilities<crate::authorization::Authorization, lana_events::LanaEvent>;
+    pub type Credit =
+        core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod terms {
     pub use core_credit::{
-        AnnualRatePct, CVLPct, CollateralizationState, Duration, InterestInterval,
-        OneTimeFeeRatePct, TermValues,
+        AnnualRatePct, CVLPct, CollateralizationState, Duration, InterestDuration,
+        InterestInterval, OneTimeFeeRatePct, TermValues,
     };
 }

@@ -12,6 +12,8 @@ mod history;
 mod ledger;
 mod primitives;
 mod processes;
+mod publisher;
+mod time;
 mod withdrawal;
 
 use deposit_account_cursor::DepositAccountsByCreatedAtCursor;
@@ -20,7 +22,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use chart_of_accounts::Chart;
+use core_accounting::Chart;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
@@ -41,6 +43,7 @@ pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
 use processes::approval::{
     ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
 };
+use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
@@ -49,9 +52,9 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    accounts: DepositAccountRepo,
-    deposits: DepositRepo,
-    withdrawals: WithdrawalRepo,
+    accounts: DepositAccountRepo<E>,
+    deposits: DepositRepo<E>,
+    withdrawals: WithdrawalRepo<E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
     ledger: DepositLedger,
     cala: CalaLedger,
@@ -97,11 +100,12 @@ where
         governance: &Governance<Perms, E>,
         jobs: &Jobs,
         cala: &CalaLedger,
-        journal_id: LedgerJournalId,
+        journal_id: CalaJournalId,
     ) -> Result<Self, CoreDepositError> {
-        let accounts = DepositAccountRepo::new(pool);
-        let deposits = DepositRepo::new(pool);
-        let withdrawals = WithdrawalRepo::new(pool);
+        let publisher = DepositPublisher::new(outbox);
+        let accounts = DepositAccountRepo::new(pool, &publisher);
+        let deposits = DepositRepo::new(pool, &publisher);
+        let withdrawals = WithdrawalRepo::new(pool, &publisher);
         let ledger = DepositLedger::init(cala, journal_id).await?;
 
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
@@ -137,7 +141,7 @@ where
     pub fn for_subject<'s>(
         &'s self,
         sub: &'s <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<DepositsForSubject<'s, Perms>, CoreDepositError>
+    ) -> Result<DepositsForSubject<'s, Perms, E>, CoreDepositError>
     where
         DepositAccountHolderId:
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
@@ -155,16 +159,18 @@ where
         ))
     }
 
-    #[instrument(name = "deposit.create_account", skip(self), err)]
+    #[instrument(name = "deposit.create_account", skip(self, deposit_account_type), err)]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        reference: &str,
-        name: &str,
-        description: &str,
         active: bool,
+        deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
+        let holder_id = holder_id.into();
+
+        let name = &format!("Deposit Account {}", holder_id);
+        let reference = &format!("deposit-customer-account:{}", holder_id);
         let audit_info = self
             .authz
             .enforce_permission(
@@ -180,7 +186,7 @@ where
             .account_holder_id(holder_id)
             .reference(reference.to_string())
             .name(name.to_string())
-            .description(description.to_string())
+            .description(name.to_string())
             .active(active)
             .audit_info(audit_info.clone())
             .build()
@@ -195,13 +201,36 @@ where
                 account_id,
                 account.reference.to_string(),
                 account.name.to_string(),
-                account.description.to_string(),
+                deposit_account_type,
             )
             .await?;
 
         Ok(account)
     }
 
+    #[instrument(name = "deposit.find_account_by_id", skip(self), err)]
+    pub async fn find_account_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_READ,
+            )
+            .await?;
+
+        match self.accounts.find_by_id(id).await {
+            Ok(accounts) => Ok(Some(accounts)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
     pub async fn update_account_status_for_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -235,7 +264,7 @@ where
         Ok(())
     }
 
-    #[instrument(name = "deposit.for_subject.account_history", skip(self), err)]
+    #[instrument(name = "deposit.account_history", skip(self), err)]
     pub async fn account_history(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -289,8 +318,7 @@ where
             .amount(amount)
             .reference(reference)
             .audit_info(audit_info)
-            .build()
-            .expect("Could not build new account");
+            .build()?;
 
         let mut op = self.deposits.begin_op().await?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
@@ -326,8 +354,7 @@ where
             .approval_process_id(withdrawal_id)
             .reference(reference)
             .audit_info(audit_info)
-            .build()
-            .expect("Could not build new withdrawal");
+            .build()?;
 
         let mut op = self.withdrawals.begin_op().await?;
         self.governance
@@ -483,7 +510,7 @@ where
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        cancelled_tx_id: impl Into<LedgerTransactionId> + std::fmt::Debug,
+        cancelled_tx_id: impl Into<CalaTransactionId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let cancelled_tx_id = cancelled_tx_id.into();
         let withdrawal = self
@@ -675,7 +702,7 @@ where
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: Chart,
+        chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, CoreDepositError> {
         if chart.id != config.chart_of_accounts_id {
@@ -691,8 +718,28 @@ where
             return Err(CoreDepositError::DepositConfigAlreadyExists);
         }
 
-        let deposit_accounts_parent_account_set_id = chart
-            .account_set_id_from_code(&config.chart_of_accounts_deposit_accounts_parent_code)?;
+        let individual_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_accounts_individual_deposit_accounts_parent_code,
+        )?;
+        let government_entity_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_accounts_government_entity_deposit_accounts_parent_code,
+            )?;
+        let private_company_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_private_company_deposit_accounts_parent_code,
+            )?;
+        let bank_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(&config.chart_of_account_bank_deposit_accounts_parent_code)?;
+        let financial_institution_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_financial_institution_deposit_accounts_parent_code,
+            )?;
+        let non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
+            )?;
+
         let omnibus_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
 
@@ -705,13 +752,20 @@ where
             )
             .await?;
 
+        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+            audit_info,
+            config: config.clone(),
+            omnibus_parent_account_set_id,
+            individual_deposit_accounts_parent_account_set_id,
+            government_entity_deposit_accounts_parent_account_set_id,
+            private_company_deposit_accounts_parent_account_set_id,
+            bank_deposit_accounts_parent_account_set_id,
+            financial_institution_deposit_accounts_parent_account_set_id,
+            non_domiciled_individual_deposit_accounts_parent_account_set_id,
+        };
+
         self.ledger
-            .attach_chart_of_accounts_account_sets(
-                audit_info,
-                &config,
-                deposit_accounts_parent_account_set_id,
-                omnibus_parent_account_set_id,
-            )
+            .attach_chart_of_accounts_account_sets(charts_integration_meta)
             .await?;
 
         Ok(config)

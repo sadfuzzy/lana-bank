@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@lana/web/ui/dialog"
 
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
-import { formatDate, formatInterval, formatPeriod } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
+import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 
 type CreditFacilityTermsDialogProps = {
@@ -24,17 +25,24 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
   const details: DetailItemProps[] = [
     {
       label: t("details.duration"),
-      value: `${creditFacility.creditFacilityTerms.duration.units} ${formatPeriod(
-        creditFacility.creditFacilityTerms.duration.period,
-      )}`,
+      value: (
+        <>
+          {creditFacility.creditFacilityTerms.duration.units}{" "}
+          <PeriodLabel period={creditFacility.creditFacilityTerms.duration.period} />
+        </>
+      ),
     },
     {
       label: t("details.interestRate"),
       value: `${creditFacility.creditFacilityTerms.annualRate}%`,
     },
     {
-      label: t("details.accrualInterval"),
-      value: formatInterval(creditFacility.creditFacilityTerms.accrualInterval),
+      label: t("details.accrualCycleInterval"),
+      value: (
+        <InterestIntervalLabel
+          interval={creditFacility.creditFacilityTerms.accrualCycleInterval}
+        />
+      ),
     },
     {
       label: t("details.targetCvl"),
@@ -53,8 +61,12 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       value: formatDate(creditFacility.createdAt),
     },
     {
-      label: t("details.incurrenceInterval"),
-      value: formatInterval(creditFacility.creditFacilityTerms.incurrenceInterval),
+      label: t("details.accrualInterval"),
+      value: (
+        <InterestIntervalLabel
+          interval={creditFacility.creditFacilityTerms.accrualInterval}
+        />
+      ),
     },
     {
       label: t("details.structuringFeeRate"),

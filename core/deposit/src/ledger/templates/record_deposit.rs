@@ -6,7 +6,7 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
 
@@ -15,8 +15,8 @@ pub struct RecordDepositParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
-    pub deposit_omnibus_account_id: AccountId,
-    pub credit_account_id: AccountId,
+    pub deposit_omnibus_account_id: CalaAccountId,
+    pub credit_account_id: CalaAccountId,
 }
 
 impl RecordDepositParams {
@@ -72,7 +72,7 @@ impl From<RecordDepositParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

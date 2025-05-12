@@ -21,6 +21,8 @@ import { Button } from "@lana/web/ui/button"
 
 import { createSumsubPermalink } from "./server-actions"
 
+import { LanaBankIcon } from "../icons"
+
 import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 
 import { useLogout } from "@/hooks/use-logout"
@@ -69,7 +71,7 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-8">
-            <div className="text-2xl font-semibold">Lana Bank.</div>
+            <LanaBankIcon className="h-10 w-24" />
           </div>
           <div className="flex gap-2">
             <KYCBadge level={meQueryData.me.customer.level} />

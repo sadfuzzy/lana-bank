@@ -1,8 +1,3 @@
-{{ config(
-    materialized = 'incremental',
-    unique_key = ['id', 'sequence'],
-) }}
-
 with ordered as (
 
     select
@@ -19,12 +14,13 @@ with ordered as (
             )
             as order_received_desc
 
-    from {{ source("lana", "public_credit_facility_events_view") }}
+    from {{ source("lana", "public_core_credit_facility_events_view") }}
 
-    {% if is_incremental() %}
-        where
-            _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})
-    {% endif %}
+    where _sdc_batched_at >= (
+        select coalesce(max(_sdc_batched_at), '1900-01-01')
+        from {{ ref('stg_core_chart_events') }}
+        where event_type = 'initialized'
+    )
 
 )
 

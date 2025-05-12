@@ -17,9 +17,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
-
-      - name: Run Lingo.dev translations
-        uses: lingodotdev/lingo.dev@main
+      - uses: lingodotdev/lingo.dev@main
         with:
           api-key: ${{ secrets.LINGODOTDEV_API_KEY }}
           commit-message: "chore: update translations via Lingo.dev"

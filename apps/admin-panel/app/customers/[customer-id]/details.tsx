@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { Badge } from "@lana/web/ui/badge"
 
 import UpdateTelegramIdDialog from "./update-telegram-id"
+import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
@@ -24,6 +25,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   const t = useTranslations("Customers.CustomerDetails.details")
 
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
+  const [openUpdateEmailDialog, setOpenUpdateEmailDialog] = useState(false)
 
   const getCustomerTypeDisplay = (customerType: CustomerType) => {
     switch (customerType) {
@@ -47,7 +49,19 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
   }
 
   const details: DetailItemProps[] = [
-    { label: t("labels.email"), value: customer.email },
+    {
+      label: t("labels.email"),
+      value: (
+        <button
+          type="button"
+          className="flex items-center gap-2"
+          onClick={() => setOpenUpdateEmailDialog(true)}
+        >
+          {customer.email}
+          <PiPencilSimpleLineLight className="w-5 h-5 cursor-pointer text-primary" />
+        </button>
+      ),
+    },
     {
       label: t("labels.customerType"),
       value: getCustomerTypeDisplay(customer.customerType),
@@ -86,7 +100,12 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
       <UpdateTelegramIdDialog
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
-        setOpenUpdateTelegramIdDialog={() => setOpenUpdateTelegramIdDialog(false)}
+        setOpenUpdateTelegramIdDialog={setOpenUpdateTelegramIdDialog}
+      />
+      <UpdateEmailDialog
+        customerId={customer.customerId}
+        openUpdateEmailDialog={openUpdateEmailDialog}
+        setOpenUpdateEmailDialog={setOpenUpdateEmailDialog}
       />
     </>
   )

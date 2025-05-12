@@ -30,20 +30,21 @@ impl DashboardValues {
                 self.active_facilities -= 1;
                 true
             }
-            LanaEvent::Credit(CoreCreditEvent::DisbursalExecuted { amount, .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::DisbursalSettled { amount, .. }) => {
                 self.total_disbursed += *amount;
                 true
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityRepaymentRecorded {
-                disbursal_amount,
+                obligation_type: ObligationType::Disbursal,
+                amount,
                 ..
             }) => {
-                self.total_disbursed -= *disbursal_amount;
+                self.total_disbursed -= *amount;
                 true
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
-                action: FacilityCollateralUpdateAction::Add,
+                action: CollateralAction::Add,
                 ..
             }) => {
                 self.total_collateral += *abs_diff;
@@ -51,7 +52,7 @@ impl DashboardValues {
             }
             LanaEvent::Credit(CoreCreditEvent::FacilityCollateralUpdated {
                 abs_diff,
-                action: FacilityCollateralUpdateAction::Remove,
+                action: CollateralAction::Remove,
                 ..
             }) => {
                 self.total_collateral -= *abs_diff;

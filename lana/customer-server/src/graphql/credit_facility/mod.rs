@@ -6,9 +6,9 @@ mod repayment;
 
 use async_graphql::*;
 
-pub use lana_app::credit_facility::{
+pub use lana_app::credit::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-    ListDirection, Sort,
+    FacilityCVL, ListDirection, Sort,
 };
 
 use crate::{primitives::*, LanaApp};
@@ -26,7 +26,6 @@ pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
     facility_amount: UsdCents,
-    collateral: Satoshis,
     collateralization_state: CollateralizationState,
     status: CreditFacilityStatus,
     created_at: Timestamp,
@@ -48,8 +47,7 @@ impl From<DomainCreditFacility> for CreditFacility {
             activated_at,
             matures_at,
             created_at: credit_facility.created_at().into(),
-            facility_amount: credit_facility.initial_facility(),
-            collateral: credit_facility.collateral(),
+            facility_amount: credit_facility.amount,
             collateralization_state: credit_facility.last_collateralization_state(),
             status: credit_facility.status(),
 
@@ -67,7 +65,7 @@ impl CreditFacility {
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let balance = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .balance(self.entity.id)
             .await?;
@@ -77,18 +75,19 @@ impl CreditFacility {
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
         let app = ctx.data_unchecked::<LanaApp>();
-        let price = app.price().usd_cents_per_btc().await?;
-        Ok(FacilityCVL::from(
-            self.entity.facility_cvl_data().cvl(price),
-        ))
+        Ok(app.credit().facility_cvl(&self.entity).await?)
     }
 
-    async fn transactions(&self) -> Vec<CreditFacilityHistoryEntry> {
-        self.entity
-            .history()
-            .into_iter()
-            .map(CreditFacilityHistoryEntry::from)
-            .collect()
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit()
+            .for_subject(sub)?
+            .history(self.entity.id)
+            .await?)
     }
 
     async fn disbursals(
@@ -98,7 +97,7 @@ impl CreditFacility {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let disbursals = app
-            .credit_facilities()
+            .credit()
             .for_subject(sub)?
             .list_disbursals_for_credit_facility(
                 self.entity.id,
@@ -117,26 +116,15 @@ impl CreditFacility {
             .collect())
     }
 
-    async fn repayment_plan(&self) -> Vec<CreditFacilityRepaymentInPlan> {
-        self.entity
-            .repayment_plan()
-            .into_iter()
-            .map(CreditFacilityRepaymentInPlan::from)
-            .collect()
-    }
-}
-
-#[derive(SimpleObject)]
-pub struct FacilityCVL {
-    total: CVLPct,
-    disbursed: CVLPct,
-}
-
-impl From<lana_app::credit_facility::FacilityCVL> for FacilityCVL {
-    fn from(value: lana_app::credit_facility::FacilityCVL) -> Self {
-        Self {
-            total: value.total,
-            disbursed: value.disbursed,
-        }
+    async fn repayment_plan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> Result<Vec<CreditFacilityRepaymentPlanEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit()
+            .for_subject(sub)?
+            .repayment_plan(self.entity.id)
+            .await?)
     }
 }

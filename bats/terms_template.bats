@@ -19,13 +19,14 @@ teardown_file() {
       input: {
         name: $name,
         annualRate: 5.5,
-        accrualInterval: "END_OF_MONTH",
-        incurrenceInterval: "END_OF_DAY",
+        accrualCycleInterval: "END_OF_MONTH",
+        accrualInterval: "END_OF_DAY",
         oneTimeFeeRate: "5",
         duration: {
           period: "MONTHS",
           units: 12
         },
+        interestDueDuration: { period: "DAYS", units: 0 },
         liquidationCvl: 80,
         marginCallCvl: 90,
         initialCvl: 100
@@ -51,13 +52,14 @@ teardown_file() {
       input: {
         id: $id,
         annualRate: 6.5,
-        accrualInterval: "END_OF_MONTH",
-        incurrenceInterval: "END_OF_DAY",
+        accrualCycleInterval: "END_OF_MONTH",
+        accrualInterval: "END_OF_DAY",
         oneTimeFeeRate: "5",
         duration: {
           period: "MONTHS",
           units: 24
         },
+        interestDueDuration: { period: "DAYS", units: 0 },
         liquidationCvl: 75,
         marginCallCvl: 85,
         initialCvl: 95

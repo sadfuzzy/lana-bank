@@ -70,9 +70,6 @@ impl SumsubClient {
             format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
-        println!("full_url: {:?}", full_url);
-        println!("{}, self.sumsub_key: {:?}", line!(), self.sumsub_key);
-
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url, Some(&body))?;
 

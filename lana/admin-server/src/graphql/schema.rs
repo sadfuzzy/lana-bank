@@ -3,9 +3,9 @@ use async_graphql::{types::connection::*, Context, Object};
 use std::io::Read;
 
 use lana_app::{
+    accounting::csv::AccountingCsvsByCreatedAtCursor,
     accounting_init::constants::{
-        BALANCE_SHEET_NAME, CASH_FLOW_STATEMENT_NAME, CHART_REF, OBS_TRIAL_BALANCE_STATEMENT_NAME,
-        PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
+        BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
 };
@@ -13,10 +13,10 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, audit::*, authenticated_subject::*, chart_of_accounts::*, committee::*,
-    credit_config::*, credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, financials::*, ledger_account::*, loader::*, policy::*, price::*, report::*,
-    sumsub::*, terms_template::*, user::*, withdrawal::*,
+    accounting::*, approval_process::*, audit::*, authenticated_subject::*,
+    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
+    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -198,11 +198,7 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(
-            CreditFacility,
-            ctx,
-            app.credit_facilities().find_by_id(sub, id)
-        )
+        maybe_fetch_one!(CreditFacility, ctx, app.credit().find_by_id(sub, id))
     }
 
     async fn credit_facilities(
@@ -252,7 +248,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit_facilities().list(sub, query, filter, sort)
+            |query| app.credit().list(sub, query, filter, sort)
         )
     }
 
@@ -265,7 +261,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().find_disbursal_by_id(sub, id)
+            app.credit().find_disbursal_by_id(sub, id)
         )
     }
 
@@ -291,10 +287,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| {
-                app.credit_facilities()
-                    .list_disbursals(sub, query, filter, sort)
-            }
+            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
         )
     }
 
@@ -395,83 +388,177 @@ impl Query {
         maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
     }
 
+    async fn ledger_account(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<LedgerAccount>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            LedgerAccount,
+            ctx,
+            app.accounting()
+                .find_ledger_account_by_id(sub, CHART_REF.0, id)
+        )
+    }
+
+    async fn ledger_account_csv_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LedgerAccountCsvCreateInput,
+    ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let csv = app
+            .accounting()
+            .csvs()
+            .create_ledger_account_csv(sub, input.ledger_account_id)
+            .await?;
+
+        let csv = AccountingCsv::from(csv);
+        Ok(LedgerAccountCsvCreatePayload::from(csv))
+    }
+
     async fn ledger_account_by_code(
         &self,
         ctx: &Context<'_>,
         code: String,
     ) -> async_graphql::Result<Option<LedgerAccount>> {
-        let reference = CHART_REF.to_string();
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let chart = app
-            .chart_of_accounts()
-            .find_by_reference(sub, reference.clone())
-            .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
-        let account = app
-            .chart_of_accounts()
-            .account_details_by_code(sub, chart, code)
-            .await?;
-        Ok(account.map(LedgerAccount::from))
+        maybe_fetch_one!(
+            LedgerAccount,
+            ctx,
+            app.accounting()
+                .find_ledger_account_by_code(sub, CHART_REF.0, code)
+        )
+    }
+
+    async fn transaction_templates(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<TransactionTemplateCursor, TransactionTemplate, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            TransactionTemplateCursor,
+            TransactionTemplate,
+            ctx,
+            after,
+            first,
+            |query| app.accounting().transaction_templates().list(sub, query)
+        )
+    }
+
+    async fn ledger_transaction(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<LedgerTransaction>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            LedgerTransaction,
+            ctx,
+            app.accounting().ledger_transactions().find_by_id(sub, id)
+        )
+    }
+
+    async fn ledger_transactions_for_template_code(
+        &self,
+        ctx: &Context<'_>,
+        template_code: String,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<LedgerTransactionCursor, LedgerTransaction, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            LedgerTransactionCursor,
+            LedgerTransaction,
+            ctx,
+            after,
+            first,
+            |query| app
+                .accounting()
+                .ledger_transactions()
+                .list_for_template_code(sub, &template_code, query)
+        )
+    }
+
+    async fn journal_entries(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<JournalEntryCursor, JournalEntry, EmptyFields, EmptyFields>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        query(
+            after,
+            None,
+            Some(first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists");
+                let query_args = es_entity::PaginatedQueryArgs { first, after };
+                let res = app.accounting().journal().entries(sub, query_args).await?;
+
+                let mut connection = Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entry| {
+                        let cursor = JournalEntryCursor::from(&entry);
+                        Edge::new(cursor, JournalEntry::from(entry))
+                    }));
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
     }
 
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Date,
     ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
+            .accounting()
             .trial_balances()
             .trial_balance(
                 sub,
                 TRIAL_BALANCE_STATEMENT_NAME.to_string(),
                 from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
-            .await?;
-        Ok(TrialBalance::from(account_summary))
-    }
-
-    async fn off_balance_sheet_trial_balance(
-        &self,
-        ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<TrialBalance> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let account_summary = app
-            .trial_balances()
-            .trial_balance(
-                sub,
-                OBS_TRIAL_BALANCE_STATEMENT_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
+                until.into_inner(),
             )
             .await?;
         Ok(TrialBalance::from(account_summary))
     }
 
     async fn chart_of_accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<ChartOfAccounts> {
-        let reference = CHART_REF.to_string();
-
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let chart = app
+            .accounting()
             .chart_of_accounts()
-            .find_by_reference(sub, reference.to_string())
+            .find_by_reference_with_sub(sub, CHART_REF.0)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", reference));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF.0));
         Ok(ChartOfAccounts::from(chart))
     }
 
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
+            .accounting()
             .balance_sheets()
             .balance_sheet(
                 sub,
@@ -486,12 +573,13 @@ impl Query {
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
-            .profit_and_loss_statements()
+            .accounting()
+            .profit_and_loss()
             .pl_statement(
                 sub,
                 PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
@@ -500,51 +588,6 @@ impl Query {
             )
             .await?;
         Ok(ProfitAndLossStatement::from(profit_and_loss))
-    }
-
-    async fn cash_flow_statement(
-        &self,
-        ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<CashFlowStatement> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let cash_flow = app
-            .cash_flow_statements()
-            .cash_flow_statement(
-                sub,
-                CASH_FLOW_STATEMENT_NAME.to_string(),
-                from.into_inner(),
-                until.map(|t| t.into_inner()),
-            )
-            .await?;
-        Ok(CashFlowStatement::from(cash_flow))
-    }
-
-    #[allow(unused_variables)]
-    async fn account_set(
-        &self,
-        ctx: &Context<'_>,
-        account_set_id: UUID,
-        from: Timestamp,
-        until: Option<Timestamp>,
-    ) -> async_graphql::Result<Option<AccountSetAndSubAccounts>> {
-        unimplemented!()
-        // let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // let account_set = app
-        //     .ledger()
-        //     .account_set_and_sub_accounts_with_balance(
-        //         sub,
-        //         uuid::Uuid::from(&account_set_id).into(),
-        //         0,
-        //         None,
-        //         from.into_inner(),
-        //         until.map(|t| t.into_inner()),
-        //     )
-        //     .await?;
-        // Ok(account_set.map(|a| {
-        // AccountSetAndSubAccounts::from((from.into_inner(), until.map(|t| t.into_inner()), a))
-        // }))
     }
 
     async fn realtime_price(&self, ctx: &Context<'_>) -> async_graphql::Result<RealtimePrice> {
@@ -621,10 +664,63 @@ impl Query {
     ) -> async_graphql::Result<Option<CreditModuleConfig>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
-            .credit_facilities()
+            .credit()
             .get_chart_of_accounts_integration_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
+    }
+
+    async fn balance_sheet_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<BalanceSheetModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .accounting()
+            .balance_sheets()
+            .get_chart_of_accounts_integration_config(sub, BALANCE_SHEET_NAME.to_string())
+            .await?;
+        Ok(config.map(BalanceSheetModuleConfig::from))
+    }
+
+    async fn profit_and_loss_statement_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<ProfitAndLossStatementModuleConfig>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let config = app
+            .accounting()
+            .profit_and_loss()
+            .get_chart_of_accounts_integration_config(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+            )
+            .await?;
+        Ok(config.map(ProfitAndLossStatementModuleConfig::from))
+    }
+
+    async fn accounting_csvs_for_ledger_account_id(
+        &self,
+        ctx: &Context<'_>,
+        ledger_account_id: UUID,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<AccountingCsvsByCreatedAtCursor, AccountingCsv, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            AccountingCsvsByCreatedAtCursor,
+            AccountingCsv,
+            ctx,
+            after,
+            first,
+            |query| app.accounting().csvs().list_for_ledger_account_id(
+                sub,
+                query,
+                ledger_account_id
+            )
+        )
     }
 }
 
@@ -724,18 +820,33 @@ impl Mutation {
         )
     }
 
-    async fn customer_update(
+    async fn customer_telegram_id_update(
         &self,
         ctx: &Context<'_>,
-        input: CustomerUpdateInput,
-    ) -> async_graphql::Result<CustomerUpdatePayload> {
+        input: CustomerTelegramIdUpdateInput,
+    ) -> async_graphql::Result<CustomerTelegramIdUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustomerUpdatePayload,
+            CustomerTelegramIdUpdatePayload,
             Customer,
             ctx,
             app.customers()
-                .update(sub, input.customer_id, input.telegram_id)
+                .update_telegram_id(sub, input.customer_id, input.telegram_id)
+        )
+    }
+
+    async fn customer_email_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustomerEmailUpdateInput,
+    ) -> async_graphql::Result<CustomerEmailUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustomerEmailUpdatePayload,
+            Customer,
+            ctx,
+            app.customers()
+                .update_email(sub, input.customer_id, input.email)
         )
     }
 
@@ -746,17 +857,42 @@ impl Mutation {
     ) -> async_graphql::Result<DepositModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
-            .chart_of_accounts_deposit_accounts_parent_code(
+            .chart_of_accounts_individual_deposit_accounts_parent_code(
                 input
-                    .chart_of_accounts_deposit_accounts_parent_code
+                    .chart_of_accounts_individual_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_accounts_government_entity_deposit_accounts_parent_code(
+                input
+                    .chart_of_accounts_government_entity_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_private_company_deposit_accounts_parent_code(
+                input
+                    .chart_of_account_private_company_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_bank_deposit_accounts_parent_code(
+                input
+                    .chart_of_account_bank_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_financial_institution_deposit_accounts_parent_code(
+                input
+                    .chart_of_account_financial_institution_deposit_accounts_parent_code
+                    .parse()?,
+            )
+            .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
+                input
+                    .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code
                     .parse()?,
             )
             .chart_of_accounts_omnibus_parent_code(
@@ -765,11 +901,38 @@ impl Mutation {
             .build()?;
         let config = app
             .deposits()
-            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(DepositModuleConfigurePayload::from(
             DepositModuleConfig::from(config),
         ))
+    }
+
+    pub async fn manual_transaction_execute(
+        &self,
+        ctx: &Context<'_>,
+        input: ManualTransactionExecuteInput,
+    ) -> async_graphql::Result<ManualTransactionExecutePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let mut entries = Vec::with_capacity(input.entries.len());
+        for entry in input.entries.into_iter() {
+            entries.push(entry.try_into()?);
+        }
+
+        exec_mutation!(
+            ManualTransactionExecutePayload,
+            LedgerTransaction,
+            ctx,
+            app.accounting().execute_manual_transaction(
+                sub,
+                CHART_REF.0,
+                input.reference,
+                input.description,
+                input.effective.map(|ts| ts.into_inner()),
+                entries
+            )
+        )
     }
 
     pub async fn deposit_record(
@@ -783,7 +946,7 @@ impl Mutation {
             DepositRecordPayload,
             Deposit,
             ctx,
-            app.confirm_deposit_with_sumsub(
+            app.deposits().record_deposit(
                 sub,
                 input.deposit_account_id,
                 input.amount,
@@ -822,7 +985,7 @@ impl Mutation {
             WithdrawalConfirmPayload,
             Withdrawal,
             ctx,
-            app.confirm_withdrawal_with_sumsub(sub, input.withdrawal_id)
+            app.deposits().confirm_withdrawal(sub, input.withdrawal_id)
         )
     }
 
@@ -849,9 +1012,10 @@ impl Mutation {
         let term_values = lana_app::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
             .accrual_interval(input.accrual_interval)
-            .incurrence_interval(input.incurrence_interval)
+            .accrual_cycle_interval(input.accrual_cycle_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
+            .interest_due_duration(input.interest_due_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -876,9 +1040,10 @@ impl Mutation {
         let term_values = lana_app::terms::TermValues::builder()
             .annual_rate(input.annual_rate)
             .accrual_interval(input.accrual_interval)
-            .incurrence_interval(input.incurrence_interval)
+            .accrual_cycle_interval(input.accrual_cycle_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
+            .interest_due_duration(input.interest_due_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -902,50 +1067,125 @@ impl Mutation {
     ) -> async_graphql::Result<CreditModuleConfigurePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let chart = app
-            .chart_of_accounts()
-            .find_by_reference(sub, CHART_REF.to_string())
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
 
-        let config_values = lana_app::credit_facility::ChartOfAccountsIntegrationConfig::builder()
+        let CreditModuleConfigureInput {
+            chart_of_account_facility_omnibus_parent_code,
+            chart_of_account_collateral_omnibus_parent_code,
+            chart_of_account_facility_parent_code,
+            chart_of_account_collateral_parent_code,
+            chart_of_account_interest_income_parent_code,
+            chart_of_account_fee_income_parent_code,
+
+            chart_of_account_short_term_individual_disbursed_receivable_parent_code,
+            chart_of_account_short_term_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_short_term_private_company_disbursed_receivable_parent_code,
+            chart_of_account_short_term_bank_disbursed_receivable_parent_code,
+            chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code,
+
+            chart_of_account_long_term_individual_disbursed_receivable_parent_code,
+            chart_of_account_long_term_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_long_term_private_company_disbursed_receivable_parent_code,
+            chart_of_account_long_term_bank_disbursed_receivable_parent_code,
+            chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code,
+
+            chart_of_account_short_term_individual_interest_receivable_parent_code,
+            chart_of_account_short_term_government_entity_interest_receivable_parent_code,
+            chart_of_account_short_term_private_company_interest_receivable_parent_code,
+            chart_of_account_short_term_bank_interest_receivable_parent_code,
+            chart_of_account_short_term_financial_institution_interest_receivable_parent_code,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code,
+
+            chart_of_account_long_term_individual_interest_receivable_parent_code,
+            chart_of_account_long_term_government_entity_interest_receivable_parent_code,
+            chart_of_account_long_term_private_company_interest_receivable_parent_code,
+            chart_of_account_long_term_bank_interest_receivable_parent_code,
+            chart_of_account_long_term_financial_institution_interest_receivable_parent_code,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code,
+            chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code,
+
+            chart_of_account_overdue_individual_disbursed_receivable_parent_code,
+            chart_of_account_overdue_government_entity_disbursed_receivable_parent_code,
+            chart_of_account_overdue_private_company_disbursed_receivable_parent_code,
+            chart_of_account_overdue_bank_disbursed_receivable_parent_code,
+            chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code,
+            chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code,
+            chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
+        } = input;
+
+        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
             .chart_of_account_facility_omnibus_parent_code(
-                input
-                    .chart_of_account_facility_omnibus_parent_code
+                chart_of_account_facility_omnibus_parent_code
                     .parse()?,
             )
             .chart_of_account_collateral_omnibus_parent_code(
-                input
-                    .chart_of_account_collateral_omnibus_parent_code
+                chart_of_account_collateral_omnibus_parent_code
                     .parse()?,
             )
             .chart_of_account_facility_parent_code(
-                input.chart_of_account_facility_parent_code.parse()?,
+                chart_of_account_facility_parent_code.parse()?,
             )
             .chart_of_account_collateral_parent_code(
-                input.chart_of_account_collateral_parent_code.parse()?,
-            )
-            .chart_of_account_disbursed_receivable_parent_code(
-                input
-                    .chart_of_account_disbursed_receivable_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_interest_receivable_parent_code(
-                input
-                    .chart_of_account_interest_receivable_parent_code
-                    .parse()?,
+                chart_of_account_collateral_parent_code.parse()?,
             )
             .chart_of_account_interest_income_parent_code(
-                input.chart_of_account_interest_income_parent_code.parse()?,
+                chart_of_account_interest_income_parent_code.parse()?,
             )
             .chart_of_account_fee_income_parent_code(
-                input.chart_of_account_fee_income_parent_code.parse()?,
+                chart_of_account_fee_income_parent_code.parse()?,
             )
+            .chart_of_account_short_term_individual_disbursed_receivable_parent_code(chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code(chart_of_account_short_term_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_private_company_disbursed_receivable_parent_code(chart_of_account_short_term_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_bank_disbursed_receivable_parent_code(chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_individual_disbursed_receivable_parent_code(chart_of_account_long_term_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code(chart_of_account_long_term_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_private_company_disbursed_receivable_parent_code(chart_of_account_long_term_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_bank_disbursed_receivable_parent_code(chart_of_account_long_term_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+
+            .chart_of_account_short_term_individual_interest_receivable_parent_code(chart_of_account_short_term_individual_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_government_entity_interest_receivable_parent_code(chart_of_account_short_term_government_entity_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_private_company_interest_receivable_parent_code(chart_of_account_short_term_private_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_bank_interest_receivable_parent_code(chart_of_account_short_term_bank_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_financial_institution_interest_receivable_parent_code(chart_of_account_short_term_financial_institution_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
+            .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_individual_interest_receivable_parent_code(chart_of_account_long_term_individual_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_government_entity_interest_receivable_parent_code(chart_of_account_long_term_government_entity_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_private_company_interest_receivable_parent_code(chart_of_account_long_term_private_company_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_bank_interest_receivable_parent_code(chart_of_account_long_term_bank_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_financial_institution_interest_receivable_parent_code(chart_of_account_long_term_financial_institution_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
+            .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
+
+            .chart_of_account_overdue_individual_disbursed_receivable_parent_code(chart_of_account_overdue_individual_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_government_entity_disbursed_receivable_parent_code(chart_of_account_overdue_government_entity_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_private_company_disbursed_receivable_parent_code(chart_of_account_overdue_private_company_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_bank_disbursed_receivable_parent_code(chart_of_account_overdue_bank_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code(chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
+            .chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+
             .build()?;
         let config = app
-            .credit_facilities()
-            .set_chart_of_accounts_integration_config(sub, chart, config_values)
+            .credit()
+            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
@@ -968,9 +1208,10 @@ impl Mutation {
         let credit_facility_term_values = lana_app::terms::TermValues::builder()
             .annual_rate(terms.annual_rate)
             .accrual_interval(terms.accrual_interval)
-            .incurrence_interval(terms.incurrence_interval)
+            .accrual_cycle_interval(terms.accrual_cycle_interval)
             .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
+            .interest_due_duration(terms.interest_due_duration)
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
@@ -980,7 +1221,7 @@ impl Mutation {
             CreditFacilityCreatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().initiate(
+            app.credit().initiate(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,
@@ -999,13 +1240,14 @@ impl Mutation {
         let CreditFacilityCollateralUpdateInput {
             credit_facility_id,
             collateral,
+            effective,
         } = input;
         exec_mutation!(
             CreditFacilityCollateralUpdatePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
-                .update_collateral(sub, credit_facility_id.into(), collateral)
+            app.credit()
+                .update_collateral(sub, credit_facility_id, collateral, effective)
         )
     }
 
@@ -1019,10 +1261,11 @@ impl Mutation {
             CreditFacilityPartialPaymentPayload,
             CreditFacility,
             ctx,
-            app.credit_facilities().record_payment(
+            app.credit().record_payment(
                 sub,
-                input.credit_facility_id.into(),
-                input.amount
+                input.credit_facility_id,
+                input.amount,
+                input.effective
             )
         )
     }
@@ -1037,11 +1280,8 @@ impl Mutation {
             CreditFacilityDisbursalInitiatePayload,
             CreditFacilityDisbursal,
             ctx,
-            app.credit_facilities().initiate_disbursal(
-                sub,
-                input.credit_facility_id.into(),
-                input.amount
-            )
+            app.credit()
+                .initiate_disbursal(sub, input.credit_facility_id.into(), input.amount)
         )
     }
 
@@ -1055,7 +1295,7 @@ impl Mutation {
             CreditFacilityCompletePayload,
             CreditFacility,
             ctx,
-            app.credit_facilities()
+            app.credit()
                 .complete_facility(sub, input.credit_facility_id)
         )
     }
@@ -1225,30 +1465,119 @@ impl Mutation {
         let mut data = String::new();
         file.read_to_string(&mut data)?;
 
-        let chart = app
-            .chart_of_accounts()
-            .import_from_csv(sub, chart_id, data)
+        let res = app
+            .accounting()
+            .import_csv(sub, chart_id.into(), data, TRIAL_BALANCE_STATEMENT_NAME)
             .await?;
 
-        app.trial_balances()
-            .add_chart_to_trial_balance(TRIAL_BALANCE_STATEMENT_NAME.to_string(), chart)
-            .await?;
-
-        Ok(ChartOfAccountsCsvImportPayload { success: true })
+        Ok(ChartOfAccountsCsvImportPayload { success: res })
     }
 
-    #[allow(unused_variables)]
-    pub async fn shareholder_equity_add(
+    async fn balance_sheet_configure(
         &self,
         ctx: &Context<'_>,
-        input: ShareholderEquityAddInput,
-    ) -> async_graphql::Result<SuccessPayload> {
-        unimplemented!()
-        // let app = ctx.data_unchecked::<LanaApp>();
-        // Ok(SuccessPayload::from(
-        //     app.ledger()
-        //         .add_equity(input.amount, input.reference)
-        //         .await?,
-        // ))
+        input: BalanceSheetModuleConfigureInput,
+    ) -> async_graphql::Result<BalanceSheetModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+
+        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_accounts_assets_code(input.chart_of_accounts_assets_code.parse()?)
+            .chart_of_accounts_liabilities_code(input.chart_of_accounts_liabilities_code.parse()?)
+            .chart_of_accounts_equity_code(input.chart_of_accounts_equity_code.parse()?)
+            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
+            .chart_of_accounts_cost_of_revenue_code(
+                input.chart_of_accounts_cost_of_revenue_code.parse()?,
+            )
+            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
+            .build()?;
+        let config = app
+            .accounting()
+            .balance_sheets()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                BALANCE_SHEET_NAME.to_string(),
+                chart.as_ref(),
+                config_values,
+            )
+            .await?;
+        Ok(BalanceSheetModuleConfigurePayload::from(
+            BalanceSheetModuleConfig::from(config),
+        ))
+    }
+
+    async fn profit_and_loss_statement_configure(
+        &self,
+        ctx: &Context<'_>,
+        input: ProfitAndLossModuleConfigureInput,
+    ) -> async_graphql::Result<ProfitAndLossStatementModuleConfigurePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let chart = loader
+            .load_one(CHART_REF)
+            .await?
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+
+        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig::builder()
+            .chart_of_accounts_id(chart.id)
+            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
+            .chart_of_accounts_cost_of_revenue_code(
+                input.chart_of_accounts_cost_of_revenue_code.parse()?,
+            )
+            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
+            .build()?;
+        let config = app
+            .accounting()
+            .profit_and_loss()
+            .set_chart_of_accounts_integration_config(
+                sub,
+                PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
+                chart.as_ref(),
+                config_values,
+            )
+            .await?;
+        Ok(ProfitAndLossStatementModuleConfigurePayload::from(
+            ProfitAndLossStatementModuleConfig::from(config),
+        ))
+    }
+
+    pub async fn ledger_account_csv_create(
+        &self,
+        ctx: &Context<'_>,
+        input: LedgerAccountCsvCreateInput,
+    ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let csv = app
+            .accounting()
+            .csvs()
+            .create_ledger_account_csv(sub, input.ledger_account_id)
+            .await?;
+
+        let csv = AccountingCsv::from(csv);
+        Ok(LedgerAccountCsvCreatePayload::from(csv))
+    }
+
+    pub async fn accounting_csv_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingCsvDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<AccountingCsvDownloadLinkGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let result = app
+            .accounting()
+            .csvs()
+            .generate_download_link(sub, input.accounting_csv_id.into())
+            .await?;
+
+        let link = AccountingCsvDownloadLink::from(result);
+
+        Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
 }

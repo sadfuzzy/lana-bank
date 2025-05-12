@@ -27,9 +27,9 @@ initial as (
                     ) month
                 )
         end as end_date,
-        json_value(event, "$.terms.incurrence_interval.type")
-            as incurrence_interval,
-        json_value(event, "$.terms.accrual_interval.type") as accrual_interval,
+        json_value(event, "$.terms.accrual_interval.type")
+            as accrual_interval,
+        json_value(event, "$.terms.accrual_cycle_interval.type") as accrual_cycle_interval,
         json_value(event, "$.customer_id") as customer_id,
         json_value(
             event, "$.customer_account_ids.on_balance_sheet_deposit_account_id"
@@ -177,8 +177,8 @@ select
     credit_facility_id,
     initialized_at,
     end_date,
-    incurrence_interval,
     accrual_interval,
+    accrual_cycle_interval,
     most_recent_interest_payment_timestamp,
     most_recent_disbursement_payment_timestamp,
     annual_rate,

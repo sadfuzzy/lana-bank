@@ -11,6 +11,7 @@ use governance::Governance;
 use outbox::OutboxEventMarker;
 
 use crate::{
+    event::CoreDepositEvent,
     primitives::WithdrawalId,
     withdrawal::{error::WithdrawalError, repo::WithdrawalRepo, Withdrawal},
     CoreDepositAction, CoreDepositObject, WithdrawalAction,
@@ -25,16 +26,16 @@ pub const APPROVE_WITHDRAWAL_PROCESS: ApprovalProcessType = ApprovalProcessType:
 pub struct ApproveWithdrawal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    repo: WithdrawalRepo,
+    repo: WithdrawalRepo<E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
 }
 impl<Perms, E> Clone for ApproveWithdrawal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -52,10 +53,10 @@ where
         From<CoreDepositAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     pub fn new(
-        repo: &WithdrawalRepo,
+        repo: &WithdrawalRepo<E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
     ) -> Self {

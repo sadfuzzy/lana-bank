@@ -1,11 +1,11 @@
 mod config;
 pub mod error;
-mod job;
 mod repo;
 mod sumsub_auth;
+mod tx_export;
 
 use core_customer;
-use job::{SumsubExportConfig, SumsubExportInitializer};
+use job::Jobs;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use std::sync::Arc;
@@ -13,8 +13,9 @@ use tracing::instrument;
 
 use crate::{
     customer::{CustomerId, Customers},
-    job::Jobs,
-    primitives::{DepositId, JobId, Subject, UsdCents, WithdrawalId},
+    deposit::Deposits,
+    outbox::Outbox,
+    primitives::Subject,
 };
 
 pub use config::*;
@@ -26,39 +27,11 @@ pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 use async_graphql::*;
 
-/// Direction of the transaction from Sumsub's perspective
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub enum SumsubTransactionDirection {
-    /// Money coming into the customer's account (deposit)
-    #[serde(rename = "in")]
-    In,
-    /// Money going out of the customer's account (withdrawal)
-    #[serde(rename = "out")]
-    Out,
-}
-
-impl std::fmt::Display for SumsubTransactionDirection {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            SumsubTransactionDirection::In => write!(f, "in"),
-            SumsubTransactionDirection::Out => write!(f, "out"),
-        }
-    }
-}
-
-/// Helper function to format UsdCents as float dollars
-/// FIXME temporary function, remove when we have a proper conversion
-pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
-    // Use the into_inner method to get the value in cents
-    (cents.into_inner() as f64) / 100.0
-}
-
 /// Applicants service
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
     customers: Arc<Customers>,
-    jobs: Arc<Jobs>,
     repo: ApplicantRepo,
 }
 
@@ -116,7 +89,7 @@ impl From<&core_customer::CustomerType> for SumsubVerificationLevel {
     fn from(customer_type: &core_customer::CustomerType) -> Self {
         match customer_type {
             core_customer::CustomerType::Individual => SumsubVerificationLevel::BasicKycLevel,
-            // All company types use the same SumSub verification level
+            // Every company types is tied to the same SumSub verification level
             core_customer::CustomerType::GovernmentEntity => SumsubVerificationLevel::BasicKybLevel,
             core_customer::CustomerType::PrivateCompany => SumsubVerificationLevel::BasicKybLevel,
             core_customer::CustomerType::Bank => SumsubVerificationLevel::BasicKybLevel,
@@ -183,16 +156,27 @@ pub struct ReviewResult {
 }
 
 impl Applicants {
-    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers, jobs: &Jobs) -> Self {
+    pub async fn init(
+        pool: &PgPool,
+        config: &SumsubConfig,
+        customers: &Customers,
+        deposits: &Deposits,
+        jobs: &Jobs,
+        outbox: &Outbox,
+    ) -> Result<Self, ApplicantError> {
         let sumsub_client = SumsubClient::new(config);
-        jobs.add_initializer(SumsubExportInitializer::new(sumsub_client.clone(), pool));
 
-        Self {
+        jobs.add_initializer_and_spawn_unique(
+            tx_export::SumsubExportInitializer::new(outbox, &sumsub_client, deposits),
+            tx_export::SumsubExportJobConfig,
+        )
+        .await?;
+
+        Ok(Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
             customers: Arc::new(customers.clone()),
-            jobs: Arc::new(jobs.clone()),
-        }
+        })
     }
 
     pub async fn handle_callback(&self, payload: serde_json::Value) -> Result<(), ApplicantError> {
@@ -201,22 +185,11 @@ impl Applicants {
             .ok_or_else(|| ApplicantError::MissingExternalUserId(payload.to_string()))?
             .parse()?;
 
-        let callback_id = &self
-            .repo
+        self.repo
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
         let mut db = self.repo.begin_op().await?;
-
-        self.jobs
-            .create_and_spawn_in_op(
-                &mut db,
-                JobId::new(),
-                SumsubExportConfig::Webhook {
-                    callback_id: *callback_id,
-                },
-            )
-            .await?;
 
         match self.process_payload(&mut db, payload).await {
             Ok(_) => (),
@@ -313,16 +286,6 @@ impl Applicants {
                     }
                     Err(e) => return Err(e.into()),
                 }
-
-                self.jobs
-                    .create_and_spawn_in_op(
-                        db,
-                        JobId::new(),
-                        SumsubExportConfig::SensitiveInfo {
-                            customer_id: external_user_id,
-                        },
-                    )
-                    .await?;
             }
             SumsubCallbackPayload::Unknown => {
                 return Err(ApplicantError::UnhandledCallbackType(format!(
@@ -353,44 +316,6 @@ impl Applicants {
 
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
-            .await
-    }
-
-    #[instrument(name = "applicants.submit_withdrawal_transaction", skip(self), err)]
-    pub async fn submit_withdrawal_transaction(
-        &self,
-        withdrawal_id: WithdrawalId,
-        customer_id: CustomerId,
-        amount: UsdCents,
-    ) -> Result<(), ApplicantError> {
-        self.sumsub_client
-            .submit_finance_transaction(
-                customer_id,
-                withdrawal_id.to_string(),
-                "Withdrawal",
-                &SumsubTransactionDirection::Out.to_string(),
-                usd_cents_to_dollars(amount),
-                "USD",
-            )
-            .await
-    }
-
-    #[instrument(name = "applicants.submit_deposit_transaction", skip(self), err)]
-    pub async fn submit_deposit_transaction(
-        &self,
-        deposit_id: DepositId,
-        customer_id: CustomerId,
-        amount: UsdCents,
-    ) -> Result<(), ApplicantError> {
-        self.sumsub_client
-            .submit_finance_transaction(
-                customer_id,
-                deposit_id.to_string(),
-                "Deposit",
-                &SumsubTransactionDirection::In.to_string(),
-                usd_cents_to_dollars(amount),
-                "USD",
-            )
             .await
     }
 }

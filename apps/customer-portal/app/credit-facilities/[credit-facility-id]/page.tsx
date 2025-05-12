@@ -14,7 +14,7 @@ import CollateralCard from "./collateral-card"
 
 import TermsCard from "./terms-card"
 
-import { CreditFacilityTransactions } from "./transactions"
+import { CreditFacilityHistory } from "./history"
 
 import { CreditFacilityDisbursals } from "./disbursals"
 
@@ -32,7 +32,6 @@ gql`
       id
       creditFacilityId
       facilityAmount
-      collateral
       collateralizationState
       status
       createdAt
@@ -41,15 +40,14 @@ gql`
       disbursals {
         id
         disbursalId
-        index
         amount
         status
         createdAt
       }
       creditFacilityTerms {
         annualRate
+        accrualCycleInterval
         accrualInterval
-        incurrenceInterval
         oneTimeFeeRate
         duration {
           period
@@ -107,7 +105,7 @@ gql`
         accrualAt
         dueAt
       }
-      transactions {
+      history {
         ... on CreditFacilityIncrementalPayment {
           cents
           recordedAt
@@ -148,8 +146,8 @@ gql`
   }
 `
 
-async function page({ params }: { params: { "credit-facility-id": string } }) {
-  const id = params["credit-facility-id"]
+async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
+  const { "credit-facility-id": id } = await params
   const data = await getCreditFacility({
     id,
   })
@@ -200,14 +198,14 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
         <CollateralCard data={data.creditFacility} />
       </div>
       <TermsCard data={data.creditFacility} />
-      <Tabs defaultValue="transactions" className="w-full">
+      <Tabs defaultValue="history" className="w-full">
         <TabsList className="flex h-12 w-full items-center rounded-lg bg-muted p-1">
           <TabsTrigger
-            value="transactions"
+            value="history"
             className="flex h-full flex-1 items-center justify-center gap-2 rounded-md data-[state=active]:bg-background data-[state=active]:text-primary"
           >
             <ArrowDownUp className="h-4 w-4" />
-            Transactions
+            History
           </TabsTrigger>
           <TabsTrigger
             value="repayments"
@@ -225,8 +223,8 @@ async function page({ params }: { params: { "credit-facility-id": string } }) {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="transactions" className="mt-2">
-          <CreditFacilityTransactions creditFacility={data.creditFacility} />
+        <TabsContent value="history" className="mt-2">
+          <CreditFacilityHistory creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="repayments" className="mt-2">
           <CreditFacilityRepaymentPlan creditFacility={data.creditFacility} />

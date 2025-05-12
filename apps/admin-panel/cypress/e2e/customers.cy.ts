@@ -1,3 +1,5 @@
+import { t } from "../support/translation"
+
 describe("Customers", () => {
   let testEmail: string
   let testTelegramId: string
@@ -20,7 +22,7 @@ describe("Customers", () => {
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testEmail, { delay: 0, waitForAnimations: false })
+      .type(testEmail)
       .should("have.value", testEmail)
     cy.takeScreenshot("5_enter_email")
 
@@ -28,12 +30,12 @@ describe("Customers", () => {
       .should("be.visible")
       .should("be.enabled")
       .clear()
-      .type(testTelegramId, { delay: 0, waitForAnimations: false })
+      .type(testTelegramId)
       .should("have.value", testTelegramId)
     cy.takeScreenshot("6_enter_telegram_id")
 
     cy.get('[data-testid="customer-create-submit-button"]')
-      .contains("Review Details")
+      .contains(t("Customers.create.reviewButton"))
       .click()
     cy.takeScreenshot("7_click_review_details")
 
@@ -42,7 +44,7 @@ describe("Customers", () => {
     cy.takeScreenshot("8_verify_details")
 
     cy.get('[data-testid="customer-create-submit-button"]')
-      .contains("Confirm and Submit")
+      .contains(t("Customers.create.confirmButton"))
       .click()
     cy.takeScreenshot("9_click_confirm_submit")
 
@@ -51,7 +53,7 @@ describe("Customers", () => {
       /\/customers\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     cy.contains(testEmail).should("be.visible")
-    cy.contains("Add new customer").should("not.exist")
+    cy.contains(t("Customers.create.title")).should("not.exist")
     cy.takeScreenshot("10_verify_email")
     cy.getIdFromUrl("/customers/").then((id) => {
       testCustomerId = id
@@ -64,9 +66,12 @@ describe("Customers", () => {
     cy.takeScreenshot("11_verify_customer_in_list")
   })
 
-  it("should upload a document", () => {
+  it("should upload a document", function () {
+    if (!Cypress.env("GOOGLE_CLOUD_AVAILABLE")) {
+      this.skip()
+    }
     cy.visit(`/customers/${testCustomerId}/documents`)
-    cy.contains("Documents uploaded by this customer").should("exist")
+    cy.contains(t("Customers.CustomerDetails.Documents.description")).should("exist")
     cy.takeScreenshot("12_customer_documents")
     cy.fixture("test.pdf", "binary").then((content) => {
       cy.get('input[type="file"]').attachFile({
@@ -75,7 +80,9 @@ describe("Customers", () => {
         mimeType: "application/pdf",
       })
     })
-    cy.contains("Document uploaded successfully").should("exist")
+    cy.contains(t("Customers.CustomerDetails.Documents.messages.uploadSuccess")).should(
+      "exist",
+    )
     cy.takeScreenshot("13_upload_document")
   })
 

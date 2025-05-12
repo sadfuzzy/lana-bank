@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import { MockedProvider } from "@apollo/client/testing"
 
-import TrialBalance from "./page"
+import TrialBalancePage from "./page"
 
 import { GetTrialBalanceDocument } from "@/lib/graphql/generated"
 
@@ -22,7 +22,7 @@ const TrialBalanceStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <TrialBalance />
+      <TrialBalancePage />
     </MockedProvider>
   )
 }
@@ -40,7 +40,7 @@ const LoadingStory = () => {
 
   return (
     <MockedProvider mocks={mocks} addTypename={false}>
-      <TrialBalance />
+      <TrialBalancePage />
     </MockedProvider>
   )
 }
@@ -57,7 +57,7 @@ const meta = {
       },
     },
   },
-} satisfies Meta<typeof TrialBalance>
+} satisfies Meta<typeof TrialBalancePage>
 
 export default meta
 

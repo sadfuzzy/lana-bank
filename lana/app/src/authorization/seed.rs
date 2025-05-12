@@ -1,6 +1,6 @@
 use audit::SystemSubject;
 use authz::error::AuthorizationError;
-use chart_of_accounts::{CoreChartOfAccountsAction, CoreChartOfAccountsObject};
+use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_user::{CoreUserAction, UserEntityAction, UserObject};
@@ -24,10 +24,10 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
 
 async fn seed_role_hierarchy(authz: &Authorization) -> Result<(), AuthorizationError> {
     authz
-        .add_role_hierarchy(LanaRole::ADMIN, LanaRole::SUPERUSER)
+        .add_role_hierarchy(LanaRole::SUPERUSER, LanaRole::ADMIN)
         .await?;
     authz
-        .add_role_hierarchy(LanaRole::BANK_MANAGER, LanaRole::ADMIN)
+        .add_role_hierarchy(LanaRole::ADMIN, LanaRole::BANK_MANAGER)
         .await?;
 
     Ok(())
@@ -108,9 +108,6 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
         )
         .await?;
 
-    authz
-        .add_permission_to_role(&role, Object::Ledger, LedgerAction::Read)
-        .await?;
     authz
         .add_permission_to_role(&role, Object::Audit, AuditAction::List)
         .await?;
@@ -332,13 +329,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
         .add_permission_to_role(
             &role,
             CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::CREDIT_FACILITY_RECORD_PAYMENT,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
         )
         .await?;
@@ -359,6 +349,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
+            CoreCreditObject::all_obligations(),
+            CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
             CoreCreditObject::chart_of_accounts_integration(),
             CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_READ,
         )
@@ -368,22 +365,6 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             CoreCreditObject::chart_of_accounts_integration(),
             CoreCreditAction::CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE,
-        )
-        .await?;
-
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::LedgerAccount,
-            LedgerAccountAction::ReadHistory,
-        )
-        .await?;
-
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::LedgerAccount,
-            LedgerAccountAction::ReadBalance,
         )
         .await?;
 
@@ -411,30 +392,75 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            CoreCreditObject::all_credit_facilities(),
-            CoreCreditAction::DISBURSAL_CONCLUDE_APPROVAL_PROCESS,
-        )
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::TrialBalance, TrialBalanceAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(&role, Object::BalanceSheet, BalanceSheetAction::Read)
-        .await?;
-    authz
-        .add_permission_to_role(
-            &role,
-            Object::ProfitAndLossStatement,
-            ProfitAndLossStatementAction::Read,
+            CoreAccountingObject::all_trial_balance(),
+            CoreAccountingAction::TRIAL_BALANCE_READ,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            Object::CashFlowStatement,
-            CashFlowStatementAction::Read,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_READ,
         )
         .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_balance_sheet(),
+            CoreAccountingAction::BALANCE_SHEET_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_UPDATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_balance_sheet_configuration(),
+            CoreAccountingAction::BALANCE_SHEET_CONFIGURATION_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_UPDATE,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_profit_and_loss_configuration(),
+            CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
+        )
+        .await?;
+
     authz
         .add_permission_to_role(
             &role,
@@ -446,25 +472,108 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_CREATE,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_LIST,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_LIST,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            CoreChartOfAccountsObject::all_charts(),
-            CoreChartOfAccountsAction::CHART_ACCOUNT_DETAILS_READ,
+            CoreAccountingObject::all_charts(),
+            CoreAccountingAction::CHART_IMPORT_ACCOUNTS,
         )
         .await?;
-
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_journals(),
+            CoreAccountingAction::JOURNAL_READ_ENTRIES,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_manual_transactions(),
+            CoreAccountingAction::MANUAL_TRANSACTION_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_transaction_templates(),
+            CoreAccountingAction::TRANSACTION_TEMPLATE_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_accounts(),
+            CoreAccountingAction::LEDGER_ACCOUNT_READ_HISTORY,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_transactions(),
+            CoreAccountingAction::LEDGER_TRANSACTION_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_ledger_transactions(),
+            CoreAccountingAction::LEDGER_TRANSACTION_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_LIST,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_READ,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccountingObject::all_accounting_csvs(),
+            CoreAccountingAction::ACCOUNTING_CSV_GENERATE_DOWNLOAD_LINK,
+        )
+        .await?;
     authz
         .add_permission_to_role(
             &role,
@@ -507,6 +616,13 @@ async fn add_permissions_for_bank_manager(authz: &Authorization) -> Result<(), A
             &role,
             CoreDepositObject::all_deposit_accounts(),
             CoreDepositAction::DEPOSIT_ACCOUNT_CREATE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreDepositObject::all_deposit_accounts(),
+            CoreDepositAction::DEPOSIT_ACCOUNT_UPDATE_STATUS,
         )
         .await?;
     authz

@@ -28,7 +28,7 @@ export type Column<T> = {
     header: string | React.ReactNode
     width?: string
     align?: "left" | "center" | "right"
-    render?: (value: T[K], record: T) => React.ReactNode
+    render?: (value: T[K], record: T, index: number) => React.ReactNode
   }
 }[keyof T]
 
@@ -43,7 +43,6 @@ interface DataTableProps<T> {
   emptyMessage?: React.ReactNode
   loading?: boolean
   navigateTo?: (record: T) => string | null
-  autoFocus?: boolean
 }
 
 const DataTable = <T,>({
@@ -54,17 +53,15 @@ const DataTable = <T,>({
   rowClassName,
   cellClassName,
   onRowClick,
-  emptyMessage = "No data to display",
+  emptyMessage,
   loading = false,
   navigateTo,
-  autoFocus = true,
 }: DataTableProps<T>) => {
   const t = useTranslations("DataTable")
   const isMobile = useBreakpointDown("md")
   const [focusedRowIndex, setFocusedRowIndex] = useState<number>(-1)
   const [isTableFocused, setIsTableFocused] = useState(false)
   const tableRef = useRef<HTMLDivElement>(null)
-  const focusTimeoutRef = useRef<NodeJS.Timeout>()
   const router = useRouter()
 
   const getNavigationUrl = (item: T): string | null => {
@@ -75,44 +72,6 @@ const DataTable = <T,>({
     if (!navigateTo) return false
     const url = getNavigationUrl(item)
     return url !== null && url !== ""
-  }
-
-  const isNoFocusActive = () => {
-    const activeElement = document.activeElement
-    const isBaseElement =
-      !activeElement ||
-      activeElement === document.body ||
-      activeElement === document.documentElement
-    const isOutsideTable = !tableRef.current?.contains(activeElement)
-    const isInteractiveElement = activeElement?.matches(
-      "button, input, select, textarea, a[href], [tabindex], [contenteditable]",
-    )
-    return (isBaseElement || isOutsideTable) && !isInteractiveElement
-  }
-
-  const smartFocus = () => {
-    if (autoFocus && isNoFocusActive()) {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-
-      focusTimeoutRef.current = setTimeout(() => {
-        if (tableRef.current) {
-          tableRef.current.focus()
-          setIsTableFocused(true)
-
-          const targetIndex = focusedRowIndex >= 0 ? focusedRowIndex : 0
-          const targetRow = document.querySelector(
-            `[data-testid="table-row-${targetIndex}"]`,
-          ) as HTMLElement
-
-          if (targetRow) {
-            targetRow.focus()
-            setFocusedRowIndex(targetIndex)
-          }
-        }
-      }, 0)
-    }
   }
 
   const focusRow = (index: number) => {
@@ -173,38 +132,6 @@ const DataTable = <T,>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, focusedRowIndex, onRowClick, navigateTo, isTableFocused])
 
-  useEffect(() => {
-    const shouldAutoFocus = autoFocus && data && data.length > 0 && !loading
-    if (shouldAutoFocus) {
-      smartFocus()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.length, loading, autoFocus])
-
-  useEffect(() => {
-    const handleFocusOut = (e: FocusEvent) => {
-      if (!tableRef.current?.contains(e.relatedTarget as Node)) {
-        if (autoFocus && isNoFocusActive()) {
-          smartFocus()
-        }
-      }
-    }
-
-    if (autoFocus) {
-      document.addEventListener("focusout", handleFocusOut)
-      return () => document.removeEventListener("focusout", handleFocusOut)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoFocus])
-
-  useEffect(() => {
-    return () => {
-      if (focusTimeoutRef.current) {
-        clearTimeout(focusTimeoutRef.current)
-      }
-    }
-  }, [])
-
   if (loading && !data.length) {
     return isMobile ? (
       <div className="space-y-4" data-testid="loading-skeleton">
@@ -260,7 +187,7 @@ const DataTable = <T,>({
   }
 
   if (!data.length) {
-    return <div className="text-sm">{emptyMessage}</div>
+    return <div className="text-sm">{emptyMessage || t("noData")}</div>
   }
 
   if (isMobile) {
@@ -306,7 +233,7 @@ const DataTable = <T,>({
                     )}
                   >
                     {column.render
-                      ? column.render(item[column.key], item)
+                      ? column.render(item[column.key], item, index)
                       : String(item[column.key])}
                   </div>
                 </div>
@@ -397,7 +324,7 @@ const DataTable = <T,>({
                   )}
                 >
                   {column.render
-                    ? column.render(item[column.key], item)
+                    ? column.render(item[column.key], item, rowIndex)
                     : String(item[column.key])}
                 </TableCell>
               ))}

@@ -5,15 +5,15 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL_CODE";
+pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct CancelDisbursalParams {
     pub journal_id: JournalId,
-    pub credit_omnibus_account: AccountId,
-    pub credit_facility_account: AccountId,
+    pub credit_omnibus_account: CalaAccountId,
+    pub credit_facility_account: CalaAccountId,
     pub disbursed_amount: Decimal,
 }
 
@@ -63,7 +63,7 @@ impl From<CancelDisbursalParams> for Params {
         params.insert("credit_omnibus_account", credit_omnibus_account);
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
         params
     }
 }
@@ -102,19 +102,19 @@ impl CancelDisbursal {
                 .expect("Couldn't build entry"),
             // Reverse settled entries
             NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_CR'")
+                .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_DR'")
                 .currency("'USD'")
-                .account_id("params.credit_facility_account")
-                .direction("CREDIT")
+                .account_id("params.credit_omnibus_account")
+                .direction("DEBIT")
                 .layer("SETTLED")
                 .units("params.disbursed_amount")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_DR'")
+                .entry_type("'CANCEL_DISBURSAL_DRAWDOWN_SETTLED_CR'")
                 .currency("'USD'")
-                .account_id("params.credit_omnibus_account")
-                .direction("DEBIT")
+                .account_id("params.credit_facility_account")
+                .direction("CREDIT")
                 .layer("SETTLED")
                 .units("params.disbursed_amount")
                 .build()

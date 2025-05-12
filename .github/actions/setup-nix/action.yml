@@ -1,0 +1,46 @@
+name: "setup-nix"
+
+description: "Composite action to install Nix, configure Cachix, cache Cargo dependencies, and optionally authenticate to Google Cloud."
+
+inputs:
+  cachix_auth_token:
+    description: "Cachix authentication token."
+    required: true
+  google_credentials:
+    description: "Google Cloud service account credentials JSON."
+    required: false
+  free_disk_space:
+    description: "Whether to run the free-disk-space action."
+    required: false
+    default: 'true'
+
+runs:
+  using: "composite"
+  steps:
+    - uses: DeterminateSystems/nix-installer-action@v16
+    - uses: jlumbroso/free-disk-space@main
+      if: inputs.free_disk_space == 'true'
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - uses: cachix/cachix-action@v15
+      with:
+        name: lana
+        authToken: ${{ inputs.cachix_auth_token }}
+
+    - run: nix flake check
+      shell: bash
+
+    - name: Authenticate to Google Cloud
+      env:
+        GOOGLE_CREDENTIALS: ${{ inputs.google_credentials }}
+      if: inputs.google_credentials != ''
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ inputs.google_credentials }} 

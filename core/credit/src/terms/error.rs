@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use super::CVLPct;
+use crate::primitives::CVLPct;
 
 #[derive(Error, Debug)]
 pub enum TermsError {

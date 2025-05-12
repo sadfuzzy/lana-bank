@@ -21,7 +21,7 @@ resource "google_storage_bucket" "tf_state" {
 data "google_iam_policy" "tf_state_access" {
   binding {
     role    = "roles/storage.admin"
-    members = ["user:${local.justin}"]
+    members = ["user:${local.owner}"]
   }
 }
 

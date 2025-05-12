@@ -1,6 +1,6 @@
 [package]
 name = "core-credit"
-version = "0.3.168-dev"
+version = "0.3.466-dev"
 edition = "2021"
 
 [features]
@@ -14,12 +14,13 @@ core-money = { path = "../money" }
 core-price = { path = "../price" }
 core-customer = { path = "../customer" }
 governance = { path = "../governance" }
-chart-of-accounts = { path = "../chart-of-accounts" }
+core-accounting = { path = "../accounting" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }

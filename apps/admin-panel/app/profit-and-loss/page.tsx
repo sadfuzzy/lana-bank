@@ -3,7 +3,6 @@ import { gql } from "@apollo/client"
 import { useCallback, useState } from "react"
 
 import { Table, TableBody, TableCell, TableFooter, TableRow } from "@lana/web/ui/table"
-
 import {
   Card,
   CardContent,
@@ -11,21 +10,20 @@ import {
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
-
 import { Skeleton } from "@lana/web/ui/skeleton"
 
 import { useTranslations } from "next-intl"
 
 import { Account } from "./account"
 
+import { PnlCurrencySelection, PnlLayerSelection } from "./pnl-currency-selector"
+
 import {
   ProfitAndLossStatementQuery,
-  StatementCategory,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
 
-import { CurrencyLayerSelection } from "@/components/financial/currency-layer-selection"
 import {
   DateRange,
   DateRangeSelector,
@@ -33,40 +31,108 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+  query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
-      net {
-        ...balancesByCurrency
+      total {
+        usd {
+          ...UsdLedgerBalanceRangeFragment
+        }
+        btc {
+          ...BtcLedgerBalanceRangeFragment
+        }
       }
       categories {
+        id
         name
-        amounts {
-          ...balancesByCurrency
+        code
+        balanceRange {
+          __typename
+          ...UsdLedgerBalanceRangeFragment
+          ...BtcLedgerBalanceRangeFragment
         }
-        accounts {
-          ... on Account {
+        children {
+          id
+          name
+          code
+          balanceRange {
             __typename
-            id
-            name
-            amounts {
-              ...balancesByCurrency
-            }
-          }
-          ... on AccountSet {
-            __typename
-            id
-            name
-
-            amounts {
-              ...balancesByCurrency
-            }
+            ...UsdLedgerBalanceRangeFragment
+            ...BtcLedgerBalanceRangeFragment
           }
         }
       }
     }
   }
+
+  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
+  }
+
+  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
+    settled {
+      debit
+      credit
+      net
+    }
+    pending {
+      debit
+      credit
+      net
+    }
+    encumbrance {
+      debit
+      credit
+      net
+    }
+  }
+
+  fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
+    usdStart: open {
+      ...UsdBalanceFragment
+    }
+    usdDiff: periodActivity {
+      ...UsdBalanceFragment
+    }
+    usdEnd: close {
+      ...UsdBalanceFragment
+    }
+  }
+
+  fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
+    btcStart: open {
+      ...BtcBalanceFragment
+    }
+    btcDiff: periodActivity {
+      ...BtcBalanceFragment
+    }
+    btcEnd: close {
+      ...BtcBalanceFragment
+    }
+  }
 `
+interface ProfitAndLossProps {
+  data?: ProfitAndLossStatementQuery["profitAndLossStatement"]
+  loading: boolean
+  error?: Error
+  dateRange: DateRange
+  setDateRange: (range: DateRange) => void
+}
+
 const LoadingSkeleton = () => {
   return (
     <div className="space-y-6">
@@ -120,12 +186,6 @@ const LoadingSkeleton = () => {
     </div>
   )
 }
-const BALANCE_FOR_CATEGORY: {
-  [key: string]: { TransactionType: TransactionType }
-} = {
-  Revenue: { TransactionType: "netCredit" },
-  Expenses: { TransactionType: "netDebit" },
-}
 
 export default function ProfitAndLossStatementPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
@@ -133,19 +193,15 @@ export default function ProfitAndLossStatementPage() {
     setDateRange(newDateRange)
   }, [])
 
-  const {
-    data: ProfitAndLossStatementData,
-    loading: ProfitAndLossStatementLoading,
-    error: ProfitAndLossStatementError,
-  } = useProfitAndLossStatementQuery({
+  const { data, loading, error } = useProfitAndLossStatementQuery({
     variables: dateRange,
   })
 
   return (
     <ProfitAndLossStatement
-      data={ProfitAndLossStatementData?.profitAndLossStatement}
-      loading={ProfitAndLossStatementLoading && !ProfitAndLossStatementData}
-      error={ProfitAndLossStatementError}
+      data={data?.profitAndLossStatement}
+      loading={loading && !data}
+      error={error}
       dateRange={dateRange}
       setDateRange={handleDateChange}
     />
@@ -158,22 +214,13 @@ const ProfitAndLossStatement = ({
   error,
   dateRange,
   setDateRange,
-}: {
-  data?: ProfitAndLossStatementQuery["profitAndLossStatement"]
-  loading: boolean
-  error: Error | undefined
-  dateRange: DateRange
-  setDateRange: (dateRange: DateRange) => void
-}) => {
+}: ProfitAndLossProps) => {
   const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
-  const [layer, setLayer] = useState<Layers>("all")
-
-  const net = data?.net
-  const categories = data?.categories
+  const [layer, setLayer] = useState<PnlLayers>("settled")
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading && !data) {
+  if (loading || !data) {
     return (
       <Card>
         <CardHeader>
@@ -186,7 +233,19 @@ const ProfitAndLossStatement = ({
       </Card>
     )
   }
-  if (!net) return <div>{t("noData")}</div>
+
+  if (!data.categories || data.categories.length === 0) {
+    return <div>No data available</div>
+  }
+
+  const total = data.total
+  let netEnd: number | undefined
+
+  if (currency === "usd" && total?.usd) {
+    netEnd = total.usd.usdEnd[layer].net
+  } else if (currency === "btc" && total?.btc) {
+    netEnd = total.btc.btcEnd[layer].net
+  }
 
   return (
     <Card>
@@ -199,26 +258,26 @@ const ProfitAndLossStatement = ({
           <div>{t("dateRange")}:</div>
           <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
         </div>
-
-        <CurrencyLayerSelection
-          currency={currency}
-          setCurrency={setCurrency}
-          layer={layer}
-          setLayer={setLayer}
-        />
-
+        <PnlCurrencySelection currency={currency} setCurrency={setCurrency} />
+        <PnlLayerSelection layer={layer} setLayer={setLayer} />
         <Table className="mt-6">
           <TableBody>
-            {categories?.map((category) => {
+            {data.categories.map((category) => {
+              let categoryEnd: number | undefined
+              if (category.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
+                categoryEnd = category.balanceRange.usdEnd[layer].net
+              } else if (
+                category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
+              ) {
+                categoryEnd = category.balanceRange.btcEnd[layer].net
+              }
               return (
                 <CategoryRow
-                  key={category.name}
-                  category={category as StatementCategory}
+                  key={category.id}
+                  category={category}
                   currency={currency}
                   layer={layer}
-                  transactionType={
-                    BALANCE_FOR_CATEGORY[category.name].TransactionType || "netCredit"
-                  }
+                  endingBalance={categoryEnd}
                 />
               )
             })}
@@ -230,7 +289,7 @@ const ProfitAndLossStatement = ({
                 <Balance
                   align="end"
                   currency={currency}
-                  amount={net[currency].closingBalance[layer].netCredit}
+                  amount={netEnd as CurrencyType}
                 />
               </TableCell>
             </TableRow>
@@ -241,17 +300,18 @@ const ProfitAndLossStatement = ({
   )
 }
 
-const CategoryRow = ({
-  category,
-  currency,
-  layer,
-  transactionType,
-}: {
-  category: StatementCategory
+interface CategoryRowProps {
+  category: NonNullable<
+    ProfitAndLossStatementQuery["profitAndLossStatement"]
+  >["categories"][0]
   currency: Currency
-  layer: Layers
-  transactionType: TransactionType
-}) => {
+  layer: PnlLayers
+  endingBalance?: number
+}
+
+const CategoryRow = ({ category, currency, layer, endingBalance }: CategoryRowProps) => {
+  const t = useTranslations("ProfitAndLoss")
+
   return (
     <>
       <TableRow>
@@ -259,25 +319,31 @@ const CategoryRow = ({
           data-testid={`category-${category.name.toLowerCase()}`}
           className="flex items-center gap-2 text-primary font-semibold uppercase"
         >
-          {category.name}
+          {t(`categories.${category.name.replace(/\s+/g, "")}`)}
         </TableCell>
         <TableCell className="w-48">
           <Balance
             align="end"
             currency={currency}
-            amount={category.amounts[currency].closingBalance[layer][transactionType]}
+            amount={endingBalance as CurrencyType}
           />
         </TableCell>
       </TableRow>
-      {category.accounts.map((account) => (
-        <Account
-          key={account.id}
-          account={account}
-          currency={currency}
-          layer={layer}
-          transactionType={transactionType}
-        />
-      ))}
+      {category.children.map(
+        (
+          child: NonNullable<
+            ProfitAndLossStatementQuery["profitAndLossStatement"]
+          >["categories"][0]["children"][number],
+        ) => (
+          <Account
+            key={child.id}
+            account={child}
+            currency={currency}
+            depth={1}
+            layer={layer}
+          />
+        ),
+      )}
     </>
   )
 }

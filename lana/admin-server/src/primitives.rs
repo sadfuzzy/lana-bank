@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
-        DepositId, DisbursalId, DisbursalIdx, DisbursalStatus, DocumentId, LanaRole, PaymentId,
-        PolicyId, ReportId, ReportProgress, Satoshis, SignedSatoshis, SignedUsdCents, Subject,
+        DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
+        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis, Subject,
         TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
@@ -43,6 +43,37 @@ impl Timestamp {
     #[allow(dead_code)]
     pub fn into_inner(self) -> chrono::DateTime<chrono::Utc> {
         self.0
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct Date(chrono::NaiveDate);
+scalar!(Date);
+impl From<chrono::NaiveDate> for Date {
+    fn from(value: chrono::NaiveDate) -> Self {
+        Self(value)
+    }
+}
+impl From<Date> for chrono::NaiveDate {
+    fn from(value: Date) -> Self {
+        value.0
+    }
+}
+impl Date {
+    #[allow(dead_code)]
+    pub fn into_inner(self) -> chrono::NaiveDate {
+        self.0
+    }
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct AuditEntryId(audit::AuditEntryId);
+scalar!(AuditEntryId);
+impl From<audit::AuditEntryId> for AuditEntryId {
+    fn from(value: audit::AuditEntryId) -> Self {
+        Self(value)
     }
 }
 
@@ -88,6 +119,11 @@ impl_to_global_id! {
     CommitteeId,
     WithdrawalId,
     DepositId,
+    ManualTransactionId,
     ApprovalProcessId,
-    DepositAccountId
+    DepositAccountId,
+    LedgerTransactionId
 }
+
+use cala_ledger::EntryId;
+impl_to_global_id!(EntryId);

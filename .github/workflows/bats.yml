@@ -1,31 +1,22 @@
-name: "E2E Tests"
+name: "Bats tests"
 
 on:
   pull_request:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
 
 jobs:
   integration:
-    name: End to End Test
+    name: End to End Bats Tests
     runs-on: ubuntu-latest
     steps:
-      - name: Login to GCR
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
         with:
-          registry: gcr.io
-          username: _json_key
-          password: ${{ secrets.GCR_JSON_KEY }}
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@v4
-      - name: Run the Magic Nix Cache
-        uses: DeterminateSystems/magic-nix-cache-action@v2
-      - uses: actions/checkout@v3
-      - id: "gcp-auth"
-        uses: "google-github-actions/auth@v2"
-        with:
-          credentials_json: "${{ secrets.GOOGLE_CREDENTIALS }}"
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: ./.github/actions/cache-rust 
       - name: Run e2e tests
         run: nix develop -c make e2e
         env:

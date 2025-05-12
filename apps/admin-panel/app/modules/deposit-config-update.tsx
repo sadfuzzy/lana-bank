@@ -26,8 +26,13 @@ gql`
     depositModuleConfigure(input: $input) {
       depositConfig {
         chartOfAccountsId
-        chartOfAccountsDepositAccountsParentCode
         chartOfAccountsOmnibusParentCode
+        chartOfAccountsIndividualDepositAccountsParentCode
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode
+        chartOfAccountPrivateCompanyDepositAccountsParentCode
+        chartOfAccountBankDepositAccountsParentCode
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode
+        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
       }
     }
   }
@@ -39,9 +44,24 @@ type DepositConfigUpdateDialogProps = {
   depositModuleConfig?: DepositModuleConfig
 }
 
-const initialFormData = {
-  chartOfAccountsDepositAccountsParentCode: "",
+const initialFormData: DepositModuleConfigureInput = {
   chartOfAccountsOmnibusParentCode: "",
+  chartOfAccountsIndividualDepositAccountsParentCode: "",
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode: "",
+  chartOfAccountPrivateCompanyDepositAccountsParentCode: "",
+  chartOfAccountBankDepositAccountsParentCode: "",
+  chartOfAccountFinancialInstitutionDepositAccountsParentCode: "",
+  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "",
+}
+
+const depositModuleCodes = {
+  chartOfAccountsOmnibusParentCode: "1110.01.0101",
+  chartOfAccountsIndividualDepositAccountsParentCode: "2110.01.0401",
+  chartOfAccountsGovernmentEntityDepositAccountsParentCode: "2110.01.0201",
+  chartOfAccountPrivateCompanyDepositAccountsParentCode: "2110.01.0301",
+  chartOfAccountBankDepositAccountsParentCode: "2110.01.0501",
+  chartOfAccountFinancialInstitutionDepositAccountsParentCode: "2110.01.0601",
+  chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: "2110.01.0901",
 }
 
 export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps> = ({
@@ -67,14 +87,29 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
   useEffect(() => {
     if (
       depositModuleConfig &&
-      depositModuleConfig.chartOfAccountsDepositAccountsParentCode &&
-      depositModuleConfig.chartOfAccountsOmnibusParentCode
+      depositModuleConfig.chartOfAccountsOmnibusParentCode &&
+      depositModuleConfig.chartOfAccountsIndividualDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountsGovernmentEntityDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountBankDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
     ) {
       setFormData({
-        chartOfAccountsDepositAccountsParentCode:
-          depositModuleConfig.chartOfAccountsDepositAccountsParentCode,
         chartOfAccountsOmnibusParentCode:
           depositModuleConfig.chartOfAccountsOmnibusParentCode,
+        chartOfAccountsIndividualDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountsIndividualDepositAccountsParentCode,
+        chartOfAccountsGovernmentEntityDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountsGovernmentEntityDepositAccountsParentCode,
+        chartOfAccountPrivateCompanyDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode,
+        chartOfAccountBankDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountBankDepositAccountsParentCode,
+        chartOfAccountFinancialInstitutionDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode,
+        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode:
+          depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode,
       })
     }
   }, [depositModuleConfig])
@@ -83,6 +118,10 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
     e.preventDefault()
     await updateDepositConfig({ variables: { input: formData } })
     close()
+  }
+
+  const autoPopulate = () => {
+    setFormData(depositModuleCodes)
   }
 
   return (
@@ -98,7 +137,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
                 <Label htmlFor={key}>{t(`deposit.${key}`)}</Label>
                 <Input
                   id={key}
-                  value={value.replace(/\./g, "")}
+                  value={value}
                   onChange={(e) => setFormData({ ...formData, [key]: e.target.value })}
                   required={true}
                 />
@@ -107,7 +146,15 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
             {error && <div className="text-destructive">{error.message}</div>}
           </div>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={close}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={autoPopulate}
+              className="mr-auto"
+            >
+              {t("autoPopulate")}
+            </Button>
+            <Button variant="outline" type="button" onClick={close}>
               {tCommon("cancel")}
             </Button>
             <Button loading={loading} type="submit">

@@ -16,17 +16,17 @@ import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 async function TwoFactorAuthPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     flowId?: string
-  }
+  }>
 }) {
-  if (!searchParams.flowId) redirect("/auth")
-  const { flowId } = searchParams
+  const { flowId } = await searchParams
+  if (!flowId) redirect("/auth")
 
   return (
     <AuthTemplateCard>
-      <Card className="md:w-2/5">
-        <CardHeader className="pt-4">
+      <Card className="md:w-2/5 my-2">
+        <CardHeader>
           <CardTitle>Continue with two-factor authentication.</CardTitle>
           <CardDescription className="text-textColor-secondary">
             Select Method to Continue your two-factor authentication.

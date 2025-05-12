@@ -10,7 +10,7 @@
 - **Security-First Design** – Adheres to industry security standards and best practices
 - **Source Code Auditable** – Under Fair Source License
 
-For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
+For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 
 ---
 
@@ -42,12 +42,9 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**.
 
 Set them in your `.env` file
 
-#### Mandatory
-
-- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
-
 #### Optional
 
+- `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
 
@@ -107,7 +104,7 @@ make e2e
 #### Cypress Tests
 
 ```bash
-make dev-up # keep the stack running
+make dev-up # launch the full stack
 
 # In a different terminal with tilt running:
 cd apps/admin-panel && pnpm run cypress:run ui # or headless
@@ -119,13 +116,13 @@ cd apps/admin-panel && pnpm run cypress:run browserstack
 
 We use BigQuery for analytics and reporting. To set up the BigQuery tables, you need to have the `TF_VAR_sa_creds` environment variable set to the service account credentials.
 
-1. Authenticate with Google Cloud SDK
+Authenticate with Google Cloud SDK
 
 ```
 gcloud auth application-default login
 ```
 
-1. Verify access
+Verify access
 
 ```
 gcloud auth application-default print-access-token
@@ -133,7 +130,7 @@ gcloud auth application-default print-access-token
 
 ### Adding new BigQuery tables
 
-Commands to re-run when adding new BQ tables:
+Commands to re-run when adding new BQ tables
 
 ```
 git checkout pre-merged-commit

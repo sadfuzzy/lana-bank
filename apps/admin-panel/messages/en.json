@@ -20,6 +20,14 @@
     "submit": "Submit",
     "set": "Set"
   },
+  "interestInterval": {
+    "endOfDay": "End of Day",
+    "endOfMonth": "End of Month"
+  },
+  "period": {
+    "days": "Day",
+    "months": "Month"
+  },
   "Sidebar": {
     "labels": {
       "loans": "Loans",
@@ -43,13 +51,14 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
-      "cashFlow": "Cash Flow",
       "profitAndLoss": "Profit & Loss",
       "regulatoryReporting": "Regulatory Reporting",
       "trialBalance": "Trial Balance",
-      "modules": "Modules"
+      "modules": "Modules",
+      "transactionTemplates": "Transaction Templates"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -220,6 +229,29 @@
           "updating": "Updating..."
         }
       },
+      "updateEmail": {
+        "title": "Update Email",
+        "description": "Update the email address for this customer",
+        "labels": {
+          "newEmail": "New Email Address"
+        },
+        "placeholders": {
+          "newEmail": "Please enter the new email address"
+        },
+        "errors": {
+          "emptyEmail": "Email address cannot be empty",
+          "invalidEmail": "Please enter a valid email address",
+          "updateFailed": "Failed to update email: {error}",
+          "unexpected": "An unexpected error occurred"
+        },
+        "messages": {
+          "updateSuccess": "Email updated successfully"
+        },
+        "actions": {
+          "update": "Update",
+          "updating": "Updating..."
+        }
+      },
       "transactions": {
         "title": "Transactions",
         "description": "Transactions for this Customer",
@@ -300,6 +332,12 @@
       "closed": "Closed",
       "matured": "Matured"
     },
+    "collateralizationState": {
+      "fullyCollateralized": "Fully Collateralized",
+      "noCollateral": "No Collateral",
+      "underLiquidationThreshold": "Under Liquidation Threshold",
+      "underMarginCallThreshold": "Under Margin Call Threshold"
+    },
     "errors": {
       "fetchError": "An error occurred while fetching data.",
       "general": "An error occurred"
@@ -324,6 +362,7 @@
         },
         "status": {
           "upcoming": "UPCOMING",
+          "not_yet_due": "NOT YET DUE",
           "due": "DUE",
           "overdue": "OVERDUE",
           "paid": "PAID"
@@ -341,17 +380,25 @@
           "emptyTable": "No disbursals found"
         }
       },
-      "Transactions": {
-        "title": "Transactions",
-        "description": "Credit Facility Transactions",
+      "History": {
+        "title": "History",
+        "description": "Credit Facility History",
         "columns": {
-          "transactionType": "Transaction Type",
+          "entryType": "Entry Type",
           "recordedAt": "Recorded At",
           "amount": "Amount"
         },
+        "entryTypes": {
+          "collateralUpdated": "Collateral Updated",
+          "collateralizationUpdated": "Collateralization Updated",
+          "origination": "Origination",
+          "incrementalPayment": "Payment",
+          "disbursalExecuted": "Disbursal",
+          "interestAccrued": "Interest Accrued"
+        },
         "messages": {
-          "unknownType": "Unknown Transaction Type",
-          "emptyTable": "No transactions found"
+          "unknownType": "Unknown Entry Type",
+          "emptyTable": "No history found"
         }
       },
       "TermsDialog": {
@@ -359,12 +406,12 @@
         "details": {
           "duration": "Duration",
           "interestRate": "Interest (APR)",
-          "accrualInterval": "Accrual Interval",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "targetCvl": "Target/initial CVL %",
           "marginCallCvl": "Margin call CVL %",
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
-          "incurrenceInterval": "Incurrence Interval",
+          "accrualInterval": "Accrual Interval",
           "structuringFeeRate": "Structuring Fee Rate"
         }
       },
@@ -415,7 +462,7 @@
       },
       "Layout": {
         "tabs": {
-          "transactions": "Transactions",
+          "history": "History",
           "disbursals": "Disbursals",
           "repaymentPlan": "Repayment Plan"
         },
@@ -439,9 +486,9 @@
             "initialCvl": "Initial CVL (%)",
             "duration": "Duration",
             "marginCallCvl": "Margin Call CVL (%)",
-            "accrualInterval": "Accrual Interval",
+            "accrualCycleInterval": "Accrual Cycle Interval",
             "liquidationCvl": "Liquidation CVL (%)",
-            "incurrenceInterval": "Incurrence Interval",
+            "accrualInterval": "Accrual Interval",
             "structuringFeeRate": "Structuring Fee Rate (%)"
           },
           "placeholders": {
@@ -451,9 +498,9 @@
             "initialCvl": "Enter the initial CVL",
             "duration": "Duration",
             "marginCallCvl": "Enter the margin call CVL",
-            "accrualInterval": "Select accrual interval",
+            "accrualCycleInterval": "Select accrual cycle interval",
             "liquidationCvl": "Enter the liquidation CVL",
-            "incurrenceInterval": "Select incurrence interval",
+            "accrualInterval": "Select accrual interval",
             "structuringFeeRate": "Enter the Structuring Fee Rate",
             "selectPeriod": "Select period"
           },
@@ -622,8 +669,8 @@
           "name": "Name",
           "createdAt": "Created At",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "annualRate": "Annual Rate",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
@@ -640,8 +687,8 @@
         "fields": {
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -651,8 +698,8 @@
           "annualRate": "Enter the annual rate",
           "durationUnits": "Duration",
           "durationPeriod": "Select period",
+          "accrualCycleInterval": "Select accrual cycle interval",
           "accrualInterval": "Select accrual interval",
-          "incurrenceInterval": "Select incurrence interval",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
@@ -676,8 +723,8 @@
           "name": "Template Name",
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
+          "accrualCycleInterval": "Accrual Cycle Interval",
           "accrualInterval": "Accrual Interval",
-          "incurrenceInterval": "Incurrence Interval",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -692,8 +739,8 @@
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "oneTimeFeeRate": "Enter the Structuring Fee Rate",
-          "accrualInterval": "Select accrual interval",
-          "incurrenceInterval": "Select incurrence interval"
+          "accrualCycleInterval": "Select accrual cycle interval",
+          "accrualInterval": "Select accrual interval"
         },
         "buttons": {
           "submit": "Create Terms Template"
@@ -1132,6 +1179,7 @@
     "description": "System-wide audit trail showing user and system actions",
     "table": {
       "headers": {
+        "auditEntryId": "Entry ID",
         "subject": "Subject",
         "object": "Object",
         "action": "Action",
@@ -1152,7 +1200,7 @@
       "genericError": "An error occurred while uploading your file",
       "successDescription": "Chart of accounts successfully imported",
       "errorTitle": "Upload Failed",
-      "uploading": "Uploading your chart of accounts...",
+      "uploading": "Uploading and processing your chart of accounts...",
       "reset": "Reset",
       "upload": "Upload"
     },
@@ -1167,21 +1215,24 @@
     "columns": {
       "assets": "Total Assets",
       "liabilitiesAndEquity": "Total Liabilities & Equity"
+    },
+    "categories": {
+      "Assets": "Assets",
+      "Liabilities": "Liabilities",
+      "Equity": "Equity"
     }
-  },
-  "CashFlowStatement": {
-    "title": "Cash Flow Statement",
-    "description": "A financial statement showing how changes in balance sheet accounts and income affect cash and cash equivalents.",
-    "noData": "No data",
-    "dateRange": "Date Range",
-    "total": "Total"
   },
   "ProfitAndLoss": {
     "title": "Profit and Loss Statement",
     "description": "A financial report showing revenue, expenses, and resulting profit or loss over a specific time period.",
     "noData": "No data",
     "dateRange": "Date Range",
-    "net": "NET"
+    "net": "NET",
+    "categories": {
+      "Revenue": "Revenue",
+      "CostofRevenue": "Cost of Revenue",
+      "Expenses": "Expenses"
+    }
   },
   "Reports": {
     "title": "Report Management",
@@ -1211,9 +1262,9 @@
   "TrialBalance": {
     "title": "Trial Balance",
     "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
-    "noData": "No data",
+    "noAccountsPresent": "No accounts present",
     "dateRange": "Date Range",
-    "totals": "Totals",
+    "totals": "Totals (across all accounts)",
     "tabs": {
       "regular": "Regular",
       "offBalanceSheet": "Off Balance Sheet"
@@ -1221,9 +1272,11 @@
     "table": {
       "headers": {
         "accountName": "Account Name",
-        "debit": "Debit",
-        "credit": "Credit",
-        "net": "Net"
+        "accountCode": "Account Code",
+        "beginningBalance": "Beginning Balance",
+        "debits": "Debits",
+        "credits": "Credits",
+        "endingBalance": "Ending Balance"
       }
     }
   },
@@ -1266,7 +1319,8 @@
       "payment": "Payment",
       "user": "User",
       "termsTemplate": "Terms Template",
-      "committee": "Committee"
+      "committee": "Committee",
+      "executeManualTransaction": "Execute Manual Transaction"
     }
   },
   "DataTable": {
@@ -1281,13 +1335,20 @@
   },
   "Modules": {
     "notYetConfigured": "Not yet configured",
+    "autoPopulate": "Autofill",
     "deposit": {
       "title": "Deposit",
       "description": "Deposit configuration",
       "setTitle": "Set Deposit Configuration",
       "chartOfAccountsId": "Chart of Accounts ID",
-      "chartOfAccountsDepositAccountsParentCode": "Deposit Accounts Parent Code",
-      "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code"
+      "chartOfAccountsOmnibusParentCode": "Omnibus Parent Code",
+      "chartOfAccountsIndividualDepositAccountsParentCode": "Deposit Accounts Individual Parent Code",
+      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Deposit Accounts Government Entity Parent Code",
+      "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Deposit Accounts Private Company Receivable Parent Code",
+      "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code",
+      "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code",
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Parent Code for non-domiciled company receivable deposit accounts"
     },
     "credit": {
       "title": "Credit",
@@ -1298,27 +1359,207 @@
       "chartOfAccountCollateralOmnibusParentCode": "Collateral Omnibus Parent Code",
       "chartOfAccountFacilityParentCode": "Facility Parent Code",
       "chartOfAccountCollateralParentCode": "Collateral Parent Code",
-      "chartOfAccountDisbursedReceivableParentCode": "Disbursed Receivable Parent Code",
-      "chartOfAccountInterestReceivableParentCode": "Interest Receivable Parent Code",
       "chartOfAccountInterestIncomeParentCode": "Interest Income Parent Code",
-      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code"
+      "chartOfAccountFeeIncomeParentCode": "Fee Income Parent Code",
+      "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Short Term Interest Individual Receivable Parent Code",
+      "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Short Term Interest Government Entity Receivable Parent Code",
+      "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Short Term Interest Private Company Receivable Parent Code",
+      "chartOfAccountShortTermBankInterestReceivableParentCode": "Short Term Interest Bank Receivable Parent Code",
+      "chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode": "Short Term Interest Financial Institution Receivable Parent Code",
+      "chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode": "Short Term Interest Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode": "Short Term Interest Non-Domiciled Company Receivable Parent Code",
+      "chartOfAccountLongTermIndividualInterestReceivableParentCode": "Long Term Interest Individual Receivable Parent Code",
+      "chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode": "Long Term Interest Government Entity Receivable Parent Code",
+      "chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode": "Long Term Interest Private Company Receivable Parent Code",
+      "chartOfAccountLongTermBankInterestReceivableParentCode": "Long Term Interest Bank Receivable Parent Code",
+      "chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode": "Long Term Interest Financial Institution Receivable Parent Code",
+      "chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode": "Long Term Interest Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode": "Long Term Interest Non-Domiciled Company Receivable Parent Code",
+      "chartOfAccountShortTermIndividualDisbursedReceivableParentCode": "Short Term Disbursed Individual Receivable Parent Code",
+      "chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode": "Short Term Disbursed Government Entity Receivable Parent Code",
+      "chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode": "Short Term Disbursed Private Company Receivable Parent Code",
+      "chartOfAccountShortTermBankDisbursedReceivableParentCode": "Short Term Disbursed Bank Receivable Parent Code",
+      "chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode": "Short Term Disbursed Financial Institution Receivable Parent Code",
+      "chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Short Term Disbursed Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode": "Short Term Disbursed Non-Domiciled Company Receivable Parent Code",
+      "chartOfAccountLongTermIndividualDisbursedReceivableParentCode": "Long Term Disbursed Individual Receivable Parent Code",
+      "chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode": "Long Term Disbursed Government Entity Receivable Parent Code",
+      "chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode": "Long Term Disbursed Private Company Receivable Parent Code",
+      "chartOfAccountLongTermBankDisbursedReceivableParentCode": "Long Term Disbursed Bank Receivable Parent Code",
+      "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode": "Long Term Disbursed Financial Institution Receivable Parent Code",
+      "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Long Term Disbursed Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode": "Long Term Disbursed Non-Domiciled Company Receivable Parent Code",
+      "chartOfAccountOverdueIndividualDisbursedReceivableParentCode": "Overdue Disbursed Individual Receivable Parent Code",
+      "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode": "Overdue Disbursed Government Entity Receivable Parent Code",
+      "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode": "Overdue Disbursed Private Company Receivable Parent Code",
+      "chartOfAccountOverdueBankDisbursedReceivableParentCode": "Overdue Disbursed Bank Receivable Parent Code",
+      "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode": "Overdue Disbursed Financial Institution Receivable Parent Code",
+      "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Overdue Disbursed Foreign Agency Or Subsidiary Receivable Parent Code",
+      "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Overdue Disbursed Non-Domiciled Company Receivable Parent Code"
+    },
+    "balanceSheet": {
+      "title": "Balance Sheet",
+      "description": "Balance sheet configuration",
+      "setTitle": "Set Balance Sheet Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountsAssetsCode": "Assets Code",
+      "chartOfAccountsLiabilitiesCode": "Liabilities Code",
+      "chartOfAccountsEquityCode": "Equity Code",
+      "chartOfAccountsRevenueCode": "Revenue Code",
+      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
+      "chartOfAccountsExpensesCode": "Expenses Code"
+    },
+    "profitAndLoss": {
+      "title": "Profit and Loss",
+      "description": "Profit and loss statement configuration",
+      "setTitle": "Set Profit and Loss Configuration",
+      "chartOfAccountsId": "Chart of Accounts ID",
+      "chartOfAccountsRevenueCode": "Revenue Code",
+      "chartOfAccountsCostOfRevenueCode": "Cost of Revenue Code",
+      "chartOfAccountsExpensesCode": "Expenses Code"
     }
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Ledger Account Details",
-    "description": "Details of ledger account by account code {code}",
+    "entriesTitle": "Journal entries in this account",
+    "description": "Details of ledger account",
+    "descriptionWithCode": "Details of ledger account by account code {code}",
     "details": {
       "code": "Account Code",
       "name": "Account Name",
       "usdBalance": "USD Balance",
-      "btcBalance": "BTC Balance"
+      "btcBalance": "BTC Balance",
+      "ancestors": "{n, plural, =0 {No ancestors} =1 {# Ancestor} other {# Ancestors}}",
+      "children": "{n, plural, =0 {No children} =1 {# Child} other {# Children}}"
     },
     "table": {
+      "noData": "No transactions present in this account",
       "columns": {
         "recordedAt": "Recorded At",
         "currency": "Currency",
         "debit": "Debit",
         "credit": "Credit"
+      }
+    },
+    "exportCsv": {
+      "title": "Export Account Data",
+      "description": "Generate and download CSV exports of this ledger account",
+      "existingExports": "Existing Exports",
+      "createNew": "Create New Export",
+      "selectExport": "Select an export",
+      "noCsvs": "No exports available for this account",
+      "createDescription": "Generate a new CSV export of this ledger account's data. This may take a moment to complete.",
+      "processing": "Processing, please wait...",
+      "csvCreating": "CSV export is being generated",
+      "csvReady": "CSV export is ready for download",
+      "csvFailed": "CSV export generation failed",
+      "createNewDescription": "Generate a new CSV export containing all data from account creation up to the current time. When you create this export, it will capture a snapshot of your data as it exists right now.",
+      "status": {
+        "pending": "Processing",
+        "completed": "Ready",
+        "failed": "Failed"
+      },
+      "buttons": {
+        "export": "Export CSV",
+        "generate": "Generate New CSV",
+        "generating": "Generating...",
+        "getLink": "Get Download Link",
+        "download": "Download"
+      },
+      "errors": {
+        "loadFailed": "Failed to load exports",
+        "createFailed": "Failed to create export",
+        "downloadFailed": "Failed to generate download link",
+        "notReady": "This export is not ready for download yet"
+      }
+    }
+  },
+  "Journal": {
+    "title": "Journal",
+    "description": "A complete record of financial transactions over the journal",
+    "noTableData": "No entries present in the journal",
+    "table": {
+      "createdAt": "Created At",
+      "entryType": "Entry Type",
+      "name": "Account Name",
+      "transaction": "Transaction",
+      "direction": "Direction",
+      "amount": "Amount",
+      "description": "Description"
+    },
+    "debitOrCredit": {
+      "debit": "Debit",
+      "credit": "Credit"
+    }
+  },
+  "LedgerTransaction": {
+    "title": "Ledger Transaction",
+    "description": "A record of a financial transaction in the ledger",
+    "noEntries": "No entries",
+    "details": {
+      "description": "Description",
+      "createdAt": "Created At"
+    },
+    "entriesTitle": "Journal Entries",
+    "entriesDescription": "Entries associated with this transaction",
+    "table": {
+      "entryType": "Entry Type",
+      "debit": "Debit",
+      "credit": "Credit",
+      "amount": "Amount",
+      "ledgerAccount": "Ledger Account"
+    }
+  },
+  "ManualTransactions": {
+    "title": "Execute Manual Transaction",
+    "description": "Create a manual transaction by providing the required details",
+    "fields": {
+      "description": "Transaction Description",
+      "reference": "Transaction Reference",
+      "entries": "Journal Entries for this transaction",
+      "usd": "USD",
+      "btc": "BTC",
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "placeholders": {
+      "description": "Enter transaction description",
+      "reference": "Enter transaction reference"
+    },
+    "noEntries": "No journal entry for this transaction. Please add one.",
+    "addEntryBtn": "Add",
+    "execute": "Execute",
+    "placeholdersJournalEntry": {
+      "accountRef": "Enter account ref",
+      "currency": "Select currency",
+      "amount": "Enter amount",
+      "direction": "Select direction",
+      "description": "Enter description"
+    },
+    "table": {
+      "accountRef": "Account",
+      "amount": "Amount",
+      "currency": "Currency",
+      "direction": "Direction",
+      "description": "Description"
+    },
+    "errored": "An error occurred while executing the transaction",
+    "success": "Transaction executed successfully"
+  },
+  "TransactionTemplates": {
+    "title": "Transaction Templates",
+    "description": "Templates for transactions",
+    "code": "Code",
+    "noData": "No transaction templates found"
+  },
+  "LedgerTransactionsForTemplateCode": {
+    "title": "Ledger Transactions for {code}",
+    "description": "Ledger transactions associated with this template code",
+    "table": {
+      "noData": "No ledger transactions found for this template code",
+      "headers": {
+        "createdAt": "Created At",
+        "description": "Description"
       }
     }
   }

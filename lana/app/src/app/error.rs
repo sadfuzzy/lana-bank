@@ -5,23 +5,21 @@ pub enum ApplicationError {
     #[error("ApplicationError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("ApplicationError - MigrateError: {0}")]
-    MigateError(#[from] sqlx::migrate::MigrateError),
+    MigrateError(#[from] sqlx::migrate::MigrateError),
     #[error("ApplicationError - JobError: {0}")]
     JobError(#[from] crate::job::error::JobError),
     #[error("ApplicationError - CustomerError: {0}")]
     CustomerError(#[from] crate::customer::error::CustomerError),
-    #[error("ApplicationError - CustomerOnboardingError: {0}")]
-    CustomerOnboardingError(#[from] customer_onboarding::error::CustomerOnboardingError),
+    #[error("ApplicationError - CustomerSyncError: {0}")]
+    CustomerSyncError(#[from] customer_sync::error::CustomerSyncError),
     #[error("ApplicationError - CreditFacilityError: {0}")]
-    CreditFacilityError(#[from] crate::credit_facility::error::CoreCreditError),
+    CreditFacilityError(#[from] crate::credit::error::CoreCreditError),
     #[error("ApplicationError - TrialBalanceError: {0}")]
     TrialBalanceError(#[from] crate::trial_balance::error::TrialBalanceError),
     #[error("ApplicationError - ProfitAndLossStatementError: {0}")]
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("ApplicationError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
-    #[error("ApplicationError - CashFlowStatementError: {0}")]
-    CashFlowStatementError(#[from] crate::cash_flow::error::CashFlowStatementError),
     #[error("ApplicationError - UserError: {0}")]
     UserError(#[from] crate::user::error::UserError),
     #[error("ApplicationError - UserOnboardingError: {0}")]
@@ -43,7 +41,7 @@ pub enum ApplicationError {
     #[error("ApplicationError - CalaInit: {0}")]
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("ApplicationError - ChartOfAccountsError: {0}")]
-    ChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
+    ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ApplicationError - DepositError: {0}")]
     DepositError(#[from] crate::deposit::error::CoreDepositError),
     #[error("ApplicationError - StorageError: {0}")]

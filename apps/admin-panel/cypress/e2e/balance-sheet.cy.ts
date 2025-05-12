@@ -1,6 +1,11 @@
 import { print } from "@apollo/client/utilities"
 
+import { t } from "../support/translation"
+
 import { BalanceSheetDocument, BalanceSheetQuery } from "../../lib/graphql/generated"
+
+const BalanceSheet = "BalanceSheet"
+const CLS = "CurrencyLayerSelection"
 
 describe("Balance Sheet", () => {
   const currentDate = new Date()
@@ -12,30 +17,30 @@ describe("Balance Sheet", () => {
   })
 
   it("should display page title", () => {
-    cy.contains("Balance Sheet").should("exist")
+    cy.contains(t(BalanceSheet + ".title")).should("exist")
   })
 
   it("should display balance sheet sections and categories", () => {
     cy.graphqlRequest<{ data: BalanceSheetQuery }>(print(BalanceSheetDocument), {
-      from: lastMonthDate.toISOString(),
-      until: currentDate.toISOString(),
+      from: lastMonthDate.toISOString().split('T')[0],
+      until: currentDate.toISOString().split('T')[0],
     }).then((response) => {
-      cy.contains("Total Assets").should("be.visible")
-      cy.contains("Total Liabilities & Equity").should("be.visible")
+      cy.contains(t(BalanceSheet + ".columns.assets")).should("be.visible")
+      cy.contains(t(BalanceSheet + ".columns.liabilitiesAndEquity")).should("be.visible")
 
       cy.get("[data-testid^='category-name-']").then(($cells) => {
         const categoryTexts = $cells.map((_, el) => Cypress.$(el).text().trim()).get()
-        expect(categoryTexts).to.include("Assets")
-        expect(categoryTexts).to.include("Liabilities")
-        expect(categoryTexts).to.include("Equity")
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Assets"))
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Liabilities"))
+        expect(categoryTexts).to.include(t(BalanceSheet + ".categories.Equity"))
       })
 
       if (response.data?.balanceSheet?.categories) {
         response.data.balanceSheet.categories.forEach((category) => {
-          if (category?.accounts) {
-            category.accounts.forEach((account) => {
-              if (account?.name) {
-                cy.contains(account.name).should("be.visible")
+          if (category?.children) {
+            category.children.forEach((child) => {
+              if (child?.name) {
+                cy.contains(child.name).should("be.visible")
               }
             })
           }
@@ -46,19 +51,21 @@ describe("Balance Sheet", () => {
   })
 
   it("should allow currency switching", () => {
-    cy.contains("USD").should("be.visible").click()
-    cy.contains("BTC").should("be.visible").click()
+    cy.contains(t(CLS + ".currency.options.usd"))
+      .should("be.visible")
+      .click()
+    cy.contains(t(CLS + ".currency.options.btc"))
+      .should("be.visible")
+      .click()
     cy.takeScreenshot("balance-sheet-btc-currency")
   })
 
   it("should switch between balance layers", () => {
-    cy.contains("All").should("exist")
-    cy.contains("Settled").should("exist")
-    cy.contains("Pending").should("exist")
+    cy.contains(t(CLS + ".layer.options.settled")).should("exist")
+    cy.contains(t(CLS + ".layer.options.pending")).should("exist")
 
-    cy.contains("All").click()
-    cy.contains("Settled").click()
-    cy.contains("Pending").click()
+    cy.contains(t(CLS + ".layer.options.settled")).click()
+    cy.contains(t(CLS + ".layer.options.pending")).click()
     cy.takeScreenshot("balance-sheet-pending")
   })
 })

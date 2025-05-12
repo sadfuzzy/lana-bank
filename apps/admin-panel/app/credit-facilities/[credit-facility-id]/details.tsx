@@ -7,13 +7,15 @@ import { Button } from "@lana/web/ui/button"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
+import { CollateralizationStateLabel } from "../label"
+
 import { CreditFacilityTermsDialog } from "./terms-dialog"
 
 import {
   ApprovalProcessStatus,
   GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
-import { formatCollateralizationState, formatDate } from "@/lib/utils"
+import { formatDate } from "@/lib/utils"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
@@ -46,7 +48,11 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     },
     {
       label: t("details.collateralizationState"),
-      value: formatCollateralizationState(creditFacilityDetails.collateralizationState),
+      value: (
+        <CollateralizationStateLabel
+          state={creditFacilityDetails.collateralizationState}
+        />
+      ),
     },
     {
       label: t("details.status"),

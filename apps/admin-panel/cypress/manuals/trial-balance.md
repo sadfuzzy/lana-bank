@@ -1,41 +1,35 @@
-# Trial Balance
+pdf_filename: balance-de-comprobacion
 
-Follow these steps to explore the Trial Balance page and its features.
+# Balance de Comprobación
 
----
-
-### Step 1: View Trial Balance Page
-
-Navigate to the Trial Balance page to see all accounts and their balances.
-
-![Trial Balance](./screenshots/trial-balance.cy.ts/trial-balance.png)
+Sigue estos pasos para explorar la página del Balance de Comprobación y sus características.
 
 ---
 
-<!-- new-page -->
+### Paso 1: Ver la Página del Balance de Comprobación
 
-### Step 2: Switch Between Currency Types
+Navega a la página del Balance de Comprobación para ver todas las cuentas y sus saldos.
 
-You can switch between **USD** and **BTC** by clicking on the currency options.
-
-![Switch to BTC](./screenshots/trial-balance.cy.ts/trial-balance-btc-currency.png)
+![Balance de Comprobación](./screenshots/trial-balance.cy.ts/trial-balance.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 3: View Off-Balance Sheet
+### Paso 2: Cambiar Entre Tipos de Moneda
 
-Switch to the **Off Balance Sheet** section by clicking on the option.
+Puedes cambiar entre **USD** y **BTC** haciendo clic en las opciones de moneda.
 
-![Off Balance Sheet](./screenshots/trial-balance.cy.ts/off-balance-sheet.png)
-
----
-
-### Step 4: View Totals Row
-
-Ensure the **Totals** row is displayed at the bottom, showing the aggregated data.
+![Cambiar a BTC](./screenshots/trial-balance.cy.ts/trial-balance-btc-currency.png)
 
 ---
 
-By following these steps, you can navigate the Trial Balance page, view account balances, switch currencies, and explore additional features.
+<!-- new-page -->
+
+### Paso 3: Ver Fila de Totales
+
+Asegúrate de que la fila de **Totales** se muestre en la parte inferior, mostrando los datos agregados.
+
+---
+
+Siguiendo estos pasos, puedes navegar por la página del Balance de Comprobación, ver saldos de cuentas, cambiar monedas y explorar características adicionales.

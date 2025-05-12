@@ -20,6 +20,10 @@ checksums:
     Common/close: 2c2e22f8424a1031de89063bd0022e16
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
+    interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
+    interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
+    period/days: 47648cd60fc313bc3f05b70357a1d675
+    period/months: ae7bef950efc406ff0980affabc1a64c
     Sidebar/labels/loans: 799b76634ee27191b9e0072482c2a6b9
     Sidebar/labels/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/labels/transactions: 59973447457c6bd57c161d594f551651
@@ -39,13 +43,14 @@ checksums:
     Sidebar/navItems/auditLogs: c7efb33d09676938d07651774b067bf6
     Sidebar/navItems/committees: c5de346d62a6ad000e90b53d5f4e123c
     Sidebar/navItems/chartOfAccounts: b7e16497105264b631772ce1952e136c
+    Sidebar/navItems/journal: f7b651715289f785561bd3bca4911a73
     Sidebar/navItems/users: fe42f97809c24d700d3912c8d02ed452
     Sidebar/navItems/balanceSheet: 0c5e5cc9dd1e661a276e1536917a8db8
-    Sidebar/navItems/cashFlow: c1973ef8eea5a4e30472be8d8e847e47
     Sidebar/navItems/profitAndLoss: 6c008c42dc1c0f2b96e39e4a573877cc
     Sidebar/navItems/regulatoryReporting: 72afee90c9a04f9a28c85b6d8c3b9c28
     Sidebar/navItems/trialBalance: 2d6598d15bc81b1e8d626782922e6ab7
     Sidebar/navItems/modules: 9472210741c31f0ecba26e8590af62ea
+    Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -152,6 +157,17 @@ checksums:
     Customers/CustomerDetails/updateTelegram/messages/updateSuccess: 3a58f8918e96f48cd20f72f96388674c
     Customers/CustomerDetails/updateTelegram/actions/update: 079fc039262fd31b10532929685c2d1b
     Customers/CustomerDetails/updateTelegram/actions/updating: 0d59644e851a6a76f1fb45de9353c447
+    Customers/CustomerDetails/updateEmail/title: b520b3755d6f79cc294c4d5e9590c90e
+    Customers/CustomerDetails/updateEmail/description: afefc7aceff0486658ac9abdab2576ce
+    Customers/CustomerDetails/updateEmail/labels/newEmail: 65396d478ca7d7356d913be84b3157b7
+    Customers/CustomerDetails/updateEmail/placeholders/newEmail: a19c74ed1e5496b9adffc3874fa3bf8b
+    Customers/CustomerDetails/updateEmail/errors/emptyEmail: f9d3c109b92852210ccd9ab436554103
+    Customers/CustomerDetails/updateEmail/errors/invalidEmail: 8de4bc8832b11b380bc4cbcedc16e48b
+    Customers/CustomerDetails/updateEmail/errors/updateFailed: 850a684dcab72929e4ccf42880430980
+    Customers/CustomerDetails/updateEmail/errors/unexpected: fe07b9cdb1fc3f7397f6d89c102c60af
+    Customers/CustomerDetails/updateEmail/messages/updateSuccess: 4a89cd072477839bf0ed5a05046e1254
+    Customers/CustomerDetails/updateEmail/actions/update: 079fc039262fd31b10532929685c2d1b
+    Customers/CustomerDetails/updateEmail/actions/updating: 0d59644e851a6a76f1fb45de9353c447
     Customers/CustomerDetails/transactions/title: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/transactions/description: 0a559b46d23f952b3d469234a67841de
     Customers/CustomerDetails/transactions/table/headers/date: 56f41c5d30a76295bb087b20b7bee4c3
@@ -199,6 +215,10 @@ checksums:
     CreditFacilities/CreditFacilityStatus/pendingCollateralization: a3861e1934c1764f40801494dbfe5637
     CreditFacilities/CreditFacilityStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     CreditFacilities/CreditFacilityStatus/matured: efaa50b3c35aca3fc276b8eb1dd04e4b
+    CreditFacilities/collateralizationState/fullyCollateralized: ac0dd4d27277fd887b8a195d815af373
+    CreditFacilities/collateralizationState/noCollateral: 498c3e9228e7a29cc8571a0fb53d4be9
+    CreditFacilities/collateralizationState/underLiquidationThreshold: 9df678e2f798a4c7a056e783c686bce5
+    CreditFacilities/collateralizationState/underMarginCallThreshold: 56f8da43160ce599d62c6530ed97c233
     CreditFacilities/errors/fetchError: 97f7c28b3288c6bbf454f0a28198730a
     CreditFacilities/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/title: 416716dbfa4883b589c792610e827d74
@@ -212,6 +232,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/principal: e20184128f2c57ee03dfe700de56afeb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/interest: 74aee9268e3b6f89d89a4252b29864cc
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/upcoming: 960febe0c0af09408917d55a0dc032ee
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/not_yet_due: 5610cbe51dcb79a9eba7b5ea20945fe3
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: f68d8596e02773955b31c98a23ecbd95
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: a63e7496e60dfa38beffe0b1d40d7b51
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 57d83a58e2cfe732ed864f5155156033
@@ -221,22 +242,28 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Disbursals/columns/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilities/CreditFacilityDetails/Disbursals/columns/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/CreditFacilityDetails/Disbursals/messages/emptyTable: d627c5f9111de5b7ab379e0955bd7790
-    CreditFacilities/CreditFacilityDetails/Transactions/title: 59973447457c6bd57c161d594f551651
-    CreditFacilities/CreditFacilityDetails/Transactions/description: 048450b13efb5b35ac677a2067b31e30
-    CreditFacilities/CreditFacilityDetails/Transactions/columns/transactionType: b8ac99c5ffc691a9b4d747cee62d0c10
-    CreditFacilities/CreditFacilityDetails/Transactions/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
-    CreditFacilities/CreditFacilityDetails/Transactions/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
-    CreditFacilities/CreditFacilityDetails/Transactions/messages/unknownType: 4b34f55bff9f0ebe684d57dce81a9c1f
-    CreditFacilities/CreditFacilityDetails/Transactions/messages/emptyTable: 15f5fee32cbd24775ccda66e8ca83132
+    CreditFacilities/CreditFacilityDetails/History/title: b0578d6d225f512e42f823fbca2e3c32
+    CreditFacilities/CreditFacilityDetails/History/description: 914929b369c468642a0cae594c76f967
+    CreditFacilities/CreditFacilityDetails/History/columns/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    CreditFacilities/CreditFacilityDetails/History/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
+    CreditFacilities/CreditFacilityDetails/History/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/collateralUpdated: 44dc6a58c0b697896e5e5f7546d8a657
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/collateralizationUpdated: 6390b9176524aeaa7c647cfd45a28baa
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/origination: 10e18fd520c9bd3046f3ca26989e87f5
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/incrementalPayment: 95142d3fd8b6a6f551aba771842e9c11
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/disbursalExecuted: 2aa8ff038a96888966ede2b19fc8b8bb
+    CreditFacilities/CreditFacilityDetails/History/entryTypes/interestAccrued: 7a2a22eb72a60ee80626eef9988e35ff
+    CreditFacilities/CreditFacilityDetails/History/messages/unknownType: 82d1742db9fd0f5ca6bd0b05b561c284
+    CreditFacilities/CreditFacilityDetails/History/messages/emptyTable: 37a7aed7a4d616149ed640ce3d72d6f9
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/interestRate: c80e0e607a0f82c490d098e2e49e9c0e
-    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualCycleInterval: 9654fac2391cbfd6b1a276738b618618
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/targetCvl: 7352e14d09b0f91c5262a2861bd6d036
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/marginCallCvl: 0f3e5e753a6597188deb78325a13a1e4
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/liquidationCvl: 4ff7e3744753ab1c2d1a42e60c3ebfac
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
-    CreditFacilities/CreditFacilityDetails/TermsDialog/details/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
@@ -267,7 +294,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
-    CreditFacilities/CreditFacilityDetails/Layout/tabs/transactions: 59973447457c6bd57c161d594f551651
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
@@ -282,9 +309,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/marginCallCvl: c529157844f9007ce1170fd28729c5d8
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualCycleInterval: 9654fac2391cbfd6b1a276738b618618
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/incurrenceInterval: c8e2cde343a052340b70065540b3611d
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/structuringFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/facilityAmount: 3f06a0124b2929e2ec4d3d7eff4a42a6
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/termsTemplate: 287c659be5bb36ec26ba953e5fc6af0c
@@ -292,9 +319,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualCycleInterval: 5ea4b5060d555779f7e3ecf2803d801f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/structuringFeeRate: cabace0fe5d4058e89d57b2770469c2b
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/selectPeriod: f3e492e15b52807eda6248fcdd65e36f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/buttons/back: f541015a827e37cb3b1234e56bc2aa3c
@@ -374,8 +401,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/name: 9368b5a047572b6051f334af5aa76819
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
+    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/accrualCycleInterval: 9654fac2391cbfd6b1a276738b618618
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/DetailsCard/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/annualRate: a97d9e7efb32f04f06100745281ea098
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
@@ -386,8 +413,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/description: 45fe649cda16d0441781cd976d9c456b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/accrualCycleInterval: 9654fac2391cbfd6b1a276738b618618
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
@@ -395,8 +422,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/durationUnits: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/durationPeriod: f3e492e15b52807eda6248fcdd65e36f
+    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/accrualCycleInterval: 5ea4b5060d555779f7e3ecf2803d801f
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
-    TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
@@ -410,8 +437,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/name: 7da9de6504c596c0e68e047fa124015f
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/accrualCycleInterval: 9654fac2391cbfd6b1a276738b618618
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/accrualInterval: cee4aec6d3ef2c7dee3f320f76648276
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/incurrenceInterval: c8e2cde343a052340b70065540b3611d
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/marginCallCvl: c529157844f9007ce1170fd28729c5d8
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
@@ -424,8 +451,8 @@ checksums:
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/oneTimeFeeRate: cabace0fe5d4058e89d57b2770469c2b
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/accrualCycleInterval: 5ea4b5060d555779f7e3ecf2803d801f
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/accrualInterval: 5078fd7a0af42113f5d64f49a5567fdc
-    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/placeholders/incurrenceInterval: 5795f1d331018aca96dd0458d52f944a
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/buttons/submit: 51fc4806b6fea86ef2d73e2e4ac897bc
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/errors/creationFailed: c274d3a05f0f2c3a4b8d6165142e76d6
@@ -635,6 +662,7 @@ checksums:
     Users/userDetails/roleDropdown/errors/revokeFailed: edc9458bc0b80d26a85607ba3798555d
     AuditLogs/title: c7efb33d09676938d07651774b067bf6
     AuditLogs/description: 51ce50499d9db9f15470aa796032a1a3
+    AuditLogs/table/headers/auditEntryId: 3524fa683ae15adbc0e8e076d9cd0230
     AuditLogs/table/headers/subject: de5b885eb327b2f233f3b67aab4c4c0a
     AuditLogs/table/headers/object: 317ffa9365a5c322e3021224ce2f0369
     AuditLogs/table/headers/action: c92af0bdf1698b0d10cf5b28d2ad4945
@@ -650,7 +678,7 @@ checksums:
     ChartOfAccounts/upload/genericError: 823d27ca89e26fd90f356a583c8409f8
     ChartOfAccounts/upload/successDescription: c4df30777b22c88a7d9fb531b262e246
     ChartOfAccounts/upload/errorTitle: d8b0a8f504eaa0f761d7958dc1e6823a
-    ChartOfAccounts/upload/uploading: a61a76d2fa69d41f012849f91b4e159a
+    ChartOfAccounts/upload/uploading: a318ac63eb5403166dae52e92478fd18
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
     ChartOfAccounts/copied: e5fa151fba7800f5e76e25a1c6fe61e0
@@ -661,16 +689,17 @@ checksums:
     BalanceSheet/total: f60dc0a14e9b1bace656c644de25de5b
     BalanceSheet/columns/assets: 63b7f2a516d939c1bbecaa26843da7e8
     BalanceSheet/columns/liabilitiesAndEquity: 3c539b763602d4adf850240e8809ea6f
-    CashFlowStatement/title: 62a61840120c45c3cb482631b6949ade
-    CashFlowStatement/description: ff1d3edf016f9ddb0a5b3686190042df
-    CashFlowStatement/noData: 81e91b979968615c55f9c0701fa9bbe3
-    CashFlowStatement/dateRange: 9b3aa5954144de586931f60ef9594e99
-    CashFlowStatement/total: f60dc0a14e9b1bace656c644de25de5b
+    BalanceSheet/categories/Assets: 97163b0aa35e30b36bb724428f7f8724
+    BalanceSheet/categories/Liabilities: 15e755dad4a2e491dcb4a0e49747bba0
+    BalanceSheet/categories/Equity: 36c0426cc91295817b8e032ddd7741e6
     ProfitAndLoss/title: 5a4b40ff5c66e810a068aac0bd659173
     ProfitAndLoss/description: 8a369af374cdc06501a168a6b8bd93c7
     ProfitAndLoss/noData: 81e91b979968615c55f9c0701fa9bbe3
     ProfitAndLoss/dateRange: 9b3aa5954144de586931f60ef9594e99
     ProfitAndLoss/net: b7e51f0a41e8719bf5ce3ddf1897cf7b
+    ProfitAndLoss/categories/Revenue: ff03ab827646d3027cc63ed72943c03d
+    ProfitAndLoss/categories/CostofRevenue: 961c71d8f4f8ca818f2de8ecfdab0d76
+    ProfitAndLoss/categories/Expenses: 1746536359bb638c45a12980ab3aac3a
     Reports/title: 60990919a45b80f1f1fc1bf292bee36a
     Reports/description: 523613154e094441d7026ee5727c1d9d
     Reports/generateReport: 8f20da23bb7692f803a254cb5f99040e
@@ -692,15 +721,17 @@ checksums:
     Reports/createDialog/error: e641fe9d7105a0d6d8410538e2013add
     TrialBalance/title: 2d6598d15bc81b1e8d626782922e6ab7
     TrialBalance/description: 3ebb7d653fc18ee660566dd3043c9b05
-    TrialBalance/noData: 81e91b979968615c55f9c0701fa9bbe3
+    TrialBalance/noAccountsPresent: 13af00b386a336e7a22a433dfbb4e465
     TrialBalance/dateRange: 9b3aa5954144de586931f60ef9594e99
-    TrialBalance/totals: a70bac80ad45b13e42ba64c66ab7744d
+    TrialBalance/totals: 1654fbdbee666553653e9f3042468a54
     TrialBalance/tabs/regular: a85e9f646b05a474ec32a9cdbc1ef123
     TrialBalance/tabs/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
     TrialBalance/table/headers/accountName: 5a4c82f1bc517348b64c107345f94f65
-    TrialBalance/table/headers/debit: 1b35db901aa1aeed8ee79aec6d807731
-    TrialBalance/table/headers/credit: 2d447a71ec815a039f175e94fbb12a56
-    TrialBalance/table/headers/net: b72de62cf63ab49dc1325f12a7d75014
+    TrialBalance/table/headers/accountCode: 9218742c297d337fdc0f5f5dd985294d
+    TrialBalance/table/headers/beginningBalance: 8b41caafe7c964ab182bfea8d9c7d5ca
+    TrialBalance/table/headers/debits: 456d7d7a795a9bb041632092f8a1a711
+    TrialBalance/table/headers/credits: b21b88917ea0c8e2a71888756f71d0be
+    TrialBalance/table/headers/endingBalance: 92090bf03904242942c8387f1e0e7f66
     CurrencyLayerSelection/currency/label: d2ba9a9cea418ea653e3ca6785617a3f
     CurrencyLayerSelection/currency/options/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
     CurrencyLayerSelection/currency/options/btc: af1432546a2c9130c9163b2269d5b60d
@@ -721,6 +752,7 @@ checksums:
     CreateButton/menuItems/user: 61073457a5c3901084b557d065f876be
     CreateButton/menuItems/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreateButton/menuItems/committee: d856e06fc77be0f7b3611d671e3dd0ec
+    CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
     DataTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/view: 36a9b5e3dc153c036d320460d72a03c3
@@ -728,12 +760,19 @@ checksums:
     PaginatedTable/sortBy: f1035fcc660691aa9c6e1043e81d1d88
     PaginatedTable/all: 5e2e93f8e2a5f315b6fecdd0a0e6f55f
     Modules/notYetConfigured: e53fce92eb14f228a880be973a193cf3
+    Modules/autoPopulate: 20c7e93429022eac57aad3b06457ff53
     Modules/deposit/title: e233d53e369427d12f87d610bcf56ccb
     Modules/deposit/description: 1b91952e5f865c70ee62eddff5ad096c
     Modules/deposit/setTitle: aa4df42c2727310fe363101551dbe3ec
     Modules/deposit/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
-    Modules/deposit/chartOfAccountsDepositAccountsParentCode: e76d68c052e703b54a9582c2ead40340
     Modules/deposit/chartOfAccountsOmnibusParentCode: 7650e353acd65049b7b31d5154ceb44e
+    Modules/deposit/chartOfAccountsIndividualDepositAccountsParentCode: 22f79b224548b2526a096797597ea84b
+    Modules/deposit/chartOfAccountsGovernmentEntityDepositAccountsParentCode: ef560963def1ad0016e160ff922c59c0
+    Modules/deposit/chartOfAccountPrivateCompanyDepositAccountsParentCode: 9842efdb537f77f3c408f63b60a1f007
+    Modules/deposit/chartOfAccountBankDepositAccountsParentCode: 610e0b1896bbd770d6fc956b5156f87b
+    Modules/deposit/chartOfAccountFinancialInstitutionDepositAccountsParentCode: bb9dbbc365606f62f5ee9b6dfbe2f898
+    Modules/deposit/chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: a64197e527316b216bcf82877591f476
+    Modules/deposit/chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: 46a5432f67afdd288a90400a3be34d3e
     Modules/credit/title: 2d447a71ec815a039f175e94fbb12a56
     Modules/credit/description: 7feb16939959a3c35f74761021ad60d7
     Modules/credit/setTitle: fc23ba4cd507ca596a84e05344b4411d
@@ -742,17 +781,155 @@ checksums:
     Modules/credit/chartOfAccountCollateralOmnibusParentCode: 1ef5f1593be70bd9c306b0dc7144cf69
     Modules/credit/chartOfAccountFacilityParentCode: 2f989fd7b573d6c58697bc7f3584bd6c
     Modules/credit/chartOfAccountCollateralParentCode: 0369fcbe2714bbef2ad97d2dcb74d021
-    Modules/credit/chartOfAccountDisbursedReceivableParentCode: c847cdf7a4ae05d52c73fcb218b9ea71
-    Modules/credit/chartOfAccountInterestReceivableParentCode: e3582dd5597fda4cd2eb142eb9a04293
     Modules/credit/chartOfAccountInterestIncomeParentCode: 6f7bc91587039fec7e07edc8214be0b1
     Modules/credit/chartOfAccountFeeIncomeParentCode: 41eb6f093aee01175ddc0a61cb612efd
+    Modules/credit/chartOfAccountShortTermIndividualInterestReceivableParentCode: 0ccd48b3ce1d6660158061b98833f6cb
+    Modules/credit/chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: 4a90bcdd6a1a8d57a4c80c18914c5c3c
+    Modules/credit/chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: df5d335adeb84083d130420018874fa8
+    Modules/credit/chartOfAccountShortTermBankInterestReceivableParentCode: 0d075c3c726860672bc38370c8d4e697
+    Modules/credit/chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: ae2d880a8cc433b0beeb0854da14ecd5
+    Modules/credit/chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: d4f6cafc20863b838d61d0a29540f369
+    Modules/credit/chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: 14d4e3930ead6a622afbae02bb658024
+    Modules/credit/chartOfAccountLongTermIndividualInterestReceivableParentCode: 1bb4ef500ef983ecc7c032d2513b17a9
+    Modules/credit/chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: c7bd023af41c3817faf62a6c0dbf9dcb
+    Modules/credit/chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: 6934070b3d443c3ddcdfde63184f2a95
+    Modules/credit/chartOfAccountLongTermBankInterestReceivableParentCode: 717bcefbda35192e440113ce5be89533
+    Modules/credit/chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: e0cfbbb37f9730c310894f9a1166af8d
+    Modules/credit/chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: 9d8429e974b5b2f6bcd9fe104a49e703
+    Modules/credit/chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: 5e951e86a5b1ec9657c0dcda999dc541
+    Modules/credit/chartOfAccountShortTermIndividualDisbursedReceivableParentCode: 6ca0aa920ac1e552f213eb3c9f821031
+    Modules/credit/chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: 6dfa13fead3ead9c880be4625aee458f
+    Modules/credit/chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: 1feac33fcce31b28eef5cb79d255566c
+    Modules/credit/chartOfAccountShortTermBankDisbursedReceivableParentCode: 1c073decb85fe942ea22e80a1467ca1f
+    Modules/credit/chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: 655925e4af414ea0a569a2472272ca81
+    Modules/credit/chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: 78a4fd04889f9d1ac501d60907626525
+    Modules/credit/chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: 539ff089ae7f4bb86651773893d7be70
+    Modules/credit/chartOfAccountLongTermIndividualDisbursedReceivableParentCode: 67518aa07cd3066789a446884a589d2a
+    Modules/credit/chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: 88b693d1e15cafda4c89081a90ec5bfd
+    Modules/credit/chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: b8f72e4d9b245f4d08c01fbb17846428
+    Modules/credit/chartOfAccountLongTermBankDisbursedReceivableParentCode: b7a23906dddf628fbbb0ea5529bb15e9
+    Modules/credit/chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: 6cdb7c15d8ddac400ca4dd6c97ad1390
+    Modules/credit/chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: b7aa2f1ec7ba2a6d95bdbcb6668b2fd9
+    Modules/credit/chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: 6d0326c862f0a1dac9cbdf77568ddce5
+    Modules/credit/chartOfAccountOverdueIndividualDisbursedReceivableParentCode: af792d82083e40aa6c75375aaf64168d
+    Modules/credit/chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: e28e1cfc87d316f3f0f815f95017df32
+    Modules/credit/chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: 06fe3b266d0cee9cda0262eb180b7833
+    Modules/credit/chartOfAccountOverdueBankDisbursedReceivableParentCode: 807f7b6330eb02dd06421649241a6fca
+    Modules/credit/chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: 34d38f74e03aa7efa2b8154a032653a1
+    Modules/credit/chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: a28ea9fed19712c5ae4699979578b7aa
+    Modules/credit/chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: 566ba8853ccc45ecdbea9ccf5dfaaaf0
+    Modules/balanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
+    Modules/balanceSheet/description: f323e3abc32a91a9d072d1859e9e9dcc
+    Modules/balanceSheet/setTitle: b9c45d77b313d7dc36328d38c144d41f
+    Modules/balanceSheet/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
+    Modules/balanceSheet/chartOfAccountsAssetsCode: 8f986fe29b86e9325d22b83328dbffa2
+    Modules/balanceSheet/chartOfAccountsLiabilitiesCode: beb993cfc6ffa883856a248cbb95b7ab
+    Modules/balanceSheet/chartOfAccountsEquityCode: e55caa88a6401f1f7e91265f0d83fbb1
+    Modules/balanceSheet/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
+    Modules/balanceSheet/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
+    Modules/balanceSheet/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
+    Modules/profitAndLoss/title: 3ba19a10374d5fe19675af7a4b2f7832
+    Modules/profitAndLoss/description: 63c2c25c6ef72c8f742cea3d25ea56ad
+    Modules/profitAndLoss/setTitle: c0eb87af3b74b9abbd657af0637cb9fb
+    Modules/profitAndLoss/chartOfAccountsId: 608a35070a1a88b6f113b5c9f4a59300
+    Modules/profitAndLoss/chartOfAccountsRevenueCode: bc86928c960b6057fa6698cbfb2ea07e
+    Modules/profitAndLoss/chartOfAccountsCostOfRevenueCode: 4b42343b75c55a8a7d7eac5a08641bc6
+    Modules/profitAndLoss/chartOfAccountsExpensesCode: 5fbddc52c73c4614166f8daec9cda586
     ChartOfAccountsLedgerAccount/title: b156c85b7cdaac35654dfa3b8bcc6cf2
-    ChartOfAccountsLedgerAccount/description: cd8f9f4d52de7097bb3bf5df68df82f8
+    ChartOfAccountsLedgerAccount/entriesTitle: 99c901d20f504e810a773ecc8335d1ec
+    ChartOfAccountsLedgerAccount/description: 1cb54558341987f3d67421ea3ea90d39
+    ChartOfAccountsLedgerAccount/descriptionWithCode: cd8f9f4d52de7097bb3bf5df68df82f8
     ChartOfAccountsLedgerAccount/details/code: 9218742c297d337fdc0f5f5dd985294d
     ChartOfAccountsLedgerAccount/details/name: 5a4c82f1bc517348b64c107345f94f65
     ChartOfAccountsLedgerAccount/details/usdBalance: 857ee8a777580666ef3e60098e442c11
     ChartOfAccountsLedgerAccount/details/btcBalance: b31842ee7a4fedfd1ad43c64e8e772a1
+    ChartOfAccountsLedgerAccount/details/ancestors: 450cae749d4800490d797c0887492115
+    ChartOfAccountsLedgerAccount/details/children: f09021b02811dd9c354e8da8525ddf9f
+    ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
+    ChartOfAccountsLedgerAccount/exportCsv/title: 302dcd95348b7a596a13fbfb878dd1bb
+    ChartOfAccountsLedgerAccount/exportCsv/description: 6c9787ebb0e864513d708c2f03d927ed
+    ChartOfAccountsLedgerAccount/exportCsv/existingExports: 70205aa948404255f6f6008638f9f4a9
+    ChartOfAccountsLedgerAccount/exportCsv/createNew: 64b2b15cf05e6574f4d40df078b3a4a4
+    ChartOfAccountsLedgerAccount/exportCsv/selectExport: 30136a77b2d744f28da798fa84e1da4b
+    ChartOfAccountsLedgerAccount/exportCsv/noCsvs: 82edc93832e76450a0e107dfc55a0b14
+    ChartOfAccountsLedgerAccount/exportCsv/createDescription: 0b4cb4b7ab41d9efda85a646ce615f4b
+    ChartOfAccountsLedgerAccount/exportCsv/processing: 7d4655f8e1e4b98117b77704fbbee4a1
+    ChartOfAccountsLedgerAccount/exportCsv/csvCreating: cd794a117953136cfd6f6cc1d716b4bb
+    ChartOfAccountsLedgerAccount/exportCsv/csvReady: 91a72148b9943660ae4d6f2205de178f
+    ChartOfAccountsLedgerAccount/exportCsv/csvFailed: 47a53f9606be4bcccd072a4443e3ba25
+    ChartOfAccountsLedgerAccount/exportCsv/createNewDescription: 7ded74be22ab269c4e7ca6571e8c87eb
+    ChartOfAccountsLedgerAccount/exportCsv/status/pending: 49cca5adf81af202043e861473586df5
+    ChartOfAccountsLedgerAccount/exportCsv/status/completed: 437c0eea608e15ad5cdab94bde2f4b48
+    ChartOfAccountsLedgerAccount/exportCsv/status/failed: 99f87615af1fffa2b8802866b096705a
+    ChartOfAccountsLedgerAccount/exportCsv/buttons/export: 45e3c7a805c43d7142192a7cdc0135c9
+    ChartOfAccountsLedgerAccount/exportCsv/buttons/generate: 5a85e7f3a68a503d84e6937ab733106c
+    ChartOfAccountsLedgerAccount/exportCsv/buttons/generating: d55ce9138ed4a7d033bd9030425bf850
+    ChartOfAccountsLedgerAccount/exportCsv/buttons/getLink: 422fd03d88557042fbd64d17a63f32aa
+    ChartOfAccountsLedgerAccount/exportCsv/buttons/download: 56b7d0834952b39ee394b44bd8179178
+    ChartOfAccountsLedgerAccount/exportCsv/errors/loadFailed: 09a4253b2b4f00c1643424ac13f205f6
+    ChartOfAccountsLedgerAccount/exportCsv/errors/createFailed: cd849205f422b09aef0b2996d69b1f70
+    ChartOfAccountsLedgerAccount/exportCsv/errors/downloadFailed: e110f06b7eefaf4ddc5a4263036e2bcb
+    ChartOfAccountsLedgerAccount/exportCsv/errors/notReady: 7f4c73aafa3c842351cf2f95b01893bd
+    Journal/title: f7b651715289f785561bd3bca4911a73
+    Journal/description: 4c36cd4610ecc9bd3c882356aa27a8fc
+    Journal/noTableData: 342f60ede8690eada6440087569863ed
+    Journal/table/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Journal/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    Journal/table/name: 5a4c82f1bc517348b64c107345f94f65
+    Journal/table/transaction: 7f5d30475a7934848665e9b3e3dea36d
+    Journal/table/direction: 2920314e7f25957f16577b544b4e860b
+    Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
+    Journal/debitOrCredit/debit: 1b35db901aa1aeed8ee79aec6d807731
+    Journal/debitOrCredit/credit: 2d447a71ec815a039f175e94fbb12a56
+    LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
+    LedgerTransaction/description: e12ba6feb4c9ded56403b71e5f8bfb36
+    LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
+    LedgerTransaction/details/description: e17686a22ffad04cc7bb70524ed4478b
+    LedgerTransaction/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    LedgerTransaction/entriesTitle: a4ce78dcd06b9cc27fd29d25ec9079be
+    LedgerTransaction/entriesDescription: d2bd608e92a19ca27d17eaadbf8c0cc2
+    LedgerTransaction/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    LedgerTransaction/table/debit: 1b35db901aa1aeed8ee79aec6d807731
+    LedgerTransaction/table/credit: 2d447a71ec815a039f175e94fbb12a56
+    LedgerTransaction/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    LedgerTransaction/table/ledgerAccount: d6afe57367f5001206a03de7a93d20e7
+    ManualTransactions/title: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
+    ManualTransactions/description: d61b154d1f4d49c1df3d2fa866c90a44
+    ManualTransactions/fields/description: bbe6ebc0b363d71b3a82e8440822a618
+    ManualTransactions/fields/reference: 1d75a71b5bc3c2e4abf8dd5f080d07a6
+    ManualTransactions/fields/entries: f3c21fcba59800632a9b8e844879ab2e
+    ManualTransactions/fields/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
+    ManualTransactions/fields/btc: af1432546a2c9130c9163b2269d5b60d
+    ManualTransactions/fields/debit: 1b35db901aa1aeed8ee79aec6d807731
+    ManualTransactions/fields/credit: 2d447a71ec815a039f175e94fbb12a56
+    ManualTransactions/placeholders/description: c7a11b94e00ee35afec9b506a955b303
+    ManualTransactions/placeholders/reference: ef1ef43fd3049ac07aa4eb8b3c12ee80
+    ManualTransactions/noEntries: b5cb1e87c57993a1088d73aae3b829ee
+    ManualTransactions/addEntryBtn: 87c4a663507f2bcbbf79934af8164e13
+    ManualTransactions/execute: 3fe1686d6b7aa4a7fd6eced8098c1da5
+    ManualTransactions/placeholdersJournalEntry/accountRef: 325591742b9f337a39e5f58b29383948
+    ManualTransactions/placeholdersJournalEntry/currency: a7604892fc4bfe50ead2ba5d5dd95c9c
+    ManualTransactions/placeholdersJournalEntry/amount: 2bf76cb0b75e87e3e635259f97ae8089
+    ManualTransactions/placeholdersJournalEntry/direction: 67e3f528b0603c8381f6e7249ace3c21
+    ManualTransactions/placeholdersJournalEntry/description: 24e46064cac64ba5b70ad916903c0561
+    ManualTransactions/table/accountRef: 01215c12fb1cdb93bd0c84c1382bef56
+    ManualTransactions/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    ManualTransactions/table/currency: d2ba9a9cea418ea653e3ca6785617a3f
+    ManualTransactions/table/direction: 2920314e7f25957f16577b544b4e860b
+    ManualTransactions/table/description: e17686a22ffad04cc7bb70524ed4478b
+    ManualTransactions/errored: b8fce30a7bd38573774a442782ba574f
+    ManualTransactions/success: 2e3024332d84ce146725f4065bebad31
+    TransactionTemplates/title: cdfe1e063b21076f6b5dc06d5c6cce33
+    TransactionTemplates/description: 358dbd4472fd63bc311612eaf175ab57
+    TransactionTemplates/code: 343bc5386149b97cece2b093c39034b2
+    TransactionTemplates/noData: cf33d780cb48c9296bbdc2ffc4549092
+    LedgerTransactionsForTemplateCode/title: 6ab59e155e4bb73fd7b1aa8df0bc632e
+    LedgerTransactionsForTemplateCode/description: d27d874f3cb4d41fc9fa4392ba6fcbec
+    LedgerTransactionsForTemplateCode/table/noData: 6af4775f34d95b6313e2adeb8f9974a8
+    LedgerTransactionsForTemplateCode/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    LedgerTransactionsForTemplateCode/table/headers/description: e17686a22ffad04cc7bb70524ed4478b

@@ -1,30 +1,32 @@
-# Balance Sheet
+pdf_filename: hoja-de-balance
 
-Follow these steps to explore the Balance Sheet page and its features.
+# Balance General
 
----
-
-### Step 1: View Balance Sheet Page
-
-Here you can see the summary of **Assets**, **Liabilities**, and **Equity** with all their categories.
-![Balance Sheet](./screenshots/balance-sheet.cy.ts/balance-sheet.png)
+Sigue estos pasos para explorar la página del Balance General y sus características.
 
 ---
 
-<!-- new-page -->
+### Paso 1: Ver la página del Balance General
 
-### Step 2: Switch Currency
-
-You can switch between currencies like **USD** and **BTC** using the provided options.
-![Switch Currency](./screenshots/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+Aquí puedes ver el resumen de **Activos**, **Pasivos** y **Capital** con todas sus categorías.
+![Balance General](./screenshots/balance-sheet.cy.ts/balance-sheet.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 3: Switch Between Layers
+### Paso 2: Cambiar de Moneda
 
-Use the options to switch between **All**, **Settled**, and **Pending** layers.
-![Pending Layer](./screenshots/balance-sheet.cy.ts/balance-sheet-pending.png)
+Puedes cambiar entre monedas como **USD** y **BTC** utilizando las opciones proporcionadas.
+![Cambiar Moneda](./screenshots/balance-sheet.cy.ts/balance-sheet-btc-currency.png)
+
+---
+
+<!-- new-page -->
+
+### Paso 3: Cambiar Entre Capas
+
+Utiliza las opciones para cambiar entre capas **Todas**, **Liquidadas** y **Pendientes**.
+![Capa Pendiente](./screenshots/balance-sheet.cy.ts/balance-sheet-pending.png)
 
 ---

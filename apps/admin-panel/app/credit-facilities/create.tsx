@@ -26,6 +26,8 @@ import {
 
 import { useCreateContext } from "../create"
 
+import { PeriodLabel, InterestIntervalLabel } from "./label"
+
 import {
   InterestInterval,
   Period,
@@ -33,12 +35,7 @@ import {
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
-import {
-  formatInterval,
-  formatPeriod,
-  currencyConverter,
-  calculateInitialCollateralRequired,
-} from "@/lib/utils"
+import { currencyConverter, calculateInitialCollateralRequired } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -83,8 +80,8 @@ type CreateCreditFacilityDialogProps = {
 const initialFormValues = {
   facility: "0",
   annualRate: "",
+  accrualCycleInterval: "",
   accrualInterval: "",
-  incurrenceInterval: "",
   liquidationCvl: "",
   marginCallCvl: "",
   initialCvl: "",
@@ -141,8 +138,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: latestTemplate.values.annualRate.toString(),
+        accrualCycleInterval: latestTemplate.values.accrualCycleInterval,
         accrualInterval: latestTemplate.values.accrualInterval,
-        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -172,8 +169,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
+        accrualCycleInterval: selectedTemplate.values.accrualCycleInterval,
         accrualInterval: selectedTemplate.values.accrualInterval,
-        incurrenceInterval: selectedTemplate.values.incurrenceInterval,
         liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
         marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
         initialCvl: selectedTemplate.values.initialCvl.toString(),
@@ -189,8 +186,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     const {
       facility,
       annualRate,
+      accrualCycleInterval,
       accrualInterval,
-      incurrenceInterval,
       liquidationCvl,
       marginCallCvl,
       initialCvl,
@@ -202,8 +199,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     if (
       !facility ||
       !annualRate ||
+      !accrualCycleInterval ||
       !accrualInterval ||
-      !incurrenceInterval ||
       !liquidationCvl ||
       !marginCallCvl ||
       !initialCvl ||
@@ -224,8 +221,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             facility: currencyConverter.usdToCents(Number(facility)),
             terms: {
               annualRate: parseFloat(annualRate),
+              accrualCycleInterval: accrualCycleInterval as InterestInterval,
               accrualInterval: accrualInterval as InterestInterval,
-              incurrenceInterval: incurrenceInterval as InterestInterval,
               liquidationCvl: parseFloat(liquidationCvl),
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
@@ -233,6 +230,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               duration: {
                 units: parseInt(durationUnits),
                 period: durationPeriod as Period,
+              },
+              interestDueDuration: {
+                units: parseInt("0"),
+                period: Period.Days,
               },
             },
           },
@@ -262,8 +263,8 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues({
         facility: "0",
         annualRate: latestTemplate.values.annualRate.toString(),
+        accrualCycleInterval: latestTemplate.values.accrualCycleInterval,
         accrualInterval: latestTemplate.values.accrualInterval,
-        incurrenceInterval: latestTemplate.values.incurrenceInterval,
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
         initialCvl: latestTemplate.values.initialCvl.toString(),
@@ -297,12 +298,14 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   return (
     <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className="max-w-[40rem]">
-        <div
-          className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
-          style={{ width: "100.35%" }}
-        >
-          {t("dialog.customerInfo", { email: customer?.email })}
-        </div>
+        {customer?.email && (
+          <div
+            className="absolute -top-6 -left-[1px] bg-primary rounded-tl-md rounded-tr-md text-md px-2 py-1 text-secondary"
+            style={{ width: "100.35%" }}
+          >
+            {t("dialog.customerInfo", { email: customer.email })}
+          </div>
+        )}
         <DialogHeader>
           <DialogTitle>{t("dialog.title")}</DialogTitle>
           <DialogDescription>{t("dialog.description")}</DialogDescription>
@@ -346,7 +349,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 onValueChange={handleTemplateChange}
                 disabled={termsTemplatesLoading}
               >
-                <SelectTrigger>
+                <SelectTrigger data-testid="credit-facility-terms-template-select">
                   <SelectValue placeholder={t("form.placeholders.termsTemplate")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -384,9 +387,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <DetailItem
                   label={t("form.labels.duration")}
                   value={
-                    String(formValues.durationUnits) +
-                    " " +
-                    formatPeriod(formValues.durationPeriod as Period)
+                    <>
+                      {formValues.durationUnits}{" "}
+                      <PeriodLabel period={formValues.durationPeriod as Period} />
+                    </>
                   }
                 />
                 <DetailItem
@@ -394,18 +398,24 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                   value={formValues.marginCallCvl}
                 />
                 <DetailItem
-                  label={t("form.labels.accrualInterval")}
-                  value={formatInterval(formValues.accrualInterval as InterestInterval)}
+                  label={t("form.labels.accrualCycleInterval")}
+                  value={
+                    <InterestIntervalLabel
+                      interval={formValues.accrualCycleInterval as InterestInterval}
+                    />
+                  }
                 />
                 <DetailItem
                   label={t("form.labels.liquidationCvl")}
                   value={formValues.liquidationCvl}
                 />
                 <DetailItem
-                  label={t("form.labels.incurrenceInterval")}
-                  value={formatInterval(
-                    formValues.incurrenceInterval as InterestInterval,
-                  )}
+                  label={t("form.labels.accrualInterval")}
+                  value={
+                    <InterestIntervalLabel
+                      interval={formValues.accrualInterval as InterestInterval}
+                    />
+                  }
                 />
                 <DetailItem
                   label={t("form.labels.structuringFeeRate")}
@@ -463,11 +473,13 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                         <SelectValue placeholder={t("form.placeholders.selectPeriod")} />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.values(Period).map((period) => (
-                          <SelectItem key={period} value={period}>
-                            {formatPeriod(period)}
-                          </SelectItem>
-                        ))}
+                        {Object.values(Period)
+                          .filter((period) => period !== Period.Days)
+                          .map((period) => (
+                            <SelectItem key={period} value={period}>
+                              <PeriodLabel period={period} />
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -480,6 +492,42 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     value={formValues.marginCallCvl}
                     onChange={handleChange}
                     placeholder={t("form.placeholders.marginCallCvl")}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>{t("form.labels.accrualCycleInterval")}</Label>
+                  <Select
+                    value={formValues.accrualCycleInterval}
+                    onValueChange={(value) =>
+                      handleChange({
+                        target: { name: "accrualCycleInterval", value },
+                      } as React.ChangeEvent<HTMLSelectElement>)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={t("form.placeholders.accrualCycleInterval")}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(InterestInterval).map((interval) => (
+                        <SelectItem key={interval} value={interval}>
+                          <InterestIntervalLabel interval={interval} />
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>{t("form.labels.liquidationCvl")}</Label>
+                  <Input
+                    type="number"
+                    name="liquidationCvl"
+                    value={formValues.liquidationCvl}
+                    onChange={handleChange}
+                    placeholder={t("form.placeholders.liquidationCvl")}
+                    min={0}
                     required
                   />
                 </div>
@@ -499,43 +547,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                     <SelectContent>
                       {Object.values(InterestInterval).map((interval) => (
                         <SelectItem key={interval} value={interval}>
-                          {formatInterval(interval)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>{t("form.labels.liquidationCvl")}</Label>
-                  <Input
-                    type="number"
-                    name="liquidationCvl"
-                    value={formValues.liquidationCvl}
-                    onChange={handleChange}
-                    placeholder={t("form.placeholders.liquidationCvl")}
-                    min={0}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label>{t("form.labels.incurrenceInterval")}</Label>
-                  <Select
-                    value={formValues.incurrenceInterval}
-                    onValueChange={(value) =>
-                      handleChange({
-                        target: { name: "incurrenceInterval", value },
-                      } as React.ChangeEvent<HTMLSelectElement>)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={t("form.placeholders.incurrenceInterval")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(InterestInterval).map((interval) => (
-                        <SelectItem key={interval} value={interval}>
-                          {formatInterval(interval)}
+                          <InterestIntervalLabel interval={interval} />
                         </SelectItem>
                       ))}
                     </SelectContent>

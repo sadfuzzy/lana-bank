@@ -1,3 +1,7 @@
+import { t } from "../support/translation"
+
+const R = "Reports"
+
 describe("Regulatory Report Management", () => {
   beforeEach(() => {
     cy.on("uncaught:exception", (err) => {
@@ -14,16 +18,19 @@ describe("Regulatory Report Management", () => {
     cy.get('[data-testid="generate-report-button"]').click()
 
     cy.get('[data-testid="create-report-dialog"]').within(() => {
-      cy.get('[data-testid="dialog-title"]').should("contain", "Create New Report")
+      cy.get('[data-testid="dialog-title"]').should(
+        "contain",
+        t(R + ".createDialog.title"),
+      )
       cy.get('[data-testid="dialog-description"]').should(
         "contain",
-        "Are you sure you want to create a new report?",
+        t(R + ".createDialog.description"),
       )
       cy.get('[data-testid="create-report-submit"]').click()
       cy.takeScreenshot("2_create_report_dialog")
     })
 
-    cy.contains("Report creation started").should("be.visible")
+    cy.contains(t(R + ".createDialog.success")).should("be.visible")
     cy.takeScreenshot("3_report_creation_success")
   })
 

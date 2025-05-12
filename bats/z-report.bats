@@ -26,7 +26,7 @@ wait_for_complete() {
 }
 
 @test "report: create" {
-  skip # while we wait for the report to be fixed / meltano to be integrated
+  skip # while I figure out gha issue
   # fake service account used in concourse
   if echo "${SA_CREDS_BASE64}" | base64 -d | grep -q "abc_app"; then
     skip
@@ -37,7 +37,7 @@ wait_for_complete() {
   report_id=$(graphql_output .data.reportCreate.report.reportId)
   [[ "$report_id" != "null" ]] || exit 1
 
-  retry 60 2 wait_for_complete "$report_id"
+  retry 240 2 wait_for_complete "$report_id"
 
   variables=$(
     jq -n \

@@ -1,6 +1,6 @@
 [package]
 name = "rbac-types"
-version = "0.3.168-dev"
+version = "0.3.466-dev"
 edition = "2021"
 
 [features]
@@ -15,8 +15,9 @@ governance = { path = "../../core/governance" }
 core-user = { path = "../../core/user" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
-chart-of-accounts = { path = "../../core/chart-of-accounts" }
 deposit = { path = "../../core/deposit" }
+core-accounting = { path = "../../core/accounting" }
+
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 

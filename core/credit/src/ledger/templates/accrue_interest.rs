@@ -6,15 +6,15 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const CREDIT_FACILITY_ACCRUE_INTEREST_CODE: &str = "CREDIT_FACILITY_ACCRUE_INTEREST";
 
 #[derive(Debug)]
 pub struct CreditFacilityAccrueInterestParams {
     pub journal_id: JournalId,
-    pub credit_facility_interest_receivable_account: AccountId,
-    pub credit_facility_interest_income_account: AccountId,
+    pub credit_facility_interest_receivable_account: CalaAccountId,
+    pub credit_facility_interest_income_account: CalaAccountId,
     pub interest_amount: Decimal,
     pub external_id: String,
     pub effective: chrono::NaiveDate,
@@ -94,36 +94,18 @@ impl CreditFacilityAccrueInterest {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .description("'Accrue interest from accrual period for credit facility'")
+            .description("'Accrue interest in accrual period for credit facility'")
             .build()
             .expect("Couldn't build TxInput");
 
         let entries = vec![
-            NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_interest_income_account")
-                .units("params.interest_amount")
-                .currency("'USD'")
-                .entry_type("'ACCRUE_INCURRED_INTEREST_DR'")
-                .direction("DEBIT")
-                .layer("PENDING")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_interest_receivable_account")
-                .units("params.interest_amount")
-                .currency("'USD'")
-                .entry_type("'ACCRUE_INCURRED_INTEREST_CR'")
-                .direction("CREDIT")
-                .layer("PENDING")
-                .build()
-                .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
                 .account_id("params.credit_facility_interest_receivable_account")
                 .units("params.interest_amount")
                 .currency("'USD'")
                 .entry_type("'ACCRUE_INTEREST_DR'")
                 .direction("DEBIT")
-                .layer("SETTLED")
+                .layer("PENDING")
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
@@ -132,7 +114,7 @@ impl CreditFacilityAccrueInterest {
                 .currency("'USD'")
                 .entry_type("'ACCRUE_INTEREST_CR'")
                 .direction("CREDIT")
-                .layer("SETTLED")
+                .layer("PENDING")
                 .build()
                 .expect("Couldn't build entry"),
         ];

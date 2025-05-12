@@ -47,23 +47,4 @@ impl ApplicantRepo {
 
         Ok(row.id)
     }
-
-    pub async fn find_webhook_data_by_id(&self, id: i64) -> Result<WebhookData, ApplicantError> {
-        let row = sqlx::query!(
-            r#"
-            SELECT customer_id AS "customer_id: CustomerId", content, recorded_at
-            FROM sumsub_callbacks
-            WHERE id = $1
-            "#,
-            id
-        )
-        .fetch_one(&self.pool)
-        .await?;
-
-        Ok(WebhookData {
-            customer_id: row.customer_id,
-            webhook_data: row.content,
-            timestamp: row.recorded_at,
-        })
-    }
 }

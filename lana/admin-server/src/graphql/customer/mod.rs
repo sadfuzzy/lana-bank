@@ -8,12 +8,9 @@ use super::{
     credit_facility::*, deposit_account::*, document::Document, primitives::SortDirection,
 };
 
-pub use lana_app::{
-    app::LanaApp,
-    customer::{
-        AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
-        CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
-    },
+pub use lana_app::customer::{
+    AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
+    CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
 };
 
 pub use error::*;
@@ -88,7 +85,7 @@ impl Customer {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let credit_facilities: Vec<CreditFacility> = app
-            .credit_facilities()
+            .credit()
             .list(
                 sub,
                 Default::default(),
@@ -121,29 +118,8 @@ impl Customer {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit_facilities()
-            .subject_can_create(sub, false)
-            .await
-            .is_ok())
+        Ok(app.credit().subject_can_create(sub, false).await.is_ok())
     }
-
-    // async fn subject_can_record_deposit(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app.deposits().subject_can_record(sub, false).await.is_ok())
-    // }
-
-    // async fn subject_can_initiate_withdrawal(
-    //     &self,
-    //     ctx: &Context<'_>,
-    // ) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app
-    //         .withdrawals()
-    //         .subject_can_initiate(sub, false)
-    //         .await
-    //         .is_ok())
-    // }
 }
 
 #[derive(InputObject)]
@@ -155,11 +131,18 @@ pub struct CustomerCreateInput {
 crate::mutation_payload! { CustomerCreatePayload, customer: Customer }
 
 #[derive(InputObject)]
-pub struct CustomerUpdateInput {
+pub struct CustomerTelegramIdUpdateInput {
     pub customer_id: UUID,
     pub telegram_id: String,
 }
-crate::mutation_payload! { CustomerUpdatePayload, customer: Customer }
+crate::mutation_payload! { CustomerTelegramIdUpdatePayload, customer: Customer }
+
+#[derive(InputObject)]
+pub struct CustomerEmailUpdateInput {
+    pub customer_id: UUID,
+    pub email: String,
+}
+crate::mutation_payload! { CustomerEmailUpdatePayload, customer: Customer }
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum CustomersSortBy {

@@ -3,6 +3,7 @@ use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 
 use super::*;
+use crate::history::CreditFacilityHistoryEntry;
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
@@ -13,8 +14,11 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilityRepo<E>,
-    disbursals: &'a DisbursalRepo,
+    disbursals: &'a DisbursalRepo<E>,
     payments: &'a PaymentRepo,
+    histories: &'a HistoryRepo,
+    repayment_plans: &'a RepaymentPlanRepo,
+    ledger: &'a CreditLedger,
 }
 
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
@@ -24,13 +28,17 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
+    #[allow(clippy::too_many_arguments)]
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilityRepo<E>,
-        disbursals: &'a DisbursalRepo,
+        disbursals: &'a DisbursalRepo<E>,
         payments: &'a PaymentRepo,
+        history: &'a HistoryRepo,
+        repayment_plans: &'a RepaymentPlanRepo,
+        ledger: &'a CreditLedger,
     ) -> Self {
         Self {
             customer_id,
@@ -39,6 +47,9 @@ where
             credit_facilities,
             disbursals,
             payments,
+            histories: history,
+            repayment_plans,
+            ledger,
         }
     }
 
@@ -64,10 +75,44 @@ where
             .await?)
     }
 
+    pub async fn history<T: From<CreditFacilityHistoryEntry>>(
+        &self,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            CoreCreditObject::credit_facility(id),
+            CoreCreditAction::CREDIT_FACILITY_READ,
+        )
+        .await?;
+        let history = self.histories.load(id).await?;
+        Ok(history.entries.into_iter().rev().map(T::from).collect())
+    }
+
+    pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
+        &self,
+        id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<Vec<T>, CoreCreditError> {
+        let id = id.into();
+        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+
+        self.ensure_credit_facility_access(
+            &credit_facility,
+            CoreCreditObject::credit_facility(id),
+            CoreCreditAction::CREDIT_FACILITY_READ,
+        )
+        .await?;
+        let repayment_plan = self.repayment_plans.load(id).await?;
+        Ok(repayment_plan.entries.into_iter().map(T::from).collect())
+    }
+
     pub async fn balance(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
-    ) -> Result<CreditFacilityBalance, CoreCreditError> {
+    ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
         let credit_facility = self.credit_facilities.find_by_id(id).await?;
 
@@ -78,7 +123,12 @@ where
         )
         .await?;
 
-        Ok(credit_facility.balances())
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+
+        Ok(balances)
     }
 
     pub async fn find_by_id(
@@ -176,7 +226,7 @@ where
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(payment.facility_id)
+            .find_by_id(payment.credit_facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,

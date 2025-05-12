@@ -1,35 +1,37 @@
-# Profit and Loss Statement
+pdf_filename: perdidas-y-ganancias
 
-Follow these steps to explore the Profit and Loss Statement page and its features.
+# Estado de Resultados
 
----
-
-### Step 1: View Profit and Loss Statement Page
-
-Navigate to the Profit and Loss Statement page to see all categories and their respective accounts.
-
-![Profit and Loss Statement](./screenshots/profit-and-loss.cy.ts/profit-and-loss.png)
+Sigue estos pasos para explorar la página del Estado de Resultados y sus características.
 
 ---
 
-<!-- new-page -->
+### Paso 1: Ver la Página del Estado de Resultados
 
-### Step 2: Switch Between Currency Types
+Navega a la página del Estado de Resultados para ver todas las categorías y sus respectivas cuentas.
 
-You can switch between **USD** and **BTC** using the currency options.
-
-![Switch to BTC](./screenshots/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
+![Estado de Resultados](./screenshots/profit-and-loss.cy.ts/profit-and-loss.png)
 
 ---
 
 <!-- new-page -->
 
-### Step 3: Switch Between Balance Layers
+### Paso 2: Cambiar Entre Tipos de Moneda
 
-Use the options to switch between **All**, **Settled**, and **Pending** layers.
+Puedes cambiar entre **USD** y **BTC** usando las opciones de moneda.
 
-![Pending Layer](./screenshots/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+![Cambiar a BTC](./screenshots/profit-and-loss.cy.ts/profit-and-loss-btc-currency.png)
 
 ---
 
-By following these steps, you can navigate the Profit and Loss Statement page, view account details, switch currencies, and explore balance layers.
+<!-- new-page -->
+
+### Paso 3: Cambiar Entre Capas de Balance
+
+Usa las opciones para cambiar entre capas **Todas**, **Liquidadas** y **Pendientes**.
+
+![Capa Pendiente](./screenshots/profit-and-loss.cy.ts/profit-and-loss-pending.png)
+
+---
+
+Siguiendo estos pasos, puedes navegar por la página del Estado de Resultados, ver detalles de cuentas, cambiar monedas y explorar capas de balance.

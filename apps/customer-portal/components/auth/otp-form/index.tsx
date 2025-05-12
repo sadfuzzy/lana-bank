@@ -79,8 +79,8 @@ const OtpForm: React.FC<OtpParams> = ({ flowId, type }) => {
   }, [otp, flowId, type, router])
 
   return (
-    <Card className="md:w-2/5" variant="transparent">
-      <CardHeader className="pt-4">
+    <Card className="md:w-2/5 my-2" variant="transparent">
+      <CardHeader>
         <CardTitle>One time Password</CardTitle>
         <CardDescription>
           An email has been sent to your email address. Please enter the OTP to continue.

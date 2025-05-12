@@ -4,23 +4,34 @@ import {
   CreateCommitteeMutationResult,
 } from "../../lib/graphql/generated/index"
 
+import { t } from "../support/translation"
+
+const CF = "CreditFacilities"
+const Committee = "Committees.CommitteeDetails"
+const Policy = "Policies.PolicyDetails"
+
 describe("credit facility", () => {
   let customerId: string
+  const termsTemplateName: string = `Test Template ${Date.now()}`
 
   before(() => {
     Cypress.env("creditFacilityId", null)
     cy.createTermsTemplate({
-      name: `Test Template ${Date.now()}`,
+      name: termsTemplateName,
       annualRate: "5.5",
-      accrualInterval: InterestInterval.EndOfMonth,
-      incurrenceInterval: InterestInterval.EndOfMonth,
+      accrualCycleInterval: InterestInterval.EndOfMonth,
+      accrualInterval: InterestInterval.EndOfDay,
       oneTimeFeeRate: "5",
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
       duration: {
-        units: 12 * 99999,
+        units: 12 * 100,
         period: Period.Months,
+      },
+      interestDueDuration: {
+        units: 0,
+        period: Period.Days,
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
@@ -63,7 +74,9 @@ describe("credit facility", () => {
         .then((option) => {
           cy.wrap(option).click()
           cy.get('[data-testid="committee-add-user-submit-button"]').click()
-          cy.contains("User added to committee successfully").should("be.visible")
+          cy.contains(t(Committee + ".AddUserCommitteeDialog.success")).should(
+            "be.visible",
+          )
           cy.contains(option.text().split(" ")[0]).should("be.visible")
         })
 
@@ -77,7 +90,9 @@ describe("credit facility", () => {
       cy.get('[role="option"]').contains(committeeName).click()
       cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
+        "be.visible",
+      )
       cy.contains(committeeName).should("be.visible")
 
       cy.visit(`/policies`)
@@ -90,7 +105,9 @@ describe("credit facility", () => {
       cy.get('[role="option"]').contains(committeeName).click()
       cy.get("[data-testid=policy-assign-committee-threshold-input]").type("1")
       cy.get("[data-testid=policy-assign-committee-submit-button]").click()
-      cy.contains("Committee assigned to policy successfully").should("be.visible")
+      cy.contains(t(Policy + ".CommitteeAssignmentDialog.success.assigned")).should(
+        "be.visible",
+      )
       cy.contains(committeeName).should("be.visible")
     })
   })
@@ -105,10 +122,10 @@ describe("credit facility", () => {
     cy.get('[data-testid="create-credit-facility-button"]').should("be.visible").click()
     cy.takeScreenshot("2_open_credit_facility_form")
 
-    cy.get('[data-testid="facility-amount-input"]').type("5000", {
-      delay: 0,
-      waitForAnimations: false,
-    })
+    cy.get('[data-testid="facility-amount-input"]').type("5000")
+    cy.get('[data-testid="credit-facility-terms-template-select"]').click()
+    cy.get('[role="option"]').contains(termsTemplateName).click()
+
     cy.takeScreenshot("3_enter_facility_amount")
 
     cy.get('[data-testid="create-credit-facility-submit"]').click()
@@ -124,7 +141,7 @@ describe("credit facility", () => {
         Cypress.env("creditFacilityId", facilityId)
       })
 
-    cy.contains("No Collateral").should("be.visible")
+    cy.contains(t(CF + ".collateralizationState.noCollateral")).should("be.visible")
     cy.takeScreenshot("5_credit_facility_created_success")
   })
 
@@ -157,7 +174,7 @@ describe("credit facility", () => {
         cy.get('[data-testid="new-collateral-input"]')
           .should("be.visible")
           .clear()
-          .type(numericValue.toString(), { delay: 0, waitForAnimations: false })
+          .type(numericValue.toString())
         cy.takeScreenshot("8_enter_new_collateral_value")
 
         cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
@@ -186,7 +203,7 @@ describe("credit facility", () => {
               cy.get("[data-testid=credit-facility-status-badge]")
                 .should("be.visible")
                 .invoke("text")
-                .should("eq", "ACTIVE")
+                .should("eq", t(CF + ".CreditFacilityStatus.active").toUpperCase())
               cy.takeScreenshot("10_verify_active_status")
             })
           })
@@ -207,7 +224,7 @@ describe("credit facility", () => {
     cy.takeScreenshot("12_click_initiate_disbursal_button")
 
     cy.get('[data-testid="disbursal-amount-input"]')
-      .type("1000", { delay: 0, waitForAnimations: false })
+      .type("1000")
       .should("have.value", "1,000")
     cy.takeScreenshot("13_enter_disbursal_amount")
 
@@ -234,7 +251,7 @@ describe("credit facility", () => {
         cy.get('[data-testid="disbursal-status-badge"]')
           .should("be.visible")
           .invoke("text")
-          .should("eq", "CONFIRMED")
+          .should("eq", t("Disbursals.DisbursalStatus.confirmed").toUpperCase())
         cy.takeScreenshot("17_verify_disbursal_status_confirmed")
       })
     })

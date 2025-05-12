@@ -1,32 +1,18 @@
-type Account {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-}
-
-type AccountAmountsByCurrency {
-	btc: BtcAccountAmountsInPeriod!
-	usd: UsdAccountAmountsInPeriod!
-}
-
 scalar AccountCode
 
-type AccountSet {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
+enum AccountStatus {
+	INACTIVE
+	ACTIVE
 }
 
-type AccountSetAndSubAccounts {
-	id: UUID!
-	name: String!
-	amounts: AccountAmountsByCurrency!
-	subAccounts(first: Int!, after: String): AccountSetSubAccountConnection!
+type AccountingCsv {
+	id: ID!
+	csvId: UUID!
+	status: AccountingCsvStatus!
+	createdAt: Timestamp!
 }
 
-union AccountSetSubAccount = Account | AccountSet
-
-type AccountSetSubAccountConnection {
+type AccountingCsvConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -34,30 +20,44 @@ type AccountSetSubAccountConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [AccountSetSubAccountEdge!]!
+	edges: [AccountingCsvEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [AccountSetSubAccount!]!
+	nodes: [AccountingCsv!]!
+}
+
+type AccountingCsvDownloadLink {
+	url: String!
+	csvId: UUID!
+}
+
+input AccountingCsvDownloadLinkGenerateInput {
+	accountingCsvId: UUID!
+}
+
+type AccountingCsvDownloadLinkGeneratePayload {
+	link: AccountingCsvDownloadLink!
 }
 
 """
 An edge in a connection.
 """
-type AccountSetSubAccountEdge {
+type AccountingCsvEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: AccountSetSubAccount!
+	node: AccountingCsv!
 	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
 }
 
-enum AccountStatus {
-	INACTIVE
-	ACTIVE
+enum AccountingCsvStatus {
+	PENDING
+	COMPLETED
+	FAILED
 }
 
 scalar AnnualRatePct
@@ -148,6 +148,7 @@ union ApprovalRules = SystemApproval | CommitteeThreshold
 
 type AuditEntry {
 	id: ID!
+	auditEntryId: AuditEntryId!
 	object: String!
 	action: String!
 	authorized: Boolean!
@@ -184,44 +185,60 @@ type AuditEntryEdge {
 	cursor: String!
 }
 
+scalar AuditEntryId
+
 union AuditSubject = User | System
 
 type BalanceSheet {
 	name: String!
-	balance: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
+	balance: LedgerAccountBalanceRange!
+	categories: [LedgerAccount!]!
+}
+
+type BalanceSheetModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsAssetsCode: String
+	chartOfAccountsLiabilitiesCode: String
+	chartOfAccountsEquityCode: String
+	chartOfAccountsRevenueCode: String
+	chartOfAccountsCostOfRevenueCode: String
+	chartOfAccountsExpensesCode: String
+}
+
+input BalanceSheetModuleConfigureInput {
+	chartOfAccountsAssetsCode: String!
+	chartOfAccountsLiabilitiesCode: String!
+	chartOfAccountsEquityCode: String!
+	chartOfAccountsRevenueCode: String!
+	chartOfAccountsCostOfRevenueCode: String!
+	chartOfAccountsExpensesCode: String!
+}
+
+type BalanceSheetModuleConfigurePayload {
+	balanceSheetConfig: BalanceSheetModuleConfig!
 }
 
 
-type BtcAccountAmounts {
+type BtcAmount {
+	btc: Satoshis!
+}
+
+type BtcBalanceDetails {
 	debit: Satoshis!
 	credit: Satoshis!
-}
-
-type BtcAccountAmountsInPeriod {
-	openingBalance: LayeredBtcAccountBalanceAmounts!
-	closingBalance: LayeredBtcAccountBalanceAmounts!
-	amount: LayeredBtcAccountBalanceAmounts!
-}
-
-type BtcAccountBalanceAmounts {
-	debit: Satoshis!
-	credit: Satoshis!
-	netDebit: SignedSatoshis!
-	netCredit: SignedSatoshis!
+	net: Satoshis!
 }
 
 type BtcLedgerAccountBalance {
-	settled: Satoshis!
-	pending: Satoshis!
-	encumbrance: Satoshis!
+	settled: BtcBalanceDetails!
+	pending: BtcBalanceDetails!
+	encumbrance: BtcBalanceDetails!
 }
 
-type BtcLedgerAccountHistoryEntry {
-	entryId: UUID!
-	txId: UUID!
-	recordedAt: Timestamp!
-	btcAmount: LayeredBtcAccountAmounts!
+type BtcLedgerAccountBalanceRange {
+	open: BtcLedgerAccountBalance!
+	periodActivity: BtcLedgerAccountBalance!
+	close: BtcLedgerAccountBalance!
 }
 
 scalar CVLPct
@@ -231,15 +248,9 @@ type CancelledWithdrawalEntry {
 	withdrawal: Withdrawal!
 }
 
-type CashFlowStatement {
-	name: String!
-	total: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
-}
-
 type ChartNode {
 	name: String!
-	accountCode: String!
+	accountCode: AccountCode!
 	children: [ChartNode!]!
 }
 
@@ -373,13 +384,12 @@ type CreditFacility {
 	createdAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
-	collateral: Satoshis!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
 	currentCvl: FacilityCVL!
-	transactions: [CreditFacilityHistoryEntry!]!
-	repaymentPlan: [CreditFacilityRepaymentInPlan!]!
+	history: [CreditFacilityHistoryEntry!]!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!
 	subjectCanUpdateCollateral: Boolean!
@@ -402,6 +412,7 @@ type CreditFacilityBalance {
 input CreditFacilityCollateralUpdateInput {
 	creditFacilityId: UUID!
 	collateral: Satoshis!
+	effective: Date!
 }
 
 type CreditFacilityCollateralUpdatePayload {
@@ -461,7 +472,6 @@ type CreditFacilityCreatePayload {
 type CreditFacilityDisbursal {
 	id: ID!
 	disbursalId: UUID!
-	index: DisbursalIdx!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -551,6 +561,7 @@ type CreditFacilityOrigination {
 input CreditFacilityPartialPaymentInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
+	effective: Date!
 }
 
 type CreditFacilityPartialPaymentPayload {
@@ -566,7 +577,7 @@ type CreditFacilityPayment {
 	creditFacility: CreditFacility!
 }
 
-type CreditFacilityRepaymentInPlan {
+type CreditFacilityRepaymentPlanEntry {
 	repaymentType: CreditFacilityRepaymentType!
 	status: CreditFacilityRepaymentStatus!
 	initial: UsdCents!
@@ -577,8 +588,10 @@ type CreditFacilityRepaymentInPlan {
 
 enum CreditFacilityRepaymentStatus {
 	UPCOMING
+	NOT_YET_DUE
 	DUE
 	OVERDUE
+	DEFAULTED
 	PAID
 }
 
@@ -601,10 +614,43 @@ type CreditModuleConfig {
 	chartOfAccountCollateralOmnibusParentCode: String
 	chartOfAccountFacilityParentCode: String
 	chartOfAccountCollateralParentCode: String
-	chartOfAccountDisbursedReceivableParentCode: String
-	chartOfAccountInterestReceivableParentCode: String
 	chartOfAccountInterestIncomeParentCode: String
 	chartOfAccountFeeIncomeParentCode: String
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountLongTermBankDisbursedReceivableParentCode: String
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String
+	chartOfAccountShortTermBankInterestReceivableParentCode: String
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String
+	chartOfAccountLongTermBankInterestReceivableParentCode: String
+	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String
+	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String
+	chartOfAccountOverdueBankDisbursedReceivableParentCode: String
+	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String
+	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String
+	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String
 }
 
 input CreditModuleConfigureInput {
@@ -612,10 +658,43 @@ input CreditModuleConfigureInput {
 	chartOfAccountCollateralOmnibusParentCode: String!
 	chartOfAccountFacilityParentCode: String!
 	chartOfAccountCollateralParentCode: String!
-	chartOfAccountDisbursedReceivableParentCode: String!
-	chartOfAccountInterestReceivableParentCode: String!
 	chartOfAccountInterestIncomeParentCode: String!
 	chartOfAccountFeeIncomeParentCode: String!
+	chartOfAccountShortTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermBankDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermBankDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountShortTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode: String!
+	chartOfAccountShortTermBankInterestReceivableParentCode: String!
+	chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode: String!
+	chartOfAccountLongTermIndividualInterestReceivableParentCode: String!
+	chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode: String!
+	chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode: String!
+	chartOfAccountLongTermBankInterestReceivableParentCode: String!
+	chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode: String!
+	chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode: String!
+	chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode: String!
+	chartOfAccountOverdueIndividualDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode: String!
+	chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueBankDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode: String!
+	chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode: String!
 }
 
 type CreditModuleConfigurePayload {
@@ -677,6 +756,24 @@ type CustomerEdge {
 	cursor: String!
 }
 
+input CustomerEmailUpdateInput {
+	customerId: UUID!
+	email: String!
+}
+
+type CustomerEmailUpdatePayload {
+	customer: Customer!
+}
+
+input CustomerTelegramIdUpdateInput {
+	customerId: UUID!
+	telegramId: String!
+}
+
+type CustomerTelegramIdUpdatePayload {
+	customer: Customer!
+}
+
 enum CustomerType {
 	INDIVIDUAL
 	GOVERNMENT_ENTITY
@@ -685,15 +782,6 @@ enum CustomerType {
 	FINANCIAL_INSTITUTION
 	FOREIGN_AGENCY_OR_SUBSIDIARY
 	NON_DOMICILED_COMPANY
-}
-
-input CustomerUpdateInput {
-	customerId: UUID!
-	telegramId: String!
-}
-
-type CustomerUpdatePayload {
-	customer: Customer!
 }
 
 input CustomersFilter {
@@ -722,6 +810,15 @@ type Dashboard {
 	totalDisbursed: UsdCents!
 	totalCollateral: Satoshis!
 }
+
+scalar Date
+
+enum DebitOrCredit {
+	DEBIT
+	CREDIT
+}
+
+scalar Decimal
 
 type Deposit {
 	id: ID!
@@ -817,13 +914,23 @@ type DepositEntry {
 
 type DepositModuleConfig {
 	chartOfAccountsId: UUID
-	chartOfAccountsDepositAccountsParentCode: String
 	chartOfAccountsOmnibusParentCode: String
+	chartOfAccountsIndividualDepositAccountsParentCode: String
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String
+	chartOfAccountBankDepositAccountsParentCode: String
+	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String
+	chartOfAccountNonDomiciledCompanyDepositAccountsParentCode: String
 }
 
 input DepositModuleConfigureInput {
-	chartOfAccountsDepositAccountsParentCode: String!
 	chartOfAccountsOmnibusParentCode: String!
+	chartOfAccountsIndividualDepositAccountsParentCode: String!
+	chartOfAccountsGovernmentEntityDepositAccountsParentCode: String!
+	chartOfAccountPrivateCompanyDepositAccountsParentCode: String!
+	chartOfAccountBankDepositAccountsParentCode: String!
+	chartOfAccountFinancialInstitutionDepositAccountsParentCode: String!
+	chartOfAccountNonDomiciledIndividualDepositAccountsParentCode: String!
 }
 
 type DepositModuleConfigurePayload {
@@ -844,8 +951,6 @@ type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
 }
-
-scalar DisbursalIdx
 
 enum DisbursalStatus {
 	NEW
@@ -946,51 +1051,23 @@ enum InterestInterval {
 	END_OF_DAY
 }
 
-enum KycLevel {
-	NOT_KYCED
-	BASIC
-	ADVANCED
+type JournalEntry {
+	id: ID!
+	entryId: UUID!
+	txId: UUID!
+	amount: JournalEntryAmount!
+	direction: DebitOrCredit!
+	layer: Layer!
+	createdAt: Timestamp!
+	entryType: String!
+	description: String
+	ledgerAccount: LedgerAccount!
+	ledgerTransaction: LedgerTransaction!
 }
 
-type LayeredBtcAccountAmounts {
-	settled: BtcAccountAmounts!
-	pending: BtcAccountAmounts!
-	encumbrance: BtcAccountAmounts!
-}
+union JournalEntryAmount = UsdAmount | BtcAmount
 
-type LayeredBtcAccountBalanceAmounts {
-	all: BtcAccountBalanceAmounts!
-	settled: BtcAccountBalanceAmounts!
-	pending: BtcAccountBalanceAmounts!
-	encumbrance: BtcAccountBalanceAmounts!
-}
-
-type LayeredUsdAccountAmounts {
-	settled: UsdAccountAmounts!
-	pending: UsdAccountAmounts!
-	encumbrance: UsdAccountAmounts!
-}
-
-type LayeredUsdAccountBalanceAmounts {
-	all: UsdAccountBalanceAmounts!
-	settled: UsdAccountBalanceAmounts!
-	pending: UsdAccountBalanceAmounts!
-	encumbrance: UsdAccountBalanceAmounts!
-}
-
-type LedgerAccount {
-	id: UUID!
-	name: String!
-	code: AccountCode!
-	history(first: Int!, after: String): LedgerAccountHistoryEntryConnection!
-	balance: LedgerAccountBalance!
-}
-
-union LedgerAccountBalance = UsdLedgerAccountBalance | BtcLedgerAccountBalance
-
-union LedgerAccountHistoryEntry = UsdLedgerAccountHistoryEntry | BtcLedgerAccountHistoryEntry
-
-type LedgerAccountHistoryEntryConnection {
+type JournalEntryConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -998,25 +1075,147 @@ type LedgerAccountHistoryEntryConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [LedgerAccountHistoryEntryEdge!]!
+	edges: [JournalEntryEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [LedgerAccountHistoryEntry!]!
+	nodes: [JournalEntry!]!
 }
 
 """
 An edge in a connection.
 """
-type LedgerAccountHistoryEntryEdge {
+type JournalEntryEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: LedgerAccountHistoryEntry!
+	node: JournalEntry!
 	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum KycLevel {
+	NOT_KYCED
+	BASIC
+	ADVANCED
+}
+
+enum Layer {
+	SETTLED
+	PENDING
+	ENCUMBRANCE
+}
+
+type LedgerAccount {
+	id: UUID!
+	code: AccountCode
+	name: String!
+	balanceRange: LedgerAccountBalanceRange!
+	ancestors: [LedgerAccount!]!
+	children: [LedgerAccount!]!
+	history(first: Int!, after: String): JournalEntryConnection!
+}
+
+union LedgerAccountBalanceRange = UsdLedgerAccountBalanceRange | BtcLedgerAccountBalanceRange
+
+type LedgerAccountBalanceRangeByCurrency {
+	usd: UsdLedgerAccountBalanceRange!
+	btc: BtcLedgerAccountBalanceRange!
+}
+
+type LedgerAccountConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerAccountEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerAccount!]!
+}
+
+input LedgerAccountCsvCreateInput {
+	ledgerAccountId: UUID!
+}
+
+type LedgerAccountCsvCreatePayload {
+	accountingCsv: AccountingCsv!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerAccountEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerAccount!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+type LedgerTransaction {
+	id: ID!
+	ledgerTransactionId: UUID!
+	createdAt: Timestamp!
+	description: String
+	entries: [JournalEntry!]!
+}
+
+type LedgerTransactionConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [LedgerTransactionEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [LedgerTransaction!]!
+}
+
+"""
+An edge in a connection.
+"""
+type LedgerTransactionEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: LedgerTransaction!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input ManualTransactionEntryInput {
+	accountRef: String!
+	amount: Decimal!
+	currency: String!
+	direction: DebitOrCredit!
+	description: String!
+}
+
+input ManualTransactionExecuteInput {
+	description: String!
+	reference: String
+	effective: Date
+	entries: [ManualTransactionEntryInput!]!
+}
+
+type ManualTransactionExecutePayload {
+	transaction: LedgerTransaction!
 }
 
 type Mutation {
@@ -1026,8 +1225,10 @@ type Mutation {
 	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
-	customerUpdate(input: CustomerUpdateInput!): CustomerUpdatePayload!
+	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
+	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
 	depositModuleConfigure(input: DepositModuleConfigureInput!): DepositModuleConfigurePayload!
+	manualTransactionExecute(input: ManualTransactionExecuteInput!): ManualTransactionExecutePayload!
 	depositRecord(input: DepositRecordInput!): DepositRecordPayload!
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
@@ -1052,7 +1253,10 @@ type Mutation {
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	shareholderEquityAdd(input: ShareholderEquityAddInput!): SuccessPayload!
+	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
+	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
+	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1090,6 +1294,7 @@ type PaymentEntry {
 
 enum Period {
 	MONTHS
+	DAYS
 }
 
 type Policy {
@@ -1138,10 +1343,27 @@ type PolicyEdge {
 	cursor: String!
 }
 
+input ProfitAndLossModuleConfigureInput {
+	chartOfAccountsRevenueCode: String!
+	chartOfAccountsCostOfRevenueCode: String!
+	chartOfAccountsExpensesCode: String!
+}
+
 type ProfitAndLossStatement {
 	name: String!
-	net: AccountAmountsByCurrency!
-	categories: [StatementCategory!]!
+	total: LedgerAccountBalanceRangeByCurrency!
+	categories: [LedgerAccount!]!
+}
+
+type ProfitAndLossStatementModuleConfig {
+	chartOfAccountsId: UUID
+	chartOfAccountsRevenueCode: String
+	chartOfAccountsCostOfRevenueCode: String
+	chartOfAccountsExpensesCode: String
+}
+
+type ProfitAndLossStatementModuleConfigurePayload {
+	profitAndLossConfig: ProfitAndLossStatementModuleConfig!
 }
 
 type Query {
@@ -1169,20 +1391,26 @@ type Query {
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	document(id: UUID!): Document
+	ledgerAccount(id: UUID!): LedgerAccount
+	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountByCode(code: String!): LedgerAccount
-	trialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
-	offBalanceSheetTrialBalance(from: Timestamp!, until: Timestamp): TrialBalance!
+	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
+	ledgerTransaction(id: UUID!): LedgerTransaction
+	ledgerTransactionsForTemplateCode(templateCode: String!, first: Int!, after: String): LedgerTransactionConnection!
+	journalEntries(first: Int!, after: String): JournalEntryConnection!
+	trialBalance(from: Date!, until: Date!): TrialBalance!
 	chartOfAccounts: ChartOfAccounts!
-	balanceSheet(from: Timestamp!, until: Timestamp): BalanceSheet!
-	profitAndLossStatement(from: Timestamp!, until: Timestamp): ProfitAndLossStatement!
-	cashFlowStatement(from: Timestamp!, until: Timestamp): CashFlowStatement!
-	accountSet(accountSetId: UUID!, from: Timestamp!, until: Timestamp): AccountSetAndSubAccounts
+	balanceSheet(from: Date!, until: Date): BalanceSheet!
+	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
 	report(id: UUID!): Report
 	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
+	balanceSheetConfig: BalanceSheetModuleConfig
+	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
+	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvConnection!
 }
 
 type RealtimePrice {
@@ -1228,24 +1456,9 @@ enum Role {
 
 scalar Satoshis
 
-input ShareholderEquityAddInput {
-	amount: UsdCents!
-	reference: String!
-}
-
-scalar SignedSatoshis
-
-scalar SignedUsdCents
-
 enum SortDirection {
 	ASC
 	DESC
-}
-
-type StatementCategory {
-	name: String!
-	amounts: AccountAmountsByCurrency!
-	accounts: [AccountSetSubAccount!]!
 }
 
 
@@ -1255,10 +1468,6 @@ type Subject {
 	subjectCanCreateCustomer: Boolean!
 	subjectCanCreateUser: Boolean!
 	subjectCanCreateTermsTemplate: Boolean!
-}
-
-type SuccessPayload {
-	success: Boolean!
 }
 
 input SumsubPermalinkCreateInput {
@@ -1280,7 +1489,7 @@ type SystemApproval {
 type TermValues {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
 	liquidationCvl: CVLPct!
@@ -1291,10 +1500,11 @@ type TermValues {
 input TermsInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	liquidationCvl: CVLPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
@@ -1312,9 +1522,10 @@ input TermsTemplateCreateInput {
 	name: String!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1328,10 +1539,11 @@ input TermsTemplateUpdateInput {
 	id: UUID!
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
-	incurrenceInterval: InterestInterval!
+	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
+	interestDueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
@@ -1346,16 +1558,44 @@ type Total {
 	usdBalance: UsdCents!
 }
 
-type TrialBalance {
-	name: String!
-	total: AccountAmountsByCurrency!
-	accounts: [TrialBalanceAccount!]!
+type TransactionTemplate {
+	id: UUID!
+	code: String!
 }
 
-type TrialBalanceAccount {
-	id: UUID!
+type TransactionTemplateConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [TransactionTemplateEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [TransactionTemplate!]!
+}
+
+"""
+An edge in a connection.
+"""
+type TransactionTemplateEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: TransactionTemplate!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+type TrialBalance {
 	name: String!
-	amounts: AccountAmountsByCurrency!
+	total: LedgerAccountBalanceRangeByCurrency!
+	accounts(first: Int!, after: String): LedgerAccountConnection!
 }
 
 scalar UUID
@@ -1367,37 +1607,28 @@ type UnknownEntry {
 
 scalar Upload
 
-type UsdAccountAmounts {
-	debit: UsdCents!
-	credit: UsdCents!
+type UsdAmount {
+	usd: UsdCents!
 }
 
-type UsdAccountAmountsInPeriod {
-	openingBalance: LayeredUsdAccountBalanceAmounts!
-	closingBalance: LayeredUsdAccountBalanceAmounts!
-	amount: LayeredUsdAccountBalanceAmounts!
-}
-
-type UsdAccountBalanceAmounts {
+type UsdBalanceDetails {
 	debit: UsdCents!
 	credit: UsdCents!
-	netDebit: SignedUsdCents!
-	netCredit: SignedUsdCents!
+	net: UsdCents!
 }
 
 scalar UsdCents
 
 type UsdLedgerAccountBalance {
-	settled: UsdCents!
-	pending: UsdCents!
-	encumbrance: UsdCents!
+	settled: UsdBalanceDetails!
+	pending: UsdBalanceDetails!
+	encumbrance: UsdBalanceDetails!
 }
 
-type UsdLedgerAccountHistoryEntry {
-	entryId: UUID!
-	txId: UUID!
-	recordedAt: Timestamp!
-	usdAmount: LayeredUsdAccountAmounts!
+type UsdLedgerAccountBalanceRange {
+	open: UsdLedgerAccountBalance!
+	periodActivity: UsdLedgerAccountBalance!
+	close: UsdLedgerAccountBalance!
 }
 
 type User {

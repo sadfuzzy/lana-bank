@@ -19,8 +19,6 @@ LOG_FILE=".e2e-logs"
 reset_pg() {
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
   docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-cala-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
 }
 
 server_cmd() {
@@ -57,14 +55,60 @@ start_server() {
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    if head "$LOG_FILE" | grep -q 'Starting graphql server on port'; then
+    echo "--- Checking if server is running ${i} ---"
+    if grep -q 'Starting' "$LOG_FILE"; then
       break
-    elif head "$LOG_FILE" | grep -q 'Connection reset by peer'; then
+    elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
       sleep 1
       background server_cmd > "$LOG_FILE" 2>&1
     else
       sleep 1
+      echo "--- Server not running ---"
+      cat "$LOG_FILE"
+    fi
+  done
+}
+
+start_server_nix() {
+  echo "--- Starting server nix ---"
+
+  # Check for running server
+  if [ -n "$BASH_VERSION" ]; then
+    server_process_and_status=$(
+      ps a | grep 'lana-cli' | grep -v grep
+      echo ${PIPESTATUS[2]}
+    )
+  elif [ -n "$ZSH_VERSION" ]; then
+    server_process_and_status=$(
+      ps a | grep 'lana-cli' | grep -v grep
+      echo ${pipestatus[3]}
+    )
+  else
+    echo "Unsupported shell."
+    exit 1
+  fi
+  exit_status=$(echo "$server_process_and_status" | tail -n 1)
+  if [ "$exit_status" -eq 0 ]; then
+    rm -f "$SERVER_PID_FILE"
+    return 0
+  fi
+
+  # Start server if not already running
+  background nix run . > "$LOG_FILE" 2>&1
+  echo "--- Server started ---"
+  for i in {1..20}; do
+    echo "--- Checking if server is running ${i} ---"
+    if grep -q 'Starting' "$LOG_FILE"; then
+      break
+    elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
+      stop_server
+      sleep 1
+      background nix run . > "$LOG_FILE" 2>&1
+    else
+      sleep 1
+      echo "--- Server not running ---"
+      cat "$LOG_FILE"
     fi
   done
 }
@@ -73,6 +117,9 @@ stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
   fi
+
+  lsof -i :5253 | tail -n 1 | awk '{print $2}' | xargs -r kill -9 || true
+  lsof -i :5254 | tail -n 1 | awk '{print $2}' | xargs -r kill -9 || true
 }
 
 gql_query() {
@@ -239,9 +286,9 @@ cat_logs() {
 }
 
 reset_log_files() {
-    for file in "$@"; do
-        rm "$file" &> /dev/null || true && touch "$file"
-    done
+  for file in "$@"; do
+    rm "$file" &> /dev/null || true && touch "$file"
+  done
 }
 
 getEmailCode() {
@@ -286,23 +333,6 @@ create_customer() {
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
   [[ "$customer_id" != "null" ]] || exit 1
   echo $customer_id
-}
-
-add() {
-  sum=0
-  for num in "$@"; do
-    sum=$(echo "scale=2; $sum + $num" | bc)
-  done
-  echo $sum
-}
-
-sub() {
-  diff=$1
-  shift
-  for num in "$@"; do
-    diff=$(echo "scale=2; $diff - $num" | bc)
-  done
-  echo $diff
 }
 
 assert_balance_sheet_balanced() {
@@ -367,4 +397,24 @@ net_usd_revenue() {
 
 from_utc() {
   date -u -d @0 +"%Y-%m-%dT%H:%M:%S.%3NZ"
+}
+
+naive_now() {
+  date +"%Y-%m-%d"
+}
+
+wait_for_checking_account() {
+  customer_id=$1
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{ id: $customerId }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  echo "checking | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
+  [[ "$deposit_account_id" != "null" ]] || exit 1
+
 }

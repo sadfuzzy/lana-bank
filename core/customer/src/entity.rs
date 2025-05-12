@@ -42,6 +42,10 @@ pub enum CustomerEvent {
         telegram_id: String,
         audit_info: AuditInfo,
     },
+    EmailUpdated {
+        email: String,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -58,14 +62,14 @@ pub struct Customer {
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    pub(super) events: EntityEvents<CustomerEvent>,
+    events: EntityEvents<CustomerEvent>,
 }
 
 impl core::fmt::Display for Customer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "User: {}, email: {}, customer_type: {}",
+            "Customer: {}, email: {}, customer_type: {}",
             self.id, self.email, self.customer_type
         )
     }
@@ -172,6 +176,20 @@ impl Customer {
         self.telegram_id = new_telegram_id;
         Idempotent::Executed(())
     }
+
+    pub fn update_email(&mut self, new_email: String, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
+            => CustomerEvent::EmailUpdated { .. }
+        );
+        self.events.push(CustomerEvent::EmailUpdated {
+            email: new_email.clone(),
+            audit_info,
+        });
+        self.email = new_email;
+        Idempotent::Executed(())
+    }
 }
 
 impl TryFromEvents<CustomerEvent> for Customer {
@@ -213,6 +231,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
                     builder = builder.telegram_id(telegram_id.clone());
+                }
+                CustomerEvent::EmailUpdated { email, .. } => {
+                    builder = builder.email(email.clone());
                 }
             }
         }

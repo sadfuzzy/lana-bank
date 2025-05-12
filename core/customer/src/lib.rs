@@ -15,8 +15,6 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
-
 pub use entity::Customer;
 use entity::*;
 use error::*;
@@ -29,7 +27,7 @@ use publisher::*;
 pub struct Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
     outbox: Outbox<E>,
@@ -39,7 +37,7 @@ where
 impl<Perms, E> Clone for Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -53,11 +51,9 @@ where
 impl<Perms, E> Customers<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<GovernanceEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         let publisher = CustomerPublisher::new(outbox);
@@ -230,6 +226,7 @@ where
             .await
     }
 
+    #[instrument(name = "customer.start_kyc", skip(self, db), err)]
     pub async fn start_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -255,6 +252,7 @@ where
         Ok(customer)
     }
 
+    #[instrument(name = "customer.approve_kyc", skip(self, db), err)]
     pub async fn approve_kyc(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -274,6 +272,8 @@ where
             .await?;
 
         if customer
+            // TODO: this is wrong, we should pass the SumSub verification level
+            // because we also have KYB approval
             .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
             .did_execute()
         {
@@ -315,8 +315,8 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "customer.update", skip(self), err)]
-    pub async fn update(
+    #[instrument(name = "customer.update_telegram_id", skip(self), err)]
+    pub async fn update_telegram_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
@@ -337,6 +337,31 @@ where
             .update_telegram_id(new_telegram_id, audit_info)
             .did_execute()
         {
+            self.repo.update(&mut customer).await?;
+        }
+
+        Ok(customer)
+    }
+
+    #[instrument(name = "customer.update_email", skip(self), err)]
+    pub async fn update_email(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        new_email: String,
+    ) -> Result<Customer, CustomerError> {
+        let customer_id = customer_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_UPDATE,
+            )
+            .await?;
+
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+        if customer.update_email(new_email, audit_info).did_execute() {
             self.repo.update(&mut customer).await?;
         }
 

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{LedgerEntryId, LedgerTransactionId as LedgerTxId};
+use crate::primitives::{CalaEntryId, CalaTransactionId as CalaTxId};
 
 pub enum DepositAccountHistoryEntry {
     Deposit(DepositEntry),
@@ -13,40 +13,40 @@ pub enum DepositAccountHistoryEntry {
     Ignored,
 }
 pub struct DepositEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct WithdrawalEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct DisbursalEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct PaymentEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 pub struct UnknownEntry {
-    pub tx_id: LedgerTxId,
-    pub entry_id: LedgerEntryId,
+    pub tx_id: CalaTxId,
+    pub entry_id: CalaEntryId,
     pub recorded_at: DateTime<Utc>,
 }
 
 const RECORD_DEPOSIT: &str = "RECORD_DEPOSIT_CR";
 const INITIATE_WITHDRAW: &str = "INITIATE_WITHDRAW_SETTLED_DR";
 const CANCEL_WITHDRAW: &str = "CANCEL_WITHDRAW_SETTLED_CR";
-const SETTLE_DISBURSAL: &str = "SETTLE_DISBURSAL_SETTLED_CR";
-const RECORD_PAYMENT: &str = "RECORD_PAYMENT_DR";
+const CONFIRM_DISBURSAL: &str = "CONFIRM_DISBURSAL_SETTLED_CR";
+const RECORD_PAYMENT_ALLOCATION: &str = "RECORD_PAYMENT_ALLOCATION_DR";
 
 const IGNORE_INITIATE_WITHDRAW_PENDING: &str = "INITIATE_WITHDRAW_PENDING_CR";
 const IGNORE_CONFIRM_WITHDRAWAL_PENDING: &str = "CONFIRM_WITHDRAW_PENDING_DR";
@@ -70,12 +70,12 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            SETTLE_DISBURSAL => DepositAccountHistoryEntry::Disbursal(DisbursalEntry {
+            CONFIRM_DISBURSAL => DepositAccountHistoryEntry::Disbursal(DisbursalEntry {
                 tx_id: entry.values().transaction_id,
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            RECORD_PAYMENT => DepositAccountHistoryEntry::Payment(PaymentEntry {
+            RECORD_PAYMENT_ALLOCATION => DepositAccountHistoryEntry::Payment(PaymentEntry {
                 tx_id: entry.values().transaction_id,
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
@@ -96,7 +96,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DepositAccountHistoryCursor {
-    pub entry_id: LedgerEntryId,
+    pub entry_id: CalaEntryId,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 

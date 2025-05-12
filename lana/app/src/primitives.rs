@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
-pub use chart_of_accounts::{Chart, ChartId};
+pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
-    CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalIdx,
-    DisbursalStatus, PaymentId,
+    CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
+    PaymentId,
 };
 pub use core_customer::CustomerId;
 pub use core_money::*;
@@ -20,13 +20,13 @@ pub use rbac_types::{LanaRole, Role, Subject};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
 #[sqlx(transparent)]
-pub struct InterestAccrualIdx(i32);
-impl fmt::Display for InterestAccrualIdx {
+pub struct InterestAccrualCycleIdx(i32);
+impl fmt::Display for InterestAccrualCycleIdx {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
-impl InterestAccrualIdx {
+impl InterestAccrualCycleIdx {
     pub const FIRST: Self = Self(1);
     pub const fn next(&self) -> Self {
         Self(self.0 + 1)
@@ -48,9 +48,9 @@ pub enum LoanStatus {
 }
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, Currency,
-    DebitOrCredit as LedgerDebitOrCredit, EntryId as LedgerEntryId, JournalId as LedgerJournalId,
-    TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
+    DebitOrCredit as CalaDebitOrCredit, EntryId as CalaEntryId, JournalId as CalaJournalId,
+    TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]

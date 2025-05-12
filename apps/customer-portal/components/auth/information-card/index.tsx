@@ -1,25 +1,20 @@
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@lana/web/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
+
+import { LanaBankIcon } from "@/components/icons"
 
 const InformationCard = () => {
   return (
     <Card className="md:w-3/6 md:ml-8" variant="transparent">
-      <CardHeader className="pt-2 pb-4">
-        <CardTitle className="text-2xl">
-          <div>Bitcoin backed loans. Based in Bitcoin Country.</div>
+      <CardHeader>
+        <LanaBankIcon className="w-20 h-10" />
+        <CardTitle className="text-2xl pt-0">
+          <div>Simple, secure Bitcoin-collateralized loans</div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <p>
-          lana is offers loan products for bitcoin holders. Post Bitcoin as collateral and
-          withdraw Dollars or USDT.
-        </p>
+        Get access to dollars without selling your Bitcoin using Bitcoin-backed loans from
+        Lana Bank.
       </CardContent>
-      <CardFooter>
-        <ul className="list-disc list-inside">
-          <li>Fixed or variable rate loans </li>
-          <li>High-touch customer service</li>
-        </ul>
-      </CardFooter>
     </Card>
   )
 }

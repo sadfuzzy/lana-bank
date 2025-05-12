@@ -1,4 +1,4 @@
-# Docker and tilt
+# Docker, Podman and Tilt
 dev-up:
 	cd dev && tilt up
 
@@ -9,28 +9,18 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	docker compose down -t 1
+	./bin/clean-deps.sh
 
 start-deps:
-	docker compose up --wait -d integration-deps
+	./bin/docker-compose-up.sh integration-deps
 
 # Rust backend
 setup-db:
 	cd lana/app && cargo sqlx migrate run
 
 sqlx-prepare:
-	cd lib/job && cargo sqlx prepare
-	cd lib/audit && cargo sqlx prepare
-	cd lib/outbox && cargo sqlx prepare
-	cd core/governance && cargo sqlx prepare
-	cd core/customer && cargo sqlx prepare
-	cd core/user && cargo sqlx prepare
-	cd core/deposit && cargo sqlx prepare
-	cd core/credit && cargo sqlx prepare
-	cd core/chart-of-accounts && cargo sqlx prepare
-	cd lana/app && cargo sqlx prepare
-	cd lana/dashboard && cargo sqlx prepare
-
+	cargo sqlx prepare --workspace
+	
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
@@ -39,7 +29,7 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
-check-code: sdl
+check-code: sdl-rust
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo fmt --check --all
@@ -59,13 +49,18 @@ build-for-tests:
 e2e: clean-deps start-deps build-for-tests
 	bats --setup-suite-file bats/ci-setup-suite.bash -t bats
 
-sdl:
+sdl-rust:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+
+sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
+	cd apps/customer-portal && pnpm install && pnpm codegen
+
+full-sdl: sdl-rust sdl-js
 
 # Frontend Apps
-check-code-apps: check-code-apps-admin-panel check-code-apps-customer-portal
+check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
@@ -82,8 +77,8 @@ check-code-apps-customer-portal:
 build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
-test-cypress-in-ci-through-browserstack:
-	cd apps/admin-panel && pnpm cypress:run browserstack
+test-cypress-in-ci-locally:
+	cd apps/admin-panel && pnpm cypress:run headless
 
 # Meltano
 pg2bq-run:

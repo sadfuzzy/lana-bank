@@ -23,12 +23,12 @@ async function CollateralCard({ data }: { data: NonNullable<CreditFacility> }) {
   const MarginCallPrice = calculatePrice({
     cvlPercentage: data.creditFacilityTerms.marginCallCvl,
     basisAmountInCents,
-    collateralInSatoshis: data.collateral,
+    collateralInSatoshis: data.balance.collateral.btcBalance,
   })
   const LiquidationCallPrice = calculatePrice({
     cvlPercentage: data.creditFacilityTerms.liquidationCvl,
     basisAmountInCents,
-    collateralInSatoshis: data.collateral,
+    collateralInSatoshis: data.balance.collateral.btcBalance,
   })
 
   const collateralData = [

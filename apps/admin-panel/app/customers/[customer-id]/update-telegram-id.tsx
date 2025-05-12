@@ -17,11 +17,11 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCustomerUpdateMutation } from "@/lib/graphql/generated"
+import { useCustomerTelegramIdUpdateMutation } from "@/lib/graphql/generated"
 
 gql`
-  mutation CustomerUpdate($input: CustomerUpdateInput!) {
-    customerUpdate(input: $input) {
+  mutation CustomerTelegramIdUpdate($input: CustomerTelegramIdUpdateInput!) {
+    customerTelegramIdUpdate(input: $input) {
       customer {
         id
         telegramId
@@ -44,7 +44,7 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
   const t = useTranslations("Customers.CustomerDetails.updateTelegram")
 
   const [updateTelegramId, { loading, error: mutationError, reset }] =
-    useCustomerUpdateMutation()
+    useCustomerTelegramIdUpdateMutation()
   const [newTelegramId, setNewTelegramId] = useState<string>("")
   const [validationError, setValidationError] = useState<string | null>(null)
 
@@ -67,6 +67,7 @@ export const UpdateTelegramIdDialog: React.FC<UpdateTelegramIdDialogProps> = ({
         },
       })
       toast.success(t("messages.updateSuccess"))
+      resetStates()
       setOpenUpdateTelegramIdDialog(false)
     } catch (error) {
       console.error(error)

@@ -54,8 +54,8 @@ wait_for_total_disbursed() {
         facility: $facility,
         terms: {
           annualRate: "12",
-          accrualInterval: "END_OF_MONTH",
-          incurrenceInterval: "END_OF_DAY",
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",
@@ -78,10 +78,12 @@ wait_for_total_disbursed() {
   variables=$(
     jq -n \
       --arg credit_facility_id "$credit_facility_id" \
+      --arg effective "$(naive_now)" \
     '{
       input: {
         creditFacilityId: $credit_facility_id,
         collateral: 50000000,
+        effective: $effective,
       }
     }'
 

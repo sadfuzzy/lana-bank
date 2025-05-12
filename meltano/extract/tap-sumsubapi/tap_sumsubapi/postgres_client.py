@@ -34,7 +34,7 @@ class PostgresClient:
                 SELECT customer_id, recorded_at
                 FROM sumsub_callbacks
                 WHERE recorded_at > %s
-                    AND content->>'type' IN ("applicantReviewed", "applicantPersonalInfoChanged")
+                    AND content->>'type' IN ('applicantReviewed', 'applicantPersonalInfoChanged')
             """
             cursor.execute(query, (starting_timestamp,))
             yield from cursor

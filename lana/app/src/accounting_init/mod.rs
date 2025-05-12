@@ -4,8 +4,7 @@ mod seed;
 pub mod error;
 
 use crate::{
-    balance_sheet::BalanceSheets, cash_flow::CashFlowStatements,
-    chart_of_accounts::ChartOfAccounts, primitives::LedgerJournalId,
+    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
     profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
 };
 
@@ -14,7 +13,7 @@ use error::*;
 
 #[derive(Clone)]
 pub struct JournalInit {
-    pub journal_id: LedgerJournalId,
+    pub journal_id: CalaJournalId,
 }
 
 impl JournalInit {
@@ -31,15 +30,8 @@ impl StatementsInit {
         trial_balances: &TrialBalances,
         pl_statements: &ProfitAndLossStatements,
         balance_sheets: &BalanceSheets,
-        cash_flow_statements: &CashFlowStatements,
     ) -> Result<(), AccountingInitError> {
-        seed::statements::init(
-            trial_balances,
-            pl_statements,
-            balance_sheets,
-            cash_flow_statements,
-        )
-        .await?;
+        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
         Ok(())
     }
 }

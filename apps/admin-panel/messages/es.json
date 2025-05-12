@@ -20,6 +20,14 @@
     "submit": "Enviar",
     "set": "Establecer"
   },
+  "interestInterval": {
+    "endOfDay": "Fin de día",
+    "endOfMonth": "Fin de mes"
+  },
+  "period": {
+    "days": "Día",
+    "months": "Mes"
+  },
   "Sidebar": {
     "labels": {
       "loans": "Préstamos",
@@ -43,13 +51,14 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Plan de Cuentas",
+      "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
-      "cashFlow": "Flujo de Caja",
       "profitAndLoss": "Pérdidas y Ganancias",
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
-      "modules": "Módulos"
+      "modules": "Módulos",
+      "transactionTemplates": "Plantillas de transacciones"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -220,6 +229,29 @@
           "updating": "Actualizando..."
         }
       },
+      "updateEmail": {
+        "title": "Actualizar correo electrónico",
+        "description": "Actualizar la dirección de correo electrónico para este cliente",
+        "labels": {
+          "newEmail": "Nueva dirección de correo electrónico"
+        },
+        "placeholders": {
+          "newEmail": "Por favor, introduce la nueva dirección de correo electrónico"
+        },
+        "errors": {
+          "emptyEmail": "La dirección de correo electrónico no puede estar vacía",
+          "invalidEmail": "Por favor, introduce una dirección de correo electrónico válida",
+          "updateFailed": "Error al actualizar el correo electrónico: {error}",
+          "unexpected": "Ocurrió un error inesperado"
+        },
+        "messages": {
+          "updateSuccess": "Correo electrónico actualizado correctamente"
+        },
+        "actions": {
+          "update": "Actualizar",
+          "updating": "Actualizando..."
+        }
+      },
       "transactions": {
         "title": "Transacciones",
         "description": "Transacciones para este Cliente",
@@ -300,6 +332,12 @@
       "closed": "Cerrado",
       "matured": "Vencido"
     },
+    "collateralizationState": {
+      "fullyCollateralized": "Totalmente garantizado",
+      "noCollateral": "Sin garantía",
+      "underLiquidationThreshold": "Por debajo del umbral de liquidación",
+      "underMarginCallThreshold": "Por debajo del umbral de llamada de margen"
+    },
     "errors": {
       "fetchError": "Ocurrió un error al obtener los datos.",
       "general": "Ocurrió un error"
@@ -324,6 +362,7 @@
         },
         "status": {
           "upcoming": "PRÓXIMO",
+          "not_yet_due": "AÚN NO VENCIDO",
           "due": "POR PAGAR",
           "overdue": "ATRASADO",
           "paid": "PAGADO"
@@ -341,17 +380,25 @@
           "emptyTable": "No se encontraron desembolsos"
         }
       },
-      "Transactions": {
-        "title": "Transacciones",
-        "description": "Transacciones de Línea de Crédito",
+      "History": {
+        "title": "Historial",
+        "description": "Historial de facilidad de crédito",
         "columns": {
-          "transactionType": "Tipo de Transacción",
+          "entryType": "Tipo de entrada",
           "recordedAt": "Registrado El",
           "amount": "Monto"
         },
+        "entryTypes": {
+          "collateralUpdated": "Garantía actualizada",
+          "collateralizationUpdated": "Colateralización actualizada",
+          "origination": "Originación",
+          "incrementalPayment": "Pago",
+          "disbursalExecuted": "Desembolso",
+          "interestAccrued": "Interés acumulado"
+        },
         "messages": {
-          "unknownType": "Tipo de Transacción Desconocido",
-          "emptyTable": "No se encontraron transacciones"
+          "unknownType": "Tipo de entrada desconocido",
+          "emptyTable": "No se encontró historial"
         }
       },
       "TermsDialog": {
@@ -359,12 +406,12 @@
         "details": {
           "duration": "Duración",
           "interestRate": "Interés (APR)",
-          "accrualInterval": "Intervalo de Acumulación",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
           "targetCvl": "CVL objetivo/inicial %",
           "marginCallCvl": "CVL de llamada de margen %",
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
-          "incurrenceInterval": "Intervalo de Incurrencia",
+          "accrualInterval": "Intervalo de devengo",
           "structuringFeeRate": "Tasa de Comisión de Estructuración"
         }
       },
@@ -415,7 +462,7 @@
       },
       "Layout": {
         "tabs": {
-          "transactions": "Transacciones",
+          "history": "Historial",
           "disbursals": "Desembolsos",
           "repaymentPlan": "Plan de Pago"
         },
@@ -439,9 +486,9 @@
             "initialCvl": "CVL Inicial (%)",
             "duration": "Duración",
             "marginCallCvl": "CVL de Llamada de Margen (%)",
-            "accrualInterval": "Intervalo de Acumulación",
+            "accrualCycleInterval": "Intervalo del ciclo de devengo",
             "liquidationCvl": "CVL de Liquidación (%)",
-            "incurrenceInterval": "Intervalo de Incurrencia",
+            "accrualInterval": "Intervalo de devengo",
             "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
           },
           "placeholders": {
@@ -451,9 +498,9 @@
             "initialCvl": "Ingrese el CVL inicial",
             "duration": "Duración",
             "marginCallCvl": "Ingrese el CVL de llamada de margen",
-            "accrualInterval": "Seleccione el intervalo de acumulación",
+            "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
             "liquidationCvl": "Ingrese el CVL de liquidación",
-            "incurrenceInterval": "Seleccione el intervalo de incurrencia",
+            "accrualInterval": "Seleccionar intervalo de devengo",
             "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
             "selectPeriod": "Seleccione período"
           },
@@ -622,8 +669,8 @@
           "name": "Nombre",
           "createdAt": "Creado El",
           "duration": "Duración",
-          "accrualInterval": "Intervalo de Acumulación",
-          "incurrenceInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "annualRate": "Tasa Anual",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
@@ -640,8 +687,8 @@
         "fields": {
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
-          "accrualInterval": "Intervalo de Acumulación",
-          "incurrenceInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
@@ -651,8 +698,8 @@
           "annualRate": "Ingrese la tasa anual",
           "durationUnits": "Duración",
           "durationPeriod": "Seleccione período",
-          "accrualInterval": "Seleccione intervalo de acumulación",
-          "incurrenceInterval": "Seleccione intervalo de incurrencia",
+          "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
+          "accrualInterval": "Seleccionar intervalo de devengo",
           "initialCvl": "Ingrese el CVL inicial",
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
@@ -676,8 +723,8 @@
           "name": "Nombre de la Plantilla",
           "annualRate": "Tasa de Interés (APR)",
           "duration": "Duración",
-          "accrualInterval": "Intervalo de Acumulación",
-          "incurrenceInterval": "Intervalo de Incurrencia",
+          "accrualCycleInterval": "Intervalo del ciclo de devengo",
+          "accrualInterval": "Intervalo de devengo",
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
@@ -692,8 +739,8 @@
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración",
-          "accrualInterval": "Seleccione intervalo de acumulación",
-          "incurrenceInterval": "Seleccione intervalo de incurrencia"
+          "accrualCycleInterval": "Seleccionar intervalo del ciclo de devengo",
+          "accrualInterval": "Seleccionar intervalo de devengo"
         },
         "buttons": {
           "submit": "Crear Plantilla de Términos"
@@ -1132,6 +1179,7 @@
     "description": "Registro de auditoría de todo el sistema que muestra acciones de usuarios y del sistema",
     "table": {
       "headers": {
+        "auditEntryId": "ID de entrada",
         "subject": "Sujeto",
         "object": "Objeto",
         "action": "Acción",
@@ -1152,7 +1200,7 @@
       "genericError": "Ocurrió un error al subir tu archivo",
       "successDescription": "Plan de cuentas importado con éxito",
       "errorTitle": "Carga fallida",
-      "uploading": "Subiendo tu plan de cuentas...",
+      "uploading": "Subiendo y procesando tu plan de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
     },
@@ -1167,21 +1215,24 @@
     "columns": {
       "assets": "Total de Activos",
       "liabilitiesAndEquity": "Total de Pasivos y Patrimonio"
+    },
+    "categories": {
+      "Assets": "Activos",
+      "Liabilities": "Pasivos",
+      "Equity": "Patrimonio"
     }
-  },
-  "CashFlowStatement": {
-    "title": "Estado de Flujo de Efectivo",
-    "description": "Un estado financiero que muestra cómo los cambios en las cuentas del balance y los ingresos afectan el efectivo y equivalentes de efectivo.",
-    "noData": "Sin datos",
-    "dateRange": "Rango de Fechas",
-    "total": "Total"
   },
   "ProfitAndLoss": {
     "title": "Estado de Resultados",
     "description": "Un informe financiero que muestra ingresos, gastos y las ganancias o pérdidas resultantes durante un período específico.",
     "noData": "Sin datos",
     "dateRange": "Rango de Fechas",
-    "net": "NETO"
+    "net": "NETO",
+    "categories": {
+      "Revenue": "Ingresos",
+      "CostofRevenue": "Costo de ingresos",
+      "Expenses": "Gastos"
+    }
   },
   "Reports": {
     "title": "Gestión de Informes",
@@ -1211,9 +1262,9 @@
   "TrialBalance": {
     "title": "Balance de Comprobación",
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
-    "noData": "Sin datos",
+    "noAccountsPresent": "No hay cuentas presentes",
     "dateRange": "Rango de Fechas",
-    "totals": "Totales",
+    "totals": "Totales (de todas las cuentas)",
     "tabs": {
       "regular": "Regular",
       "offBalanceSheet": "Fuera del Balance"
@@ -1221,9 +1272,11 @@
     "table": {
       "headers": {
         "accountName": "Nombre de Cuenta",
-        "debit": "Débito",
-        "credit": "Crédito",
-        "net": "Neto"
+        "accountCode": "Código de cuenta",
+        "beginningBalance": "Saldo inicial",
+        "debits": "Débitos",
+        "credits": "Créditos",
+        "endingBalance": "Saldo final"
       }
     }
   },
@@ -1266,7 +1319,8 @@
       "payment": "Pago",
       "user": "Usuario",
       "termsTemplate": "Plantilla de Términos",
-      "committee": "Comité"
+      "committee": "Comité",
+      "executeManualTransaction": "Ejecutar transacción manual"
     }
   },
   "DataTable": {
@@ -1281,13 +1335,20 @@
   },
   "Modules": {
     "notYetConfigured": "Aún no configurado",
+    "autoPopulate": "Autocompletar",
     "deposit": {
       "title": "Depósito",
       "description": "Configuración de depósito",
       "setTitle": "Establecer configuración de depósito",
       "chartOfAccountsId": "ID del plan de cuentas",
-      "chartOfAccountsDepositAccountsParentCode": "Código padre de cuentas de depósito",
-      "chartOfAccountsOmnibusParentCode": "Código padre ómnibus"
+      "chartOfAccountsOmnibusParentCode": "Código padre ómnibus",
+      "chartOfAccountsIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito individual",
+      "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas de depósito de entidades gubernamentales",
+      "chartOfAccountPrivateCompanyDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de empresas privadas",
+      "chartOfAccountBankDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos bancarios",
+      "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de instituciones financieras",
+      "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Código padre de cuentas por cobrar de depósitos de personas no domiciliadas",
+      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Código matriz para cuentas de depósito por cobrar de empresas no domiciliadas"
     },
     "credit": {
       "title": "Crédito",
@@ -1298,27 +1359,207 @@
       "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
       "chartOfAccountFacilityParentCode": "Código padre de facilidad",
       "chartOfAccountCollateralParentCode": "Código padre de garantía",
-      "chartOfAccountDisbursedReceivableParentCode": "Código padre de cuentas por cobrar desembolsadas",
-      "chartOfAccountInterestReceivableParentCode": "Código padre de intereses por cobrar",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
-      "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones"
+      "chartOfAccountFeeIncomeParentCode": "Código padre de ingresos por comisiones",
+      "chartOfAccountShortTermIndividualInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de individuos",
+      "chartOfAccountShortTermGovernmentEntityInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de entidades gubernamentales",
+      "chartOfAccountShortTermPrivateCompanyInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de empresas privadas",
+      "chartOfAccountShortTermBankInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de bancos",
+      "chartOfAccountShortTermFinancialInstitutionInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de instituciones financieras",
+      "chartOfAccountShortTermForeignAgencyOrSubsidiaryInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de agencias extranjeras o subsidiarias",
+      "chartOfAccountShortTermNonDomiciledCompanyInterestReceivableParentCode": "Código padre de intereses por cobrar a corto plazo de empresas no domiciliadas",
+      "chartOfAccountLongTermIndividualInterestReceivableParentCode": "Código padre de intereses por cobrar a largo plazo de individuos",
+      "chartOfAccountLongTermGovernmentEntityInterestReceivableParentCode": "Código padre de intereses por cobrar a largo plazo de entidades gubernamentales",
+      "chartOfAccountLongTermPrivateCompanyInterestReceivableParentCode": "Código padre de intereses por cobrar a largo plazo de empresas privadas",
+      "chartOfAccountLongTermBankInterestReceivableParentCode": "Código padre de intereses por cobrar a largo plazo de bancos",
+      "chartOfAccountLongTermFinancialInstitutionInterestReceivableParentCode": "Código padre de interés por cobrar a largo plazo de institución financiera",
+      "chartOfAccountLongTermForeignAgencyOrSubsidiaryInterestReceivableParentCode": "Código padre de interés por cobrar a largo plazo de agencia extranjera o subsidiaria",
+      "chartOfAccountLongTermNonDomiciledCompanyInterestReceivableParentCode": "Código padre de interés por cobrar a largo plazo de empresa no domiciliada",
+      "chartOfAccountShortTermIndividualDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a individuo",
+      "chartOfAccountShortTermGovernmentEntityDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a entidad gubernamental",
+      "chartOfAccountShortTermPrivateCompanyDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a empresa privada",
+      "chartOfAccountShortTermBankDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a banco",
+      "chartOfAccountShortTermFinancialInstitutionDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a institución financiera",
+      "chartOfAccountShortTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a agencia extranjera o subsidiaria",
+      "chartOfAccountShortTermNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de desembolso a corto plazo por cobrar a empresa no domiciliada",
+      "chartOfAccountLongTermIndividualDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a individuo",
+      "chartOfAccountLongTermGovernmentEntityDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a entidad gubernamental",
+      "chartOfAccountLongTermPrivateCompanyDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a empresa privada",
+      "chartOfAccountLongTermBankDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a banco",
+      "chartOfAccountLongTermFinancialInstitutionDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a institución financiera",
+      "chartOfAccountLongTermForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a agencia extranjera o subsidiaria",
+      "chartOfAccountLongTermNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de desembolso a largo plazo por cobrar a empresa no domiciliada",
+      "chartOfAccountOverdueIndividualDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a individuo",
+      "chartOfAccountOverdueGovernmentEntityDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a entidad gubernamental",
+      "chartOfAccountOverduePrivateCompanyDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a empresa privada",
+      "chartOfAccountOverdueBankDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a banco",
+      "chartOfAccountOverdueFinancialInstitutionDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a institución financiera",
+      "chartOfAccountOverdueForeignAgencyOrSubsidiaryDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a agencia extranjera o subsidiaria",
+      "chartOfAccountOverdueNonDomiciledCompanyDisbursedReceivableParentCode": "Código padre de desembolso vencido por cobrar a empresa no domiciliada"
+    },
+    "balanceSheet": {
+      "title": "Balance general",
+      "description": "Configuración del balance general",
+      "setTitle": "Establecer configuración del balance general",
+      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsAssetsCode": "Código de activos",
+      "chartOfAccountsLiabilitiesCode": "Código de pasivos",
+      "chartOfAccountsEquityCode": "Código de patrimonio",
+      "chartOfAccountsRevenueCode": "Código de ingresos",
+      "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
+      "chartOfAccountsExpensesCode": "Código de gastos"
+    },
+    "profitAndLoss": {
+      "title": "Pérdidas y ganancias",
+      "description": "Configuración del estado de pérdidas y ganancias",
+      "setTitle": "Establecer configuración de pérdidas y ganancias",
+      "chartOfAccountsId": "ID del plan contable",
+      "chartOfAccountsRevenueCode": "Código de ingresos",
+      "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
+      "chartOfAccountsExpensesCode": "Código de gastos"
     }
   },
   "ChartOfAccountsLedgerAccount": {
     "title": "Detalles de la cuenta contable",
-    "description": "Detalles de la cuenta contable por código de cuenta {code}",
+    "entriesTitle": "Asientos contables en esta cuenta",
+    "description": "Detalles de la cuenta contable",
+    "descriptionWithCode": "Detalles de la cuenta contable por código de cuenta {code}",
     "details": {
       "code": "Código de cuenta",
       "name": "Nombre de la cuenta",
       "usdBalance": "Saldo en USD",
-      "btcBalance": "Saldo en BTC"
+      "btcBalance": "Saldo en BTC",
+      "ancestors": "{n, plural, =0 {Sin ancestros} =1 {# Ancestro} other {# Ancestros}}",
+      "children": "{n, plural, =0 {Sin hijos} =1 {# Hijo} other {# Hijos}}"
     },
     "table": {
+      "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {
         "recordedAt": "Registrado el",
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber"
+      }
+    },
+    "exportCsv": {
+      "title": "Exportar datos de cuenta",
+      "description": "Generar y descargar exportaciones CSV de esta cuenta contable",
+      "existingExports": "Exportaciones existentes",
+      "createNew": "Crear nueva exportación",
+      "selectExport": "Seleccionar una exportación",
+      "noCsvs": "No hay exportaciones disponibles para esta cuenta",
+      "createDescription": "Generar una nueva exportación CSV de los datos de esta cuenta contable. Esto puede tardar un momento en completarse.",
+      "processing": "Procesando, por favor espere...",
+      "csvCreating": "La exportación CSV se está generando",
+      "csvReady": "La exportación CSV está lista para descargar",
+      "csvFailed": "La generación de la exportación CSV ha fallado",
+      "createNewDescription": "Genera una nueva exportación CSV que contiene todos los datos desde la creación de la cuenta hasta el momento actual. Cuando creas esta exportación, capturará una instantánea de tus datos tal como existen ahora mismo.",
+      "status": {
+        "pending": "Procesando",
+        "completed": "Listo",
+        "failed": "Fallido"
+      },
+      "buttons": {
+        "export": "Exportar CSV",
+        "generate": "Generar nuevo CSV",
+        "generating": "Generando...",
+        "getLink": "Obtener enlace de descarga",
+        "download": "Descargar"
+      },
+      "errors": {
+        "loadFailed": "Error al cargar exportaciones",
+        "createFailed": "Error al crear exportación",
+        "downloadFailed": "Error al generar enlace de descarga",
+        "notReady": "Esta exportación aún no está lista para descargar"
+      }
+    }
+  },
+  "Journal": {
+    "title": "Diario",
+    "description": "Un registro completo de transacciones financieras en el diario",
+    "noTableData": "No hay entradas presentes en el diario",
+    "table": {
+      "createdAt": "Fecha de creación",
+      "entryType": "Tipo de entrada",
+      "name": "Nombre de cuenta",
+      "transaction": "Transacción",
+      "direction": "Dirección",
+      "amount": "Monto",
+      "description": "Descripción"
+    },
+    "debitOrCredit": {
+      "debit": "Debe",
+      "credit": "Haber"
+    }
+  },
+  "LedgerTransaction": {
+    "title": "Transacción del libro mayor",
+    "description": "Un registro de una transacción financiera en el libro mayor",
+    "noEntries": "Sin asientos",
+    "details": {
+      "description": "Descripción",
+      "createdAt": "Creado el"
+    },
+    "entriesTitle": "Asientos contables",
+    "entriesDescription": "Asientos asociados con esta transacción",
+    "table": {
+      "entryType": "Tipo de asiento",
+      "debit": "Débito",
+      "credit": "Crédito",
+      "amount": "Monto",
+      "ledgerAccount": "Cuenta del libro mayor"
+    }
+  },
+  "ManualTransactions": {
+    "title": "Ejecutar transacción manual",
+    "description": "Crea una transacción manual proporcionando los detalles requeridos",
+    "fields": {
+      "description": "Descripción de la transacción",
+      "reference": "Referencia de la transacción",
+      "entries": "Asientos contables para esta transacción",
+      "usd": "USD",
+      "btc": "BTC",
+      "debit": "Débito",
+      "credit": "Crédito"
+    },
+    "placeholders": {
+      "description": "Ingrese la descripción de la transacción",
+      "reference": "Ingrese la referencia de la transacción"
+    },
+    "noEntries": "No hay asientos contables para esta transacción. Por favor, añada uno.",
+    "addEntryBtn": "Añadir",
+    "execute": "Ejecutar",
+    "placeholdersJournalEntry": {
+      "accountRef": "Introduce la referencia de cuenta",
+      "currency": "Seleccione moneda",
+      "amount": "Ingrese el monto",
+      "direction": "Seleccione dirección",
+      "description": "Ingrese descripción"
+    },
+    "table": {
+      "accountRef": "Cuenta",
+      "amount": "Monto",
+      "currency": "Moneda",
+      "direction": "Dirección",
+      "description": "Descripción"
+    },
+    "errored": "Ocurrió un error al ejecutar la transacción",
+    "success": "Transacción ejecutada con éxito"
+  },
+  "TransactionTemplates": {
+    "title": "Plantillas de transacciones",
+    "description": "Plantillas para transacciones",
+    "code": "Código",
+    "noData": "No se encontraron plantillas de transacciones"
+  },
+  "LedgerTransactionsForTemplateCode": {
+    "title": "Transacciones contables para {code}",
+    "description": "Transacciones contables asociadas a este código de plantilla",
+    "table": {
+      "noData": "No se encontraron transacciones contables para este código de plantilla",
+      "headers": {
+        "createdAt": "Creado el",
+        "description": "Descripción"
       }
     }
   }

@@ -2,12 +2,13 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::AllOrOne;
 
-pub use chart_of_accounts::ChartId;
+pub use core_accounting::ChartId;
+pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
-    AccountId as LedgerAccountId, AccountSetId as LedgerAccountSetId, EntryId as LedgerEntryId,
-    JournalId as LedgerJournalId, TransactionId as LedgerTransactionId,
+    AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
+    JournalId as CalaJournalId, TransactionId as CalaTransactionId,
 };
 
 es_entity::entity_id! {
@@ -18,9 +19,9 @@ es_entity::entity_id! {
     DepositId;
 
     DepositAccountHolderId => core_customer::CustomerId,
-    DepositAccountId => LedgerAccountId,
-    DepositId => LedgerTransactionId,
-    WithdrawalId => LedgerTransactionId,
+    DepositAccountId => CalaAccountId,
+    DepositId => CalaTransactionId,
+    WithdrawalId => CalaTransactionId,
     WithdrawalId => ApprovalProcessId
 }
 
@@ -35,8 +36,8 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
 #[derive(Debug, Clone)]
 pub struct LedgerOmnibusAccountIds {
-    pub account_set_id: LedgerAccountSetId,
-    pub account_id: LedgerAccountId,
+    pub account_set_id: CalaAccountSetId,
+    pub account_id: CalaAccountId,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -262,5 +263,28 @@ pub enum ChartOfAccountsIntegrationConfigAction {
 impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
     fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
         CoreDepositAction::ChartOfAccountsIntegrationConfig(action)
+    }
+}
+
+pub enum DepositAccountType {
+    Individual,
+    GovernmentEntity,
+    PrivateCompany,
+    Bank,
+    FinancialInstitution,
+    NonDomiciledCompany,
+}
+
+impl From<CustomerType> for DepositAccountType {
+    fn from(customer_type: CustomerType) -> Self {
+        match customer_type {
+            CustomerType::Individual => DepositAccountType::Individual,
+            CustomerType::GovernmentEntity => DepositAccountType::GovernmentEntity,
+            CustomerType::PrivateCompany => DepositAccountType::PrivateCompany,
+            CustomerType::Bank => DepositAccountType::Bank,
+            CustomerType::FinancialInstitution => DepositAccountType::FinancialInstitution,
+            CustomerType::NonDomiciledCompany => DepositAccountType::NonDomiciledCompany,
+            _ => panic!("Invalid customer type"),
+        }
     }
 }

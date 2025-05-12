@@ -3,33 +3,19 @@ use derive_builder::{Builder, UninitializedFieldError};
 use rust_decimal::{prelude::*, Decimal};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
-use std::fmt;
+
+use crate::{
+    ledger::CreditFacilityBalanceSummary,
+    primitives::{
+        CVLPct, CollateralizationState, DisbursedReceivableAccountCategory, PriceOfOneBTC,
+        Satoshis, UsdCents,
+    },
+};
 
 use super::error::TermsError;
-use crate::primitives::{PriceOfOneBTC, Satoshis, UsdCents};
 
-const NUMBER_OF_DAYS_IN_YEAR: u64 = 366;
-
-#[derive(
-    Debug,
-    Default,
-    Clone,
-    Copy,
-    PartialEq,
-    Serialize,
-    Deserialize,
-    Eq,
-    strum::Display,
-    strum::EnumString,
-)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-pub enum CollateralizationState {
-    FullyCollateralized,
-    UnderMarginCallThreshold,
-    UnderLiquidationThreshold,
-    #[default]
-    NoCollateral,
-}
+const NUMBER_OF_DAYS_IN_YEAR: u64 = 365;
+const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(transparent)]
@@ -83,194 +69,25 @@ impl From<Decimal> for OneTimeFeeRatePct {
         OneTimeFeeRatePct(value)
     }
 }
-
-#[derive(Clone)]
-pub struct CVLData {
-    amount: UsdCents,
-    collateral: Satoshis,
-}
-
-impl CVLData {
-    pub fn new(collateral: Satoshis, amount: UsdCents) -> Self {
-        Self { collateral, amount }
-    }
-
-    pub fn cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let collateral_value = price.sats_to_cents_round_down(self.collateral);
-        if collateral_value == UsdCents::ZERO {
-            CVLPct::ZERO
-        } else {
-            CVLPct::from_loan_amounts(collateral_value, self.amount)
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(transparent)]
-pub struct CVLPct(Decimal);
-#[cfg(feature = "graphql")]
-async_graphql::scalar!(CVLPct);
-
-impl fmt::Display for CVLPct {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl std::ops::Add for CVLPct {
-    type Output = Self;
-
-    fn add(self, other: Self) -> Self {
-        CVLPct(self.0 + other.0)
-    }
-}
-
-impl std::ops::Sub for CVLPct {
-    type Output = Self;
-
-    fn sub(self, other: Self) -> Self {
-        CVLPct(self.0 - other.0)
-    }
-}
-
-impl CVLPct {
-    pub const ZERO: Self = Self(dec!(0));
-
-    pub fn new(value: u64) -> Self {
-        Self(Decimal::from(value))
-    }
-
-    pub fn is_zero(&self) -> bool {
-        *self == Self::ZERO
-    }
-
-    pub fn scale(&self, value: UsdCents) -> UsdCents {
-        let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
-        UsdCents::from(
-            cents
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
-    }
-
-    pub fn from_loan_amounts(
-        collateral_value: UsdCents,
-        total_outstanding_amount: UsdCents,
-    ) -> Self {
-        if collateral_value == UsdCents::ZERO || total_outstanding_amount == UsdCents::ZERO {
-            return CVLPct::ZERO;
-        }
-
-        let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
-            .round_dp_with_strategy(2, RoundingStrategy::ToZero)
-            * dec!(100);
-
-        CVLPct::from(ratio)
-    }
-
-    pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
-        other > *self + buffer
-    }
-
-    pub fn collateralization(self, terms: TermValues) -> CollateralizationState {
-        let margin_call_cvl = terms.margin_call_cvl;
-        let liquidation_cvl = terms.liquidation_cvl;
-
-        if self == CVLPct::ZERO {
-            CollateralizationState::NoCollateral
-        } else if self >= margin_call_cvl {
-            CollateralizationState::FullyCollateralized
-        } else if self >= liquidation_cvl {
-            CollateralizationState::UnderMarginCallThreshold
-        } else {
-            CollateralizationState::UnderLiquidationThreshold
-        }
-    }
-
-    pub fn collateralization_update(
-        self,
-        terms: TermValues,
-        last_collateralization_state: CollateralizationState,
-        upgrade_buffer_cvl_pct: Option<CVLPct>,
-        liquidation_upgrade_blocked: bool,
-    ) -> Option<CollateralizationState> {
-        let calculated_collateralization = &self.collateralization(terms);
-
-        match (last_collateralization_state, *calculated_collateralization) {
-            // Redundant same state changes
-            (CollateralizationState::NoCollateral, CollateralizationState::NoCollateral)
-            | (
-                CollateralizationState::FullyCollateralized,
-                CollateralizationState::FullyCollateralized,
-            )
-            | (
-                CollateralizationState::UnderMarginCallThreshold,
-                CollateralizationState::UnderMarginCallThreshold,
-            )
-            | (
-                CollateralizationState::UnderLiquidationThreshold,
-                CollateralizationState::UnderLiquidationThreshold,
-            ) => None,
-
-            // Validated liquidation changes
-            (CollateralizationState::UnderLiquidationThreshold, _) => {
-                if liquidation_upgrade_blocked {
-                    None
-                } else {
-                    Some(*calculated_collateralization)
-                }
-            }
-
-            // Optionally buffered collateral upgraded change
-            (
-                CollateralizationState::UnderMarginCallThreshold,
-                CollateralizationState::FullyCollateralized,
-            ) => match upgrade_buffer_cvl_pct {
-                Some(buffer) => {
-                    if terms
-                        .margin_call_cvl
-                        .is_significantly_lower_than(self, buffer)
-                    {
-                        Some(*calculated_collateralization)
-                    } else {
-                        None
-                    }
-                }
-                _ => Some(*calculated_collateralization),
-            },
-
-            // Valid other collateral changes
-            (CollateralizationState::NoCollateral, _)
-            | (CollateralizationState::FullyCollateralized, _)
-            | (CollateralizationState::UnderMarginCallThreshold, _) => {
-                Some(*calculated_collateralization)
-            }
-        }
-    }
-
-    #[cfg(test)]
-    pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
-        let target_in_usd = self.0 / dec!(100) * outstanding.to_usd();
-        UsdCents::from(
-            (target_in_usd * dec!(100))
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
-    }
-}
-
-impl From<Decimal> for CVLPct {
-    fn from(value: Decimal) -> Self {
-        CVLPct(value)
-    }
-}
-
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum Duration {
     Months(u32),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DurationType {
+    LongTerm,
+    ShortTerm,
+}
+
+impl From<DurationType> for DisbursedReceivableAccountCategory {
+    fn from(duration_type: DurationType) -> Self {
+        match duration_type {
+            DurationType::LongTerm => DisbursedReceivableAccountCategory::LongTerm,
+            DurationType::ShortTerm => DisbursedReceivableAccountCategory::ShortTerm,
+        }
+    }
 }
 
 impl Duration {
@@ -281,9 +98,41 @@ impl Duration {
                 .expect("should return a maturity date"),
         }
     }
+
+    pub fn duration_type(&self) -> DurationType {
+        match self {
+            Duration::Months(months) => {
+                if *months > SHORT_TERM_DURATION_MONTHS_THRESHOLD {
+                    DurationType::LongTerm
+                } else {
+                    DurationType::ShortTerm
+                }
+            }
+        }
+    }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[serde(tag = "type", content = "value", rename_all = "snake_case")]
+pub enum InterestDuration {
+    Days(u64),
+}
+
+impl InterestDuration {
+    pub fn end_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+        match self {
+            Self::Days(days) => start_date
+                .checked_add_days(chrono::Days::new(*days))
+                .expect("should return an end date"),
+        }
+    }
+
+    pub fn is_past_end_date(&self, start_date: DateTime<Utc>) -> bool {
+        crate::time::now() > self.end_date(start_date)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
     pub start: DateTime<Utc>,
@@ -374,9 +223,13 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub duration: Duration,
     #[builder(setter(into))]
-    pub accrual_interval: InterestInterval,
+    pub interest_due_duration: InterestDuration,
+    #[builder(default, setter(into))]
+    pub interest_overdue_duration: Option<InterestDuration>,
     #[builder(setter(into))]
-    pub incurrence_interval: InterestInterval,
+    pub accrual_cycle_interval: InterestInterval,
+    #[builder(setter(into))]
+    pub accrual_interval: InterestInterval,
     #[builder(setter(into))]
     pub one_time_fee_rate: OneTimeFeeRatePct,
     // overdue_penalty_rate: LoanAnnualRate,
@@ -389,6 +242,27 @@ pub struct TermValues {
 }
 
 impl TermValues {
+    pub fn is_disbursal_allowed(
+        &self,
+        balance: CreditFacilityBalanceSummary,
+        amount: UsdCents,
+        price: PriceOfOneBTC,
+    ) -> bool {
+        let cvl = balance
+            .with_added_disbursal(amount)
+            .outstanding_amount_cvl(price);
+        cvl >= self.margin_call_cvl
+    }
+
+    pub fn is_approval_allowed(
+        &self,
+        balance: CreditFacilityBalanceSummary,
+        price: PriceOfOneBTC,
+    ) -> bool {
+        let total = balance.facility_amount_cvl(price);
+        total >= self.margin_call_cvl
+    }
+
     pub fn builder() -> TermValuesBuilder {
         TermValuesBuilder::default()
     }
@@ -400,6 +274,82 @@ impl TermValues {
     ) -> Satoshis {
         let collateral_value = self.initial_cvl.scale(desired_principal);
         price.cents_to_sats_round_up(collateral_value)
+    }
+
+    pub fn collateralization(&self, cvl: CVLPct) -> CollateralizationState {
+        let margin_call_cvl = self.margin_call_cvl;
+        let liquidation_cvl = self.liquidation_cvl;
+
+        if cvl == CVLPct::ZERO {
+            CollateralizationState::NoCollateral
+        } else if cvl >= margin_call_cvl {
+            CollateralizationState::FullyCollateralized
+        } else if cvl >= liquidation_cvl {
+            CollateralizationState::UnderMarginCallThreshold
+        } else {
+            CollateralizationState::UnderLiquidationThreshold
+        }
+    }
+
+    pub fn collateralization_update(
+        &self,
+        current_cvl: CVLPct,
+        last_collateralization_state: CollateralizationState,
+        upgrade_buffer_cvl_pct: Option<CVLPct>,
+        liquidation_upgrade_blocked: bool,
+    ) -> Option<CollateralizationState> {
+        let calculated_collateralization = &self.collateralization(current_cvl);
+
+        match (last_collateralization_state, *calculated_collateralization) {
+            // Redundant same state changes
+            (CollateralizationState::NoCollateral, CollateralizationState::NoCollateral)
+            | (
+                CollateralizationState::FullyCollateralized,
+                CollateralizationState::FullyCollateralized,
+            )
+            | (
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::UnderMarginCallThreshold,
+            )
+            | (
+                CollateralizationState::UnderLiquidationThreshold,
+                CollateralizationState::UnderLiquidationThreshold,
+            ) => None,
+
+            // Validated liquidation changes
+            (CollateralizationState::UnderLiquidationThreshold, _) => {
+                if liquidation_upgrade_blocked {
+                    None
+                } else {
+                    Some(*calculated_collateralization)
+                }
+            }
+
+            // Optionally buffered collateral upgraded change
+            (
+                CollateralizationState::UnderMarginCallThreshold,
+                CollateralizationState::FullyCollateralized,
+            ) => match upgrade_buffer_cvl_pct {
+                Some(buffer) => {
+                    if self
+                        .margin_call_cvl
+                        .is_significantly_lower_than(current_cvl, buffer)
+                    {
+                        Some(*calculated_collateralization)
+                    } else {
+                        None
+                    }
+                }
+                _ => Some(*calculated_collateralization),
+            },
+
+            // Valid other collateral changes
+            (CollateralizationState::NoCollateral, _)
+            | (CollateralizationState::FullyCollateralized, _)
+            | (CollateralizationState::UnderMarginCallThreshold, _) => {
+                Some(*calculated_collateralization)
+            }
+        }
     }
 }
 
@@ -439,76 +389,17 @@ mod test {
 
     use super::*;
 
-    #[test]
-    fn loan_cvl_pct_scale() {
-        let cvl = CVLPct(dec!(140));
-        let value = UsdCents::from(100000);
-        let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1400)).unwrap());
-
-        let cvl = CVLPct(dec!(50));
-        let value = UsdCents::from(333333);
-        let scaled = cvl.scale(value);
-        assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67)).unwrap());
-    }
-
-    #[test]
-    fn current_cvl_from_loan_amounts() {
-        let expected_cvl = CVLPct(dec!(125));
-        let collateral_value = UsdCents::from(125000);
-        let outstanding_amount = UsdCents::from(100000);
-        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(cvl, expected_cvl);
-
-        let expected_cvl = CVLPct(dec!(75));
-        let collateral_value = UsdCents::from(75000);
-        let outstanding_amount = UsdCents::from(100000);
-        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(cvl, expected_cvl);
-    }
-
-    #[test]
-    fn current_cvl_for_zero_amounts() {
-        let expected_cvl = CVLPct::ZERO;
-        let collateral_value = UsdCents::ZERO;
-        let outstanding_amount = UsdCents::from(100000);
-        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(cvl, expected_cvl);
-
-        let expected_cvl = CVLPct::ZERO;
-        let collateral_value = UsdCents::from(75000);
-        let outstanding_amount = UsdCents::ZERO;
-        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert_eq!(cvl, expected_cvl);
-    }
-
-    #[test]
-    fn cvl_is_significantly_higher() {
-        let buffer = CVLPct::new(5);
-
-        let collateral_value = UsdCents::from(125000);
-        let outstanding_amount = UsdCents::from(100000);
-        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        let collateral_value = UsdCents::from(130999);
-        let outstanding_amount = UsdCents::from(100000);
-        let slightly_higher_cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert!(!cvl.is_significantly_lower_than(slightly_higher_cvl, buffer));
-        let collateral_value = UsdCents::from(131000);
-        let outstanding_amount = UsdCents::from(100000);
-        let significantly_higher_cvl =
-            CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
-        assert!(cvl.is_significantly_lower_than(significantly_higher_cvl, buffer));
-    }
     fn terms() -> TermValues {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
-            .incurrence_interval(InterestInterval::EndOfDay)
+            .interest_due_duration(InterestDuration::Days(0))
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-            .liquidation_cvl(CVLPct(dec!(105)))
-            .margin_call_cvl(CVLPct(dec!(125)))
-            .initial_cvl(CVLPct(dec!(140)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
             .build()
             .expect("should build a valid term")
     }
@@ -518,17 +409,17 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-            .liquidation_cvl(CVLPct(dec!(105)))
-            .margin_call_cvl(CVLPct(dec!(150)))
-            .initial_cvl(CVLPct(dec!(140)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(150))
+            .initial_cvl(dec!(140))
             .build();
 
         match result.unwrap_err() {
             TermsError::MarginCallAboveInitialLimit(margin_call, initial) => {
-                assert_eq!(margin_call, CVLPct(dec!(150)));
-                assert_eq!(initial, CVLPct(dec!(140)));
+                assert_eq!(margin_call, CVLPct::from(dec!(150)));
+                assert_eq!(initial, CVLPct::from(dec!(140)));
             }
             _ => panic!("Unexpected error type"),
         }
@@ -539,17 +430,17 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-            .liquidation_cvl(CVLPct(dec!(130)))
-            .margin_call_cvl(CVLPct(dec!(125)))
-            .initial_cvl(CVLPct(dec!(140)))
+            .liquidation_cvl(dec!(130))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
             .build();
 
         match result.unwrap_err() {
             TermsError::MarginCallBelowLiquidationLimit(margin_call, liquidation) => {
-                assert_eq!(margin_call, CVLPct(dec!(125)));
-                assert_eq!(liquidation, CVLPct(dec!(130)));
+                assert_eq!(margin_call, CVLPct::from(dec!(125)));
+                assert_eq!(liquidation, CVLPct::from(dec!(130)));
             }
             _ => panic!("Unexpected error type"),
         }
@@ -560,17 +451,17 @@ mod test {
         let result = TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(Duration::Months(3))
-            .accrual_interval(InterestInterval::EndOfMonth)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-            .liquidation_cvl(CVLPct(dec!(125)))
-            .margin_call_cvl(CVLPct(dec!(125)))
-            .initial_cvl(CVLPct(dec!(140)))
+            .liquidation_cvl(dec!(125))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
             .build();
 
         match result.unwrap_err() {
             TermsError::MarginCallBelowLiquidationLimit(margin_call, liquidation) => {
-                assert_eq!(margin_call, CVLPct(dec!(125)));
-                assert_eq!(liquidation, CVLPct(dec!(125)));
+                assert_eq!(margin_call, CVLPct::from(dec!(125)));
+                assert_eq!(liquidation, CVLPct::from(dec!(125)));
             }
             _ => panic!("Unexpected error type"),
         }
@@ -631,14 +522,14 @@ mod test {
     fn interest_calculation() {
         let terms = terms();
         let principal = UsdCents::try_from_usd(dec!(100)).unwrap();
-        let days = 366;
+        let days = 365;
         let interest = terms.annual_rate.interest_for_time_period(principal, days);
         assert_eq!(interest, UsdCents::from(1200));
 
         let principal = UsdCents::try_from_usd(dec!(1000)).unwrap();
         let days = 23;
         let interest = terms.annual_rate.interest_for_time_period(principal, days);
-        assert_eq!(interest, UsdCents::from(755));
+        assert_eq!(interest, UsdCents::from(757));
     }
 
     #[test]
@@ -720,27 +611,27 @@ mod test {
         assert_eq!(fee, UsdCents::from(51));
     }
 
+    fn default_terms() -> TermValues {
+        TermValues::builder()
+            .annual_rate(dec!(12))
+            .duration(Duration::Months(3))
+            .interest_due_duration(InterestDuration::Days(0))
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .build()
+            .expect("should build a valid term")
+    }
+
     mod collateralization_update {
         use super::*;
 
         fn default_upgrade_buffer_cvl_pct() -> CVLPct {
             CVLPct::new(5)
         }
-
-        fn default_terms() -> TermValues {
-            TermValues::builder()
-                .annual_rate(dec!(12))
-                .duration(Duration::Months(3))
-                .accrual_interval(InterestInterval::EndOfMonth)
-                .incurrence_interval(InterestInterval::EndOfDay)
-                .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
-                .liquidation_cvl(dec!(105))
-                .margin_call_cvl(dec!(125))
-                .initial_cvl(dec!(140))
-                .build()
-                .expect("should build a valid term")
-        }
-
         struct TestCVL {
             above_fully_collateralized: CVLPct,
             above_margin_called_and_buffer: CVLPct,
@@ -768,15 +659,15 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            cvl.collateralization_update(default_terms(), last_state, None, false)
+            default_terms().collateralization_update(cvl, last_state, None, false)
         }
 
         fn collateralization_update_with_buffer(
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            cvl.collateralization_update(
-                default_terms(),
+            default_terms().collateralization_update(
+                cvl,
                 last_state,
                 Some(default_upgrade_buffer_cvl_pct()),
                 false,
@@ -787,7 +678,7 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            cvl.collateralization_update(default_terms(), last_state, None, true)
+            default_terms().collateralization_update(cvl, last_state, None, true)
         }
 
         fn all_collaterization_update_fns(
@@ -917,5 +808,55 @@ mod test {
                 None,
             );
         }
+    }
+
+    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
+        CreditFacilityBalanceSummary {
+            facility,
+            facility_remaining: facility,
+            collateral: Satoshis::ZERO,
+            disbursed: UsdCents::ZERO,
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            interest_posted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+        }
+    }
+
+    #[test]
+    fn check_approval_allowed() {
+        let terms = default_terms();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
+        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
+        let required_collateral =
+            price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
+
+        let mut balance = default_balances(principal);
+        balance.collateral = required_collateral - Satoshis::ONE;
+
+        assert!(!terms.is_approval_allowed(balance, price));
+
+        balance.collateral = required_collateral;
+        assert!(terms.is_approval_allowed(balance, price));
+    }
+
+    #[test]
+    fn check_disbursal_allowed() {
+        let terms = default_terms();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap());
+        let principal = UsdCents::try_from_usd(dec!(100_000)).unwrap();
+        let mut balance = default_balances(principal);
+        balance.collateral = Satoshis::try_from_btc(dec!(1)).unwrap();
+
+        let amount = UsdCents::try_from_usd(dec!(80_001)).unwrap();
+        assert!(!terms.is_disbursal_allowed(balance, amount, price));
+
+        let amount = UsdCents::try_from_usd(dec!(80_000)).unwrap();
+        assert!(terms.is_disbursal_allowed(balance, amount, price));
     }
 }

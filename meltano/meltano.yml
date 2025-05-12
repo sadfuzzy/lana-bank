@@ -33,19 +33,25 @@ jobs:
 - name: sync-sumsub
   tasks:
   - tap-sumsubapi target-bigquery
+- name: drop-old-relations
+  tasks:
+    - dbt-bigquery:drop-old-relations
 schedules:
 - name: postgres-to-bigquery-dbt
-  interval: '*/5 * * * *'
+  interval: '*/10 * * * *'
   job: tap-postgres-to-target-bigquery-run-dbt
 - name: poll-bitfinex-on-minute
   interval: '* * * * *'
   job: poll-bitfinex
 - name: sync-sumsub-on-minute
-  interval: '*/2 * * * *'
+  interval: '*/10 * * * *'
   job: sync-sumsub
 - name: test-dbt-daily
   interval: '@daily'
   job: test-dbt
+- name: drop-old-relations-weekly
+  interval: '@weekly'
+  job: drop-old-relations
 plugins:
   extractors:
   - name: tap-postgres
@@ -86,6 +92,9 @@ plugins:
     config:
       auth_method: service-account
       project: lana-dev-440721
+    commands:
+      drop-old-relations:
+        args: run-operation drop_old_relations
   utilities:
   - name: sqlfluff
     variant: sqlfluff

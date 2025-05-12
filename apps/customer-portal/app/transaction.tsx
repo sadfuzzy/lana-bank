@@ -117,7 +117,11 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
     <DataTable
       data={validEntries}
       columns={columns}
-      emptyMessage="No transactions found"
+      emptyMessage={
+        <div className="min-h-[10rem] w-full border rounded-md flex items-center justify-center">
+          No Transactions Found
+        </div>
+      }
       navigateTo={getNavigateUrl}
       className="w-full table-fixed"
       headerClassName="bg-secondary [&_tr:hover]:!bg-secondary"

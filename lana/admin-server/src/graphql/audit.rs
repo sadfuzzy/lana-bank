@@ -21,6 +21,7 @@ enum AuditSubject {
 #[graphql(complex)]
 pub struct AuditEntry {
     id: ID,
+    audit_entry_id: AuditEntryId,
     object: String,
     action: String,
     authorized: bool,
@@ -58,6 +59,7 @@ impl From<lana_app::audit::AuditEntry> for AuditEntry {
     fn from(entry: lana_app::audit::AuditEntry) -> Self {
         Self {
             id: entry.id.to_global_id(),
+            audit_entry_id: entry.id.into(),
             subject: entry.subject,
             object: entry.object.to_string(),
             action: entry.action.to_string(),

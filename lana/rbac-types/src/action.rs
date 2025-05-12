@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use chart_of_accounts::CoreChartOfAccountsAction;
+use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
 use core_customer::CoreCustomerAction;
 use core_user::CoreUserAction;
@@ -16,7 +16,7 @@ pub enum LanaAction {
     Governance(GovernanceAction),
     User(CoreUserAction),
     Customer(CoreCustomerAction),
-    ChartOfAccounts(CoreChartOfAccountsAction),
+    Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
@@ -47,9 +47,9 @@ impl From<CoreCustomerAction> for LanaAction {
         LanaAction::Customer(action)
     }
 }
-impl From<CoreChartOfAccountsAction> for LanaAction {
-    fn from(action: CoreChartOfAccountsAction) -> Self {
-        LanaAction::ChartOfAccounts(action)
+impl From<CoreAccountingAction> for LanaAction {
+    fn from(action: CoreAccountingAction) -> Self {
+        LanaAction::Accounting(action)
     }
 }
 impl From<CoreDepositAction> for LanaAction {
@@ -73,7 +73,7 @@ impl Display for LanaAction {
             User(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
-            ChartOfAccounts(action) => action.fmt(f),
+            Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
         }
@@ -92,7 +92,7 @@ impl FromStr for LanaAction {
             User => LanaAction::from(action.parse::<CoreUserAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
-            ChartOfAccounts => LanaAction::from(action.parse::<CoreChartOfAccountsAction>()?),
+            Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
         };
@@ -123,12 +123,6 @@ pub enum AppAction {
     TermsTemplate(TermsTemplateAction),
     Report(ReportAction),
     Audit(AuditAction),
-    Ledger(LedgerAction),
-    LedgerAccount(LedgerAccountAction),
-    TrialBalance(TrialBalanceAction),
-    ProfitAndLossStatement(ProfitAndLossStatementAction),
-    BalanceSheet(BalanceSheetAction),
-    CashFlowStatement(CashFlowStatementAction),
     Document(DocumentAction),
 }
 
@@ -140,12 +134,6 @@ impl Display for AppAction {
             TermsTemplate(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
-            Ledger(action) => action.fmt(f),
-            LedgerAccount(action) => action.fmt(f),
-            TrialBalance(action) => action.fmt(f),
-            ProfitAndLossStatement(action) => action.fmt(f),
-            BalanceSheet(action) => action.fmt(f),
-            CashFlowStatement(action) => action.fmt(f),
             Document(action) => action.fmt(f),
         }
     }
@@ -163,59 +151,11 @@ impl FromStr for AppAction {
             TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
-            Ledger => AppAction::from(action.parse::<LedgerAction>()?),
-            LedgerAccount => AppAction::from(action.parse::<LedgerAccountAction>()?),
-            TrialBalance => AppAction::from(action.parse::<TrialBalanceAction>()?),
-            ProfitAndLossStatement => {
-                AppAction::from(action.parse::<ProfitAndLossStatementAction>()?)
-            }
-            BalanceSheet => AppAction::from(action.parse::<BalanceSheetAction>()?),
-            CashFlowStatement => AppAction::from(action.parse::<CashFlowStatementAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
     }
 }
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum TrialBalanceAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(TrialBalanceAction, TrialBalance);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum ProfitAndLossStatementAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(ProfitAndLossStatementAction, ProfitAndLossStatement);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum BalanceSheetAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(BalanceSheetAction, BalanceSheet);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum CashFlowStatementAction {
-    Create,
-    Update,
-    Read,
-}
-
-impl_trivial_action!(CashFlowStatementAction, CashFlowStatement);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -260,23 +200,6 @@ pub enum ReportAction {
 }
 
 impl_trivial_action!(ReportAction, Report);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum LedgerAction {
-    Read,
-}
-
-impl_trivial_action!(LedgerAction, Ledger);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum LedgerAccountAction {
-    ReadBalance,
-    ReadHistory,
-}
-
-impl_trivial_action!(LedgerAccountAction, LedgerAccount);
 
 #[cfg(test)]
 mod test {

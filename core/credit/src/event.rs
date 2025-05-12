@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
+use crate::{terms::InterestPeriod, CollateralizationState, CreditFacilityReceivable, TermValues};
+
 use super::primitives::*;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -10,6 +12,8 @@ use super::primitives::*;
 pub enum CoreCreditEvent {
     FacilityCreated {
         id: CreditFacilityId,
+        terms: TermValues,
+        amount: UsdCents,
         created_at: DateTime<Utc>,
     },
     FacilityApproved {
@@ -17,39 +21,75 @@ pub enum CoreCreditEvent {
     },
     FacilityActivated {
         id: CreditFacilityId,
+        activation_tx_id: LedgerTxId,
         activated_at: DateTime<Utc>,
+        amount: UsdCents,
     },
     FacilityCompleted {
         id: CreditFacilityId,
         completed_at: DateTime<Utc>,
     },
-    DisbursalExecuted {
-        id: CreditFacilityId,
-        amount: UsdCents,
-        recorded_at: DateTime<Utc>,
-    },
     FacilityRepaymentRecorded {
-        id: CreditFacilityId,
-        disbursal_amount: UsdCents,
-        interest_amount: UsdCents,
+        credit_facility_id: CreditFacilityId,
+        obligation_id: ObligationId,
+        obligation_type: ObligationType,
+        payment_id: PaymentAllocationId,
+        amount: UsdCents,
         recorded_at: DateTime<Utc>,
     },
     FacilityCollateralUpdated {
-        id: CreditFacilityId,
+        credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
         new_amount: Satoshis,
         abs_diff: Satoshis,
-        action: FacilityCollateralUpdateAction,
+        action: CollateralAction,
         recorded_at: DateTime<Utc>,
     },
-    AccrualExecuted {
+    FacilityCollateralizationChanged {
         id: CreditFacilityId,
-        amount: UsdCents,
-        accrued_at: DateTime<Utc>,
+        state: CollateralizationState,
+        recorded_at: DateTime<Utc>,
+        collateral: Satoshis,
+        outstanding: CreditFacilityReceivable,
+        price: PriceOfOneBTC,
     },
-}
+    DisbursalSettled {
+        credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
+        amount: UsdCents,
+        recorded_at: DateTime<Utc>,
+    },
+    AccrualPosted {
+        credit_facility_id: CreditFacilityId,
+        ledger_tx_id: LedgerTxId,
+        amount: UsdCents,
+        period: InterestPeriod,
+        recorded_at: DateTime<Utc>,
+    },
+    ObligationCreated {
+        id: ObligationId,
+        obligation_type: ObligationType,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
 
-#[derive(Debug, Serialize, Deserialize)]
-pub enum FacilityCollateralUpdateAction {
-    Add,
-    Remove,
+        due_at: DateTime<Utc>,
+        overdue_at: Option<DateTime<Utc>>,
+        defaulted_at: Option<DateTime<Utc>>,
+        created_at: DateTime<Utc>,
+    },
+    ObligationDue {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
+    ObligationOverdue {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
+    ObligationDefaulted {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
+    },
 }

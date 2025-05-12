@@ -26,8 +26,6 @@ pub enum DepositLedgerError {
     ConversionError(#[from] core_money::ConversionError),
     #[error("DepositLedgerError - MissingTxMetadata")]
     MissingTxMetadata,
-    #[error("DepositLedgerError - CoreChartOfAccountsError: {0}")]
-    CoreChartOfAccountsError(#[from] chart_of_accounts::error::CoreChartOfAccountsError),
     #[error("DepositLedgerError - MismatchedTxMetadata: {0}")]
     MismatchedTxMetadata(serde_json::Error),
     #[error("DepositLedgerError - NonAccountMemberFoundInAccountSet: Found non-Account typed member in account set {0}")]

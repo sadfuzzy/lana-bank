@@ -1,6 +1,6 @@
 use crate::{
+    accounting::ChartOfAccounts,
     accounting_init::{constants::*, *},
-    chart_of_accounts::ChartOfAccounts,
 };
 
 use rbac_types::Subject;
@@ -15,7 +15,7 @@ async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
 ) -> Result<(), AccountingInitError> {
     if chart_of_accounts
-        .find_by_reference(&Subject::System, CHART_REF.to_string())
+        .find_by_reference(CHART_REF)
         .await?
         .is_none()
     {

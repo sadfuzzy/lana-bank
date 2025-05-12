@@ -58,12 +58,12 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
   const MarginCallPrice = calculatePrice({
     cvlPercentage: creditFacility.creditFacilityTerms.marginCallCvl,
     basisAmountInCents,
-    collateralInSatoshis: creditFacility.collateral,
+    collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
   })
   const LiquidationCallPrice = calculatePrice({
     cvlPercentage: creditFacility.creditFacilityTerms.liquidationCvl,
     basisAmountInCents,
-    collateralInSatoshis: creditFacility.collateral,
+    collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
   })
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({

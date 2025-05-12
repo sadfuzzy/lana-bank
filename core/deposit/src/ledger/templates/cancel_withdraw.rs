@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::ledger::error::*;
 
-pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW_CODE";
+pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 
 #[derive(Debug)]
 pub struct CancelWithdrawParams {
@@ -72,7 +72,7 @@ impl From<CancelWithdrawParams> for Params {
         params.insert("amount", amount);
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
-        params.insert("effective", chrono::Utc::now().date_naive());
+        params.insert("effective", crate::time::now().date_naive());
 
         params
     }

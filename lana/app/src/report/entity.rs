@@ -74,7 +74,7 @@ pub enum ReportEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Report {
     pub id: ReportId,
-    pub(super) events: EntityEvents<ReportEvent>,
+    events: EntityEvents<ReportEvent>,
 }
 
 impl Report {

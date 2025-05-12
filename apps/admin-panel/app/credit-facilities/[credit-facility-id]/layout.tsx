@@ -1,7 +1,7 @@
 "use client"
 
 import { gql, useApolloClient } from "@apollo/client"
-import { useEffect } from "react"
+import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
@@ -19,7 +19,7 @@ import {
   CreditFacilityStatus,
   GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityRepaymentPlanDocument,
-  GetCreditFacilityTransactionsDocument,
+  GetCreditFacilityHistoryDocument,
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
@@ -33,7 +33,6 @@ gql`
     status
     facilityAmount
     maturesAt
-    collateral
     collateralizationState
     createdAt
     currentCvl {
@@ -73,8 +72,8 @@ gql`
     }
     creditFacilityTerms {
       annualRate
+      accrualCycleInterval
       accrualInterval
-      incurrenceInterval
       liquidationCvl
       marginCallCvl
       initialCvl
@@ -116,18 +115,18 @@ export default function CreditFacilityLayout({
   params,
 }: {
   children: React.ReactNode
-  params: { "credit-facility-id": string }
+  params: Promise<{ "credit-facility-id": string }>
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
   const navTranslations = useTranslations("Sidebar.navItems")
 
-  const { "credit-facility-id": creditFacilityId } = params
+  const { "credit-facility-id": creditFacilityId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
 
   const TABS = [
-    { id: "1", url: "/", tabLabel: t("tabs.transactions") },
+    { id: "1", url: "/", tabLabel: t("tabs.history") },
     { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
   ]
@@ -156,7 +155,7 @@ export default function CreditFacilityLayout({
           fetchPolicy: "network-only",
         })
         client.query({
-          query: GetCreditFacilityTransactionsDocument,
+          query: GetCreditFacilityHistoryDocument,
           variables: { id: creditFacilityId },
           fetchPolicy: "network-only",
         })
@@ -176,7 +175,6 @@ export default function CreditFacilityLayout({
     if (data?.creditFacility) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
-        { title: navTranslations("dashboard"), href: "/dashboard" },
         {
           title: navTranslations("creditFacilities"),
           href: "/credit-facilities",
