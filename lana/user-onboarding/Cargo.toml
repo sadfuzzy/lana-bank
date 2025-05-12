@@ -1,6 +1,6 @@
 [package]
 name = "user-onboarding"
-version = "0.3.466-dev"
+version = "0.3.468-dev"
 edition = "2021"
 
 [features]
