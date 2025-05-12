@@ -19,9 +19,9 @@ import { useState, useCallback } from "react"
 
 import { Button } from "@lana/web/ui/button"
 
-import { createSumsubPermalink } from "./server-actions"
-
 import { LanaBankIcon } from "../icons"
+
+import { createSumsubPermalink } from "./server-actions"
 
 import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 

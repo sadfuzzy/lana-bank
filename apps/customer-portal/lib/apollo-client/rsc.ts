@@ -17,7 +17,7 @@ export const { getClient } = registerApolloClient(async () => {
         uri: `${env.NEXT_PUBLIC_CORE_URL + basePath}/graphql`,
         fetchOptions: { cache: "no-store" },
         headers: {
-          **requestHeaders,
+          ...requestHeaders,
           cookie: requestHeaders["cookie"] || ""
         },
       }),
