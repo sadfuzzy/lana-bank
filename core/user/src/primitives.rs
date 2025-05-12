@@ -12,21 +12,21 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { AuthenticationId }
+es_entity::entity_id! { AuthenticationId, RoleId }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]
 #[serde(transparent)]
-pub struct Role(Cow<'static, str>);
-impl Role {
-    pub const SUPERUSER: Role = Role::new("superuser");
+pub struct RoleName(Cow<'static, str>);
+impl RoleName {
+    pub const SUPERUSER: RoleName = RoleName::new("superuser");
 
     pub const fn new(role_name: &'static str) -> Self {
-        Role(Cow::Borrowed(role_name))
+        RoleName(Cow::Borrowed(role_name))
     }
 }
 
-impl Display for Role {
+impl Display for RoleName {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.0.fmt(f)
     }
@@ -37,9 +37,12 @@ impl Display for Role {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserAction {
     User(UserEntityAction),
+    Role(RoleEntityAction),
 }
 
 impl CoreUserAction {
+    pub const ROLE_CREATE: Self = CoreUserAction::Role(RoleEntityAction::Create);
+
     pub const USER_CREATE: Self = CoreUserAction::User(UserEntityAction::Create);
     pub const USER_READ: Self = CoreUserAction::User(UserEntityAction::Read);
     pub const USER_LIST: Self = CoreUserAction::User(UserEntityAction::List);
@@ -47,6 +50,12 @@ impl CoreUserAction {
     pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserEntityAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreUserAction::User(UserEntityAction::UpdateAuthenticationId);
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[strum(serialize_all = "kebab-case")]
+pub enum RoleEntityAction {
+    Create,
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
@@ -67,6 +76,7 @@ impl Display for CoreUserAction {
         use CoreUserAction::*;
         match self {
             User(action) => action.fmt(f),
+            Role(action) => action.fmt(f),
         }
     }
 }
@@ -79,6 +89,7 @@ impl FromStr for CoreUserAction {
         use CoreUserActionDiscriminants::*;
         let res = match entity.parse()? {
             User => CoreUserAction::from(action.parse::<UserEntityAction>()?),
+            Role => CoreUserAction::from(action.parse::<RoleEntityAction>()?),
         };
         Ok(res)
     }
@@ -90,47 +101,64 @@ impl From<UserEntityAction> for CoreUserAction {
     }
 }
 
+impl From<RoleEntityAction> for CoreUserAction {
+    fn from(action: RoleEntityAction) -> Self {
+        CoreUserAction::Role(action)
+    }
+}
+
 pub type UserAllOrOne = AllOrOne<UserId>;
+pub type RoleAllOrOne = AllOrOne<RoleId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum UserObject {
+pub enum CoreUserObject {
     User(UserAllOrOne),
+    Role(RoleAllOrOne),
 }
 
-impl UserObject {
-    pub fn all_users() -> UserObject {
-        UserObject::User(AllOrOne::All)
+impl CoreUserObject {
+    pub const fn all_roles() -> CoreUserObject {
+        CoreUserObject::Role(AllOrOne::All)
     }
-    pub fn user(id: impl Into<Option<UserId>>) -> UserObject {
+
+    pub const fn all_users() -> CoreUserObject {
+        CoreUserObject::User(AllOrOne::All)
+    }
+    pub fn user(id: impl Into<Option<UserId>>) -> CoreUserObject {
         match id.into() {
-            Some(id) => UserObject::User(AllOrOne::ById(id)),
-            None => UserObject::all_users(),
+            Some(id) => CoreUserObject::User(AllOrOne::ById(id)),
+            None => CoreUserObject::all_users(),
         }
     }
 }
 
-impl Display for UserObject {
+impl Display for CoreUserObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = UserObjectDiscriminants::from(self);
-        use UserObject::*;
+        let discriminant = CoreUserObjectDiscriminants::from(self);
+        use CoreUserObject::*;
         match self {
             User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Role(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
 
-impl FromStr for UserObject {
+impl FromStr for CoreUserObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (entity, id) = s.split_once('/').expect("missing slash");
-        use UserObjectDiscriminants::*;
+        use CoreUserObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             User => {
                 let obj_ref = id.parse().map_err(|_| "could not parse UserObject")?;
-                UserObject::User(obj_ref)
+                CoreUserObject::User(obj_ref)
+            }
+            Role => {
+                let obj_ref = id.parse().map_err(|_| "could not parse RoleObject")?;
+                CoreUserObject::Role(obj_ref)
             }
         };
         Ok(res)

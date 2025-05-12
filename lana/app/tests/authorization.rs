@@ -19,7 +19,7 @@ fn random_email() -> String {
 async fn create_user_with_role(
     users: &Users,
     superuser_subject: &Subject,
-    role: Role,
+    role: RoleName,
 ) -> anyhow::Result<Subject> {
     let user = users.create_user(superuser_subject, random_email()).await?;
     let user = users
@@ -40,7 +40,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            UserObject::all_users(),
+            CoreUserObject::all_users(),
             CoreUserAction::USER_CREATE,
         )
         .await
@@ -50,7 +50,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            UserObject::all_users(),
+            CoreUserObject::all_users(),
             CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
@@ -60,7 +60,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &superuser_subject,
-            UserObject::user(UserId::new()),
+            CoreUserObject::user(UserId::new()),
             CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
@@ -83,7 +83,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &admin_subject,
-            UserObject::all_users(),
+            CoreUserObject::all_users(),
             CoreUserAction::USER_CREATE,
         )
         .await
@@ -93,7 +93,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &admin_subject,
-            UserObject::all_users(),
+            CoreUserObject::all_users(),
             CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
@@ -101,7 +101,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
     assert!(authz
         .enforce_permission(
             &admin_subject,
-            UserObject::user(UserId::new()),
+            CoreUserObject::user(UserId::new()),
             CoreUserAction::USER_ASSIGN_ROLE,
         )
         .await
@@ -126,7 +126,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
         authz
             .enforce_permission(
                 &bank_manager_subject,
-                UserObject::all_users(),
+                CoreUserObject::all_users(),
                 CoreUserAction::USER_CREATE,
             )
             .await,
@@ -138,7 +138,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
         authz
             .enforce_permission(
                 &bank_manager_subject,
-                UserObject::all_users(),
+                CoreUserObject::all_users(),
                 CoreUserAction::USER_ASSIGN_ROLE,
             )
             .await,
