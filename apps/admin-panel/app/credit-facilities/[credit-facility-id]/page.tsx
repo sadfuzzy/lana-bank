@@ -60,6 +60,17 @@ gql`
       ...CreditFacilityHistoryFragment
     }
   }
+
+  query GetCreditFacilityLayoutDetails($id: UUID!) {
+    creditFacility(id: $id) {
+      id
+      createdAt
+      maturesAt
+      customer {
+        customerId
+      }
+    }
+  }
 `
 
 interface CreditFacilityHistoryPageProps {
@@ -87,16 +98,31 @@ export default function CreditFacilityHistoryPage({
     skip: !customerId,
   })
 
-  if (!cfData?.creditFacility) return null
+  if (!cfData?.creditFacility || !layoutData?.creditFacility) return null
 
   const customerType = customerData?.customer?.customerType
   const customerTypeDisplay = customerType ? removeUnderscore(customerType) : "Unknown"
 
+  const issuanceDate = new Date(layoutData.creditFacility.createdAt).toLocaleDateString()
+  const maturityDate = layoutData.creditFacility.maturesAt
+    ? new Date(layoutData.creditFacility.maturesAt).toLocaleDateString()
+    : "Not set"
+
   return (
     <div>
-      <div className="mb-4">
-        <span className="font-medium">Customer Type: </span>
-        <span>{customerTypeDisplay}</span>
+      <div className="space-y-2 mb-4">
+        <div>
+          <span className="font-medium">Customer Type: </span>
+          <span>{customerTypeDisplay}</span>
+        </div>
+        <div>
+          <span className="font-medium">Date of Issuance: </span>
+          <span>{issuanceDate}</span>
+        </div>
+        <div>
+          <span className="font-medium">Maturity Date: </span>
+          <span>{maturityDate}</span>
+        </div>
       </div>
       <CreditFacilityHistory creditFacility={cfData.creditFacility} />
     </div>
