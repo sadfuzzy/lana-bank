@@ -18,7 +18,7 @@ export const { getClient } = registerApolloClient(async () => {
         fetchOptions: { cache: "no-store" },
         headers: {
           ...requestHeaders,
-          cookie: requestHeaders["cookie"] || ""
+          cookie: requestHeaders["cookie"] || "",
         },
       }),
     ]),
