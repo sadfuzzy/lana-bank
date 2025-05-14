@@ -1,6 +1,6 @@
 [package]
 name = "customer-sync"
-version = "0.3.481-dev"
+version = "0.3.482-dev"
 edition = "2021"
 
 [features]
