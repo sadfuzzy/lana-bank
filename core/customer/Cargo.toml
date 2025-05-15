@@ -1,6 +1,6 @@
 [package]
 name = "core-customer"
-version = "0.3.483-dev"
+version = "0.3.485-dev"
 edition = "2021"
 
 [features]
