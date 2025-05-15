@@ -9,10 +9,10 @@ use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{event::*, primitives::*};
+use crate::{event::*, primitives::*, publisher::UserPublisher};
 
-pub use entity::User;
 use entity::*;
+pub use entity::{User, UserEvent};
 use error::*;
 use repo::*;
 
@@ -22,8 +22,7 @@ where
     E: OutboxEventMarker<CoreUserEvent>,
 {
     authz: Authorization<Audit, RoleName>,
-    outbox: Outbox<E>,
-    repo: UserRepo,
+    repo: UserRepo<E>,
 }
 
 impl<Audit, E> Clone for Users<Audit, E>
@@ -34,7 +33,6 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            outbox: self.outbox.clone(),
             repo: self.repo.clone(),
         }
     }
@@ -54,11 +52,11 @@ where
         outbox: &Outbox<E>,
         superuser_email: Option<String>,
     ) -> Result<Self, UserError> {
-        let repo = UserRepo::new(pool);
+        let publisher = UserPublisher::new(outbox);
+        let repo = UserRepo::new(pool, &publisher);
         let users = Self {
             repo,
             authz: authz.clone(),
-            outbox: outbox.clone(),
         };
 
         if let Some(email) = superuser_email {
@@ -102,12 +100,7 @@ where
             .audit_info(audit_info)
             .build()
             .expect("Could not build user");
-        let mut db = self.repo.begin_op().await?;
-        let user = self.repo.create_in_op(&mut db, new_user).await?;
-        self.outbox
-            .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id, email })
-            .await?;
-        db.commit().await?;
+        let user = self.repo.create(new_user).await?;
         Ok(user)
     }
 
@@ -250,7 +243,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role == RoleName::Superuser {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -296,7 +289,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::SUPERUSER {
+        if role == RoleName::Superuser {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -328,7 +321,7 @@ where
             )
             .await?;
 
-        let user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
+        match self.repo.find_by_email_in_tx(db.tx(), &email).await {
             Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
                     .email(&email)
@@ -337,20 +330,20 @@ where
                     .expect("Could not build user");
                 let mut user = self.repo.create_in_op(&mut db, new_user).await?;
                 self.authz
-                    .assign_role_to_subject(user.id, &RoleName::SUPERUSER)
+                    .assign_role_to_subject(user.id, &RoleName::Superuser)
                     .await?;
-                let _ = user.assign_role(RoleName::SUPERUSER, audit_info);
+                let _ = user.assign_role(RoleName::Superuser, audit_info);
                 self.repo.update_in_op(&mut db, &mut user).await?;
                 Some(user)
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
                 if user
-                    .assign_role(RoleName::SUPERUSER, audit_info)
+                    .assign_role(RoleName::Superuser, audit_info)
                     .did_execute()
                 {
                     self.authz
-                        .assign_role_to_subject(user.id, RoleName::SUPERUSER)
+                        .assign_role_to_subject(user.id, RoleName::Superuser)
                         .await?;
                     self.repo.update_in_op(&mut db, &mut user).await?;
                     None
@@ -359,11 +352,7 @@ where
                 }
             }
         };
-        if let Some(user) = user {
-            self.outbox
-                .publish_persisted(db.tx(), CoreUserEvent::UserCreated { id: user.id, email })
-                .await?;
-        }
+
         db.commit().await?;
         Ok(())
     }
