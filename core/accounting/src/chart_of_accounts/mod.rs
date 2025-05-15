@@ -15,7 +15,9 @@ use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, account_set::NewAccountSet};
 use tracing::instrument;
 
-use crate::primitives::{CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject};
+use crate::primitives::{
+    CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+};
 use error::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -102,7 +104,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         data: impl AsRef<str>,
-    ) -> Result<Chart, ChartOfAccountsError> {
+    ) -> Result<Option<Vec<CalaAccountSetId>>, ChartOfAccountsError> {
         let id = id.into();
         let audit_info = self
             .authz
@@ -137,6 +139,11 @@ where
                 }
             }
         }
+        let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
+        if new_account_sets.is_empty() {
+            return Ok(None);
+        }
+
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
@@ -153,7 +160,12 @@ where
                 .await?;
         }
         op.commit().await?;
-        Ok(chart)
+
+        Ok(Some(
+            chart
+                .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
+                .collect::<Vec<_>>(),
+        ))
     }
 
     #[instrument(name = "chart_of_accounts.find_by_id", skip(self), err)]

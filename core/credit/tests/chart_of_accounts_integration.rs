@@ -49,7 +49,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()
-        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref)
+        .create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone())
         .await?;
     let import = r#"
         1,Facility Omnibus Parent
@@ -63,10 +63,17 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "#
     .to_string();
     let chart_id = chart.id;
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?;
+        .await?
+        .unwrap();
+    let chart = accounting
+        .chart_of_accounts()
+        .find_by_reference(&chart_ref)
+        .await
+        .unwrap()
+        .unwrap();
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
     let account_set_id = cala
@@ -203,10 +210,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "#
     .to_string();
     let chart_id = chart.id;
-    let chart = accounting
+    accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?;
+        .await?
+        .unwrap();
 
     let res = credit
         .set_chart_of_accounts_integration_config(
