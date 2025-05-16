@@ -133,6 +133,26 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     filterValues: Object.values(CreditFacilityStatus),
   },
   {
+    key: "status",
+    label: t("table.headers.state"),
+    render: (status) => {
+      switch (status) {
+        case CreditFacilityStatus.Active:
+          return "active"
+        case CreditFacilityStatus.Matured:
+          return "matured"
+        case CreditFacilityStatus.Closed:
+          return "closed"
+        case CreditFacilityStatus.PendingApproval:
+          return "pending approval"
+        case CreditFacilityStatus.PendingCollateralization:
+          return "pending collateral"
+        default:
+          return "-"
+      }
+    },
+  },
+  {
     key: "balance",
     label: t("table.headers.outstanding"),
     render: (balance) => (
