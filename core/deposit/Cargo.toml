@@ -1,6 +1,6 @@
 [package]
 name = "deposit"
-version = "0.3.502-dev"
+version = "0.3.504-dev"
 edition = "2021"
 
 [features]
