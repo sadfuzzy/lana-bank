@@ -25,7 +25,6 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/kratos/utils"
 import { formatDate } from "@/lib/utils"
-import { meQuery } from "@/lib/graphql/query/me"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -149,69 +148,33 @@ gql`
 
 async function page({ params }: { params: Promise<{ "credit-facility-id": string }> }) {
   const { "credit-facility-id": id } = await params
-  const [cfData, meData] = await Promise.all([getCreditFacility({ id }), meQuery()])
+  const data = await getCreditFacility({
+    id,
+  })
 
-  if (!cfData || cfData instanceof Error || !cfData.creditFacility) {
+  if (!data || data instanceof Error || !data.creditFacility) {
     return <div>Not found</div>
-  }
-
-  if (!meData || meData instanceof Error) {
-    return <div>Error loading customer data</div>
   }
 
   const details: DetailItemProps[] = [
     {
-      label: "Customer Type",
-      value: removeUnderscore(meData.me.customer.customerType),
-    },
-    {
-      label: "Issue Date",
-      value: formatDate(cfData.creditFacility.createdAt),
-    },
-    {
-      label: "Maturity Date",
-      value: formatDate(cfData.creditFacility.maturesAt) || "N/A",
-    },
-    {
-      label: "Current Monthly Payment",
-      value: cfData.creditFacility.repaymentPlan?.length ? (
-        <div className="flex items-center">
-          $
-          {(
-            Number(cfData.creditFacility.repaymentPlan[0].outstanding) / 100
-          ).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-          <span className="text-sm text-muted-foreground ml-2">
-            Due {formatDate(cfData.creditFacility.repaymentPlan[0].dueAt)}
-          </span>
-        </div>
-      ) : (
-        "–"
-      ),
-    },
-    {
-      label: "Interest Calculation Days",
-      value: (
-        <div className="flex items-center">
-          <span>365</span>
-          <span className="text-sm text-muted-foreground ml-2">
-            Fixed number used for all interest calculations
-          </span>
-        </div>
-      ),
+      label: "Created At",
+      value: formatDate(data.creditFacility.createdAt),
     },
     {
       label: "Collateralization State",
-      value: removeUnderscore(cfData.creditFacility.collateralizationState),
+      value: removeUnderscore(data.creditFacility.collateralizationState),
+    },
+    {
+      label: "Matures At",
+      value: formatDate(data.creditFacility.maturesAt) || "N/A",
     },
     {
       label: "Status",
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
-          status={cfData.creditFacility.status}
+          status={data.creditFacility.status}
         />
       ),
     },
@@ -231,10 +194,10 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
         details={details}
       />
       <div className="flex flex-col gap-2 md:flex-row">
-        <FacilityCard data={cfData.creditFacility} />
-        <CollateralCard data={cfData.creditFacility} />
+        <FacilityCard data={data.creditFacility} />
+        <CollateralCard data={data.creditFacility} />
       </div>
-      <TermsCard data={cfData.creditFacility} />
+      <TermsCard data={data.creditFacility} />
       <Tabs defaultValue="history" className="w-full">
         <TabsList className="flex h-12 w-full items-center rounded-lg bg-muted p-1">
           <TabsTrigger
@@ -261,13 +224,13 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
         </TabsList>
 
         <TabsContent value="history" className="mt-2">
-          <CreditFacilityHistory creditFacility={cfData.creditFacility} />
+          <CreditFacilityHistory creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="repayments" className="mt-2">
-          <CreditFacilityRepaymentPlan creditFacility={cfData.creditFacility} />
+          <CreditFacilityRepaymentPlan creditFacility={data.creditFacility} />
         </TabsContent>
         <TabsContent value="disbursals" className="mt-2">
-          <CreditFacilityDisbursals creditFacility={cfData.creditFacility} />
+          <CreditFacilityDisbursals creditFacility={data.creditFacility} />
         </TabsContent>
       </Tabs>
     </main>

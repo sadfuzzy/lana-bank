@@ -15,7 +15,6 @@ gql`
         createdAt
         email
         telegramId
-        customerType
         depositAccount {
           id
           depositAccountId
