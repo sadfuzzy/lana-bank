@@ -195,7 +195,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     label: t("table.headers.interestType"),
     render: (terms) => {
       if (!terms) return "-"
-      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase()}`
+      return `${terms.annualRate}% nominal ${terms.accrualInterval.toLowerCase()}`
     },
   },
   {
