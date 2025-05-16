@@ -406,12 +406,10 @@
         "details": {
           "duration": "Duration",
           "interestRate": "Interest (APR)",
-          "accrualCycleInterval": "Accrual Cycle Interval",
           "targetCvl": "Target/initial CVL %",
           "marginCallCvl": "Margin call CVL %",
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
-          "accrualInterval": "Accrual Interval",
           "structuringFeeRate": "Structuring Fee Rate"
         }
       },
@@ -485,10 +483,9 @@
             "interestRate": "Interest Rate (APR)",
             "initialCvl": "Initial CVL (%)",
             "duration": "Duration",
+            "months": "months",
             "marginCallCvl": "Margin Call CVL (%)",
-            "accrualCycleInterval": "Accrual Cycle Interval",
             "liquidationCvl": "Liquidation CVL (%)",
-            "accrualInterval": "Accrual Interval",
             "structuringFeeRate": "Structuring Fee Rate (%)"
           },
           "placeholders": {
@@ -496,13 +493,10 @@
             "termsTemplate": "Select from predefined terms template",
             "annualRate": "Enter the annual rate",
             "initialCvl": "Enter the initial CVL",
-            "duration": "Duration",
+            "duration": "Enter duration in months",
             "marginCallCvl": "Enter the margin call CVL",
-            "accrualCycleInterval": "Select accrual cycle interval",
             "liquidationCvl": "Enter the liquidation CVL",
-            "accrualInterval": "Select accrual interval",
-            "structuringFeeRate": "Enter the Structuring Fee Rate",
-            "selectPeriod": "Select period"
+            "structuringFeeRate": "Enter the Structuring Fee Rate"
           },
           "buttons": {
             "back": "Back",
@@ -669,8 +663,6 @@
           "name": "Name",
           "createdAt": "Created At",
           "duration": "Duration",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
           "annualRate": "Annual Rate",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
@@ -687,8 +679,7 @@
         "fields": {
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
+          "months": "months",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -696,10 +687,7 @@
         },
         "placeholders": {
           "annualRate": "Enter the annual rate",
-          "durationUnits": "Duration",
-          "durationPeriod": "Select period",
-          "accrualCycleInterval": "Select accrual cycle interval",
-          "accrualInterval": "Select accrual interval",
+          "durationUnits": "Enter duration in months",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
@@ -723,8 +711,7 @@
           "name": "Template Name",
           "annualRate": "Interest Rate (APR)",
           "duration": "Duration",
-          "accrualCycleInterval": "Accrual Cycle Interval",
-          "accrualInterval": "Accrual Interval",
+          "months": "months",
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
@@ -733,14 +720,11 @@
         "placeholders": {
           "name": "Enter the template name",
           "annualRate": "Enter the annual rate",
-          "durationUnits": "Duration",
-          "durationPeriod": "Select period",
+          "durationUnits": "Enter duration in months",
           "initialCvl": "Enter the initial CVL",
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
-          "oneTimeFeeRate": "Enter the Structuring Fee Rate",
-          "accrualCycleInterval": "Select accrual cycle interval",
-          "accrualInterval": "Select accrual interval"
+          "oneTimeFeeRate": "Enter the Structuring Fee Rate"
         },
         "buttons": {
           "submit": "Create Terms Template"
