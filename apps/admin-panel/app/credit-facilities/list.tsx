@@ -44,6 +44,10 @@ gql`
           createdAt
           status
           facilityAmount
+          creditFacilityTerms {
+            annualRate
+            accrualInterval
+          }
           currentCvl {
             disbursed
             total
@@ -187,6 +191,14 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     filterValues: Object.values(CollateralizationState),
   },
   {
+    key: "creditFacilityTerms",
+    label: t("table.headers.interestType"),
+    render: (terms) => {
+      if (!terms) return "-"
+      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase()}`
+    },
+  },
+  {
     key: "currentCvl",
     label: t("table.headers.cvl"),
     render: (cvl) => `${cvl.disbursed}%`,
@@ -197,5 +209,13 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     label: t("table.headers.createdAt"),
     render: (date) => formatDate(date, { includeTime: false }),
     sortable: true,
+  },
+  {
+    key: "createdAt",
+    label: t("table.headers.interestDays"),
+    render: () => {
+      const year = new Date().getFullYear()
+      return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? "366" : "365"
+    },
   },
 ]
