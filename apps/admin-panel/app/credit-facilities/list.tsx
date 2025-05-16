@@ -47,6 +47,7 @@ gql`
           creditFacilityTerms {
             annualRate
             accrualInterval
+            oneTimeFeeRate
           }
           currentCvl {
             disbursed
@@ -192,10 +193,19 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   },
   {
     key: "creditFacilityTerms",
-    label: t("table.headers.interestType"),
+    label: t("table.headers.nominalRate"),
     render: (terms) => {
       if (!terms) return "-"
-      return `${terms.annualRate}% nominal ${terms.accrualInterval.toLowerCase()}`
+      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase()}`
+    },
+  },
+  {
+    key: "creditFacilityTerms",
+    label: t("table.headers.effectiveRate"),
+    render: (terms) => {
+      if (!terms) return "-"
+      const effectiveRate = terms.annualRate + (terms.oneTimeFeeRate || 0)
+      return `${effectiveRate.toFixed(2)}%`
     },
   },
   {
