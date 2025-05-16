@@ -25,6 +25,7 @@ import PaginatedTable, {
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake, formatDate } from "@/lib/utils"
+import { UsdCents } from "@/types"
 
 gql`
   query CreditFacilities(
@@ -54,6 +55,13 @@ gql`
             outstanding {
               usdBalance
             }
+          }
+          repaymentPlan {
+            repaymentType
+            status
+            initial
+            outstanding
+            dueAt
           }
           customer {
             customerId
@@ -158,6 +166,19 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     render: (balance) => (
       <Balance amount={balance.outstanding.usdBalance} currency="usd" />
     ),
+  },
+  {
+    key: "repaymentPlan",
+    label: t("table.headers.monthlyPayment"),
+    render: (_, facility) => {
+      const monthlyPayment = (facility.repaymentPlan
+        ?.filter(
+          (payment) => payment.status === "UPCOMING" || payment.status === "NOT_YET_DUE",
+        )
+        .reduce((acc, payment) => acc + payment.initial, 0) / 12) as UsdCents
+
+      return <Balance amount={monthlyPayment || (0 as UsdCents)} currency="usd" />
+    },
   },
   {
     key: "collateralizationState",
