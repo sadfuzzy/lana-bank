@@ -11,8 +11,9 @@ pub use cala_ledger::{
     account_set::AccountSet as CalaAccountSet,
     balance::{AccountBalance as CalaAccountBalance, BalanceRange as CalaBalanceRange},
     primitives::{
-        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
-        JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
+        AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, BalanceId as CalaBalanceId,
+        EntryId as CalaEntryId, JournalId as CalaJournalId, TransactionId as CalaTxId,
+        TxTemplateId as CalaTxTemplateId,
     },
 };
 
@@ -797,17 +798,20 @@ impl From<TrialBalanceAction> for CoreAccountingAction {
 
 #[derive(Debug, Clone)]
 pub struct BalanceRange {
-    pub start: Option<CalaAccountBalance>,
-    pub end: Option<CalaAccountBalance>,
-    pub diff: Option<CalaAccountBalance>,
+    pub open: Option<CalaAccountBalance>,
+    pub close: Option<CalaAccountBalance>,
+    pub period_activity: Option<CalaAccountBalance>,
 }
 
 impl BalanceRange {
-    pub(crate) fn has_non_zero_balance(&self) -> bool {
-        if let Some(end) = self.end.as_ref() {
-            end.settled() != Decimal::ZERO
-                || end.pending() != Decimal::ZERO
-                || end.encumbrance() != Decimal::ZERO
+    pub(crate) fn has_non_zero_activity(&self) -> bool {
+        if let Some(close) = self.close.as_ref() {
+            close.details.settled.dr_balance != Decimal::ZERO
+                || close.details.settled.cr_balance != Decimal::ZERO
+                || close.details.pending.dr_balance != Decimal::ZERO
+                || close.details.pending.cr_balance != Decimal::ZERO
+                || close.details.encumbrance.dr_balance != Decimal::ZERO
+                || close.details.encumbrance.cr_balance != Decimal::ZERO
         } else {
             false
         }

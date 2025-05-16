@@ -17,21 +17,12 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@lana/web/ui/select"
 
 import {
   useUpdateTermsTemplateMutation,
-  InterestInterval,
-  Period,
-  TermsTemplate,
+  TermsTemplateQuery,
 } from "@/lib/graphql/generated"
-import { PeriodLabel, InterestIntervalLabel } from "@/app/credit-facilities/label"
+import { DEFAULT_TERMS } from "@/lib/constants/terms"
 
 gql`
   mutation UpdateTermsTemplate($input: TermsTemplateUpdateInput!) {
@@ -46,7 +37,7 @@ gql`
 type UpdateTermsTemplateDialogProps = {
   setOpenUpdateTermsTemplateDialog: (isOpen: boolean) => void
   openUpdateTermsTemplateDialog: boolean
-  termsTemplate: TermsTemplate
+  termsTemplate: NonNullable<TermsTemplateQuery["termsTemplate"]>
 }
 
 export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps> = ({
@@ -62,10 +53,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
   const [formValues, setFormValues] = useState({
     name: termsTemplate.name,
     annualRate: termsTemplate.values.annualRate.toString(),
-    accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
-    accrualInterval: termsTemplate.values.accrualInterval,
     durationUnits: termsTemplate.values.duration.units.toString(),
-    durationPeriod: termsTemplate.values.duration.period,
     liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
     marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
     initialCvl: termsTemplate.values.initialCvl.toString(),
@@ -79,10 +67,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       setFormValues({
         name: termsTemplate.name,
         annualRate: termsTemplate.values.annualRate.toString(),
-        accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
-        accrualInterval: termsTemplate.values.accrualInterval,
         durationUnits: termsTemplate.values.duration.units.toString(),
-        durationPeriod: termsTemplate.values.duration.period,
         liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
         marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
         initialCvl: termsTemplate.values.initialCvl.toString(),
@@ -109,15 +94,19 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
           input: {
             id: termsTemplate.termsId,
             annualRate: formValues.annualRate,
-            accrualCycleInterval: formValues.accrualCycleInterval as InterestInterval,
-            accrualInterval: formValues.accrualInterval as InterestInterval,
+            accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
+            accrualInterval: DEFAULT_TERMS.ACCRUAL_INTERVAL,
             duration: {
-              period: formValues.durationPeriod as Period,
+              period: DEFAULT_TERMS.DURATION_PERIOD,
               units: parseInt(formValues.durationUnits),
             },
             interestDueDuration: {
-              period: Period.Days,
-              units: parseInt("0"),
+              period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
+              units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
+            },
+            obligationOverdueDuration: {
+              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
             },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
@@ -149,10 +138,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     setFormValues({
       name: termsTemplate.name,
       annualRate: termsTemplate.values.annualRate.toString(),
-      accrualCycleInterval: termsTemplate.values.accrualCycleInterval,
-      accrualInterval: termsTemplate.values.accrualInterval,
       durationUnits: termsTemplate.values.duration.units.toString(),
-      durationPeriod: termsTemplate.values.duration.period,
       liquidationCvl: termsTemplate.values.liquidationCvl.toString(),
       marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
       initialCvl: termsTemplate.values.initialCvl.toString(),
@@ -194,7 +180,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               </div>
               <div>
                 <Label>{t("fields.duration")}</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <Input
                     type="number"
                     name="durationUnits"
@@ -203,76 +189,23 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                     placeholder={t("placeholders.durationUnits")}
                     min={0}
                     required
-                    className="w-1/2"
                   />
-                  <Select
-                    value={formValues.durationPeriod}
-                    onValueChange={(value) =>
-                      handleChange({
-                        target: { name: "durationPeriod", value },
-                      } as React.ChangeEvent<HTMLSelectElement>)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("placeholders.durationPeriod")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(Period)
-                        .filter((period) => period !== Period.Days)
-                        .map((period) => (
-                          <SelectItem key={period} value={period}>
-                            <PeriodLabel period={period} />
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="p-1.5 bg-input-text rounded-md px-4">
+                    {t("fields.months")}
+                  </div>
                 </div>
               </div>
               <div>
-                <Label htmlFor="accrualCycleInterval">
-                  {t("fields.accrualCycleInterval")}
-                </Label>
-                <Select
-                  value={formValues.accrualCycleInterval}
-                  onValueChange={(value) =>
-                    handleChange({
-                      target: { name: "accrualCycleInterval", value },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("placeholders.accrualCycleInterval")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(InterestInterval).map((int) => (
-                      <SelectItem key={int} value={int}>
-                        <InterestIntervalLabel interval={int} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="accrualInterval">{t("fields.accrualInterval")}</Label>
-                <Select
-                  value={formValues.accrualInterval}
-                  onValueChange={(value) =>
-                    handleChange({
-                      target: { name: "accrualInterval", value },
-                    } as React.ChangeEvent<HTMLSelectElement>)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("placeholders.accrualInterval")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(InterestInterval).map((int) => (
-                      <SelectItem key={int} value={int}>
-                        <InterestIntervalLabel interval={int} />
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
+                <Input
+                  id="oneTimeFeeRate"
+                  name="oneTimeFeeRate"
+                  type="number"
+                  required
+                  placeholder={t("placeholders.oneTimeFeeRate")}
+                  value={formValues.oneTimeFeeRate}
+                  onChange={handleChange}
+                />
               </div>
             </div>
             <div className="space-y-4">
@@ -309,18 +242,6 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   required
                   placeholder={t("placeholders.liquidationCvl")}
                   value={formValues.liquidationCvl}
-                  onChange={handleChange}
-                />
-              </div>
-              <div>
-                <Label htmlFor="oneTimeFeeRate">{t("fields.oneTimeFeeRate")}</Label>
-                <Input
-                  id="oneTimeFeeRate"
-                  name="oneTimeFeeRate"
-                  type="number"
-                  required
-                  placeholder={t("placeholders.oneTimeFeeRate")}
-                  value={formValues.oneTimeFeeRate}
                   onChange={handleChange}
                 />
               </div>

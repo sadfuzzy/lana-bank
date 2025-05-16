@@ -2,7 +2,7 @@ mod balance;
 pub(super) mod disbursal;
 mod error;
 mod history;
-pub(super) mod payment;
+pub(super) mod payment_allocation;
 mod repayment;
 
 use async_graphql::*;
@@ -207,6 +207,7 @@ crate::mutation_payload! { CreditFacilityCreatePayload, credit_facility: CreditF
 pub struct CreditFacilityCollateralUpdateInput {
     pub credit_facility_id: UUID,
     pub collateral: Satoshis,
+    pub effective: Date,
 }
 crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facility: CreditFacility }
 
@@ -214,6 +215,7 @@ crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facilit
 pub struct CreditFacilityPartialPaymentInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
+    pub effective: Date,
 }
 crate::mutation_payload! { CreditFacilityPartialPaymentPayload, credit_facility: CreditFacility }
 

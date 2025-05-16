@@ -31,7 +31,7 @@ import {
 } from "@/components/date-range-picker"
 
 gql`
-  query ProfitAndLossStatement($from: Timestamp!, $until: Timestamp) {
+  query ProfitAndLossStatement($from: Date!, $until: Date) {
     profitAndLossStatement(from: $from, until: $until) {
       name
       total {
@@ -102,25 +102,25 @@ gql`
   }
 
   fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
-    usdStart: start {
+    usdStart: open {
       ...UsdBalanceFragment
     }
-    usdDiff: diff {
+    usdDiff: periodActivity {
       ...UsdBalanceFragment
     }
-    usdEnd: end {
+    usdEnd: close {
       ...UsdBalanceFragment
     }
   }
 
   fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
-    btcStart: start {
+    btcStart: open {
       ...BtcBalanceFragment
     }
-    btcDiff: diff {
+    btcDiff: periodActivity {
       ...BtcBalanceFragment
     }
-    btcEnd: end {
+    btcEnd: close {
       ...BtcBalanceFragment
     }
   }

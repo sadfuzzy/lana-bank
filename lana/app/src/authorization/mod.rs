@@ -4,14 +4,15 @@ use crate::audit::Audit;
 
 pub use authz::error;
 use authz::error::AuthorizationError;
+use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-pub use core_user::{CoreUserAction, UserObject};
+pub use core_user::{CoreUserAction, CoreUserObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
-pub type Authorization = authz::Authorization<Audit, Role>;
+pub type Authorization = authz::Authorization<Audit, RoleName>;
 
 pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
     let authz = Authorization::init(pool, audit).await?;
@@ -39,7 +40,7 @@ pub async fn get_visible_navigation_items(
         user: authz
             .check_all_permissions(
                 sub,
-                UserObject::all_users(),
+                CoreUserObject::all_users(),
                 &[CoreUserAction::USER_READ, CoreUserAction::USER_LIST],
             )
             .await?,
@@ -82,7 +83,11 @@ pub async fn get_visible_navigation_items(
             .check_all_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
             .await?,
         financials: authz
-            .check_all_permissions(sub, Object::Ledger, &[Action::Ledger(LedgerAction::Read)])
+            .check_all_permissions(
+                sub,
+                CoreAccountingObject::all_journals(),
+                &[CoreAccountingAction::JOURNAL_READ_ENTRIES],
+            )
             .await?,
         governance: GovernanceNavigationItems {
             committee: authz

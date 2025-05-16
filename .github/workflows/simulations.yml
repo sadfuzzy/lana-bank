@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-nix
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - uses: ./.github/actions/cache-rust
 
@@ -24,7 +24,6 @@ jobs:
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
 
-      # Wait for it to become healthy (or time out), and on timeout show logs
       - name: Wait for healthy server
         run: |
           for i in {1..60}; do
@@ -40,3 +39,12 @@ jobs:
           tail -n 200 server.log
           cat .server.pid | xargs kill || true
           exit 1
+
+      - name: Check no panics
+        run: |
+          if grep -q "panicked" server.log; then
+            echo "❌ Server panicked; dumping last 200 lines of logs:"
+            tail -n 200 server.log
+            cat .server.pid | xargs kill || true
+            exit 1
+          fi

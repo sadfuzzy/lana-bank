@@ -7,8 +7,8 @@ pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
         DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
-        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis, Subject,
-        TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        ManualTransactionId, PaymentAllocationId, PaymentId, PolicyId, ReportId, ReportProgress,
+        Satoshis, Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -46,13 +46,18 @@ impl Timestamp {
     }
 }
 
-#[derive(Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Date(chrono::NaiveDate);
 scalar!(Date);
 impl From<chrono::NaiveDate> for Date {
     fn from(value: chrono::NaiveDate) -> Self {
         Self(value)
+    }
+}
+impl From<Date> for chrono::NaiveDate {
+    fn from(value: Date) -> Self {
+        value.0
     }
 }
 impl Date {
@@ -117,7 +122,8 @@ impl_to_global_id! {
     ManualTransactionId,
     ApprovalProcessId,
     DepositAccountId,
-    LedgerTransactionId
+    LedgerTransactionId,
+    PaymentAllocationId
 }
 
 use cala_ledger::EntryId;

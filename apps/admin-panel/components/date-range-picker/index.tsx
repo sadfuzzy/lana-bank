@@ -26,8 +26,8 @@ export const getInitialDateRange = (): DateRange => {
   const today = new Date()
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
   return {
-    from: oneYearAgo.toISOString(),
-    until: today.toISOString(),
+    from: oneYearAgo.toISOString().split("T")[0],
+    until: today.toISOString().split("T")[0],
   }
 }
 
@@ -36,16 +36,16 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
   onDateChange,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const [startDate, setStartDate] = useState(() => initialDateRange.from.split("T")[0])
-  const [endDate, setEndDate] = useState(() => initialDateRange.until.split("T")[0])
+  const [startDate, setStartDate] = useState(() => initialDateRange.from)
+  const [endDate, setEndDate] = useState(() => initialDateRange.until)
   const [error, setError] = useState("")
   const [displayRange, setDisplayRange] = useState(`${startDate} - ${endDate}`)
 
   const updateDateRange = useCallback(() => {
     if (startDate && endDate && !error) {
       const newDateRange: DateRange = {
-        from: new Date(`${startDate}T00:00:00Z`).toISOString(),
-        until: new Date(`${endDate}T23:59:59Z`).toISOString(),
+        from: startDate,
+        until: endDate,
       }
       onDateChange(newDateRange)
       setDisplayRange(`${startDate} - ${endDate}`)

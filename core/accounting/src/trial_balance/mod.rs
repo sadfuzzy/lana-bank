@@ -1,16 +1,13 @@
 pub mod error;
 pub mod ledger;
 
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-use crate::{
-    Chart,
-    primitives::{CoreAccountingAction, CoreAccountingObject},
-};
+use crate::primitives::{CalaAccountSetId, CoreAccountingAction, CoreAccountingObject};
 
 use error::*;
 pub use ledger::TrialBalanceRoot;
@@ -69,10 +66,10 @@ where
         }
     }
 
-    pub async fn add_chart_to_trial_balance(
+    pub async fn add_new_chart_accounts_to_trial_balance(
         &self,
         name: &str,
-        chart: &Chart,
+        new_chart_account_set_ids: Vec<CalaAccountSetId>,
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = self
             .trial_balance_ledger
@@ -91,11 +88,7 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(
-                op,
-                trial_balance_id,
-                chart.all_trial_balance_accounts().map(|(_, id)| *id),
-            )
+            .add_members(op, trial_balance_id, new_chart_account_set_ids.into_iter())
             .await?;
 
         Ok(())
@@ -105,8 +98,8 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
-        from: DateTime<Utc>,
-        until: DateTime<Utc>,
+        from: NaiveDate,
+        until: NaiveDate,
     ) -> Result<TrialBalanceRoot, TrialBalanceError> {
         self.authz
             .enforce_permission(

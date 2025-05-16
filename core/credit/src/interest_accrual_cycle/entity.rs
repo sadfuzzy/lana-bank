@@ -278,6 +278,11 @@ impl InterestAccrualCycle {
                 audit_info: audit_info.clone(),
             });
 
+        let due_date = self.accrual_cycle_ends_at();
+        let overdue_date = self
+            .terms
+            .obligation_overdue_duration
+            .map(|d| d.end_date(due_date));
         Idempotent::Executed(
             NewObligation::builder()
                 .id(obligation_id)
@@ -301,7 +306,8 @@ impl InterestAccrualCycle {
                     account_to_be_credited_id: self.account_ids.interest_income_account_id,
                 })
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
-                .due_date(self.accrual_cycle_ends_at())
+                .due_date(due_date)
+                .overdue_date(overdue_date)
                 .recorded_at(posted_at)
                 .audit_info(audit_info)
                 .build()
@@ -359,15 +365,16 @@ mod test {
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::terms::{Duration, InterestDuration, InterestInterval, OneTimeFeeRatePct};
+    use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
 
     use super::*;
 
     fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
-            .duration(Duration::Months(3))
-            .interest_due_duration(InterestDuration::Days(0))
+            .duration(FacilityDuration::Months(3))
+            .interest_due_duration(ObligationDuration::Days(0))
+            .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::ZERO)

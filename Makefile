@@ -1,4 +1,4 @@
-# Docker and tilt
+# Docker, Podman and Tilt
 dev-up:
 	cd dev && tilt up
 
@@ -9,10 +9,10 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	docker compose down -t 1
+	./bin/clean-deps.sh
 
 start-deps:
-	docker compose up --wait -d integration-deps
+	./bin/docker-compose-up.sh integration-deps
 
 # Rust backend
 setup-db:
@@ -113,7 +113,7 @@ test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:
-	SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
+	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
 e2e-in-ci: clean-deps start-deps build-for-tests
 	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true

@@ -147,8 +147,6 @@ pub struct CreditFacility {
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub matures_at: Option<DateTime<Utc>>,
-    #[builder(default)]
-    pub defaults_at: Option<DateTime<Utc>>,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -183,13 +181,6 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn activated_at(&self) -> Option<DateTime<Utc>> {
-        self.events.iter_all().find_map(|event| match event {
-            CreditFacilityEvent::Activated { activated_at, .. } => Some(*activated_at),
-            _ => None,
-        })
-    }
-
     pub fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
     }
@@ -216,7 +207,7 @@ impl CreditFacility {
         Err(CreditFacilityError::ApprovalInProgress)
     }
 
-    fn is_activated(&self) -> bool {
+    pub fn is_activated(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
                 CreditFacilityEvent::Activated { .. } => return true,
@@ -288,10 +279,6 @@ impl CreditFacility {
 
         self.activated_at = Some(activated_at);
         self.matures_at = Some(self.terms.duration.maturity_date(activated_at));
-        self.defaults_at = self
-            .terms
-            .interest_overdue_duration
-            .map(|d| d.end_date(self.matures_at.expect("No 'matures_at' date set")));
         let tx_id = LedgerTxId::new();
         self.events.push(CreditFacilityEvent::Activated {
             ledger_tx_id: tx_id,
@@ -331,7 +318,7 @@ impl CreditFacility {
         let full_period = match last_accrual_start_date {
             Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
             None => interval.period_from(
-                self.activated_at()
+                self.activated_at
                     .ok_or(CreditFacilityError::NotActivatedYet)?,
             ),
         };
@@ -637,14 +624,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .expect("terms should be set")
                         .duration
                         .maturity_date(*activated_at);
-                    let defaults_at = terms
-                        .expect("terms should be set")
-                        .interest_overdue_duration
-                        .map(|d| d.end_date(matures_at));
-                    builder = builder
-                        .activated_at(*activated_at)
-                        .matures_at(matures_at)
-                        .defaults_at(defaults_at)
+                    builder = builder.activated_at(*activated_at).matures_at(matures_at)
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
@@ -714,7 +694,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        terms::{Duration, InterestInterval, OneTimeFeeRatePct},
+        terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
         *,
     };
 
@@ -723,8 +703,9 @@ mod test {
     fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
-            .duration(Duration::Months(3))
-            .interest_due_duration(InterestDuration::Days(0))
+            .duration(FacilityDuration::Months(3))
+            .interest_due_duration(ObligationDuration::Days(0))
+            .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
@@ -861,7 +842,7 @@ mod test {
         let mut accrual_period = credit_facility
             .terms
             .accrual_cycle_interval
-            .period_from(credit_facility.activated_at().expect("Not activated"));
+            .period_from(credit_facility.activated_at.expect("Not activated"));
         let mut next_accrual_period = credit_facility
             .next_interest_accrual_cycle_period()
             .unwrap();

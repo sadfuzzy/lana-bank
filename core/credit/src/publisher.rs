@@ -236,11 +236,12 @@ where
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
                     defaulted_at: entity.defaulted_at(),
-                    created_at: entity.created_at(),
+                    created_at: entity.recorded_at,
                 }),
                 DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
+                    obligation_type: entity.obligation_type,
                     amount: *amount,
                 }),
                 OverdueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationOverdue {
@@ -252,6 +253,10 @@ where
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
+                }),
+                Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
+                    id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
                 }),
                 _ => None,
             })

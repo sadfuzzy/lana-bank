@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -251,7 +251,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strum",
- "syn 2.0.100",
+ "syn 2.0.101",
  "thiserror 1.0.69",
 ]
 
@@ -298,7 +298,7 @@ checksum = "c7c24de15d275a1ecfd47a380fb4d5ec9bfe0933f309ed5e705b775596a3574d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -309,7 +309,7 @@ checksum = "e539d3fca749fcee5236ab05e93a52867dd549cc157c8cb7f99595f3cedffdb5"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -329,7 +329,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -459,7 +459,7 @@ checksum = "57d123550fa8d071b7255cb0cc04dc302baa6c8c4a79f55701552684d8399bce"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -566,7 +566,7 @@ dependencies = [
  "proc-macro-crate",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -657,7 +657,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -669,7 +669,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -680,9 +680,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "418929b6fc00a0862cfea589619576e6e1f3f774ddd60733f7355a4f77e8b009"
+checksum = "9db8fa3c69007826727125b83c3955c1e41e981d29a1abc9657b29b0dead3c4f"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -696,9 +696,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54e9b993e1b77022187195d1cc52217cfd26ead24401826355d30b8fa02de859"
+checksum = "b4ec375a0b8fcfe5a083556a59df090d295c3d5b57fe2ced00d99921e0f5dab8"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -706,9 +706,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a8f987a3d4ef95f7435303d43c0721a2b8a6f03a798ddf39e6bf142f6e956b5"
+checksum = "0545e755b18e16ccb7365f575aa00233269914184746f49a373ff3a97dfa9f7e"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -724,6 +724,7 @@ dependencies = [
  "prost",
  "prost-wkt-types",
  "protobuf-src",
+ "regex",
  "rust_decimal",
  "serde",
  "serde_json",
@@ -741,9 +742,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c2d17c745f2170c96d18aa39fc46f094b900fd933ea840f56ab4154f02c2bb8"
+checksum = "4343d1a9f3ffa89dd76a1e3bf4348f75e73c961116fc69baa870d1225eebad28"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -762,9 +763,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8209bcfd6a1165708281208d4fde65db10a8f3d6b053f25684f9d6c189191a8c"
+checksum = "d9991a5ac9443dfc53d02e03191718790fbbf4c5845592f89fd50bbb6cc0dfef"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -824,9 +825,9 @@ checksum = "613afe47fcd5fac7ccf1db93babcb082c5994d996f20b8b159f2ad1658eb5724"
 
 [[package]]
 name = "chrono"
-version = "0.4.40"
+version = "0.4.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a7964611d71df112cb1730f2ee67324fcf4d0fc6606acbbe9bfe06df124637c"
+checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
@@ -868,7 +869,7 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -879,7 +880,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "cloud-storage"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "google-cloud-storage",
@@ -952,7 +953,7 @@ dependencies = [
 
 [[package]]
 name = "core-accounting"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -984,7 +985,7 @@ dependencies = [
 
 [[package]]
 name = "core-credit"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1022,7 +1023,7 @@ dependencies = [
 
 [[package]]
 name = "core-customer"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1058,7 +1059,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -1069,7 +1070,7 @@ dependencies = [
 
 [[package]]
 name = "core-price"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "cached 0.53.1",
@@ -1085,7 +1086,7 @@ dependencies = [
 
 [[package]]
 name = "core-user"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "audit",
@@ -1189,7 +1190,7 @@ dependencies = [
 
 [[package]]
 name = "customer-server"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1213,7 +1214,7 @@ dependencies = [
 
 [[package]]
 name = "customer-sync"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1261,7 +1262,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "strsim",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1272,12 +1273,12 @@ checksum = "fc34b93ccb385b40dc71c6fceac4b2ad23662c7eeb248cf10d529b7e055b6ead"
 dependencies = [
  "darling_core",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
 name = "dashboard"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1309,7 +1310,7 @@ checksum = "e8566979429cf69b49a5c740c60791108e86440e8be149bbea4fe54d2c32d6e2"
 
 [[package]]
 name = "deposit"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1334,6 +1335,7 @@ dependencies = [
  "rust_decimal_macros",
  "serde",
  "serde_json",
+ "sim-time",
  "sqlx",
  "strum",
  "thiserror 2.0.12",
@@ -1381,7 +1383,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1391,7 +1393,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab63b0e2bf4d5928aff72e83a7dace85d7bba5fe12dcc3c5a572d78caffd3f3c"
 dependencies = [
  "derive_builder_core",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1435,7 +1437,7 @@ checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1505,9 +1507,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a5ad53dca4b7796714a12c4f08a0eb5835040f87ea588d2f6316965aaab7445c"
+checksum = "509c112d61f3f9ff0a1d81ffb36a76a800865fcffd50151e0e6027b961343e76"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1525,9 +1527,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddb0128f4e4257af804c4b57f4c746a0a871ac94dcf9ffd2ce43f6edb459fa0d"
+checksum = "88935765e36f62a52d4070cffd2dd7afb92fe23991d4d7e4e6490f8872fb60bf"
 dependencies = [
  "convert_case",
  "darling",
@@ -1535,7 +1537,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1697,7 +1699,7 @@ checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -1914,7 +1916,7 @@ dependencies = [
 
 [[package]]
 name = "governance"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2463,7 +2465,7 @@ checksum = "1ec89e9337638ecdc08744df490b221a7399bf8d164eb52a665454e60e075ad6"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -2559,7 +2561,7 @@ checksum = "d75a2a4b1b190afb6f5425f10f6a8f959d2ea0b9c2b1d79553551850539e4674"
 
 [[package]]
 name = "job"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2605,7 +2607,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "axum",
  "axum-extra",
@@ -2618,7 +2620,7 @@ dependencies = [
 
 [[package]]
 name = "kratos-admin"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "ory-kratos-client",
  "serde",
@@ -2661,7 +2663,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2725,7 +2727,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -2744,7 +2746,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "core-credit",
  "core-customer",
@@ -2757,7 +2759,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "cala-ledger",
  "deposit",
@@ -3153,7 +3155,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3280,7 +3282,7 @@ checksum = "3c0f5fad0874fc7abcd4d750e76917eaebbecaa2c20bde22e1dbeeba8beb758c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -3366,7 +3368,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64d1ec885c64d0457d564db4ec299b2dae3f9c02808b8ad9c3a089c591b18033"
 dependencies = [
  "proc-macro2",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -3403,7 +3405,7 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0f3e5beed80eb580c68e2c600937ac2c4eedabdfd5ef1e5b7ea4f3fba84497b"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "itertools",
  "log",
  "multimap",
@@ -3415,7 +3417,7 @@ dependencies = [
  "pulldown-cmark",
  "pulldown-cmark-to-cmark",
  "regex",
- "syn 2.0.100",
+ "syn 2.0.101",
  "tempfile",
 ]
 
@@ -3429,7 +3431,7 @@ dependencies = [
  "itertools",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -3462,7 +3464,7 @@ version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a669d5acbe719010c6f62a64e6d7d88fdedc1fe46e419747949ecb6312e9b14"
 dependencies = [
- "heck 0.4.1",
+ "heck 0.5.0",
  "prost",
  "prost-build",
  "prost-types",
@@ -3671,7 +3673,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -3896,7 +3898,7 @@ checksum = "a5a11a05ee1ce44058fa3d5961d05194fdbe3ad6b40f904af764d81b86450e6b"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -3985,7 +3987,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f6268b74858287e1a062271b988a0c534bf85bbeb567fe09331bf40ed78113d5"
 dependencies = [
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4173,7 +4175,7 @@ checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4237,7 +4239,7 @@ dependencies = [
  "darling",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4276,7 +4278,7 @@ checksum = "5d69265a08751de7844521fd15003ae0a888e035773ba05695c5c759a6f89eef"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4328,7 +4330,7 @@ dependencies = [
 
 [[package]]
 name = "sim-bootstrap"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4345,9 +4347,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.4.5"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d2499621d0e3f7b7a23a9e6d6626b28c3cb06841072de77c7c525feb432b586"
+checksum = "fedcd82ccb6420e44388c5d639101085fdcb76fce8b732da535d06d0b57303c2"
 dependencies = [
  "chrono",
  "serde",
@@ -4518,7 +4520,7 @@ dependencies = [
  "quote",
  "sqlx-core",
  "sqlx-macros-core",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4541,7 +4543,7 @@ dependencies = [
  "sqlx-mysql",
  "sqlx-postgres",
  "sqlx-sqlite",
- "syn 2.0.100",
+ "syn 2.0.101",
  "tempfile",
  "tokio",
  "url",
@@ -4724,7 +4726,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4746,9 +4748,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.100"
+version = "2.0.101"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b09a44accad81e1ba1cd74a32461ba89dee89095ba17b32f5d03683b1b1fc2a0"
+checksum = "8ce2b7fc941b3a24138a0a7cf8e858bfc6a992e7978a068a5c760deb0ed43caf"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4778,7 +4780,7 @@ checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4867,7 +4869,7 @@ checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4878,7 +4880,7 @@ checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -4960,9 +4962,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.44.2"
+version = "1.45.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6b88822cbe49de4185e3a4cbf8321dd487cf5fe0c5c65695fef6346371e9c48"
+checksum = "2513ca694ef9ede0fb23fe71a4ee4107cb102b9dc1930f6d0fd77aae068ae165"
 dependencies = [
  "backtrace",
  "bytes",
@@ -4983,7 +4985,7 @@ checksum = "6e06d43f1345a3bcd39f6a56dbb7dcab2ba47e68e8ac134855e7e2bdbaf8cab8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -5105,7 +5107,7 @@ dependencies = [
  "prost-build",
  "prost-types",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -5205,7 +5207,7 @@ checksum = "395ae124c09f9e6918a2310af6038fba074bcf474ac352496d5910dd59a2226d"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -5292,7 +5294,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "axum-extra",
@@ -5366,7 +5368,7 @@ checksum = "70b20a22c42c8f1cd23ce5e34f165d4d37038f5b663ad20fb6adbdf029172483"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -5451,7 +5453,7 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "user-onboarding"
-version = "0.3.424-dev"
+version = "0.3.495-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -5589,7 +5591,7 @@ dependencies = [
  "log",
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
  "wasm-bindgen-shared",
 ]
 
@@ -5624,7 +5626,7 @@ checksum = "8ae87ea40c9f689fc23f209965b6fb8a99ad69aeeb0231408be24920604395de"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -5718,7 +5720,7 @@ version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf221c93e13a30d793f7645a0e7762c55d169dbb0a49671918a2319d289b10bb"
 dependencies = [
- "windows-sys 0.48.0",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -6052,7 +6054,7 @@ checksum = "2380878cad4ac9aac1e2435f3eb4020e8374b5f13c296cb75b4620ff8e229154"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
  "synstructure",
 ]
 
@@ -6108,7 +6110,7 @@ checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -6119,7 +6121,7 @@ checksum = "a996a8f63c5c4448cd959ac1bab0aaa3306ccfd060472f85943ee0750f0169be"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]
 
 [[package]]
@@ -6139,7 +6141,7 @@ checksum = "595eed982f7d355beb85837f651fa22e90b3c044842dc7f2c2842c086f295808"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
  "synstructure",
 ]
 
@@ -6168,5 +6170,5 @@ checksum = "6eafa6dfb17584ea3e2bd6e76e0cc15ad7af12b09abdd1ca55961bed9b1063c6"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.100",
+ "syn 2.0.101",
 ]

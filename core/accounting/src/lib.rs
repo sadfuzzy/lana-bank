@@ -208,14 +208,15 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
+    #[instrument(name = "core_accounting.list_account_children", skip(self))]
     pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         id: cala_ledger::AccountSetId,
         args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
-        from: chrono::DateTime<chrono::Utc>,
-        until: Option<chrono::DateTime<chrono::Utc>>,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
     ) -> Result<
         es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
         CoreAccountingError,
@@ -234,6 +235,10 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "core_accounting.execute_manual_transaction",
+        skip(self, entries)
+    )]
     pub async fn execute_manual_transaction(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -270,6 +275,7 @@ where
             .expect("Could not find LedgerTransaction"))
     }
 
+    #[instrument(name = "core_accounting.import_csv", skip(self))]
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -277,14 +283,15 @@ where
         data: String,
         trial_balance_ref: &str,
     ) -> Result<bool, CoreAccountingError> {
-        let chart = self
+        if let Some(new_account_set_ids) = self
             .chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
-            .await?;
-
-        self.trial_balances()
-            .add_chart_to_trial_balance(trial_balance_ref, &chart)
-            .await?;
+            .await?
+        {
+            self.trial_balances()
+                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, new_account_set_ids)
+                .await?;
+        }
 
         Ok(true)
     }

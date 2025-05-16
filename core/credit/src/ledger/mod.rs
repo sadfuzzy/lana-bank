@@ -25,7 +25,7 @@ use crate::{
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation,
+    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
 };
@@ -1073,6 +1073,7 @@ impl CreditLedger {
             tx_id,
             abs_diff,
             action,
+            effective,
         }: CollateralUpdate,
         credit_facility_account_ids: CreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
@@ -1093,6 +1094,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1112,6 +1114,7 @@ impl CreditLedger {
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
+                            effective,
                         },
                     )
                     .await
@@ -1124,12 +1127,12 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        PaymentAllocation {
+        allocation @ PaymentAllocation {
             id,
-            obligation_id: tx_ref,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
+            effective,
             ..
         }: PaymentAllocation,
     ) -> Result<(), CreditLedgerError> {
@@ -1139,7 +1142,8 @@ impl CreditLedger {
             amount: amount.to_usd(),
             receivable_account_id,
             account_to_be_debited_id,
-            tx_ref: tx_ref.to_string(),
+            tx_ref: allocation.tx_ref(),
+            effective,
         };
         self.cala
             .post_transaction_in_op(
@@ -1177,6 +1181,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             not_yet_due_account_id,
             due_account_id,
+            effective,
             ..
         }: ObligationDueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1191,6 +1196,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
                     receivable_due_account_id: due_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1206,6 +1212,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             due_account_id,
             overdue_account_id,
+            effective,
             ..
         }: ObligationOverdueReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1220,6 +1227,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
                     receivable_overdue_account_id: overdue_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1235,6 +1243,7 @@ impl CreditLedger {
             amount: outstanding_amount,
             receivable_account_id,
             defaulted_account_id,
+            effective,
             ..
         }: ObligationDefaultedReallocationData,
     ) -> Result<(), CreditLedgerError> {
@@ -1249,6 +1258,7 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
+                    effective,
                 },
             )
             .await?;
@@ -1277,6 +1287,7 @@ impl CreditLedger {
                     amount: collateral.to_btc(),
                     collateral_account_id: credit_facility_account_ids.collateral_account_id,
                     bank_collateral_account_id: self.collateral_omnibus_account_ids.account_id,
+                    effective: crate::time::now().date_naive(),
                 },
             )
             .await?;
@@ -1615,11 +1626,11 @@ impl CreditLedger {
     fn interest_internal_account_set_from_type(
         &self,
         interest_receivable_account_type: impl Into<InterestReceivableAccountType>,
-        duration_type: DurationType,
+        duration_type: FacilityDurationType,
     ) -> InternalAccountSetDetails {
         let interest_receivable_account_type = interest_receivable_account_type.into();
 
-        let term_type = if duration_type == DurationType::ShortTerm {
+        let term_type = if duration_type == FacilityDurationType::ShortTerm {
             &self.internal_account_sets.interest_receivable.short_term
         } else {
             &self.internal_account_sets.interest_receivable.long_term
@@ -1644,7 +1655,7 @@ impl CreditLedger {
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
         customer_type: CustomerType,
-        duration_type: DurationType,
+        duration_type: FacilityDurationType,
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityAccountIds {
             facility_account_id,

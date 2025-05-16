@@ -518,7 +518,6 @@ where
     }
 
     #[instrument(name = "credit_facility.initiate_disbursal", skip(self), err)]
-    #[es_entity::retry_on_concurrent_modification]
     pub async fn initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -545,7 +544,7 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
-        if facility.activated_at().is_none() {
+        if !facility.is_activated() {
             return Err(CreditFacilityError::NotActivatedYet.into());
         }
         let now = crate::time::now();
@@ -564,6 +563,11 @@ where
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
+        let due_date = facility.matures_at.expect("Facility is not active");
+        let overdue_date = facility
+            .terms
+            .obligation_overdue_duration
+            .map(|d| d.end_date(due_date));
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
@@ -571,7 +575,8 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(facility.activated_at().expect("Facility is not active"))
+            .disbursal_due_date(due_date)
+            .disbursal_overdue_date(overdue_date)
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal");
@@ -622,6 +627,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit_facility.find_disbursal_by_concluded_tx_id",
+        skip(self),
+        err
+    )]
     pub async fn find_disbursal_by_concluded_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -676,14 +686,17 @@ where
             .await?)
     }
 
-    #[es_entity::retry_on_concurrent_modification]
     #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let credit_facility_id = credit_facility_id.into();
+        let effective = effective.into();
+
         let audit_info = self
             .subject_can_update_collateral(sub, true)
             .await?
@@ -700,7 +713,7 @@ where
             .await?;
 
         let collateral_update =
-            match collateral.record_collateral_update(updated_collateral, &audit_info) {
+            match collateral.record_collateral_update(updated_collateral, effective, &audit_info) {
                 Idempotent::Executed(update) => update,
                 Idempotent::Ignored => {
                     return Ok(credit_facility);
@@ -741,9 +754,13 @@ where
     pub async fn record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         amount: UsdCents,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let credit_facility_id = credit_facility_id.into();
+        let effective = effective.into();
+
         let mut credit_facility = self
             .credit_facility_repo
             .find_by_id(credit_facility_id)
@@ -766,7 +783,14 @@ where
 
         let res = self
             .obligations
-            .allocate_payment_in_op(&mut db, credit_facility_id, payment.id, amount, &audit_info)
+            .allocate_payment_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective,
+                &audit_info,
+            )
             .await?;
 
         let _ = payment.record_allocated(
@@ -989,10 +1013,11 @@ where
     }
 
     #[instrument(name = "credit_facility.complete", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
         let credit_facility_id = credit_facility_id.into();
 
@@ -1017,7 +1042,11 @@ where
             .collaterals()
             .find_by_id(credit_facility.collateral_id)
             .await?;
-        let _ = collateral.record_collateral_update(Satoshis::ZERO, &audit_info);
+        let _ = collateral.record_collateral_update(
+            Satoshis::ZERO,
+            crate::time::now().date_naive(),
+            &audit_info,
+        );
         let mut db = self.credit_facility_repo.begin_op().await?;
         self.collaterals()
             .update_in_op(&mut db, &mut collateral)
@@ -1043,12 +1072,20 @@ where
         Ok(credit_facility)
     }
 
-    pub async fn find_payment_by_id(
+    #[instrument(
+        name = "credit_facility.find_payment_allocation_by_id",
+        skip(self),
+        err
+    )]
+    pub async fn find_payment_allocation_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        payment_id: impl Into<PaymentId> + std::fmt::Debug,
-    ) -> Result<Payment, CoreCreditError> {
-        let payment = self.payment_repo.find_by_id(payment_id.into()).await?;
+        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, CoreCreditError> {
+        let payment_allocation = self
+            .payment_allocation_repo
+            .find_by_id(payment_allocation_id.into())
+            .await?;
 
         self.authz
             .enforce_permission(
@@ -1058,15 +1095,16 @@ where
             )
             .await?;
 
-        Ok(payment)
+        Ok(payment_allocation)
     }
 
+    #[instrument(name = "credit_facility.list_disbursals", skip(self), err)]
     pub async fn list_disbursals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         filter: FindManyDisbursals,
-        sort: impl Into<Sort<DisbursalsSortBy>>,
+        sort: impl Into<Sort<DisbursalsSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
         self.authz
             .enforce_permission(
@@ -1083,6 +1121,7 @@ where
         Ok(disbursals)
     }
 
+    #[instrument(name = "credit_facility.find_all", skip(self), err)]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
@@ -1090,6 +1129,7 @@ where
         Ok(self.credit_facility_repo.find_all(ids).await?)
     }
 
+    #[instrument(name = "credit_facility.find_all_disbursals", skip(self), err)]
     pub async fn find_all_disbursals<T: From<Disbursal>>(
         &self,
         ids: &[DisbursalId],

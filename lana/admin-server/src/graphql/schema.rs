@@ -14,10 +14,9 @@ use crate::primitives::*;
 
 use super::{
     accounting::*, approval_process::*, audit::*, authenticated_subject::*,
-    balance_sheet_config::*, chart_of_accounts::*, committee::*, credit_config::*,
-    credit_facility::*, customer::*, dashboard::*, deposit::*, deposit_config::*, document::*,
-    general_ledger::*, loader::*, policy::*, price::*, profit_and_loss_config::*, report::*,
-    sumsub::*, terms_template::*, user::*, withdrawal::*,
+    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
+    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -101,11 +100,14 @@ impl Query {
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let sort = sort.unwrap_or_default();
+        let sort = Sort {
+            by: DomainCustomersSortBy::from(sort.unwrap_or_default()),
+            direction: ListDirection::Descending,
+        };
         list_with_combo_cursor!(
             CustomersCursor,
             Customer,
-            DomainCustomersSortBy::from(sort),
+            sort.by,
             ctx,
             after,
             first,
@@ -520,44 +522,11 @@ impl Query {
         .await
     }
 
-    async fn general_ledger_entries(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<GeneralLedgerEntryCursor, GeneralLedgerEntry, EmptyFields, EmptyFields>,
-    > {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-
-        query(
-            after,
-            None,
-            Some(first),
-            None,
-            |after, _, first, _| async move {
-                let first = first.expect("First always exists");
-                let query_args = es_entity::PaginatedQueryArgs { first, after };
-                let res = app.general_ledger().entries(sub, query_args).await?;
-
-                let mut connection = Connection::new(false, res.has_next_page);
-                connection
-                    .edges
-                    .extend(res.entities.into_iter().map(|entry| {
-                        let cursor = GeneralLedgerEntryCursor::from(&entry);
-                        Edge::new(cursor, GeneralLedgerEntry::from(entry))
-                    }));
-                Ok::<_, async_graphql::Error>(connection)
-            },
-        )
-        .await
-    }
-
     async fn trial_balance(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Timestamp,
+        from: Date,
+        until: Date,
     ) -> async_graphql::Result<TrialBalance> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let account_summary = app
@@ -587,8 +556,8 @@ impl Query {
     async fn balance_sheet(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<BalanceSheet> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let balance_sheet = app
@@ -607,8 +576,8 @@ impl Query {
     async fn profit_and_loss_statement(
         &self,
         ctx: &Context<'_>,
-        from: Timestamp,
-        until: Option<Timestamp>,
+        from: Date,
+        until: Option<Date>,
     ) -> async_graphql::Result<ProfitAndLossStatement> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let profit_and_loss = app
@@ -1050,6 +1019,7 @@ impl Mutation {
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
+            .obligation_overdue_duration(input.obligation_overdue_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1078,6 +1048,7 @@ impl Mutation {
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
+            .obligation_overdue_duration(input.obligation_overdue_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1246,6 +1217,7 @@ impl Mutation {
             .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
             .interest_due_duration(terms.interest_due_duration)
+            .obligation_overdue_duration(terms.obligation_overdue_duration)
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
@@ -1274,13 +1246,14 @@ impl Mutation {
         let CreditFacilityCollateralUpdateInput {
             credit_facility_id,
             collateral,
+            effective,
         } = input;
         exec_mutation!(
             CreditFacilityCollateralUpdatePayload,
             CreditFacility,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id.into(), collateral)
+                .update_collateral(sub, credit_facility_id, collateral, effective)
         )
     }
 
@@ -1294,8 +1267,12 @@ impl Mutation {
             CreditFacilityPartialPaymentPayload,
             CreditFacility,
             ctx,
-            app.credit()
-                .record_payment(sub, input.credit_facility_id.into(), input.amount)
+            app.credit().record_payment(
+                sub,
+                input.credit_facility_id,
+                input.amount,
+                input.effective
+            )
         )
     }
 

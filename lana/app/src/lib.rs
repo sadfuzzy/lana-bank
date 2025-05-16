@@ -6,7 +6,6 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod document;
-pub mod general_ledger;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
@@ -31,8 +30,8 @@ pub mod user_onboarding {
 }
 
 pub mod user {
-    pub use core_user::{error, User};
-    pub type Users = core_user::Users<crate::audit::Audit, lana_events::LanaEvent>;
+    pub use core_user::{user::error, user::User};
+    pub type Users = core_user::user::Users<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod customer {
@@ -94,7 +93,7 @@ pub mod accounting {
     pub use core_accounting::{
         chart_of_accounts, csv, error, journal, ledger_account, ledger_transaction,
         manual_transaction, transaction_templates, AccountCode, AccountingCsvId, CalaAccountId,
-        LedgerAccountId, TransactionTemplateId, {tree, Chart},
+        ChartId, LedgerAccountId, TransactionTemplateId, {tree, Chart},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
@@ -126,7 +125,7 @@ pub mod credit {
         CreditFacilityOrigination, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
         FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, Payment, RepaymentStatus, Sort,
+        InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
 
@@ -136,7 +135,7 @@ pub mod credit {
 
 pub mod terms {
     pub use core_credit::{
-        AnnualRatePct, CVLPct, CollateralizationState, Duration, InterestDuration,
-        InterestInterval, OneTimeFeeRatePct, TermValues,
+        AnnualRatePct, CVLPct, CollateralizationState, FacilityDuration, InterestInterval,
+        ObligationDuration, OneTimeFeeRatePct, TermValues,
     };
 }
