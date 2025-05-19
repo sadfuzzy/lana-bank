@@ -1422,7 +1422,8 @@
         "recordedAt": "Recorded At",
         "currency": "Currency",
         "debit": "Debit",
-        "credit": "Credit"
+        "credit": "Credit",
+        "closestAccountWithCode": "Closest Account With Code"
       }
     },
     "exportCsv": {
@@ -1470,7 +1471,8 @@
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description",
-      "effective": "Effective Date"
+      "effective": "Effective Date",
+      "closestAccountWithCode": "Closest Account With Code"
     },
     "debitOrCredit": {
       "debit": "Debit",
@@ -1492,7 +1494,8 @@
       "debit": "Debit",
       "credit": "Credit",
       "amount": "Amount",
-      "ledgerAccount": "Ledger Account"
+      "ledgerAccount": "Ledger Account",
+      "closestAccountWithCode": "Closest Account With Code"
     }
   },
   "ManualTransactions": {

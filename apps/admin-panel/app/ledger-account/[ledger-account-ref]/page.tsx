@@ -25,6 +25,8 @@ import {
 import { FileDown } from "lucide-react"
 import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
+import Link from "next/link"
+
 import { ExportCsvDialog } from "./export"
 
 import { formatDate, isUUID } from "@/lib/utils"
@@ -100,6 +102,12 @@ gql`
           direction
           layer
           createdAt
+          ledgerAccount {
+            code
+            closestAccountWithCode {
+              code
+            }
+          }
         }
       }
       pageInfo {
@@ -196,6 +204,21 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         } else if (record.amount.__typename === "BtcAmount") {
           return <Balance amount={record?.amount.btc} currency="btc" />
         }
+      },
+    },
+    {
+      key: "ledgerAccount",
+      label: t("table.columns.closestAccountWithCode"),
+      render: (_, record) => {
+        const closestAccountWithCode = record.ledgerAccount.closestAccountWithCode?.code
+        return (
+          <Link
+            href={`/ledger-account/${closestAccountWithCode}`}
+            className="hover:underline"
+          >
+            {closestAccountWithCode}
+          </Link>
+        )
       },
     },
   ]
