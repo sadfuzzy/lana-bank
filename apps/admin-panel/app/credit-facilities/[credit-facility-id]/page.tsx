@@ -3,6 +3,8 @@
 import { gql } from "@apollo/client"
 import { use } from "react"
 
+import { useTranslations } from "next-intl"
+
 import { CreditFacilityHistory } from "./history"
 
 import {
@@ -98,6 +100,8 @@ export default function CreditFacilityHistoryPage({
     skip: !customerId,
   })
 
+  const t = useTranslations()
+
   if (!cfData?.creditFacility || !layoutData?.creditFacility) return null
 
   const customerType = customerData?.customer?.customerType
@@ -112,15 +116,15 @@ export default function CreditFacilityHistoryPage({
     <div>
       <div className="space-y-2 mb-4">
         <div>
-          <span className="font-medium">Customer Type: </span>
+          <span className="font-medium">{t("Common.customerType")}: </span>
           <span>{customerTypeDisplay}</span>
         </div>
         <div>
-          <span className="font-medium">Date of Issuance: </span>
+          <span className="font-medium">{t("Common.dateOfIssuance")}: </span>
           <span>{issuanceDate}</span>
         </div>
         <div>
-          <span className="font-medium">Maturity Date: </span>
+          <span className="font-medium">{t("Common.maturityDate")}: </span>
           <span>{maturityDate}</span>
         </div>
       </div>

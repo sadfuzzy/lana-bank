@@ -18,7 +18,10 @@
     "upload": "Upload",
     "close": "Close",
     "submit": "Submit",
-    "set": "Set"
+    "set": "Set",
+    "customerType": "Customer Type",
+    "dateOfIssuance": "Date of Issuance",
+    "maturityDate": "Maturity Date"
   },
   "interestInterval": {
     "endOfDay": "End of Day",
