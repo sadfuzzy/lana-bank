@@ -108,9 +108,6 @@ export default function CreditFacilityHistoryPage({
   const customerTypeDisplay = customerType ? removeUnderscore(customerType) : "Unknown"
 
   const issuanceDate = new Date(layoutData.creditFacility.createdAt).toLocaleDateString()
-  const maturityDate = layoutData.creditFacility.maturesAt
-    ? new Date(layoutData.creditFacility.maturesAt).toLocaleDateString()
-    : "Not set"
 
   return (
     <div>
