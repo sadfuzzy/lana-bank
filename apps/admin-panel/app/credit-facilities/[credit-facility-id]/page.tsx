@@ -123,10 +123,6 @@ export default function CreditFacilityHistoryPage({
           <span className="font-medium">{t("Common.dateOfIssuance")}: </span>
           <span>{issuanceDate}</span>
         </div>
-        <div>
-          <span className="font-medium">{t("Common.maturityDate")}: </span>
-          <span>{maturityDate}</span>
-        </div>
       </div>
       <CreditFacilityHistory creditFacility={cfData.creditFacility} />
     </div>

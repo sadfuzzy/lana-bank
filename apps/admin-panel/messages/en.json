@@ -20,8 +20,7 @@
     "submit": "Submit",
     "set": "Set",
     "customerType": "Customer Type",
-    "dateOfIssuance": "Date of Issuance",
-    "maturityDate": "Maturity Date"
+    "dateOfIssuance": "Date of Issuance"
   },
   "interestInterval": {
     "endOfDay": "End of Day",
@@ -321,6 +320,7 @@
     "table": {
       "headers": {
         "customer": "Customer",
+        "state": "State",
         "status": "Status",
         "outstanding": "Outstanding",
         "collateralizationState": "State",
@@ -452,7 +452,7 @@
           "customerEmail": "Customer Email",
           "collateralizationState": "Collateralization State",
           "status": "Status",
-          "expiresAt": "Expires At"
+          "expiresAt": "Maturity Date"
         },
         "buttons": {
           "loanTerms": "Loan Terms",
