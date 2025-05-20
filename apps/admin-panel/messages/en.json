@@ -346,6 +346,16 @@
       "general": "An error occurred"
     },
     "CreditFacilityDetails": {
+      "DetailsCard": {
+        "title": "Credit Facility Details",
+        "details": {
+          "customerEmail": "Customer Email",
+          "collateralizationState": "Collateralization State",
+          "status": "Status",
+          "expiresAt": "Expires At",
+          "monthlyPayment": "Monthly Payment"
+        }
+      },
       "RepaymentPlan": {
         "title": "Repayment Plan",
         "description": "Repayment plan associated with this credit facility",
