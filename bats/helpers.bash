@@ -66,8 +66,10 @@ start_server_nix() {
     return 0
   fi
 
+  echo "LANA_CONFIG: $LANA_CONFIG"
+
   # Start server if not already running
-  background nix run . > "$LOG_FILE" 2>&1
+  background LANA_CONFIG="$LANA_CONFIG" nix run . > "$LOG_FILE" 2>&1
   echo "--- Server started ---"
   for i in {1..20}; do
     echo "--- Checking if server is running ${i} ---"
@@ -76,7 +78,7 @@ start_server_nix() {
     elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
       sleep 1
-      background nix run . > "$LOG_FILE" 2>&1
+      background LANA_CONFIG="$LANA_CONFIG" nix run . > "$LOG_FILE" 2>&1
     else
       sleep 1
       echo "--- Server not running ---"
