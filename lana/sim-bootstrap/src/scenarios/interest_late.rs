@@ -1,15 +1,15 @@
 use futures::StreamExt;
 use lana_app::{app::LanaApp, primitives::*};
-use lana_events::{CoreCreditEvent, LanaEvent};
+use lana_events::{CoreCreditEvent, LanaEvent, ObligationType};
 use rust_decimal_macros::dec;
 use tokio::sync::mpsc;
 
 use crate::helpers;
 
-// Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
-pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
+// Scenario 2: A credit facility with an interest payment >90 days late
+pub async fn interest_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
-        helpers::create_customer(&sub, app, "1-timely-paid").await?;
+        helpers::create_customer(&sub, app, "2-interest-late").await?;
 
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
@@ -47,12 +47,12 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
         }
     }
 
-    let (tx, rx) = mpsc::channel::<UsdCents>(32);
+    let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
     tokio::spawn(async move {
-        do_timely_payments(sub, sim_app, cf.id, rx)
+        do_interest_late(sub, sim_app, cf.id, rx)
             .await
-            .expect("timely payments failed");
+            .expect("interest late failed");
     });
 
     while let Some(msg) = stream.next().await {
@@ -60,9 +60,10 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
             Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
                 credit_facility_id: id,
                 amount,
+                obligation_type,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                tx.send(*amount).await?;
+                tx.send((*obligation_type, *amount)).await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
                 if cf.id == *id {
@@ -83,20 +84,25 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
     Ok(())
 }
 
-async fn do_timely_payments(
+async fn do_interest_late(
     sub: Subject,
     app: LanaApp,
     id: CreditFacilityId,
-    mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
+    mut obligation_amount_rx: mpsc::Receiver<(ObligationType, UsdCents)>,
 ) -> anyhow::Result<()> {
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
     let mut month_num = 0;
+    let mut first_interest = UsdCents::ZERO;
 
-    while let Some(amount) = obligation_amount_rx.recv().await {
-        // 3 months of interest payments should be delayed by a month
+    while let Some((obligation_type, amount)) = obligation_amount_rx.recv().await {
         if month_num < 3 {
             month_num += 1;
             sim_time::sleep(one_month).await;
+        }
+
+        if obligation_type == ObligationType::Interest && first_interest.is_zero() {
+            first_interest = amount;
+            continue;
         }
 
         app.credit()
@@ -105,10 +111,17 @@ async fn do_timely_payments(
 
         let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
-        if total_outstanding.is_zero() {
+        if total_outstanding == first_interest {
             break;
         }
     }
+
+    // Delay first payment by 1 more month
+    sim_time::sleep(one_month).await;
+
+    app.credit()
+        .record_payment(&sub, id, first_interest, sim_time::now().date_naive())
+        .await?;
 
     // Pay off some accrued interest (if any - not deterministic as sim_time can progress and
     // thereby interest can accrue)
