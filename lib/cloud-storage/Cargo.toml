@@ -1,6 +1,6 @@
 [package]
 name = "cloud-storage"
-version = "0.3.533-dev"
+version = "0.3.536-dev"
 edition = "2021"
 
 [features]
