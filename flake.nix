@@ -60,6 +60,7 @@
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
           CARGO_PROFILE = "dev"; # Explicitly set dev profile
+          cargoExtraArgs = "--features sim-time"; # Build only the specific package
         });
 
       lanaCliPname = "lana-cli";
@@ -76,16 +77,6 @@
           # FIXME: aiming at parity with older script for now
           cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
         });
-
-      # Create a debug variant that's clearly marked as such
-      lana-cli-debug = lana-cli.overrideAttrs (old: {
-        name = "${old.pname}-debug-${old.version}";
-        meta =
-          old.meta
-          // {
-            description = "${old.meta.description} (debug build)";
-          };
-      });
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
