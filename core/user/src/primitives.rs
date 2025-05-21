@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr};
+use std::{borrow::Cow, fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::AllOrOne;
+pub use authz::{action_description::*, AllOrOne};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -12,31 +12,30 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { AuthenticationId, RoleId }
+es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum RoleName {
-    Superuser,
-    Admin,
-    Accountant,
-    BankManager,
-    #[serde(untagged)]
-    Other(String),
-}
+pub const PERMISSION_SET_USER_WRITER: &str = "user_writer";
+pub const PERMISSION_SET_USER_READER: &str = "user_reader";
+
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
+#[serde(transparent)]
+#[sqlx(transparent)]
+pub struct RoleName(Cow<'static, str>);
 impl RoleName {
+    /// Name of the role that will have all permission sets.
+    pub const SUPERUSER: RoleName = RoleName(Cow::Borrowed("superuser"));
+
+    // Transitional roles before they are replaced by seeded roles
+    pub const ACCOUNTANT: RoleName = RoleName(Cow::Borrowed("accountant"));
+    pub const BANK_MANAGER: RoleName = RoleName(Cow::Borrowed("bank-manager"));
+    pub const ADMIN: RoleName = RoleName(Cow::Borrowed("admin"));
+
     pub fn new(role_name: impl Into<String>) -> Self {
-        RoleName::Other(role_name.into())
+        RoleName(Cow::Owned(role_name.into()))
     }
 
     pub fn name(&self) -> &str {
-        match self {
-            RoleName::Superuser => "superuser",
-            RoleName::Admin => "admin",
-            RoleName::Accountant => "accountant",
-            RoleName::BankManager => "bank_manager",
-            RoleName::Other(name) => name,
-        }
+        &self.0
     }
 }
 
@@ -47,7 +46,7 @@ impl Display for RoleName {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserAction {
     User(UserAction),
@@ -65,16 +64,49 @@ impl CoreUserAction {
     pub const USER_REVOKE_ROLE: Self = CoreUserAction::User(UserAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreUserAction::User(UserAction::UpdateAuthenticationId);
+
+    pub fn entities() -> Vec<(CoreUserActionDiscriminants, Vec<ActionDescription<NoPath>>)> {
+        use CoreUserActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <CoreUserActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                User => UserAction::describe(),
+                Role => RoleAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+
+        result
+    }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum RoleAction {
     Create,
     Update,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl RoleAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum UserAction {
     Read,
@@ -84,6 +116,35 @@ pub enum UserAction {
     AssignRole,
     RevokeRole,
     UpdateAuthenticationId,
+}
+
+impl UserAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_USER_READER, PERMISSION_SET_USER_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::AssignRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::RevokeRole => ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER]),
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_USER_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl Display for CoreUserAction {
@@ -126,7 +187,7 @@ impl From<RoleAction> for CoreUserAction {
 pub type UserAllOrOne = AllOrOne<UserId>;
 pub type RoleAllOrOne = AllOrOne<RoleId>;
 
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
+#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants, strum::EnumCount)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreUserObject {

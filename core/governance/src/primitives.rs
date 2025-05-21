@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::AllOrOne;
+use authz::{action_description::*, AllOrOne};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -43,7 +43,7 @@ impl Display for ApprovalProcessType {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum GovernanceAction {
     Committee(CommitteeAction),
@@ -76,6 +76,26 @@ impl GovernanceAction {
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Deny);
     pub const APPROVAL_PROCESS_CONCLUDE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
+
+    pub fn entities() -> Vec<(
+        GovernanceActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use GovernanceActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <GovernanceActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                Committee => CommitteeAction::describe(),
+                Policy => PolicyAction::describe(),
+                ApprovalProcess => ApprovalProcessAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+        result
+    }
 }
 
 impl Display for GovernanceAction {
@@ -105,7 +125,7 @@ impl FromStr for GovernanceAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CommitteeAction {
     Create,
@@ -115,7 +135,44 @@ pub enum CommitteeAction {
     List,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl CommitteeAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::AddMember => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::RemoveMember => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum PolicyAction {
     Create,
@@ -124,7 +181,41 @@ pub enum PolicyAction {
     UpdatePolicyRules,
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+impl PolicyAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::UpdatePolicyRules => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ApprovalProcessAction {
     Create,
@@ -135,9 +226,50 @@ pub enum ApprovalProcessAction {
     Conclude,
 }
 
+impl ApprovalProcessAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_GOVERNANCE_READER,
+                        PERMISSION_SET_GOVERNANCE_WRITER,
+                    ],
+                ),
+                Self::Approve => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+                Self::Deny => ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER]),
+                Self::Conclude => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
 pub type CommitteeAllOrOne = AllOrOne<CommitteeId>;
 pub type PolicyAllOrOne = AllOrOne<PolicyId>;
 pub type ApprovalProcessAllOrOne = AllOrOne<ApprovalProcessId>;
+
+pub const PERMISSION_SET_GOVERNANCE_WRITER: &str = "governance_writer";
+pub const PERMISSION_SET_GOVERNANCE_READER: &str = "governance_reader";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
