@@ -149,19 +149,6 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     ),
   },
   {
-    key: "repaymentPlan",
-    label: t("table.headers.monthlyPayment"),
-    render: (_, facility) => {
-      const monthlyPayment = (facility.repaymentPlan
-        ?.filter(
-          (payment) => payment.status === "UPCOMING" || payment.status === "NOT_YET_DUE",
-        )
-        .reduce((acc, payment) => acc + payment.initial, 0) / 12) as UsdCents
-
-      return <Balance amount={monthlyPayment || (0 as UsdCents)} currency="usd" />
-    },
-  },
-  {
     key: "collateralizationState",
     label: t("table.headers.collateralizationState"),
     render: (state) => <CollateralizationStateLabel state={state} />,

@@ -2,10 +2,11 @@
 
 import { gql } from "@apollo/client"
 import { use } from "react"
-
 import { useTranslations } from "next-intl"
 
 import { CreditFacilityHistory } from "./history"
+
+import Balance from "@/components/balance/balance"
 
 import {
   useGetCreditFacilityHistoryQuery,
@@ -54,6 +55,10 @@ gql`
         txId
         days
       }
+    }
+    repaymentPlan {
+      initial
+      status
     }
   }
 
@@ -109,6 +114,12 @@ export default function CreditFacilityHistoryPage({
 
   const issuanceDate = new Date(layoutData.creditFacility.createdAt).toLocaleDateString()
 
+  const monthlyPayment = (cfData.creditFacility.repaymentPlan
+    ?.filter(
+      (payment) => payment.status === "UPCOMING" || payment.status === "NOT_YET_DUE",
+    )
+    .reduce((acc, payment) => acc + payment.initial, 0) / 12) as CurrencyType
+
   return (
     <div>
       <div className="space-y-2 mb-4">
@@ -119,6 +130,15 @@ export default function CreditFacilityHistoryPage({
         <div>
           <span className="font-medium">{t("Common.dateOfIssuance")}: </span>
           <span>{issuanceDate}</span>
+        </div>
+        <div>
+          <span className="font-medium">{t("table.headers.monthlyPayment")}: </span>
+          <Balance
+            align="end"
+            className="font-semibold"
+            currency="usd"
+            amount={monthlyPayment || 0}
+          />
         </div>
       </div>
       <CreditFacilityHistory creditFacility={cfData.creditFacility} />
