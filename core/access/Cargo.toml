@@ -1,6 +1,6 @@
 [package]
-name = "core-user"
-version = "0.3.526-dev"
+name = "core-access"
+version = "0.3.541-dev"
 edition = "2021"
 
 [features]

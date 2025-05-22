@@ -2,6 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
+use es_entity::DbOp;
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -13,13 +14,13 @@ use crate::{event::*, primitives::*, publisher::UserPublisher};
 
 use entity::*;
 pub use entity::{User, UserEvent};
-use error::*;
+pub use error::*;
 use repo::*;
 
 pub struct Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     authz: Authorization<Audit, RoleName>,
     repo: UserRepo<E>,
@@ -28,7 +29,7 @@ where
 impl<Audit, E> Clone for Users<Audit, E>
 where
     Audit: AuditSvc,
-    E: OutboxEventMarker<CoreUserEvent>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -42,28 +43,22 @@ impl<Audit, E> Users<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreUserAction>,
-    <Audit as AuditSvc>::Object: From<CoreUserObject>,
-    E: OutboxEventMarker<CoreUserEvent>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Authorization<Audit, RoleName>,
         outbox: &Outbox<E>,
-        superuser_email: Option<String>,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
         let repo = UserRepo::new(pool, &publisher);
-        let users = Self {
+
+        Ok(Self {
             repo,
             authz: authz.clone(),
-        };
-
-        if let Some(email) = superuser_email {
-            users.create_and_assign_role_to_superuser(email).await?;
-        }
-
-        Ok(users)
+        })
     }
 
     pub async fn subject_can_create_user(
@@ -75,14 +70,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::all_users(),
-                CoreUserAction::USER_CREATE,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.create_user", skip(self))]
+    #[instrument(name = "core_access.create_user", skip(self))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -104,7 +99,7 @@ where
         Ok(user)
     }
 
-    #[instrument(name = "core_user.find_for_subject", skip(self))]
+    #[instrument(name = "core_access.find_for_subject", skip(self))]
     pub async fn find_for_subject(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -114,12 +109,12 @@ where
     {
         let id = UserId::try_from(sub).map_err(|_| UserError::SubjectIsNotUser)?;
         self.authz
-            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
         self.repo.find_by_id(id).await
     }
 
-    #[instrument(name = "core_user.find_by_id", skip(self))]
+    #[instrument(name = "core_access.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -127,7 +122,7 @@ where
     ) -> Result<Option<User>, UserError> {
         let id = id.into();
         self.authz
-            .enforce_permission(sub, CoreUserObject::user(id), CoreUserAction::USER_READ)
+            .enforce_permission(sub, CoreAccessObject::user(id), CoreAccessAction::USER_READ)
             .await?;
         match self.repo.find_by_id(id).await {
             Ok(user) => Ok(Some(user)),
@@ -136,7 +131,7 @@ where
         }
     }
 
-    #[instrument(name = "core_user.find_by_email", skip(self))]
+    #[instrument(name = "core_access.find_by_email", skip(self))]
     pub async fn find_by_email(
         &self,
         sub: Option<&<Audit as AuditSvc>::Subject>,
@@ -144,7 +139,11 @@ where
     ) -> Result<Option<User>, UserError> {
         if let Some(sub) = sub {
             self.authz
-                .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_READ)
+                .enforce_permission(
+                    sub,
+                    CoreAccessObject::all_users(),
+                    CoreAccessAction::USER_READ,
+                )
                 .await?;
         }
 
@@ -155,7 +154,7 @@ where
         }
     }
 
-    #[instrument(name = "core_user.update_authentication_id_for_user", skip(self))]
+    #[instrument(name = "core_access.update_authentication_id_for_user", skip(self))]
     pub async fn update_authentication_id_for_user(
         &self,
         user_id: UserId,
@@ -164,8 +163,8 @@ where
         self.authz
             .audit()
             .record_system_entry(
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_UPDATE_AUTHENTICATION_ID,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_UPDATE_AUTHENTICATION_ID,
             )
             .await?;
 
@@ -180,7 +179,7 @@ where
     }
 
     #[instrument(
-        name = "core_user.find_by_authentication_id",
+        name = "core_access.find_by_authentication_id",
         skip(self, authentication_id)
     )]
     pub async fn find_by_authentication_id(
@@ -192,7 +191,7 @@ where
             .await
     }
 
-    #[instrument(name = "core_user.find_all", skip(self))]
+    #[instrument(name = "core_access.find_all", skip(self))]
     pub async fn find_all<T: From<User>>(
         &self,
         ids: &[UserId],
@@ -200,13 +199,17 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "core_user.list_users", skip(self))]
+    #[instrument(name = "core_access.list_users", skip(self))]
     pub async fn list_users(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
     ) -> Result<Vec<User>, UserError> {
         self.authz
-            .enforce_permission(sub, CoreUserObject::all_users(), CoreUserAction::USER_LIST)
+            .enforce_permission(
+                sub,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_LIST,
+            )
             .await?;
 
         Ok(self
@@ -226,14 +229,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_ASSIGN_ROLE,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_ASSIGN_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.assign_role_to_user", skip(self))]
+    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
     pub async fn assign_role_to_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -243,7 +246,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::Superuser {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -272,14 +275,14 @@ where
             .authz
             .evaluate_permission(
                 sub,
-                CoreUserObject::user(user_id),
-                CoreUserAction::USER_REVOKE_ROLE,
+                CoreAccessObject::user(user_id),
+                CoreAccessAction::USER_REVOKE_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_user.revoke_role_from_user", skip(self))]
+    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
@@ -289,7 +292,7 @@ where
         let id = user_id.into();
         let role = role.into();
 
-        if role == RoleName::Superuser {
+        if role == RoleName::SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -308,52 +311,51 @@ where
         Ok(user)
     }
 
-    async fn create_and_assign_role_to_superuser(&self, email: String) -> Result<(), UserError> {
-        let mut db = self.repo.begin_op().await?;
-
+    /// Creates a user with `email` and belonging to `role` (superuser).
+    /// Used for bootstrapping the application.
+    pub(super) async fn bootstrap_superuser_user(
+        &self,
+        db: &mut DbOp<'_>,
+        email: String,
+        role: RoleName,
+    ) -> Result<User, UserError> {
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
                 db.tx(),
-                CoreUserObject::all_users(),
-                CoreUserAction::USER_CREATE,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
             )
             .await?;
 
-        match self.repo.find_by_email_in_tx(db.tx(), &email).await {
+        let user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
             Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
-                    .email(&email)
+                    .id(UserId::new())
+                    .email(email)
                     .audit_info(audit_info.clone())
                     .build()
-                    .expect("Could not build user");
-                let mut user = self.repo.create_in_op(&mut db, new_user).await?;
-                self.authz
-                    .assign_role_to_subject(user.id, &RoleName::Superuser)
-                    .await?;
-                let _ = user.assign_role(RoleName::Superuser, audit_info);
-                self.repo.update_in_op(&mut db, &mut user).await?;
-                Some(user)
+                    .expect("all fields for new user provided");
+
+                let mut user = self.repo.create_in_op(db, new_user).await?;
+
+                if user.assign_role(role, audit_info).did_execute() {
+                    self.repo.update_in_op(db, &mut user).await?;
+                }
+
+                user
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
-                if user
-                    .assign_role(RoleName::Superuser, audit_info)
-                    .did_execute()
-                {
-                    self.authz
-                        .assign_role_to_subject(user.id, RoleName::Superuser)
-                        .await?;
-                    self.repo.update_in_op(&mut db, &mut user).await?;
-                    None
-                } else {
-                    return Ok(());
-                }
+                if user.assign_role(role, audit_info).did_execute() {
+                    self.repo.update_in_op(db, &mut user).await?;
+                };
+
+                user
             }
         };
 
-        db.commit().await?;
-        Ok(())
+        Ok(user)
     }
 }

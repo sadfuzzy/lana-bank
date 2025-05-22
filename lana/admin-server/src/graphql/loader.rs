@@ -3,6 +3,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
+    access::user::error::UserError,
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
         ledger_transaction::error::LedgerTransactionError,
@@ -11,7 +12,6 @@ use lana_app::{
     },
     app::LanaApp,
     deposit::error::CoreDepositError,
-    user::error::UserError,
 };
 
 use crate::primitives::*;
@@ -42,7 +42,12 @@ impl Loader<UserId> for LanaLoader {
     type Error = Arc<UserError>;
 
     async fn load(&self, keys: &[UserId]) -> Result<HashMap<UserId, User>, Self::Error> {
-        self.app.users().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .access()
+            .users()
+            .find_all(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

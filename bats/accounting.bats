@@ -6,7 +6,7 @@ PERSISTED_LOG_FILE="accounting.e2e-logs"
 RUN_LOG_FILE="accounting.run.e2e-logs"
 
 setup_file() {
-  start_server
+  start_server_nix
   login_superadmin
 }
 
@@ -28,13 +28,25 @@ teardown_file() {
 @test "accounting: imported credit module config from seed into chart of accounts" {
   exec_admin_graphql 'credit-config'
   omnibus_code=$(graphql_output '.data.creditConfig.chartOfAccountFacilityOmnibusParentCode')
-  [[ "$omnibus_code" == "71.01" ]] || exit 1
+  [[ "$omnibus_code" == "81.01" ]] || exit 1
 }
 
 @test "accounting: imported deposit module config from seed into chart of accounts" {
   exec_admin_graphql 'deposit-config'
   omnibus_code=$(graphql_output '.data.depositConfig.chartOfAccountsOmnibusParentCode')
   [[ "$omnibus_code" == "11.01.0101" ]] || exit 1
+}
+
+@test "accounting: imported balance sheet module config from seed into chart of accounts" {
+  exec_admin_graphql 'balance-sheet-config'
+  omnibus_code=$(graphql_output '.data.balanceSheetConfig.chartOfAccountsRevenueCode')
+  [[ "$omnibus_code" == "4" ]] || exit 1
+}
+
+@test "accounting: imported profit and loss module config from seed into chart of accounts" {
+  exec_admin_graphql 'profit-and-loss-config'
+  omnibus_code=$(graphql_output '.data.profitAndLossStatementConfig.chartOfAccountsRevenueCode')
+  [[ "$omnibus_code" == "4" ]] || exit 1
 }
 
 @test "accounting: can import CSV file into chart of accounts" {

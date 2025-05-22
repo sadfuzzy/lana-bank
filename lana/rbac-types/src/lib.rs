@@ -7,13 +7,13 @@ mod object;
 use serde::{Deserialize, Serialize};
 use uuid::{uuid, Uuid};
 
+use core_access::UserId;
 use core_customer::CustomerId;
-use core_user::UserId;
 
 pub use action::*;
 pub use object::*;
 
-pub use core_user::RoleName;
+pub use core_access::RoleName;
 
 #[derive(
     async_graphql::Enum,
@@ -40,10 +40,10 @@ pub enum LanaRole {
 }
 
 impl LanaRole {
-    pub const SUPERUSER: RoleName = RoleName::Superuser;
-    pub const ACCOUNTANT: RoleName = RoleName::Accountant;
-    pub const ADMIN: RoleName = RoleName::Admin;
-    pub const BANK_MANAGER: RoleName = RoleName::BankManager;
+    pub const SUPERUSER: RoleName = RoleName::SUPERUSER;
+    pub const ACCOUNTANT: RoleName = RoleName::ACCOUNTANT;
+    pub const ADMIN: RoleName = RoleName::ADMIN;
+    pub const BANK_MANAGER: RoleName = RoleName::BANK_MANAGER;
 }
 
 impl From<LanaRole> for RoleName {

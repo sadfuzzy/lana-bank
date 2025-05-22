@@ -60,6 +60,7 @@
           pname = "lana-workspace-deps"; # A distinct name for the deps build
           version = "0.0.0"; # A placeholder version for the deps build
           CARGO_PROFILE = "dev"; # Explicitly set dev profile
+          cargoExtraArgs = "--features sim-time"; # Build only the specific package
         });
 
       lanaCliPname = "lana-cli";
@@ -70,12 +71,7 @@
           cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
           cargoArtifacts = cargoArtifacts;
           doCheck = false; # Disable tests for lana-cli
-          # pname and version will now be taken from ./lana/cli/Cargo.toml by crane
-          # pname = lanaCliPname; # Or keep explicitly if preferred
-          # version = lanaCliVersion; # Or keep explicitly if preferred
-
-          # FIXME: should be release by default by nix convention
-          pname = "${lanaCliPname}-debug"; # Set pname for debug build
+          pname = lanaCliPname; # Use the original package name
           CARGO_PROFILE = "dev"; # Explicitly set dev profile
 
           # FIXME: aiming at parity with older script for now
