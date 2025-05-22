@@ -1166,6 +1166,37 @@ where
         Ok(balances.total_outstanding_payable())
     }
 
+    pub async fn has_outstanding_obligations(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<bool, CoreCreditError> {
+        let id = credit_facility_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+
+        if credit_facility
+            .interest_accrual_cycle_in_progress()
+            .is_some()
+        {
+            return Ok(true);
+        }
+
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        Ok(balances.any_outstanding_or_defaulted())
+    }
+
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
