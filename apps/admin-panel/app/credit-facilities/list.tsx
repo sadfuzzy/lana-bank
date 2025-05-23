@@ -23,8 +23,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
-import { camelToScreamingSnake, formatDate } from "@/lib/utils"
-import { UsdCents } from "@/types"
+import { camelToScreamingSnake } from "@/lib/utils"
 import DateWithTooltip from "@/components/date-with-tooltip"
 
 gql`
