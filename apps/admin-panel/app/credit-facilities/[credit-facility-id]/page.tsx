@@ -10,7 +10,7 @@ import Balance from "@/components/balance/balance"
 
 import {
   useGetCreditFacilityHistoryQuery,
-  useGetCreditFacilityLayoutDetailsQuery,
+  useGetCreditFacilityHistoryDetailsQuery,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { removeUnderscore } from "@/lib/utils"
@@ -68,7 +68,7 @@ gql`
     }
   }
 
-  query GetCreditFacilityLayoutDetails($id: UUID!) {
+  query GetCreditFacilityHistoryDetails($id: UUID!) {
     creditFacility(id: $id) {
       id
       createdAt
@@ -95,7 +95,7 @@ export default function CreditFacilityHistoryPage({
     fetchPolicy: "cache-and-network",
   })
 
-  const { data: layoutData } = useGetCreditFacilityLayoutDetailsQuery({
+  const { data: layoutData } = useGetCreditFacilityHistoryDetailsQuery({
     variables: { id: creditFacilityId },
   })
 
