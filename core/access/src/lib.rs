@@ -10,7 +10,6 @@ mod publisher;
 pub mod role;
 pub mod user;
 
-use std::collections::HashSet;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -86,7 +85,7 @@ where
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         name: RoleName,
-        permission_sets: HashSet<PermissionSetId>,
+        permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, RoleError> {
         let audit_info = self
             .authz
@@ -100,7 +99,7 @@ where
         let new_role = NewRole::builder()
             .id(RoleId::new())
             .name(name)
-            .permission_sets(permission_sets)
+            .initial_permission_sets(permission_sets.into_iter().map(|id| id.into()).collect())
             .audit_info(audit_info)
             .build()
             .expect("all fields for new role provided");
@@ -111,9 +110,15 @@ where
     pub async fn add_permission_sets_to_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        permission_set_ids: &[PermissionSetId],
+        role_id: impl Into<RoleId>,
+        permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
+        let role_id = role_id.into();
+        let permission_set_ids = permission_set_ids
+            .into_iter()
+            .map(|id| id.into())
+            .collect::<Vec<_>>();
+
         let audit_info = self
             .authz
             .enforce_permission(
@@ -126,7 +131,7 @@ where
         let mut role = self.roles.find_by_id(role_id).await?;
         let permission_sets = self
             .permission_sets
-            .find_all::<PermissionSet>(permission_set_ids)
+            .find_all::<PermissionSet>(&permission_set_ids)
             .await?;
 
         let mut changed = false;
@@ -150,9 +155,12 @@ where
     pub async fn remove_permission_set_from_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        role_id: RoleId,
-        permission_set_id: PermissionSetId,
+        role_id: impl Into<RoleId>,
+        permission_set_id: impl Into<PermissionSetId>,
     ) -> Result<Role, CoreAccessError> {
+        let role_id = role_id.into();
+        let permission_set_id = permission_set_id.into();
+
         let audit_info = self
             .authz
             .enforce_permission(

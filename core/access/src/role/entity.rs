@@ -121,7 +121,7 @@ pub struct NewRole {
     pub(super) id: RoleId,
     pub(super) name: RoleName,
     #[builder(default)]
-    pub(super) permission_sets: HashSet<PermissionSetId>,
+    pub(super) initial_permission_sets: HashSet<PermissionSetId>,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -138,7 +138,7 @@ impl IntoEvents<RoleEvent> for NewRole {
             [RoleEvent::Initialized {
                 id: self.id,
                 name: self.name,
-                permission_sets: self.permission_sets,
+                permission_sets: self.initial_permission_sets,
                 audit_info: self.audit_info,
             }],
         )

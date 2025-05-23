@@ -1,6 +1,5 @@
 use async_graphql::{types::connection::*, Context, Object};
 
-use std::collections::HashSet;
 use std::io::Read;
 
 use lana_app::{
@@ -852,15 +851,11 @@ impl Mutation {
             permission_set_ids,
         } = input;
         let role_name = core_access::RoleName::new(name);
-        let ps_ids: HashSet<PermissionSetId> = permission_set_ids
-            .into_iter()
-            .map(PermissionSetId::from)
-            .collect();
         exec_mutation!(
             RoleCreatePayload,
             Role,
             ctx,
-            app.access().create_role(sub, role_name, ps_ids)
+            app.access().create_role(sub, role_name, permission_set_ids)
         )
     }
 
@@ -871,21 +866,12 @@ impl Mutation {
     ) -> async_graphql::Result<RoleAddPermissionSetsPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
-        let RoleAddPermissionSetsInput {
-            role_id,
-            permission_set_ids,
-        } = input;
-        let ps_ids: Vec<PermissionSetId> = permission_set_ids
-            .into_iter()
-            .map(PermissionSetId::from)
-            .collect();
-
         exec_mutation!(
             RoleAddPermissionSetsPayload,
             Role,
             ctx,
             app.access()
-                .add_permission_sets_to_role(sub, role_id.into(), &ps_ids)
+                .add_permission_sets_to_role(sub, input.role_id, input.permission_set_ids)
         )
     }
 
@@ -902,8 +888,8 @@ impl Mutation {
             ctx,
             app.access().remove_permission_set_from_role(
                 sub,
-                input.role_id.into(),
-                input.permission_set_id.into()
+                input.role_id,
+                input.permission_set_id
             )
         )
     }

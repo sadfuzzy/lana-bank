@@ -99,7 +99,7 @@ where
                 .id(RoleId::new())
                 .name(RoleName::SUPERUSER)
                 .audit_info(audit_info)
-                .permission_sets(permission_sets.iter().copied().collect())
+                .initial_permission_sets(permission_sets.iter().copied().collect())
                 .build()
                 .expect("all fields for new role provided");
 
