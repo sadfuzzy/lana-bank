@@ -4,8 +4,14 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::ChartOfAccounts, balance_sheet::BalanceSheets, primitives::CalaJournalId,
-    profit_and_loss::ProfitAndLossStatements, trial_balance::TrialBalances,
+    accounting::{Accounting, ChartOfAccounts},
+    app::AccountingInitConfig,
+    balance_sheet::BalanceSheets,
+    credit::Credit,
+    deposit::Deposits,
+    primitives::CalaJournalId,
+    profit_and_loss::ProfitAndLossStatements,
+    trial_balance::TrialBalances,
 };
 
 use cala_ledger::CalaLedger;
@@ -26,12 +32,13 @@ impl JournalInit {
 pub struct StatementsInit;
 
 impl StatementsInit {
-    pub async fn statements(
-        trial_balances: &TrialBalances,
-        pl_statements: &ProfitAndLossStatements,
-        balance_sheets: &BalanceSheets,
-    ) -> Result<(), AccountingInitError> {
-        seed::statements::init(trial_balances, pl_statements, balance_sheets).await?;
+    pub async fn statements(accounting: &Accounting) -> Result<(), AccountingInitError> {
+        seed::statements::init(
+            accounting.trial_balances(),
+            accounting.profit_and_loss(),
+            accounting.balance_sheets(),
+        )
+        .await?;
         Ok(())
     }
 }
@@ -41,8 +48,20 @@ pub struct ChartsInit;
 
 impl ChartsInit {
     pub async fn charts_of_accounts(
-        chart_of_accounts: &ChartOfAccounts,
+        accounting: &Accounting,
+        credit: &Credit,
+        deposit: &Deposits,
+        accounting_init_config: AccountingInitConfig,
     ) -> Result<(), AccountingInitError> {
-        seed::charts_of_accounts::init(chart_of_accounts).await
+        seed::charts_of_accounts::init(
+            accounting.chart_of_accounts(),
+            accounting.trial_balances(),
+            credit,
+            deposit,
+            accounting.balance_sheets(),
+            accounting.profit_and_loss(),
+            accounting_init_config,
+        )
+        .await
     }
 }

@@ -6,7 +6,6 @@
 #@   "nodejs_task_image_config",
 #@   "docker_host_pool",
 #@   "test_on_docker_host",
-#@   "repo_resource",
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
@@ -106,13 +105,22 @@ jobs:
             repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
         inputs:
           - name: repo
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
           path: sh
           args:
-          - -ec
+          - -exc
           - |
+            set -euo pipefail
             cd repo
-            nix build . -L
+            cachix use lana-ci
+
+            # Build and cache the main derivation
+            nix build --print-out-paths --no-link | cachix push lana-ci
+            
+            # Build and cache the development shell
+            nix develop --command true | cachix push lana-ci
 
   - name: bats-integrations-test
     #! serial: true
@@ -169,7 +177,7 @@ jobs:
                 
                 #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
 
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
+                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
 
   - name: bats-tests
     serial: true
@@ -180,7 +188,7 @@ jobs:
           - { get: pipeline-tasks }
       - task: bats-tests
         timeout: 50m
-        attempts: 1
+        attempts: 2
         privileged: true
         config:
           platform: linux
@@ -290,7 +298,7 @@ jobs:
             export CARGO_HOME="$PWD/cargo-home"
             export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
             cd repo
-            SQLX_OFFLINE=true cargo build --release --locked --bin lana-cli --target x86_64-unknown-linux-musl
+            SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
             mkdir -p ../bin
             cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
             cat > ../bin/Dockerfile <<'EOF'
@@ -670,7 +678,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: ci--update-nix
+      branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out

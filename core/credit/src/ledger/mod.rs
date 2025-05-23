@@ -25,7 +25,7 @@ use crate::{
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
-    ChartOfAccountsIntegrationConfig, DurationType, Obligation,
+    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
 };
@@ -1127,9 +1127,8 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        PaymentAllocation {
+        allocation @ PaymentAllocation {
             id,
-            obligation_id: tx_ref,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
@@ -1143,7 +1142,7 @@ impl CreditLedger {
             amount: amount.to_usd(),
             receivable_account_id,
             account_to_be_debited_id,
-            tx_ref: tx_ref.to_string(),
+            tx_ref: allocation.tx_ref(),
             effective,
         };
         self.cala
@@ -1627,11 +1626,11 @@ impl CreditLedger {
     fn interest_internal_account_set_from_type(
         &self,
         interest_receivable_account_type: impl Into<InterestReceivableAccountType>,
-        duration_type: DurationType,
+        duration_type: FacilityDurationType,
     ) -> InternalAccountSetDetails {
         let interest_receivable_account_type = interest_receivable_account_type.into();
 
-        let term_type = if duration_type == DurationType::ShortTerm {
+        let term_type = if duration_type == FacilityDurationType::ShortTerm {
             &self.internal_account_sets.interest_receivable.short_term
         } else {
             &self.internal_account_sets.interest_receivable.long_term
@@ -1656,7 +1655,7 @@ impl CreditLedger {
         credit_facility_id: CreditFacilityId,
         account_ids: CreditFacilityAccountIds,
         customer_type: CustomerType,
-        duration_type: DurationType,
+        duration_type: FacilityDurationType,
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityAccountIds {
             facility_account_id,

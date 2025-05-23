@@ -54,7 +54,7 @@ pub enum ObligationEvent {
         amount: UsdCents,
     },
     Completed {
-        completed_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -253,16 +253,6 @@ impl Obligation {
             .unwrap_or(ObligationStatus::NotYetDue)
     }
 
-    pub fn facility_balance_update_data(&self) -> BalanceUpdateData {
-        BalanceUpdateData {
-            source_id: self.id.into(),
-            ledger_tx_id: self.tx_id,
-            balance_type: self.obligation_type,
-            amount: self.initial_amount,
-            updated_at: self.recorded_at,
-        }
-    }
-
     pub fn outstanding(&self) -> UsdCents {
         self.events
             .iter_all()
@@ -392,12 +382,12 @@ impl Obligation {
             self.events.iter_all().rev(),
             ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
-        let outstanding = self.outstanding();
-        if outstanding.is_zero() {
+        let pre_payment_outstanding = self.outstanding();
+        if pre_payment_outstanding.is_zero() {
             return Idempotent::Executed(None);
         }
 
-        let payment_amount = std::cmp::min(outstanding, amount);
+        let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
         let allocation_id = PaymentAllocationId::new();
         self.events.push(ObligationEvent::PaymentAllocated {
             tx_id: allocation_id.into(),
@@ -405,11 +395,18 @@ impl Obligation {
             payment_allocation_id: allocation_id,
             amount: payment_amount,
         });
+
+        let payment_allocation_idx = self
+            .events()
+            .iter_all()
+            .filter(|e| matches!(e, ObligationEvent::PaymentAllocated { .. }))
+            .count();
         let allocation = NewPaymentAllocation::builder()
             .id(allocation_id)
             .payment_id(payment_id)
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
+            .obligation_allocation_idx(payment_allocation_idx)
             .obligation_type(self.obligation_type)
             .receivable_account_id(
                 self.receivable_account_id()
@@ -424,6 +421,13 @@ impl Obligation {
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");
+
+        if self.outstanding().is_zero() {
+            self.events.push(ObligationEvent::Completed {
+                effective,
+                audit_info: audit_info.clone(),
+            });
+        }
 
         Idempotent::Executed(Some(allocation))
     }
@@ -483,7 +487,6 @@ pub struct NewObligation {
     #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: DateTime<Utc>,
-    #[builder(setter(strip_option), default)]
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
@@ -574,7 +577,7 @@ mod test {
             id: ObligationId::new(),
             credit_facility_id: CreditFacilityId::new(),
             obligation_type: ObligationType::Disbursal,
-            amount: UsdCents::ONE,
+            amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
             tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
@@ -628,7 +631,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -660,7 +663,7 @@ mod test {
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -704,7 +707,7 @@ mod test {
     fn ignores_defaulted_recorded_if_paid() {
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
-            completed_at: Utc::now(),
+            effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
@@ -722,5 +725,29 @@ mod test {
             res,
             Err(ObligationError::InvalidStatusTransitionToDefaulted)
         ));
+    }
+
+    #[test]
+    fn completes_on_final_payment_allocation() {
+        let mut obligation = obligation_from(initial_events());
+        obligation
+            .allocate_payment(
+                UsdCents::ONE,
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
+
+        obligation
+            .allocate_payment(
+                obligation.outstanding(),
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .unwrap();
+        assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 }

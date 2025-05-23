@@ -6,7 +6,7 @@ PERSISTED_LOG_FILE="credit-facility.e2e-logs"
 RUN_LOG_FILE="credit-facility.run.e2e-logs"
 
 setup_file() {
-  start_server
+  start_server_nix
   login_superadmin
   reset_log_files "$PERSISTED_LOG_FILE" "$RUN_LOG_FILE"
 }
@@ -104,7 +104,7 @@ ymd() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  retry 10 1 wait_for_checking_account "$customer_id"
+  retry 30 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
@@ -137,6 +137,7 @@ ymd() {
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDuration: { period: "DAYS", units: 0 },
+          obligationOverdueDuration: { period: "DAYS", units: 85 },
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140"

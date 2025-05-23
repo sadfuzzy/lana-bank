@@ -29,7 +29,9 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use account::DepositAccount;
 use account::*;
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -507,6 +509,7 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

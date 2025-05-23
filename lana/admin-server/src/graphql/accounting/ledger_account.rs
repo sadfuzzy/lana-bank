@@ -62,6 +62,20 @@ impl LedgerAccount {
         Ok(result)
     }
 
+    async fn closest_account_with_code(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<LedgerAccount>> {
+        if self.code.is_some() {
+            return Ok(Some(self.clone()));
+        }
+
+        let ancestors = self.ancestors(ctx).await?;
+        let closest = ancestors.into_iter().find(|a| a.code.is_some());
+
+        Ok(closest)
+    }
+
     async fn children(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
@@ -207,21 +221,21 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBal
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.settled.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.settled()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.settled()),
                 },
                 pending: UsdBalanceDetails {
                     debit: UsdCents::try_from_usd(balance.details.pending.dr_balance)
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.pending.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.pending()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.pending()),
                 },
                 encumbrance: UsdBalanceDetails {
                     debit: UsdCents::try_from_usd(balance.details.encumbrance.dr_balance)
                         .expect("positive"),
                     credit: UsdCents::try_from_usd(balance.details.encumbrance.cr_balance)
                         .expect("positive"),
-                    net: UsdCents::try_from_usd(balance.encumbrance()).expect("positive"),
+                    net: SignedUsdCents::from_usd(balance.encumbrance()),
                 },
             },
         }
@@ -232,7 +246,7 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBal
 struct UsdBalanceDetails {
     debit: UsdCents,
     credit: UsdCents,
-    net: UsdCents,
+    net: SignedUsdCents,
 }
 
 #[derive(SimpleObject, Default)]
@@ -256,21 +270,21 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBal
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.settled.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.settled()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.settled()),
                 },
                 pending: BtcBalanceDetails {
                     debit: Satoshis::try_from_btc(balance.details.pending.dr_balance)
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.pending.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.pending()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.pending()),
                 },
                 encumbrance: BtcBalanceDetails {
                     debit: Satoshis::try_from_btc(balance.details.encumbrance.dr_balance)
                         .expect("positive"),
                     credit: Satoshis::try_from_btc(balance.details.encumbrance.cr_balance)
                         .expect("positive"),
-                    net: Satoshis::try_from_btc(balance.encumbrance()).expect("positive"),
+                    net: SignedSatoshis::from_btc(balance.encumbrance()),
                 },
             },
         }
@@ -281,7 +295,7 @@ impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBal
 struct BtcBalanceDetails {
     debit: Satoshis,
     credit: Satoshis,
-    net: Satoshis,
+    net: SignedSatoshis,
 }
 
 scalar!(AccountCode);

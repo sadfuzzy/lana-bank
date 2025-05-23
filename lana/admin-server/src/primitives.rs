@@ -7,8 +7,9 @@ pub use lana_app::{
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustomerId, DepositAccountId,
         DepositId, DisbursalId, DisbursalStatus, DocumentId, LanaRole, LedgerTransactionId,
-        ManualTransactionId, PaymentId, PolicyId, ReportId, ReportProgress, Satoshis, Subject,
-        TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        ManualTransactionId, PaymentAllocationId, PaymentId, PermissionSetId, PolicyId, ReportId,
+        ReportProgress, RoleId, Satoshis, SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId,
+        UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
@@ -106,6 +107,8 @@ macro_rules! impl_to_global_id {
 
 impl_to_global_id! {
     UserId,
+    PermissionSetId,
+    RoleId,
     CustomerId,
     ChartId,
     TermsTemplateId,
@@ -122,7 +125,8 @@ impl_to_global_id! {
     ManualTransactionId,
     ApprovalProcessId,
     DepositAccountId,
-    LedgerTransactionId
+    LedgerTransactionId,
+    PaymentAllocationId
 }
 
 use cala_ledger::EntryId;

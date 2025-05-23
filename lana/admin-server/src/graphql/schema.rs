@@ -13,10 +13,10 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, audit::*, authenticated_subject::*,
+    access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
-    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -25,7 +25,7 @@ pub struct Query;
 impl Query {
     async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let user = Arc::new(app.users().find_for_subject(sub).await?);
+        let user = Arc::new(app.access().users().find_for_subject(sub).await?);
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
         Ok(AuthenticatedSubject::from(user))
@@ -39,13 +39,14 @@ impl Query {
 
     async fn user(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(User, ctx, app.users().find_by_id(sub, id))
+        maybe_fetch_one!(User, ctx, app.access().users().find_by_id(sub, id))
     }
 
     async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let users: Vec<_> = app
+            .access()
             .users()
             .list_users(sub)
             .await?
@@ -56,6 +57,25 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<PermissionSetsByIdCursor, PermissionSet, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            PermissionSetsByIdCursor,
+            PermissionSet,
+            ctx,
+            after,
+            first,
+            |query| app.access().list_permission_sets(sub, query)
+        )
     }
 
     async fn customer(
@@ -100,11 +120,14 @@ impl Query {
         };
 
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let sort = sort.unwrap_or_default();
+        let sort = Sort {
+            by: DomainCustomersSortBy::from(sort.unwrap_or_default()),
+            direction: ListDirection::Descending,
+        };
         list_with_combo_cursor!(
             CustomersCursor,
             Customer,
-            DomainCustomersSortBy::from(sort),
+            sort.by,
             ctx,
             after,
             first,
@@ -771,7 +794,7 @@ impl Mutation {
             UserCreatePayload,
             User,
             ctx,
-            app.users().create_user(sub, input.email)
+            app.access().users().create_user(sub, input.email)
         )
     }
 
@@ -786,7 +809,7 @@ impl Mutation {
             UserAssignRolePayload,
             User,
             ctx,
-            app.users().assign_role_to_user(sub, id, role)
+            app.access().users().assign_role_to_user(sub, id, role)
         )
     }
 
@@ -801,7 +824,7 @@ impl Mutation {
             UserRevokeRolePayload,
             User,
             ctx,
-            app.users().revoke_role_from_user(sub, id, role)
+            app.access().users().revoke_role_from_user(sub, id, role)
         )
     }
 
@@ -1016,6 +1039,7 @@ impl Mutation {
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
+            .obligation_overdue_duration(input.obligation_overdue_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1044,6 +1068,7 @@ impl Mutation {
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
             .interest_due_duration(input.interest_due_duration)
+            .obligation_overdue_duration(input.obligation_overdue_duration)
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1212,6 +1237,7 @@ impl Mutation {
             .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
             .interest_due_duration(terms.interest_due_duration)
+            .obligation_overdue_duration(terms.obligation_overdue_duration)
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)

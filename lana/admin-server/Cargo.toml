@@ -1,6 +1,6 @@
 [package]
 name = "admin-server"
-version = "0.3.466-dev"
+version = "0.3.549-dev"
 edition = "2021"
 
 [features]
@@ -12,7 +12,7 @@ lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
 deposit = { path = "../../core/deposit", features = ["graphql"] }
-core-user = { path = "../../core/user" }
+core-access = { path = "../../core/access" }
 
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils" }

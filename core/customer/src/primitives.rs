@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::AllOrOne;
+pub use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
     CustomerId;
@@ -86,6 +86,9 @@ impl From<CustomerType> for String {
 
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 
+pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
+pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -132,7 +135,7 @@ impl FromStr for CustomerObject {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
+#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
@@ -151,9 +154,28 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
     pub const CUSTOMER_DECLINE_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
+
+    pub fn entities() -> Vec<(
+        CoreCustomerActionDiscriminants,
+        Vec<ActionDescription<NoPath>>,
+    )> {
+        use CoreCustomerActionDiscriminants::*;
+
+        let mut result = vec![];
+
+        for entity in <CoreCustomerActionDiscriminants as strum::VariantArray>::VARIANTS {
+            let actions = match entity {
+                Customer => CustomerEntityAction::describe(),
+            };
+
+            result.push((*entity, actions));
+        }
+
+        result
+    }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString)]
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum CustomerEntityAction {
     Read,
@@ -164,6 +186,55 @@ pub enum CustomerEntityAction {
     StartKyc,
     ApproveKyc,
     DeclineKyc,
+}
+
+impl CustomerEntityAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                    ],
+                ),
+
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                    ],
+                ),
+
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::StartKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::ApproveKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+
+                Self::DeclineKyc => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl Display for CoreCustomerAction {

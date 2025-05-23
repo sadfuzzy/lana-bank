@@ -143,15 +143,45 @@ CREATE TABLE terms_template_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE users (
+CREATE TABLE core_permission_sets (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_permission_set_events (
+  id UUID NOT NULL REFERENCES core_permission_sets(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_roles (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_role_events (
+  id UUID NOT NULL REFERENCES core_roles(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
   authentication_id UUID UNIQUE DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE user_events (
-  id UUID NOT NULL REFERENCES users(id),
+CREATE TABLE core_user_events (
+  id UUID NOT NULL REFERENCES core_users(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

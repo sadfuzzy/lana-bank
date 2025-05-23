@@ -48,6 +48,9 @@ gql`
           id
           code
           name
+          closestAccountWithCode {
+            code
+          }
         }
       }
     }
@@ -142,6 +145,22 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
                   } else if (record.amount.__typename === "BtcAmount") {
                     return <Balance amount={record?.amount.btc} currency="btc" />
                   }
+                },
+              },
+              {
+                key: "ledgerAccount",
+                header: t("table.closestAccountWithCode"),
+                render: (_, record) => {
+                  const closestAccountWithCode =
+                    record.ledgerAccount?.closestAccountWithCode?.code
+                  return (
+                    <Link
+                      href={`/ledger-account/${closestAccountWithCode}`}
+                      className="hover:underline"
+                    >
+                      {closestAccountWithCode}
+                    </Link>
+                  )
                 },
               },
             ]}

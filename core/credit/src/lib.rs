@@ -34,7 +34,9 @@ use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
-pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+pub use chart_of_accounts_integration::{
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+};
 pub use collateral::*;
 pub use config::*;
 use credit_facility::error::CreditFacilityError;
@@ -324,7 +326,7 @@ where
             &self.authz,
             &self.credit_facility_repo,
             &self.disbursal_repo,
-            &self.payment_repo,
+            &self.payment_allocation_repo,
             &self.history_repo,
             &self.repayment_plan_repo,
             &self.ledger,
@@ -563,6 +565,11 @@ where
 
         let mut db = self.credit_facility_repo.begin_op().await?;
         let disbursal_id = DisbursalId::new();
+        let due_date = facility.matures_at.expect("Facility is not active");
+        let overdue_date = facility
+            .terms
+            .obligation_overdue_duration
+            .map(|d| d.end_date(due_date));
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
@@ -570,7 +577,8 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(facility.matures_at.expect("Facility is not active"))
+            .disbursal_due_date(due_date)
+            .disbursal_overdue_date(overdue_date)
             .audit_info(audit_info)
             .build()
             .expect("could not build new disbursal");
@@ -621,6 +629,11 @@ where
         }
     }
 
+    #[instrument(
+        name = "credit_facility.find_disbursal_by_concluded_tx_id",
+        skip(self),
+        err
+    )]
     pub async fn find_disbursal_by_concluded_tx_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -1002,10 +1015,11 @@ where
     }
 
     #[instrument(name = "credit_facility.complete", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
         let credit_facility_id = credit_facility_id.into();
 
@@ -1060,12 +1074,20 @@ where
         Ok(credit_facility)
     }
 
-    pub async fn find_payment_by_id(
+    #[instrument(
+        name = "credit_facility.find_payment_allocation_by_id",
+        skip(self),
+        err
+    )]
+    pub async fn find_payment_allocation_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        payment_id: impl Into<PaymentId> + std::fmt::Debug,
-    ) -> Result<Payment, CoreCreditError> {
-        let payment = self.payment_repo.find_by_id(payment_id.into()).await?;
+        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, CoreCreditError> {
+        let payment_allocation = self
+            .payment_allocation_repo
+            .find_by_id(payment_allocation_id.into())
+            .await?;
 
         self.authz
             .enforce_permission(
@@ -1075,15 +1097,16 @@ where
             )
             .await?;
 
-        Ok(payment)
+        Ok(payment_allocation)
     }
 
+    #[instrument(name = "credit_facility.list_disbursals", skip(self), err)]
     pub async fn list_disbursals(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         filter: FindManyDisbursals,
-        sort: impl Into<Sort<DisbursalsSortBy>>,
+        sort: impl Into<Sort<DisbursalsSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
         self.authz
             .enforce_permission(
@@ -1100,6 +1123,7 @@ where
         Ok(disbursals)
     }
 
+    #[instrument(name = "credit_facility.find_all", skip(self), err)]
     pub async fn find_all<T: From<CreditFacility>>(
         &self,
         ids: &[CreditFacilityId],
@@ -1107,6 +1131,7 @@ where
         Ok(self.credit_facility_repo.find_all(ids).await?)
     }
 
+    #[instrument(name = "credit_facility.find_all_disbursals", skip(self), err)]
     pub async fn find_all_disbursals<T: From<Disbursal>>(
         &self,
         ids: &[DisbursalId],
@@ -1139,6 +1164,37 @@ where
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         Ok(balances.total_outstanding_payable())
+    }
+
+    pub async fn has_outstanding_obligations(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+    ) -> Result<bool, CoreCreditError> {
+        let id = credit_facility_id.into();
+
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        let credit_facility = self.credit_facility_repo.find_by_id(id).await?;
+
+        if credit_facility
+            .interest_accrual_cycle_in_progress()
+            .is_some()
+        {
+            return Ok(true);
+        }
+
+        let balances = self
+            .ledger
+            .get_credit_facility_balance(credit_facility.account_ids)
+            .await?;
+        Ok(balances.any_outstanding_or_defaulted())
     }
 
     pub async fn get_chart_of_accounts_integration_config(

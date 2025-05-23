@@ -1,9 +1,9 @@
 use audit::SystemSubject;
 use authz::error::AuthorizationError;
+use core_access::{CoreAccessAction, CoreAccessObject, UserAction};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-use core_user::{CoreUserAction, UserEntityAction, UserObject};
 use dashboard::{DashboardModuleAction, DashboardModuleObject};
 use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
@@ -16,7 +16,7 @@ pub(super) async fn execute(authz: &Authorization) -> Result<(), AuthorizationEr
     seed_role_hierarchy(authz).await?;
 
     authz
-        .assign_role_to_subject(Subject::system(), &Role::SUPERUSER)
+        .assign_role_to_subject(Subject::system(), &RoleName::SUPERUSER)
         .await?;
 
     Ok(())
@@ -48,15 +48,30 @@ async fn add_permissions_for_superuser(authz: &Authorization) -> Result<(), Auth
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::USER_ASSIGN_ROLE,
+            CoreAccessObject::all_roles(),
+            CoreAccessAction::ROLE_CREATE,
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::USER_REVOKE_ROLE,
+            CoreAccessObject::all_roles(),
+            CoreAccessAction::ROLE_UPDATE,
+        )
+        .await?;
+
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccessObject::all_users(),
+            CoreAccessAction::USER_ASSIGN_ROLE,
+        )
+        .await?;
+    authz
+        .add_permission_to_role(
+            &role,
+            CoreAccessObject::all_users(),
+            CoreAccessAction::USER_REVOKE_ROLE,
         )
         .await?;
     Ok(())
@@ -68,43 +83,43 @@ async fn add_permissions_for_admin(authz: &Authorization) -> Result<(), Authoriz
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Create),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Create),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::List),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::List),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Read),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Read),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::Update),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::Update),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::AssignRole),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::AssignRole),
         )
         .await?;
     authz
         .add_permission_to_role(
             &role,
-            UserObject::all_users(),
-            CoreUserAction::User(UserEntityAction::RevokeRole),
+            CoreAccessObject::all_users(),
+            CoreAccessAction::User(UserAction::RevokeRole),
         )
         .await?;
 

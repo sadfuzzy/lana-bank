@@ -3,7 +3,7 @@
 load "helpers"
 
 setup_file() {
-  start_server
+  start_server_nix
   login_superadmin
 }
 
@@ -46,7 +46,7 @@ trigger_withdraw_approval_process() {
   customer_id=$(create_customer)
   cache_value "customer_id" $customer_id
 
-  retry 20 1 wait_for_checking_account "$customer_id"
+  retry 30 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \

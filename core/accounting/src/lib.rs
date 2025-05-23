@@ -154,7 +154,7 @@ where
         &self.trial_balances
     }
 
-    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
+    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self), err)]
     pub async fn find_ledger_account_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -172,7 +172,7 @@ where
         Ok(self.ledger_accounts.find_by_id(sub, &chart, id).await?)
     }
 
-    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self))]
+    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self), err)]
     pub async fn find_ledger_account_by_code(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -192,7 +192,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self))]
+    #[instrument(name = "core_accounting.find_all_ledger_accounts", skip(self), err)]
     pub async fn find_all_ledger_accounts<T: From<LedgerAccount>>(
         &self,
         chart_ref: &str,
@@ -208,6 +208,7 @@ where
         Ok(self.ledger_accounts.find_all(&chart, ids).await?)
     }
 
+    #[instrument(name = "core_accounting.list_account_children", skip(self), err)]
     pub async fn list_account_children(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -234,6 +235,11 @@ where
             .await?)
     }
 
+    #[instrument(
+        name = "core_accounting.execute_manual_transaction",
+        skip(self, entries),
+        err
+    )]
     pub async fn execute_manual_transaction(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -270,6 +276,7 @@ where
             .expect("Could not find LedgerTransaction"))
     }
 
+    #[instrument(name = "core_accounting.import_csv", skip(self), err)]
     pub async fn import_csv(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -277,14 +284,15 @@ where
         data: String,
         trial_balance_ref: &str,
     ) -> Result<bool, CoreAccountingError> {
-        let chart = self
+        if let Some(new_account_set_ids) = self
             .chart_of_accounts()
             .import_from_csv(sub, chart_id, data)
-            .await?;
-
-        self.trial_balances()
-            .add_chart_to_trial_balance(trial_balance_ref, &chart)
-            .await?;
+            .await?
+        {
+            self.trial_balances()
+                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, new_account_set_ids)
+                .await?;
+        }
 
         Ok(true)
     }

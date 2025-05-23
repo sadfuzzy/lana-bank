@@ -14,9 +14,8 @@ import {
 import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
-import { formatDate } from "@/lib/utils"
+import DateWithTooltip from "@/components/date-with-tooltip"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
-import { UsdCents } from "@/types"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
@@ -51,7 +50,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       header: t("table.headers.date"),
       render: (_: HistoryNode["__typename"], entry: { recordedAt: string }) => {
         if (!entry.recordedAt) return "-"
-        return formatDate(entry.recordedAt, { includeTime: true })
+        return <DateWithTooltip value={entry.recordedAt} />
       },
     },
     {
@@ -86,15 +85,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
           case "DisbursalEntry":
             return <Balance amount={entry.disbursal.amount} currency="usd" />
           case "PaymentEntry":
-            return (
-              <Balance
-                amount={
-                  (entry.payment.disbursalAmount +
-                    entry.payment.interestAmount) as UsdCents
-                }
-                currency="usd"
-              />
-            )
+            return <Balance amount={entry.payment.amount} currency="usd" />
           default:
             return "-"
         }

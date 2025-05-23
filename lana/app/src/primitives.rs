@@ -2,20 +2,20 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
+pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    PaymentId,
+    PaymentAllocationId, PaymentId,
 };
 pub use core_customer::CustomerId;
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
-pub use core_user::UserId;
 pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use rbac_types::{LanaRole, Role, Subject};
+pub use rbac_types::{LanaRole, RoleName, Subject};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]

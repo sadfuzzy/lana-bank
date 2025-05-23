@@ -80,6 +80,7 @@ pub enum CoreCreditEvent {
     ObligationDue {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
+        obligation_type: ObligationType,
         amount: UsdCents,
     },
     ObligationOverdue {
@@ -91,5 +92,9 @@ pub enum CoreCreditEvent {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
+    },
+    ObligationCompleted {
+        id: ObligationId,
+        credit_facility_id: CreditFacilityId,
     },
 }

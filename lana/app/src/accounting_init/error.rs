@@ -4,8 +4,32 @@ use thiserror::Error;
 pub enum AccountingInitError {
     #[error("AccountingInitError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
+    #[error("AccountingInitError - JsonSerde: {0}")]
+    JsonSerde(#[from] serde_json::Error),
+    #[error("AccountingInitError - AccountCodeParseError: {0}")]
+    AccountCodeParseError(#[from] core_accounting::AccountCodeParseError),
     #[error("AccountingInitError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("AccountingInitError - CoreCreditError: {0}")]
+    CoreCreditError(#[from] core_credit::error::CoreCreditError),
+    #[error("AccountingInitError - CoreDepositError: {0}")]
+    CoreDepositError(#[from] deposit::error::CoreDepositError),
+    #[error("AccountingInitError - CreditChartIntegrationConfigBuilderError: {0}")]
+    CreditChartIntegrationConfigBuilderError(
+        #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
+    #[error("AccountingInitError - DepositChartIntegrationConfigBuilderError: {0}")]
+    DepositChartIntegrationConfigBuilderError(
+        #[from] deposit::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
+    #[error("AccountingInitError - BalanceSheetChartIntegrationConfigBuilderError: {0}")]
+    BalanceSheetChartIntegrationConfigBuilderError(
+        #[from] crate::balance_sheet::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
+    #[error("AccountingInitError - ProfitAndLossStatementChartIntegrationConfigBuilderError: {0}")]
+    ProfitAndLossStatementChartIntegrationConfigBuilderError(
+        #[from] crate::profit_and_loss::ChartOfAccountsIntegrationConfigBuilderError,
+    ),
     #[error("AccountingInitError - LedgerError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("AccountingInitError - JournalError: {0}")]
@@ -18,4 +42,6 @@ pub enum AccountingInitError {
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("AccountingInitError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
+    #[error("AccountingInitError - SeedFileError: {0}")]
+    SeedFileError(#[from] std::io::Error),
 }
