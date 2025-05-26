@@ -9,6 +9,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
+    "update": "Update",
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
@@ -58,7 +59,8 @@
       "regulatoryReporting": "Regulatory Reporting",
       "trialBalance": "Trial Balance",
       "modules": "Modules",
-      "transactionTemplates": "Transaction Templates"
+      "transactionTemplates": "Transaction Templates",
+      "rolesAndPermissions": "Roles & Permissions"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -98,7 +100,8 @@
       "assignCommittee": "Assign Committee",
       "addCommitteeMember": "Add Committee Member",
       "approve": "Approve",
-      "deny": "Deny"
+      "deny": "Deny",
+      "createRole": "Create Role"
     },
     "keyboardInstructions": {
       "commandPalette": "Command Palette"
@@ -1304,7 +1307,8 @@
       "user": "User",
       "termsTemplate": "Terms Template",
       "committee": "Committee",
-      "executeManualTransaction": "Execute Manual Transaction"
+      "executeManualTransaction": "Execute Manual Transaction",
+      "role": "Role"
     }
   },
   "DataTable": {
@@ -1549,6 +1553,48 @@
         "createdAt": "Created At",
         "description": "Description"
       }
+    }
+  },
+  "RolesAndPermissions": {
+    "title": "Roles & Permissions",
+    "description": "Manage roles and their associated permissions",
+    "table": {
+      "headers": {
+        "name": "Role Name",
+        "permissionSets": "Permission Sets",
+        "createdAt": "Created At"
+      },
+      "emptyMessage": "No roles found. Click the create button to add a new role.",
+      "noPermissionSetsAssigned": "No permissions assigned",
+      "permissionsCount": "permissions",
+      "morePermissions": "more"
+    },
+    "create": {
+      "title": "Create Role",
+      "description": "Create a new role with selected permissions",
+      "nameLabel": "Role Name",
+      "namePlaceholder": "Enter role name",
+      "permissionsLabel": "Permissions",
+      "noPermissionsSelected": "No permissions selected",
+      "success": "Role created successfully",
+      "error": "Failed to create role: {error}"
+    },
+    "update": {
+      "title": "Edit Role",
+      "editDescription": "Update the permissions for this role",
+      "permissionsLabel": "Permissions",
+      "noPermissionsAvailable": "No permissions available",
+      "selected": "selected",
+      "success": "Role updated successfully",
+      "error": "Failed to update role: {error}"
+    },
+    "roleDetails": {
+      "roleDetails": "Role Details",
+      "roleDetailsDescription": "View and manage role information and permissions",
+      "name": "Name",
+      "createdAt": "Created At",
+      "permissionSets": "Permission Sets",
+      "editRole": "Edit Role"
     }
   }
 }

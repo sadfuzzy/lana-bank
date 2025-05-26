@@ -1247,7 +1247,7 @@ export type Mutation = {
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
-  roleRemovePermissionSet: RoleRemovePermissionSetPayload;
+  roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
@@ -1411,8 +1411,8 @@ export type MutationRoleCreateArgs = {
 };
 
 
-export type MutationRoleRemovePermissionSetArgs = {
-  input: RoleRemovePermissionSetInput;
+export type MutationRoleRemovePermissionSetsArgs = {
+  input: RoleRemovePermissionSetsInput;
 };
 
 
@@ -1618,6 +1618,7 @@ export type Query = {
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
+  role?: Maybe<RoleEntity>;
   roles: RoleEntityConnection;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
@@ -1790,6 +1791,11 @@ export type QueryReportArgs = {
 };
 
 
+export type QueryRoleArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryRolesArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
@@ -1896,6 +1902,7 @@ export type RoleCreatePayload = {
 
 export type RoleEntity = {
   __typename?: 'RoleEntity';
+  createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissionSets: Array<PermissionSet>;
@@ -1921,13 +1928,13 @@ export type RoleEntityEdge = {
   node: RoleEntity;
 };
 
-export type RoleRemovePermissionSetInput = {
-  permissionSetId: Scalars['UUID']['input'];
+export type RoleRemovePermissionSetsInput = {
+  permissionSetIds: Array<Scalars['UUID']['input']>;
   roleId: Scalars['UUID']['input'];
 };
 
-export type RoleRemovePermissionSetPayload = {
-  __typename?: 'RoleRemovePermissionSetPayload';
+export type RoleRemovePermissionSetsPayload = {
+  __typename?: 'RoleRemovePermissionSetsPayload';
   role: RoleEntity;
 };
 
@@ -2707,6 +2714,54 @@ export type ReportDownloadLinksMutationVariables = Exact<{
 
 export type ReportDownloadLinksMutation = { __typename?: 'Mutation', reportDownloadLinksGenerate: { __typename?: 'ReportDownloadLinksGeneratePayload', reportId: string, links: Array<{ __typename?: 'ReportDownloadLink', reportName: string, url: string }> } };
 
+export type RoleQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> } | null };
+
+export type RoleCreateMutationVariables = Exact<{
+  input: RoleCreateInput;
+}>;
+
+
+export type RoleCreateMutation = { __typename?: 'Mutation', roleCreate: { __typename?: 'RoleCreatePayload', role: { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> } } };
+
+export type PermissionSetsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PermissionSetsQuery = { __typename?: 'Query', permissionSets: { __typename?: 'PermissionSetConnection', edges: Array<{ __typename?: 'PermissionSetEdge', node: { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string } }> } };
+
+export type PermissionSetFieldsFragment = { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string };
+
+export type RoleEntityFieldsFragment = { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> };
+
+export type RolesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleEntityConnection', edges: Array<{ __typename?: 'RoleEntityEdge', node: { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> } }> } };
+
+export type RoleAddPermissionSetsMutationVariables = Exact<{
+  input: RoleAddPermissionSetsInput;
+}>;
+
+
+export type RoleAddPermissionSetsMutation = { __typename?: 'Mutation', roleAddPermissionSets: { __typename?: 'RoleAddPermissionSetsPayload', role: { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> } } };
+
+export type RoleRemovePermissionSetsMutationVariables = Exact<{
+  input: RoleRemovePermissionSetsInput;
+}>;
+
+
+export type RoleRemovePermissionSetsMutation = { __typename?: 'Mutation', roleRemovePermissionSets: { __typename?: 'RoleRemovePermissionSetsPayload', role: { __typename?: 'RoleEntity', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: string }> } } };
+
 export type TermsTemplateQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -3184,6 +3239,24 @@ export const LedgerAccountDetailsFragmentDoc = gql`
   }
 }
     `;
+export const PermissionSetFieldsFragmentDoc = gql`
+    fragment PermissionSetFields on PermissionSet {
+  id
+  permissionSetId
+  name
+}
+    `;
+export const RoleEntityFieldsFragmentDoc = gql`
+    fragment RoleEntityFields on RoleEntity {
+  id
+  roleId
+  name
+  createdAt
+  permissionSets {
+    ...PermissionSetFields
+  }
+}
+    ${PermissionSetFieldsFragmentDoc}`;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
@@ -6281,6 +6354,241 @@ export function useReportDownloadLinksMutation(baseOptions?: Apollo.MutationHook
 export type ReportDownloadLinksMutationHookResult = ReturnType<typeof useReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationResult = Apollo.MutationResult<ReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
+export const RoleDocument = gql`
+    query Role($id: UUID!) {
+  role(id: $id) {
+    ...RoleEntityFields
+  }
+}
+    ${RoleEntityFieldsFragmentDoc}`;
+
+/**
+ * __useRoleQuery__
+ *
+ * To run a query within a React component, call `useRoleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRoleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRoleQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRoleQuery(baseOptions: Apollo.QueryHookOptions<RoleQuery, RoleQueryVariables> & ({ variables: RoleQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+      }
+export function useRoleLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RoleQuery, RoleQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+        }
+export function useRoleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RoleQuery, RoleQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+        }
+export type RoleQueryHookResult = ReturnType<typeof useRoleQuery>;
+export type RoleLazyQueryHookResult = ReturnType<typeof useRoleLazyQuery>;
+export type RoleSuspenseQueryHookResult = ReturnType<typeof useRoleSuspenseQuery>;
+export type RoleQueryResult = Apollo.QueryResult<RoleQuery, RoleQueryVariables>;
+export const RoleCreateDocument = gql`
+    mutation RoleCreate($input: RoleCreateInput!) {
+  roleCreate(input: $input) {
+    role {
+      ...RoleEntityFields
+    }
+  }
+}
+    ${RoleEntityFieldsFragmentDoc}`;
+export type RoleCreateMutationFn = Apollo.MutationFunction<RoleCreateMutation, RoleCreateMutationVariables>;
+
+/**
+ * __useRoleCreateMutation__
+ *
+ * To run a mutation, you first call `useRoleCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleCreateMutation, { data, loading, error }] = useRoleCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleCreateMutation(baseOptions?: Apollo.MutationHookOptions<RoleCreateMutation, RoleCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleCreateMutation, RoleCreateMutationVariables>(RoleCreateDocument, options);
+      }
+export type RoleCreateMutationHookResult = ReturnType<typeof useRoleCreateMutation>;
+export type RoleCreateMutationResult = Apollo.MutationResult<RoleCreateMutation>;
+export type RoleCreateMutationOptions = Apollo.BaseMutationOptions<RoleCreateMutation, RoleCreateMutationVariables>;
+export const PermissionSetsDocument = gql`
+    query PermissionSets($first: Int!, $after: String) {
+  permissionSets(first: $first, after: $after) {
+    edges {
+      node {
+        ...PermissionSetFields
+      }
+    }
+  }
+}
+    ${PermissionSetFieldsFragmentDoc}`;
+
+/**
+ * __usePermissionSetsQuery__
+ *
+ * To run a query within a React component, call `usePermissionSetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePermissionSetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePermissionSetsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePermissionSetsQuery(baseOptions: Apollo.QueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables> & ({ variables: PermissionSetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+      }
+export function usePermissionSetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+        }
+export function usePermissionSetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+        }
+export type PermissionSetsQueryHookResult = ReturnType<typeof usePermissionSetsQuery>;
+export type PermissionSetsLazyQueryHookResult = ReturnType<typeof usePermissionSetsLazyQuery>;
+export type PermissionSetsSuspenseQueryHookResult = ReturnType<typeof usePermissionSetsSuspenseQuery>;
+export type PermissionSetsQueryResult = Apollo.QueryResult<PermissionSetsQuery, PermissionSetsQueryVariables>;
+export const RolesDocument = gql`
+    query Roles($first: Int!, $after: String) {
+  roles(first: $first, after: $after) {
+    edges {
+      node {
+        ...RoleEntityFields
+      }
+    }
+  }
+}
+    ${RoleEntityFieldsFragmentDoc}`;
+
+/**
+ * __useRolesQuery__
+ *
+ * To run a query within a React component, call `useRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRolesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useRolesQuery(baseOptions: Apollo.QueryHookOptions<RolesQuery, RolesQueryVariables> & ({ variables: RolesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+      }
+export function useRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RolesQuery, RolesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+        }
+export function useRolesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RolesQuery, RolesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+        }
+export type RolesQueryHookResult = ReturnType<typeof useRolesQuery>;
+export type RolesLazyQueryHookResult = ReturnType<typeof useRolesLazyQuery>;
+export type RolesSuspenseQueryHookResult = ReturnType<typeof useRolesSuspenseQuery>;
+export type RolesQueryResult = Apollo.QueryResult<RolesQuery, RolesQueryVariables>;
+export const RoleAddPermissionSetsDocument = gql`
+    mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
+  roleAddPermissionSets(input: $input) {
+    role {
+      ...RoleEntityFields
+    }
+  }
+}
+    ${RoleEntityFieldsFragmentDoc}`;
+export type RoleAddPermissionSetsMutationFn = Apollo.MutationFunction<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
+
+/**
+ * __useRoleAddPermissionSetsMutation__
+ *
+ * To run a mutation, you first call `useRoleAddPermissionSetsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleAddPermissionSetsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleAddPermissionSetsMutation, { data, loading, error }] = useRoleAddPermissionSetsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleAddPermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>(RoleAddPermissionSetsDocument, options);
+      }
+export type RoleAddPermissionSetsMutationHookResult = ReturnType<typeof useRoleAddPermissionSetsMutation>;
+export type RoleAddPermissionSetsMutationResult = Apollo.MutationResult<RoleAddPermissionSetsMutation>;
+export type RoleAddPermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
+export const RoleRemovePermissionSetsDocument = gql`
+    mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
+  roleRemovePermissionSets(input: $input) {
+    role {
+      ...RoleEntityFields
+    }
+  }
+}
+    ${RoleEntityFieldsFragmentDoc}`;
+export type RoleRemovePermissionSetsMutationFn = Apollo.MutationFunction<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
+
+/**
+ * __useRoleRemovePermissionSetsMutation__
+ *
+ * To run a mutation, you first call `useRoleRemovePermissionSetsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleRemovePermissionSetsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleRemovePermissionSetsMutation, { data, loading, error }] = useRoleRemovePermissionSetsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleRemovePermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>(RoleRemovePermissionSetsDocument, options);
+      }
+export type RoleRemovePermissionSetsMutationHookResult = ReturnType<typeof useRoleRemovePermissionSetsMutation>;
+export type RoleRemovePermissionSetsMutationResult = Apollo.MutationResult<RoleRemovePermissionSetsMutation>;
+export type RoleRemovePermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
 export const TermsTemplateDocument = gql`
     query TermsTemplate($id: UUID!) {
   termsTemplate(id: $id) {
