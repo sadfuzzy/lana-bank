@@ -814,7 +814,7 @@
           "headers": {
             "email": "Email"
           },
-          "noRoles": "No roles assigned",
+          "noRole": "No role assigned",
           "emptyMessage": "No members found in this committee"
         },
         "buttons": {
@@ -1109,22 +1109,23 @@
     "table": {
       "headers": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles Assigned",
       "emptyMessage": "No users found"
     },
     "createDialog": {
       "title": "Add new User",
-      "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
+      "description": "Add a new user to the admin-panel by providing their email address and selecting a role",
       "fields": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "placeholders": {
-        "email": "Please enter the email address"
+        "email": "Please enter the email address",
+        "selectRole": "Select a role"
       },
-      "emailHelperText": "A magic link will be sent to the email address provided.",
+      "noRolesAvailable": "No roles available",
       "buttons": {
         "submit": "Submit",
         "processing": "Processing..."
@@ -1144,21 +1145,19 @@
       "fields": {
         "createdAt": "Created At",
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles assigned",
-      "roleDropdown": {
-        "manageRoles": "Manage Roles",
-        "rolesLabel": "Roles",
-        "success": {
-          "roleAssigned": "Role assigned",
-          "roleRevoked": "Role revoked"
-        },
-        "errors": {
-          "assignFailed": "Failed to assign role",
-          "revokeFailed": "Failed to revoke role"
-        }
-      }
+      "updateRole": "Update Role"
+    },
+    "updateRole": {
+      "title": "Update Role",
+      "description": "Update the role assigned to this user.",
+      "roleLabel": "Role",
+      "selectRole": "Select a role",
+      "noRole": "No Role",
+      "success": "Role updated successfully",
+      "error": "Failed to update role"
     }
   },
   "AuditLogs": {
@@ -1561,7 +1560,7 @@
     "table": {
       "headers": {
         "name": "Role Name",
-        "permissionSets": "Permission Sets",
+        "permissionSets": "Permissions",
         "createdAt": "Created At"
       },
       "emptyMessage": "No roles found. Click the create button to add a new role.",
@@ -1593,7 +1592,7 @@
       "roleDetailsDescription": "View and manage role information and permissions",
       "name": "Name",
       "createdAt": "Created At",
-      "permissionSets": "Permission Sets",
+      "permissionSets": "Permissions",
       "editRole": "Edit Role"
     }
   }

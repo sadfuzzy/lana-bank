@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
+
+use super::Role;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -38,15 +40,16 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn roles(&self) -> Vec<LanaRole> {
-        let mut roles: Vec<_> = self
-            .entity
-            .current_roles()
-            .into_iter()
-            .map(LanaRole::from)
-            .collect();
-        roles.sort();
-        roles
+    async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Role>> {
+        match self.entity.current_role() {
+            None => Ok(None),
+            Some(role_id) => {
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                let role = loader.load_one(role_id).await?;
+
+                Ok(role)
+            }
+        }
     }
 
     async fn email(&self) -> &str {
@@ -90,14 +93,14 @@ mutation_payload! { UserCreatePayload, user: User }
 #[derive(InputObject)]
 pub struct UserAssignRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
+    pub role_id: UUID,
 }
 mutation_payload! { UserAssignRolePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
+    pub role_id: UUID,
 }
 
 mutation_payload! { UserRevokeRolePayload, user: User }

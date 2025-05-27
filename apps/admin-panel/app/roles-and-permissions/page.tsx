@@ -1,4 +1,5 @@
 "use client"
+
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
@@ -23,7 +24,7 @@ gql`
     name
   }
 
-  fragment RoleEntityFields on RoleEntity {
+  fragment RoleFields on Role {
     id
     roleId
     name
@@ -37,7 +38,7 @@ gql`
     roles(first: $first, after: $after) {
       edges {
         node {
-          ...RoleEntityFields
+          ...RoleFields
         }
       }
     }
