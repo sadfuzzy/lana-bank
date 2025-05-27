@@ -15,7 +15,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
     Audit: AuditSvc,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     role_repo: RoleRepo<E>,
     permission_set_repo: PermissionSetRepo,
     users: Users<Audit, E>,
@@ -30,7 +30,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
 {
     pub(super) fn new(
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         role_repo: &RoleRepo<E>,
         users: &Users<Audit, E>,
         permission_set_repo: &PermissionSetRepo,
@@ -49,7 +49,7 @@ where
         &self,
         email: String,
         actions: Vec<ActionDescription<FullPath>>,
-        predefined_roles: &[(RoleName, &[&'static str])],
+        predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
 
@@ -81,7 +81,7 @@ where
     async fn create_role(
         &self,
         db: &mut DbOp<'_>,
-        name: RoleName,
+        name: String,
         permission_sets: HashSet<PermissionSetId>,
         audit_info: &AuditInfo,
     ) -> Result<Role, RoleError> {
@@ -115,7 +115,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         permission_sets: &[PermissionSet],
-        predefined_roles: &[(RoleName, &[&'static str])],
+        predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<Role, RoleError> {
         let audit_info = self
             .authz
@@ -135,7 +135,7 @@ where
         let superuser_role = self
             .create_role(
                 db,
-                RoleName::SUPERUSER,
+                ROLE_NAME_SUPERUSER.to_owned(),
                 all_permission_sets.values().copied().collect(),
                 &audit_info,
             )
@@ -148,7 +148,9 @@ where
                 .copied()
                 .collect::<HashSet<_>>();
 
-            let _ = self.create_role(db, name.clone(), sets, &audit_info).await;
+            let _ = self
+                .create_role(db, name.to_string(), sets, &audit_info)
+                .await;
         }
 
         Ok(superuser_role)
@@ -170,14 +172,15 @@ where
             .map(|ps| (ps.name.to_string(), ps))
             .collect::<HashMap<_, _>>();
 
-        let mut permission_sets: HashMap<&'static str, HashSet<Permission>> = Default::default();
+        #[allow(clippy::type_complexity)]
+        let mut permission_sets: HashMap<
+            &'static str,
+            Vec<Permission<Audit::Object, Audit::Action>>,
+        > = Default::default();
 
         for action in actions {
             for set in action.permission_sets() {
-                permission_sets
-                    .entry(*set)
-                    .or_default()
-                    .insert(action.into());
+                permission_sets.entry(*set).or_default().push(action.into());
             }
         }
 

@@ -12,15 +12,7 @@ use deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
-pub type Authorization = authz::Authorization<Audit, RoleName>;
-
-pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
-    let authz = Authorization::init(pool, audit).await?;
-
-    // seed::execute(&authz).await?;
-
-    Ok(authz)
-}
+pub type Authorization = authz::Authorization<Audit, core_access::AuthRoleToken>;
 
 pub async fn get_visible_navigation_items(
     authz: &Authorization,

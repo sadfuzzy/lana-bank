@@ -22,7 +22,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
 }
 
@@ -49,7 +49,7 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
@@ -244,7 +244,7 @@ where
     ) -> Result<User, UserError> {
         let id = user_id.into();
 
-        if role.name == RoleName::SUPERUSER {
+        if role.name == ROLE_NAME_SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));
@@ -295,7 +295,7 @@ where
     ) -> Result<User, UserError> {
         let id = user_id.into();
 
-        if role.name == RoleName::SUPERUSER {
+        if role.name == ROLE_NAME_SUPERUSER {
             return Err(UserError::AuthorizationError(
                 authz::error::AuthorizationError::NotAuthorized,
             ));

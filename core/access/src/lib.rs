@@ -33,7 +33,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     users: Users<Audit, E>,
     roles: RoleRepo<E>,
     permission_sets: PermissionSetRepo,
@@ -50,7 +50,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         config: AccessConfig,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
     ) -> Result<Self, CoreAccessError> {
         let users = Users::init(pool, authz, outbox).await?;
@@ -89,7 +89,7 @@ where
     pub async fn create_role(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        name: RoleName,
+        name: String,
         permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let audit_info = self
@@ -208,7 +208,7 @@ where
     pub async fn find_role_by_name(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
-        name: RoleName,
+        name: impl AsRef<str> + std::fmt::Debug,
     ) -> Result<Role, RoleError> {
         self.authz
             .enforce_permission(
@@ -217,7 +217,7 @@ where
                 CoreAccessAction::ROLE_LIST,
             )
             .await?;
-        self.roles.find_by_name(name).await
+        self.roles.find_by_name(name.as_ref().to_owned()).await
     }
 
     #[instrument(name = "core_access.assign_role_to_user", skip(self))]

@@ -7,7 +7,7 @@ use authz::PermissionCheck;
 use lana_app::{
     access::Access,
     audit::*,
-    authorization::{error::AuthorizationError, init as init_authz, *},
+    authorization::{error::AuthorizationError, *},
     primitives::*,
 };
 use uuid::Uuid;
@@ -36,7 +36,7 @@ async fn create_user_with_role(
 async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (_, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     // Superuser can create users
@@ -77,11 +77,11 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     let admin_role = access
-        .find_role_by_name(&superuser_subject, LanaRole::ADMIN)
+        .find_role_by_name(&superuser_subject, ROLE_NAME_ADMIN)
         .await?;
 
     let admin_subject = create_user_with_role(&access, &superuser_subject, admin_role.id).await?;
@@ -122,11 +122,11 @@ async fn admin_permissions() -> anyhow::Result<()> {
 async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     let bank_manager_role = access
-        .find_role_by_name(&superuser_subject, LanaRole::BANK_MANAGER)
+        .find_role_by_name(&superuser_subject, ROLE_NAME_BANK_MANAGER)
         .await?;
 
     let bank_manager_subject =
