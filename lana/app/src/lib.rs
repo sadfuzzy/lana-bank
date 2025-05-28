@@ -29,6 +29,9 @@ pub mod user_onboarding {
         user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod rbac {
+    pub use rbac_types::PermissionSetName;
+}
 pub mod access {
     pub use core_access::{config, error, permission_set, role, user, Role, RoleId, UserId};
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
@@ -63,7 +66,7 @@ pub mod governance {
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
-    pub use deposit::APPROVE_WITHDRAWAL_PROCESS;
+    pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
 }
 
 pub mod audit {
@@ -78,7 +81,7 @@ pub mod audit {
 }
 
 pub mod deposit {
-    pub use deposit::{
+    pub use core_deposit::{
         error, ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
         DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositId,
         DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
@@ -86,7 +89,7 @@ pub mod deposit {
     };
 
     pub type Deposits =
-        deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
+        core_deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod accounting {
