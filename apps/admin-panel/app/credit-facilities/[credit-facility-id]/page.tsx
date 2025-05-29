@@ -10,7 +10,6 @@ import Balance from "@/components/balance/balance"
 
 import {
   useGetCreditFacilityHistoryQuery,
-  useGetCreditFacilityHistoryDetailsQuery,
   useGetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
 import { removeUnderscore } from "@/lib/utils"
@@ -19,6 +18,11 @@ gql`
   fragment CreditFacilityHistoryFragment on CreditFacility {
     id
     creditFacilityId
+    createdAt
+    maturesAt
+    customer {
+      customerId
+    }
     history {
       ... on CreditFacilityIncrementalPayment {
         cents
@@ -67,17 +71,6 @@ gql`
       ...CreditFacilityHistoryFragment
     }
   }
-
-  query GetCreditFacilityHistoryDetails($id: UUID!) {
-    creditFacility(id: $id) {
-      id
-      createdAt
-      maturesAt
-      customer {
-        customerId
-      }
-    }
-  }
 `
 
 interface CreditFacilityHistoryPageProps {
@@ -95,11 +88,7 @@ export default function CreditFacilityHistoryPage({
     fetchPolicy: "cache-and-network",
   })
 
-  const { data: layoutData } = useGetCreditFacilityHistoryDetailsQuery({
-    variables: { id: creditFacilityId },
-  })
-
-  const customerId = layoutData?.creditFacility?.customer?.customerId
+  const customerId = cfData?.creditFacility?.customer?.customerId
   const { data: customerData } = useGetCustomerBasicDetailsQuery({
     variables: { id: customerId! },
     skip: !customerId,
@@ -107,18 +96,30 @@ export default function CreditFacilityHistoryPage({
 
   const t = useTranslations()
 
-  if (!cfData?.creditFacility || !layoutData?.creditFacility) return null
+  if (!cfData?.creditFacility) return null
 
   const customerType = customerData?.customer?.customerType
   const customerTypeDisplay = customerType ? removeUnderscore(customerType) : "Unknown"
 
-  const issuanceDate = new Date(layoutData.creditFacility.createdAt).toLocaleDateString()
+  // Use type assertion to tell TypeScript that createdAt exists
+  const creditFacility = cfData.creditFacility as unknown as {
+    id: string
+    creditFacilityId: string
+    createdAt: string
+    customer: { customerId: string }
+    history: any[]
+    repaymentPlan: any[]
+  }
 
-  const monthlyPayment = (cfData.creditFacility.repaymentPlan
+  const issuanceDate = new Date(creditFacility.createdAt).toLocaleDateString()
+
+  const monthlyPayment = (creditFacility.repaymentPlan
     ?.filter(
-      (payment) => payment.status === "UPCOMING" || payment.status === "NOT_YET_DUE",
+      (payment: { status: string }) =>
+        payment.status === "UPCOMING" || payment.status === "NOT_YET_DUE",
     )
-    .reduce((acc, payment) => acc + payment.initial, 0) / 12) as CurrencyType
+    .reduce((acc: number, payment: { initial: number }) => acc + payment.initial, 0) /
+    12) as CurrencyType
 
   return (
     <div>
@@ -141,7 +142,7 @@ export default function CreditFacilityHistoryPage({
           />
         </div>
       </div>
-      <CreditFacilityHistory creditFacility={cfData.creditFacility} />
+      <CreditFacilityHistory creditFacility={creditFacility} />
     </div>
   )
 }
