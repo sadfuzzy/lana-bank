@@ -3,7 +3,7 @@ use async_graphql::dataloader::{DataLoader, Loader};
 use std::collections::HashMap;
 
 use lana_app::{
-    access::user::error::UserError,
+    access::{error::CoreAccessError, user::error::UserError},
     accounting::{
         chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
         ledger_transaction::error::LedgerTransactionError,
@@ -17,8 +17,8 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*, deposit::*,
-    deposit_account::*, document::*, policy::*, terms_template::*, user::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*,
+    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -46,6 +46,34 @@ impl Loader<UserId> for LanaLoader {
             .access()
             .users()
             .find_all(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+impl Loader<PermissionSetId> for LanaLoader {
+    type Value = PermissionSet;
+    type Error = Arc<CoreAccessError>;
+
+    async fn load(
+        &self,
+        keys: &[PermissionSetId],
+    ) -> Result<HashMap<PermissionSetId, PermissionSet>, Self::Error> {
+        self.app
+            .access()
+            .find_all_permission_sets(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<RoleId> for LanaLoader {
+    type Value = Role;
+    type Error = Arc<CoreAccessError>;
+
+    async fn load(&self, keys: &[RoleId]) -> Result<HashMap<RoleId, Role>, Self::Error> {
+        self.app
+            .access()
+            .find_all_roles(keys)
             .await
             .map_err(Arc::new)
     }
@@ -276,9 +304,10 @@ impl Loader<DisbursalId> for LanaLoader {
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit()
-            .find_all_disbursals(keys)
+            .disbursals()
+            .find_all(keys)
             .await
-            .map_err(Arc::new)
+            .map_err(|e| Arc::new(e.into()))
     }
 }
 

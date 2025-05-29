@@ -13,10 +13,10 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    accounting::*, approval_process::*, audit::*, authenticated_subject::*,
+    access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
     dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
-    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, user::*, withdrawal::*,
+    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -57,6 +57,42 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Role, ctx, app.access().find_role_by_id(sub, id))
+    }
+
+    async fn roles(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<RolesByNameCursor, Role, EmptyFields, EmptyFields>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(RolesByNameCursor, Role, ctx, after, first, |query| app
+            .access()
+            .list_roles(sub, query))
+    }
+
+    async fn permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<PermissionSetsByIdCursor, PermissionSet, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            PermissionSetsByIdCursor,
+            PermissionSet,
+            ctx,
+            after,
+            first,
+            |query| app.access().list_permission_sets(sub, query)
+        )
     }
 
     async fn customer(
@@ -265,7 +301,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit().find_disbursal_by_id(sub, id)
+            app.credit().disbursals().find_by_id(sub, id)
         )
     }
 
@@ -291,7 +327,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
+            |query| { app.credit().disbursals().list(sub, query, filter, sort) }
         )
     }
 
@@ -785,12 +821,12 @@ impl Mutation {
         input: UserAssignRoleInput,
     ) -> async_graphql::Result<UserAssignRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserAssignRoleInput { id, role } = input;
+        let UserAssignRoleInput { id, role_id } = input;
         exec_mutation!(
             UserAssignRolePayload,
             User,
             ctx,
-            app.access().users().assign_role_to_user(sub, id, role)
+            app.access().assign_role_to_user(sub, id, role_id)
         )
     }
 
@@ -800,12 +836,65 @@ impl Mutation {
         input: UserRevokeRoleInput,
     ) -> async_graphql::Result<UserRevokeRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserRevokeRoleInput { id, role } = input;
+        let UserRevokeRoleInput { id, role_id } = input;
         exec_mutation!(
             UserRevokeRolePayload,
             User,
             ctx,
-            app.access().users().revoke_role_from_user(sub, id, role)
+            app.access().revoke_role_from_user(sub, id, role_id)
+        )
+    }
+
+    async fn role_create(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleCreateInput,
+    ) -> async_graphql::Result<RoleCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let RoleCreateInput {
+            name,
+            permission_set_ids,
+        } = input;
+        exec_mutation!(
+            RoleCreatePayload,
+            Role,
+            ctx,
+            app.access().create_role(sub, name, permission_set_ids)
+        )
+    }
+
+    async fn role_add_permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleAddPermissionSetsInput,
+    ) -> async_graphql::Result<RoleAddPermissionSetsPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            RoleAddPermissionSetsPayload,
+            Role,
+            ctx,
+            app.access()
+                .add_permission_sets_to_role(sub, input.role_id, input.permission_set_ids)
+        )
+    }
+
+    async fn role_remove_permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleRemovePermissionSetsInput,
+    ) -> async_graphql::Result<RoleRemovePermissionSetsPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            RoleRemovePermissionSetsPayload,
+            Role,
+            ctx,
+            app.access().remove_permission_sets_from_role(
+                sub,
+                input.role_id,
+                input.permission_set_ids
+            )
         )
     }
 

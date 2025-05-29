@@ -98,6 +98,8 @@
           cargo-nextest
           cargo-audit
           cargo-watch
+          cargo-deny
+          cargo-machete
           bacon
           typos
           postgresql
@@ -118,6 +120,7 @@
           ps
           curl
           tilt
+          procps
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run

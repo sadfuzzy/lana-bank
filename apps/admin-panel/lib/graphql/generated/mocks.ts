@@ -56,7 +56,7 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
-import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPaymentAllocation, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, ReportProgress, Role, SortDirection, WithdrawalStatus } from './index';
+import { AccountingCsv, AccountingCsvConnection, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, AccountingCsvEdge, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityOrigination, CreditFacilityPartialPaymentInput, CreditFacilityPartialPaymentPayload, CreditFacilityPaymentAllocation, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DisbursalEntry, Disbursed, Document, DocumentArchiveInput, DocumentArchivePayload, DocumentCreateInput, DocumentCreatePayload, DocumentDeleteInput, DocumentDeletePayload, DocumentDownloadLinksGenerateInput, DocumentDownloadLinksGeneratePayload, Duration, DurationInput, FacilityCvl, FacilityRemaining, GovernanceNavigationItems, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Mutation, Outstanding, PageInfo, PaymentEntry, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportCreatePayload, ReportDownloadLink, ReportDownloadLinksGenerateInput, ReportDownloadLinksGeneratePayload, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, Subject, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserAssignRoleInput, UserAssignRolePayload, UserCreateInput, UserCreatePayload, UserRevokeRoleInput, UserRevokeRolePayload, VisibleNavigationItems, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, AccountStatus, AccountingCsvStatus, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, Layer, Period, PermissionSetName, ReportProgress, SortDirection, WithdrawalStatus } from './index';
 
 faker.seed(0);
 
@@ -308,7 +308,7 @@ export const mockBtcBalanceDetails = (overrides?: Partial<BtcBalanceDetails>, _r
         __typename: 'BtcBalanceDetails',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.satoshis(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.satoshis(),
-        net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.satoshis(),
+        net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.signedSatoshis(),
     };
 };
 
@@ -1568,6 +1568,9 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         profitAndLossStatementConfigure: overrides && overrides.hasOwnProperty('profitAndLossStatementConfigure') ? overrides.profitAndLossStatementConfigure! : relationshipsToOmit.has('ProfitAndLossStatementModuleConfigurePayload') ? {} as ProfitAndLossStatementModuleConfigurePayload : mockProfitAndLossStatementModuleConfigurePayload({}, relationshipsToOmit),
         reportCreate: overrides && overrides.hasOwnProperty('reportCreate') ? overrides.reportCreate! : relationshipsToOmit.has('ReportCreatePayload') ? {} as ReportCreatePayload : mockReportCreatePayload({}, relationshipsToOmit),
         reportDownloadLinksGenerate: overrides && overrides.hasOwnProperty('reportDownloadLinksGenerate') ? overrides.reportDownloadLinksGenerate! : relationshipsToOmit.has('ReportDownloadLinksGeneratePayload') ? {} as ReportDownloadLinksGeneratePayload : mockReportDownloadLinksGeneratePayload({}, relationshipsToOmit),
+        roleAddPermissionSets: overrides && overrides.hasOwnProperty('roleAddPermissionSets') ? overrides.roleAddPermissionSets! : relationshipsToOmit.has('RoleAddPermissionSetsPayload') ? {} as RoleAddPermissionSetsPayload : mockRoleAddPermissionSetsPayload({}, relationshipsToOmit),
+        roleCreate: overrides && overrides.hasOwnProperty('roleCreate') ? overrides.roleCreate! : relationshipsToOmit.has('RoleCreatePayload') ? {} as RoleCreatePayload : mockRoleCreatePayload({}, relationshipsToOmit),
+        roleRemovePermissionSets: overrides && overrides.hasOwnProperty('roleRemovePermissionSets') ? overrides.roleRemovePermissionSets! : relationshipsToOmit.has('RoleRemovePermissionSetsPayload') ? {} as RoleRemovePermissionSetsPayload : mockRoleRemovePermissionSetsPayload({}, relationshipsToOmit),
         sumsubPermalinkCreate: overrides && overrides.hasOwnProperty('sumsubPermalinkCreate') ? overrides.sumsubPermalinkCreate! : relationshipsToOmit.has('SumsubPermalinkCreatePayload') ? {} as SumsubPermalinkCreatePayload : mockSumsubPermalinkCreatePayload({}, relationshipsToOmit),
         termsTemplateCreate: overrides && overrides.hasOwnProperty('termsTemplateCreate') ? overrides.termsTemplateCreate! : relationshipsToOmit.has('TermsTemplateCreatePayload') ? {} as TermsTemplateCreatePayload : mockTermsTemplateCreatePayload({}, relationshipsToOmit),
         termsTemplateUpdate: overrides && overrides.hasOwnProperty('termsTemplateUpdate') ? overrides.termsTemplateUpdate! : relationshipsToOmit.has('TermsTemplateUpdatePayload') ? {} as TermsTemplateUpdatePayload : mockTermsTemplateUpdatePayload({}, relationshipsToOmit),
@@ -1608,6 +1611,38 @@ export const mockPaymentEntry = (overrides?: Partial<PaymentEntry>, _relationshi
         __typename: 'PaymentEntry',
         payment: overrides && overrides.hasOwnProperty('payment') ? overrides.payment! : relationshipsToOmit.has('CreditFacilityPaymentAllocation') ? {} as CreditFacilityPaymentAllocation : mockCreditFacilityPaymentAllocation({}, relationshipsToOmit),
         recordedAt: overrides && overrides.hasOwnProperty('recordedAt') ? overrides.recordedAt! : generateMockValue.timestamp(),
+    };
+};
+
+export const mockPermissionSet = (overrides?: Partial<PermissionSet>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PermissionSet' } & PermissionSet => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('PermissionSet');
+    return {
+        __typename: 'PermissionSet',
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        permissionSetId: overrides && overrides.hasOwnProperty('permissionSetId') ? overrides.permissionSetId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockPermissionSetConnection = (overrides?: Partial<PermissionSetConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PermissionSetConnection' } & PermissionSetConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('PermissionSetConnection');
+    return {
+        __typename: 'PermissionSetConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('PermissionSetEdge') ? {} as PermissionSetEdge : mockPermissionSetEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('PermissionSet') ? {} as PermissionSet : mockPermissionSet({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockPermissionSetEdge = (overrides?: Partial<PermissionSetEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'PermissionSetEdge' } & PermissionSetEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('PermissionSetEdge');
+    return {
+        __typename: 'PermissionSetEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('PermissionSet') ? {} as PermissionSet : mockPermissionSet({}, relationshipsToOmit),
     };
 };
 
@@ -1739,6 +1774,7 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         ledgerTransaction: overrides && overrides.hasOwnProperty('ledgerTransaction') ? overrides.ledgerTransaction! : relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit),
         ledgerTransactionsForTemplateCode: overrides && overrides.hasOwnProperty('ledgerTransactionsForTemplateCode') ? overrides.ledgerTransactionsForTemplateCode! : relationshipsToOmit.has('LedgerTransactionConnection') ? {} as LedgerTransactionConnection : mockLedgerTransactionConnection({}, relationshipsToOmit),
         me: overrides && overrides.hasOwnProperty('me') ? overrides.me! : relationshipsToOmit.has('Subject') ? {} as Subject : mockSubject({}, relationshipsToOmit),
+        permissionSets: overrides && overrides.hasOwnProperty('permissionSets') ? overrides.permissionSets! : relationshipsToOmit.has('PermissionSetConnection') ? {} as PermissionSetConnection : mockPermissionSetConnection({}, relationshipsToOmit),
         policies: overrides && overrides.hasOwnProperty('policies') ? overrides.policies! : relationshipsToOmit.has('PolicyConnection') ? {} as PolicyConnection : mockPolicyConnection({}, relationshipsToOmit),
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
         profitAndLossStatement: overrides && overrides.hasOwnProperty('profitAndLossStatement') ? overrides.profitAndLossStatement! : relationshipsToOmit.has('ProfitAndLossStatement') ? {} as ProfitAndLossStatement : mockProfitAndLossStatement({}, relationshipsToOmit),
@@ -1746,6 +1782,8 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         realtimePrice: overrides && overrides.hasOwnProperty('realtimePrice') ? overrides.realtimePrice! : relationshipsToOmit.has('RealtimePrice') ? {} as RealtimePrice : mockRealtimePrice({}, relationshipsToOmit),
         report: overrides && overrides.hasOwnProperty('report') ? overrides.report! : relationshipsToOmit.has('Report') ? {} as Report : mockReport({}, relationshipsToOmit),
         reports: overrides && overrides.hasOwnProperty('reports') ? overrides.reports! : [relationshipsToOmit.has('Report') ? {} as Report : mockReport({}, relationshipsToOmit)],
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
+        roles: overrides && overrides.hasOwnProperty('roles') ? overrides.roles! : relationshipsToOmit.has('RoleConnection') ? {} as RoleConnection : mockRoleConnection({}, relationshipsToOmit),
         termsTemplate: overrides && overrides.hasOwnProperty('termsTemplate') ? overrides.termsTemplate! : relationshipsToOmit.has('TermsTemplate') ? {} as TermsTemplate : mockTermsTemplate({}, relationshipsToOmit),
         termsTemplates: overrides && overrides.hasOwnProperty('termsTemplates') ? overrides.termsTemplates! : [relationshipsToOmit.has('TermsTemplate') ? {} as TermsTemplate : mockTermsTemplate({}, relationshipsToOmit)],
         transactionTemplates: overrides && overrides.hasOwnProperty('transactionTemplates') ? overrides.transactionTemplates! : relationshipsToOmit.has('TransactionTemplateConnection') ? {} as TransactionTemplateConnection : mockTransactionTemplateConnection({}, relationshipsToOmit),
@@ -1812,6 +1850,94 @@ export const mockReportDownloadLinksGeneratePayload = (overrides?: Partial<Repor
         __typename: 'ReportDownloadLinksGeneratePayload',
         links: overrides && overrides.hasOwnProperty('links') ? overrides.links! : [relationshipsToOmit.has('ReportDownloadLink') ? {} as ReportDownloadLink : mockReportDownloadLink({}, relationshipsToOmit)],
         reportId: overrides && overrides.hasOwnProperty('reportId') ? overrides.reportId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockRole = (overrides?: Partial<Role>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Role' } & Role => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('Role');
+    return {
+        __typename: 'Role',
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        permissionSets: overrides && overrides.hasOwnProperty('permissionSets') ? overrides.permissionSets! : [relationshipsToOmit.has('PermissionSet') ? {} as PermissionSet : mockPermissionSet({}, relationshipsToOmit)],
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockRoleAddPermissionSetsInput = (overrides?: Partial<RoleAddPermissionSetsInput>, _relationshipsToOmit: Set<string> = new Set()): RoleAddPermissionSetsInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleAddPermissionSetsInput');
+    return {
+        permissionSetIds: overrides && overrides.hasOwnProperty('permissionSetIds') ? overrides.permissionSetIds! : [generateMockValue.uuid()],
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockRoleAddPermissionSetsPayload = (overrides?: Partial<RoleAddPermissionSetsPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RoleAddPermissionSetsPayload' } & RoleAddPermissionSetsPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleAddPermissionSetsPayload');
+    return {
+        __typename: 'RoleAddPermissionSetsPayload',
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
+    };
+};
+
+export const mockRoleConnection = (overrides?: Partial<RoleConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RoleConnection' } & RoleConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleConnection');
+    return {
+        __typename: 'RoleConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('RoleEdge') ? {} as RoleEdge : mockRoleEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockRoleCreateInput = (overrides?: Partial<RoleCreateInput>, _relationshipsToOmit: Set<string> = new Set()): RoleCreateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleCreateInput');
+    return {
+        name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        permissionSetIds: overrides && overrides.hasOwnProperty('permissionSetIds') ? overrides.permissionSetIds! : [generateMockValue.uuid()],
+    };
+};
+
+export const mockRoleCreatePayload = (overrides?: Partial<RoleCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RoleCreatePayload' } & RoleCreatePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleCreatePayload');
+    return {
+        __typename: 'RoleCreatePayload',
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
+    };
+};
+
+export const mockRoleEdge = (overrides?: Partial<RoleEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RoleEdge' } & RoleEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleEdge');
+    return {
+        __typename: 'RoleEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
+    };
+};
+
+export const mockRoleRemovePermissionSetsInput = (overrides?: Partial<RoleRemovePermissionSetsInput>, _relationshipsToOmit: Set<string> = new Set()): RoleRemovePermissionSetsInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleRemovePermissionSetsInput');
+    return {
+        permissionSetIds: overrides && overrides.hasOwnProperty('permissionSetIds') ? overrides.permissionSetIds! : [generateMockValue.uuid()],
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockRoleRemovePermissionSetsPayload = (overrides?: Partial<RoleRemovePermissionSetsPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'RoleRemovePermissionSetsPayload' } & RoleRemovePermissionSetsPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('RoleRemovePermissionSetsPayload');
+    return {
+        __typename: 'RoleRemovePermissionSetsPayload',
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
     };
 };
 
@@ -2041,7 +2167,7 @@ export const mockUsdBalanceDetails = (overrides?: Partial<UsdBalanceDetails>, _r
         __typename: 'UsdBalanceDetails',
         credit: overrides && overrides.hasOwnProperty('credit') ? overrides.credit! : generateMockValue.usdCents(),
         debit: overrides && overrides.hasOwnProperty('debit') ? overrides.debit! : generateMockValue.usdCents(),
-        net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.usdCents(),
+        net: overrides && overrides.hasOwnProperty('net') ? overrides.net! : generateMockValue.signedUsdCents(),
     };
 };
 
@@ -2075,7 +2201,7 @@ export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<st
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        roles: overrides && overrides.hasOwnProperty('roles') ? overrides.roles! : [...faker.helpers.arrayElements(Object.values(Role).filter(v => typeof v === 'string'))],
+        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
         subjectCanAssignRoleToUser: overrides && overrides.hasOwnProperty('subjectCanAssignRoleToUser') ? overrides.subjectCanAssignRoleToUser! : faker.datatype.boolean(),
         subjectCanRevokeRoleFromUser: overrides && overrides.hasOwnProperty('subjectCanRevokeRoleFromUser') ? overrides.subjectCanRevokeRoleFromUser! : faker.datatype.boolean(),
         userId: overrides && overrides.hasOwnProperty('userId') ? overrides.userId! : generateMockValue.uuid(),
@@ -2087,7 +2213,7 @@ export const mockUserAssignRoleInput = (overrides?: Partial<UserAssignRoleInput>
     relationshipsToOmit.add('UserAssignRoleInput');
     return {
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : Role.Accountant,
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
     };
 };
 
@@ -2122,7 +2248,7 @@ export const mockUserRevokeRoleInput = (overrides?: Partial<UserRevokeRoleInput>
     relationshipsToOmit.add('UserRevokeRoleInput');
     return {
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
-        role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : Role.Accountant,
+        roleId: overrides && overrides.hasOwnProperty('roleId') ? overrides.roleId! : generateMockValue.uuid(),
     };
 };
 

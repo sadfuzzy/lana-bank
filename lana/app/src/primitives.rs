@@ -2,20 +2,20 @@ use serde::{Deserialize, Serialize};
 
 use std::fmt;
 
-pub use core_access::UserId;
+pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
     PaymentAllocationId, PaymentId,
 };
 pub use core_customer::CustomerId;
+pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
-pub use deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
 pub use lana_ids::*;
-pub use rbac_types::{LanaRole, RoleName, Subject};
+pub use rbac_types::Subject;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, sqlx::Type)]
 #[serde(transparent)]
@@ -66,9 +66,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_trivial() {
-        let price =
-            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap());
-        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(1000)).unwrap();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(1000)).unwrap());
+        let cents = UsdCents::try_from_usd(dec!(1000)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(1)).unwrap(),
             price.cents_to_sats_round_up(cents)
@@ -77,9 +76,8 @@ mod test {
 
     #[test]
     fn cents_to_sats_complex() {
-        let price =
-            PriceOfOneBTC::new(UsdCents::try_from_usd(rust_decimal_macros::dec!(60000)).unwrap());
-        let cents = UsdCents::try_from_usd(rust_decimal_macros::dec!(100)).unwrap();
+        let price = PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(60000)).unwrap());
+        let cents = UsdCents::try_from_usd(dec!(100)).unwrap();
         assert_eq!(
             Satoshis::try_from_btc(dec!(0.00166667)).unwrap(),
             price.cents_to_sats_round_up(cents)

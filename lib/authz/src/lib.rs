@@ -27,20 +27,20 @@ pub use check_trait::PermissionCheck;
 const MODEL: &str = include_str!("./rbac.conf");
 
 #[derive(Clone)]
-pub struct Authorization<Audit, R>
+pub struct Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: Send + Sync + 'static,
+    Role: Send + Sync + 'static,
 {
     enforcer: Arc<RwLock<Enforcer>>,
     audit: Audit,
-    _phantom: PhantomData<R>,
+    _phantom: PhantomData<Role>,
 }
 
-impl<Audit, R> Authorization<Audit, R>
+impl<Audit, Role> Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: fmt::Display + fmt::Debug + Clone + Send + Sync,
+    Role: fmt::Display + fmt::Debug + Clone + Send + Sync,
 {
     pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Self, AuthorizationError> {
         let model = DefaultModel::from_str(MODEL).await?;
@@ -56,15 +56,18 @@ where
         Ok(auth)
     }
 
-    pub async fn add_role_hierarchy(
+    pub async fn add_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
         &self,
-        parent_role: R,
-        child_role: R,
+        parent_role: R1,
+        child_role: R2,
     ) -> Result<(), AuthorizationError> {
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![parent_role.to_string(), child_role.to_string()])
+            .add_grouping_policy(vec![
+                parent_role.into().to_string(),
+                child_role.into().to_string(),
+            ])
             .await
         {
             Ok(_) => Ok(()),
@@ -75,19 +78,19 @@ where
         }
     }
 
-    pub async fn add_permission_to_role(
+    pub async fn add_permission_to_role<R>(
         &self,
         role: &R,
-        object: impl Into<Audit::Object>,
-        action: impl Into<Audit::Action>,
-    ) -> Result<(), AuthorizationError> {
-        let object = object.into();
-        let action = action.into();
-
+        object: &Audit::Object,
+        action: &Audit::Action,
+    ) -> Result<(), AuthorizationError>
+    where
+        for<'a> &'a R: Into<Role>,
+    {
         let mut enforcer = self.enforcer.write().await;
         match enforcer
             .add_policy(vec![
-                role.to_string(),
+                role.into().to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -101,19 +104,22 @@ where
         }
     }
 
-    pub async fn remove_permission_from_role(
+    pub async fn remove_permission_from_role<R>(
         &self,
         role: &R,
         object: impl Into<Audit::Object>,
         action: impl Into<Audit::Action>,
-    ) -> Result<(), AuthorizationError> {
+    ) -> Result<(), AuthorizationError>
+    where
+        for<'a> &'a R: Into<Role>,
+    {
         let object = object.into();
         let action = action.into();
 
         let mut enforcer = self.enforcer.write().await;
         enforcer
             .remove_policy(vec![
-                role.to_string(),
+                role.into().to_string(),
                 object.to_string(),
                 action.to_string(),
             ])
@@ -122,16 +128,19 @@ where
         Ok(())
     }
 
-    pub async fn assign_role_to_subject(
+    pub async fn assign_role_to_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: impl std::borrow::Borrow<R>,
-    ) -> Result<(), AuthorizationError> {
+        role: R,
+    ) -> Result<(), AuthorizationError>
+    where
+        R: Into<Role>,
+    {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .add_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
+            .add_grouping_policy(vec![sub.to_string(), role.into().to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -142,16 +151,19 @@ where
         }
     }
 
-    pub async fn revoke_role_from_subject(
+    pub async fn revoke_role_from_subject<R>(
         &self,
         sub: impl Into<Audit::Subject>,
-        role: impl std::borrow::Borrow<R>,
-    ) -> Result<(), AuthorizationError> {
+        role: R,
+    ) -> Result<(), AuthorizationError>
+    where
+        R: Into<Role>,
+    {
         let sub = sub.into();
         let mut enforcer = self.enforcer.write().await;
 
         match enforcer
-            .remove_grouping_policy(vec![sub.to_string(), role.borrow().to_string()])
+            .remove_grouping_policy(vec![sub.to_string(), role.into().to_string()])
             .await
         {
             Ok(_) => Ok(()),
@@ -162,9 +174,9 @@ where
     pub async fn roles_for_subject(
         &self,
         sub: impl Into<Audit::Subject>,
-    ) -> Result<Vec<R>, AuthorizationError>
+    ) -> Result<Vec<Role>, AuthorizationError>
     where
-        R: std::str::FromStr,
+        Role: std::str::FromStr,
     {
         let sub = sub.into();
         let sub_uuid = sub.to_string();
@@ -175,7 +187,7 @@ where
             .into_iter()
             .filter(|r| r[0] == sub_uuid)
             .map(|r| {
-                r[1].parse::<R>()
+                r[1].parse::<Role>()
                     .map_err(|_| AuthorizationError::RoleParseError(r[1].clone()))
             })
             .collect::<Result<Vec<_>, _>>()?;
@@ -222,10 +234,10 @@ where
 }
 
 #[async_trait]
-impl<Audit, R> PermissionCheck for Authorization<Audit, R>
+impl<Audit, Role> PermissionCheck for Authorization<Audit, Role>
 where
     Audit: AuditSvc,
-    R: fmt::Display + fmt::Debug + Clone + Send + Sync + 'static,
+    Role: fmt::Display + fmt::Debug + Clone + Send + Sync + 'static,
 {
     type Audit = Audit;
 
