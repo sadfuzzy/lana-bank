@@ -31,16 +31,16 @@ async fn bank_manager_lifecycle() -> anyhow::Result<()> {
         .await?;
 
     let bank_manager = access
-        .assign_role_to_user(&superuser_subject, user.id, bank_manager_role.id)
+        .update_role_of_user(&superuser_subject, user.id, bank_manager_role.id)
         .await
-        .expect("Could not assign role to user");
+        .expect("Could not update role of user");
 
     assert_eq!(bank_manager.id, user.id);
     assert_eq!(bank_manager.current_role(), Some(bank_manager_role.id));
 
     let user = access
         .users()
-        .revoke_role_from_user(&superuser_subject, bank_manager.id, &bank_manager_role)
+        .revoke_role_from_user(&superuser_subject, bank_manager.id)
         .await?;
 
     assert_eq!(user.current_role(), None);
