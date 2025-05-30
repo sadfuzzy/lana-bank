@@ -85,6 +85,7 @@ pub async fn disbursal_different_months_scenario(
 
     let cf = app
         .credit()
+        .facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");
@@ -129,7 +130,12 @@ async fn do_timely_payments(
             .record_payment(&sub, id, amount, sim_time::now().date_naive())
             .await?;
 
-        if !app.credit().has_outstanding_obligations(&sub, id).await? {
+        if !app
+            .credit()
+            .facilities()
+            .has_outstanding_obligations(&sub, id)
+            .await?
+        {
             break;
         }
     }

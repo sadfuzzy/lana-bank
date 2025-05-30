@@ -76,6 +76,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
 
     let cf = app
         .credit()
+        .facilities()
         .find_by_id(&sub, cf.id)
         .await?
         .expect("cf exists");
@@ -109,7 +110,12 @@ async fn do_principal_late(
             principal_remaining += amount;
         }
 
-        let facility = app.credit().find_by_id(&sub, id).await?.unwrap();
+        let facility = app
+            .credit()
+            .facilities()
+            .find_by_id(&sub, id)
+            .await?
+            .unwrap();
         let total_outstanding = app.credit().outstanding(&facility).await?;
         if total_outstanding == principal_remaining {
             break;
@@ -122,13 +128,23 @@ async fn do_principal_late(
         .record_payment(&sub, id, principal_remaining, sim_time::now().date_naive())
         .await?;
 
-    if app.credit().has_outstanding_obligations(&sub, id).await? {
+    if app
+        .credit()
+        .facilities()
+        .has_outstanding_obligations(&sub, id)
+        .await?
+    {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
             app.credit()
                 .record_payment(&sub, id, amount, sim_time::now().date_naive())
                 .await?;
 
-            if !app.credit().has_outstanding_obligations(&sub, id).await? {
+            if !app
+                .credit()
+                .facilities()
+                .has_outstanding_obligations(&sub, id)
+                .await?
+            {
                 break;
             }
         }
