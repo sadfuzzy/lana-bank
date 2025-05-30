@@ -19,9 +19,7 @@
     "upload": "Subir",
     "close": "Cerrar",
     "submit": "Enviar",
-    "set": "Establecer",
-    "customerType": "Tipo de Cliente",
-    "dateOfIssuance": "Fecha de Emisión"
+    "set": "Establecer"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permisos que tiene este rol",
@@ -390,7 +388,6 @@
     "table": {
       "headers": {
         "customer": "Cliente",
-        "state": "Estado",
         "status": "Estado",
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
