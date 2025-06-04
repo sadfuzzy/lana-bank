@@ -720,6 +720,46 @@ export type CreditModuleConfigurePayload = {
   creditConfig: CreditModuleConfig;
 };
 
+export enum Custodian {
+  Komainu = 'KOMAINU'
+}
+
+export type CustodianConfig = {
+  __typename?: 'CustodianConfig';
+  createdAt: Scalars['Timestamp']['output'];
+  custodian: Custodian;
+  custodianConfigId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export type CustodianConfigConnection = {
+  __typename?: 'CustodianConfigConnection';
+  /** A list of edges. */
+  edges: Array<CustodianConfigEdge>;
+  /** A list of nodes. */
+  nodes: Array<CustodianConfig>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type CustodianConfigCreateInput =
+  { komainu: KomainuConfig; };
+
+export type CustodianConfigCreatePayload = {
+  __typename?: 'CustodianConfigCreatePayload';
+  custodianConfig: CustodianConfig;
+};
+
+/** An edge in a connection. */
+export type CustodianConfigEdge = {
+  __typename?: 'CustodianConfigEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: CustodianConfig;
+};
+
 export type Customer = {
   __typename?: 'Customer';
   applicantId?: Maybe<Scalars['String']['output']>;
@@ -1100,6 +1140,14 @@ export type JournalEntryEdge = {
   node: JournalEntry;
 };
 
+export type KomainuConfig = {
+  apiKey: Scalars['String']['input'];
+  apiSecret: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  secretKey: Scalars['String']['input'];
+  testingInstance: Scalars['Boolean']['input'];
+};
+
 export enum KycLevel {
   Advanced = 'ADVANCED',
   Basic = 'BASIC',
@@ -1236,6 +1284,7 @@ export type Mutation = {
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
+  custodianConfigCreate: CustodianConfigCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
@@ -1334,6 +1383,11 @@ export type MutationCreditFacilityPartialPaymentArgs = {
 
 export type MutationCreditModuleConfigureArgs = {
   input: CreditModuleConfigureInput;
+};
+
+
+export type MutationCustodianConfigCreateArgs = {
+  input: CustodianConfigCreateInput;
 };
 
 
@@ -1530,6 +1584,8 @@ export enum PermissionSetName {
   AppWriter = 'APP_WRITER',
   CreditViewer = 'CREDIT_VIEWER',
   CreditWriter = 'CREDIT_WRITER',
+  CustodyViewer = 'CUSTODY_VIEWER',
+  CustodyWriter = 'CUSTODY_WRITER',
   CustomerViewer = 'CUSTOMER_VIEWER',
   CustomerWriter = 'CUSTOMER_WRITER',
   DashboardViewer = 'DASHBOARD_VIEWER',
@@ -1617,6 +1673,7 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
+  custodianConfigs: CustodianConfigConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
@@ -1706,6 +1763,12 @@ export type QueryCreditFacilitiesArgs = {
 
 export type QueryCreditFacilityArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCustodianConfigsArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 

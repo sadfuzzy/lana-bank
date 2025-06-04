@@ -705,6 +705,55 @@ type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
 }
 
+enum Custodian {
+	KOMAINU
+}
+
+type CustodianConfig {
+	id: ID!
+	custodianConfigId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	custodian: Custodian!
+}
+
+type CustodianConfigConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CustodianConfigEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CustodianConfig!]!
+}
+
+input CustodianConfigCreateInput @oneOf {
+	komainu: KomainuConfig
+}
+
+type CustodianConfigCreatePayload {
+	custodianConfig: CustodianConfig!
+}
+
+"""
+An edge in a connection.
+"""
+type CustodianConfigEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CustodianConfig!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
 type Customer {
 	id: ID!
 	customerId: UUID!
@@ -1097,6 +1146,14 @@ type JournalEntryEdge {
 	cursor: String!
 }
 
+input KomainuConfig {
+	name: String!
+	apiKey: String!
+	apiSecret: String!
+	testingInstance: Boolean!
+	secretKey: String!
+}
+
 enum KycLevel {
 	NOT_KYCED
 	BASIC
@@ -1247,6 +1304,7 @@ type Mutation {
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	custodianConfigCreate(input: CustodianConfigCreateInput!): CustodianConfigCreatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -1349,6 +1407,8 @@ enum PermissionSetName {
 	CREDIT_WRITER
 	CUSTOMER_VIEWER
 	CUSTOMER_WRITER
+	CUSTODY_VIEWER
+	CUSTODY_WRITER
 	DASHBOARD_VIEWER
 	DEPOSIT_VIEWER
 	DEPOSIT_WRITER
@@ -1446,6 +1506,7 @@ type Query {
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	custodianConfigs(first: Int!, after: String): CustodianConfigConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
@@ -1888,6 +1949,10 @@ enum WithdrawalStatus {
 Directs the executor to include this field or fragment only when the `if` argument is true.
 """
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its field be provided)
+"""
+directive @oneOf on INPUT_OBJECT
 """
 Directs the executor to skip this field or fragment when the `if` argument is true.
 """

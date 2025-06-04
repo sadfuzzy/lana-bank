@@ -41,6 +41,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "core-access",
+ "core-custody",
  "es-entity",
  "governance",
  "jwks-utils",
@@ -1055,6 +1056,22 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+]
+
+[[package]]
+name = "core-custody"
+version = "0.3.570-dev"
+dependencies = [
+ "audit",
+ "authz",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tracing",
 ]
 
 [[package]]
@@ -2543,6 +2560,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-custody",
  "core-customer",
  "core-deposit",
  "core-money",
@@ -3570,6 +3588,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-credit",
+ "core-custody",
  "core-customer",
  "core-deposit",
  "dashboard",
