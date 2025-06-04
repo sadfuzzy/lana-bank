@@ -8,6 +8,8 @@ import { ArrowDownUp, ArrowLeft, Banknote, Clock } from "lucide-react"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
 
+import { formatDate } from "@lana/web/utils"
+
 import FacilityCard from "./facility-card"
 
 import CollateralCard from "./collateral-card"
@@ -24,7 +26,6 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
 import { removeUnderscore } from "@/lib/kratos/utils"
-import { formatDate } from "@/lib/utils"
 
 gql`
   query GetCreditFacility($id: UUID!) {
@@ -173,7 +174,9 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
     },
     {
       label: "Matures At",
-      value: formatDate(data.creditFacility.maturesAt) || "N/A",
+      value: data.creditFacility.maturesAt
+        ? formatDate(data.creditFacility.maturesAt)
+        : "N/A",
     },
     {
       label: "Status",
