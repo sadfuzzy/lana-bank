@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{audit::AuditInfo, primitives::*, terms::TermValues};
+use crate::{TermValues, primitives::*};
+use audit::AuditInfo;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]

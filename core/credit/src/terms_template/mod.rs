@@ -4,28 +4,32 @@ mod repo;
 
 use std::collections::HashMap;
 
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use tracing::instrument;
 
-use crate::{
-    audit::AuditInfo,
-    authorization::{Authorization, Object, TermsTemplateAction},
-    primitives::{Subject, TermsTemplateId},
-    terms::TermValues,
-};
+use crate::{CoreCreditAction, CoreCreditObject, TermValues, primitives::TermsTemplateId};
 
 pub use entity::*;
 use error::TermsTemplateError;
 use repo::TermsTemplateRepo;
 
 #[derive(Clone)]
-pub struct TermsTemplates {
-    authz: Authorization,
+pub struct TermsTemplates<Perms>
+where
+    Perms: PermissionCheck,
+{
+    authz: Perms,
     repo: TermsTemplateRepo,
 }
 
-impl TermsTemplates {
-    pub fn new(pool: &sqlx::PgPool, authz: &Authorization) -> Self {
+impl<Perms> TermsTemplates<Perms>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
+{
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
         let repo = TermsTemplateRepo::new(pool);
         Self {
             authz: authz.clone(),
@@ -35,15 +39,15 @@ impl TermsTemplates {
 
     pub async fn subject_can_create_terms_template(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, TermsTemplateError> {
+    ) -> Result<Option<audit::AuditInfo>, TermsTemplateError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::all_terms_templates(),
-                TermsTemplateAction::Create,
+                CoreCreditObject::all_terms_templates(),
+                CoreCreditAction::TERMS_TEMPLATE_CREATE,
                 enforce,
             )
             .await?)
@@ -51,7 +55,7 @@ impl TermsTemplates {
 
     pub async fn create_terms_template(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
@@ -73,15 +77,15 @@ impl TermsTemplates {
 
     pub async fn subject_can_update_terms_template(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
-    ) -> Result<Option<AuditInfo>, TermsTemplateError> {
+    ) -> Result<Option<audit::AuditInfo>, TermsTemplateError> {
         Ok(self
             .authz
             .evaluate_permission(
                 sub,
-                Object::all_terms_templates(),
-                TermsTemplateAction::Update,
+                CoreCreditObject::all_terms_templates(),
+                CoreCreditAction::TERMS_TEMPLATE_UPDATE,
                 enforce,
             )
             .await?)
@@ -89,7 +93,7 @@ impl TermsTemplates {
 
     pub async fn update_term_values(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: TermsTemplateId,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
@@ -106,17 +110,17 @@ impl TermsTemplates {
         Ok(terms_template)
     }
 
-    #[instrument(name = "terms_template::find_by_id", skip(self))]
+    #[instrument(name = "core_credit.terms_template.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<TermsTemplateId> + std::fmt::Debug + Copy,
     ) -> Result<Option<TermsTemplate>, TermsTemplateError> {
         self.authz
             .enforce_permission(
                 sub,
-                Object::terms_template(id.into()),
-                TermsTemplateAction::Read,
+                CoreCreditObject::terms_template(id.into()),
+                CoreCreditAction::TERMS_TEMPLATE_READ,
             )
             .await?;
         match self.repo.find_by_id(id.into()).await {
@@ -126,12 +130,15 @@ impl TermsTemplates {
         }
     }
 
-    pub async fn list(&self, sub: &Subject) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
+    pub async fn list(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<TermsTemplate>, TermsTemplateError> {
         self.authz
             .enforce_permission(
                 sub,
-                Object::all_terms_templates(),
-                TermsTemplateAction::List,
+                CoreCreditObject::all_terms_templates(),
+                CoreCreditAction::TERMS_TEMPLATE_LIST,
             )
             .await?;
         Ok(self

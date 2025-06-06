@@ -27,7 +27,6 @@ use crate::{
     primitives::Subject,
     report::Reports,
     storage::Storage,
-    terms_template::TermsTemplates,
     user_onboarding::UserOnboarding,
 };
 
@@ -49,7 +48,6 @@ pub struct LanaApp {
     custody: Custody,
     price: Price,
     report: Reports,
-    terms_templates: TermsTemplates,
     documents: Documents,
     outbox: Outbox,
     governance: Governance,
@@ -136,7 +134,6 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
-        let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -153,7 +150,6 @@ impl LanaApp {
             report,
             credit,
             custody,
-            terms_templates,
             documents,
             outbox,
             governance,
@@ -232,10 +228,6 @@ impl LanaApp {
 
     pub fn access(&self) -> &Access {
         &self.access
-    }
-
-    pub fn terms_templates(&self) -> &TermsTemplates {
-        &self.terms_templates
     }
 
     pub fn documents(&self) -> &Documents {

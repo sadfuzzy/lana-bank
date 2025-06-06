@@ -13,11 +13,9 @@ pub enum TermsTemplateError {
     #[error("TermsTemplateError - CouldNotFindById: {0}")]
     CouldNotFindById(TermsTemplateId),
     #[error("TermsTemplateError - AuthorizationError: {0}")]
-    AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
+    AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("TermsTemplateError - AuditError: {0}")]
-    AuditError(#[from] crate::audit::error::AuditError),
-    #[error("TermsTemplateError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(TermsTemplateError);
