@@ -1,6 +1,6 @@
 [package]
 name = "admin-server"
-version = "0.3.587-dev"
+version = "0.3.613-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
@@ -13,6 +13,7 @@ lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
+core-custody = { path = "../../core/custody" }
 
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils" }

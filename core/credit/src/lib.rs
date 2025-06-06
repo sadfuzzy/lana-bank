@@ -522,8 +522,7 @@ where
             .disbursal_due_date(due_date)
             .disbursal_overdue_date(overdue_date)
             .audit_info(audit_info)
-            .build()
-            .expect("could not build new disbursal");
+            .build()?;
 
         let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;
 
@@ -725,19 +724,13 @@ where
         Ok(self.outstanding(entity).await?.is_zero())
     }
 
-    pub async fn facility_cvl(
-        &self,
-        entity: &CreditFacility,
-    ) -> Result<FacilityCVL, CoreCreditError> {
+    pub async fn current_cvl(&self, entity: &CreditFacility) -> Result<CVLPct, CoreCreditError> {
         let balances = self
             .ledger
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         let price = self.price.usd_cents_per_btc().await?;
-        Ok(FacilityCVL {
-            total: balances.facility_amount_cvl(price),
-            disbursed: balances.outstanding_amount_cvl(price),
-        })
+        Ok(balances.current_cvl(price))
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {
