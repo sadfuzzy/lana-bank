@@ -120,7 +120,7 @@ pub mod trial_balance {
 }
 
 pub mod custody {
-    pub use core_custody::{custodian_config, error};
+    pub use core_custody::{custodian, error};
     pub type Custody = core_custody::CoreCustody<crate::authorization::Authorization>;
 }
 
