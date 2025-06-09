@@ -4,6 +4,8 @@ import React from "react"
 
 import DataTable, { Column } from "@lana/web/components/data-table"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import {
   CreditFacilityHistoryEntry,
   CollateralAction,
@@ -11,7 +13,7 @@ import {
   GetCreditFacilityQuery,
 } from "@/lib/graphql/generated"
 
-import { formatDate, cn } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 
 import Balance from "@/components/balance"
 
@@ -85,7 +87,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       key: "recordedAt",
       header: "Recorded At",
       render: (recordedAt: string | null | undefined) =>
-        recordedAt ? formatDate(recordedAt) : "-",
+        recordedAt ? <DateWithTooltip value={recordedAt} /> : "-",
     },
     {
       key: "__typename",
@@ -116,7 +118,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 <Balance amount={entry.collateral} currency="btc" align="end" />
               </div>
             )
-          case "CreditFacilityOrigination":
+          case "CreditFacilityApproved":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":

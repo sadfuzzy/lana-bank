@@ -6,10 +6,7 @@ use std::collections::HashSet;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{
-    primitives::{RoleId, RoleName},
-    PermissionSetId,
-};
+use crate::{PermissionSetId, primitives::RoleId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -17,7 +14,7 @@ use crate::{
 pub enum RoleEvent {
     Initialized {
         id: RoleId,
-        name: RoleName,
+        name: String,
         permission_sets: HashSet<PermissionSetId>,
         audit_info: AuditInfo,
     },
@@ -36,12 +33,18 @@ pub enum RoleEvent {
 #[allow(dead_code)]
 pub struct Role {
     pub id: RoleId,
-    pub name: RoleName,
-    permission_sets: HashSet<PermissionSetId>,
+    pub name: String,
+    pub permission_sets: HashSet<PermissionSetId>,
     events: EntityEvents<RoleEvent>,
 }
 
 impl Role {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
     pub(crate) fn add_permission_set(
         &mut self,
         permission_set_id: PermissionSetId,
@@ -57,6 +60,8 @@ impl Role {
             permission_set_id,
             audit_info,
         });
+        self.permission_sets.insert(permission_set_id);
+
         Idempotent::Executed(())
     }
 
@@ -75,7 +80,13 @@ impl Role {
             permission_set_id,
             audit_info,
         });
+        self.permission_sets.remove(&permission_set_id);
+
         Idempotent::Executed(())
+    }
+
+    pub fn permission_sets(&self) -> &HashSet<PermissionSetId> {
+        &self.permission_sets
     }
 }
 
@@ -119,9 +130,9 @@ impl TryFromEvents<RoleEvent> for Role {
 pub struct NewRole {
     #[builder(setter(into))]
     pub(super) id: RoleId,
-    pub(super) name: RoleName,
+    pub(super) name: String,
     #[builder(default)]
-    pub(super) permission_sets: HashSet<PermissionSetId>,
+    pub(super) initial_permission_sets: HashSet<PermissionSetId>,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -138,7 +149,7 @@ impl IntoEvents<RoleEvent> for NewRole {
             [RoleEvent::Initialized {
                 id: self.id,
                 name: self.name,
-                permission_sets: self.permission_sets,
+                permission_sets: self.initial_permission_sets,
                 audit_info: self.audit_info,
             }],
         )

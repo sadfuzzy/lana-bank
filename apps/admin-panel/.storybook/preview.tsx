@@ -1,5 +1,5 @@
 import React from "react"
-import type { Preview } from "@storybook/react"
+import type { Preview } from "@storybook/nextjs"
 import { MockedProvider } from "@apollo/client/testing"
 import "../app/globals.css"
 import { AppSidebar } from "../components/app-sidebar"
@@ -24,7 +24,6 @@ const defaultMocks = [
           user: {
             userId: "usr_123",
             email: "test@example.com",
-            roles: [Role.Admin],
           },
         },
       },

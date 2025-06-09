@@ -2,7 +2,7 @@ mod entity;
 pub mod error;
 mod repo;
 
-use es_entity::DbOp;
+use es_entity::{DbOp, Idempotent};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -10,7 +10,7 @@ use audit::AuditSvc;
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{event::*, primitives::*, publisher::UserPublisher};
+use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
 
 use entity::*;
 pub use entity::{User, UserEvent};
@@ -22,7 +22,7 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    authz: Authorization<Audit, RoleName>,
+    authz: Authorization<Audit, AuthRoleToken>,
     repo: UserRepo<E>,
 }
 
@@ -49,7 +49,7 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Authorization<Audit, RoleName>,
+        authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
     ) -> Result<Self, UserError> {
         let publisher = UserPublisher::new(outbox);
@@ -219,7 +219,7 @@ where
             .entities)
     }
 
-    pub async fn subject_can_assign_role_to_user(
+    pub async fn subject_can_update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<Option<UserId>>,
@@ -230,35 +230,34 @@ where
             .evaluate_permission(
                 sub,
                 CoreAccessObject::user(user_id),
-                CoreAccessAction::USER_ASSIGN_ROLE,
+                CoreAccessAction::USER_UPDATE_ROLE,
                 enforce,
             )
             .await?)
     }
 
-    #[instrument(name = "core_access.assign_role_to_user", skip(self))]
-    pub async fn assign_role_to_user(
+    pub(crate) async fn update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<RoleName> + std::fmt::Debug,
+        role: &Role,
     ) -> Result<User, UserError> {
         let id = user_id.into();
-        let role = role.into();
 
-        if role == RoleName::SUPERUSER {
-            return Err(UserError::AuthorizationError(
-                authz::error::AuthorizationError::NotAuthorized,
-            ));
-        }
         let audit_info = self
-            .subject_can_assign_role_to_user(sub, id, true)
+            .subject_can_update_role_of_user(sub, id, true)
             .await?
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.assign_role(role.clone(), audit_info).did_execute() {
-            self.authz.assign_role_to_subject(user.id, role).await?;
+
+        if let Idempotent::Executed(previous) = user.update_role(role, audit_info) {
+            if let Some(previous) = previous {
+                self.authz
+                    .revoke_role_from_subject(user.id, previous)
+                    .await?;
+            }
+            self.authz.assign_role_to_subject(user.id, role.id).await?;
             self.repo.update(&mut user).await?;
         }
 
@@ -282,29 +281,23 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
     pub async fn revoke_role_from_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<UserId> + std::fmt::Debug,
-        role: impl Into<RoleName> + std::fmt::Debug,
     ) -> Result<User, UserError> {
         let id = user_id.into();
-        let role = role.into();
 
-        if role == RoleName::SUPERUSER {
-            return Err(UserError::AuthorizationError(
-                authz::error::AuthorizationError::NotAuthorized,
-            ));
-        }
         let audit_role = self
             .subject_can_revoke_role_from_user(sub, id, true)
             .await?
             .expect("audit info missing");
 
         let mut user = self.repo.find_by_id(id).await?;
-        if user.revoke_role(role.clone(), audit_role).did_execute() {
-            self.authz.revoke_role_from_subject(user.id, role).await?;
+        if let Idempotent::Executed(previous) = user.revoke_role(audit_role) {
+            self.authz
+                .revoke_role_from_subject(user.id, previous)
+                .await?;
             self.repo.update(&mut user).await?;
         }
 
@@ -317,7 +310,7 @@ where
         &self,
         db: &mut DbOp<'_>,
         email: String,
-        role: RoleName,
+        role: &Role,
     ) -> Result<User, UserError> {
         let audit_info = self
             .authz
@@ -340,7 +333,7 @@ where
 
                 let mut user = self.repo.create_in_op(db, new_user).await?;
 
-                if user.assign_role(role, audit_info).did_execute() {
+                if user.update_role(role, audit_info).did_execute() {
                     self.repo.update_in_op(db, &mut user).await?;
                 }
 
@@ -348,7 +341,7 @@ where
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
-                if user.assign_role(role, audit_info).did_execute() {
+                if user.update_role(role, audit_info).did_execute() {
                     self.repo.update_in_op(db, &mut user).await?;
                 };
 

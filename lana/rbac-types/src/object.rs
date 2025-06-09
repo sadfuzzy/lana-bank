@@ -1,12 +1,15 @@
 use std::{fmt::Display, str::FromStr};
 
+use lana_ids::{DocumentId, ReportId};
+
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
+use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
+use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
-use deposit::CoreDepositObject;
 use governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -20,6 +23,7 @@ pub enum LanaObject {
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
+    Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
 }
 
@@ -58,6 +62,11 @@ impl From<CoreDepositObject> for LanaObject {
         LanaObject::Deposit(object)
     }
 }
+impl From<CoreCustodyObject> for LanaObject {
+    fn from(object: CoreCustodyObject) -> Self {
+        LanaObject::Custody(object)
+    }
+}
 impl From<CoreCreditObject> for LanaObject {
     fn from(object: CoreCreditObject) -> Self {
         LanaObject::Credit(object)
@@ -76,6 +85,7 @@ impl Display for LanaObject {
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
+            Custody(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
         }
     }
@@ -95,6 +105,7 @@ impl FromStr for LanaObject {
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),
+            Custody => LanaObject::from(object.parse::<CoreCustodyObject>()?),
             Dashboard => LanaObject::from(
                 object
                     .parse::<DashboardModuleObject>()
@@ -105,20 +116,50 @@ impl FromStr for LanaObject {
     }
 }
 
+es_entity::entity_id!(ApplicantId, AuditId);
+
+pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
+pub type DocumentAllOrOne = AllOrOne<DocumentId>;
+pub type ReportAllOrOne = AllOrOne<ReportId>;
+pub type AuditAllOrOne = AllOrOne<AuditId>;
+
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
-    Applicant,
-    TermsTemplate,
-    Document,
-    Report,
-    Audit,
+    Applicant(ApplicantAllOrOne),
+    Document(DocumentAllOrOne),
+    Report(ReportAllOrOne),
+    Audit(AuditAllOrOne),
+}
+
+impl AppObject {
+    pub const fn all_documents() -> Self {
+        Self::Document(AllOrOne::All)
+    }
+    pub const fn document(id: DocumentId) -> Self {
+        Self::Document(AllOrOne::ById(id))
+    }
+    pub const fn all_reports() -> Self {
+        Self::Report(AllOrOne::All)
+    }
+    pub const fn report(id: ReportId) -> Self {
+        Self::Report(AllOrOne::ById(id))
+    }
+    pub const fn all_audits() -> Self {
+        Self::Audit(AllOrOne::All)
+    }
 }
 
 impl Display for AppObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", AppObjectDiscriminants::from(self))
+        let discriminant = AppObjectDiscriminants::from(self);
+        match self {
+            Self::Applicant(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Document(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Report(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Audit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+        }
     }
 }
 
@@ -126,16 +167,27 @@ impl FromStr for AppObject {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut elems = s.split('/');
-        let entity = elems.next().expect("missing first element");
+        let (entity, id) = s.split_once('/').expect("missing slash");
         use AppObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
-            Applicant => AppObject::Applicant,
-            TermsTemplate => AppObject::TermsTemplate,
-            Report => AppObject::Report,
-            Audit => AppObject::Audit,
-            Document => AppObject::Document,
+            Applicant => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Applicant(obj_ref)
+            }
+            Document => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Document(obj_ref)
+            }
+            Report => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Report(obj_ref)
+            }
+            Audit => {
+                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                Self::Audit(obj_ref)
+            }
         };
+
         Ok(res)
     }
 }

@@ -13,67 +13,67 @@ use core_customer::CustomerId;
 pub use action::*;
 pub use object::*;
 
-pub use core_access::RoleName;
-
-#[derive(
-    async_graphql::Enum,
-    Serialize,
-    Deserialize,
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    strum::EnumString,
-    strum::Display,
-)]
-#[strum(serialize_all = "kebab-case")]
-#[graphql(name = "Role")]
-pub enum LanaRole {
-    Superuser,
-    Admin,
-    BankManager,
-    Accountant,
-}
-
-impl LanaRole {
-    pub const SUPERUSER: RoleName = RoleName::SUPERUSER;
-    pub const ACCOUNTANT: RoleName = RoleName::ACCOUNTANT;
-    pub const ADMIN: RoleName = RoleName::ADMIN;
-    pub const BANK_MANAGER: RoleName = RoleName::BANK_MANAGER;
-}
-
-impl From<LanaRole> for RoleName {
-    fn from(r: LanaRole) -> Self {
-        match r {
-            LanaRole::Superuser => LanaRole::SUPERUSER,
-            LanaRole::Admin => LanaRole::ADMIN,
-            LanaRole::BankManager => LanaRole::BANK_MANAGER,
-            LanaRole::Accountant => LanaRole::ACCOUNTANT,
-        }
-    }
-}
-
-impl From<RoleName> for LanaRole {
-    fn from(r: RoleName) -> Self {
-        if r == LanaRole::SUPERUSER {
-            LanaRole::Superuser
-        } else if r == LanaRole::ADMIN {
-            LanaRole::Admin
-        } else if r == LanaRole::BANK_MANAGER {
-            LanaRole::BankManager
-        } else if r == LanaRole::ACCOUNTANT {
-            LanaRole::Accountant
-        } else {
-            panic!("Unknown Role")
-        }
-    }
-}
-
 const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
+pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
+pub const ROLE_NAME_ADMIN: &str = "admin";
+pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
+
+#[derive(Clone, PartialEq, Eq, Copy, async_graphql::Enum)]
+pub enum PermissionSetName {
+    AccessViewer,
+    AccessWriter,
+    AccountingViewer,
+    AccountingWriter,
+    AppViewer,
+    AppWriter,
+    CreditViewer,
+    CreditWriter,
+    CustomerViewer,
+    CustomerWriter,
+    CustodyViewer,
+    CustodyWriter,
+    DashboardViewer,
+    DepositViewer,
+    DepositWriter,
+    GovernanceViewer,
+    GovernanceWriter,
+}
+
+impl std::str::FromStr for PermissionSetName {
+    type Err = strum::ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use PermissionSetName::*;
+        match s {
+            core_access::PERMISSION_SET_ACCESS_VIEWER => Ok(AccessViewer),
+            core_access::PERMISSION_SET_ACCESS_WRITER => Ok(AccessWriter),
+
+            core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
+            core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
+
+            crate::action::PERMISSION_SET_APP_VIEWER => Ok(AppViewer),
+            crate::action::PERMISSION_SET_APP_WRITER => Ok(AppWriter),
+
+            core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
+            core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
+
+            core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
+            core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),
+
+            core_custody::PERMISSION_SET_CUSTODY_VIEWER => Ok(CustodyViewer),
+            core_custody::PERMISSION_SET_CUSTODY_WRITER => Ok(CustodyWriter),
+
+            dashboard::PERMISSION_SET_DASHBOARD_VIEWER => Ok(DashboardViewer),
+
+            core_deposit::PERMISSION_SET_DEPOSIT_VIEWER => Ok(DepositViewer),
+            core_deposit::PERMISSION_SET_DEPOSIT_WRITER => Ok(DepositWriter),
+
+            governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
+            governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),
+            _ => Err(strum::ParseError::VariantNotFound),
+        }
+    }
+}
 
 #[derive(Clone, Copy, Debug, strum::EnumDiscriminants, Serialize, Deserialize)]
 #[strum_discriminants(derive(strum::AsRefStr, strum::EnumString))]
@@ -144,12 +144,12 @@ impl std::fmt::Display for Subject {
     }
 }
 
-impl TryFrom<&Subject> for deposit::DepositAccountHolderId {
+impl TryFrom<&Subject> for core_deposit::DepositAccountHolderId {
     type Error = &'static str;
 
     fn try_from(value: &Subject) -> Result<Self, Self::Error> {
         match value {
-            Subject::Customer(id) => Ok(deposit::DepositAccountHolderId::from(*id)),
+            Subject::Customer(id) => Ok(core_deposit::DepositAccountHolderId::from(*id)),
             _ => Err("Subject is not Customer"),
         }
     }

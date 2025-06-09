@@ -16,7 +16,7 @@ pub use lana_app::{
     credit::{
         CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
         CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
+        FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
     },
     primitives::CreditFacilityStatus,
 };
@@ -84,9 +84,9 @@ impl CreditFacility {
             .unwrap_or_else(|| self.entity.status()))
     }
 
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().facility_cvl(&self.entity).await?)
+        Ok(app.credit().current_cvl(&self.entity).await?)
     }
 
     async fn history(
@@ -113,7 +113,8 @@ impl CreditFacility {
 
         let disbursals = app
             .credit()
-            .list_disbursals(
+            .disbursals()
+            .list(
                 sub,
                 Default::default(),
                 FindManyDisbursals::WithCreditFacilityId(self.entity.id),
@@ -189,7 +190,11 @@ impl CreditFacility {
 
     async fn balance(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityBalance> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let balance = app.credit().balance(sub, self.entity.id).await?;
+        let balance = app
+            .credit()
+            .facilities()
+            .balance(sub, self.entity.id)
+            .await?;
         Ok(CreditFacilityBalance::from(balance))
     }
 }

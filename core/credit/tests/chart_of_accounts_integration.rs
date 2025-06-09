@@ -4,7 +4,7 @@ use rand::Rng;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use cloud_storage::{config::StorageConfig, Storage};
+use cloud_storage::{Storage, config::StorageConfig};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
@@ -82,8 +82,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .id;
 
-    credit
-        .set_chart_of_accounts_integration_config(
+    credit.chart_of_accounts_integrations()
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -216,8 +216,8 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .await?
         .unwrap();
 
-    let res = credit
-        .set_chart_of_accounts_integration_config(
+    let res = credit.chart_of_accounts_integrations()
+        .set_config(
             &DummySubject,
             &chart,
             ChartOfAccountsIntegrationConfig::builder()
@@ -321,7 +321,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert!(matches!(
         res,
-        Err(core_credit::error::CoreCreditError::CreditConfigAlreadyExists)
+        Err(core_credit::ChartOfAccountsIntegrationError::CreditConfigAlreadyExists)
     ));
 
     Ok(())

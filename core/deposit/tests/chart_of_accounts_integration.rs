@@ -2,9 +2,9 @@ mod helpers;
 
 use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
-use cloud_storage::{config::StorageConfig, Storage};
+use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
-use deposit::*;
+use core_deposit::*;
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -154,7 +154,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     assert!(matches!(
         res,
-        Err(deposit::error::CoreDepositError::DepositConfigAlreadyExists)
+        Err(core_deposit::error::CoreDepositError::DepositConfigAlreadyExists)
     ));
 
     Ok(())

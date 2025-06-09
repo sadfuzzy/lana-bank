@@ -218,7 +218,6 @@ type BalanceSheetModuleConfigurePayload {
 	balanceSheetConfig: BalanceSheetModuleConfig!
 }
 
-
 type BtcAmount {
 	btc: Satoshis!
 }
@@ -387,7 +386,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	currentCvl: FacilityCVL!
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
@@ -398,6 +397,13 @@ type CreditFacility {
 	subjectCanComplete: Boolean!
 	customer: Customer!
 	balance: CreditFacilityBalance!
+}
+
+type CreditFacilityApproved {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
 }
 
 type CreditFacilityBalance {
@@ -422,6 +428,7 @@ type CreditFacilityCollateralUpdatePayload {
 type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
+	effective: Date!
 	action: CollateralAction!
 	txId: UUID!
 }
@@ -432,6 +439,7 @@ type CreditFacilityCollateralizationUpdated {
 	outstandingInterest: UsdCents!
 	outstandingDisbursal: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	price: UsdCents!
 }
 
@@ -511,6 +519,7 @@ type CreditFacilityDisbursalEdge {
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
@@ -537,25 +546,21 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 	days: Int!
-}
-
-type CreditFacilityOrigination {
-	cents: UsdCents!
-	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 input CreditFacilityPartialPaymentInput {
@@ -698,6 +703,55 @@ input CreditModuleConfigureInput {
 
 type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
+}
+
+type Custodian {
+	id: ID!
+	custodianConfigId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	custodianConfig: CustodianConfig!
+}
+
+enum CustodianConfig {
+	KOMAINU
+}
+
+type CustodianConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CustodianEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Custodian!]!
+}
+
+input CustodianCreateInput @oneOf {
+	komainu: KomainuConfig
+}
+
+type CustodianCreatePayload {
+	custodianConfig: Custodian!
+}
+
+"""
+An edge in a connection.
+"""
+type CustodianEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Custodian!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type Customer {
@@ -1021,23 +1075,15 @@ input DurationInput {
 	units: Int!
 }
 
-type FacilityCVL {
-	total: CVLPct!
-	disbursed: CVLPct!
-}
-
 type FacilityRemaining {
 	usdBalance: UsdCents!
 }
-
 
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
 	approvalProcess: Boolean!
 }
-
-
 
 type Interest {
 	total: Total!
@@ -1093,6 +1139,14 @@ type JournalEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+input KomainuConfig {
+	name: String!
+	apiKey: String!
+	apiSecret: String!
+	testingInstance: Boolean!
+	secretKey: String!
 }
 
 enum KycLevel {
@@ -1223,8 +1277,11 @@ type Mutation {
 	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
-	userAssignRole(input: UserAssignRoleInput!): UserAssignRolePayload!
+	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
+	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
+	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
+	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
 	customerCreate(input: CustomerCreateInput!): CustomerCreatePayload!
 	customerTelegramIdUpdate(input: CustomerTelegramIdUpdateInput!): CustomerTelegramIdUpdatePayload!
 	customerEmailUpdate(input: CustomerEmailUpdateInput!): CustomerEmailUpdatePayload!
@@ -1242,6 +1299,7 @@ type Mutation {
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
+	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -1301,7 +1359,7 @@ enum Period {
 type PermissionSet {
 	id: ID!
 	permissionSetId: UUID!
-	name: String!
+	name: PermissionSetName!
 }
 
 type PermissionSetConnection {
@@ -1331,6 +1389,26 @@ type PermissionSetEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum PermissionSetName {
+	ACCESS_VIEWER
+	ACCESS_WRITER
+	ACCOUNTING_VIEWER
+	ACCOUNTING_WRITER
+	APP_VIEWER
+	APP_WRITER
+	CREDIT_VIEWER
+	CREDIT_WRITER
+	CUSTOMER_VIEWER
+	CUSTOMER_WRITER
+	CUSTODY_VIEWER
+	CUSTODY_WRITER
+	DASHBOARD_VIEWER
+	DEPOSIT_VIEWER
+	DEPOSIT_WRITER
+	GOVERNANCE_VIEWER
+	GOVERNANCE_WRITER
 }
 
 type Policy {
@@ -1407,6 +1485,8 @@ type Query {
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
+	role(id: UUID!): Role
+	roles(first: Int!, after: String): RoleConnection!
 	permissionSets(first: Int!, after: String): PermissionSetConnection!
 	customer(id: UUID!): Customer
 	customerByEmail(email: String!): Customer
@@ -1421,6 +1501,7 @@ type Query {
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
+	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy
@@ -1484,11 +1565,68 @@ enum ReportProgress {
 	COMPLETE
 }
 
-enum Role {
-	SUPERUSER
-	ADMIN
-	BANK_MANAGER
-	ACCOUNTANT
+type Role {
+	id: ID!
+	roleId: UUID!
+	createdAt: Timestamp!
+	name: String!
+	permissionSets: [PermissionSet!]!
+}
+
+input RoleAddPermissionSetsInput {
+	roleId: UUID!
+	permissionSetIds: [UUID!]!
+}
+
+type RoleAddPermissionSetsPayload {
+	role: Role!
+}
+
+type RoleConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [RoleEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Role!]!
+}
+
+input RoleCreateInput {
+	name: String!
+	permissionSetIds: [UUID!]!
+}
+
+type RoleCreatePayload {
+	role: Role!
+}
+
+"""
+An edge in a connection.
+"""
+type RoleEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Role!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+input RoleRemovePermissionSetsInput {
+	roleId: UUID!
+	permissionSetIds: [UUID!]!
+}
+
+type RoleRemovePermissionSetsPayload {
+	role: Role!
 }
 
 scalar Satoshis
@@ -1501,7 +1639,6 @@ enum SortDirection {
 	ASC
 	DESC
 }
-
 
 type Subject {
 	user: User!
@@ -1679,19 +1816,10 @@ type User {
 	id: ID!
 	userId: UUID!
 	createdAt: Timestamp!
-	roles: [Role!]!
+	role: Role
 	email: String!
-	subjectCanAssignRoleToUser: Boolean!
+	subjectCanUpdateRoleOfUser: Boolean!
 	subjectCanRevokeRoleFromUser: Boolean!
-}
-
-input UserAssignRoleInput {
-	id: UUID!
-	role: Role!
-}
-
-type UserAssignRolePayload {
-	user: User!
 }
 
 input UserCreateInput {
@@ -1704,10 +1832,18 @@ type UserCreatePayload {
 
 input UserRevokeRoleInput {
 	id: UUID!
-	role: Role!
 }
 
 type UserRevokeRolePayload {
+	user: User!
+}
+
+input UserUpdateRoleInput {
+	id: UUID!
+	roleId: UUID!
+}
+
+type UserUpdateRolePayload {
 	user: User!
 }
 
@@ -1804,8 +1940,21 @@ enum WithdrawalStatus {
 	CANCELLED
 }
 
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Indicates that an Input Object is a OneOf Input Object (and thus requires exactly one of its field be provided)
+"""
+directive @oneOf on INPUT_OBJECT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Provides a scalar specification URL for specifying the behavior of custom scalar types.
+"""
 directive @specifiedBy(url: String!) on SCALAR
 schema {
 	query: Query

@@ -3,6 +3,8 @@
 import React from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { CollateralizationStateLabel } from "@/app/credit-facilities/label"
 import CardWrapper from "@/components/card-wrapper"
 import Balance from "@/components/balance/balance"
@@ -13,7 +15,6 @@ import {
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
-import DateWithTooltip from "@/components/date-with-tooltip"
 
 type CreditFacilityHistoryProps = {
   creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacility"]>
@@ -53,8 +54,8 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 </div>
               </div>
             )
-          case "CreditFacilityOrigination":
-            return t("entryTypes.origination")
+          case "CreditFacilityApproved":
+            return t("entryTypes.approved")
           case "CreditFacilityIncrementalPayment":
             return t("entryTypes.incrementalPayment")
           case "CreditFacilityDisbursalExecuted":
@@ -71,6 +72,11 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
       header: t("columns.recordedAt"),
       render: (recordedAt: string | null | undefined) =>
         recordedAt ? <DateWithTooltip value={recordedAt} /> : "-",
+    },
+    {
+      key: "effective",
+      header: t("columns.effective"),
+      render: (effective: string) => <DateWithTooltip value={effective} />,
     },
     {
       key: "__typename",
@@ -101,7 +107,7 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
                 <Balance amount={entry.collateral} currency="btc" align="end" />
               </div>
             )
-          case "CreditFacilityOrigination":
+          case "CreditFacilityApproved":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":

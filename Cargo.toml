@@ -20,6 +20,7 @@ members = [
   "core/deposit",
   "core/price",
   "core/credit",
+  "core/custody",
 
   "lib/authz",
   "lib/audit",
@@ -35,22 +36,22 @@ members = [
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-es-entity = "0.5.1"
-sim-time = "0.5.1"
-cala-ledger = "0.5.1"
+es-entity = "0.5.2"
+sim-time = "0.5.4"
+cala-ledger = "0.5.4"
 
 anyhow = "1.0.98"
-async-graphql = { version = "7.0.11", default-features = false, features = [
+async-graphql = { version = "7.0.17", default-features = false, features = [
   "dataloader",
   "tracing",
   "chrono",
   "playground",
   "tempfile",
 ] }
-async-graphql-axum = "7.0.9"
+async-graphql-axum = "7.0.17"
 async-trait = "0.1.80"
-axum = { version = "0.7.9", features = ["macros"] }
-axum-extra = { version = "0.9.6", default-features = false, features = [
+axum = { version = "0.8.4", features = ["macros"] }
+axum-extra = { version = "0.10.1", default-features = false, features = [
   "tracing",
   "typed-header",
 ] }
@@ -62,7 +63,7 @@ chrono = { version = "0.4.40", features = [
 clap = { version = "4.5.37", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
-sqlx = { version = "0.8.3", features = [
+sqlx = { version = "0.8", features = [
   "runtime-tokio-rustls",
   "postgres",
   "rust_decimal",
@@ -83,7 +84,7 @@ opentelemetry-otlp = { version = "0.17.0", default-features = false, features = 
 ] }
 opentelemetry-http = "0.13"
 opentelemetry-semantic-conventions = "0.16.0"
-tokio = { version = "1.45.0", features = [
+tokio = { version = "1.45.1", features = [
   "rt-multi-thread",
   "macros",
   "time",
@@ -96,10 +97,7 @@ serde_yaml = "0.9.32"
 serde_json = "1.0.133"
 serde_with = "3.12.0"
 futures = "0.3.29"
-reqwest = { version = "0.12", default-features = false, features = [
-  "json",
-  "rustls-tls",
-] }
+reqwest = { version = "0.12.15", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 rust_decimal_macros = "1.37.1"
 rust_decimal = "1.37.1"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
@@ -108,13 +106,12 @@ jsonwebtoken = "9.3.1"
 hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
-tower-http = { version = "0.5.2", features = ["cors"] }
-sqlx-adapter = { version = "1.6.0", default-features = false, features = [
+tower-http = { version = "0.6.5", features = ["cors"] }
+sqlx-adapter = { version = "1.7", default-features = false, features = [
   "postgres",
   "runtime-tokio-rustls",
 ] }
-ory-kratos-client = "1.1.0"
-cached = { version = "0.53.1", features = ["async"] }
+cached = { version = "0.55.1", features = ["async"] }
 gcp_auth = { version = "0.12.2", default-features = false, features = ["webpki-roots"] }
 gcp-bigquery-client = { git = "https://github.com/bodymindarts/gcp-bigquery-client.git", branch = "feat--webpki", features = [
   "rust-tls",
@@ -124,7 +121,11 @@ google-cloud-storage = { version = "0.24.0", default-features = false, features 
   "auth",
 ] }
 rand = "0.9"
-serial_test = { version = "3.1.1", features = ["file_locks"] }
+serial_test = { version = "3.2.0", features = ["file_locks"] }
+
+# Note: The workspace uses resolver = "2" which should unify features across all dependencies.
+# The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.
+# The kratos-admin library now uses direct HTTP calls with reqwest instead of ory-kratos-client.
 
 [profile.release]
-lto = true
+lto = true 

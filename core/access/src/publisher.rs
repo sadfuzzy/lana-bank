@@ -1,9 +1,9 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
-    role::{error::RoleError, Role, RoleEvent},
-    user::{error::UserError, User, UserEvent},
     CoreAccessEvent,
+    role::{Role, RoleEvent, error::RoleError},
+    user::{User, UserEvent, error::UserError},
 };
 
 pub struct UserPublisher<E>
@@ -47,13 +47,14 @@ where
                     id: *id,
                     email: email.clone(),
                 }),
-                RoleAssigned { role, .. } => Some(CoreAccessEvent::UserGrantedRole {
+                RoleGranted { id, name, .. } => Some(CoreAccessEvent::UserGrantedRole {
                     id: entity.id,
-                    role: role.clone(),
+                    role_name: name.clone(),
+                    role_id: *id,
                 }),
-                RoleRevoked { role, .. } => Some(CoreAccessEvent::UserRevokedRole {
+                RoleRevoked { id, .. } => Some(CoreAccessEvent::UserRevokedRole {
                     id: entity.id,
-                    role: role.clone(),
+                    role_id: *id,
                 }),
                 AuthenticationIdUpdated { .. } => None,
             })

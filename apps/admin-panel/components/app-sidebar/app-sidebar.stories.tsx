@@ -1,15 +1,11 @@
-import type { Meta, StoryObj } from "@storybook/react"
+import type { Meta, StoryObj } from "@storybook/nextjs"
 import { MockedProvider } from "@apollo/client/testing"
 
 import { SidebarProvider } from "@lana/web/ui/sidebar"
 
 import { AppSidebar } from "./"
 
-import {
-  Role,
-  AvatarDocument,
-  GetRealtimePriceUpdatesDocument,
-} from "@/lib/graphql/generated"
+import { AvatarDocument, GetRealtimePriceUpdatesDocument } from "@/lib/graphql/generated"
 
 const defaultMocks = [
   {
@@ -20,7 +16,9 @@ const defaultMocks = [
           user: {
             userId: "usr_123",
             email: "demo@example.com",
-            roles: [Role.Admin],
+            role: {
+              name: "Admin",
+            },
           },
         },
       },

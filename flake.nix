@@ -44,50 +44,111 @@
           || pkgs.lib.hasInfix "/lana/app/migrations/" path;
       };
 
-      commonArgs = {
-        src = rustSource;
-        strictDeps = true;
+      # Function to build cargo artifacts for a specific profile
+      mkCargoArtifacts = profile:
+        craneLib.buildDepsOnly {
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./Cargo.toml;
+          pname = "lana-workspace-deps-${profile}";
+          version = "0.0.0";
+          CARGO_PROFILE = profile;
+          SQLX_OFFLINE = true;
+          cargoExtraArgs = "--features sim-time";
+        };
 
-        CARGO_PROFILE = "dev";
-        SQLX_OFFLINE = true;
-        # No specific package name for commonArgs, it's for general settings
-        # version = lanaCliVersion; # Version will be set per-package
-      };
+      # Function to build lana-cli for a specific profile
+      mkLanaCli = profile: let
+        cargoArtifacts = mkCargoArtifacts profile;
+      in
+        craneLib.buildPackage {
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./lana/cli/Cargo.toml;
+          inherit cargoArtifacts;
+          doCheck = false;
+          pname = "lana-cli";
+          CARGO_PROFILE = profile;
+          SQLX_OFFLINE = true;
+          cargoExtraArgs = "-p lana-cli --features sim-time";
+        };
 
-      cargoArtifacts = craneLib.buildDepsOnly (commonArgs
-        // {
-          cargoToml = ./Cargo.toml; # Explicitly point to the root Cargo.toml for workspace deps
-          pname = "lana-workspace-deps"; # A distinct name for the deps build
-          version = "0.0.0"; # A placeholder version for the deps build
-          CARGO_PROFILE = "dev"; # Explicitly set dev profile
-          cargoExtraArgs = "--features sim-time"; # Build only the specific package
-        });
+      # Function to build static lana-cli (musl target for containers)
+      mkLanaCliStatic = profile: let
+        rustTarget = "x86_64-unknown-linux-musl";
+        # Build dependencies specifically for the musl target
+        cargoArtifactsStatic = craneLibMusl.buildDepsOnly {
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./Cargo.toml;
+          pname = "lana-workspace-deps-${profile}-musl";
+          version = "0.0.0";
+          CARGO_PROFILE = profile;
+          SQLX_OFFLINE = true;
+          CARGO_BUILD_TARGET = rustTarget;
+          cargoExtraArgs = "--features sim-time,sim-bootstrap --target ${rustTarget}";
 
-      lanaCliPname = "lana-cli";
+          # Add musl target dependencies
+          depsBuildBuild = with pkgs; [
+            pkgsCross.musl64.stdenv.cc
+          ];
 
-      # Build the Lana CLI crate using the cached deps
-      lana-cli = craneLib.buildPackage (commonArgs
-        // {
-          cargoToml = ./lana/cli/Cargo.toml; # Explicitly point to the CLI's Cargo.toml
-          cargoArtifacts = cargoArtifacts;
-          doCheck = false; # Disable tests for lana-cli
-          pname = lanaCliPname; # Use the original package name
-          CARGO_PROFILE = "dev"; # Explicitly set dev profile
+          # Environment variables for static linking
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+        };
+      in
+        craneLibMusl.buildPackage {
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./lana/cli/Cargo.toml;
+          cargoArtifacts = cargoArtifactsStatic;
+          doCheck = false;
+          pname = "lana-cli-static";
+          CARGO_PROFILE = profile;
+          SQLX_OFFLINE = true;
+          CARGO_BUILD_TARGET = rustTarget;
+          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
 
-          # FIXME: aiming at parity with older script for now
-          cargoExtraArgs = "-p ${lanaCliPname} --features sim-time"; # Build only the specific package
-        });
+          # Add musl target for static linking
+          depsBuildBuild = with pkgs; [
+            pkgsCross.musl64.stdenv.cc
+          ];
+
+          # Environment variables for static linking
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+        };
+
+      # Build artifacts and packages for both profiles
+      debugCargoArtifacts = mkCargoArtifacts "dev";
+      releaseCargoArtifacts = mkCargoArtifacts "release";
+
+      lana-cli-debug = mkLanaCli "dev";
+      lana-cli-release = mkLanaCli "release";
+      lana-cli-static = mkLanaCliStatic "release";
+
+      meltano = pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
         extensions = ["rust-analyzer" "rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
       };
 
-      aliases = [
-        (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
-      ];
+      # Separate toolchain for musl cross-compilation
+      rustToolchainMusl = rustVersion.override {
+        extensions = ["rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      # Create a separate Crane lib for musl builds
+      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
+
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -98,6 +159,8 @@
           cargo-nextest
           cargo-audit
           cargo-watch
+          cargo-deny
+          cargo-machete
           bacon
           typos
           postgresql
@@ -118,6 +181,8 @@
           ps
           curl
           tilt
+          procps
+          meltano
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -132,8 +197,7 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
-        ]
-        ++ aliases;
+        ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
@@ -145,13 +209,23 @@
       };
     in
       with pkgs; {
-        packages.default = lana-cli;
-        packages.deps = cargoArtifacts;
+        packages = {
+          default = lana-cli-debug; # Debug as default
+          debug = lana-cli-debug;
+          release = lana-cli-release;
+          static = lana-cli-static;
+          inherit meltano;
+        };
 
-        apps.default = flake-utils.lib.mkApp {drv = lana-cli;};
+        apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
-        devShells.default =
-          mkShell (devEnvVars // {inherit nativeBuildInputs;});
+        devShells.default = mkShell (devEnvVars
+          // {
+            inherit nativeBuildInputs;
+            shellHook = ''
+              export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
+            '';
+          });
 
         formatter = alejandra;
       });

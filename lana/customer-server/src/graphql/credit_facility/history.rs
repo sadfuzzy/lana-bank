@@ -7,7 +7,7 @@ pub use lana_app::primitives::CollateralAction;
 pub enum CreditFacilityHistoryEntry {
     Payment(CreditFacilityIncrementalPayment),
     Collateral(CreditFacilityCollateralUpdated),
-    Origination(CreditFacilityOrigination),
+    Approved(CreditFacilityApproved),
     Collateralization(CreditFacilityCollateralizationUpdated),
     Disbursal(CreditFacilityDisbursalExecuted),
     Interest(CreditFacilityInterestAccrued),
@@ -17,6 +17,7 @@ pub enum CreditFacilityHistoryEntry {
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub tx_id: UUID,
 }
 
@@ -24,14 +25,16 @@ pub struct CreditFacilityIncrementalPayment {
 pub struct CreditFacilityCollateralUpdated {
     pub satoshis: Satoshis,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub action: CollateralAction,
     pub tx_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct CreditFacilityOrigination {
+pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub tx_id: UUID,
 }
 
@@ -42,6 +45,7 @@ pub struct CreditFacilityCollateralizationUpdated {
     pub outstanding_interest: UsdCents,
     pub outstanding_disbursal: UsdCents,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub price: UsdCents,
 }
 
@@ -49,6 +53,7 @@ pub struct CreditFacilityCollateralizationUpdated {
 pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub tx_id: UUID,
 }
 
@@ -56,6 +61,7 @@ pub struct CreditFacilityDisbursalExecuted {
 pub struct CreditFacilityInterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
+    pub effective: Date,
     pub tx_id: UUID,
     pub days: u32,
 }
@@ -69,8 +75,8 @@ impl From<lana_app::credit::CreditFacilityHistoryEntry> for CreditFacilityHistor
             lana_app::credit::CreditFacilityHistoryEntry::Collateral(collateral) => {
                 CreditFacilityHistoryEntry::Collateral(collateral.into())
             }
-            lana_app::credit::CreditFacilityHistoryEntry::Origination(origination) => {
-                CreditFacilityHistoryEntry::Origination(origination.into())
+            lana_app::credit::CreditFacilityHistoryEntry::Approved(approved) => {
+                CreditFacilityHistoryEntry::Approved(approved.into())
             }
             lana_app::credit::CreditFacilityHistoryEntry::Collateralization(collateralization) => {
                 CreditFacilityHistoryEntry::Collateralization(collateralization.into())
@@ -90,6 +96,7 @@ impl From<lana_app::credit::IncrementalPayment> for CreditFacilityIncrementalPay
         Self {
             cents: payment.cents,
             recorded_at: payment.recorded_at.into(),
+            effective: payment.effective.into(),
             tx_id: UUID::from(payment.payment_id),
         }
     }
@@ -100,17 +107,19 @@ impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdat
         Self {
             satoshis: collateral.satoshis,
             recorded_at: collateral.recorded_at.into(),
+            effective: collateral.effective.into(),
             action: collateral.action,
             tx_id: UUID::from(collateral.tx_id),
         }
     }
 }
 
-impl From<lana_app::credit::CreditFacilityOrigination> for CreditFacilityOrigination {
-    fn from(origination: lana_app::credit::CreditFacilityOrigination) -> Self {
+impl From<lana_app::credit::CreditFacilityApproved> for CreditFacilityApproved {
+    fn from(origination: lana_app::credit::CreditFacilityApproved) -> Self {
         Self {
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),
+            effective: origination.effective.into(),
             tx_id: UUID::from(origination.tx_id),
         }
     }
@@ -124,6 +133,7 @@ impl From<lana_app::credit::CollateralizationUpdated> for CreditFacilityCollater
             outstanding_interest: collateralization.outstanding_interest,
             outstanding_disbursal: collateralization.outstanding_disbursal,
             recorded_at: collateralization.recorded_at.into(),
+            effective: collateralization.effective.into(),
             price: collateralization.price.into_inner(),
         }
     }
@@ -134,6 +144,7 @@ impl From<lana_app::credit::DisbursalExecuted> for CreditFacilityDisbursalExecut
         Self {
             cents: disbursal.cents,
             recorded_at: disbursal.recorded_at.into(),
+            effective: disbursal.effective.into(),
             tx_id: UUID::from(disbursal.tx_id),
         }
     }
@@ -144,6 +155,7 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
         Self {
             cents: interest.cents,
             recorded_at: interest.recorded_at.into(),
+            effective: interest.effective.into(),
             tx_id: UUID::from(interest.tx_id),
             days: interest.days,
         }

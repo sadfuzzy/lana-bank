@@ -36,6 +36,9 @@ jobs:
 - name: drop-old-relations
   tasks:
     - dbt-bigquery:drop-old-relations
+- name: drop-all-relations
+  tasks:
+    - dbt-bigquery:drop-all-relations
 schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/10 * * * *'
@@ -65,11 +68,11 @@ plugins:
     - public-*.*
   - name: tap-bitfinexapi
     namespace: tap_bitfinexapi
-    pip_url: -e extract/tap-bitfinexapi
+    pip_url: -e ${MELTANO_PROJECT_ROOT}/extract/tap-bitfinexapi
     executable: tap-bitfinexapi
   - name: tap-sumsubapi
     namespace: tap_sumsubapi
-    pip_url: -e extract/tap-sumsubapi
+    pip_url: -e ${MELTANO_PROJECT_ROOT}/extract/tap-sumsubapi
     executable: tap-sumsubapi
     settings:
     - name: host
@@ -88,13 +91,15 @@ plugins:
   transformers:
   - name: dbt-bigquery
     variant: dbt-labs
-    pip_url: dbt-core~=1.3.0 dbt-bigquery~=1.3.0
+    pip_url: dbt-core~=1.8.0 dbt-bigquery~=1.8.0
     config:
       auth_method: service-account
       project: lana-dev-440721
     commands:
       drop-old-relations:
         args: run-operation drop_old_relations
+      drop-all-relations:
+        args: run-operation drop_all_relations
   utilities:
   - name: sqlfluff
     variant: sqlfluff
@@ -112,6 +117,6 @@ plugins:
       value: lana-dev-440721
   - name: airflow
     variant: apache
-    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.8.1
+    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.10.4
       --constraint
-      https://raw.githubusercontent.com/apache/airflow/constraints-2.8.1/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+      https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt

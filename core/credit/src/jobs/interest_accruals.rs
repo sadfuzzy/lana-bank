@@ -2,15 +2,13 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::AuditSvc;
 use authz::PermissionCheck;
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    credit_facility::CreditFacilityRepo, error::CoreCreditError, event::CoreCreditEvent, ledger::*,
-    primitives::*, terms::InterestPeriod,
-};
+use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::*, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
@@ -21,9 +19,11 @@ pub struct CreditFacilityJobConfig<Perms, E> {
 impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
 }
@@ -31,31 +31,30 @@ where
 pub struct CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     ledger: CreditLedger,
-    credit_facility_repo: CreditFacilityRepo<E>,
-    audit: Perms::Audit,
+    credit_facilities: CreditFacilities<Perms, E>,
     jobs: Jobs,
 }
 
 impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(
         ledger: &CreditLedger,
-        credit_facility_repo: CreditFacilityRepo<E>,
-        audit: &Perms::Audit,
+        credit_facilities: &CreditFacilities<Perms, E>,
         jobs: &Jobs,
     ) -> Self {
         Self {
             ledger: ledger.clone(),
-            credit_facility_repo,
-            audit: audit.clone(),
+            credit_facilities: credit_facilities.clone(),
             jobs: jobs.clone(),
         }
     }
@@ -66,9 +65,11 @@ const CREDIT_FACILITY_INTEREST_ACCRUAL_PROCESSING_JOB: JobType =
 impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn job_type() -> JobType
     where
@@ -80,89 +81,33 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            credit_facility_repo: self.credit_facility_repo.clone(),
+            credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
-            audit: self.audit.clone(),
             jobs: self.jobs.clone(),
         }))
     }
 }
 
-#[derive(Clone)]
-struct ConfirmedAccrual {
-    accrual: CreditFacilityInterestAccrual,
-    next_period: Option<InterestPeriod>,
-    accrual_idx: InterestAccrualCycleIdx,
-    accrued_count: usize,
-}
-
 pub struct CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    credit_facility_repo: CreditFacilityRepo<E>,
+    credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
-    audit: Perms::Audit,
     jobs: Jobs,
-}
-
-impl<Perms, E> CreditFacilityProcessingJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
-{
-    async fn confirm_interest_accrual(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        audit_info: &AuditInfo,
-    ) -> Result<ConfirmedAccrual, CoreCreditError> {
-        let mut credit_facility = self
-            .credit_facility_repo
-            .find_by_id(self.config.credit_facility_id)
-            .await?;
-
-        let confirmed_accrual = {
-            let balances = self
-                .ledger
-                .get_credit_facility_balance(credit_facility.account_ids)
-                .await?;
-
-            let account_ids = credit_facility.account_ids;
-
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
-
-            let interest_accrual =
-                accrual.record_accrual(balances.disbursed_outstanding(), audit_info.clone());
-
-            ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
-            }
-        };
-
-        self.credit_facility_repo
-            .update_in_op(db, &mut credit_facility)
-            .await?;
-
-        Ok(confirmed_accrual)
-    }
 }
 
 #[async_trait]
 impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[instrument(
         name = "credit-facility.interest-accruals.job",
@@ -176,35 +121,23 @@ where
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
 
-        let mut db = self.credit_facility_repo.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                db.tx(),
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
+        let mut db = self.credit_facilities.begin_op().await?;
 
-        let ConfirmedAccrual {
+        let crate::ConfirmedAccrual {
             accrual: interest_accrual,
             next_period: next_accrual_period,
             accrual_idx,
             accrued_count,
-        } = self.confirm_interest_accrual(&mut db, &audit_info).await?;
-
-        let (now, mut tx) = (db.now(), db.into_tx());
-        let sub_op = {
-            use sqlx::Acquire;
-            es_entity::DbOp::new(tx.begin().await?, now)
-        };
-        self.ledger
-            .record_interest_accrual(sub_op, interest_accrual)
+        } = self
+            .credit_facilities
+            .confirm_interest_accrual_in_op(&mut db, self.config.credit_facility_id)
             .await?;
 
-        let mut db = es_entity::DbOp::new(tx, now);
         if let Some(period) = next_accrual_period {
-            Ok(JobCompletion::RescheduleAtWithOp(db, period.end))
+            self.ledger
+                .record_interest_accrual(db, interest_accrual)
+                .await?;
+            Ok(JobCompletion::RescheduleAt(period.end))
         } else {
             self.jobs
                 .create_and_spawn_in_op(
@@ -216,11 +149,15 @@ where
                     },
                 )
                 .await?;
+            self.ledger
+                .record_interest_accrual(db, interest_accrual)
+                .await?;
+
             println!(
                 "All ({:?}) accruals completed for {:?} of {:?}",
                 accrued_count, accrual_idx, self.config.credit_facility_id
             );
-            Ok(JobCompletion::CompleteWithOp(db))
+            Ok(JobCompletion::Complete)
         }
     }
 }

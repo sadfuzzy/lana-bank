@@ -3,7 +3,7 @@
 
 import { useState, useContext, createContext } from "react"
 import { HiPlus } from "react-icons/hi"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import {
@@ -66,6 +66,8 @@ export const PATH_CONFIGS = {
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
 
   JOURNAL: "/journal",
+
+  ROLES_AND_PERMISSIONS: "/roles-and-permissions",
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -103,6 +105,7 @@ type MenuItem = {
 
 const CreateButton = () => {
   const t = useTranslations("CreateButton")
+  const router = useRouter()
 
   const [createCustomer, setCreateCustomer] = useState(false)
   const [createDeposit, setCreateDeposit] = useState(false)
@@ -220,6 +223,12 @@ const CreateButton = () => {
       onClick: () => setOpenExecuteManualTransaction(true),
       dataTestId: "execute-manual-transaction-button",
       allowedPaths: [PATH_CONFIGS.JOURNAL],
+    },
+    {
+      label: t("menuItems.role"),
+      onClick: () => router.push("/roles-and-permissions/create"),
+      dataTestId: "create-role-button",
+      allowedPaths: [PATH_CONFIGS.ROLES_AND_PERMISSIONS],
     },
   ]
 

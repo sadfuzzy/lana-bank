@@ -9,7 +9,6 @@ pub mod document;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
-pub mod terms_template;
 
 pub mod storage {
     pub use cloud_storage::*;
@@ -29,8 +28,11 @@ pub mod user_onboarding {
         user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod rbac {
+    pub use rbac_types::PermissionSetName;
+}
 pub mod access {
-    pub use core_access::{error, permission_set, role, user, RoleId, UserId};
+    pub use core_access::{config, error, permission_set, role, user, Role, RoleId, UserId};
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
@@ -63,7 +65,7 @@ pub mod governance {
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
-    pub use deposit::APPROVE_WITHDRAWAL_PROCESS;
+    pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
 }
 
 pub mod audit {
@@ -78,7 +80,7 @@ pub mod audit {
 }
 
 pub mod deposit {
-    pub use deposit::{
+    pub use core_deposit::{
         error, ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
         DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositId,
         DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
@@ -86,7 +88,7 @@ pub mod deposit {
     };
 
     pub type Deposits =
-        deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
+        core_deposit::CoreDeposit<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod accounting {
@@ -117,16 +119,22 @@ pub mod trial_balance {
     pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
 }
 
+pub mod custody {
+    pub use core_custody::{custodian, error};
+    pub type Custody = core_custody::CoreCustody<crate::authorization::Authorization>;
+}
+
 pub mod credit {
     pub use core_credit::{
-        error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
-        CreditFacility, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityOrigination, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
-        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
-        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,
-        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        error, terms_template_error, ChartOfAccountsIntegrationConfig, CollateralUpdated,
+        CollateralizationUpdated, CoreCreditEvent, CreditConfig, CreditFacilitiesCursor,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
+        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
+        DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities, FindManyDisbursals,
+        IncrementalPayment, InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation,
+        RepaymentStatus, Sort, TermsTemplate, APPROVE_CREDIT_FACILITY_PROCESS,
+        APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type Credit =

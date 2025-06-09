@@ -5,7 +5,6 @@ enum AccountStatus {
 
 scalar AnnualRatePct
 
-
 scalar CVLPct
 
 type CancelledWithdrawalEntry {
@@ -40,10 +39,17 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
-	currentCvl: FacilityCVL!
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+}
+
+type CreditFacilityApproved {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
 }
 
 type CreditFacilityBalance {
@@ -58,6 +64,7 @@ type CreditFacilityBalance {
 type CreditFacilityCollateralUpdated {
 	satoshis: Satoshis!
 	recordedAt: Timestamp!
+	effective: Date!
 	action: CollateralAction!
 	txId: UUID!
 }
@@ -68,6 +75,7 @@ type CreditFacilityCollateralizationUpdated {
 	outstandingInterest: UsdCents!
 	outstandingDisbursal: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	price: UsdCents!
 }
 
@@ -82,28 +90,25 @@ type CreditFacilityDisbursal {
 type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityOrigination | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	recordedAt: Timestamp!
+	effective: Date!
 	txId: UUID!
 	days: Int!
-}
-
-type CreditFacilityOrigination {
-	cents: UsdCents!
-	recordedAt: Timestamp!
-	txId: UUID!
 }
 
 type CreditFacilityPaymentAllocation {
@@ -167,6 +172,8 @@ enum CustomerType {
 	FOREIGN_AGENCY_OR_SUBSIDIARY
 	NON_DOMICILED_COMPANY
 }
+
+scalar Date
 
 type Deposit {
 	id: ID!
@@ -252,17 +259,9 @@ type Duration {
 	units: Int!
 }
 
-type FacilityCVL {
-	total: CVLPct!
-	disbursed: CVLPct!
-}
-
 type FacilityRemaining {
 	usdBalance: UsdCents!
 }
-
-
-
 
 type Interest {
 	total: Total!
@@ -334,7 +333,6 @@ type RealtimePrice {
 
 scalar Satoshis
 
-
 type Subject {
 	customer: Customer!
 }
@@ -388,7 +386,13 @@ enum WithdrawalStatus {
 	CANCELLED
 }
 
+"""
+Directs the executor to include this field or fragment only when the `if` argument is true.
+"""
 directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+"""
+Directs the executor to skip this field or fragment when the `if` argument is true.
+"""
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 schema {
 	query: Query

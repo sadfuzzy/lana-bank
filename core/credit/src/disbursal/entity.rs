@@ -36,7 +36,7 @@ pub enum DisbursalEvent {
         ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
         amount: UsdCents,
-        recorded_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
     Cancelled {
@@ -135,6 +135,7 @@ impl Disbursal {
         &mut self,
         tx_id: LedgerTxId,
         approved: bool,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
@@ -149,7 +150,7 @@ impl Disbursal {
         let tx_ref: &str = &format!("disbursal-{}", self.id);
         let new_obligation = if approved {
             if let Idempotent::Executed(new_obligation) =
-                self.settle_disbursal(tx_id, tx_ref, audit_info.clone())
+                self.settle_disbursal(tx_id, tx_ref, effective, audit_info.clone())
             {
                 Some(new_obligation)
             } else {
@@ -180,16 +181,16 @@ impl Disbursal {
         &mut self,
         tx_id: LedgerTxId,
         tx_ref: &str,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     ) -> Idempotent<NewObligation> {
         idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
         let obligation_id = ObligationId::new();
-        let now = crate::time::now();
         self.events.push(DisbursalEvent::Settled {
             ledger_tx_id: tx_id,
             obligation_id,
             amount: self.amount,
-            recorded_at: now,
+            effective,
             audit_info: audit_info.clone(),
         });
 
@@ -218,7 +219,7 @@ impl Disbursal {
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.disbursal_due_date)
                 .overdue_date(self.disbursal_overdue_date)
-                .recorded_at(now)
+                .effective(effective)
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new disbursal obligation"),
@@ -237,6 +238,7 @@ impl Disbursal {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewDisbursal {
     #[builder(setter(into))]
     pub(super) id: DisbursalId,
@@ -251,6 +253,15 @@ pub struct NewDisbursal {
     pub(super) disbursal_overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
+}
+
+impl NewDisbursalBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Disbursal amount cannot be zero".to_string()),
+            _ => Ok(()),
+        }
+    }
 }
 
 impl NewDisbursal {

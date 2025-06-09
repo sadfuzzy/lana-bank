@@ -1,7 +1,8 @@
 [package]
 name = "core-access"
-version = "0.3.549-dev"
-edition = "2021"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
+edition = "2024"
 
 [features]
 
@@ -25,6 +26,3 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
-
-[dev-dependencies]
-anyhow = { workspace = true }

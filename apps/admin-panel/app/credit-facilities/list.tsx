@@ -4,6 +4,8 @@ import { gql } from "@apollo/client"
 import { useState } from "react"
 import { useTranslations } from "next-intl"
 
+import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+
 import { LoanAndCreditFacilityStatusBadge } from "./status-badge"
 
 import { CollateralizationStateLabel } from "./label"
@@ -53,10 +55,7 @@ gql`
             accrualInterval
             oneTimeFeeRate
           }
-          currentCvl {
-            disbursed
-            total
-          }
+          currentCvl
           balance {
             collateral {
               btcBalance
@@ -215,7 +214,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "currentCvl",
     label: t("table.headers.cvl"),
-    render: (cvl) => `${cvl.disbursed}%`,
+    render: (cvl) => `${cvl}%`,
     sortable: true,
   },
   {

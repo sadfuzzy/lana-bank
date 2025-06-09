@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use std::{borrow::Cow, fmt::Display, str::FromStr};
+use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{action_description::*, AllOrOne};
+pub use authz::{AllOrOne, action_description::*};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -14,34 +14,96 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
-pub const ACCESS_WRITER: &str = "access_writer";
-pub const ACCESS_READER: &str = "access_reader";
+pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
-#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
-#[serde(transparent)]
-#[sqlx(transparent)]
-pub struct RoleName(Cow<'static, str>);
-impl RoleName {
-    /// Name of the role that will have all permission sets.
-    pub const SUPERUSER: RoleName = RoleName(Cow::Borrowed("superuser"));
+pub const PERMISSION_SET_ACCESS_WRITER: &str = "access_writer";
+pub const PERMISSION_SET_ACCESS_VIEWER: &str = "access_viewer";
 
-    // Transitional roles before they are replaced by seeded roles
-    pub const ACCOUNTANT: RoleName = RoleName(Cow::Borrowed("accountant"));
-    pub const BANK_MANAGER: RoleName = RoleName(Cow::Borrowed("bank-manager"));
-    pub const ADMIN: RoleName = RoleName(Cow::Borrowed("admin"));
+/// Type representing a role identifier for an underlying authorization subsystem.
+/// Any type that is convertible to `AuthRoleToken` can be used as such role.
+#[derive(Clone, Debug)]
+pub struct AuthRoleToken {
+    prefix: &'static str,
+    id: String,
+}
 
-    pub fn new(role_name: impl Into<String>) -> Self {
-        RoleName(Cow::Owned(role_name.into()))
-    }
-
-    pub fn name(&self) -> &str {
-        &self.0
+impl AuthRoleToken {
+    pub fn new<Id: Display>(prefix: &'static str, id: Id) -> Self {
+        Self {
+            prefix,
+            id: id.to_string(),
+        }
     }
 }
 
-impl Display for RoleName {
+impl From<RoleId> for AuthRoleToken {
+    fn from(id: RoleId) -> Self {
+        Self::new("role", id)
+    }
+}
+
+impl From<PermissionSetId> for AuthRoleToken {
+    fn from(id: PermissionSetId) -> Self {
+        Self::new("permission_set", id)
+    }
+}
+
+impl From<&RoleId> for AuthRoleToken {
+    fn from(id: &RoleId) -> Self {
+        (*id).into()
+    }
+}
+
+impl From<&PermissionSetId> for AuthRoleToken {
+    fn from(id: &PermissionSetId) -> Self {
+        (*id).into()
+    }
+}
+
+impl Display for AuthRoleToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.name().fmt(f)
+        write!(f, "{}:{}", self.prefix, self.id)
+    }
+}
+
+#[derive(Clone, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub struct Permission<O, A> {
+    object: O,
+    action: A,
+}
+
+impl<O, A> Permission<O, A> {
+    pub const fn new(object: O, action: A) -> Self {
+        Self { object, action }
+    }
+
+    pub fn object(&self) -> &O {
+        &self.object
+    }
+
+    pub fn action(&self) -> &A {
+        &self.action
+    }
+}
+
+impl<O, A> From<&ActionDescription<FullPath>> for Permission<O, A>
+where
+    O: FromStr,
+    A: FromStr,
+{
+    fn from(action: &ActionDescription<FullPath>) -> Self {
+        Permission::new(
+            action
+                .all_objects_name()
+                .parse()
+                .map_err(|_| ())
+                .expect("Could not parse object"),
+            action
+                .action_name()
+                .parse()
+                .map_err(|_| ())
+                .expect("Could not parse action"),
+        )
     }
 }
 
@@ -57,11 +119,13 @@ pub enum CoreAccessAction {
 impl CoreAccessAction {
     pub const ROLE_CREATE: Self = CoreAccessAction::Role(RoleAction::Create);
     pub const ROLE_UPDATE: Self = CoreAccessAction::Role(RoleAction::Update);
+    pub const ROLE_LIST: Self = CoreAccessAction::Role(RoleAction::List);
+    pub const ROLE_READ: Self = CoreAccessAction::Role(RoleAction::Read);
 
     pub const USER_CREATE: Self = CoreAccessAction::User(UserAction::Create);
     pub const USER_READ: Self = CoreAccessAction::User(UserAction::Read);
     pub const USER_LIST: Self = CoreAccessAction::User(UserAction::List);
-    pub const USER_ASSIGN_ROLE: Self = CoreAccessAction::User(UserAction::AssignRole);
+    pub const USER_UPDATE_ROLE: Self = CoreAccessAction::User(UserAction::UpdateRole);
     pub const USER_REVOKE_ROLE: Self = CoreAccessAction::User(UserAction::RevokeRole);
     pub const USER_UPDATE_AUTHENTICATION_ID: Self =
         CoreAccessAction::User(UserAction::UpdateAuthenticationId);
@@ -96,6 +160,8 @@ impl CoreAccessAction {
 pub enum RoleAction {
     Create,
     Update,
+    Read,
+    List,
 }
 
 impl RoleAction {
@@ -104,8 +170,16 @@ impl RoleAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
             };
             res.push(action_description);
         }
@@ -126,7 +200,10 @@ impl PermissionSetAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
             };
             res.push(action_description);
         }
@@ -142,7 +219,7 @@ pub enum UserAction {
     Create,
     List,
     Update,
-    AssignRole,
+    UpdateRole,
     RevokeRole,
     UpdateAuthenticationId,
 }
@@ -153,13 +230,25 @@ impl UserAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::List => ActionDescription::new(variant, &[ACCESS_READER, ACCESS_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::AssignRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::RevokeRole => ActionDescription::new(variant, &[ACCESS_WRITER]),
-                Self::UpdateAuthenticationId => ActionDescription::new(variant, &[ACCESS_WRITER]),
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
+                Self::UpdateRole => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
+                Self::RevokeRole => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
             };
             res.push(action_description);
         }

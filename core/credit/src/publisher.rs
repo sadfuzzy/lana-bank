@@ -1,16 +1,16 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
-    collateral::{error::CollateralError, Collateral, CollateralEvent},
-    credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
-    disbursal::{error::DisbursalError, Disbursal, DisbursalEvent},
+    collateral::{Collateral, CollateralEvent, error::CollateralError},
+    credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
+    disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
     interest_accrual_cycle::{
-        error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
+        InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
     },
-    obligation::{error::ObligationError, Obligation, ObligationEvent},
+    obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
-        error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
+        PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
 };
 
@@ -84,6 +84,7 @@ where
                     id: entity.id,
                     state: *state,
                     recorded_at: event.recorded_at,
+                    effective: event.recorded_at.date_naive(),
                     collateral: *collateral,
                     outstanding: *outstanding,
                     price: *price,
@@ -116,7 +117,8 @@ where
                     ledger_tx_id: *ledger_tx_id,
                     abs_diff: *abs_diff,
                     action: *action,
-                    recorded_at: entity.created_at(),
+                    recorded_at: event.recorded_at,
+                    effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
                     credit_facility_id: entity.credit_facility_id,
                 }),
@@ -140,13 +142,14 @@ where
             .filter_map(|event| match &event.event {
                 Settled {
                     amount,
-                    recorded_at,
                     ledger_tx_id,
+                    effective,
                     ..
                 } => Some(CoreCreditEvent::DisbursalSettled {
                     credit_facility_id: entity.facility_id,
                     amount: *amount,
-                    recorded_at: *recorded_at,
+                    recorded_at: event.recorded_at,
+                    effective: *effective,
                     ledger_tx_id: *ledger_tx_id,
                 }),
 
@@ -168,15 +171,19 @@ where
         use InterestAccrualCycleEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                InterestAccrualsPosted { total, tx_id, .. } => {
-                    Some(CoreCreditEvent::AccrualPosted {
-                        credit_facility_id: entity.credit_facility_id,
-                        ledger_tx_id: *tx_id,
-                        amount: *total,
-                        period: entity.period,
-                        recorded_at: event.recorded_at,
-                    })
-                }
+                InterestAccrualsPosted {
+                    total,
+                    tx_id,
+                    effective,
+                    ..
+                } => Some(CoreCreditEvent::AccrualPosted {
+                    credit_facility_id: entity.credit_facility_id,
+                    ledger_tx_id: *tx_id,
+                    amount: *total,
+                    period: entity.period,
+                    recorded_at: event.recorded_at,
+                    effective: *effective,
+                }),
 
                 _ => None,
             })
@@ -201,6 +208,7 @@ where
                     obligation_id,
                     obligation_type,
                     amount,
+                    effective,
                     ..
                 } => CoreCreditEvent::FacilityRepaymentRecorded {
                     credit_facility_id: entity.credit_facility_id,
@@ -209,6 +217,7 @@ where
                     payment_id: *id,
                     amount: *amount,
                     recorded_at: event.recorded_at,
+                    effective: *effective,
                 },
             })
             .collect::<Vec<_>>();
@@ -227,7 +236,7 @@ where
         use ObligationEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CoreCreditEvent::ObligationCreated {
+                Initialized { effective, .. } => Some(CoreCreditEvent::ObligationCreated {
                     id: entity.id,
                     obligation_type: entity.obligation_type,
                     credit_facility_id: entity.credit_facility_id,
@@ -236,7 +245,8 @@ where
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
                     defaulted_at: entity.defaulted_at(),
-                    created_at: entity.recorded_at,
+                    recorded_at: event.recorded_at,
+                    effective: *effective,
                 }),
                 DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,

@@ -9,6 +9,7 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "create": "Crear",
+    "update": "Actualizar",
     "search": "Buscar",
     "filter": "Filtrar",
     "sort": "Ordenar",
@@ -19,6 +20,81 @@
     "close": "Cerrar",
     "submit": "Enviar",
     "set": "Establecer"
+  },
+  "PermissionsDisplay": {
+    "permissionsLabel": "Permisos que tiene este rol",
+    "noRoleSelected": "Ningún rol seleccionado",
+    "noPermissions": "Este rol no tiene permisos"
+  },
+  "Permissions": {
+    "access_viewer": {
+      "label": "Visualizador de acceso",
+      "description": "Puede listar y ver usuarios, roles y conjuntos de permisos"
+    },
+    "access_writer": {
+      "label": "Editor de acceso",
+      "description": "Puede crear, actualizar y gestionar usuarios, roles y conjuntos de permisos, incluyendo asignar o revocar roles"
+    },
+    "accounting_viewer": {
+      "label": "Visualizador de contabilidad",
+      "description": "Puede ver informes contables, asientos contables, cuentas del libro mayor y transacciones"
+    },
+    "accounting_writer": {
+      "label": "Editor de contabilidad",
+      "description": "Puede crear y gestionar planes de cuentas, transacciones manuales y del libro mayor, balances, informes de pérdidas y ganancias, y datos contables relacionados"
+    },
+    "app_viewer": {
+      "label": "Visualizador de aplicación",
+      "description": "Puede listar y ver documentos, informes y auditorías de la aplicación"
+    },
+    "app_writer": {
+      "label": "Editor de aplicación",
+      "description": "Puede crear, actualizar, archivar y eliminar documentos e informes de la aplicación"
+    },
+    "credit_viewer": {
+      "label": "Visualizador de crédito",
+      "description": "Puede ver facilidades de crédito, desembolsos, obligaciones e información relacionada con préstamos"
+    },
+    "credit_writer": {
+      "label": "Editor de crédito",
+      "description": "Puede crear y gestionar facilidades de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
+    },
+    "customer_viewer": {
+      "label": "Visualizador de clientes",
+      "description": "Puede ver perfiles de clientes y detalles de cuentas"
+    },
+    "customer_writer": {
+      "label": "Editor de clientes",
+      "description": "Puede crear, actualizar y gestionar clientes, incluyendo iniciar y aprobar procesos KYC"
+    },
+    "dashboard_viewer": {
+      "label": "Visualizador de panel de control",
+      "description": "Puede ver paneles de control del sistema y análisis"
+    },
+    "deposit_viewer": {
+      "label": "Visualizador de depósitos",
+      "description": "Puede ver cuentas de depósito, saldos, historial de transacciones y detalles de retiros"
+    },
+    "deposit_writer": {
+      "label": "Editor de depósitos",
+      "description": "Puede crear y gestionar depósitos, cuentas de depósito y retiros, incluyendo iniciar, confirmar, cancelar y aprobar retiros"
+    },
+    "governance_viewer": {
+      "label": "Visualizador de gobernanza",
+      "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación"
+    },
+    "governance_writer": {
+      "label": "Editor de gobernanza",
+      "description": "Puede crear y gestionar comités y políticas, y controlar procesos de aprobación (crear, aprobar, denegar, concluir)"
+    },
+    "custody_viewer": {
+      "label": "Visualizador de custodia",
+      "description": "Puede ver configuraciones de custodios"
+    },
+    "custody_writer": {
+      "label": "Editor de custodia",
+      "description": "Puede crear y gestionar configuraciones de custodios"
+    }
   },
   "interestInterval": {
     "endOfDay": "Fin de día",
@@ -58,7 +134,8 @@
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
       "modules": "Módulos",
-      "transactionTemplates": "Plantillas de transacciones"
+      "transactionTemplates": "Plantillas de transacciones",
+      "rolesAndPermissions": "Roles y permisos"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -98,7 +175,8 @@
       "assignCommittee": "Asignar Comité",
       "addCommitteeMember": "Añadir Miembro al Comité",
       "approve": "Aprobar",
-      "deny": "Rechazar"
+      "deny": "Rechazar",
+      "createRole": "Crear rol"
     },
     "keyboardInstructions": {
       "commandPalette": "Paleta de Comandos"
@@ -386,12 +464,13 @@
         "columns": {
           "entryType": "Tipo de entrada",
           "recordedAt": "Registrado El",
+          "effective": "Fecha efectiva",
           "amount": "Monto"
         },
         "entryTypes": {
           "collateralUpdated": "Garantía actualizada",
           "collateralizationUpdated": "Colateralización actualizada",
-          "origination": "Originación",
+          "approved": "Facilidad aprobada",
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado"
@@ -811,7 +890,7 @@
           "headers": {
             "email": "Correo Electrónico"
           },
-          "noRoles": "Sin roles asignados",
+          "noRole": "Sin rol asignado",
           "emptyMessage": "No se encontraron miembros en este comité"
         },
         "buttons": {
@@ -1106,22 +1185,23 @@
     "table": {
       "headers": {
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Rol"
       },
       "noRolesAssigned": "Sin roles asignados",
       "emptyMessage": "No se encontraron usuarios"
     },
     "createDialog": {
       "title": "Añadir nuevo Usuario",
-      "description": "Añadir un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando roles",
+      "description": "Añade un nuevo usuario al panel de administración proporcionando su dirección de correo electrónico y seleccionando un rol",
       "fields": {
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Rol"
       },
       "placeholders": {
-        "email": "Por favor ingrese la dirección de correo electrónico"
+        "email": "Por favor ingrese la dirección de correo electrónico",
+        "selectRole": "Selecciona un rol"
       },
-      "emailHelperText": "Se enviará un enlace mágico a la dirección de correo electrónico proporcionada.",
+      "noRolesAvailable": "No hay roles disponibles",
       "buttons": {
         "submit": "Enviar",
         "processing": "Procesando..."
@@ -1141,21 +1221,19 @@
       "fields": {
         "createdAt": "Creado El",
         "email": "Correo Electrónico",
-        "roles": "Roles"
+        "role": "Rol"
       },
       "noRolesAssigned": "Sin roles asignados",
-      "roleDropdown": {
-        "manageRoles": "Gestionar Roles",
-        "rolesLabel": "Roles",
-        "success": {
-          "roleAssigned": "Rol asignado",
-          "roleRevoked": "Rol revocado"
-        },
-        "errors": {
-          "assignFailed": "Error al asignar rol",
-          "revokeFailed": "Error al revocar rol"
-        }
-      }
+      "updateRole": "Actualizar rol"
+    },
+    "updateRole": {
+      "title": "Actualizar rol",
+      "description": "Actualiza el rol asignado a este usuario.",
+      "roleLabel": "Rol",
+      "selectRole": "Selecciona un rol",
+      "noRole": "Sin rol",
+      "success": "Rol actualizado con éxito",
+      "error": "Error al actualizar el rol"
     }
   },
   "AuditLogs": {
@@ -1304,7 +1382,8 @@
       "user": "Usuario",
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
-      "executeManualTransaction": "Ejecutar transacción manual"
+      "executeManualTransaction": "Ejecutar transacción manual",
+      "role": "Rol"
     }
   },
   "DataTable": {
@@ -1549,6 +1628,48 @@
         "createdAt": "Creado el",
         "description": "Descripción"
       }
+    }
+  },
+  "RolesAndPermissions": {
+    "title": "Roles y permisos",
+    "description": "Gestiona roles y sus permisos asociados",
+    "table": {
+      "headers": {
+        "name": "Nombre del rol",
+        "permissionSets": "Permisos",
+        "createdAt": "Creado el"
+      },
+      "emptyMessage": "No se encontraron roles. Haz clic en el botón crear para añadir un nuevo rol.",
+      "noPermissionSetsAssigned": "Sin permisos asignados",
+      "permissionsCount": "permisos",
+      "morePermissions": "más"
+    },
+    "create": {
+      "title": "Crear rol",
+      "description": "Crea un nuevo rol con los permisos seleccionados",
+      "nameLabel": "Role Name",
+      "namePlaceholder": "Introduce el nombre del rol",
+      "selectedPermissions": "Permisos seleccionados: {count}",
+      "noPermissionsAvailable": "No hay permisos disponibles",
+      "success": "Rol creado correctamente",
+      "error": "Error al crear el rol: {error}"
+    },
+    "edit": {
+      "title": "Editando",
+      "editDescription": "Actualizar los permisos para este rol",
+      "permissionsLabel": "Permisos",
+      "noPermissionsAvailable": "No hay permisos disponibles",
+      "selected": "seleccionados",
+      "success": "Rol actualizado con éxito",
+      "error": "Error al actualizar el rol: {error}"
+    },
+    "roleDetails": {
+      "roleDetails": "Detalles del rol",
+      "roleDetailsDescription": "Ver y gestionar información y permisos del rol",
+      "name": "Nombre",
+      "createdAt": "Creado el",
+      "permissionSets": "Permisos",
+      "editRole": "Editar rol"
     }
   }
 }

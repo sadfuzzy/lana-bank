@@ -115,7 +115,8 @@ impl DisbursalEntry {
 
         let disbursal = app
             .credit()
-            .find_disbursal_by_concluded_tx_id(sub, self.tx_id)
+            .disbursals()
+            .find_by_concluded_tx_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityDisbursal::from(disbursal))
@@ -132,7 +133,8 @@ impl PaymentEntry {
 
         let payment = app
             .credit()
-            .find_payment_allocation_by_id(sub, self.tx_id)
+            .payments()
+            .find_allocation_by_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityPaymentAllocation::from(payment))

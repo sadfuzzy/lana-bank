@@ -9,6 +9,7 @@
     "delete": "Delete",
     "edit": "Edit",
     "create": "Create",
+    "update": "Update",
     "search": "Search",
     "filter": "Filter",
     "sort": "Sort",
@@ -19,6 +20,81 @@
     "close": "Close",
     "submit": "Submit",
     "set": "Set"
+  },
+  "PermissionsDisplay": {
+    "permissionsLabel": "Permissions this role has",
+    "noRoleSelected": "No role selected",
+    "noPermissions": "This role has no permissions"
+  },
+  "Permissions": {
+    "access_viewer": {
+      "label": "Access Viewer",
+      "description": "Can list and view users, roles, and permission sets"
+    },
+    "access_writer": {
+      "label": "Access Writer",
+      "description": "Can create, update, and manage users, roles, and permission sets, including assigning or revoking roles"
+    },
+    "accounting_viewer": {
+      "label": "Accounting Viewer",
+      "description": "Can view accounting reports, journal entries, ledger accounts, and transactions"
+    },
+    "accounting_writer": {
+      "label": "Accounting Writer",
+      "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"
+    },
+    "app_viewer": {
+      "label": "App Viewer",
+      "description": "Can list and view application documents, reports, and audits"
+    },
+    "app_writer": {
+      "label": "App Writer",
+      "description": "Can create, update, archive, and delete application documents and reports"
+    },
+    "credit_viewer": {
+      "label": "Credit Viewer",
+      "description": "Can view credit facilities, disbursals, obligations, and related loan information"
+    },
+    "credit_writer": {
+      "label": "Credit Writer",
+      "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"
+    },
+    "customer_viewer": {
+      "label": "Customer Viewer",
+      "description": "Can view customer profiles and account details"
+    },
+    "customer_writer": {
+      "label": "Customer Writer",
+      "description": "Can create, update, and manage customers, including initiating and approving KYC processes"
+    },
+    "dashboard_viewer": {
+      "label": "Dashboard Viewer",
+      "description": "Can view system dashboards and analytics"
+    },
+    "deposit_viewer": {
+      "label": "Deposit Viewer",
+      "description": "Can view deposit accounts, balances, transaction history, and withdrawal details"
+    },
+    "deposit_writer": {
+      "label": "Deposit Writer",
+      "description": "Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals"
+    },
+    "governance_viewer": {
+      "label": "Governance Viewer",
+      "description": "Can view governance committees, policies, and approval processes"
+    },
+    "governance_writer": {
+      "label": "Governance Writer",
+      "description": "Can create and manage committees and policies, and control approval processes (create, approve, deny, conclude)"
+    },
+    "custody_viewer": {
+      "label": "Custody Viewer",
+      "description": "Can view custodian configurations"
+    },
+    "custody_writer": {
+      "label": "Custody Writer",
+      "description": "Can create and manage custodian configurations"
+    }
   },
   "interestInterval": {
     "endOfDay": "End of Day",
@@ -58,7 +134,8 @@
       "regulatoryReporting": "Regulatory Reporting",
       "trialBalance": "Trial Balance",
       "modules": "Modules",
-      "transactionTemplates": "Transaction Templates"
+      "transactionTemplates": "Transaction Templates",
+      "rolesAndPermissions": "Roles & Permissions"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -98,7 +175,8 @@
       "assignCommittee": "Assign Committee",
       "addCommitteeMember": "Add Committee Member",
       "approve": "Approve",
-      "deny": "Deny"
+      "deny": "Deny",
+      "createRole": "Create Role"
     },
     "keyboardInstructions": {
       "commandPalette": "Command Palette"
@@ -386,12 +464,13 @@
         "columns": {
           "entryType": "Entry Type",
           "recordedAt": "Recorded At",
+          "effective": "Effective Date",
           "amount": "Amount"
         },
         "entryTypes": {
           "collateralUpdated": "Collateral Updated",
           "collateralizationUpdated": "Collateralization Updated",
-          "origination": "Origination",
+          "approved": "Facility Approved",
           "incrementalPayment": "Payment",
           "disbursalExecuted": "Disbursal",
           "interestAccrued": "Interest Accrued"
@@ -811,7 +890,7 @@
           "headers": {
             "email": "Email"
           },
-          "noRoles": "No roles assigned",
+          "noRole": "No role assigned",
           "emptyMessage": "No members found in this committee"
         },
         "buttons": {
@@ -1106,22 +1185,23 @@
     "table": {
       "headers": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles Assigned",
       "emptyMessage": "No users found"
     },
     "createDialog": {
       "title": "Add new User",
-      "description": "Add a new user to the admin-panel by providing their email address and selecting roles",
+      "description": "Add a new user to the admin-panel by providing their email address and selecting a role",
       "fields": {
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "placeholders": {
-        "email": "Please enter the email address"
+        "email": "Please enter the email address",
+        "selectRole": "Select a role"
       },
-      "emailHelperText": "A magic link will be sent to the email address provided.",
+      "noRolesAvailable": "No roles available",
       "buttons": {
         "submit": "Submit",
         "processing": "Processing..."
@@ -1141,21 +1221,19 @@
       "fields": {
         "createdAt": "Created At",
         "email": "Email",
-        "roles": "Roles"
+        "role": "Role"
       },
       "noRolesAssigned": "No roles assigned",
-      "roleDropdown": {
-        "manageRoles": "Manage Roles",
-        "rolesLabel": "Roles",
-        "success": {
-          "roleAssigned": "Role assigned",
-          "roleRevoked": "Role revoked"
-        },
-        "errors": {
-          "assignFailed": "Failed to assign role",
-          "revokeFailed": "Failed to revoke role"
-        }
-      }
+      "updateRole": "Update Role"
+    },
+    "updateRole": {
+      "title": "Update Role",
+      "description": "Update the role assigned to this user.",
+      "roleLabel": "Role",
+      "selectRole": "Select a role",
+      "noRole": "No Role",
+      "success": "Role updated successfully",
+      "error": "Failed to update role"
     }
   },
   "AuditLogs": {
@@ -1304,7 +1382,8 @@
       "user": "User",
       "termsTemplate": "Terms Template",
       "committee": "Committee",
-      "executeManualTransaction": "Execute Manual Transaction"
+      "executeManualTransaction": "Execute Manual Transaction",
+      "role": "Role"
     }
   },
   "DataTable": {
@@ -1549,6 +1628,48 @@
         "createdAt": "Created At",
         "description": "Description"
       }
+    }
+  },
+  "RolesAndPermissions": {
+    "title": "Roles & Permissions",
+    "description": "Manage roles and their associated permissions",
+    "table": {
+      "headers": {
+        "name": "Role Name",
+        "permissionSets": "Permissions",
+        "createdAt": "Created At"
+      },
+      "emptyMessage": "No roles found. Click the create button to add a new role.",
+      "noPermissionSetsAssigned": "No permissions assigned",
+      "permissionsCount": "permissions",
+      "morePermissions": "more"
+    },
+    "create": {
+      "title": "Create Role",
+      "description": "Create a new role with selected permissions",
+      "nameLabel": "Role Name",
+      "namePlaceholder": "Enter role name",
+      "selectedPermissions": "Selected permissions: {count}",
+      "noPermissionsAvailable": "No permissions available",
+      "success": "Role created successfully",
+      "error": "Failed to create role: {error}"
+    },
+    "edit": {
+      "title": "Editing",
+      "editDescription": "Update the permissions for this role",
+      "permissionsLabel": "Permissions",
+      "noPermissionsAvailable": "No permissions available",
+      "selected": "selected",
+      "success": "Role updated successfully",
+      "error": "Failed to update role: {error}"
+    },
+    "roleDetails": {
+      "roleDetails": "Role Details",
+      "roleDetailsDescription": "View and manage role information and permissions",
+      "name": "Name",
+      "createdAt": "Created At",
+      "permissionSets": "Permissions",
+      "editRole": "Edit Role"
     }
   }
 }

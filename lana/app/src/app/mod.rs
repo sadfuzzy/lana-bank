@@ -12,8 +12,9 @@ use crate::{
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{init as init_authz, AppAction, AppObject, AuditAction, Authorization},
+    authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
+    custody::Custody,
     customer::Customers,
     customer_sync::CustomerSync,
     dashboard::Dashboard,
@@ -26,7 +27,6 @@ use crate::{
     primitives::Subject,
     report::Reports,
     storage::Storage,
-    terms_template::TermsTemplates,
     user_onboarding::UserOnboarding,
 };
 
@@ -45,9 +45,9 @@ pub struct LanaApp {
     applicants: Applicants,
     access: Access,
     credit: Credit,
+    custody: Custody,
     price: Price,
     report: Reports,
-    terms_templates: TermsTemplates,
     documents: Documents,
     outbox: Outbox,
     governance: Governance,
@@ -60,24 +60,25 @@ impl LanaApp {
     pub async fn run(pool: PgPool, config: AppConfig) -> Result<Self, ApplicationError> {
         sqlx::migrate!().run(&pool).await?;
 
-        let mut jobs = Jobs::new(&pool, config.job_execution);
         let audit = Audit::new(&pool);
-        let authz = init_authz(&pool, &audit).await?;
         let outbox = Outbox::init(&pool).await?;
+        let authz = Authorization::init(&pool, &audit).await?;
+
+        let mut access_config = config.access;
+        access_config.action_descriptions = rbac_types::LanaAction::action_descriptions();
+        access_config.predefined_roles = seed::PREDEFINED_ROLES;
+
+        let access = Access::init(&pool, access_config, &authz, &outbox).await?;
+
+        let mut jobs = Jobs::new(&pool, config.job_execution);
+
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = Documents::new(&pool, &storage, &authz);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
-        let access = Access::init(
-            &pool,
-            &authz,
-            &outbox,
-            config.user.superuser_email,
-            &rbac_types::LanaAction::action_descriptions(),
-        )
-        .await?;
+
         let user_onboarding =
             UserOnboarding::init(&jobs, &outbox, access.users(), config.user_onboarding).await?;
 
@@ -115,6 +116,8 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
+        let custody = Custody::new(&pool, &authz);
+
         let credit = Credit::init(
             &pool,
             config.credit,
@@ -131,7 +134,6 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
-        let terms_templates = TermsTemplates::new(&pool, &authz);
         jobs.start_poll().await?;
 
         Ok(Self {
@@ -147,7 +149,7 @@ impl LanaApp {
             price,
             report,
             credit,
-            terms_templates,
+            custody,
             documents,
             outbox,
             governance,
@@ -194,7 +196,11 @@ impl LanaApp {
         use crate::audit::AuditSvc;
 
         self.authz
-            .enforce_permission(sub, AppObject::Audit, AppAction::Audit(AuditAction::List))
+            .enforce_permission(
+                sub,
+                AppObject::all_audits(),
+                AppAction::Audit(AuditAction::List),
+            )
             .await?;
 
         self.audit.list(query).await.map_err(ApplicationError::from)
@@ -212,16 +218,16 @@ impl LanaApp {
         &self.applicants
     }
 
+    pub fn custody(&self) -> &Custody {
+        &self.custody
+    }
+
     pub fn credit(&self) -> &Credit {
         &self.credit
     }
 
     pub fn access(&self) -> &Access {
         &self.access
-    }
-
-    pub fn terms_templates(&self) -> &TermsTemplates {
-        &self.terms_templates
     }
 
     pub fn documents(&self) -> &Documents {

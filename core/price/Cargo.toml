@@ -1,7 +1,8 @@
 [package]
 name = "core-price"
-version = "0.3.549-dev"
-edition = "2021"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
+edition = "2024"
 
 [features]
 

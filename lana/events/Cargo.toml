@@ -1,6 +1,7 @@
 [package]
 name = "lana-events"
-version = "0.3.549-dev"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
 edition = "2021"
 
 [features]
@@ -12,7 +13,7 @@ governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
-deposit = { path = "../../core/deposit" }
+core-deposit = { path = "../../core/deposit" }
 outbox = { path = "../../lib/outbox" }
 
 serde = { workspace = true }

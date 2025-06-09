@@ -26,19 +26,16 @@
 #@   "app_latest_image_resource_name",
 #@   "app_latest_image",
 #@   "build_app_edge_image",
-#@   "app_edge_image"
+#@   "app_edge_image",
+#@   "nix_flake_cachix_image_config"
 #@ )
 
 groups:
   - name: lana-bank
     jobs:
-      - nodejs-check-code
-      - rust-check-code
-      - build-debug
-      - integration-tests
-      - bats-tests
       - bats-integrations-test
       - release
+      - check-code
       #!- build-edge-image
       - release-docker
       - set-dev-version
@@ -50,77 +47,6 @@ groups:
 
 jobs:
   #! -  #@ build_edge_image()
-
-  - name: integration-tests
-    serial: true
-    plan:
-      - in_parallel:
-          - get: repo
-            trigger: true
-          - { get: pipeline-tasks }
-      - task: integration-tests
-        attempts: 2
-        privileged: true
-        config:
-          platform: linux
-          image_resource: #@ nix_task_image_config()
-          inputs:
-            - name: pipeline-tasks
-            - name: repo
-              path: repo
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                pushd repo
-
-                echo "--- Manually configuring Nix for Cachix ---"
-                mkdir -p /etc/nix
-                # Append to nix.conf, creating if it doesn't exist
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
-                echo "Configured /etc/nix/nix.conf:"
-                cat /etc/nix/nix.conf
-                # Ensure the auth token is available for nix commands
-                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
-                echo "--- Nix configuration done ---"
-
-                echo "--- Entering Nix Develop Environment and running script ---"
-                # The script path is relative to the pipeline-tasks input root
-                # Assumes pipeline-tasks is mounted at the task root, alongside repo
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-
-  - name: build-debug
-    plan:
-    - get: repo
-      trigger: true
-    - task: nix-debug
-      config:
-        platform: linux
-        image_resource:
-          type: registry-image
-          source:
-            repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
-        inputs:
-          - name: repo
-        params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-        run:
-          path: sh
-          args:
-          - -exc
-          - |
-            set -euo pipefail
-            cd repo
-            cachix use lana-ci
-
-            # Build and cache the main derivation
-            nix build --print-out-paths --no-link | cachix push lana-ci
-            
-            # Build and cache the development shell
-            nix develop --command true | cachix push lana-ci
 
   - name: bats-integrations-test
     #! serial: true
@@ -134,11 +60,10 @@ jobs:
         privileged: true
         config:
           platform: linux
-          image_resource: #@ nix_task_image_config()
+          image_resource: #@ nix_flake_cachix_image_config()
           inputs:
             - name: pipeline-tasks
             - name: repo
-              path: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
           run:
@@ -149,94 +74,17 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
-                echo "--- Nix Version ---"
-                nix --version
-                echo "-------------------"
+                cachix use lana-ci
 
-                echo "--- Manually configuring Nix for Cachix ---"
-                mkdir -p /etc/nix
-                # Append to nix.conf, creating if it doesn't exist
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
-                echo "download-buffer-size = 1024000000" >> /etc/nix/nix.conf
+                nix build . --print-out-paths --no-link | cachix push lana-ci
 
-                echo "--- Nix configuration done ---"
-                echo "Configured /etc/nix/nix.conf:"
-                cat /etc/nix/nix.conf
-                # Ensure the auth token is available for nix commands
-                echo "--- Nix configuration done ---"
+                nix develop --profile dev-profile --command true
+                cachix push lana-ci dev-profile
 
-                echo "--- Building and pushing lana-cli and devShell dependencies to Cachix ---"
-                  nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
-                    "nix build . .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
-                  || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
+                nix -L develop --command make test-integration-podman
+                nix -L develop --command make test-bats-podman
 
-                echo "--- Entering Nix Develop Environment and running script ---"
-                # The script path is relative to the pipeline-tasks input root
-                # Assumes pipeline-tasks is mounted at the task root, alongside repo
-                
-                #! nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
-
-  - name: bats-tests
-    serial: true
-    plan:
-      - in_parallel:
-          - get: repo
-            trigger: true
-          - { get: pipeline-tasks }
-      - task: bats-tests
-        timeout: 50m
-        attempts: 2
-        privileged: true
-        config:
-          platform: linux
-          image_resource: #@ nix_task_image_config()
-          inputs:
-            - name: pipeline-tasks
-            - name: repo
-              path: repo
-          params:
-            DOCKERHUB_USERNAME: #@ data.values.docker_registry_user
-            DOCKERHUB_PASSWORD: #@ data.values.docker_registry_password
-            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          run:
-            path: sh
-            args:
-              - -exc
-              - |
-                set -euo pipefail
-                pushd repo
-
-                echo "--- Manually configuring Nix for Cachix ---"
-                mkdir -p /etc/nix
-                # Append to nix.conf, creating if it doesn't exist
-                echo "substituters = https://cache.nixos.org/ https://lana-ci.cachix.org" >> /etc/nix/nix.conf
-                echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= lana-ci.cachix.org-1:azzCR3pnHnh+Ew66H0R3jDqdHXO8t47uD5utj4FaodI=" >> /etc/nix/nix.conf
-                echo "Configured /etc/nix/nix.conf:"
-                cat /etc/nix/nix.conf
-                # Ensure the auth token is available for nix commands
-                export CACHIX_AUTH_TOKEN="${CACHIX_AUTH_TOKEN:-}"
-                echo "--- Nix configuration done ---"
-
-                echo "--- Building and pushing devShell dependencies to Cachix ---"
-                if [[ -n "${CACHIX_AUTH_TOKEN}" ]]; then
-                  # Use nix shell to make cachix and nix available for the push command
-                  nix shell nixpkgs#cachix nixpkgs#nix --command sh -c \
-                    "nix build .#devShells.x86_64-linux.default --print-out-paths --no-link | cachix push lana-ci" \
-                  || echo "Warning: Failed to build or push devShell dependencies. Proceeding..."
-                else
-                  echo "Warning: CACHIX_AUTH_TOKEN not set. Skipping pre-emptive push of devShell dependencies."
-                fi
-                echo "--- devShell push attempt finished ---"
-
-                echo "--- Entering Nix Develop Environment and running script ---"
-                # The script path is relative to the pipeline-tasks input root
-                # Assumes pipeline-tasks is mounted at the task root, alongside repo
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-e2e-tests.sh                
-
-  - name: rust-check-code
+  - name: check-code
     serial: true
     plan:
     - in_parallel:
@@ -245,31 +93,29 @@ jobs:
     - task: check-code
       config:
         platform: linux
-        image_resource: #@ rust_task_image_config()
+        image_resource: #@ nix_flake_cachix_image_config()
         inputs:
         - name: pipeline-tasks
         - name: repo
-        caches:
-        - path: cargo-home
-        - path: cargo-target-dir
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
-          path: pipeline-tasks/ci/vendor/tasks/rust-check-code.sh
-
-  - name: nodejs-check-code
-    serial: true
-    plan:
-    - in_parallel:
-      - { get: repo, trigger: true }
-      - { get: pipeline-tasks }
-    - task: check-code
-      config:
-        platform: linux
-        image_resource: #@ nodejs_task_image_config()
-        inputs:
-        - name: pipeline-tasks
-        - name: repo
-        run:
-          path: pipeline-tasks/ci/tasks/check-code-apps.sh
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use lana-ci
+              
+              # Cache the build outputs from the project
+              nix build . --print-out-paths --no-link | cachix push lana-ci
+              
+              # Cache the development environment  
+              nix develop --profile dev-profile --command true
+              cachix push lana-ci dev-profile
+              
+              nix develop --command sh -exc "make check-code"
 
   - name: build-static-binary
     serial: true
@@ -278,29 +124,39 @@ jobs:
       - get: repo
         trigger: true
       - get: pipeline-tasks
-    - task: cargo-build-release
+    - task: nix-build-static
       attempts: 2
       config:
         platform: linux
-        image_resource:
-          type: registry-image
-          source: {repository: clux/muslrust, tag: stable}
+        image_resource: #@ nix_flake_cachix_image_config()
         inputs:
         - name: pipeline-tasks
         - name: repo
         outputs: [{name: bin}]
-        caches:  [{path: cargo-target}, {path: cargo-home}]
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
         run:
           path: sh
           args:
           - -exc
           - |
-            export CARGO_HOME="$PWD/cargo-home"
-            export CARGO_TARGET_DIR="$PWD/cargo-target-dir"
+            set -euo pipefail
             cd repo
-            SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
+            
+            # Setup Cachix cache
+            cachix use lana-ci
+            
+            # Build the static binary using Nix (equivalent to musl target)
+            nix build .#static --print-build-logs
+            
+            # Push build results to cache
+            nix build .#static --print-out-paths --no-link | cachix push lana-ci
+            
+            # Copy the binary to output
             mkdir -p ../bin
-            cp "${CARGO_TARGET_DIR}/x86_64-unknown-linux-musl/release/lana-cli" ../bin/
+            cp result/bin/lana-cli ../bin/
+            
+            # Create Dockerfile for scratch container
             cat > ../bin/Dockerfile <<'EOF'
             FROM scratch
             COPY lana-cli /lana-cli
@@ -338,11 +194,9 @@ jobs:
       - in_parallel:
           - get: repo
             passed: 
-              - nodejs-check-code
-              - rust-check-code
-              - integration-tests
+              - check-code
+              - bats-integrations-test
               - build-static-binary
-              - bats-tests
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -552,7 +406,7 @@ jobs:
           - get: version
             trigger: true
             params: { bump: patch }
-            passed: [release]
+            passed: [release, release-docker]
       - task: set-dev-version
         config:
           image_resource: #@ rust_task_image_config()

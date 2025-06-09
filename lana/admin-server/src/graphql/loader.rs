@@ -11,14 +11,16 @@ use lana_app::{
         LedgerAccountId, TransactionTemplateId,
     },
     app::LanaApp,
+    custody::error::CoreCustodyError,
     deposit::error::CoreDepositError,
 };
 
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, customer::*,
-    deposit::*, deposit_account::*, document::*, policy::*, terms_template::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
+    withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -61,6 +63,35 @@ impl Loader<PermissionSetId> for LanaLoader {
         self.app
             .access()
             .find_all_permission_sets(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<RoleId> for LanaLoader {
+    type Value = Role;
+    type Error = Arc<CoreAccessError>;
+
+    async fn load(&self, keys: &[RoleId]) -> Result<HashMap<RoleId, Role>, Self::Error> {
+        self.app
+            .access()
+            .find_all_roles(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<CustodianId> for LanaLoader {
+    type Value = Custodian;
+    type Error = Arc<CoreCustodyError>;
+
+    async fn load(
+        &self,
+        keys: &[CustodianId],
+    ) -> Result<HashMap<CustodianId, Custodian>, Self::Error> {
+        self.app
+            .custody()
+            .find_all_custodians(keys)
             .await
             .map_err(Arc::new)
     }
@@ -255,13 +286,14 @@ impl Loader<TransactionTemplateId> for LanaLoader {
 
 impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
-    type Error = Arc<lana_app::terms_template::error::TermsTemplateError>;
+    type Error = Arc<lana_app::credit::terms_template_error::TermsTemplateError>;
 
     async fn load(
         &self,
         keys: &[TermsTemplateId],
     ) -> Result<HashMap<TermsTemplateId, TermsTemplate>, Self::Error> {
         self.app
+            .credit()
             .terms_templates()
             .find_all(keys)
             .await
@@ -277,7 +309,12 @@ impl Loader<CreditFacilityId> for LanaLoader {
         &self,
         keys: &[CreditFacilityId],
     ) -> Result<HashMap<CreditFacilityId, CreditFacility>, Self::Error> {
-        self.app.credit().find_all(keys).await.map_err(Arc::new)
+        self.app
+            .credit()
+            .facilities()
+            .find_all(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
     }
 }
 
@@ -291,9 +328,10 @@ impl Loader<DisbursalId> for LanaLoader {
     ) -> Result<HashMap<DisbursalId, CreditFacilityDisbursal>, Self::Error> {
         self.app
             .credit()
-            .find_all_disbursals(keys)
+            .disbursals()
+            .find_all(keys)
             .await
-            .map_err(Arc::new)
+            .map_err(|e| Arc::new(e.into()))
     }
 }
 

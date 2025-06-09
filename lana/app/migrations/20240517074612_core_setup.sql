@@ -222,6 +222,21 @@ CREATE TABLE core_credit_facility_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_custodians (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_custodian_events (
+  id UUID NOT NULL REFERENCES core_custodians(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),

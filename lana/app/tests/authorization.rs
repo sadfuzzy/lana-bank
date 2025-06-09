@@ -7,7 +7,7 @@ use authz::PermissionCheck;
 use lana_app::{
     access::Access,
     audit::*,
-    authorization::{error::AuthorizationError, init as init_authz, *},
+    authorization::{error::AuthorizationError, *},
     primitives::*,
 };
 use uuid::Uuid;
@@ -19,15 +19,14 @@ fn random_email() -> String {
 async fn create_user_with_role(
     access: &Access,
     superuser_subject: &Subject,
-    role: RoleName,
+    role_id: RoleId,
 ) -> anyhow::Result<Subject> {
     let user = access
         .users()
         .create_user(superuser_subject, random_email())
         .await?;
     let user = access
-        .users()
-        .assign_role_to_user(superuser_subject, user.id, role)
+        .update_role_of_user(superuser_subject, user.id, role_id)
         .await?;
     Ok(Subject::from(user.id))
 }
@@ -37,7 +36,7 @@ async fn create_user_with_role(
 async fn superuser_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (_, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     // Superuser can create users
@@ -55,7 +54,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             CoreAccessObject::all_users(),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -65,7 +64,7 @@ async fn superuser_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &superuser_subject,
             CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -78,10 +77,14 @@ async fn superuser_permissions() -> anyhow::Result<()> {
 async fn admin_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
-    let admin_subject = create_user_with_role(&access, &superuser_subject, LanaRole::ADMIN).await?;
+    let admin_role = access
+        .find_role_by_name(&superuser_subject, ROLE_NAME_ADMIN)
+        .await?;
+
+    let admin_subject = create_user_with_role(&access, &superuser_subject, admin_role.id).await?;
 
     // Admin can create users
     assert!(authz
@@ -98,7 +101,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             CoreAccessObject::all_users(),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -106,7 +109,7 @@ async fn admin_permissions() -> anyhow::Result<()> {
         .enforce_permission(
             &admin_subject,
             CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_ASSIGN_ROLE,
+            CoreAccessAction::USER_UPDATE_ROLE,
         )
         .await
         .is_ok());
@@ -119,11 +122,15 @@ async fn admin_permissions() -> anyhow::Result<()> {
 async fn bank_manager_permissions() -> anyhow::Result<()> {
     let pool = helpers::init_pool().await?;
     let audit = Audit::new(&pool);
-    let authz = init_authz(&pool, &audit).await?;
+    let authz = Authorization::init(&pool, &audit).await?;
     let (access, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
+    let bank_manager_role = access
+        .find_role_by_name(&superuser_subject, ROLE_NAME_BANK_MANAGER)
+        .await?;
+
     let bank_manager_subject =
-        create_user_with_role(&access, &superuser_subject, LanaRole::BANK_MANAGER).await?;
+        create_user_with_role(&access, &superuser_subject, bank_manager_role.id).await?;
 
     // Bank Manager cannot create users
     assert!(matches!(
@@ -143,7 +150,7 @@ async fn bank_manager_permissions() -> anyhow::Result<()> {
             .enforce_permission(
                 &bank_manager_subject,
                 CoreAccessObject::all_users(),
-                CoreAccessAction::USER_ASSIGN_ROLE,
+                CoreAccessAction::USER_UPDATE_ROLE,
             )
             .await,
         Err(AuthorizationError::NotAuthorized)

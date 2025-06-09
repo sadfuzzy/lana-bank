@@ -1,6 +1,7 @@
 [package]
 name = "admin-server"
-version = "0.3.549-dev"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
 edition = "2021"
 
 [features]
@@ -11,8 +12,8 @@ fail-on-warnings = []
 lana-app = { path = "../app" }
 
 governance = { path = "../../core/governance" }
-deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-access = { path = "../../core/access" }
+core-custody = { path = "../../core/custody" }
 
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils" }
@@ -34,7 +35,5 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 tokio = { workspace = true }
 rust_decimal = { workspace = true }
-reqwest = { workspace = true }
 anyhow = { workspace = true }
 thiserror = { workspace = true }
-jsonwebtoken = { workspace = true }

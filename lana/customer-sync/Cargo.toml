@@ -1,7 +1,11 @@
 [package]
 name = "customer-sync"
-version = "0.3.549-dev"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
 edition = "2021"
+
+[package.metadata.cargo-machete]
+ignored = ["es-entity"]
 
 [features]
 sim-time = [
@@ -12,10 +16,9 @@ sim-time = [
 fail-on-warnings = []
 
 [dependencies]
-lana-events = { path = "../events" }
 
 core-customer = { path = "../../core/customer" }
-deposit = { path = "../../core/deposit" }
+core-deposit = { path = "../../core/deposit" }
 governance = { path = "../../core/governance" }
 
 outbox = { path = "../../lib/outbox" }
@@ -24,20 +27,12 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
-sim-time = { workspace = true, optional = true }
 es-entity = { workspace = true, features = ["graphql"] }
+sim-time = { workspace = true, optional = true }
 
 tracing = { workspace = true }
-uuid = { workspace = true }
-strum = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-async-graphql = { workspace = true }
-
-[dev-dependencies]
-tokio = { workspace = true }
-anyhow = { workspace = true }

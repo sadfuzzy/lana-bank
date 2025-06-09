@@ -402,7 +402,7 @@ export type CreditFacility = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
-  currentCvl: FacilityCvl;
+  currentCvl: Scalars['CVLPct']['output'];
   customer: Customer;
   disbursals: Array<CreditFacilityDisbursal>;
   facilityAmount: Scalars['UsdCents']['output'];
@@ -415,6 +415,14 @@ export type CreditFacility = {
   subjectCanInitiateDisbursal: Scalars['Boolean']['output'];
   subjectCanRecordPayment: Scalars['Boolean']['output'];
   subjectCanUpdateCollateral: Scalars['Boolean']['output'];
+};
+
+export type CreditFacilityApproved = {
+  __typename?: 'CreditFacilityApproved';
+  cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityBalance = {
@@ -441,6 +449,7 @@ export type CreditFacilityCollateralUpdatePayload = {
 export type CreditFacilityCollateralUpdated = {
   __typename?: 'CreditFacilityCollateralUpdated';
   action: CollateralAction;
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
   txId: Scalars['UUID']['output'];
@@ -449,6 +458,7 @@ export type CreditFacilityCollateralUpdated = {
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
   outstandingDisbursal: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
@@ -520,6 +530,7 @@ export type CreditFacilityDisbursalEdge = {
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -543,11 +554,12 @@ export type CreditFacilityEdge = {
   node: CreditFacility;
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityOrigination;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -556,13 +568,7 @@ export type CreditFacilityInterestAccrued = {
   __typename?: 'CreditFacilityInterestAccrued';
   cents: Scalars['UsdCents']['output'];
   days: Scalars['Int']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type CreditFacilityOrigination = {
-  __typename?: 'CreditFacilityOrigination';
-  cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -712,6 +718,46 @@ export type CreditModuleConfigureInput = {
 export type CreditModuleConfigurePayload = {
   __typename?: 'CreditModuleConfigurePayload';
   creditConfig: CreditModuleConfig;
+};
+
+export type Custodian = {
+  __typename?: 'Custodian';
+  createdAt: Scalars['Timestamp']['output'];
+  custodianConfig: CustodianConfig;
+  custodianConfigId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+};
+
+export enum CustodianConfig {
+  Komainu = 'KOMAINU'
+}
+
+export type CustodianConnection = {
+  __typename?: 'CustodianConnection';
+  /** A list of edges. */
+  edges: Array<CustodianEdge>;
+  /** A list of nodes. */
+  nodes: Array<Custodian>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type CustodianCreateInput =
+  { komainu: KomainuConfig; };
+
+export type CustodianCreatePayload = {
+  __typename?: 'CustodianCreatePayload';
+  custodianConfig: Custodian;
+};
+
+/** An edge in a connection. */
+export type CustodianEdge = {
+  __typename?: 'CustodianEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Custodian;
 };
 
 export type Customer = {
@@ -1028,12 +1074,6 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
-export type FacilityCvl = {
-  __typename?: 'FacilityCVL';
-  disbursed: Scalars['CVLPct']['output'];
-  total: Scalars['CVLPct']['output'];
-};
-
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
@@ -1092,6 +1132,14 @@ export type JournalEntryEdge = {
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
   node: JournalEntry;
+};
+
+export type KomainuConfig = {
+  apiKey: Scalars['String']['input'];
+  apiSecret: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  secretKey: Scalars['String']['input'];
+  testingInstance: Scalars['Boolean']['input'];
 };
 
 export enum KycLevel {
@@ -1230,6 +1278,7 @@ export type Mutation = {
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
+  custodianCreate: CustodianCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
@@ -1245,12 +1294,15 @@ export type Mutation = {
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportCreate: ReportCreatePayload;
   reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
+  roleAddPermissionSets: RoleAddPermissionSetsPayload;
+  roleCreate: RoleCreatePayload;
+  roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
-  userAssignRole: UserAssignRolePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
+  userUpdateRole: UserUpdateRolePayload;
   withdrawalCancel: WithdrawalCancelPayload;
   withdrawalConfirm: WithdrawalConfirmPayload;
   withdrawalInitiate: WithdrawalInitiatePayload;
@@ -1328,6 +1380,11 @@ export type MutationCreditModuleConfigureArgs = {
 };
 
 
+export type MutationCustodianCreateArgs = {
+  input: CustodianCreateInput;
+};
+
+
 export type MutationCustomerCreateArgs = {
   input: CustomerCreateInput;
 };
@@ -1398,6 +1455,21 @@ export type MutationReportDownloadLinksGenerateArgs = {
 };
 
 
+export type MutationRoleAddPermissionSetsArgs = {
+  input: RoleAddPermissionSetsInput;
+};
+
+
+export type MutationRoleCreateArgs = {
+  input: RoleCreateInput;
+};
+
+
+export type MutationRoleRemovePermissionSetsArgs = {
+  input: RoleRemovePermissionSetsInput;
+};
+
+
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
 };
@@ -1413,11 +1485,6 @@ export type MutationTermsTemplateUpdateArgs = {
 };
 
 
-export type MutationUserAssignRoleArgs = {
-  input: UserAssignRoleInput;
-};
-
-
 export type MutationUserCreateArgs = {
   input: UserCreateInput;
 };
@@ -1425,6 +1492,11 @@ export type MutationUserCreateArgs = {
 
 export type MutationUserRevokeRoleArgs = {
   input: UserRevokeRoleInput;
+};
+
+
+export type MutationUserUpdateRoleArgs = {
+  input: UserUpdateRoleInput;
 };
 
 
@@ -1474,7 +1546,7 @@ export enum Period {
 export type PermissionSet = {
   __typename?: 'PermissionSet';
   id: Scalars['ID']['output'];
-  name: Scalars['String']['output'];
+  name: PermissionSetName;
   permissionSetId: Scalars['UUID']['output'];
 };
 
@@ -1496,6 +1568,26 @@ export type PermissionSetEdge = {
   /** The item at the end of the edge */
   node: PermissionSet;
 };
+
+export enum PermissionSetName {
+  AccessViewer = 'ACCESS_VIEWER',
+  AccessWriter = 'ACCESS_WRITER',
+  AccountingViewer = 'ACCOUNTING_VIEWER',
+  AccountingWriter = 'ACCOUNTING_WRITER',
+  AppViewer = 'APP_VIEWER',
+  AppWriter = 'APP_WRITER',
+  CreditViewer = 'CREDIT_VIEWER',
+  CreditWriter = 'CREDIT_WRITER',
+  CustodyViewer = 'CUSTODY_VIEWER',
+  CustodyWriter = 'CUSTODY_WRITER',
+  CustomerViewer = 'CUSTOMER_VIEWER',
+  CustomerWriter = 'CUSTOMER_WRITER',
+  DashboardViewer = 'DASHBOARD_VIEWER',
+  DepositViewer = 'DEPOSIT_VIEWER',
+  DepositWriter = 'DEPOSIT_WRITER',
+  GovernanceViewer = 'GOVERNANCE_VIEWER',
+  GovernanceWriter = 'GOVERNANCE_WRITER'
+}
 
 export type Policy = {
   __typename?: 'Policy';
@@ -1575,6 +1667,7 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
+  custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
@@ -1600,6 +1693,8 @@ export type Query = {
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
+  role?: Maybe<Role>;
+  roles: RoleConnection;
   termsTemplate?: Maybe<TermsTemplate>;
   termsTemplates: Array<TermsTemplate>;
   transactionTemplates: TransactionTemplateConnection;
@@ -1662,6 +1757,12 @@ export type QueryCreditFacilitiesArgs = {
 
 export type QueryCreditFacilityArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryCustodiansArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
 };
 
 
@@ -1771,6 +1872,17 @@ export type QueryReportArgs = {
 };
 
 
+export type QueryRoleArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryRolesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
 export type QueryTermsTemplateArgs = {
   id: Scalars['UUID']['input'];
 };
@@ -1842,12 +1954,63 @@ export enum ReportProgress {
   Running = 'RUNNING'
 }
 
-export enum Role {
-  Accountant = 'ACCOUNTANT',
-  Admin = 'ADMIN',
-  BankManager = 'BANK_MANAGER',
-  Superuser = 'SUPERUSER'
-}
+export type Role = {
+  __typename?: 'Role';
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  permissionSets: Array<PermissionSet>;
+  roleId: Scalars['UUID']['output'];
+};
+
+export type RoleAddPermissionSetsInput = {
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+  roleId: Scalars['UUID']['input'];
+};
+
+export type RoleAddPermissionSetsPayload = {
+  __typename?: 'RoleAddPermissionSetsPayload';
+  role: Role;
+};
+
+export type RoleConnection = {
+  __typename?: 'RoleConnection';
+  /** A list of edges. */
+  edges: Array<RoleEdge>;
+  /** A list of nodes. */
+  nodes: Array<Role>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+export type RoleCreateInput = {
+  name: Scalars['String']['input'];
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+};
+
+export type RoleCreatePayload = {
+  __typename?: 'RoleCreatePayload';
+  role: Role;
+};
+
+/** An edge in a connection. */
+export type RoleEdge = {
+  __typename?: 'RoleEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Role;
+};
+
+export type RoleRemovePermissionSetsInput = {
+  permissionSetIds: Array<Scalars['UUID']['input']>;
+  roleId: Scalars['UUID']['input'];
+};
+
+export type RoleRemovePermissionSetsPayload = {
+  __typename?: 'RoleRemovePermissionSetsPayload';
+  role: Role;
+};
 
 export enum SortDirection {
   Asc = 'ASC',
@@ -2037,20 +2200,10 @@ export type User = {
   createdAt: Scalars['Timestamp']['output'];
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  roles: Array<Role>;
-  subjectCanAssignRoleToUser: Scalars['Boolean']['output'];
+  role?: Maybe<Role>;
   subjectCanRevokeRoleFromUser: Scalars['Boolean']['output'];
+  subjectCanUpdateRoleOfUser: Scalars['Boolean']['output'];
   userId: Scalars['UUID']['output'];
-};
-
-export type UserAssignRoleInput = {
-  id: Scalars['UUID']['input'];
-  role: Role;
-};
-
-export type UserAssignRolePayload = {
-  __typename?: 'UserAssignRolePayload';
-  user: User;
 };
 
 export type UserCreateInput = {
@@ -2064,11 +2217,20 @@ export type UserCreatePayload = {
 
 export type UserRevokeRoleInput = {
   id: Scalars['UUID']['input'];
-  role: Role;
 };
 
 export type UserRevokeRolePayload = {
   __typename?: 'UserRevokeRolePayload';
+  user: User;
+};
+
+export type UserUpdateRoleInput = {
+  id: Scalars['UUID']['input'];
+  roleId: Scalars['UUID']['input'];
+};
+
+export type UserUpdateRolePayload = {
+  __typename?: 'UserUpdateRolePayload';
   user: User;
 };
 
@@ -2161,14 +2323,14 @@ export enum WithdrawalStatus {
   PendingConfirmation = 'PENDING_CONFIRMATION'
 }
 
-export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> };
+export type ApprovalProcessFieldsFragment = { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> };
 
 export type ApprovalProcessApproveMutationVariables = Exact<{
   input: ApprovalProcessApproveInput;
 }>;
 
 
-export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } };
+export type ApprovalProcessApproveMutation = { __typename?: 'Mutation', approvalProcessApprove: { __typename?: 'ApprovalProcessApprovePayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } };
 
 export type ApprovalProcessDenyMutationVariables = Exact<{
   input: ApprovalProcessDenyInput;
@@ -2176,7 +2338,7 @@ export type ApprovalProcessDenyMutationVariables = Exact<{
 }>;
 
 
-export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } };
+export type ApprovalProcessDenyMutation = { __typename?: 'Mutation', approvalProcessDeny: { __typename?: 'ApprovalProcessDenyPayload', approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } };
 
 export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2189,7 +2351,7 @@ export type AuditLogsQueryVariables = Exact<{
 }>;
 
 
-export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type AuditLogsQuery = { __typename?: 'Query', audit: { __typename?: 'AuditEntryConnection', edges: Array<{ __typename?: 'AuditEntryEdge', cursor: string, node: { __typename?: 'AuditEntry', id: string, auditEntryId: any, object: string, action: string, authorized: boolean, recordedAt: any, subject: { __typename?: 'System', name: string } | { __typename?: 'User', userId: string, email: string, role?: { __typename?: 'Role', roleId: string, name: string } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type BalanceSheetQueryVariables = Exact<{
   from: Scalars['Date']['input'];
@@ -2224,23 +2386,23 @@ export type GetCommitteeDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } | null };
+export type GetCommitteeDetailsQuery = { __typename?: 'Query', committee?: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } | null };
 
 export type CommitteeAddUserMutationVariables = Exact<{
   input: CommitteeAddUserInput;
 }>;
 
 
-export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeAddUserMutation = { __typename?: 'Mutation', committeeAddUser: { __typename?: 'CommitteeAddUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } };
 
 export type CreateCommitteeMutationVariables = Exact<{
   input: CommitteeCreateInput;
 }>;
 
 
-export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
+export type CreateCommitteeMutation = { __typename?: 'Mutation', committeeCreate: { __typename?: 'CommitteeCreatePayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } };
 
-export type CommitteeFieldsFragment = { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> };
+export type CommitteeFieldsFragment = { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> };
 
 export type CommitteesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2248,14 +2410,14 @@ export type CommitteesQueryVariables = Exact<{
 }>;
 
 
-export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CommitteesQuery = { __typename?: 'Query', committees: { __typename?: 'CommitteeConnection', edges: Array<{ __typename?: 'CommitteeEdge', cursor: string, node: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type CommitteeRemoveUserMutationVariables = Exact<{
   input: CommitteeRemoveUserInput;
 }>;
 
 
-export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } };
+export type CommitteeRemoveUserMutation = { __typename?: 'Mutation', committeeRemoveUser: { __typename?: 'CommitteeRemoveUserPayload', committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } };
 
 export type DisbursalOnFacilityPageFragment = { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, status: DisbursalStatus, createdAt: any };
 
@@ -2266,23 +2428,23 @@ export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
 
 export type GetCreditFacilityDisbursalsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, status: DisbursalStatus, createdAt: any }> } | null };
 
-export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } };
+export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } };
 
 export type GetCreditFacilityLayoutDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } | null };
 
-export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> };
+export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }> };
 
 export type GetCreditFacilityHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }> } | null };
+export type GetCreditFacilityHistoryQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }> } | null };
 
 export type RepaymentOnFacilityPageFragment = { __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any };
 
@@ -2298,7 +2460,7 @@ export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }>, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } } };
+export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
 
 export type CreditFacilityCreateMutationVariables = Exact<{
   input: CreditFacilityCreateInput;
@@ -2315,14 +2477,14 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl: { __typename?: 'FacilityCVL', disbursed: any, total: any }, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
 }>;
 
 
-export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }>, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } } };
+export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
 
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2448,14 +2610,14 @@ export type GetDisbursalDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursal?: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type GetDisbursalDetailsQuery = { __typename?: 'Query', disbursal?: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, createdAt: any, status: DisbursalStatus, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, facilityAmount: UsdCents, status: CreditFacilityStatus, customer: { __typename?: 'Customer', id: string, email: string, customerId: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } | null };
 
 export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
   input: CreditFacilityDisbursalInitiateInput;
 }>;
 
 
-export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, status: DisbursalStatus, createdAt: any, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus, id: string, disbursalId: string, amount: UsdCents, createdAt: any }>, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number } | { __typename?: 'CreditFacilityOrigination', cents: UsdCents, recordedAt: any, txId: string }>, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } } } };
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, amount: UsdCents, status: DisbursalStatus, createdAt: any, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus, id: string, disbursalId: string, amount: UsdCents, createdAt: any }>, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'Collateral', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, customer: { __typename?: 'Customer', customerId: string, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } } };
 
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2583,14 +2745,14 @@ export type PolicyAssignCommitteeMutationVariables = Exact<{
 }>;
 
 
-export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } } };
+export type PolicyAssignCommitteeMutation = { __typename?: 'Mutation', policyAssignCommittee: { __typename?: 'PolicyAssignCommitteePayload', policy: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } } };
 
 export type GetPolicyDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
+export type GetPolicyDetailsQuery = { __typename?: 'Query', policy?: { __typename?: 'Policy', id: string, policyId: string, approvalProcessType: ApprovalProcessType, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', id: string, committeeId: string, createdAt: any, name: string, currentMembers: Array<{ __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean } } | null };
 
 export type PoliciesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2624,6 +2786,54 @@ export type ReportDownloadLinksMutationVariables = Exact<{
 
 
 export type ReportDownloadLinksMutation = { __typename?: 'Mutation', reportDownloadLinksGenerate: { __typename?: 'ReportDownloadLinksGeneratePayload', reportId: string, links: Array<{ __typename?: 'ReportDownloadLink', reportName: string, url: string }> } };
+
+export type RoleAddPermissionSetsMutationVariables = Exact<{
+  input: RoleAddPermissionSetsInput;
+}>;
+
+
+export type RoleAddPermissionSetsMutation = { __typename?: 'Mutation', roleAddPermissionSets: { __typename?: 'RoleAddPermissionSetsPayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } };
+
+export type RoleRemovePermissionSetsMutationVariables = Exact<{
+  input: RoleRemovePermissionSetsInput;
+}>;
+
+
+export type RoleRemovePermissionSetsMutation = { __typename?: 'Mutation', roleRemovePermissionSets: { __typename?: 'RoleRemovePermissionSetsPayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } };
+
+export type RoleQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type RoleQuery = { __typename?: 'Query', role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null };
+
+export type RoleCreateMutationVariables = Exact<{
+  input: RoleCreateInput;
+}>;
+
+
+export type RoleCreateMutation = { __typename?: 'Mutation', roleCreate: { __typename?: 'RoleCreatePayload', role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } };
+
+export type PermissionSetsQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PermissionSetsQuery = { __typename?: 'Query', permissionSets: { __typename?: 'PermissionSetConnection', edges: Array<{ __typename?: 'PermissionSetEdge', node: { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName } }> } };
+
+export type PermissionSetFieldsFragment = { __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName };
+
+export type RoleFieldsFragment = { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> };
+
+export type RolesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type RolesQuery = { __typename?: 'Query', roles: { __typename?: 'RoleConnection', edges: Array<{ __typename?: 'RoleEdge', node: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } };
 
 export type TermsTemplateQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -2685,58 +2895,58 @@ export type GetUserDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } | null };
+export type GetUserDetailsQuery = { __typename?: 'Query', user?: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } | null };
 
 export type UserCreateMutationVariables = Exact<{
   input: UserCreateInput;
 }>;
 
 
-export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
+export type UserCreateMutation = { __typename?: 'Mutation', userCreate: { __typename?: 'UserCreatePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } } };
 
-export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any };
+export type UserFieldsFragment = { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null };
 
 export type UsersQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any }> };
+export type UsersQuery = { __typename?: 'Query', users: Array<{ __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> };
 
-export type UserAssignRoleMutationVariables = Exact<{
-  input: UserAssignRoleInput;
+export type UserUpdateRoleMutationVariables = Exact<{
+  input: UserUpdateRoleInput;
 }>;
 
 
-export type UserAssignRoleMutation = { __typename?: 'Mutation', userAssignRole: { __typename?: 'UserAssignRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
+export type UserUpdateRoleMutation = { __typename?: 'Mutation', userUpdateRole: { __typename?: 'UserUpdateRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } } };
 
 export type UserRevokeRoleMutationVariables = Exact<{
   input: UserRevokeRoleInput;
 }>;
 
 
-export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role>, createdAt: any } } };
+export type UserRevokeRoleMutation = { __typename?: 'Mutation', userRevokeRole: { __typename?: 'UserRevokeRolePayload', user: { __typename?: 'User', id: string, userId: string, email: string, createdAt: any, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } } };
 
 export type WithdrawalCancelMutationVariables = Exact<{
   input: WithdrawalCancelInput;
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } } };
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
 
 export type WithdrawalConfirmMutationVariables = Exact<{
   input: WithdrawalConfirmInput;
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } } };
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
 
-export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } };
+export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } };
 
 export type GetWithdrawalDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, roles: Array<Role> }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, roles: Array<Role> } }> } } | null };
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } | null };
 
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
@@ -2758,7 +2968,7 @@ export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, roles: Array<Role> } } };
+export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, role?: { __typename?: 'Role', roleId: string, name: string } | null } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -2829,6 +3039,24 @@ export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
   }
 }
     ${BtcBalanceFragmentFragmentDoc}`;
+export const PermissionSetFieldsFragmentDoc = gql`
+    fragment PermissionSetFields on PermissionSet {
+  id
+  permissionSetId
+  name
+}
+    `;
+export const RoleFieldsFragmentDoc = gql`
+    fragment RoleFields on Role {
+  id
+  roleId
+  name
+  createdAt
+  permissionSets {
+    ...PermissionSetFields
+  }
+}
+    ${PermissionSetFieldsFragmentDoc}`;
 export const CommitteeFieldsFragmentDoc = gql`
     fragment CommitteeFields on Committee {
   id
@@ -2839,10 +3067,12 @@ export const CommitteeFieldsFragmentDoc = gql`
     id
     userId
     email
-    roles
+    role {
+      ...RoleFields
+    }
   }
 }
-    `;
+    ${RoleFieldsFragmentDoc}`;
 export const DisbursalOnFacilityPageFragmentDoc = gql`
     fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
   id
@@ -2869,7 +3099,9 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
         currentMembers {
           id
           email
-          roles
+          role {
+            ...RoleFields
+          }
         }
       }
     }
@@ -2886,11 +3118,13 @@ export const ApprovalProcessFieldsFragmentDoc = gql`
       id
       userId
       email
-      roles
+      role {
+        ...RoleFields
+      }
     }
   }
 }
-    `;
+    ${RoleFieldsFragmentDoc}`;
 export const CreditFacilityLayoutFragmentFragmentDoc = gql`
     fragment CreditFacilityLayoutFragment on CreditFacility {
   id
@@ -2900,10 +3134,7 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   maturesAt
   collateralizationState
   createdAt
-  currentCvl {
-    total
-    disbursed
-  }
+  currentCvl
   collateralToMatchInitialCvl @client
   disbursals {
     status
@@ -2975,17 +3206,20 @@ export const CreditFacilityHistoryFragmentFragmentDoc = gql`
       cents
       recordedAt
       txId
+      effective
     }
     ... on CreditFacilityCollateralUpdated {
       satoshis
       recordedAt
       action
       txId
+      effective
     }
-    ... on CreditFacilityOrigination {
+    ... on CreditFacilityApproved {
       cents
       recordedAt
       txId
+      effective
     }
     ... on CreditFacilityCollateralizationUpdated {
       state
@@ -2994,17 +3228,20 @@ export const CreditFacilityHistoryFragmentFragmentDoc = gql`
       outstandingDisbursal
       recordedAt
       price
+      effective
     }
     ... on CreditFacilityDisbursalExecuted {
       cents
       recordedAt
       txId
+      effective
     }
     ... on CreditFacilityInterestAccrued {
       cents
       recordedAt
       txId
       days
+      effective
     }
   }
 }
@@ -3127,10 +3364,12 @@ export const UserFieldsFragmentDoc = gql`
   id
   userId
   email
-  roles
+  role {
+    ...RoleFields
+  }
   createdAt
 }
-    `;
+    ${RoleFieldsFragmentDoc}`;
 export const WithdrawDetailsPageFragmentFragmentDoc = gql`
     fragment WithdrawDetailsPageFragment on Withdrawal {
   id
@@ -3334,7 +3573,10 @@ export const AuditLogsDocument = gql`
           ... on User {
             userId
             email
-            roles
+            role {
+              roleId
+              name
+            }
           }
           ... on System {
             name
@@ -4029,10 +4271,7 @@ export const CreditFacilitiesDocument = gql`
         createdAt
         status
         facilityAmount
-        currentCvl {
-          disbursed
-          total
-        }
+        currentCvl
         balance {
           collateral {
             btcBalance
@@ -6199,6 +6438,241 @@ export function useReportDownloadLinksMutation(baseOptions?: Apollo.MutationHook
 export type ReportDownloadLinksMutationHookResult = ReturnType<typeof useReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationResult = Apollo.MutationResult<ReportDownloadLinksMutation>;
 export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
+export const RoleAddPermissionSetsDocument = gql`
+    mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
+  roleAddPermissionSets(input: $input) {
+    role {
+      ...RoleFields
+    }
+  }
+}
+    ${RoleFieldsFragmentDoc}`;
+export type RoleAddPermissionSetsMutationFn = Apollo.MutationFunction<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
+
+/**
+ * __useRoleAddPermissionSetsMutation__
+ *
+ * To run a mutation, you first call `useRoleAddPermissionSetsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleAddPermissionSetsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleAddPermissionSetsMutation, { data, loading, error }] = useRoleAddPermissionSetsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleAddPermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>(RoleAddPermissionSetsDocument, options);
+      }
+export type RoleAddPermissionSetsMutationHookResult = ReturnType<typeof useRoleAddPermissionSetsMutation>;
+export type RoleAddPermissionSetsMutationResult = Apollo.MutationResult<RoleAddPermissionSetsMutation>;
+export type RoleAddPermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleAddPermissionSetsMutation, RoleAddPermissionSetsMutationVariables>;
+export const RoleRemovePermissionSetsDocument = gql`
+    mutation RoleRemovePermissionSets($input: RoleRemovePermissionSetsInput!) {
+  roleRemovePermissionSets(input: $input) {
+    role {
+      ...RoleFields
+    }
+  }
+}
+    ${RoleFieldsFragmentDoc}`;
+export type RoleRemovePermissionSetsMutationFn = Apollo.MutationFunction<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
+
+/**
+ * __useRoleRemovePermissionSetsMutation__
+ *
+ * To run a mutation, you first call `useRoleRemovePermissionSetsMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleRemovePermissionSetsMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleRemovePermissionSetsMutation, { data, loading, error }] = useRoleRemovePermissionSetsMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleRemovePermissionSetsMutation(baseOptions?: Apollo.MutationHookOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>(RoleRemovePermissionSetsDocument, options);
+      }
+export type RoleRemovePermissionSetsMutationHookResult = ReturnType<typeof useRoleRemovePermissionSetsMutation>;
+export type RoleRemovePermissionSetsMutationResult = Apollo.MutationResult<RoleRemovePermissionSetsMutation>;
+export type RoleRemovePermissionSetsMutationOptions = Apollo.BaseMutationOptions<RoleRemovePermissionSetsMutation, RoleRemovePermissionSetsMutationVariables>;
+export const RoleDocument = gql`
+    query Role($id: UUID!) {
+  role(id: $id) {
+    ...RoleFields
+  }
+}
+    ${RoleFieldsFragmentDoc}`;
+
+/**
+ * __useRoleQuery__
+ *
+ * To run a query within a React component, call `useRoleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRoleQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRoleQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRoleQuery(baseOptions: Apollo.QueryHookOptions<RoleQuery, RoleQueryVariables> & ({ variables: RoleQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+      }
+export function useRoleLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RoleQuery, RoleQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+        }
+export function useRoleSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RoleQuery, RoleQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RoleQuery, RoleQueryVariables>(RoleDocument, options);
+        }
+export type RoleQueryHookResult = ReturnType<typeof useRoleQuery>;
+export type RoleLazyQueryHookResult = ReturnType<typeof useRoleLazyQuery>;
+export type RoleSuspenseQueryHookResult = ReturnType<typeof useRoleSuspenseQuery>;
+export type RoleQueryResult = Apollo.QueryResult<RoleQuery, RoleQueryVariables>;
+export const RoleCreateDocument = gql`
+    mutation RoleCreate($input: RoleCreateInput!) {
+  roleCreate(input: $input) {
+    role {
+      ...RoleFields
+    }
+  }
+}
+    ${RoleFieldsFragmentDoc}`;
+export type RoleCreateMutationFn = Apollo.MutationFunction<RoleCreateMutation, RoleCreateMutationVariables>;
+
+/**
+ * __useRoleCreateMutation__
+ *
+ * To run a mutation, you first call `useRoleCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRoleCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [roleCreateMutation, { data, loading, error }] = useRoleCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useRoleCreateMutation(baseOptions?: Apollo.MutationHookOptions<RoleCreateMutation, RoleCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RoleCreateMutation, RoleCreateMutationVariables>(RoleCreateDocument, options);
+      }
+export type RoleCreateMutationHookResult = ReturnType<typeof useRoleCreateMutation>;
+export type RoleCreateMutationResult = Apollo.MutationResult<RoleCreateMutation>;
+export type RoleCreateMutationOptions = Apollo.BaseMutationOptions<RoleCreateMutation, RoleCreateMutationVariables>;
+export const PermissionSetsDocument = gql`
+    query PermissionSets($first: Int!, $after: String) {
+  permissionSets(first: $first, after: $after) {
+    edges {
+      node {
+        ...PermissionSetFields
+      }
+    }
+  }
+}
+    ${PermissionSetFieldsFragmentDoc}`;
+
+/**
+ * __usePermissionSetsQuery__
+ *
+ * To run a query within a React component, call `usePermissionSetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePermissionSetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePermissionSetsQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePermissionSetsQuery(baseOptions: Apollo.QueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables> & ({ variables: PermissionSetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+      }
+export function usePermissionSetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+        }
+export function usePermissionSetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PermissionSetsQuery, PermissionSetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PermissionSetsQuery, PermissionSetsQueryVariables>(PermissionSetsDocument, options);
+        }
+export type PermissionSetsQueryHookResult = ReturnType<typeof usePermissionSetsQuery>;
+export type PermissionSetsLazyQueryHookResult = ReturnType<typeof usePermissionSetsLazyQuery>;
+export type PermissionSetsSuspenseQueryHookResult = ReturnType<typeof usePermissionSetsSuspenseQuery>;
+export type PermissionSetsQueryResult = Apollo.QueryResult<PermissionSetsQuery, PermissionSetsQueryVariables>;
+export const RolesDocument = gql`
+    query Roles($first: Int!, $after: String) {
+  roles(first: $first, after: $after) {
+    edges {
+      node {
+        ...RoleFields
+      }
+    }
+  }
+}
+    ${RoleFieldsFragmentDoc}`;
+
+/**
+ * __useRolesQuery__
+ *
+ * To run a query within a React component, call `useRolesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useRolesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useRolesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useRolesQuery(baseOptions: Apollo.QueryHookOptions<RolesQuery, RolesQueryVariables> & ({ variables: RolesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+      }
+export function useRolesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<RolesQuery, RolesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+        }
+export function useRolesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<RolesQuery, RolesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<RolesQuery, RolesQueryVariables>(RolesDocument, options);
+        }
+export type RolesQueryHookResult = ReturnType<typeof useRolesQuery>;
+export type RolesLazyQueryHookResult = ReturnType<typeof useRolesLazyQuery>;
+export type RolesSuspenseQueryHookResult = ReturnType<typeof useRolesSuspenseQuery>;
+export type RolesQueryResult = Apollo.QueryResult<RolesQuery, RolesQueryVariables>;
 export const TermsTemplateDocument = gql`
     query TermsTemplate($id: UUID!) {
   termsTemplate(id: $id) {
@@ -6658,41 +7132,41 @@ export type UsersQueryHookResult = ReturnType<typeof useUsersQuery>;
 export type UsersLazyQueryHookResult = ReturnType<typeof useUsersLazyQuery>;
 export type UsersSuspenseQueryHookResult = ReturnType<typeof useUsersSuspenseQuery>;
 export type UsersQueryResult = Apollo.QueryResult<UsersQuery, UsersQueryVariables>;
-export const UserAssignRoleDocument = gql`
-    mutation UserAssignRole($input: UserAssignRoleInput!) {
-  userAssignRole(input: $input) {
+export const UserUpdateRoleDocument = gql`
+    mutation UserUpdateRole($input: UserUpdateRoleInput!) {
+  userUpdateRole(input: $input) {
     user {
       ...UserFields
     }
   }
 }
     ${UserFieldsFragmentDoc}`;
-export type UserAssignRoleMutationFn = Apollo.MutationFunction<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export type UserUpdateRoleMutationFn = Apollo.MutationFunction<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
 
 /**
- * __useUserAssignRoleMutation__
+ * __useUserUpdateRoleMutation__
  *
- * To run a mutation, you first call `useUserAssignRoleMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUserAssignRoleMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useUserUpdateRoleMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUserUpdateRoleMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [userAssignRoleMutation, { data, loading, error }] = useUserAssignRoleMutation({
+ * const [userUpdateRoleMutation, { data, loading, error }] = useUserUpdateRoleMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useUserAssignRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>) {
+export function useUserUpdateRoleMutation(baseOptions?: Apollo.MutationHookOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UserAssignRoleMutation, UserAssignRoleMutationVariables>(UserAssignRoleDocument, options);
+        return Apollo.useMutation<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>(UserUpdateRoleDocument, options);
       }
-export type UserAssignRoleMutationHookResult = ReturnType<typeof useUserAssignRoleMutation>;
-export type UserAssignRoleMutationResult = Apollo.MutationResult<UserAssignRoleMutation>;
-export type UserAssignRoleMutationOptions = Apollo.BaseMutationOptions<UserAssignRoleMutation, UserAssignRoleMutationVariables>;
+export type UserUpdateRoleMutationHookResult = ReturnType<typeof useUserUpdateRoleMutation>;
+export type UserUpdateRoleMutationResult = Apollo.MutationResult<UserUpdateRoleMutation>;
+export type UserUpdateRoleMutationOptions = Apollo.BaseMutationOptions<UserUpdateRoleMutation, UserUpdateRoleMutationVariables>;
 export const UserRevokeRoleDocument = gql`
     mutation UserRevokeRole($input: UserRevokeRoleInput!) {
   userRevokeRole(input: $input) {
@@ -6945,7 +7419,10 @@ export const AvatarDocument = gql`
     user {
       userId
       email
-      roles
+      role {
+        roleId
+        name
+      }
     }
   }
 }

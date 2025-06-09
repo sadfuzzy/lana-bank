@@ -5,12 +5,13 @@ use authz::action_description::*;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
+use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
+use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
-use deposit::CoreDepositAction;
 use governance::GovernanceAction;
 
-pub const PERMISSION_SET_APP_READER: &str = "app_reader";
+pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
 pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -25,6 +26,7 @@ pub enum LanaAction {
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
+    Custody(CoreCustodyAction),
 }
 
 impl LanaAction {
@@ -58,6 +60,7 @@ impl LanaAction {
                 Dashboard => flatten(module, DashboardModuleAction::entities()),
                 Deposit => flatten(module, CoreDepositAction::entities()),
                 Credit => flatten(module, CoreCreditAction::entities()),
+                Custody => flatten(module, CoreCustodyAction::entities()),
             };
 
             result.extend(actions);
@@ -107,6 +110,11 @@ impl From<CoreCreditAction> for LanaAction {
         LanaAction::Credit(action)
     }
 }
+impl From<CoreCustodyAction> for LanaAction {
+    fn from(action: CoreCustodyAction) -> Self {
+        LanaAction::Custody(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -121,6 +129,7 @@ impl Display for LanaAction {
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
+            Custody(action) => action.fmt(f),
         }
     }
 }
@@ -140,6 +149,7 @@ impl FromStr for LanaAction {
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
+            Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
         };
         Ok(res)
     }
@@ -165,7 +175,6 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
-    TermsTemplate(TermsTemplateAction),
     Report(ReportAction),
     Audit(AuditAction),
     Document(DocumentAction),
@@ -179,7 +188,6 @@ impl AppAction {
 
         for entity in <AppActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                TermsTemplate => TermsTemplateAction::describe(),
                 Report => ReportAction::describe(),
                 Audit => AuditAction::describe(),
                 Document => DocumentAction::describe(),
@@ -197,7 +205,6 @@ impl Display for AppAction {
         write!(f, "{}:", AppActionDiscriminants::from(self))?;
         use AppAction::*;
         match self {
-            TermsTemplate(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Document(action) => action.fmt(f),
@@ -214,7 +221,6 @@ impl FromStr for AppAction {
         let action = elems.next().expect("missing second element");
         use AppActionDiscriminants::*;
         let res = match entity.parse()? {
-            TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
@@ -222,40 +228,6 @@ impl FromStr for AppAction {
         Ok(res)
     }
 }
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum TermsTemplateAction {
-    Read,
-    Update,
-    Create,
-    List,
-}
-
-impl TermsTemplateAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        use TermsTemplateAction::*;
-
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_READER]),
-                Update => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_WRITER, PERMISSION_SET_APP_READER],
-                ),
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(TermsTemplateAction, TermsTemplate);
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
@@ -271,7 +243,7 @@ impl AuditAction {
             let action_description = match variant {
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
             };
             res.push(action_description);
@@ -303,15 +275,15 @@ impl DocumentAction {
                 Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Read => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::GenerateDownloadLink => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Archive => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
@@ -343,11 +315,11 @@ impl ReportAction {
             let action_description = match variant {
                 Self::Read => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::List => ActionDescription::new(
                     variant,
-                    &[PERMISSION_SET_APP_READER, PERMISSION_SET_APP_WRITER],
+                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
                 Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
                 Self::Upload => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),

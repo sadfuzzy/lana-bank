@@ -19,6 +19,7 @@ export type Scalars = {
   Float: { input: number; output: number; }
   AnnualRatePct: { input: any; output: any; }
   CVLPct: { input: any; output: any; }
+  Date: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
   Satoshis: { input: any; output: any; }
   Timestamp: { input: any; output: any; }
@@ -62,7 +63,7 @@ export type CreditFacility = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
-  currentCvl: FacilityCvl;
+  currentCvl: Scalars['CVLPct']['output'];
   disbursals: Array<CreditFacilityDisbursal>;
   facilityAmount: Scalars['UsdCents']['output'];
   history: Array<CreditFacilityHistoryEntry>;
@@ -70,6 +71,14 @@ export type CreditFacility = {
   maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityStatus;
+};
+
+export type CreditFacilityApproved = {
+  __typename?: 'CreditFacilityApproved';
+  cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
+  recordedAt: Scalars['Timestamp']['output'];
+  txId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityBalance = {
@@ -85,6 +94,7 @@ export type CreditFacilityBalance = {
 export type CreditFacilityCollateralUpdated = {
   __typename?: 'CreditFacilityCollateralUpdated';
   action: CollateralAction;
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   satoshis: Scalars['Satoshis']['output'];
   txId: Scalars['UUID']['output'];
@@ -93,6 +103,7 @@ export type CreditFacilityCollateralUpdated = {
 export type CreditFacilityCollateralizationUpdated = {
   __typename?: 'CreditFacilityCollateralizationUpdated';
   collateral: Scalars['Satoshis']['output'];
+  effective: Scalars['Date']['output'];
   outstandingDisbursal: Scalars['UsdCents']['output'];
   outstandingInterest: Scalars['UsdCents']['output'];
   price: Scalars['UsdCents']['output'];
@@ -112,15 +123,17 @@ export type CreditFacilityDisbursal = {
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
 
-export type CreditFacilityHistoryEntry = CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued | CreditFacilityOrigination;
+export type CreditFacilityHistoryEntry = CreditFacilityApproved | CreditFacilityCollateralUpdated | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityIncrementalPayment | CreditFacilityInterestAccrued;
 
 export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -129,13 +142,7 @@ export type CreditFacilityInterestAccrued = {
   __typename?: 'CreditFacilityInterestAccrued';
   cents: Scalars['UsdCents']['output'];
   days: Scalars['Int']['output'];
-  recordedAt: Scalars['Timestamp']['output'];
-  txId: Scalars['UUID']['output'];
-};
-
-export type CreditFacilityOrigination = {
-  __typename?: 'CreditFacilityOrigination';
-  cents: Scalars['UsdCents']['output'];
+  effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
@@ -292,12 +299,6 @@ export type Duration = {
   units: Scalars['Int']['output'];
 };
 
-export type FacilityCvl = {
-  __typename?: 'FacilityCVL';
-  disbursed: Scalars['CVLPct']['output'];
-  total: Scalars['CVLPct']['output'];
-};
-
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
@@ -429,7 +430,7 @@ export type GetCreditFacilityQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, maturesAt?: any | null, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, currentCvl: { __typename?: 'FacilityCVL', total: any, disbursed: any }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<{ __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number } | { __typename?: 'CreditFacilityOrigination', cents: any, recordedAt: any, txId: any }> } | null };
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, activatedAt?: any | null, maturesAt?: any | null, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<{ __typename?: 'CreditFacilityApproved', cents: any, recordedAt: any, txId: any, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: any, recordedAt: any, txId: any, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: any, recordedAt: any, txId: any, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: any, recordedAt: any, txId: any, days: number, effective: any }> } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{ [key: string]: never; }>;
 
@@ -522,10 +523,7 @@ export const GetCreditFacilityDocument = gql`
         usdBalance
       }
     }
-    currentCvl {
-      total
-      disbursed
-    }
+    currentCvl
     repaymentPlan {
       repaymentType
       status
@@ -539,17 +537,20 @@ export const GetCreditFacilityDocument = gql`
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityCollateralUpdated {
         satoshis
         recordedAt
         action
         txId
+        effective
       }
-      ... on CreditFacilityOrigination {
+      ... on CreditFacilityApproved {
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityCollateralizationUpdated {
         state
@@ -558,17 +559,20 @@ export const GetCreditFacilityDocument = gql`
         outstandingDisbursal
         recordedAt
         price
+        effective
       }
       ... on CreditFacilityDisbursalExecuted {
         cents
         recordedAt
         txId
+        effective
       }
       ... on CreditFacilityInterestAccrued {
         cents
         recordedAt
         txId
         days
+        effective
       }
     }
   }

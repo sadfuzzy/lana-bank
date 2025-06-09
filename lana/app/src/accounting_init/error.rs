@@ -10,17 +10,17 @@ pub enum AccountingInitError {
     AccountCodeParseError(#[from] core_accounting::AccountCodeParseError),
     #[error("AccountingInitError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] core_accounting::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("AccountingInitError - CoreCreditError: {0}")]
-    CoreCreditError(#[from] core_credit::error::CoreCreditError),
+    #[error("AccountingInitError - CreditChartOfAccountsIntegrationError: {0}")]
+    CreditChartOfAccountsIntegrationError(#[from] core_credit::ChartOfAccountsIntegrationError),
     #[error("AccountingInitError - CoreDepositError: {0}")]
-    CoreDepositError(#[from] deposit::error::CoreDepositError),
+    CoreDepositError(#[from] core_deposit::error::CoreDepositError),
     #[error("AccountingInitError - CreditChartIntegrationConfigBuilderError: {0}")]
     CreditChartIntegrationConfigBuilderError(
         #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
     ),
     #[error("AccountingInitError - DepositChartIntegrationConfigBuilderError: {0}")]
     DepositChartIntegrationConfigBuilderError(
-        #[from] deposit::ChartOfAccountsIntegrationConfigBuilderError,
+        #[from] core_deposit::ChartOfAccountsIntegrationConfigBuilderError,
     ),
     #[error("AccountingInitError - BalanceSheetChartIntegrationConfigBuilderError: {0}")]
     BalanceSheetChartIntegrationConfigBuilderError(

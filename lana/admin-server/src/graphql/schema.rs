@@ -14,9 +14,9 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
-    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, customer::*,
-    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*, price::*,
-    profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
+    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
+    customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
+    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -57,6 +57,23 @@ impl Query {
             .feed_many(users.iter().map(|u| (u.entity.id, u.clone())))
             .await;
         Ok(users)
+    }
+
+    async fn role(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Role>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Role, ctx, app.access().find_role_by_id(sub, id))
+    }
+
+    async fn roles(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<RolesByNameCursor, Role, EmptyFields, EmptyFields>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(RolesByNameCursor, Role, ctx, after, first, |query| app
+            .access()
+            .list_roles(sub, query))
     }
 
     async fn permission_sets(
@@ -199,7 +216,7 @@ impl Query {
         maybe_fetch_one!(
             TermsTemplate,
             ctx,
-            app.terms_templates().find_by_id(sub, id)
+            app.credit().terms_templates().find_by_id(sub, id)
         )
     }
 
@@ -208,7 +225,7 @@ impl Query {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<TermsTemplate>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let terms_templates = app.terms_templates().list(sub).await?;
+        let terms_templates = app.credit().terms_templates().list(sub).await?;
         Ok(terms_templates
             .into_iter()
             .map(TermsTemplate::from)
@@ -221,7 +238,11 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(CreditFacility, ctx, app.credit().find_by_id(sub, id))
+        maybe_fetch_one!(
+            CreditFacility,
+            ctx,
+            app.credit().facilities().find_by_id(sub, id)
+        )
     }
 
     async fn credit_facilities(
@@ -271,7 +292,7 @@ impl Query {
             ctx,
             after,
             first,
-            |query| app.credit().list(sub, query, filter, sort)
+            |query| app.credit().facilities().list(sub, query, filter, sort)
         )
     }
 
@@ -284,7 +305,7 @@ impl Query {
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit().find_disbursal_by_id(sub, id)
+            app.credit().disbursals().find_by_id(sub, id)
         )
     }
 
@@ -310,7 +331,26 @@ impl Query {
             ctx,
             after,
             first,
-            |query| { app.credit().list_disbursals(sub, query, filter, sort) }
+            |query| { app.credit().disbursals().list(sub, query, filter, sort) }
+        )
+    }
+
+    async fn custodians(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CustodiansByNameCursor,
+            Custodian,
+            ctx,
+            after,
+            first,
+            |query| app.custody().list_custodians(sub, query)
         )
     }
 
@@ -688,7 +728,8 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let config = app
             .credit()
-            .get_chart_of_accounts_integration_config(sub)
+            .chart_of_accounts_integrations()
+            .get_config(sub)
             .await?;
         Ok(config.map(CreditModuleConfig::from))
     }
@@ -798,18 +839,18 @@ impl Mutation {
         )
     }
 
-    async fn user_assign_role(
+    async fn user_update_role(
         &self,
         ctx: &Context<'_>,
-        input: UserAssignRoleInput,
-    ) -> async_graphql::Result<UserAssignRolePayload> {
+        input: UserUpdateRoleInput,
+    ) -> async_graphql::Result<UserUpdateRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserAssignRoleInput { id, role } = input;
+        let UserUpdateRoleInput { id, role_id } = input;
         exec_mutation!(
-            UserAssignRolePayload,
+            UserUpdateRolePayload,
             User,
             ctx,
-            app.access().users().assign_role_to_user(sub, id, role)
+            app.access().update_role_of_user(sub, id, role_id)
         )
     }
 
@@ -819,12 +860,64 @@ impl Mutation {
         input: UserRevokeRoleInput,
     ) -> async_graphql::Result<UserRevokeRolePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let UserRevokeRoleInput { id, role } = input;
         exec_mutation!(
             UserRevokeRolePayload,
             User,
             ctx,
-            app.access().users().revoke_role_from_user(sub, id, role)
+            app.access().revoke_role_from_user(sub, input.id)
+        )
+    }
+
+    async fn role_create(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleCreateInput,
+    ) -> async_graphql::Result<RoleCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let RoleCreateInput {
+            name,
+            permission_set_ids,
+        } = input;
+        exec_mutation!(
+            RoleCreatePayload,
+            Role,
+            ctx,
+            app.access().create_role(sub, name, permission_set_ids)
+        )
+    }
+
+    async fn role_add_permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleAddPermissionSetsInput,
+    ) -> async_graphql::Result<RoleAddPermissionSetsPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            RoleAddPermissionSetsPayload,
+            Role,
+            ctx,
+            app.access()
+                .add_permission_sets_to_role(sub, input.role_id, input.permission_set_ids)
+        )
+    }
+
+    async fn role_remove_permission_sets(
+        &self,
+        ctx: &Context<'_>,
+        input: RoleRemovePermissionSetsInput,
+    ) -> async_graphql::Result<RoleRemovePermissionSetsPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        exec_mutation!(
+            RoleRemovePermissionSetsPayload,
+            Role,
+            ctx,
+            app.access().remove_permission_sets_from_role(
+                sub,
+                input.role_id,
+                input.permission_set_ids
+            )
         )
     }
 
@@ -1049,7 +1142,8 @@ impl Mutation {
             TermsTemplateCreatePayload,
             TermsTemplate,
             ctx,
-            app.terms_templates()
+            app.credit()
+                .terms_templates()
                 .create_terms_template(sub, input.name, term_values)
         )
     }
@@ -1077,7 +1171,7 @@ impl Mutation {
             TermsTemplateUpdatePayload,
             TermsTemplate,
             ctx,
-            app.terms_templates().update_term_values(
+            app.credit().terms_templates().update_term_values(
                 sub,
                 TermsTemplateId::from(input.id),
                 term_values
@@ -1210,7 +1304,8 @@ impl Mutation {
             .build()?;
         let config = app
             .credit()
-            .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
+            .chart_of_accounts_integrations()
+            .set_config(sub, chart.as_ref(), config_values)
             .await?;
         Ok(CreditModuleConfigurePayload::from(
             CreditModuleConfig::from(config),
@@ -1323,6 +1418,21 @@ impl Mutation {
             ctx,
             app.credit()
                 .complete_facility(sub, input.credit_facility_id)
+        )
+    }
+
+    async fn custodian_create(
+        &self,
+        ctx: &Context<'_>,
+        input: CustodianCreateInput,
+    ) -> async_graphql::Result<CustodianCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustodianCreatePayload,
+            Custodian,
+            ctx,
+            app.custody()
+                .create_custodian_config(sub, input.name().to_owned(), input.into())
         )
     }
 

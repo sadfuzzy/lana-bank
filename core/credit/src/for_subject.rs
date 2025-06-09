@@ -1,6 +1,7 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
+use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
@@ -8,14 +9,14 @@ use crate::history::CreditFacilityHistoryEntry;
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
-    credit_facilities: &'a CreditFacilityRepo<E>,
-    disbursals: &'a DisbursalRepo<E>,
-    payment_allocations: &'a PaymentAllocationRepo<E>,
+    credit_facilities: &'a CreditFacilities<Perms, E>,
+    disbursals: &'a Disbursals<Perms, E>,
+    payments: &'a Payments<Perms, E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
@@ -24,18 +25,20 @@ where
 impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
-    E: OutboxEventMarker<CoreCreditEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[allow(clippy::too_many_arguments)]
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: CustomerId,
         authz: &'a Perms,
-        credit_facilities: &'a CreditFacilityRepo<E>,
-        disbursals: &'a DisbursalRepo<E>,
-        payment_allocations: &'a PaymentAllocationRepo<E>,
+        credit_facilities: &'a CreditFacilities<Perms, E>,
+        disbursals: &'a Disbursals<Perms, E>,
+        payments: &'a Payments<Perms, E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
@@ -46,7 +49,7 @@ where
             authz,
             credit_facilities,
             disbursals,
-            payment_allocations,
+            payments,
             histories: history,
             repayment_plans,
             ledger,
@@ -59,19 +62,9 @@ where
         direction: ListDirection,
     ) -> Result<PaginatedQueryRet<CreditFacility, CreditFacilitiesByCreatedAtCursor>, CoreCreditError>
     {
-        self.authz
-            .audit()
-            .record_entry(
-                self.subject,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_LIST,
-                true,
-            )
-            .await?;
-
         Ok(self
             .credit_facilities
-            .list_for_customer_id_by_created_at(self.customer_id, query, direction)
+            .list_for_customer(self.subject, self.customer_id, query, direction)
             .await?)
     }
 
@@ -80,7 +73,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -97,7 +90,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<Vec<T>, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -114,7 +107,7 @@ where
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacilityBalanceSummary, CoreCreditError> {
         let id = id.into();
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
 
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -136,7 +129,7 @@ where
         id: impl Into<CreditFacilityId>,
     ) -> Result<Option<CreditFacility>, CoreCreditError> {
         let id = id.into();
-        match self.credit_facilities.find_by_id(id).await {
+        match self.credit_facilities.find_by_id_without_audit(id).await {
             Ok(cf) => {
                 self.ensure_credit_facility_access(
                     &cf,
@@ -178,22 +171,18 @@ where
         query: es_entity::PaginatedQueryArgs<DisbursalsCursor>,
         sort: impl Into<Sort<DisbursalsSortBy>>,
     ) -> Result<es_entity::PaginatedQueryRet<Disbursal, DisbursalsCursor>, CoreCreditError> {
-        let credit_facility = self.credit_facilities.find_by_id(id).await?;
+        let credit_facility = self.credit_facilities.find_by_id_without_audit(id).await?;
         self.ensure_credit_facility_access(
             &credit_facility,
             CoreCreditObject::all_credit_facilities(),
             CoreCreditAction::DISBURSAL_LIST,
         )
         .await?;
-
         let disbursals = self
             .disbursals
-            .find_many(
-                FindManyDisbursals::WithCreditFacilityId(id),
-                sort.into(),
-                query,
-            )
+            .list_for_facility_without_audit(id, query, sort)
             .await?;
+
         Ok(disbursals)
     }
 
@@ -202,11 +191,14 @@ where
         tx_id: impl Into<crate::primitives::LedgerTxId> + std::fmt::Debug,
     ) -> Result<Disbursal, CoreCreditError> {
         let tx_id = tx_id.into();
-        let disbursal = self.disbursals.find_by_concluded_tx_id(Some(tx_id)).await?;
+        let disbursal = self
+            .disbursals
+            .find_by_concluded_tx_id_without_audit(tx_id)
+            .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(disbursal.facility_id)
+            .find_by_id_without_audit(disbursal.facility_id)
             .await?;
         self.ensure_credit_facility_access(
             &credit_facility,
@@ -223,14 +215,15 @@ where
         payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let payment_allocation = self
-            .payment_allocations
-            .find_by_id(payment_id.into())
+            .payments
+            .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id(payment_allocation.credit_facility_id)
+            .find_by_id_without_audit(payment_allocation.credit_facility_id)
             .await?;
+
         self.ensure_credit_facility_access(
             &credit_facility,
             CoreCreditObject::all_credit_facilities(),

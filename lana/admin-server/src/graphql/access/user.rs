@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 use lana_app::access::user::User as DomainUser;
+
+use super::Role;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -38,22 +40,23 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn roles(&self) -> Vec<LanaRole> {
-        let mut roles: Vec<_> = self
-            .entity
-            .current_roles()
-            .into_iter()
-            .map(LanaRole::from)
-            .collect();
-        roles.sort();
-        roles
+    async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Role>> {
+        match self.entity.current_role() {
+            None => Ok(None),
+            Some(role_id) => {
+                let loader = ctx.data_unchecked::<LanaDataLoader>();
+                let role = loader.load_one(role_id).await?;
+
+                Ok(role)
+            }
+        }
     }
 
     async fn email(&self) -> &str {
         &self.entity.email
     }
 
-    async fn subject_can_assign_role_to_user(
+    async fn subject_can_update_role_of_user(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -61,7 +64,7 @@ impl User {
         Ok(app
             .access()
             .users()
-            .subject_can_assign_role_to_user(sub, None, false)
+            .subject_can_update_role_of_user(sub, None, false)
             .await
             .is_ok())
     }
@@ -88,16 +91,15 @@ pub struct UserCreateInput {
 mutation_payload! { UserCreatePayload, user: User }
 
 #[derive(InputObject)]
-pub struct UserAssignRoleInput {
+pub struct UserUpdateRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
+    pub role_id: UUID,
 }
-mutation_payload! { UserAssignRolePayload, user: User }
+mutation_payload! { UserUpdateRolePayload, user: User }
 
 #[derive(InputObject)]
 pub struct UserRevokeRoleInput {
     pub id: UUID,
-    pub role: LanaRole,
 }
 
 mutation_payload! { UserRevokeRolePayload, user: User }

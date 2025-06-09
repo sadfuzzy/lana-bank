@@ -64,6 +64,7 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         obligation_id: ObligationId,
         total: UsdCents,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
 }
@@ -86,7 +87,7 @@ pub(crate) struct InterestAccrualCycleData {
     pub(crate) interest: UsdCents,
     pub(crate) tx_ref: String,
     pub(crate) tx_id: LedgerTxId,
-    pub(crate) posted_at: DateTime<Utc>,
+    pub(crate) effective: chrono::NaiveDate,
 }
 
 #[derive(Debug, Clone)]
@@ -245,7 +246,7 @@ impl InterestAccrualCycle {
                     interest: self.total_accrued(),
                     tx_ref: accrual_cycle_tx_ref,
                     tx_id: LedgerTxId::new(),
-                    posted_at: last_accrual_period.end,
+                    effective: last_accrual_period.end.date_naive(),
                 };
 
                 Some(interest_accrual_cycle)
@@ -259,7 +260,7 @@ impl InterestAccrualCycle {
             interest,
             tx_ref,
             tx_id,
-            posted_at,
+            effective,
             ..
         }: InterestAccrualCycleData,
         audit_info: AuditInfo,
@@ -275,6 +276,7 @@ impl InterestAccrualCycle {
                 tx_ref: tx_ref.to_string(),
                 obligation_id,
                 total: interest,
+                effective,
                 audit_info: audit_info.clone(),
             });
 
@@ -308,7 +310,7 @@ impl InterestAccrualCycle {
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
-                .recorded_at(posted_at)
+                .effective(effective)
                 .audit_info(audit_info)
                 .build()
                 .expect("could not build new interest accrual cycle obligation"),

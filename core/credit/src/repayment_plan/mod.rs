@@ -63,6 +63,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
             CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
                 id: None,
@@ -75,6 +76,7 @@ impl CreditFacilityRepaymentPlan {
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
+                effective: activated_at.date_naive(),
             }),
         ]
     }
@@ -126,6 +128,7 @@ impl CreditFacilityRepaymentPlan {
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: period.end,
+                    effective: period.end.date_naive(),
                 },
             ));
 
@@ -159,7 +162,8 @@ impl CreditFacilityRepaymentPlan {
                 due_at,
                 overdue_at,
                 defaulted_at,
-                created_at,
+                recorded_at,
+                effective,
                 ..
             } => {
                 let data = ObligationDataForEntry {
@@ -172,12 +176,15 @@ impl CreditFacilityRepaymentPlan {
                     due_at: *due_at,
                     overdue_at: *overdue_at,
                     defaulted_at: *defaulted_at,
-                    recorded_at: *created_at,
+                    recorded_at: *recorded_at,
+                    effective: *effective,
                 };
+
+                let effective = EffectiveDate::from(*effective);
                 let entry = match obligation_type {
                     ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
                     ObligationType::Interest => {
-                        self.last_interest_accrual_at = Some(data.recorded_at);
+                        self.last_interest_accrual_at = Some(effective.end_of_day());
                         CreditFacilityRepaymentPlanEntry::Interest(data)
                     }
                 };
@@ -263,6 +270,16 @@ mod tests {
 
     use super::*;
 
+    #[derive(Debug, Default, PartialEq, Eq)]
+    struct EntriesCount {
+        interest_unpaid: usize,
+        interest_paid: usize,
+        interest_upcoming: usize,
+        disbursals_unpaid: usize,
+        disbursals_paid: usize,
+        disbursals_upcoming: usize,
+    }
+
     fn default_terms() -> TermValues {
         TermValues::builder()
             .annual_rate(dec!(12))
@@ -281,6 +298,10 @@ mod tests {
 
     fn default_start_date() -> DateTime<Utc> {
         "2021-01-01T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
+    }
+
+    fn default_start_date_with_days(days: i64) -> DateTime<Utc> {
+        "2021-01-01T12:00:00Z".parse::<DateTime<Utc>>().unwrap() + chrono::Duration::days(days)
     }
 
     fn default_facility_amount() -> UsdCents {
@@ -302,28 +323,75 @@ mod tests {
         plan
     }
 
-    #[test]
-    fn planned_disbursals_returns_expected_number_of_entries() {
-        assert_eq!(initial_plan().planned_disbursals().len(), 2);
+    fn process_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
+        for event in events {
+            plan.process_event(Default::default(), &event);
+        }
+    }
+
+    fn count_entries(plan: &CreditFacilityRepaymentPlan) -> EntriesCount {
+        let mut res = EntriesCount::default();
+
+        for entry in plan.entries.iter() {
+            match entry {
+                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                    status: RepaymentStatus::Upcoming,
+                    ..
+                }) => res.disbursals_upcoming += 1,
+                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                    status: RepaymentStatus::Paid,
+                    ..
+                }) => res.disbursals_paid += 1,
+                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry { .. }) => {
+                    res.disbursals_unpaid += 1
+                }
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                    status: RepaymentStatus::Upcoming,
+                    ..
+                }) => res.interest_upcoming += 1,
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                    status: RepaymentStatus::Paid,
+                    ..
+                }) => res.interest_paid += 1,
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry { .. }) => {
+                    res.interest_unpaid += 1
+                }
+            }
+        }
+
+        res
     }
 
     #[test]
-    fn planned_interest_accruals_returns_expected_number_of_entries() {
-        let mut plan = initial_plan();
-        assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 4);
+    fn facility_created() {
+        let plan = initial_plan();
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 0,
+                interest_paid: 0,
+                interest_upcoming: 4,
+                disbursals_unpaid: 0,
+                disbursals_paid: 0,
+                disbursals_upcoming: 2,
+            }
+        );
+    }
 
-        plan.process_event(
-            Default::default(),
-            &CoreCreditEvent::FacilityActivated {
+    #[test]
+    fn with_first_disbursal_obligation_created() {
+        let mut plan = initial_plan();
+
+        let recorded_at = default_start_date();
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
                 id: CreditFacilityId::new(),
                 activation_tx_id: LedgerTxId::new(),
                 activated_at: default_start_date(),
                 amount: default_facility_amount(),
             },
-        );
-        plan.process_event(
-            Default::default(),
-            &CoreCreditEvent::ObligationCreated {
+            CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Disbursal,
                 credit_facility_id: CreditFacilityId::new(),
@@ -331,22 +399,340 @@ mod tests {
                 due_at: default_start_date(),
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date(),
+                recorded_at,
+                effective: recorded_at.date_naive(),
             },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 0,
+                interest_paid: 0,
+                interest_upcoming: 4,
+                disbursals_unpaid: 1,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
         );
-        plan.process_event(
-            Default::default(),
-            &CoreCreditEvent::ObligationCreated {
+    }
+
+    #[test]
+    fn with_first_interest_obligation_created() {
+        let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: disbursal_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
                 id: ObligationId::new(),
                 obligation_type: ObligationType::Interest,
                 credit_facility_id: CreditFacilityId::new(),
                 amount: UsdCents::from(1_000_00),
-                due_at: default_start_date() + chrono::Duration::days(30),
+                due_at: interest_recorded_at,
                 overdue_at: None,
                 defaulted_at: None,
-                created_at: default_start_date() + chrono::Duration::days(30),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 1,
+                interest_paid: 0,
+                interest_upcoming: 3,
+                disbursals_unpaid: 1,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn with_first_interest_partial_payment() {
+        let interest_obligation_id = ObligationId::new();
+
+        let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: disbursal_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: interest_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::FacilityRepaymentRecorded {
+                credit_facility_id: CreditFacilityId::new(),
+                obligation_id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                payment_id: PaymentAllocationId::new(),
+                amount: UsdCents::from(400_00),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 1,
+                interest_paid: 0,
+                interest_upcoming: 3,
+                disbursals_unpaid: 1,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
+        );
+
+        let interest_entry_outstanding = plan
+            .entries
+            .iter()
+            .find_map(|e| match e {
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                    id,
+                    outstanding,
+                    ..
+                }) if id.is_some() => Some(outstanding),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(*interest_entry_outstanding, UsdCents::from(600_00));
+    }
+
+    #[test]
+    fn with_first_interest_paid() {
+        let interest_obligation_id = ObligationId::new();
+
+        let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_recorded_at = default_start_date_with_days(30);
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: disbursal_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: interest_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::FacilityRepaymentRecorded {
+                credit_facility_id: CreditFacilityId::new(),
+                obligation_id: interest_obligation_id,
+                obligation_type: ObligationType::Interest,
+                payment_id: PaymentAllocationId::new(),
+                amount: UsdCents::from(1_000_00),
+                recorded_at: interest_recorded_at,
+                effective: interest_recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 1,
+                interest_paid: 0,
+                interest_upcoming: 3,
+                disbursals_unpaid: 1,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
+        );
+
+        let (outstanding, status) = plan
+            .entries
+            .iter()
+            .find_map(|e| match e {
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                    id,
+                    outstanding,
+                    status,
+                    ..
+                }) if id.is_some() => Some((outstanding, status)),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(*outstanding, UsdCents::ZERO);
+        assert_ne!(*status, RepaymentStatus::Paid);
+
+        plan.process_event(
+            Default::default(),
+            &CoreCreditEvent::ObligationCompleted {
+                id: interest_obligation_id,
+                credit_facility_id: CreditFacilityId::new(),
             },
         );
-        assert_eq!(plan.planned_interest_accruals(&plan.entries).len(), 3);
+        let interest_entry_status = plan
+            .entries
+            .iter()
+            .find_map(|e| match e {
+                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                    id,
+                    status,
+                    ..
+                }) if id.is_some() => Some(status),
+                _ => None,
+            })
+            .unwrap();
+        assert_eq!(*interest_entry_status, RepaymentStatus::Paid);
+    }
+
+    #[test]
+    fn with_all_interest_obligations_created() {
+        let mut plan = initial_plan();
+
+        let disbursal_recorded_at = default_start_date();
+        let interest_1_recorded_at = default_start_date_with_days(30);
+        let interest_2_recorded_at = default_start_date_with_days(30 + 28);
+        let interest_3_recorded_at = default_start_date_with_days(30 + 28 + 31);
+        let interest_4_recorded_at = default_start_date_with_days(30 + 28 + 31 + 1);
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Disbursal,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(100_000_00),
+                due_at: disbursal_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: disbursal_recorded_at,
+                effective: disbursal_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: interest_1_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_1_recorded_at,
+                effective: interest_1_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: interest_2_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_2_recorded_at,
+                effective: interest_2_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(1_000_00),
+                due_at: interest_3_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_3_recorded_at,
+                effective: interest_3_recorded_at.date_naive(),
+            },
+            CoreCreditEvent::ObligationCreated {
+                id: ObligationId::new(),
+                obligation_type: ObligationType::Interest,
+                credit_facility_id: CreditFacilityId::new(),
+                amount: UsdCents::from(33_00),
+                due_at: interest_4_recorded_at,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: interest_4_recorded_at,
+                effective: interest_4_recorded_at.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 4,
+                interest_paid: 0,
+                interest_upcoming: 0,
+                disbursals_unpaid: 1,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
+        );
     }
 }

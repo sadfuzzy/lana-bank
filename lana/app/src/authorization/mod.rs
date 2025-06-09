@@ -1,4 +1,4 @@
-mod seed;
+pub mod seed;
 
 use crate::audit::Audit;
 
@@ -8,19 +8,11 @@ pub use core_access::{CoreAccessAction, CoreAccessObject};
 use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
-use deposit::{CoreDepositAction, CoreDepositObject};
+use core_deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
-pub type Authorization = authz::Authorization<Audit, RoleName>;
-
-pub async fn init(pool: &sqlx::PgPool, audit: &Audit) -> Result<Authorization, AuthorizationError> {
-    let authz = Authorization::init(pool, audit).await?;
-
-    seed::execute(&authz).await?;
-
-    Ok(authz)
-}
+pub type Authorization = authz::Authorization<Audit, core_access::AuthRoleToken>;
 
 pub async fn get_visible_navigation_items(
     authz: &Authorization,
@@ -30,10 +22,10 @@ pub async fn get_visible_navigation_items(
         term: authz
             .check_all_permissions(
                 sub,
-                Object::TermsTemplate,
+                CoreCreditObject::all_terms_templates(),
                 &[
-                    Action::TermsTemplate(TermsTemplateAction::Read),
-                    Action::TermsTemplate(TermsTemplateAction::List),
+                    CoreCreditAction::TERMS_TEMPLATE_READ,
+                    CoreCreditAction::TERMS_TEMPLATE_LIST,
                 ],
             )
             .await?,
@@ -80,7 +72,11 @@ pub async fn get_visible_navigation_items(
             )
             .await?,
         audit: authz
-            .check_all_permissions(sub, Object::Audit, &[Action::Audit(AuditAction::List)])
+            .check_all_permissions(
+                sub,
+                Object::all_audits(),
+                &[Action::Audit(AuditAction::List)],
+            )
             .await?,
         financials: authz
             .check_all_permissions(

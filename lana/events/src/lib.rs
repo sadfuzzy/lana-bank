@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 pub use core_access::CoreAccessEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_customer::CoreCustomerEvent;
-pub use deposit::CoreDepositEvent;
+pub use core_deposit::CoreDepositEvent;
 pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 
@@ -25,7 +25,7 @@ macro_rules! impl_event_marker {
         impl OutboxEventMarker<$from_type> for LanaEvent {
             fn as_event(&self) -> Option<&$from_type> {
                 match self {
-                    Self::$variant(ref event) => Some(event),
+                    &Self::$variant(ref event) => Some(event),
                     _ => None,
                 }
             }

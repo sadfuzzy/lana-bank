@@ -1,11 +1,11 @@
 mod cvl;
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
 use std::str::FromStr;
 
-use authz::{action_description::*, AllOrOne};
+use authz::{AllOrOne, action_description::*};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -27,7 +27,8 @@ es_entity::entity_id! {
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     ObligationId,
-    InterestAccrualCycleId;
+    InterestAccrualCycleId,
+    TermsTemplateId;
 
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
@@ -107,6 +108,7 @@ pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;
 pub type ObligationAllOrOne = AllOrOne<ObligationId>;
+pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
@@ -116,9 +118,10 @@ pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCreditObject {
     CreditFacility(CreditFacilityAllOrOne),
-    ChartOfAccountsIntegration(ChartOfAccountsIntegrationConfigAllOrOne),
+    ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAllOrOne),
     Disbursal(DisbursalAllOrOne),
     Obligation(ObligationAllOrOne),
+    TermsTemplate(TermsTemplateAllOrOne),
 }
 
 impl CoreCreditObject {
@@ -131,7 +134,7 @@ impl CoreCreditObject {
     }
 
     pub fn chart_of_accounts_integration() -> Self {
-        CoreCreditObject::ChartOfAccountsIntegration(AllOrOne::All)
+        CoreCreditObject::ChartOfAccountsIntegrationConfig(AllOrOne::All)
     }
 
     pub fn disbursal(id: DisbursalId) -> Self {
@@ -149,6 +152,14 @@ impl CoreCreditObject {
     pub fn all_obligations() -> Self {
         CoreCreditObject::Obligation(AllOrOne::All)
     }
+
+    pub fn terms_template(id: TermsTemplateId) -> Self {
+        CoreCreditObject::TermsTemplate(AllOrOne::ById(id))
+    }
+
+    pub fn all_terms_templates() -> Self {
+        CoreCreditObject::TermsTemplate(AllOrOne::All)
+    }
 }
 
 impl std::fmt::Display for CoreCreditObject {
@@ -157,9 +168,10 @@ impl std::fmt::Display for CoreCreditObject {
         use CoreCreditObject::*;
         match self {
             CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Disbursal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Obligation(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            TermsTemplate(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -175,9 +187,9 @@ impl FromStr for CoreCreditObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::CreditFacility(obj_ref)
             }
-            ChartOfAccountsIntegration => {
+            ChartOfAccountsIntegrationConfig => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
-                CoreCreditObject::ChartOfAccountsIntegration(obj_ref)
+                CoreCreditObject::ChartOfAccountsIntegrationConfig(obj_ref)
             }
             Obligation => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
@@ -186,6 +198,10 @@ impl FromStr for CoreCreditObject {
             Disbursal => {
                 let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
                 CoreCreditObject::Disbursal(obj_ref)
+            }
+            TermsTemplate => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CoreCreditObject")?;
+                CoreCreditObject::TermsTemplate(obj_ref)
             }
         };
         Ok(res)
@@ -200,6 +216,7 @@ pub enum CoreCreditAction {
     ChartOfAccountsIntegrationConfig(ChartOfAccountsIntegrationConfigAction),
     Disbursal(DisbursalAction),
     Obligation(ObligationAction),
+    TermsTemplate(TermsTemplateAction),
 }
 
 impl CoreCreditAction {
@@ -234,12 +251,22 @@ impl CoreCreditAction {
     pub const DISBURSAL_INITIATE: Self = CoreCreditAction::Disbursal(DisbursalAction::Initiate);
     pub const DISBURSAL_SETTLE: Self = CoreCreditAction::Disbursal(DisbursalAction::Settle);
     pub const DISBURSAL_LIST: Self = CoreCreditAction::Disbursal(DisbursalAction::List);
+    pub const DISBURSAL_READ: Self = CoreCreditAction::Disbursal(DisbursalAction::Read);
 
     pub const OBLIGATION_READ: Self = CoreCreditAction::Obligation(ObligationAction::Read);
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
         CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocation);
+
+    pub const TERMS_TEMPLATE_CREATE: Self =
+        CoreCreditAction::TermsTemplate(TermsTemplateAction::Create);
+    pub const TERMS_TEMPLATE_READ: Self =
+        CoreCreditAction::TermsTemplate(TermsTemplateAction::Read);
+    pub const TERMS_TEMPLATE_UPDATE: Self =
+        CoreCreditAction::TermsTemplate(TermsTemplateAction::Update);
+    pub const TERMS_TEMPLATE_LIST: Self =
+        CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
     pub fn entities() -> Vec<(
         CoreCreditActionDiscriminants,
@@ -257,6 +284,7 @@ impl CoreCreditAction {
                 }
                 Disbursal => DisbursalAction::describe(),
                 Obligation => ObligationAction::describe(),
+                TermsTemplate => TermsTemplateAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -275,6 +303,7 @@ impl std::fmt::Display for CoreCreditAction {
             ChartOfAccountsIntegrationConfig(action) => action.fmt(f),
             Disbursal(action) => action.fmt(f),
             Obligation(action) => action.fmt(f),
+            TermsTemplate(action) => action.fmt(f),
         }
     }
 }
@@ -294,6 +323,7 @@ impl FromStr for CoreCreditAction {
             }
             Disbursal => CoreCreditAction::from(action.parse::<DisbursalAction>()?),
             Obligation => CoreCreditAction::from(action.parse::<ObligationAction>()?),
+            TermsTemplate => CoreCreditAction::from(action.parse::<TermsTemplateAction>()?),
         };
         Ok(res)
     }
@@ -362,6 +392,7 @@ pub enum DisbursalAction {
     Initiate,
     Settle,
     List,
+    Read,
 }
 
 impl DisbursalAction {
@@ -373,6 +404,10 @@ impl DisbursalAction {
                 Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
                 Self::Settle => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
                 Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::Read => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
                 ),
@@ -457,6 +492,45 @@ impl ObligationAction {
 impl From<ObligationAction> for CoreCreditAction {
     fn from(action: ObligationAction) -> Self {
         Self::Obligation(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum TermsTemplateAction {
+    Create,
+    Read,
+    Update,
+    List,
+}
+
+impl TermsTemplateAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
+                ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+impl From<TermsTemplateAction> for CoreCreditAction {
+    fn from(action: TermsTemplateAction) -> Self {
+        Self::TermsTemplate(action)
     }
 }
 
@@ -595,4 +669,23 @@ pub enum DisbursedReceivableAccountCategory {
     LongTerm,
     ShortTerm,
     Overdue,
+}
+
+pub struct EffectiveDate(chrono::NaiveDate);
+
+impl From<chrono::NaiveDate> for EffectiveDate {
+    fn from(date: chrono::NaiveDate) -> Self {
+        Self(date)
+    }
+}
+
+impl EffectiveDate {
+    pub fn end_of_day(&self) -> DateTime<Utc> {
+        Utc.from_utc_datetime(
+            &self
+                .0
+                .and_hms_opt(23, 59, 59)
+                .expect("23:59:59 was invalid"),
+        )
+    }
 }

@@ -1,7 +1,11 @@
 [package]
 name = "core-customer"
-version = "0.3.549-dev"
+version = "0.3.618-dev"
+license = "FSL-1.1-ALv2"
 edition = "2021"
+
+[package.metadata.cargo-machete]
+ignored = ["governance"]
 
 [features]
 
@@ -11,11 +15,11 @@ graphql = ["es-entity/graphql", "governance/graphql"]
 governance = ["dep:governance"]
 
 [dependencies]
-governance = { path = "../governance", optional = true }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+governance = { path = "../governance", optional = true }
 
 es-entity = { workspace = true }
 strum = { workspace = true }
@@ -26,6 +30,3 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 async-graphql = { workspace = true }
-
-[dev-dependencies]
-anyhow = { workspace = true }
