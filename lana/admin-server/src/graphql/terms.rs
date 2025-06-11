@@ -41,8 +41,9 @@ pub struct TermsInput {
     pub liquidation_cvl: CVLPct,
     pub one_time_fee_rate: OneTimeFeeRatePct,
     pub duration: DurationInput,
-    pub interest_due_duration: DurationInput,
-    pub obligation_overdue_duration: DurationInput,
+    pub interest_due_duration_from_accrual: DurationInput,
+    pub obligation_overdue_duration_from_due: DurationInput,
+    pub obligation_liquidation_duration_from_due: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
 }
