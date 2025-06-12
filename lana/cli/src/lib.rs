@@ -5,7 +5,8 @@ pub mod config;
 mod db;
 
 use anyhow::Context;
-use clap::Parser;
+use chacha20poly1305::{aead::OsRng, ChaCha20Poly1305, KeyInit};
+use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
 
 use self::config::{Config, EnvSecrets};
@@ -13,6 +14,16 @@ use self::config::{Config, EnvSecrets};
 #[derive(Parser)]
 #[clap(long_about = None)]
 struct Cli {
+    #[clap(subcommand)]
+    command: Option<UtilsCommands>,
+
+    #[clap(
+        long,
+        env = "LANA_HOME",
+        default_value = ".lana",
+        value_name = "DIRECTORY"
+    )]
+    lana_home: String,
     #[clap(
         short,
         long,
@@ -21,13 +32,6 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-    #[clap(
-        long,
-        env = "LANA_HOME",
-        default_value = ".lana",
-        value_name = "DIRECTORY"
-    )]
-    lana_home: String,
     #[clap(env = "PG_CON")]
     pg_con: String,
     #[clap(env = "SUMSUB_KEY", default_value = "")]
@@ -42,31 +46,47 @@ struct Cli {
     smtp_password: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
+    #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
+    custodian_encryption_key: String,
+}
+
+#[derive(Subcommand)]
+enum UtilsCommands {
+    Genencryptionkey,
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
-        None
-    } else {
-        Some(cli.sa_creds_base64_raw)
-    };
+    match cli.command {
+        Some(UtilsCommands::Genencryptionkey) => {
+            let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+            println!("{}", hex::encode(key));
+        }
+        None => {
+            let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
+                None
+            } else {
+                Some(cli.sa_creds_base64_raw)
+            };
 
-    let config = Config::init(
-        cli.config,
-        EnvSecrets {
-            pg_con: cli.pg_con,
-            sumsub_key: cli.sumsub_key,
-            sumsub_secret: cli.sumsub_secret,
-            sa_creds_base64,
-            smtp_username: cli.smtp_username,
-            smtp_password: cli.smtp_password,
-        },
-        cli.dev_env_name_prefix,
-    )?;
+            let config = Config::init(
+                cli.config,
+                EnvSecrets {
+                    pg_con: cli.pg_con,
+                    sumsub_key: cli.sumsub_key,
+                    sumsub_secret: cli.sumsub_secret,
+                    sa_creds_base64,
+                    smtp_username: cli.smtp_username,
+                    smtp_password: cli.smtp_password,
+                    custodian_encryption_key: cli.custodian_encryption_key,
+                },
+                cli.dev_env_name_prefix,
+            )?;
 
-    run_cmd(&cli.lana_home, config).await?;
+            run_cmd(&cli.lana_home, config).await?;
+        }
+    }
 
     Ok(())
 }

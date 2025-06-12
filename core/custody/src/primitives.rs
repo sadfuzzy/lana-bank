@@ -17,6 +17,7 @@ pub enum CoreCustodyAction {
 impl CoreCustodyAction {
     pub const CUSTODIAN_CREATE: Self = CoreCustodyAction::Custodian(CustodianAction::Create);
     pub const CUSTODIAN_LIST: Self = CoreCustodyAction::Custodian(CustodianAction::List);
+    pub const CUSTODIAN_UPDATE: Self = CoreCustodyAction::Custodian(CustodianAction::Update);
 
     pub fn entities() -> Vec<(
         CoreCustodyActionDiscriminants,
@@ -68,6 +69,7 @@ impl core::str::FromStr for CoreCustodyAction {
 pub enum CustodianAction {
     Create,
     List,
+    Update,
 }
 
 impl CustodianAction {
@@ -81,6 +83,7 @@ impl CustodianAction {
                     variant,
                     &[PERMISSION_SET_CUSTODY_VIEWER, PERMISSION_SET_CUSTODY_WRITER],
                 ),
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
             };
             res.push(action_description);
         }
@@ -107,6 +110,10 @@ pub enum CoreCustodyObject {
 impl CoreCustodyObject {
     pub const fn all_custodians() -> Self {
         CoreCustodyObject::Custodian(AllOrOne::All)
+    }
+
+    pub const fn custodian(id: CustodianId) -> Self {
+        CoreCustodyObject::Custodian(AllOrOne::ById(id))
     }
 }
 

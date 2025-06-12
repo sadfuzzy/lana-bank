@@ -11,6 +11,7 @@ GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
+
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
 LOG_FILE=".e2e-logs"

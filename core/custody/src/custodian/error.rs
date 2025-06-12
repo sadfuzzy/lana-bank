@@ -8,6 +8,8 @@ pub enum CustodianError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CustodianError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CustodianError - FromHex: {0}")]
+    FromHex(#[from] hex::FromHexError),
 }
 
 es_entity::from_es_entity_error!(CustodianError);

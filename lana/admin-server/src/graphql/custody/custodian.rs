@@ -12,19 +12,19 @@ pub use lana_app::custody::custodian::CustodiansByNameCursor;
 #[graphql(complex)]
 pub struct Custodian {
     id: ID,
-    custodian_config_id: UUID,
+    custodian_id: UUID,
     created_at: Timestamp,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCustodian>,
 }
 
 impl From<DomainCustodian> for Custodian {
-    fn from(custodian_config: DomainCustodian) -> Self {
+    fn from(custodian: DomainCustodian) -> Self {
         Self {
-            id: custodian_config.id.to_global_id(),
-            custodian_config_id: custodian_config.id.into(),
-            created_at: custodian_config.created_at().into(),
-            entity: Arc::new(custodian_config),
+            id: custodian.id.to_global_id(),
+            custodian_id: custodian.id.into(),
+            created_at: custodian.created_at().into(),
+            entity: Arc::new(custodian),
         }
     }
 }
@@ -33,12 +33,6 @@ impl From<DomainCustodian> for Custodian {
 impl Custodian {
     async fn name(&self) -> &str {
         &self.entity.name
-    }
-
-    async fn custodian_config(&self) -> CustodianConfig {
-        match &self.entity.custodian {
-            DomainCustodianConfig::Komainu(_) => CustodianConfig::Komainu,
-        }
     }
 }
 
@@ -90,4 +84,25 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
     }
 }
 
-crate::mutation_payload! { CustodianCreatePayload, custodian_config: Custodian }
+#[derive(OneofObject)]
+pub enum CustodianConfigInput {
+    Komainu(KomainuConfig),
+}
+
+impl From<CustodianConfigInput> for DomainCustodianConfig {
+    fn from(input: CustodianConfigInput) -> Self {
+        match input {
+            CustodianConfigInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CustodianConfigUpdateInput {
+    pub custodian_id: UUID,
+    pub config: CustodianConfigInput,
+}
+
+crate::mutation_payload! { CustodianCreatePayload, custodian: Custodian }
+
+crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }

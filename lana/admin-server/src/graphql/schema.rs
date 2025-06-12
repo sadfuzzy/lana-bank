@@ -1441,7 +1441,22 @@ impl Mutation {
             Custodian,
             ctx,
             app.custody()
-                .create_custodian_config(sub, input.name().to_owned(), input.into())
+                .create_custodian(sub, input.name().to_owned(), input.into())
+        )
+    }
+
+    async fn custodian_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustodianConfigUpdateInput,
+    ) -> async_graphql::Result<CustodianConfigUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustodianConfigUpdatePayload,
+            Custodian,
+            ctx,
+            app.custody()
+                .update_config(sub, input.custodian_id, input.config.into())
         )
     }
 

@@ -91,10 +91,10 @@ sqlx-prepare:
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
-	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	cargo run --features sim-time --bin lana-cli -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	cargo run --all-features --bin lana-cli -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 check-code: check-code-rust check-code-apps check-code-tf
 
