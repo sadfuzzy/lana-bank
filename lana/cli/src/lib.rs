@@ -36,6 +36,10 @@ struct Cli {
     sumsub_secret: String,
     #[clap(env = "SA_CREDS_BASE64", default_value = "")]
     sa_creds_base64_raw: String,
+    #[clap(env = "SMTP_USERNAME", default_value = "")]
+    smtp_username: String,
+    #[clap(env = "SMTP_PASSWORD", default_value = "")]
+    smtp_password: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
 }
@@ -56,6 +60,8 @@ pub async fn run() -> anyhow::Result<()> {
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
             sa_creds_base64,
+            smtp_username: cli.smtp_username,
+            smtp_password: cli.smtp_password,
         },
         cli.dev_env_name_prefix,
     )?;
