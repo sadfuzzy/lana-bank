@@ -1,0 +1,40 @@
+[package]
+name = "entity-rollups"
+version = "0.3.649-dev"
+license = "FSL-1.1-ALv2"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+json-schema = [
+  "core-access/json-schema",
+  "governance/json-schema", 
+  "core-custody/json-schema",
+  "core-customer/json-schema",
+  "core-deposit/json-schema",
+  "core-credit/json-schema",
+  "core-accounting/json-schema"
+]
+
+[[bin]]
+name = "entity-rollups"
+path = "src/main.rs"
+
+[dependencies]
+core-access = { path = "../../core/access" }
+governance = { path = "../../core/governance" }
+core-custody = { path = "../../core/custody" }
+core-customer = { path = "../../core/customer", default-features = false }
+core-deposit = { path = "../../core/deposit" }
+core-credit = { path = "../../core/credit" }
+core-accounting = { path = "../../core/accounting" }
+
+clap = { workspace = true }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+colored = "2.0"
+similar = { version = "2.6", features = ["inline"] }
+
+[dev-dependencies]
+tempfile = "3.13.0"

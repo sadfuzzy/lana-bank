@@ -37,6 +37,13 @@ pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::chart_of_accounts::ChartEvent;
+    pub use crate::csv::AccountingCsvEvent;
+    pub use crate::manual_transaction::ManualTransactionEvent;
+}
+
 pub struct CoreAccounting<Perms>
 where
     Perms: PermissionCheck,

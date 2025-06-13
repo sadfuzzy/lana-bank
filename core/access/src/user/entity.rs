@@ -1,4 +1,6 @@
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
@@ -6,6 +8,7 @@ use es_entity::*;
 use crate::{Role, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "UserId")]
 pub enum UserEvent {
@@ -19,7 +22,6 @@ pub enum UserEvent {
     },
     RoleGranted {
         id: RoleId,
-        name: String,
         audit_info: AuditInfo,
     },
     RoleRevoked {
@@ -64,7 +66,6 @@ impl User {
 
                 self.events.push(UserEvent::RoleGranted {
                     id: role.id,
-                    name: role.name.clone(),
                     audit_info,
                 });
 

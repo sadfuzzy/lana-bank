@@ -10,6 +10,7 @@ default = ["governance"]
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "governance/graphql"]
 governance = ["dep:governance"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema", "governance/json-schema"]
 
 [dependencies]
 governance = { path = "../governance", optional = true }
@@ -26,3 +27,7 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
+schemars = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }

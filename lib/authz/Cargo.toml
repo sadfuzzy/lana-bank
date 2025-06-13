@@ -4,10 +4,14 @@ version = "0.3.655-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
+[package.metadata.cargo-machete]
+ignored = ["schemars"]
+
 [features]
 
 fail-on-warnings = []
 test-dummy = [ "dep:es-entity" ]
+json-schema = ["dep:schemars", "audit/json-schema"]
 
 [dependencies]
 audit = { path = "../audit" }
@@ -21,3 +25,4 @@ sqlx = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
+schemars = { workspace = true, optional = true }

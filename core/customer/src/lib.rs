@@ -22,6 +22,11 @@ pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::entity::CustomerEvent;
+}
+
 use publisher::*;
 
 pub struct Customers<Perms, E>

@@ -21,7 +21,9 @@ use super::{
     primitives::{AccountingCsvId, LedgerAccountId},
 };
 
-pub use entity::*;
+#[cfg(feature = "json-schema")]
+pub use entity::AccountingCsvEvent;
+pub use entity::{AccountingCsv, NewAccountingCsv};
 use error::*;
 use job::*;
 pub use primitives::*;

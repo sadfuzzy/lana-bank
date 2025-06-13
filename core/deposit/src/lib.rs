@@ -49,6 +49,13 @@ use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::account::DepositAccountEvent;
+    pub use crate::deposit::DepositEvent;
+    pub use crate::withdrawal::WithdrawalEvent;
+}
+
 pub struct CoreDeposit<Perms, E>
 where
     Perms: PermissionCheck,

@@ -4,10 +4,14 @@ version = "0.3.655-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
+[package.metadata.cargo-machete]
+ignored = ["schemars"]
+
 [features]
 
 fail-on-warnings = []
 sim-time = [ "dep:sim-time", "es-entity/sim-time" ]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 es-entity = { workspace = true }
@@ -25,6 +29,7 @@ serde_with = { workspace = true }
 tokio = { workspace = true }
 uuid = { workspace = true }
 rand = { workspace = true }
+schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

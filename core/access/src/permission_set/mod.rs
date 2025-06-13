@@ -17,3 +17,7 @@ pub(super) use repo::PermissionSetRepo;
 
 pub use entity::PermissionSet;
 pub use repo::permission_set_cursor::*;
+
+// PermissionSetEvent is available internally and conditionally publicly
+#[cfg(feature = "json-schema")]
+pub use entity::PermissionSetEvent;

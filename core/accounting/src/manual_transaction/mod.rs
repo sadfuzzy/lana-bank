@@ -20,6 +20,8 @@ use crate::{
 use error::*;
 
 pub use entity::ManualTransaction;
+#[cfg(feature = "json-schema")]
+pub use entity::ManualTransactionEvent;
 pub(super) use entity::*;
 pub use primitives::*;
 pub use repo::manual_transaction_cursor::ManualTransactionsByCreatedAtCursor;
