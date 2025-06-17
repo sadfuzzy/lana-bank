@@ -99,6 +99,11 @@ where
                     .terms
                     .obligation_overdue_duration_from_due
                     .map(|d| d.end_date(due_date));
+                let liquidation_date = credit_facility
+                    .terms
+                    .obligation_liquidation_duration_from_due
+                    .map(|d| d.end_date(due_date));
+
                 let new_disbursal = NewDisbursal::builder()
                     .id(DisbursalId::new())
                     .credit_facility_id(credit_facility.id)
@@ -106,8 +111,9 @@ where
                     .amount(credit_facility.structuring_fee())
                     .account_ids(credit_facility.account_ids)
                     .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-                    .disbursal_due_date(due_date)
-                    .disbursal_overdue_date(overdue_date)
+                    .due_date(due_date)
+                    .overdue_date(overdue_date)
+                    .liquidation_date(liquidation_date)
                     .audit_info(audit_info.clone())
                     .build()
                     .expect("could not build new disbursal");
