@@ -11,21 +11,21 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligation
 use super::{obligation_defaulted, obligation_overdue};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct ObligationDueJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for ObligationDueJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
+    type Initializer = ObligationDueJobInitializer<Perms, E>;
 }
-pub struct CreditFacilityProcessingJobInitializer<Perms, E>
+pub struct ObligationDueJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -35,7 +35,7 @@ where
     jobs: Jobs,
 }
 
-impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
+impl<Perms, E> ObligationDueJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -51,8 +51,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_DUE_PROCESSING_JOB: JobType = JobType::new("credit-facility-due-processing");
-impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
+const OBLIGATION_DUE_JOB: JobType = JobType::new("obligation-due");
+impl<Perms, E> JobInitializer for ObligationDueJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -63,11 +63,11 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_DUE_PROCESSING_JOB
+        OBLIGATION_DUE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationDueJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
@@ -76,19 +76,19 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct ObligationDueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: ObligationDueJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
     jobs: Jobs,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationDueJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -116,7 +116,7 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     JobId::new(),
-                    obligation_overdue::CreditFacilityJobConfig::<Perms, E> {
+                    obligation_overdue::ObligationOverdueJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
                         effective: overdue_at.date_naive(),
                         _phantom: std::marker::PhantomData,
@@ -129,7 +129,7 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     JobId::new(),
-                    obligation_defaulted::CreditFacilityJobConfig::<Perms, E> {
+                    obligation_defaulted::ObligationDefaultedJobConfig::<Perms, E> {
                         obligation_id: obligation.id,
                         effective: defaulted_at.date_naive(),
                         _phantom: std::marker::PhantomData,

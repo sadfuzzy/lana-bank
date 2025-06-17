@@ -14,11 +14,11 @@ use crate::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct InterestAccrualCycleJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for InterestAccrualCycleJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -27,10 +27,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
+    type Initializer = InterestAccrualCycleJobInitializer<Perms, E>;
 }
 
-pub struct CreditFacilityProcessingJobInitializer<Perms, E>
+pub struct InterestAccrualCycleJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -42,7 +42,7 @@ where
     audit: Perms::Audit,
 }
 
-impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
+impl<Perms, E> InterestAccrualCycleJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -68,9 +68,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_INTEREST_ACCRUAL_CYCLE_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-interest-accrual-cycle-processing");
-impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
+const INTEREST_ACCRUAL_CYCLE_JOB: JobType = JobType::new("interest-accrual-cycle");
+impl<Perms, E> JobInitializer for InterestAccrualCycleJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -83,11 +82,11 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_INTEREST_ACCRUAL_CYCLE_PROCESSING_JOB
+        INTEREST_ACCRUAL_CYCLE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
+        Ok(Box::new(InterestAccrualCycleJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
             credit_facilities: self.credit_facilities.clone(),
@@ -98,12 +97,12 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct InterestAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: InterestAccrualCycleJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
@@ -112,7 +111,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for InterestAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -167,7 +166,7 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     new_accrual_cycle_id,
-                    interest_accruals::CreditFacilityJobConfig::<Perms, E> {
+                    interest_accruals::InterestAccrualJobConfig::<Perms, E> {
                         credit_facility_id: self.config.credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },

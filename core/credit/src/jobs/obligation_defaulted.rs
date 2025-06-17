@@ -9,21 +9,21 @@ use outbox::OutboxEventMarker;
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct ObligationDefaultedJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for ObligationDefaultedJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = CreditFacilityProcessingJobInitializer<Perms, E>;
+    type Initializer = ObligationDefaultedJobInitializer<Perms, E>;
 }
-pub struct CreditFacilityProcessingJobInitializer<Perms, E>
+pub struct ObligationDefaultedJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -32,7 +32,7 @@ where
     ledger: CreditLedger,
 }
 
-impl<Perms, E> CreditFacilityProcessingJobInitializer<Perms, E>
+impl<Perms, E> ObligationDefaultedJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -47,9 +47,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-defaulted-processing");
-impl<Perms, E> JobInitializer for CreditFacilityProcessingJobInitializer<Perms, E>
+const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("obligation-defaulted");
+impl<Perms, E> JobInitializer for ObligationDefaultedJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -60,11 +59,11 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_DEFAULTED_PROCESSING_JOB
+        OBLIGATION_DEFAULTED_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationDefaultedJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
             ledger: self.ledger.clone(),
@@ -72,18 +71,18 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct ObligationDefaultedJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: ObligationDefaultedJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationDefaultedJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
