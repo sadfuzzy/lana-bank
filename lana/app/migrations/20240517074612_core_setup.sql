@@ -336,6 +336,25 @@ CREATE TABLE core_payment_allocation_events (
   UNIQUE(id, sequence)
 );
 
+-- Document storage tables
+CREATE TABLE core_documents (
+  id UUID PRIMARY KEY,
+  owner_id UUID,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_core_documents_owner_id ON core_documents(owner_id);
+
+CREATE TABLE core_document_events (
+  id UUID NOT NULL REFERENCES core_documents(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,

@@ -17,9 +17,8 @@ use error::*;
 const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
 #[derive(Debug, Clone)]
-pub struct LocationInCloud<'a> {
-    pub bucket: &'a str,
-    pub path_in_bucket: &'a str,
+pub struct LocationInStorage<'a> {
+    pub path_in_storage: &'a str,
 }
 
 #[derive(Clone)]
@@ -36,6 +35,10 @@ impl Storage {
 
     pub fn bucket_name(&self) -> &str {
         &self.config.bucket_name
+    }
+
+    pub fn storage_identifier(&self) -> String {
+        format!("gcp:{}", self.config.bucket_name)
     }
 
     fn path_with_prefix(&self, path: &str) -> String {
@@ -72,12 +75,12 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
-        let bucket = location.bucket;
-        let object_name = self.path_with_prefix(location.path_in_bucket);
+    pub async fn remove(&self, location: LocationInStorage<'_>) -> Result<(), StorageError> {
+        let bucket = self.config.bucket_name.clone();
+        let object_name = self.path_with_prefix(location.path_in_storage);
 
         let req = DeleteObjectRequest {
-            bucket: bucket.to_owned(),
+            bucket,
             object: object_name,
             ..Default::default()
         };
@@ -88,12 +91,11 @@ impl Storage {
 
     pub async fn generate_download_link(
         &self,
-        location: impl Into<LocationInCloud<'_>>,
+        location: impl Into<LocationInStorage<'_>>,
     ) -> Result<String, StorageError> {
         let location = location.into();
 
-        let bucket = location.bucket;
-        let object_name = self.path_with_prefix(location.path_in_bucket);
+        let object_name = self.path_with_prefix(location.path_in_storage);
 
         let opts = SignedURLOptions {
             expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
@@ -103,7 +105,7 @@ impl Storage {
         let signed_url = self
             .client()
             .await?
-            .signed_url(bucket, &object_name, None, None, opts)
+            .signed_url(&self.config.bucket_name, &object_name, None, None, opts)
             .await?;
 
         Ok(signed_url)
